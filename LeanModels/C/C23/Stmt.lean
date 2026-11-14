@@ -617,7 +617,20 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
               if hasDecl rest then
                 refuseUnsupported "goto skips a block declaration"
               else execBlock fuel ctx tail
-          | none => pure (.goto l)
+          | none =>
+              -- A forward goto may land in the compound then-arm of a
+              -- later if.  The label is still a parser-tree child of this
+              -- enclosing block, so resume at its tail and then continue
+              -- with the statements after the if (C23 §6.8.6.1).
+              match rest with
+              | (.ifS _ (.compound body bsp) _ _) :: after =>
+                  match findLabel l body with
+                  | some tail =>
+                      if hasDecl rest then
+                        refuseUnsupported "goto skips a block declaration"
+                      else execBlock fuel ctx (tail ++ after)
+                  | none => pure (.goto l)
+              | _ => pure (.goto l)
       | other => pure other
 
 /-- One loop, with fuel decreasing per ITERATION.
