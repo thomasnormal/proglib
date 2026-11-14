@@ -366,4 +366,102 @@ theorem CoreMemDesign.settleAssignAt_two_ident_fast_refines
   rw [hstate₁] at hv₂'
   simp [CoreMemDesign.settleAssignAt, hwidth₁, hwidth₂, hv₁, hv₂', hstate₁, hstate₂]
 
+/-! ## Direct scalar NBA commit
+
+The edge executor already samples scalar NBAs into `NbaQueue2`.  Committing
+that queue through `Elab1.commit` rebuilds a chain of function-valued stores;
+the array route applies the same source-shaped window writes to the existing
+cache instead.  The refinement below is deliberately conditional on the
+ordinary flat declaration invariant: a queue entry must resolve to a flat
+declared cell in the cache.  Designs outside that invariant remain on the
+authoritative route rather than being approximated.
+-/
+
+def CoreMemDesign.fastCommitScalar (E : CoreMemDesign) (s : CoreMemFastState) :
+    NbaQueue2 → Res CoreMemFastState
+  | [] => .ok s
+  | (name, lo, part) :: rest =>
+      match E.scalarEdge.base.resolve name with
+      | none => .unsupported s!"11.5.1: scalar NBA target '{name}' is undeclared"
+      | some x =>
+          match x.path with
+          | _ :: _ => .unsupported "11.5.1: non-flat scalar NBA target"
+          | [] =>
+              let old := s.scalar.cells.getD x.decl (s.scalar.fallback x)
+              let cells := s.scalar.cells.setIfInBounds x.decl (old.write lo part)
+              E.fastCommitScalar
+                { s with
+                    scalar := { s.scalar with cells }
+                    scalarCache := cells } rest
+
+def CoreMemDesign.FlatScalarQueue (E : CoreMemDesign) (s : CoreMemFastState)
+    (q : NbaQueue2) : Prop :=
+  ∀ u ∈ q, ∃ x,
+    E.scalarEdge.base.resolve u.1 = some x ∧
+      x.path = [] ∧ x.decl < s.scalar.cells.size
+
+theorem CoreMemDesign.fastCommitScalar_toState_scalar
+    (E : CoreMemDesign) (s s' : CoreMemFastState) (q : NbaQueue2)
+    (hflat : E.FlatScalarQueue s q)
+    (h : E.fastCommitScalar s q = .ok s') :
+    s'.toState.scalar = E.scalarEdge.commit s.toState.scalar q := by
+  induction q generalizing s s' with
+  | nil =>
+      cases h
+      rfl
+  | cons u rest ih =>
+      obtain ⟨x, hx, hpath, hbound⟩ := hflat u (by simp)
+      cases x with
+      | mk path decl =>
+          cases path with
+          | nil =>
+              simp [CoreMemDesign.fastCommitScalar, hx] at h
+              let old := s.scalar.cells.getD decl (s.scalar.fallback { path := [], decl })
+              let cells := s.scalar.cells.setIfInBounds decl (old.write u.2.1 u.2.2)
+              let s1 : CoreMemFastState :=
+                { s with
+                    scalar := { s.scalar with cells }
+                    scalarCache := cells }
+              have htail : E.fastCommitScalar s1 rest = .ok s' := by
+                simpa [s1, cells, old] using h
+              have hflat' : E.FlatScalarQueue s1 rest := by
+                intro v hv
+                obtain ⟨y, hy, hyp, hyb⟩ := hflat v (by simp [hv])
+                exact ⟨y, hy, hyp, by simpa [s1, cells, old] using hyb⟩
+              have ih' := ih s1 s' hflat' htail
+              have hwrite := fastWriteWin_ok_of_flat E.scalarEdge.base
+                s.scalar.fallback s.scalar.cells u.1 { path := [], decl } u.2.1 u.2.2
+                hx hpath hbound
+              rw [ih']
+              have hwrite' := congrArg
+                (fun z : Store =>
+                  List.foldl
+                    (fun s u => E.scalarEdge.base.writeWin s u.1 u.2.1 u.2.2)
+                    z rest) hwrite
+              simpa [s1, cells, old, CoreMemFastState.toState,
+                FastConfig.store, Elab1.commit, List.foldl] using hwrite'
+          | cons head tail => simp_all
+
+theorem CoreMemDesign.fastCommitScalar_preserves_memory
+    (E : CoreMemDesign) (s s' : CoreMemFastState) (q : NbaQueue2)
+    (h : E.fastCommitScalar s q = .ok s') : s'.memory = s.memory := by
+  induction q generalizing s s' with
+  | nil => simp [CoreMemDesign.fastCommitScalar] at h ⊢; cases h; rfl
+  | cons u rest ih =>
+      cases hx : E.scalarEdge.base.resolve u.1 with
+      | none => simp [CoreMemDesign.fastCommitScalar, hx] at h
+      | some x =>
+          cases hp : x.path with
+          | nil =>
+              let old := s.scalar.cells.getD x.decl (s.scalar.fallback x)
+              let cells := s.scalar.cells.setIfInBounds x.decl (old.write u.2.1 u.2.2)
+              let s1 : CoreMemFastState :=
+                { s with
+                    scalar := { s.scalar with cells }
+                    scalarCache := cells }
+              have htail : E.fastCommitScalar s1 rest = .ok s' := by
+                simpa [CoreMemDesign.fastCommitScalar, hx, hp, s1, cells, old] using h
+              exact ih s1 s' htail
+          | cons head tail => simp [CoreMemDesign.fastCommitScalar, hx, hp] at h
+
 end LeanModels.Sv.Kernel
