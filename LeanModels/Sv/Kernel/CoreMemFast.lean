@@ -18,14 +18,18 @@ set_option autoImplicit false
 
 structure CoreMemFastState where
   scalar : FastConfig
+  /-- The canonical state's data-backed scalar cache, retained alongside the
+      array view so this bridge remains a full `CoreMemState` bridge. -/
+  scalarCache : Array Val
   memory : MemState
 
 def CoreMemFastState.toState (s : CoreMemFastState) : CoreMemState :=
-  { scalar := s.scalar.store, memory := s.memory }
+  { scalar := s.scalar.store, scalarCache := s.scalarCache, memory := s.memory }
 
 def CoreMemFastState.ofState (E : CoreMemDesign) (s : CoreMemState) : CoreMemFastState :=
   { scalar := FastConfig.ofConfig E.scalar
       { store := s.scalar, active := [], k := 0 }
+    scalarCache := s.scalarCache
     memory := s.memory }
 
 theorem CoreMemFastState.ofState_toState (E : CoreMemDesign) (s : CoreMemState) :
@@ -43,8 +47,8 @@ def CoreMemDesign.fastScalarWrite (E : CoreMemDesign) (s : CoreMemFastState)
       | [] =>
           let old := s.scalar.cells.getD x.decl (s.scalar.fallback x)
           let converted := Val.ofLVec old.ty v
-          .ok { s with scalar := { s.scalar with
-            cells := s.scalar.cells.setIfInBounds x.decl converted } }
+          let cells := s.scalar.cells.setIfInBounds x.decl converted
+          .ok { s with scalar := { s.scalar with cells }, scalarCache := cells }
       | _ => .unsupported "10.3.2: non-flat scalar target"
 
 def CoreMemDesign.fastScalarAssignAt (E : CoreMemDesign) (s : CoreMemFastState)
@@ -82,7 +86,8 @@ theorem CoreMemDesign.fastScalarWrite_toState
     (hbound : x.decl < s.scalar.cells.size)
     (h : E.fastScalarWrite s name v = .ok s') :
     s'.toState = { s.toState with
-      scalar := E.scalar.setName s.toState.scalar name v } := by
+      scalar := E.scalar.setName s.toState.scalar name v
+      scalarCache := s'.scalarCache } := by
   unfold CoreMemDesign.fastScalarWrite at h
   rw [hresolve] at h
   cases x with
@@ -113,7 +118,8 @@ theorem CoreMemDesign.fastScalarAssignAt_toState
       (some width) index value = .ok v)
     (h : E.fastScalarAssignAt s view index name value = .ok s') :
     s'.toState = { s.toState with
-      scalar := E.scalar.setName s.toState.scalar name v } := by
+      scalar := E.scalar.setName s.toState.scalar name v
+      scalarCache := s'.scalarCache } := by
   unfold CoreMemDesign.fastScalarAssignAt at h
   simp [hwidth] at h
   rw [hv] at h
@@ -135,7 +141,8 @@ theorem CoreMemDesign.fastSettleAssignAt_single_ident_toState
     (h : E.fastSettleAssignAt env elems s view index
       [.assign (.ident name) value] = .ok (s', view')) :
     s'.toState = { s.toState with
-      scalar := E.scalar.setName s.toState.scalar name v } ∧
+      scalar := E.scalar.setName s.toState.scalar name v
+      scalarCache := s'.scalarCache } ∧
       view' = SvState.set view name v := by
   simp [CoreMemDesign.fastSettleAssignAt, hwidth, hv] at h
   obtain ⟨a, ha, hs⟩ := h
