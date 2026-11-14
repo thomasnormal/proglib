@@ -1106,7 +1106,51 @@ picks the writer by NAME: it keeps the sites whose target is the signal `Q` name
 "y14"`, read off the site's constructor term, no evaluation), builds the membership proof in the
 disjunction directly and closes the rest of `Q` with `decide` (`omega` when a parameter is free). The
 input-bit disjunct `A ∨ …` is tried first. A design with no generate loop and no parameter never reaches
-this: `sv_equations` has already decided its coverage (`CombEqPlain.lean`). -/
+this: `sv_equations` has already decided its coverage (`CombEqPlain.lean`).
+
+**Powers of a genvar** (the shift and power atoms, `XAt`). A read at a column shifted by a power, `x[l][i - (1 << l)]`
+(the goal holds `i + -2 ^ l.toNat`), is covered only given the power's sign, which `omega` reads as an opaque atom: before
+either route, `sv_cover` puts `0 < b ^ t.toNat` in context for every such power of a literal base `b ≥ 1` in the goal,
+each proved (`Int.pow_pos`). Without it the goal is not provable from the context, and `omega`, given a large constant
+bound such as `N < 2^31 - 1`, exceeds the recursion limit there rather than fail (`gen_pow/eq_proof.lean`). Any such
+exhaustion is reported as an ordinary failure (`evalSvCover`), so `first | sv_cover | (sv_pow_facts <;> sv_cover)`
+reaches its second alternative where other facts are missing (a wrapped `$clog2` row in the Kogge-Stone adder). -/
+
+/-- The pairs `(b, t)` of the subterms `b ^ Int.toNat t` of `e` of type `Int` that mention no bound variable, under
+binders too (a coverage goal holds the read inside the writers' existentials): the evaluations of the shift and power
+atoms (`XAt.eval`). -/
+private partial def atomPows (e : Expr) : Array (Expr × Expr) :=
+  let here : Array (Expr × Expr) :=
+    if e.isAppOfArity ``HPow.hPow 6 && !e.hasLooseBVars && e.getArg! 0 == mkConst ``Int &&
+        e.getArg! 1 == mkConst ``Nat && (e.getArg! 5).isAppOfArity ``Int.toNat 1 then #[(e.getArg! 4, e.getArg! 5)]
+    else #[]
+  let sub : Array (Expr × Expr) :=
+    match e with
+    | .app f a => atomPows f ++ atomPows a
+    | .lam _ t b _ => atomPows t ++ atomPows b
+    | .forallE _ t b _ => atomPows t ++ atomPows b
+    | .letE _ t v b _ => atomPows t ++ atomPows v ++ atomPows b
+    | .mdata _ b => atomPows b
+    | .proj _ _ b => atomPows b
+    | _ => #[]
+  here ++ sub
+
+/-- Put `0 < b ^ t.toNat` in the context of the main goal for every power of a genvar in its type (`atomPows`, a literal
+base `b ≥ 1`), each proved by `Int.pow_pos` from `0 < b` by `decide`. Nothing else is added: a goal without such a power
+is untouched. -/
+private def addPowPositivity : TacticM Unit := do
+  let ty ← instantiateMVars (← (← getMainGoal).getType)
+  let mut seen : Array (Expr × Expr) := #[]
+  for (b, t) in atomPows ty do
+    if seen.any (fun (b', t') => b' == b && t' == t) then continue
+    seen := seen.push (b, t)
+    let some k ← getIntValue? b | continue
+    unless 1 ≤ k do continue
+    let zero := toExpr (0 : Int)
+    let hb ← mkDecideProof (← mkAppM ``LT.lt #[zero, b])
+    let pf ← mkAppOptM ``Int.pow_pos #[some b, some t, some hb]
+    let fact ← mkAppM ``LT.lt #[zero, ← mkAppM ``HPow.hPow #[b, t]]
+    assertMain `hpow_pos (← mkExpectedTypeHint pf fact)
 
 /-- Try the alternatives in order, restoring the state after a failure; the error is the last one. -/
 private partial def firstOf (alts : List (TacticM Unit)) : TacticM Unit := do
@@ -1420,6 +1464,8 @@ private partial def svCoverMain : TacticM Unit := do
       unless (← getGoals).isEmpty do throwError "sv_cover: a part of the conjunction is left open"
     setGoals rest
   else
+    -- the sign of every power of a genvar in the goal (the shift and power atoms), proved
+    (← getMainGoal).withContext addPowPositivity
     let budget ← IO.mkRef 250
     -- the 2-D rule first (`CombCover.lean`); a shape it does not read takes the search below
     let st ← saveState
@@ -1431,4 +1477,15 @@ private partial def svCoverMain : TacticM Unit := do
     unless done do svCover budget
     setGoals ((← getGoals) ++ rest)
 
-@[tactic svCoverStx] def evalSvCover : Tactic := fun _ => withDeepRec svCoverMain
+/-- `sv_cover` at the deep recursion limit. A search step that exceeds even that limit (`omega` given a goal it cannot
+prove from the context, with a large constant bound in context: it may exhaust the limit rather than fail) is turned into
+an ordinary failure, the state restored, so that a player's `first | sv_cover | …` goes on to its next alternative. A
+runtime error passes through `try`/`first` unchanged, and the call would have ended the proof. -/
+@[tactic svCoverStx] def evalSvCover : Tactic := fun _ => withDeepRec do
+  let st ← saveState
+  tryCatchRuntimeEx svCoverMain fun ex => do
+    unless ex.isMaxRecDepth do throw ex
+    st.restore
+    throwError "sv_cover: a search step exceeded the recursion limit on this goal: `omega` was given a goal it cannot \
+      prove from the context (a fact it needs is missing, such as the value of a wrapped constant or a bound of a \
+      `$clog2`: `sv_pow_facts` puts those in context first)"
