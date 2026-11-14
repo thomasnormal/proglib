@@ -28,7 +28,7 @@ theorem gen_tri_y (N : Nat) (hN : 1 ≤ N) (hR : (N : Int) < 2147483648)
   sv_equations
   · intro i hi
     rw [eq_y_g_row_2 i hi, eq_t_g_lo_0 i hi i (by omega)]
-    have e : ((i : Int) + -1 * (i : Int) + -0).toNat = 0 := by omega
+    have e : ((i : Int) + -1 * (i : Int)).toNat = 0 := by omega
     rw [e]
   all_goals first
     | (intros; omega)

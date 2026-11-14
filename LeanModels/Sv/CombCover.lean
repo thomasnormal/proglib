@@ -25,9 +25,11 @@ equations `r(a) = R`, `c₀(b) = C`. The rule therefore
    for a window `r = R ∧ 0 ≤ c₀ ∧ 0 ≤ C ∧ c₀ ≤ C + e ∧ C + e < c₀ + wd` (the premises of the single
    sufficiency lemma `rmN_win_suff`, which is all the arithmetic of `rmN` the rule needs);
 3. walks the disjunction: `Classical.em L`, `L` gives the disjunct (the proof is built from the
-   components of `L`, no tactic runs), `¬L` goes to the next disjunct; the LAST disjunct is proved
-   component by component from the negations of the others and the hypotheses (`proveLin`: each
-   component first from the hypotheses alone, then with the negations split one writer at a time);
+   components of `L`, no tactic runs), `¬L` goes to the next disjunct; the LAST disjunct is proved by
+   one `omega` call from the negations of the others and the hypotheses, and where that call exhausts
+   the recursion limit (`omega` case-splits every negation at once), component by component
+   (`proveLin`: each component first from the hypotheses alone, then with the negations split one
+   writer at a time);
 4. closes a conjunct that already occurred in the goal by the proof of its first occurrence.
 
 `L` is only sufficient (the lemma has no converse), but the witnesses are the unique solution of the
@@ -359,7 +361,10 @@ def linOk (g : MVarId) : TacticM Bool := do
       (do
         evalTactic (← `(tactic| first | omega | trivial))
         pure (← getGoals).isEmpty)
-      fun _ => pure false
+      fun ex => do
+        -- a failure, or the recursion limit: `false`; any other runtime exception (heartbeats) passes through
+        if ex.isRuntime && !ex.isMaxRecDepth then throw ex
+        pure false
   unless ok do saved.restore
   pure ok
 
@@ -441,7 +446,11 @@ where
     let saved ← saveState
     let m ← mkFreshExprSyntheticOpaqueMVar (mkForall `h .default L (mkConst ``False))
     let (_, m') ← m.mvarId!.intro1
-    let ok ← linOk m'
+    setGoals [m']
+    let ok ← try
+        evalTactic (← `(tactic| omega))
+        pure (← getGoals).isEmpty
+      catch _ => pure false
     unless ok do saved.restore
     pure ok
   chain (tried : Array Lean.Expr) (negs : List (FVarId × Lean.Expr)) (g : MVarId) : TacticM Unit := do
@@ -474,22 +483,43 @@ where
       else
         let plan ← planOf T
         let L := mkAndAll plan.inL
-        -- each component on its own, the writers before it split one at a time (`proveLin`)
+        -- one `omega` call on the whole condition first (the old step 4, and the cheap one where it succeeds); then each
+        -- component on its own, the writers before it split one at a time (`proveLin`)
         let mut prfs : Array Lean.Expr := #[]
         let mut failed : Option Lean.Expr := none
-        for c in plan.inL do
-          let gc ← g.withContext (mkFreshExprSyntheticOpaqueMVar c)
-          if ← proveLin gc.mvarId! negs then prfs := prfs.push gc
-          else
-            failed := some c
-            break
+        let gL ← g.withContext (mkFreshExprSyntheticOpaqueMVar L)
+        setGoals [gL.mvarId!]
+        let saved ← saveState
+        -- `0`: not provable (reported, as before); `1`: proved; `2`: the call exhausted the recursion limit
+        let res ← tryCatchRuntimeEx
+            (do
+              evalTactic (← `(tactic| first | omega | trivial))
+              pure (if (← getGoals).isEmpty then 1 else 0))
+            fun ex => do
+              if ex.isRuntime && !ex.isMaxRecDepth then throw ex
+              pure (if ex.isMaxRecDepth then 2 else 0)
+        if res == 1 then
+          prfs ← projs gL plan.inL.size
+        else if res == 0 then
+          saved.restore
+          failed := some L
+        else
+          saved.restore
+          for c in plan.inL do
+            let gc ← g.withContext (mkFreshExprSyntheticOpaqueMVar c)
+            if ← proveLin gc.mvarId! negs then prfs := prfs.push gc
+            else
+              failed := some c
+              break
         if let some c := failed then
           let tried := tried.push L
           let mut lines : MessageData := m!""
           for (c, i) in tried.toList.zipIdx do
             lines := lines ++ m!"\n  ({i + 1}) {← tidy c}"
           let rd := (readOf? T).getD T
-          throwError "{diagPrefix}{indentExpr rd}\nneeds, for one of its writers (witnesses solved from the read's index), one of:{lines}\nand none of them follows from the hypotheses; for the last writer, the condition that does not follow (from the hypotheses and the other writers' failures) is{indentExpr (← tidy c)}"
+          let extra : MessageData ← if c == L then pure m!"" else do
+            pure m!"; for the last writer, the condition that does not follow (from the hypotheses and the other writers' failures) is{indentExpr (← tidy c)}"
+          throwError "{diagPrefix}{indentExpr rd}\nneeds, for one of its writers (witnesses solved from the read's index), one of:{lines}\nand none of them follows from the hypotheses{extra}"
         let hs := plan.fullHs (← prfs.mapM instantiateMVars)
         let (pf, _, _) ← build T plan.ws.toList hs.toList
         unless (← isDefEq (← inferType pf) T) do throwError "sv_cover: internal error (ill-typed proof)"
