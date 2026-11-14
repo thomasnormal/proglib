@@ -960,6 +960,7 @@ unsafe def signedStructureDesign? : TacticM (Option Name) := do
     if ← hasSignedReads pd then return some pdName else return none
 
 @[tactic svStructure] unsafe def evalSvStructureSigned : Tactic := fun stx => do
+  cleanMainGoalMData
   let some pdName ← signedStructureDesign? | throwUnsupportedSyntax
   let usingStx? : Option Syntax := if stx[2].isNone then none else some stx[2][1]
   let hook := signedHook pdName
@@ -971,6 +972,7 @@ unsafe def signedStructureDesign? : TacticM (Option Name) := do
     else withDeepRec (runSvStructure (some cl[3]) none usingStx? false hook)
 
 @[tactic svStructureQ] unsafe def evalSvStructureQSigned : Tactic := fun _ => do
+  cleanMainGoalMData
   let some pdName ← signedStructureDesign? | throwUnsupportedSyntax
   withDeepRec (runSvStructure none none none true (signedHook pdName))
 
@@ -1073,6 +1075,7 @@ unsafe def hierStructureDesign? : TacticM (Option (Lean.Expr × Lean.Expr × Lea
 /-- (`no_fallback`: a design this elaborator takes is one with module instances; its refusal is the one to report, not
 the flat elaborator's generic one.) -/
 @[no_fallback, tactic svStructure] unsafe def evalSvStructureHier : Tactic := fun stx => do
+  cleanMainGoalMData
   let some (pd, lib, args) ← hierStructureDesign? | throwUnsupportedSyntax
   let usingStx? : Option Syntax := if stx[2].isNone then none else some stx[2][1]
   let hook ← hierHook pd lib args
@@ -1084,6 +1087,7 @@ the flat elaborator's generic one.) -/
     else withDeepRec (runSvStructure (some cl[3]) none usingStx? false hook)
 
 @[no_fallback, tactic svStructureQ] unsafe def evalSvStructureQHier : Tactic := fun _ => do
+  cleanMainGoalMData
   let some (pd, lib, args) ← hierStructureDesign? | throwUnsupportedSyntax
   withDeepRec (runSvStructure none none none true (← hierHook pd lib args))
 

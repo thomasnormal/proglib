@@ -798,6 +798,7 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
 
 @[tactic svStructure] unsafe def evalSvStructureL : Tactic := fun stx => guardL do
   unless stx[2].isNone do throwUnsupportedSyntax
+  cleanMainGoalMData
   let goal ← getMainGoal
   let ty ← goal.withContext (do instantiateMVars (← goal.getType))
   if ty.isAppOfArity ``LeanModels.Sv.Kernel.CoreMemDesign.Structure 1 then
@@ -811,6 +812,7 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
     else withDeepRec (runSvStructureL (some cl[3]) none false)
 
 @[tactic svStructureQ] unsafe def evalSvStructureQL : Tactic := fun _ => guardL do
+  cleanMainGoalMData
   let goal ← getMainGoal
   goal.withContext do
     let ty ← instantiateMVars (← goal.getType)
@@ -915,7 +917,9 @@ unsafe def runSvInterfaceL : TacticM Unit := do
       catch e =>
         throwError "sv_interface: the declared ports do not match the task's interface (or the width arithmetic is outside `omega`'s reach):\n{e.toMessageData}"
 
-@[tactic svInterface] unsafe def evalSvInterfaceL : Tactic := fun _ => guardL (withDeepRec runSvInterfaceL)
+@[tactic svInterface] unsafe def evalSvInterfaceL : Tactic := fun _ => guardL do
+  cleanMainGoalMData
+  withDeepRec runSvInterfaceL
 
 /-! ## `sv_equations` -/
 
