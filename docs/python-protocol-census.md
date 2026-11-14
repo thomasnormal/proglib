@@ -638,3 +638,7 @@ call branch for an arbitrary raw frame result, without restricting the body to
 the assignment fragment. Its hypothesis names the exact frame state and
 preserves the resulting world through `finishCallM`; the remaining generic
 work is the other body flow classes and the recursive call continuation.
+
+`Monadic.twinAgrees_callInM_top_body_ret` composes the same arbitrary raw body
+result transport for a returned value, preserving the resulting world and
+restoring the top call depth before exposing the value to the caller.
