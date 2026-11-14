@@ -630,7 +630,23 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
                         refuseUnsupported "goto skips a block declaration"
                       else execBlock fuel ctx (tail ++ after)
                   | none => pure (.goto l)
-              | _ => pure (.goto l)
+              | _ =>
+                  -- §6.8.6.1: a same-function `goto` may target a label
+                  -- earlier in the enclosing function.  The parser AST is
+                  -- already the function's complete statement list, so
+                  -- resume from its label tail; no source re-parsing or
+                  -- control-flow lowering is involved.  A declaration on
+                  -- the resumed tail would mean jumping into its scope and
+                  -- remains a loud refusal.  Fuel bounds repeated jumps.
+                  match ctx.functionBody with
+                  | some functionStatements =>
+                      match findLabel l functionStatements with
+                      | some tail =>
+                          if hasDecl tail then
+                            refuseUnsupported "goto skips a block declaration"
+                          else execBlock fuel ctx tail
+                      | none => pure (.goto l)
+                  | none => pure (.goto l)
       | other => pure other
 
 /-- One loop, with fuel decreasing per ITERATION.
@@ -1786,7 +1802,10 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                    match prog.findId? declaration with
                    | some g => functionCallFree g
                    | none => false
-               | none => false } : Ctx).withCompoundInit
+               | none => false,
+             functionBody := some (match body with
+               | .compound statements _ => statements
+               | statement => [statement]) } : Ctx).withCompoundInit
         let ctx ← bindParams prog.layout ctx0 f.params fixedArgs
         let flow ← execStmt fuel ctx body
         let m₁ ← get

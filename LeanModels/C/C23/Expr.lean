@@ -504,6 +504,11 @@ structure Ctx where
   /-- Conservative effect summary for direct calls. `false` means the
   callee may write and must stay in the indeterminate-order refusal path. -/
   callPure : Expr → Bool := fun _ => false
+  /-- The current function's parser-native statement list.  A `goto` may
+  jump backward to a label in this same function (§6.8.6.1); carrying the
+  already-ingested list lets statement execution resume at that label
+  without rebuilding a control-flow graph or parsing source text. -/
+  functionBody : Option (List Stmt) := none
   /-- Statement-layer aggregate initialization for compound literals. -/
   compoundInit : Nat → Env → IdEnv → Layout → Ptr → CType → Expr → EvalM Unit :=
     fun _ _ _ _ _ _ _ => refuseUnsupported "compound literal initializer callback unavailable"
@@ -1163,13 +1168,17 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
   | .unop op sub _ _ _ =>
       if op == "*" then (do let v ← evalExpr ctx sub; asPtr v)
       else refuseUnsupported s!"unary '{op}' is not an lvalue"
-  | .compoundLit init ty _ => do
+  | .compoundLit init ty span => do
       match ctx.layout.size ty with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
           let m ← get
-          let (m', o) := m.alloc .automatic sz (some ty)
-          set m'
+          let o ← match m.compoundObject? span with
+            | some existing => pure existing
+            | none =>
+                let (m', fresh) := m.alloc .automatic sz (some ty)
+                set (m'.rememberCompound span fresh)
+                pure fresh
           ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
           pure (Ptr.toObject o)
   | e => refuseUnsupported s!"not an lvalue: {e.kindName}"
@@ -1179,13 +1188,17 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
 /-- §6.5 — an expression in VALUE position. -/
 def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .paren sub _ _ => evalExpr ctx sub
-  | .compoundLit init ty _ => do
+  | .compoundLit init ty span => do
       match ctx.layout.size ty with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
           let m ← get
-          let (m', o) := m.alloc .automatic sz (some ty)
-          set m'
+          let o ← match m.compoundObject? span with
+            | some existing => pure existing
+            | none =>
+                let (m', fresh) := m.alloc .automatic sz (some ty)
+                set (m'.rememberCompound span fresh)
+                pure fresh
           ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
           pure (CVal.ptr (Ptr.toObject o))
 

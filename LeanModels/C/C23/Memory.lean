@@ -262,11 +262,15 @@ structure Mem where
   /-- Abstract `va_list` cursors. Keys are the parser-allocated object ids;
   the representation deliberately contains no ABI addresses or widths. -/
   vaCursors : List (ObjId × List CVal) := []
+  /-- Block-scoped compound literals are one parser node's automatic object
+  per enclosing block entry (§6.5.2.5p5).  The identity table lets repeated
+  loop execution reuse that object instead of fabricating a fresh address. -/
+  compoundObjects : List (CSpan × ObjId) := []
 deriving Repr, Inhabited, BEq
 
 namespace Mem
 
-def empty : Mem := ⟨[], [], []⟩
+def empty : Mem := ⟨[], [], [], []⟩
 
 def emitStdout (m : Mem) (bytes : List CByte) : Mem :=
   { m with stdout := m.stdout ++ bytes }
@@ -328,6 +332,15 @@ def vaArg (m : Mem) (p : Ptr) : MRes (CVal × Mem) :=
 def get? (m : Mem) (o : ObjId) : Option CObj := m.objs[o]?
 
 def count (m : Mem) : Nat := m.objs.length
+
+def compoundObject? (m : Mem) (span : CSpan) : Option ObjId :=
+  (m.compoundObjects.find? (fun entry => entry.1 == span)).bind fun entry =>
+    match m.get? entry.2 with
+    | some obj => if obj.live then some entry.2 else none
+    | none => none
+
+def rememberCompound (m : Mem) (span : CSpan) (o : ObjId) : Mem :=
+  { m with compoundObjects := (span, o) :: m.compoundObjects }
 
 /-- C23 §6.2.4 / §6.7.11: create an object whose representation is
 INDETERMINATE. Returns the new memory and the object's id.
