@@ -10,7 +10,8 @@ import LeanModels.Sv.Lib.Prefix
 `prefix_sklansky_add : AddStatement prefix_sklansky.sem` (`prefix_ks/statement.lean`: the svGolf `add` task's statement
 over ls-sv), by the route of `prefix_ks/add_proof.lean`:
 
-* `sv_structure`: `CombDesign` and `Acyclic` of `prefix_sklansky.sem N` at every `N < 2^20` (the rank is the round);
+* `sv_structure`: `CombDesign` with the shared obligations (`SharedObl`), then `Acyclic` from them, of
+  `prefix_sklansky.sem N` at every `N < 2^20`, each in a theorem of its own (the rank is the round);
 * `sv_interface`: the ports;
 * `CombTask.lean`: the generic conjuncts and the stimulus form of the function from the settled-state form;
 * `sv_equations`: the settled-state equations over `Bool`, the bit test `((k >> r) & 1) == 1` read as
@@ -72,16 +73,24 @@ theorem sklRec_block (pos : Nat → Bool × Bool) : ∀ r k, sklRec pos r k = pg
 
 /-! ## 2. Structure and ports -/
 
-set_option maxHeartbeats 400000 in
-/-- `CombDesign` and `Acyclic` for every `N` in range; the rank of round `r + 1` is `r + 1`, the sum and the carry out
-come last. -/
-theorem skl_struct (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) :
-    CombDesign (prefix_sklansky.sem N) ∧ Acyclic (prefix_sklansky.sem N) := by
+/-- `CombDesign` for every `N` in range, and the shared obligations (`auto`, `inRange`) that the rank and the equations
+read from the context instead of normalizing them again. -/
+theorem skl_comb (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) :
+    CombDesign (prefix_sklansky.sem N) ∧ SharedObl prefix_sklansky.pdesign [N] := by
+  sv_structure
+  all_goals (intros; first
+    | omega
+    | (sv_rowmajor; (try simp only [true_and]); omega)
+    | (sv_pow_facts <;> first | omega | (sv_rowmajor; (try simp only [true_and]); omega)))
+
+/-- `Acyclic` for every `N` in range: the rank of round `r + 1` is `r + 1`, the sum and the carry out come last. -/
+theorem skl_acyclic (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) (hc : CombDesign (prefix_sklansky.sem N))
+    (hso : SharedObl prefix_sklansky.pdesign [N]) : Acyclic (prefix_sklansky.sem N) := by
   sv_structure (lexRank := fun
     | .fam "g_node" _ [r, _] => (r.toNat + 1, 0, 0)
     | .fam "g_sum" _ _ => (40, 0, 0)
     | .plain 2 => (40, 0, 0)
-    | _ => (0, 0, 0))
+    | _ => (0, 0, 0)) using hc
   all_goals (intros; first
     | omega
     | (sv_rowmajor; (try simp only [true_and]); omega)
@@ -99,7 +108,8 @@ set_option maxHeartbeats 400000 in
 /-- **The Sklansky adder meets the svGolf `add` statement**, at every `N` with `1 ≤ N < 2^20`. -/
 theorem prefix_sklansky_add : AddStatement prefix_sklansky.sem := by
   intro N ⟨hN, hR⟩
-  obtain ⟨hc, ha⟩ := skl_struct N hN hR
+  obtain ⟨hc, hso⟩ := skl_comb N hN hR
+  have ha := skl_acyclic N hN hR hc hso
   have hports := skl_ports N hN hR hc
   refine ⟨hports, ⟨hc.unclocked, ⟨_, hc.lowerComb_eq, ha⟩, Terminates2.of_acyclic hc ha⟩,
     Models2.of_comb_ports hc fun inputs st heqs hsh hin => ?_⟩

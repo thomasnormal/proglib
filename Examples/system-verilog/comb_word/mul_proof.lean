@@ -19,8 +19,9 @@ product modulo `2^w`). The `2N`-bit product is the exact one (`mul_full`).
 
 `sq_chain.sv` bounds a generate loop by a `$clog2` localparam, `L = $clog2(N) + 1`, and squares a row per iteration:
 `r[i + 1] = r[i] * r[i]`. The localparam is an opaque atom of the obligations (`↑(clog2 N) + 1`), read by `omega` as an
-unknown; the one fact about it an obligation needs is the generate-fuel bound `L ≤ 4 N + 60` (`clog2_le`). The closed
-form is one induction over the rows (`sq_chain_gen`, the pattern of `row_chain_gen`): `y = x ^ (2 ^ L) mod 2 ^ N`.
+unknown; the one fact about it an obligation needs is the generate-fuel bound `L ≤ fuelSq N + 4 N + 67` (`clog2_le`).
+The closed form is one induction over the rows (`sq_chain_gen`, the pattern of `row_chain_gen`): `y = x ^ (2 ^ L) mod
+2 ^ N`.
 -/
 
 open LeanModels.Sv LeanModels.Sv.CombView LeanModels.Sv.CombLib LeanModels.Sv.CombEq

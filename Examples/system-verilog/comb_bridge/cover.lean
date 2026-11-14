@@ -45,7 +45,9 @@ error: sv_cover: the cell is not covered
 needs, for one of its writers (witnesses solved from the read's index), one of:
   (1) 1 ≤ ↑i✝.toNat ∧
   i✝.toNat < N ∧ Int.toNat 0 < N ∧ ↑i✝.toNat = i✝ ∧ 0 ≤ 0 ∧ ↑(Int.toNat 0) ≤ 0 ∧ 0 < ↑(Int.toNat 0) + 1
-and none of them follows from the hypotheses
+and none of them follows from the hypotheses; for the last writer, the condition that does not follow (from the
+hypotheses and the other writers' failures) is
+  1 ≤ ↑i✝.toNat
 -/
 #guard_msgs (whitespace := lax) in
 theorem cover_missing (N : Nat) (hN : 1 ≤ N) : ∀ (i : Int), 0 ≤ i → i < ↑N →

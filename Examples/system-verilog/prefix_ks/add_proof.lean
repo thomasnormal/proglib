@@ -9,7 +9,8 @@ import LeanModels.Sv.Lib.Prefix
 
 `prefix_ks_add : AddStatement prefix_ks.sem` (`statement.lean`: the svGolf `add` task's statement over ls-sv), from
 
-* `sv_structure`: `CombDesign` and `Acyclic` of `prefix_ks.sem N` at every `N < 2^20` (the rank is the round);
+* `sv_structure`: `CombDesign` with the shared obligations (`SharedObl`), then `Acyclic` from them, of
+  `prefix_ks.sem N` at every `N < 2^20`, each in a theorem of its own (the rank is the round);
 * `sv_interface`: the ports;
 * `CombTask.lean`: the generic conjuncts (no clocked process, the design is its own lowering, termination) and the
   stimulus form of the function from the settled-state form;
@@ -55,16 +56,24 @@ theorem ksRec_block (pos : Nat → Bool × Bool) : ∀ r k, ksRec pos r k = pgBl
 
 /-! ## 2. Structure and ports -/
 
-set_option maxHeartbeats 400000 in
-/-- `CombDesign` and `Acyclic` for every `N` in range; the rank of round `r + 1` is `r + 1`, the sum and the carry out
-come last. -/
-theorem ks_struct (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) :
-    CombDesign (prefix_ks.sem N) ∧ Acyclic (prefix_ks.sem N) := by
+/-- `CombDesign` for every `N` in range, and the shared obligations (`auto`, `inRange`) that the rank and the equations
+read from the context instead of normalizing them again. -/
+theorem ks_comb (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) :
+    CombDesign (prefix_ks.sem N) ∧ SharedObl prefix_ks.pdesign [N] := by
+  sv_structure
+  all_goals (intros; first
+    | omega
+    | (sv_rowmajor; (try simp only [true_and]); omega)
+    | (sv_pow_facts <;> first | omega | (sv_rowmajor; (try simp only [true_and]); omega)))
+
+/-- `Acyclic` for every `N` in range: the rank of round `r + 1` is `r + 1`, the sum and the carry out come last. -/
+theorem ks_acyclic (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) (hc : CombDesign (prefix_ks.sem N))
+    (hso : SharedObl prefix_ks.pdesign [N]) : Acyclic (prefix_ks.sem N) := by
   sv_structure (lexRank := fun
     | .fam "g_node" _ [r, _] => (r.toNat + 1, 0, 0)
     | .fam "g_sum" _ _ => (40, 0, 0)
     | .plain 2 => (40, 0, 0)
-    | _ => (0, 0, 0))
+    | _ => (0, 0, 0)) using hc
   all_goals (intros; first
     | omega
     | (sv_rowmajor; (try simp only [true_and]); omega)
@@ -82,7 +91,8 @@ set_option maxHeartbeats 400000 in
 /-- **The Kogge-Stone adder meets the svGolf `add` statement**, at every `N` with `1 ≤ N < 2^20`. -/
 theorem prefix_ks_add : AddStatement prefix_ks.sem := by
   intro N ⟨hN, hR⟩
-  obtain ⟨hc, ha⟩ := ks_struct N hN hR
+  obtain ⟨hc, hso⟩ := ks_comb N hN hR
+  have ha := ks_acyclic N hN hR hc hso
   have hports := ks_ports N hN hR hc
   refine ⟨hports, ⟨hc.unclocked, ⟨_, hc.lowerComb_eq, ha⟩, Terminates2.of_acyclic hc ha⟩,
     Models2.of_comb_ports hc fun inputs st heqs hsh hin => ?_⟩
@@ -122,7 +132,7 @@ theorem prefix_ks_add : AddStatement prefix_ks.sem := by
         split
         · next hg =>
           have hg' : (2 : Int) ^ l ≤ ↑k := by exact_mod_cast hg
-          have hi : ((k : Int) + -0 + -1 * 2 ^ l).toNat = k - 2 ^ l := by
+          have hi : ((k : Int) + -1 * 2 ^ l).toNat = k - 2 ^ l := by
             have : ((2 : Int) ^ l) = ((2 ^ l : Nat) : Int) := by norm_cast
             omega
           have e1 := eq_G_g_node_0 l hl' k (by omega) hg'

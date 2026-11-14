@@ -13,7 +13,7 @@ The obligations hold the power `2 ^ clog2 (N + 1)` as an atom; the two facts abo
 `le_two_pow_clog2_int` (`N + 1 ≤ 2 ^ clog2 (N + 1)`) and `two_pow_clog2_lt_int` (`2 ^ clog2 (N + 1) < 2 (N + 1)`).
 
 The range premise `N < 2^28` keeps `P` an `int` (`2 ^ clog2 (N + 1)` is at most `2N + 1`), and the generate fuel bound
-(`4 * N + 60` iterations) holds of `P - N`.
+(`fuelSq N + 4 * N + 67` iterations, the instantiation's own) holds of `P - N`.
 
 Build: `lake build Examples.«system-verilog».lp_pow.comb_proof`.
 -/
