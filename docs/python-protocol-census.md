@@ -632,3 +632,9 @@ outside-loop refusal. `Monadic.execOpenList_assignments_exn_run` and
 exception induction, and `twinAgrees_callInM_top_assignments_exn` composes it
 through the call boundary. The remaining recursive call/body debt is the
 generic non-assignment-shaped body transport and handler congruence.
+
+`Monadic.twinAgrees_callInM_top_body_next` closes the top-depth normal-flow
+call branch for an arbitrary raw frame result, without restricting the body to
+the assignment fragment. Its hypothesis names the exact frame state and
+preserves the resulting world through `finishCallM`; the remaining generic
+work is the other body flow classes and the recursive call continuation.
