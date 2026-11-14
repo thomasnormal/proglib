@@ -1,0 +1,53 @@
+import Examples.«system-verilog».gen_clog2q.gen
+import LeanModels.Sv.CombViewTactic
+
+/-!
+# `$clog2` of a quotient: what stays out (`Examples/system-verilog/gen_clog2q/neg`)
+
+* `gen_clog2q_neg`: `NI = $clog2((N - 20) / 8) + 1`. At `N ≤ 12` the argument is `-1` (`/` truncates toward zero, IEEE
+  1800-2023 §11.4.2) and the instantiation refuses `$clog2` of a negative value (IEEE 1800-2023 §20.8.1 reads the
+  argument as unsigned, Icarus prints `NI = 33` there: `gen.lean`; a refusal, not a value). At a symbolic `N ≥ 1` the
+  instantiation's sign test of the argument is therefore not settled by the hypotheses: refused, naming the decision.
+  Under `13 ≤ N` the quotient is `0` or more (the facts of `Int.tdiv` by a literal, `tdiv_spec_of_pos`) and the design
+  is proved.
+* `gen_clog2q_div`: `$clog2((N + 9) / D)`, a quotient by a parameter: the recognizer refuses it (a localparam divides by
+  an integer literal).
+-/
+
+open LeanModels.Sv LeanModels.Sv.CombView
+open Examples.«system-verilog».gen_clog2q.gen
+
+namespace Examples.«system-verilog».gen_clog2q.comb_errors
+
+/--
+error: sv_structure: the parameter stage (`paramEnv2`) of this design could not be evaluated at a symbolic parameter: the instantiation decides `((Int.ofNat
+              N).emod
+          (2 ^ 32) -
+        20).tdiv
+    8 <
+  0` at a symbolic parameter (the sign test of a shift amount or of `$clog2`'s argument, a divisor's test for zero, ...), and `omega` could not decide it from the hypotheses in context (a theorem at a symbolic parameter needs premises that fix the decision, e.g. `(h : 1 ≤ E)` for a shift by `E - 1`)
+-/
+#guard_msgs (whitespace := lax) in
+example (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) : CombDesign (gen_clog2q_neg.sem N) := by
+  sv_structure
+
+/-- Under `13 ≤ N` the argument's sign test is decided and the design is proved. -/
+theorem gen_clog2q_neg_comb (N : Nat) (hN : 13 ≤ N) (hR : N < 2 ^ 20) : CombDesign (gen_clog2q_neg.sem N) := by
+  sv_structure
+  all_goals (intros; first | omega | sv_pow_omega)
+
+/--
+error: sv_structure: outside the supported fragment — localparam `NI`: `/` by a non-literal is outside the v1 fragment (a localparam may divide by an integer literal)
+-/
+#guard_msgs (whitespace := lax) in
+example (N D : Nat) (hN : 1 ≤ N) (hD : 1 ≤ D) (hR : N < 2 ^ 20) (hR2 : D < 2 ^ 20) :
+    CombDesign (gen_clog2q_div.sem N D) := by
+  sv_structure
+
+/--
+info: 'Examples.«system-verilog».gen_clog2q.comb_errors.gen_clog2q_neg_comb' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms gen_clog2q_neg_comb
+
+end Examples.«system-verilog».gen_clog2q.comb_errors
