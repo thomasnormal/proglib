@@ -132,6 +132,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("x", 8),), (Port("y", 1),)),
     Fixture("timed_event_loop.sv", "timed_event_loop",
             (Port("x", 8),), (Port("y", 4),)),
+    Fixture("assign_target.sv", "assign_target",
+            (Port("x", 1),), (Port("y", 1),)),
     Fixture("typed_bit_localparam.sv", "typed_localparam",
             (Port("d", 1),), (Port("q", 1),)),
     Fixture("wire_output_port.sv", "wire_output_port",
