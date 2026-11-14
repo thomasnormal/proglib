@@ -1,0 +1,1055 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "gen_tern",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/gen_tern/gen_tern.sv",
+      "sha256": "020d197cdfa3411898d5d5cbc784245c4b3d8ee66c2d7904651e5cb7fd241de6"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 3,
+          "col": 1,
+          "end_line": 21,
+          "end_col": 10
+        },
+        "name": "gen_tern",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 3,
+              "col": 33,
+              "end_line": 3,
+              "end_col": 38
+            },
+            "name": "N",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 33,
+                      "end_line": 3,
+                      "end_col": 38
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 33,
+                      "end_line": 3,
+                      "end_col": 38
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 3,
+                "col": 37,
+                "end_line": 3,
+                "end_col": 38
+              },
+              "value": 2,
+              "resolved_width": 32
+            },
+            "resolved": 2
+          },
+          {
+            "kind": "LocalParam",
+            "span": {
+              "line": 7,
+              "col": 22,
+              "end_line": 7,
+              "end_col": 32
+            },
+            "name": "T",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 22,
+                      "end_line": 7,
+                      "end_col": 32
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 22,
+                      "end_line": 7,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "expr": {
+              "kind": "Binary",
+              "span": {
+                "line": 7,
+                "col": 26,
+                "end_line": 7,
+                "end_col": 32
+              },
+              "width": 32,
+              "op": "**",
+              "left": {
+                "kind": "Int",
+                "span": {
+                  "line": 7,
+                  "col": 26,
+                  "end_line": 7,
+                  "end_col": 27
+                },
+                "value": 3,
+                "resolved_width": 32
+              },
+              "right": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 7,
+                  "col": 31,
+                  "end_line": 7,
+                  "end_col": 32
+                },
+                "name": "N"
+              }
+            },
+            "resolved": 9
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 24,
+              "end_line": 4,
+              "end_col": 25
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 4,
+                      "col": 17,
+                      "end_line": 4,
+                      "end_col": 20
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 4,
+                        "col": 17,
+                        "end_line": 4,
+                        "end_col": 18
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 4,
+                        "col": 19,
+                        "end_line": 4,
+                        "end_col": 20
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 21,
+                      "end_line": 4,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 2
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 24,
+              "end_line": 5,
+              "end_col": 25
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 8,
+              "col": 22,
+              "end_line": 8,
+              "end_col": 23
+            },
+            "name": "v",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "ParamRef",
+                    "span": {
+                      "line": 8,
+                      "col": 10,
+                      "end_line": 8,
+                      "end_col": 11
+                    },
+                    "name": "N"
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 12,
+                      "end_line": 8,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                },
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 8,
+                      "col": 15,
+                      "end_line": 8,
+                      "end_col": 18
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 8,
+                        "col": 15,
+                        "end_line": 8,
+                        "end_col": 16
+                      },
+                      "name": "T"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 8,
+                        "col": 17,
+                        "end_line": 8,
+                        "end_col": 18
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 19,
+                      "end_line": 8,
+                      "end_col": 20
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 27
+            },
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 20,
+              "col": 10,
+              "end_line": 20,
+              "end_col": 21
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 20,
+                "col": 10,
+                "end_line": 20,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "y"
+            },
+            "value": {
+              "kind": "ArraySel",
+              "span": {
+                "line": 20,
+                "col": 14,
+                "end_line": 20,
+                "end_col": 21
+              },
+              "width": 1,
+              "name": "v",
+              "indices": [
+                {
+                  "kind": "Int",
+                  "span": {
+                    "line": 20,
+                    "col": 16,
+                    "end_line": 20,
+                    "end_col": 17
+                  },
+                  "value": 0,
+                  "resolved_width": 32
+                },
+                {
+                  "kind": "Int",
+                  "span": {
+                    "line": 20,
+                    "col": 19,
+                    "end_line": 20,
+                    "end_col": 20
+                  },
+                  "value": 0,
+                  "resolved_width": 32
+                }
+              ],
+              "part": null
+            }
+          }
+        ],
+        "generates": [
+          {
+            "kind": "GenerateFor",
+            "span": {
+              "line": 11,
+              "col": 5,
+              "end_line": 13,
+              "end_col": 8
+            },
+            "label": "g_leaf",
+            "genvar": "t",
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 11,
+                "col": 14,
+                "end_line": 11,
+                "end_col": 15
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "bound": {
+              "kind": "Binary",
+              "span": {
+                "line": 11,
+                "col": 17,
+                "end_line": 11,
+                "end_col": 22
+              },
+              "width": 1,
+              "op": "s<",
+              "left": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 11,
+                  "col": 17,
+                  "end_line": 11,
+                  "end_col": 18
+                },
+                "name": "t"
+              },
+              "right": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 11,
+                  "col": 21,
+                  "end_line": 11,
+                  "end_col": 22
+                },
+                "name": "T"
+              }
+            },
+            "step": {
+              "kind": "Unary",
+              "span": {
+                "line": 11,
+                "col": 24,
+                "end_line": 11,
+                "end_col": 27
+              },
+              "width": null,
+              "op": "++",
+              "operand": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 11,
+                  "col": 24,
+                  "end_line": 11,
+                  "end_col": 25
+                },
+                "name": "t"
+              }
+            },
+            "resolved_count": 9,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 12,
+                  "col": 14,
+                  "end_line": 12,
+                  "end_col": 28
+                },
+                "target": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 12,
+                    "col": 14,
+                    "end_line": 12,
+                    "end_col": 21
+                  },
+                  "width": 1,
+                  "name": "v",
+                  "indices": [
+                    {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 12,
+                        "col": 16,
+                        "end_line": 12,
+                        "end_col": 17
+                      },
+                      "name": "N"
+                    },
+                    {
+                      "kind": "GenvarRef",
+                      "span": {
+                        "line": 12,
+                        "col": 19,
+                        "end_line": 12,
+                        "end_col": 20
+                      },
+                      "name": "t"
+                    }
+                  ],
+                  "part": null
+                },
+                "value": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 12,
+                    "col": 24,
+                    "end_line": 12,
+                    "end_col": 28
+                  },
+                  "width": 1,
+                  "name": "a",
+                  "indices": [
+                    {
+                      "kind": "Int",
+                      "span": {
+                        "line": 12,
+                        "col": 26,
+                        "end_line": 12,
+                        "end_col": 27
+                      },
+                      "value": 0,
+                      "resolved_width": 32
+                    }
+                  ],
+                  "part": null
+                }
+              }
+            ]
+          },
+          {
+            "kind": "GenerateFor",
+            "span": {
+              "line": 14,
+              "col": 5,
+              "end_line": 18,
+              "end_col": 8
+            },
+            "label": "g_lvl",
+            "genvar": "l",
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 14,
+                "col": 14,
+                "end_line": 14,
+                "end_col": 15
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "bound": {
+              "kind": "Binary",
+              "span": {
+                "line": 14,
+                "col": 17,
+                "end_line": 14,
+                "end_col": 22
+              },
+              "width": 1,
+              "op": "s<",
+              "left": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 14,
+                  "col": 17,
+                  "end_line": 14,
+                  "end_col": 18
+                },
+                "name": "l"
+              },
+              "right": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 14,
+                  "col": 21,
+                  "end_line": 14,
+                  "end_col": 22
+                },
+                "name": "N"
+              }
+            },
+            "step": {
+              "kind": "Unary",
+              "span": {
+                "line": 14,
+                "col": 24,
+                "end_line": 14,
+                "end_col": 27
+              },
+              "width": null,
+              "op": "++",
+              "operand": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 14,
+                  "col": 24,
+                  "end_line": 14,
+                  "end_col": 25
+                },
+                "name": "l"
+              }
+            },
+            "resolved_count": 2,
+            "body": [
+              {
+                "kind": "GenerateFor",
+                "span": {
+                  "line": 15,
+                  "col": 7,
+                  "end_line": 17,
+                  "end_col": 10
+                },
+                "label": "g_node",
+                "genvar": "t",
+                "init": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 15,
+                    "col": 16,
+                    "end_line": 15,
+                    "end_col": 17
+                  },
+                  "value": 0,
+                  "resolved_width": 32
+                },
+                "bound": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 15,
+                    "col": 19,
+                    "end_line": 15,
+                    "end_col": 27
+                  },
+                  "width": 1,
+                  "op": "s<",
+                  "left": {
+                    "kind": "GenvarRef",
+                    "span": {
+                      "line": 15,
+                      "col": 19,
+                      "end_line": 15,
+                      "end_col": 20
+                    },
+                    "name": "t"
+                  },
+                  "right": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 15,
+                      "col": 23,
+                      "end_line": 15,
+                      "end_col": 27
+                    },
+                    "width": 32,
+                    "op": "**",
+                    "left": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 15,
+                        "col": 23,
+                        "end_line": 15,
+                        "end_col": 24
+                      },
+                      "value": 3,
+                      "resolved_width": 32
+                    },
+                    "right": {
+                      "kind": "GenvarRef",
+                      "span": {
+                        "line": 15,
+                        "col": 26,
+                        "end_line": 15,
+                        "end_col": 27
+                      },
+                      "name": "l"
+                    }
+                  }
+                },
+                "step": {
+                  "kind": "Unary",
+                  "span": {
+                    "line": 15,
+                    "col": 29,
+                    "end_line": 15,
+                    "end_col": 32
+                  },
+                  "width": null,
+                  "op": "++",
+                  "operand": {
+                    "kind": "GenvarRef",
+                    "span": {
+                      "line": 15,
+                      "col": 29,
+                      "end_line": 15,
+                      "end_col": 30
+                    },
+                    "name": "t"
+                  }
+                },
+                "resolved_count": 1,
+                "body": [
+                  {
+                    "kind": "Assign",
+                    "span": {
+                      "line": 16,
+                      "col": 16,
+                      "end_line": 16,
+                      "end_col": 71
+                    },
+                    "target": {
+                      "kind": "ArraySel",
+                      "span": {
+                        "line": 16,
+                        "col": 16,
+                        "end_line": 16,
+                        "end_col": 23
+                      },
+                      "width": 1,
+                      "name": "v",
+                      "indices": [
+                        {
+                          "kind": "GenvarRef",
+                          "span": {
+                            "line": 16,
+                            "col": 18,
+                            "end_line": 16,
+                            "end_col": 19
+                          },
+                          "name": "l"
+                        },
+                        {
+                          "kind": "GenvarRef",
+                          "span": {
+                            "line": 16,
+                            "col": 21,
+                            "end_line": 16,
+                            "end_col": 22
+                          },
+                          "name": "t"
+                        }
+                      ],
+                      "part": null
+                    },
+                    "value": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 16,
+                        "col": 26,
+                        "end_line": 16,
+                        "end_col": 71
+                      },
+                      "width": 1,
+                      "op": "^",
+                      "left": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 16,
+                          "col": 27,
+                          "end_line": 16,
+                          "end_col": 54
+                        },
+                        "width": 1,
+                        "op": "^",
+                        "left": {
+                          "kind": "ArraySel",
+                          "span": {
+                            "line": 16,
+                            "col": 27,
+                            "end_line": 16,
+                            "end_col": 38
+                          },
+                          "width": 1,
+                          "name": "v",
+                          "indices": [
+                            {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 16,
+                                "col": 29,
+                                "end_line": 16,
+                                "end_col": 32
+                              },
+                              "width": 32,
+                              "op": "+",
+                              "left": {
+                                "kind": "GenvarRef",
+                                "span": {
+                                  "line": 16,
+                                  "col": 29,
+                                  "end_line": 16,
+                                  "end_col": 30
+                                },
+                                "name": "l"
+                              },
+                              "right": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 16,
+                                  "col": 31,
+                                  "end_line": 16,
+                                  "end_col": 32
+                                },
+                                "value": 1,
+                                "resolved_width": 32
+                              }
+                            },
+                            {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 16,
+                                "col": 34,
+                                "end_line": 16,
+                                "end_col": 37
+                              },
+                              "width": 32,
+                              "op": "*",
+                              "left": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 16,
+                                  "col": 34,
+                                  "end_line": 16,
+                                  "end_col": 35
+                                },
+                                "value": 3,
+                                "resolved_width": 32
+                              },
+                              "right": {
+                                "kind": "GenvarRef",
+                                "span": {
+                                  "line": 16,
+                                  "col": 36,
+                                  "end_line": 16,
+                                  "end_col": 37
+                                },
+                                "name": "t"
+                              }
+                            }
+                          ],
+                          "part": null
+                        },
+                        "right": {
+                          "kind": "ArraySel",
+                          "span": {
+                            "line": 16,
+                            "col": 41,
+                            "end_line": 16,
+                            "end_col": 54
+                          },
+                          "width": 1,
+                          "name": "v",
+                          "indices": [
+                            {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 16,
+                                "col": 43,
+                                "end_line": 16,
+                                "end_col": 46
+                              },
+                              "width": 32,
+                              "op": "+",
+                              "left": {
+                                "kind": "GenvarRef",
+                                "span": {
+                                  "line": 16,
+                                  "col": 43,
+                                  "end_line": 16,
+                                  "end_col": 44
+                                },
+                                "name": "l"
+                              },
+                              "right": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 16,
+                                  "col": 45,
+                                  "end_line": 16,
+                                  "end_col": 46
+                                },
+                                "value": 1,
+                                "resolved_width": 32
+                              }
+                            },
+                            {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 16,
+                                "col": 48,
+                                "end_line": 16,
+                                "end_col": 53
+                              },
+                              "width": 32,
+                              "op": "+",
+                              "left": {
+                                "kind": "Binary",
+                                "span": {
+                                  "line": 16,
+                                  "col": 48,
+                                  "end_line": 16,
+                                  "end_col": 51
+                                },
+                                "width": 32,
+                                "op": "*",
+                                "left": {
+                                  "kind": "Int",
+                                  "span": {
+                                    "line": 16,
+                                    "col": 48,
+                                    "end_line": 16,
+                                    "end_col": 49
+                                  },
+                                  "value": 3,
+                                  "resolved_width": 32
+                                },
+                                "right": {
+                                  "kind": "GenvarRef",
+                                  "span": {
+                                    "line": 16,
+                                    "col": 50,
+                                    "end_line": 16,
+                                    "end_col": 51
+                                  },
+                                  "name": "t"
+                                }
+                              },
+                              "right": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 16,
+                                  "col": 52,
+                                  "end_line": 16,
+                                  "end_col": 53
+                                },
+                                "value": 1,
+                                "resolved_width": 32
+                              }
+                            }
+                          ],
+                          "part": null
+                        }
+                      },
+                      "right": {
+                        "kind": "ArraySel",
+                        "span": {
+                          "line": 16,
+                          "col": 58,
+                          "end_line": 16,
+                          "end_col": 71
+                        },
+                        "width": 1,
+                        "name": "v",
+                        "indices": [
+                          {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 16,
+                              "col": 60,
+                              "end_line": 16,
+                              "end_col": 63
+                            },
+                            "width": 32,
+                            "op": "+",
+                            "left": {
+                              "kind": "GenvarRef",
+                              "span": {
+                                "line": 16,
+                                "col": 60,
+                                "end_line": 16,
+                                "end_col": 61
+                              },
+                              "name": "l"
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 16,
+                                "col": 62,
+                                "end_line": 16,
+                                "end_col": 63
+                              },
+                              "value": 1,
+                              "resolved_width": 32
+                            }
+                          },
+                          {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 16,
+                              "col": 65,
+                              "end_line": 16,
+                              "end_col": 70
+                            },
+                            "width": 32,
+                            "op": "+",
+                            "left": {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 16,
+                                "col": 65,
+                                "end_line": 16,
+                                "end_col": 68
+                              },
+                              "width": 32,
+                              "op": "*",
+                              "left": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 16,
+                                  "col": 65,
+                                  "end_line": 16,
+                                  "end_col": 66
+                                },
+                                "value": 3,
+                                "resolved_width": 32
+                              },
+                              "right": {
+                                "kind": "GenvarRef",
+                                "span": {
+                                  "line": 16,
+                                  "col": 67,
+                                  "end_line": 16,
+                                  "end_col": 68
+                                },
+                                "name": "t"
+                              }
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 16,
+                                "col": 69,
+                                "end_line": 16,
+                                "end_col": 70
+                              },
+                              "value": 2,
+                              "resolved_width": 32
+                            }
+                          }
+                        ],
+                        "part": null
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
