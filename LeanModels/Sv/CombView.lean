@@ -63,6 +63,8 @@ constant and the shifts of one named constant by another (`m`, `n`: genvars, par
 * `shr m n`  `m / 2 ^ n`         from `m >> n`
 * `shl m n`  `m / 2 ^ n * 2 ^ n` from `(m >> n) << n`
 * `bit m n`  `m / 2 ^ n % 2`     from `(m >> n) & 1`
+* `shrK m k` `m / 2 ^ k`         from `m >> k`, `k` an integer literal in `[0, 32)` (tac6)
+* `shlK m k` `m / 2 ^ k * 2 ^ k` from `(m >> k) << k`, the same literal twice (tac6)
 
 `/` and `%` are the floor ones (`Int.ediv`, `Int.emod`), the instantiation's `tdiv` on the non-negative numerator the
 range `XAt.Ok` demands. IEEE 1800-2023 §11.4.10 (shifts: the amount is unsigned, a logical `>>` fills with zeros),
@@ -72,6 +74,8 @@ inductive XAt where
   | shr (m n : String)
   | shl (m n : String)
   | bit (m n : String)
+  | shrK (m : String) (k : Nat)
+  | shlK (m : String) (k : Nat)
 deriving Repr, BEq, DecidableEq, Inhabited
 
 namespace XAt
@@ -82,6 +86,8 @@ def eval (σ : String → Int) : XAt → Int
   | .shr m n => σ m / 2 ^ (σ n).toNat
   | .shl m n => σ m / 2 ^ (σ n).toNat * 2 ^ (σ n).toNat
   | .bit m n => σ m / 2 ^ (σ n).toNat % 2
+  | .shrK m k => σ m / 2 ^ k
+  | .shlK m k => σ m / 2 ^ k * 2 ^ k
 
 /-- The names the atom reads. -/
 def names : XAt → List String
@@ -89,6 +95,8 @@ def names : XAt → List String
   | .shr m n => [m, n]
   | .shl m n => [m, n]
   | .bit m n => [m, n]
+  | .shrK m _ => [m]
+  | .shlK m _ => [m]
 
 /-- **The atom's range**: where the instantiation's two evaluators (`evalInt`, unbounded, for indices and loop bounds;
 `evalAt` at the signed 32-bit type for generate conditions) are defined and give the atom's value, and that value is
@@ -99,6 +107,8 @@ def Ok (σ : String → Int) : XAt → Prop
   | .shr m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
   | .shl m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
   | .bit m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
+  | .shrK m k => 0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32
+  | .shlK m k => 0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32
 
 instance (σ : String → Int) (x : XAt) : Decidable (x.Ok σ) := by
   cases x <;> unfold XAt.Ok <;> infer_instance
@@ -576,8 +586,25 @@ def nameOf? : PExpr → Option String
   | .paramRef n none => some n
   | _ => none
 
+/-- A literal shift amount in `[0, 32)` (`shrK`, `shlK`). -/
+def litAmt? : PExpr → Option Nat
+  | .int v => if 0 ≤ v ∧ v < 32 then some v.toNat else none
+  | _ => none
+
+theorem litAmt?_eq {r : PExpr} {k : Nat} (h : litAmt? r = some k) : r = .int (k : Int) ∧ k < 32 := by
+  unfold litAmt? at h
+  split at h
+  · rename_i v
+    by_cases hv : 0 ≤ v ∧ v < 32
+    · rw [if_pos hv, Option.some.injEq] at h
+      subst h
+      exact ⟨by rw [Int.toNat_of_nonneg hv.1], by omega⟩
+    · rw [if_neg hv] at h; simp at h
+  · simp at h
+
 /-- **A shift or power atom** at the node `op l r` (`XAt`): `1 << n`, `b ** n` (a literal `b ≥ 2`), `m >> n`,
-`(m >> n) << n` and `(m >> n) & 1`, `m` and `n` named constants. A pure pattern match on the envelope's node and its
+`(m >> n) << n` and `(m >> n) & 1`, `m` and `n` named constants, and `m >> k`, `(m >> k) << k` of a literal amount
+`k ∈ [0, 32)` (`shrK`, `shlK`). A pure pattern match on the envelope's node and its
 operands; anything else (a shift by a sum, `c << n` for `c ≠ 1`, `>>>`, `<<<`) is not an atom. -/
 def xatOf? (op : SymBinOp) (l r : PExpr) : Option XAt :=
   match op, l with
@@ -586,10 +613,15 @@ def xatOf? (op : SymBinOp) (l r : PExpr) : Option XAt :=
   | .shr, l =>
       match nameOf? l, nameOf? r with
       | some m, some n => some (.shr m n)
+      | some m, none => (litAmt? r).map (XAt.shrK m)
       | _, _ => none
   | .shl, .binary .shr l' r' =>
       match nameOf? l', nameOf? r', nameOf? r with
       | some m, some n, some n' => if n = n' then some (.shl m n) else none
+      | some m, none, none =>
+          match litAmt? r', litAmt? r with
+          | some k, some k' => if k = k' then some (.shlK m k) else none
+          | _, _ => none
       | _, _, _ => none
   | .m0 .and, .binary .shr l' r' =>
       match r, nameOf? l', nameOf? r' with
@@ -716,6 +748,27 @@ theorem ofNat_land_one {a : Int} (h : 0 ≤ a) : Int.ofNat (a.toNat &&& 1) = a %
   simp only [Int.ofNat_eq_coe]
   omega
 
+/-- `l >> r` of a non-negative `l` by an amount in `[0, 32)`, from the operands' values (`evalInt`). -/
+theorem evalInt_shr_of {E : IEnv} {l r : PExpr} {a b : Int}
+    (hl : l.isInt E = true ∧ evalInt E l = .ok a) (hr : r.isInt E = true ∧ evalInt E r = .ok b)
+    (h0 : 0 ≤ a) (h1 : 0 ≤ b) (h2 : b < 32) :
+    (PExpr.binary .shr l r).isInt E = true ∧ evalInt E (.binary .shr l r) = .ok (a / 2 ^ b.toNat) := by
+  obtain ⟨hil, hel⟩ := hl
+  obtain ⟨hir, her⟩ := hr
+  have n0 : ¬ a < 0 := by omega
+  have n1 : ¬ b < 0 := by omega
+  have n2 : ¬ 32 ≤ b := by omega
+  refine ⟨by simp [PExpr.isInt, hil, hir], ?_⟩
+  simp only [evalInt, hil, hir, Bool.and_self, if_true, hel, her, Gen2.except_ok_bind, n0, n1, n2,
+    decide_false, Bool.false_or, Bool.or_false, if_false, Bool.false_eq_true]
+  rw [Int.tdiv_eq_ediv_of_nonneg h0]
+
+/-- A literal amount evaluates to itself. -/
+theorem litAmt?_eval {E : IEnv} {r : PExpr} {k : Nat} (h : litAmt? r = some k) :
+    r.isInt E = true ∧ evalInt E r = .ok (k : Int) := by
+  obtain ⟨rfl, -⟩ := litAmt?_eq h
+  exact ⟨rfl, rfl⟩
+
 /-- `m >> n` of two named constants: `σ m / 2 ^ σ n`, a logical shift right of the non-negative value (IEEE 1800-2023
 §11.4.10), where `0 ≤ σ m` and `0 ≤ σ n < 32`. -/
 theorem evalInt_shr_names {E : IEnv} {σ : String → Int} {l r : PExpr} {m n : String}
@@ -742,7 +795,10 @@ theorem xatOf?_cases {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r 
     (∃ l' r' m n, op = .shl ∧ l = .binary .shr l' r' ∧ nameOf? l' = some m ∧ nameOf? r' = some n ∧
       nameOf? r = some n ∧ x = .shl m n) ∨
     (∃ l' r' m n, op = .m0 .and ∧ l = .binary .shr l' r' ∧ r = .int 1 ∧ nameOf? l' = some m ∧
-      nameOf? r' = some n ∧ x = .bit m n) := by
+      nameOf? r' = some n ∧ x = .bit m n) ∨
+    (∃ m k, op = .shr ∧ nameOf? l = some m ∧ nameOf? r = none ∧ litAmt? r = some k ∧ x = .shrK m k) ∨
+    (∃ l' r' m k, op = .shl ∧ l = .binary .shr l' r' ∧ nameOf? l' = some m ∧ nameOf? r' = none ∧
+      nameOf? r = none ∧ litAmt? r' = some k ∧ litAmt? r = some k ∧ x = .shlK m k) := by
   unfold xatOf? at h
   split at h
   · rename_i v
@@ -764,22 +820,32 @@ theorem xatOf?_cases {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r 
     · rw [if_neg hb] at h; simp at h
   · rcases hl : nameOf? l with _ | m <;> rcases hr : nameOf? r with _ | n <;> simp only [hl, hr, reduceCtorEq,
       Option.some.injEq] at h
-    exact Or.inr (Or.inr (Or.inl ⟨m, n, rfl, rfl, rfl, h.symm⟩))
+    · rcases hk : litAmt? r with _ | k <;> simp only [hk, Option.map_none, Option.map_some, reduceCtorEq,
+        Option.some.injEq] at h
+      exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨m, k, rfl, rfl, rfl, rfl, h.symm⟩)))))
+    · exact Or.inr (Or.inr (Or.inl ⟨m, n, rfl, rfl, rfl, h.symm⟩))
   · rename_i l' r'
     rcases hl : nameOf? l' with _ | m <;> rcases hr' : nameOf? r' with _ | n <;>
       rcases hr : nameOf? r with _ | n' <;> simp only [hl, hr', hr, reduceCtorEq] at h
-    by_cases he : n = n'
-    · subst he
-      rw [if_pos rfl, Option.some.injEq] at h
-      exact Or.inr (Or.inr (Or.inr (Or.inl ⟨l', r', m, n, rfl, rfl, hl, hr', rfl, h.symm⟩)))
-    · rw [if_neg he] at h; simp at h
+    · rcases hk : litAmt? r' with _ | k <;> rcases hk' : litAmt? r with _ | k' <;>
+        simp only [hk, hk', reduceCtorEq] at h
+      by_cases he : k = k'
+      · subst he
+        rw [if_pos rfl, Option.some.injEq] at h
+        exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨l', r', m, k, rfl, rfl, hl, hr', rfl, hk, rfl, h.symm⟩)))))
+      · rw [if_neg he] at h; simp at h
+    · by_cases he : n = n'
+      · subst he
+        rw [if_pos rfl, Option.some.injEq] at h
+        exact Or.inr (Or.inr (Or.inr (Or.inl ⟨l', r', m, n, rfl, rfl, hl, hr', rfl, h.symm⟩)))
+      · rw [if_neg he] at h; simp at h
   · rename_i l' r'
     split at h
     · rename_i v m n hl hr'
       by_cases hv : v = 1
       · subst hv
         rw [if_pos rfl, Option.some.injEq] at h
-        exact Or.inr (Or.inr (Or.inr (Or.inr ⟨l', r', m, n, rfl, rfl, rfl, hl, hr', h.symm⟩)))
+        exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨l', r', m, n, rfl, rfl, rfl, hl, hr', h.symm⟩))))
       · rw [if_neg hv] at h; simp at h
     · simp at h
   · simp at h
@@ -825,16 +891,40 @@ theorem xatOf?_sound {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
         simp only [evalInt, PExpr.isInt, hir, Bool.and_self, if_true, her, Gen2.except_ok_bind, n1,
           if_false, XAt.eval]
     · rw [if_neg hb] at h; simp at h
-  · -- `m >> n`
+  · -- `m >> n`, and `m >> k` of a literal `k`
     rcases hl : nameOf? l with _ | m <;> rcases hr : nameOf? r with _ | n <;> simp only [hl, hr, reduceCtorEq,
       Option.some.injEq] at h
-    subst h
-    obtain ⟨h0, -, h1, h2⟩ := hx
-    exact evalInt_shr_names hl hr (hn m (by simp [XAt.names])) (hn n (by simp [XAt.names])) h0 h1 h2
-  · -- `(m >> n) << n`
+    · rcases hk : litAmt? r with _ | k <;> simp only [hk, Option.map_none, Option.map_some, reduceCtorEq,
+        Option.some.injEq] at h
+      subst h
+      obtain ⟨h0, -, hk32⟩ := hx
+      obtain ⟨hil, hel⟩ := evalInt_shr_of (nameOf?_eval hl (hn m (by simp [XAt.names]))) (litAmt?_eval hk) h0
+        (by omega) (by omega)
+      exact ⟨hil, by rw [hel, Int.toNat_natCast]; rfl⟩
+    · subst h
+      obtain ⟨h0, -, h1, h2⟩ := hx
+      exact evalInt_shr_names hl hr (hn m (by simp [XAt.names])) (hn n (by simp [XAt.names])) h0 h1 h2
+  · -- `(m >> n) << n`, and `(m >> k) << k` of a literal `k`
     rename_i l' r'
     rcases hl : nameOf? l' with _ | m <;> rcases hr' : nameOf? r' with _ | n <;>
       rcases hr : nameOf? r with _ | n' <;> simp only [hl, hr', hr, reduceCtorEq] at h
+    · rcases hk : litAmt? r' with _ | k <;> rcases hk' : litAmt? r with _ | k' <;>
+        simp only [hk, hk', reduceCtorEq] at h
+      by_cases he : k = k'
+      · subst he
+        rw [if_pos rfl, Option.some.injEq] at h
+        subst h
+        obtain ⟨h0, -, hk32⟩ := hx
+        obtain ⟨hil, hel⟩ := evalInt_shr_of (nameOf?_eval hl (hn m (by simp [XAt.names]))) (litAmt?_eval hk) h0
+          (by omega) (by omega)
+        obtain ⟨hir, her⟩ := litAmt?_eval (E := E) hk'
+        have n1 : ¬ (k : Int) < 0 := by omega
+        have n2 : ¬ 32 ≤ (k : Int) := by omega
+        refine ⟨by simp only [PExpr.isInt, SymBinOp.intArith, Bool.true_and] at hil ⊢; simp [hil, hir], ?_⟩
+        rw [evalInt]
+        simp only [hil, hir, Bool.and_self, if_true, hel, her, Gen2.except_ok_bind, n1, n2, if_false, XAt.eval,
+          Int.toNat_natCast]
+      · rw [if_neg he] at h; simp at h
     by_cases he : n = n'
     · subst he
       rw [if_pos rfl, Option.some.injEq] at h

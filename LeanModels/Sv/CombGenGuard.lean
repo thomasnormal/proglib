@@ -64,6 +64,15 @@ theorem opdAffs?_shr {l r : PExpr} {m n : String} (hl : nameOf? l = some m) (hr 
   simp only [opdAffs?, opdAffs?_name hl, opdAffs?_name hr, opdBin, xatOf?, hl, hr]
   rfl
 
+/-- The operand form of `m >> k`, `k` a literal amount (`shrK`). -/
+theorem opdAffs?_shrK {l r : PExpr} {m : String} {k : Nat} (hl : nameOf? l = some m) (hnr : nameOf? r = none)
+    (hk : litAmt? r = some k) :
+    opdAffs? (.binary .shr l r) =
+      some (Aff.atom (.shrK m k), [Aff.var m, Aff.const (k : Int), Aff.atom (.shrK m k)]) := by
+  obtain ⟨rfl, -⟩ := litAmt?_eq hk
+  simp only [opdAffs?, opdAffs?_name hl, opdBin, xatOf?, hl, hnr, hk, Option.map_some]
+  rfl
+
 /-- **A shift or power atom of a generate condition's operand evaluates to its value** at the signed 32-bit type
 (`evalAt`), from its operands' values, where it is in its range and its value is a 32-bit value. -/
 theorem opd_eval_xat {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PExpr} {x : XAt} {al ar : Aff}
@@ -128,9 +137,30 @@ theorem opd_eval_xat {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
         simp only [n1, n2, ↓reduceIte]
         rw [canonInt32_id hrng]
     · rw [if_neg hb] at hx; simp at hx
-  · -- `m >> n`
+  · -- `m >> n`, and `m >> k` of a literal `k`
     rcases hm : nameOf? l with _ | m <;> rcases hn : nameOf? r with _ | n <;> simp only [hm, hn, reduceCtorEq,
       Option.some.injEq] at hx
+    · rcases hk : litAmt? r with _ | k <;> simp only [hk, Option.map_none, Option.map_some, reduceCtorEq,
+        Option.some.injEq] at hx
+      subst hx
+      obtain ⟨rfl, hk32⟩ := litAmt?_eq hk
+      simp only [opdAffs?, Option.some.injEq, Prod.mk.injEq] at hra
+      obtain ⟨rfl, -⟩ := hra
+      rw [opdAffs?_name hm, Option.some.injEq, Prod.mk.injEq] at hla
+      obtain ⟨rfl, -⟩ := hla
+      rw [Aff.eval_var] at hel
+      rw [Aff.eval_const] at her
+      obtain ⟨h0, h1, -⟩ := hok
+      simp only [XAt.eval] at hrng ⊢
+      have n1 : ¬ (k : Int) < 0 := by omega
+      have n2 : ¬ ((32 : Nat) : Int) ≤ (k : Int) := by omega
+      have e : (σ m).emod ((2 : Int) ^ 32) = σ m := Int.emod_eq_of_lt h0 (by omega)
+      refine ⟨by rw [ctype]; simp only [SymBinOp.constClass, hcl], ?_⟩
+      rw [evalAt]
+      simp only [SymBinOp.constClass, hel, her, hcr, Gen2.except_ok_bind]
+      unfold_param_private
+      simp only [n1, n2, ↓reduceIte, Int.toNat_natCast]
+      rw [e, canonInt32_id hrng]
     subst hx
     rw [opdAffs?_name hn, Option.some.injEq, Prod.mk.injEq] at hra
     obtain ⟨rfl, -⟩ := hra
@@ -148,10 +178,35 @@ theorem opd_eval_xat {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
     unfold_param_private
     simp only [n1, n2, ↓reduceIte]
     rw [e, canonInt32_id hrng]
-  · -- `(m >> n) << n`
+  · -- `(m >> n) << n`, and `(m >> k) << k` of a literal `k`
     rename_i l' r'
     rcases hm : nameOf? l' with _ | m <;> rcases hn' : nameOf? r' with _ | n <;>
       rcases hn : nameOf? r with _ | n' <;> simp only [hm, hn', hn, reduceCtorEq] at hx
+    · rcases hk : litAmt? r' with _ | k <;> rcases hk' : litAmt? r with _ | k' <;>
+        simp only [hk, hk', reduceCtorEq] at hx
+      by_cases he : k = k'
+      · subst he
+        rw [if_pos rfl, Option.some.injEq] at hx
+        subst hx
+        have hsh := opdAffs?_shrK hm hn' hk
+        obtain ⟨rfl, hk32⟩ := litAmt?_eq hk'
+        simp only [opdAffs?, Option.some.injEq, Prod.mk.injEq] at hra
+        obtain ⟨rfl, -⟩ := hra
+        rw [hsh, Option.some.injEq, Prod.mk.injEq] at hla
+        obtain ⟨rfl, -⟩ := hla
+        rw [Aff.eval_atom] at hel
+        rw [Aff.eval_const] at her
+        obtain ⟨h0, h1, -⟩ := hok
+        simp only [XAt.eval] at hrng hel ⊢
+        have n1 : ¬ (k : Int) < 0 := by omega
+        have n2 : ¬ ((32 : Nat) : Int) ≤ (k : Int) := by omega
+        refine ⟨by rw [ctype]; simp only [SymBinOp.constClass, hcl], ?_⟩
+        rw [evalAt]
+        simp only [SymBinOp.constClass, hel, her, hcr, Gen2.except_ok_bind]
+        unfold_param_private
+        simp only [n1, n2, ↓reduceIte, Int.toNat_natCast]
+        rw [canonInt32_id hrng]
+      · rw [if_neg he] at hx; simp at hx
     by_cases he : n = n'
     · subst he
       rw [if_pos rfl, Option.some.injEq] at hx

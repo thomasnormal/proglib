@@ -24,6 +24,8 @@ def XAt.showR (x : XAt) (rn : String → String) : String :=
   | .shr m n => s!"({rn m} >> {rn n})"
   | .shl m n => s!"(({rn m} >> {rn n}) << {rn n})"
   | .bit m n => s!"(({rn m} >> {rn n}) & 1)"
+  | .shrK m k => s!"({rn m} >> {k})"
+  | .shlK m k => s!"(({rn m} >> {k}) << {k})"
 
 /-- Print an affine form, renaming variables (the second loop index is shown as `i'`). -/
 def Aff.showR (a : Aff) (rn : String → String) : String :=

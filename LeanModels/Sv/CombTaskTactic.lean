@@ -109,6 +109,10 @@ partial def natOf? (e : Lean.Expr) : MetaM (Option Lean.Expr) := do
   if isIntOp e ``HMod.hMod then return ← bin ``HMod.hMod fun a b => mkAppM ``HMod.hMod #[a, b]
   if e.isAppOfArity ``HPow.hPow 6 && e.getArg! 0 == mkConst ``Int && e.getArg! 1 == mkConst ``Nat then
     let some a ← natOf? (e.getArg! 4) | return none
+    -- a power of two literals is its value (`i / 2 ^ 1 * 2 ^ 1` is `i / 2 * 2`)
+    if let some bv ← getNatValue? a then
+      if let some ev ← getNatValue? (e.getArg! 5) then
+        if ev ≤ 64 then return some (mkNatLit (bv ^ ev))
     return some (← mkAppM ``HPow.hPow #[a, e.getArg! 5])
   return none
 

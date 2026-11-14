@@ -155,6 +155,8 @@ def XAt.hren (pfx : String) : XAt → XAt
   | .shr m n => .shr (pfx ++ m) (pfx ++ n)
   | .shl m n => .shl (pfx ++ m) (pfx ++ n)
   | .bit m n => .bit (pfx ++ m) (pfx ++ n)
+  | .shrK m k => .shrK (pfx ++ m) k
+  | .shlK m k => .shlK (pfx ++ m) k
 
 /-- An affine form over the child's names, under the prefix. -/
 def Aff.hren (pfx : String) (a : Aff) : Aff :=
@@ -503,12 +505,18 @@ theorem nameOf?_hren (pfx : String) {e : PExpr} {n : String} (h : nameOf? e = so
 theorem xatOf?_hren (pfx : String) {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r = some x) :
     xatOf? op (l.hren pfx) (r.hren pfx) = some (x.hren pfx) := by
   rcases xatOf?_cases h with ⟨rfl, rfl, n, hn, rfl⟩ | ⟨b, n, rfl, rfl, hb, hn, rfl⟩ | ⟨m, n, rfl, hm, hn, rfl⟩ |
-    ⟨l', r', m, n, rfl, rfl, hm, hn', hn, rfl⟩ | ⟨l', r', m, n, rfl, rfl, rfl, hm, hn, rfl⟩
+    ⟨l', r', m, n, rfl, rfl, hm, hn', hn, rfl⟩ | ⟨l', r', m, n, rfl, rfl, rfl, hm, hn, rfl⟩ |
+    ⟨m, k, rfl, hm, hnr, hk, rfl⟩ | ⟨l', r', m, k, rfl, rfl, hm, hnr', hnr, hk', hk, rfl⟩
   · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hn, XAt.hren]
   · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hn, XAt.hren, hb]
   · simp [xatOf?, nameOf?_hren pfx hm, nameOf?_hren pfx hn, XAt.hren]
   · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hm, nameOf?_hren pfx hn', nameOf?_hren pfx hn, XAt.hren]
   · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hm, nameOf?_hren pfx hn, XAt.hren]
+  · obtain ⟨rfl, -⟩ := litAmt?_eq hk
+    simp [xatOf?, PExpr.hren, nameOf?_hren pfx hm, hnr, XAt.hren, hk]
+  · obtain ⟨rfl, -⟩ := litAmt?_eq hk
+    obtain ⟨rfl, -⟩ := litAmt?_eq hk'
+    simp [xatOf?, PExpr.hren, nameOf?_hren pfx hm, hnr, XAt.hren, hk]
 
 theorem affOf?_hren (pfx : String) : ∀ {e : PExpr} {a : Aff}, affOf? e = some a →
     affOf? (e.hren pfx) = some (a.hren pfx)
