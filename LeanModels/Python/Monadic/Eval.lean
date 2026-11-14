@@ -4244,6 +4244,78 @@ theorem finishCallM_assignments_body_ok (K : Kont) (m : Module)
   rw [bind_apply, hraw]
   rfl
 
+theorem execOpenList_assignments_exn_run (K : Kont) (m : Module)
+    (e : PyErr) :
+    ∀ (ss : List Stmt) (last : Stmt) (st : FrameState),
+      (∀ s ∈ ss, ∃ targets value sp, s = .assign targets value sp) →
+      (∀ s ∈ ss, ∀ st', ∃ st'',
+        toRun (execOpen K m s) st' = .ok st'' .next) →
+      (∀ st', ∃ st'',
+        toRun (execOpen K m last) st' = .exn st'' e) →
+      ∃ st', toRun (execOpenList K m (ss ++ [last])) st = .exn st' e := by
+  intro ss
+  induction ss with
+  | nil =>
+      intro last st hShape hEach hLast
+      simp only [List.nil_append, execOpenList, toRun_bind]
+      rcases hLast st with ⟨st', hs⟩
+      exact ⟨st', by simp [Run.bind, hs]⟩
+  | cons s ss ih =>
+      intro last st hShape hEach hLast
+      simp only [List.cons_append, execOpenList, toRun_bind]
+      rcases hEach s (by simp) st with ⟨st₁, hs⟩
+      rw [hs]
+      simp only [Run.bind]
+      have hTailShape : ∀ s' ∈ ss,
+          ∃ targets value sp, s' = .assign targets value sp := by
+        intro s' hs'
+        exact hShape s' (by simp [hs'])
+      have hTailEach : ∀ s' ∈ ss, ∀ st', ∃ st'',
+          toRun (execOpen K m s') st' = .ok st'' .next := by
+        intro s' hs' st'
+        exact hEach s' (by simp [hs']) st'
+      exact ih last st₁ hTailShape hTailEach hLast
+
+theorem finishCallM_assignments_exn_run (K : Kont) (m : Module)
+    (locals : REnv) (ss : List Stmt) (last : Stmt) (e : PyErr)
+    (w : World) (depth : Nat)
+    (hShape : ∀ s ∈ ss, ∃ targets value sp, s = .assign targets value sp)
+    (hEach : ∀ s ∈ ss, ∀ st', ∃ st'',
+      toRun (execOpen K m s) st' = .ok st'' .next)
+    (hLast : ∀ st', ∃ st'',
+      toRun (execOpen K m last) st' = .exn st'' e) :
+    ∃ st', toRun (finishCallM depth
+      (inWorld locals (execOpenList K m (ss ++ [last])))) w = .exn st' e := by
+  have hlist := execOpenList_assignments_exn_run K m e ss last
+    ⟨w, locals⟩ hShape hEach hLast
+  rcases hlist with ⟨st', hrun⟩
+  have hframe : execOpenList K m (ss ++ [last]) ⟨w, locals⟩ =
+      .ok (.error e, st') := by
+    generalize hx : execOpenList K m (ss ++ [last]) ⟨w, locals⟩ = r at hrun
+    cases r with
+    | error l =>
+        cases l with
+        | timeout => simp only [hx, toRun] at hrun; cases hrun
+        | unsupported cause msg snap => simp only [hx, toRun] at hrun; cases hrun
+    | ok p =>
+        rcases p with ⟨result, st₀⟩
+        cases result with
+        | error e' =>
+            simp only [hx, toRun] at hrun
+            have he : e' = e := by injection hrun
+            have hs : st₀ = st' := by injection hrun
+            rw [he, hs]
+        | ok flow => simp only [hx, toRun] at hrun; cases hrun
+  have hraw : (inWorld locals (execOpenList K m (ss ++ [last]))) w =
+      .ok (.error e, st'.world) := by
+    unfold inWorld zoomOut
+    rw [hframe]
+  refine ⟨{ st'.world with callDepth := depth }, ?_⟩
+  unfold finishCallM
+  apply toRun_tryCatch_exn
+  rw [bind_apply, hraw]
+  rfl
+
 /-! A narrowly explicit top-depth call branch.  This is the first composition
     of the assignment-list transport with `callInM`; it keeps the branch
     guards and the continuation explicit instead of claiming a generic
@@ -4428,6 +4500,43 @@ theorem twinAgrees_callInM_top_assignments_continue
   rw [hbody]
   simp only [Run.bind]
   rfl
+
+theorem twinAgrees_callInM_top_assignments_exn
+    (K : Kont) (m : Module) (fname : String) (args : Array RVal)
+    (f : FunctionDefn) (w : World) (ss : List Stmt) (last : Stmt) (e : PyErr)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbodyEq : f.body.toList = ss ++ [last])
+    (hShape : ∀ s ∈ ss,
+      ∃ targets value sp, s = .assign targets value sp)
+    (hEach : ∀ s ∈ ss, ∀ st', ∃ st'',
+      toRun (execOpen K m s) st' = .ok st'' .next)
+    (hLast : ∀ st', ∃ st'',
+      toRun (execOpen K m last) st' = .exn st'' e) :
+    ∃ w', toRun (callInM K m fname args)
+      { w with callDepth := pythonTopCallDepth } = .exn w' e := by
+  have hbody := finishCallM_assignments_exn_run K m
+    (globalCallEnv { w with callDepth := pythonTopCallDepth }
+      f.params args f.body f.hasGlobal)
+    ss last e { w with callDepth := 1 } pythonTopCallDepth hShape hEach hLast
+  unfold callInM
+  rw [hfind]
+  simp only [hgen, hargs, hlocal, hnotgen, harity,
+    Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+  rw [toRun_get_bind]
+  rw [if_pos (beq_self_eq_true _)]
+  rw [toRun_bind]
+  rw [toRun_set]
+  simp only [Run.bind]
+  rw [hbodyEq]
+  rw [toRun_bind]
+  rcases hbody with ⟨st', hbody⟩
+  rw [hbody]
+  simp only [Run.bind]
+  exact ⟨st', rfl⟩
 
 theorem twinAgrees_execOpenList_nil (K : Kont) (m : Module) (st : FrameState) :
     toRun (execOpenList K m []) st = .ok st .next := by

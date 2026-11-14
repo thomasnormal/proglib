@@ -621,8 +621,14 @@ still open.
 
 `Monadic.finishCallM_inWorld_of_timeout` and `Monadic.finishCallM_inWorld_of_unsupported` complete explicit timeout/refusal transport at the `callInM` frame/world boundary.
 
-The direct top-depth `callInM` integration is parked at the outer `get`/`StateT.bind` reduction; explicit body transport remains available.
-
 `Monadic.toRun_get_bind` and `Monadic.toRun_set_bind` normalize state getter/setter binds for direct call-plan adequacy proofs.
 
-Direct top-depth `callInM` integration remains parked after the getter/setter normalization attempt; explicit body transport remains available.
+`Monadic.twinAgrees_callInM_top_assignments` composes the arbitrary assignment-list
+normal-flow induction with the top-depth call boundary. The corresponding
+`_ret`, `_pass`, `_break`, and `_continue` theorems cover every ordinary flow
+for an assignment prefix, preserving the post-body world or the faithful
+outside-loop refusal. `Monadic.execOpenList_assignments_exn_run` and
+`Monadic.finishCallM_assignments_exn_run` add the matching arbitrary-list
+exception induction, and `twinAgrees_callInM_top_assignments_exn` composes it
+through the call boundary. The remaining recursive call/body debt is the
+generic non-assignment-shaped body transport and handler congruence.
