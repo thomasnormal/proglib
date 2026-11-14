@@ -10,8 +10,10 @@ arm's guard, the bit test `((i >> l) & 1) == 1` read as `i / 2 ^ l % 2 = 1` (`eq
 `x[l][((i >> l) << l) - 1]` at the column `-1 + i / 2 ^ l * 2 ^ l` (the atom `XAt.shl`). The input is known (`hA`). The
 cover obligations are the sites' own: `sv_cover`, after `sv_pow_facts` where a read needs a fact of the atoms. The node's
 two reads (`cover_2`) are closed by naming their writers (`x_cell_cover`): on the read at the shifted column, `sv_cover`'s
-last `omega` call exhausts the recursion limit even with the facts in context (a follow-up); the column's range,
-`(i >> l) << l` at least `2 ^ l` where bit `l` of `i` is set and at most `i`, is `sv_pow_omega`'s.
+last `omega` call exhausts the recursion limit even with the facts in context; the rule then splits it per writer (tac5),
+and `omega` still does not show the first condition of the last writer, the column's bound
+`(-1 + i / 2 ^ l * 2 ^ l).toNat < N`, in that context (a follow-up); that range, `(i >> l) << l` at least `2 ^ l` where
+bit `l` of `i` is set and at most `i`, is `sv_pow_omega`'s.
 
 Build: `lake build Examples.«system-verilog».gen_bit.eq_proof`.
 -/
