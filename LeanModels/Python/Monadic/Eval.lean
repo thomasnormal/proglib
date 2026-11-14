@@ -4661,6 +4661,46 @@ theorem twinAgrees_callInM_top_body_break
   rw [hfinish]
   rfl
 
+theorem twinAgrees_callInM_top_body_continue
+    (K : Kont) (m : Module) (fname : String) (args : Array RVal)
+    (f : FunctionDefn) (w : World) (st' : FrameState)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList K m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok RFlow.cont, st')) :
+    toRun (callInM K m fname args)
+      { w with callDepth := pythonTopCallDepth } =
+      .unsupported "'continue' outside loop" := by
+  unfold callInM
+  rw [hfind]
+  simp only [hgen, hargs, hlocal, hnotgen, harity,
+    Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+  rw [toRun_get_bind]
+  rw [if_pos (beq_self_eq_true _)]
+  rw [toRun_bind]
+  rw [toRun_set]
+  simp only [Run.bind]
+  rw [toRun_bind]
+  have hfinish : toRun (finishCallM pythonTopCallDepth
+      (inWorld (globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal)
+        (execOpenList K m f.body.toList))) { w with callDepth := 1 } =
+      .ok { st'.world with callDepth := pythonTopCallDepth } RFlow.cont := by
+    unfold finishCallM
+    apply toRun_tryCatch_ok
+    rw [bind_apply]
+    unfold inWorld zoomOut
+    rw [hbody]
+    rfl
+  rw [hfinish]
+  rfl
+
 theorem twinAgrees_execOpenList_nil (K : Kont) (m : Module) (st : FrameState) :
     toRun (execOpenList K m []) st = .ok st .next := by
   rfl
