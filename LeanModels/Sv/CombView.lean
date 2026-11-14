@@ -1388,29 +1388,45 @@ def elemAcc? (ds : List DeclT) (n : String) (is : List PExpr) : Except String Ac
           else .error s!"`{n}`: element selects need zero-based descending dimensions `[hi:0][hi:0]`"
       | _, _ => .error s!"select path on `{n}` does not match its declared packed dimensions (outside the v1 fragment)"
 
-def partAcc? (ds : List DeclT) (n : String) (is : List PExpr) (mode : PartMode) (hi lo : PExpr) :
+/-- The spelling of a part select's operands, for refusals. -/
+def partSym : PartMode → String
+  | .range => "hi:lo"
+  | .up => "…+:…"
+  | .down => "…-:…"
+
+/-- The `[msb:lsb]` bounds a part select of mode `mode` over the operands `a`, `b` selects (IEEE 1800-2023 §11.5.1):
+`[a:b]` itself; the indexed part select `[a +: b]`, the `b` bits from `a` up, the bounds `[(a + b) - 1 : a]`; and
+`[a -: b]`, the `b` bits from `a` down, the bounds `[a : (a - b) + 1]`. The instantiation computes exactly these labels
+(`partLabels`, a width `b ≤ 0` refused), and over a descending dimension the window they span is the window of `[msb:lsb]`
+(`arrayPartGeom_part1`, CombViewThm.lean); the summary reads an indexed part select through them, as the access of the
+range part select it equals. -/
+def partRange : PartMode → PExpr → PExpr → PExpr × PExpr
+  | .range, a, b => (a, b)
+  | .up, a, b => (.binary (.m0 .sub) (.binary (.m0 .add) a b) (.int 1), a)
+  | .down, a, b => (a, .binary (.m0 .add) (.binary (.m0 .sub) a b) (.int 1))
+
+/-- The access of a part select `n[…][a:b]`, `n[…][a +: b]` or `n[…][a -: b]` (through `partRange`): a part of a
+one-dimensional vector or of a row of a two-dimensional array, both zero-based and descending, its bounds affine. -/
+def partAcc? (ds : List DeclT) (n : String) (is : List PExpr) (mode : PartMode) (a b : PExpr) :
     Except String Acc :=
-  match mode with
-  | .up => .error s!"indexed part select `{n}[…+:…]` (outside the v1 fragment)"
-  | .down => .error s!"indexed part select `{n}[…-:…]` (outside the v1 fragment)"
-  | .range =>
-      match dimsOf ds n with
-      | none => .error s!"`{n}` is not declared"
-      | some dims =>
-          match dims, is with
-          | [(_, l)], [] =>
-              if l = Aff.const 0 then
-                match affOf? hi, affOf? lo with
-                | some h, some l' => .ok (.part1 n h l')
-                | _, _ => .error s!"a bound of `{n}[hi:lo]` is not affine (dynamic or nonlinear){quotNote [hi, lo]}"
-              else .error s!"`{n}`: part selects need a zero-based descending dimension `[hi:0]`"
-          | [(_, l1), (m2, l2)], [i] =>
-              if l1 = Aff.const 0 ∧ l2 = Aff.const 0 then
-                match affOf? i, affOf? hi, affOf? lo with
-                | some r, some h, some l' => .ok (.part2 n (m2.add (Aff.const 1)) r h l')
-                | _, _, _ => .error s!"an index or bound of `{n}[…][hi:lo]` is not affine (dynamic or nonlinear){quotNote [i, hi, lo]}"
-              else .error s!"`{n}`: part selects need zero-based descending dimensions `[hi:0][hi:0]`"
-          | _, _ => .error s!"part select on `{n}` does not match its declared packed dimensions (outside the v1 fragment)"
+  match dimsOf ds n with
+  | none => .error s!"`{n}` is not declared"
+  | some dims =>
+      match dims, is with
+      | [(_, l)], [] =>
+          if l = Aff.const 0 then
+            match affOf? (partRange mode a b).1, affOf? (partRange mode a b).2 with
+            | some h, some l' => .ok (.part1 n h l')
+            | _, _ => .error s!"a bound of `{n}[{partSym mode}]` is not affine (dynamic or nonlinear){quotNote [a, b]}"
+          else .error s!"`{n}`: part selects need a zero-based descending dimension `[hi:0]`"
+      | [(_, l1), (m2, l2)], [i] =>
+          if l1 = Aff.const 0 ∧ l2 = Aff.const 0 then
+            match affOf? i, affOf? (partRange mode a b).1, affOf? (partRange mode a b).2 with
+            | some r, some h, some l' => .ok (.part2 n (m2.add (Aff.const 1)) r h l')
+            | _, _, _ =>
+                .error s!"an index or bound of `{n}[…][{partSym mode}]` is not affine (dynamic or nonlinear){quotNote [i, a, b]}"
+          else .error s!"`{n}`: part selects need zero-based descending dimensions `[hi:0][hi:0]`"
+      | _, _ => .error s!"part select on `{n}` does not match its declared packed dimensions (outside the v1 fragment)"
 
 /-- WP-B2 gate 4a: the access a LEGACY select `n[i]` (the extractor's `BitSel`) stands for. Over a declaration of zero or
 one packed dimensions it is one bit; over a zero-based two-dimensional declaration `[hi:0][hi:0]` the select is a WHOLE ROW

@@ -49,79 +49,169 @@ theorem arrayElemWindow_cell2 {E : IEnv} {n : String} {ie je : PExpr} {m1 m2 i j
     arrayElemWindow E n [ie, je] = .ok (i * (m2 + 1) + j, 1, true) :=
   arrayElemWindow_desc0_2 hd (by omega) (by omega) hi hi0 hi1 hj hj0 hj1
 
-/-- Part `[hi:lo]` of a 1-D zero-based descending vector. -/
-theorem arrayPartGeom_part1 {E : IEnv} {n : String} {a b : PExpr} {m hi lo : Int}
-    (hd : E.dims.lookup n = some [(m, 0)]) (hm : 0 ≤ m)
-    (ha : evalInt E a = .ok hi) (hb : evalInt E b = .ok lo) (hlh : lo ≤ hi) :
-    arrayPartGeom E n [] .range a b = .ok (0, true, 1, dimCount m 0, lo, hi) := by
-  have := arrayPartGeom_range_of (env := E) (n := n) (is := []) (a := a) (b := b)
-    (es := [(m, 0)]) (pb := 0) (ok := true) (l := m) (r := 0) (inner := []) (k₁ := hi) (k₂ := lo)
-    (arrayDims_of hd) (walkIndices_nil (env := E) [(m, 0)]) ha hb
+/-- `affOf?` of a sum: the forms of its operands (`affBin` always reads `+`). -/
+theorem affOf?_add_inv {l r : PExpr} {c : Aff} (h : affOf? (.binary (.m0 .add) l r) = some c) :
+    ∃ a b, affOf? l = some a ∧ affOf? r = some b ∧ c = a.add b := by
+  rcases hl : affOf? l with _ | a <;> rcases hr : affOf? r with _ | b <;>
+    simp [affOf?, hl, hr, affBin] at h
+  first | exact ⟨a, b, rfl, rfl, h.symm⟩ | exact ⟨a, b, hl, hr, h.symm⟩
+
+/-- `affOf?` of a difference: the forms of its operands. -/
+theorem affOf?_sub_inv {l r : PExpr} {c : Aff} (h : affOf? (.binary (.m0 .sub) l r) = some c) :
+    ∃ a b, affOf? l = some a ∧ affOf? r = some b ∧ c = a.sub b := by
+  rcases hl : affOf? l with _ | a <;> rcases hr : affOf? r with _ | b <;>
+    simp [affOf?, hl, hr, affBin] at h
+  first | exact ⟨a, b, rfl, rfl, h.symm⟩ | exact ⟨a, b, hl, hr, h.symm⟩
+
+/-- **The labels of a part select** (`partLabels`, the instantiation's), from the affine forms of the bounds `partRange`
+gives, for every mode: `(msb, lsb)` at the valuation. For an indexed part select the width is read off the bound it
+enters (`(a + b) - 1` for `+:`, `(a - b) + 1` for `-:`, IEEE 1800-2023 §11.5.1), its names and atoms among the bound's,
+and it is positive where `lsb ≤ msb`, so the instantiation's positivity test passes. -/
+theorem partLabels_of_aff {E : IEnv} {σ : String → Int} {mode : PartMode} {a b : PExpr} {x y : Aff}
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlh : y.eval σ ≤ x.eval σ) :
+    partLabels E mode a b = .ok (x.eval σ, y.eval σ) := by
+  cases mode with
+  | range =>
+    simp only [partRange] at hx hy
+    obtain ⟨-, ha⟩ := affOf?_sound a x hx hox
+    obtain ⟨-, hb⟩ := affOf?_sound b y hy hoy
+    simp only [partLabels, ha, hb, Gen2.except_ok_bind]
+  | up =>
+    simp only [partRange] at hx hy
+    obtain ⟨s, k, hs, hk, rfl⟩ := affOf?_sub_inv hx
+    obtain ⟨a', w, ha', hw, hsa⟩ := affOf?_add_inv hs
+    have e : a' = y := Option.some.inj (ha'.symm.trans hy)
+    rw [e] at hsa
+    subst hsa
+    simp only [affOf?, Option.some.injEq] at hk
+    subst hk
+    have how : w.Ok E σ :=
+      ⟨fun v hv => hox.1 v (Aff.mem_names_sub.mpr (Or.inl (Aff.mem_names_add.mpr (Or.inr hv)))),
+        (Aff.xOk_add.mp (Aff.xOk_sub.mp hox.2).1).2⟩
+    obtain ⟨-, ha⟩ := affOf?_sound a y hy hoy
+    obtain ⟨-, hb⟩ := affOf?_sound b w hw how
+    have hev : ((y.add w).sub (Aff.const 1)).eval σ = y.eval σ + w.eval σ - 1 := by
+      rw [Aff.eval_sub, Aff.eval_add, Aff.eval_const]
+    rw [hev] at hlh ⊢
+    have hpos : 0 < w.eval σ := by omega
+    simp only [partLabels, ha, hb, Gen2.except_ok_bind, hpos, ↓reduceIte]
+  | down =>
+    simp only [partRange] at hx hy
+    obtain ⟨s, k, hs, hk, rfl⟩ := affOf?_add_inv hy
+    obtain ⟨a', w, ha', hw, hsa⟩ := affOf?_sub_inv hs
+    have e : a' = x := Option.some.inj (ha'.symm.trans hx)
+    rw [e] at hsa
+    subst hsa
+    simp only [affOf?, Option.some.injEq] at hk
+    subst hk
+    have how : w.Ok E σ :=
+      ⟨fun v hv => hoy.1 v (Aff.mem_names_add.mpr (Or.inl (Aff.mem_names_sub.mpr (Or.inr hv)))),
+        (Aff.xOk_sub.mp (Aff.xOk_add.mp hoy.2).1).2⟩
+    obtain ⟨-, ha⟩ := affOf?_sound a x hx hox
+    obtain ⟨-, hb⟩ := affOf?_sound b w hw how
+    have hev : ((x.sub w).add (Aff.const 1)).eval σ = x.eval σ - w.eval σ + 1 := by
+      rw [Aff.eval_add, Aff.eval_sub, Aff.eval_const]
+    rw [hev] at hlh ⊢
+    have hpos : 0 < w.eval σ := by omega
+    simp only [partLabels, ha, hb, Gen2.except_ok_bind, hpos, ↓reduceIte]
+
+/-- The geometry of a part select whose dimension's offsets of its labels are in order (`arrayPartGeom_range_of` for
+every mode: an indexed part select is never refused for its direction). -/
+theorem arrayPartGeom_of_labels {E : IEnv} {n : String} {is : List PExpr} {mode : PartMode} {a b : PExpr}
+    {es : List (Int × Int)} {pb : Int} {ok : Bool} {l r : Int} {inner : List (Int × Int)} {k₁ k₂ : Int}
+    (hd : arrayDims E n = .ok es) (hw : walkIndices E es is = .ok (pb, ok, (l, r) :: inner))
+    (hl : partLabels E mode a b = .ok (k₁, k₂)) (hdir : labelOffset l r k₂ ≤ labelOffset l r k₁) :
+    arrayPartGeom E n is mode a b =
+      .ok (pb, ok, dimsStride inner, dimCount l r, labelOffset l r k₂, labelOffset l r k₁) := by
+  have hn : ¬ labelOffset l r k₁ < labelOffset l r k₂ := Int.not_lt.mpr hdir
+  simp [arrayPartGeom, hd, hw, hl, hn, Int.min_def, Int.max_def, Gen2.except_ok_bind]
+  exact ⟨fun _ => by omega, fun _ => by omega⟩
+
+/-- Part `[hi:lo]` (or `[b +: w]`, `[b -: w]`, through `partRange`) of a 1-D zero-based descending vector. -/
+theorem arrayPartGeom_part1 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {a b : PExpr} {m : Int}
+    {x y : Aff} (hd : E.dims.lookup n = some [(m, 0)]) (hm : 0 ≤ m)
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlh : y.eval σ ≤ x.eval σ) :
+    arrayPartGeom E n [] mode a b = .ok (0, true, 1, dimCount m 0, y.eval σ, x.eval σ) := by
+  have := arrayPartGeom_of_labels (E := E) (n := n) (is := []) (mode := mode) (a := a) (b := b)
+    (es := [(m, 0)]) (pb := 0) (ok := true) (l := m) (r := 0) (inner := [])
+    (arrayDims_of hd) (walkIndices_nil (env := E) [(m, 0)]) (partLabels_of_aff hx hy hox hoy hlh)
     (by rw [labelOffset_desc0 hm, labelOffset_desc0 hm]; exact hlh)
   rw [this, labelOffset_desc0 hm, labelOffset_desc0 hm]
   simp
 
-theorem arrayPartRead_part1 {E : IEnv} {n : String} {a b : PExpr} {m hi lo : Int}
-    (hd : E.dims.lookup n = some [(m, 0)]) (hm : 0 ≤ m)
-    (ha : evalInt E a = .ok hi) (hb : evalInt E b = .ok lo) (hlo : 0 ≤ lo) (hlh : lo ≤ hi)
-    (hhi : hi ≤ m) :
-    arrayPartRead E n [] .range a b = .slice (.ident n) lo.toNat (hi - lo + 1).toNat := by
-  have hg := arrayPartGeom_part1 hd hm ha hb hlh
+theorem arrayPartRead_part1 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {a b : PExpr} {m : Int}
+    {x y : Aff} (hd : E.dims.lookup n = some [(m, 0)]) (hm : 0 ≤ m)
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlo : 0 ≤ y.eval σ) (hlh : y.eval σ ≤ x.eval σ)
+    (hhi : x.eval σ ≤ m) :
+    arrayPartRead E n [] mode a b =
+      .slice (.ident n) (y.eval σ).toNat (x.eval σ - y.eval σ + 1).toNat := by
+  have hg := arrayPartGeom_part1 hd hm hx hy hox hoy hlh
   have hc := dimCount_desc0 hm
   rw [arrayPartRead_of_inRange hg hlo (by omega)]
   simp
 
-theorem arrayPartTarget_part1 {E : IEnv} {n : String} {a b : PExpr} {m hi lo : Int}
-    (hd : E.dims.lookup n = some [(m, 0)]) (hm : 0 ≤ m)
-    (ha : evalInt E a = .ok hi) (hb : evalInt E b = .ok lo) (hlo : 0 ≤ lo) (hlh : lo ≤ hi)
-    (hhi : hi ≤ m) :
-    arrayPartTarget E n [] .range a b =
-      .ok (.slice n lo.toNat (hi - lo + 1).toNat, (hi - lo + 1).toNat) := by
-  have hg := arrayPartGeom_part1 hd hm ha hb hlh
+theorem arrayPartTarget_part1 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {a b : PExpr} {m : Int}
+    {x y : Aff} (hd : E.dims.lookup n = some [(m, 0)]) (hm : 0 ≤ m)
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlo : 0 ≤ y.eval σ) (hlh : y.eval σ ≤ x.eval σ)
+    (hhi : x.eval σ ≤ m) :
+    arrayPartTarget E n [] mode a b =
+      .ok (.slice n (y.eval σ).toNat (x.eval σ - y.eval σ + 1).toNat, (x.eval σ - y.eval σ + 1).toNat) := by
+  have hg := arrayPartGeom_part1 hd hm hx hy hox hoy hlh
   have hc := dimCount_desc0 hm
   rw [arrayPartTarget_of_inRange hg hlo (by omega)]
   simp
 
-/-- Part `[hi:lo]` of a row of a 2-D zero-based descending array. -/
-theorem arrayPartGeom_part2 {E : IEnv} {n : String} {ie a b : PExpr} {m1 m2 k hi lo : Int}
+/-- Part `[hi:lo]` (or `[b +: w]`, `[b -: w]`) of a row of a 2-D zero-based descending array. -/
+theorem arrayPartGeom_part2 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {ie a b : PExpr}
+    {m1 m2 k : Int} {x y : Aff}
     (hd : E.dims.lookup n = some [(m1, 0), (m2, 0)]) (hm2 : 0 ≤ m2)
     (hev : evalInt E ie = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m1)
-    (ha : evalInt E a = .ok hi) (hb : evalInt E b = .ok lo) (hlh : lo ≤ hi) :
-    arrayPartGeom E n [ie] .range a b =
-      .ok (k * (m2 + 1), true, 1, dimCount m2 0, lo, hi) := by
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlh : y.eval σ ≤ x.eval σ) :
+    arrayPartGeom E n [ie] mode a b =
+      .ok (k * (m2 + 1), true, 1, dimCount m2 0, y.eval σ, x.eval σ) := by
   have hm1 : 0 ≤ m1 := by omega
   have hw := walkIndices_desc0_cons hm1 hev hk0 hk1 (walkIndices_nil (env := E) [(m2, 0)])
-  have := arrayPartGeom_range_of (env := E) (n := n) (is := [ie]) (a := a) (b := b)
+  have := arrayPartGeom_of_labels (E := E) (n := n) (is := [ie]) (mode := mode) (a := a) (b := b)
     (es := [(m1, 0), (m2, 0)]) (pb := k * (dimsStride [(m2, 0)] : Int) + 0) (ok := true)
-    (l := m2) (r := 0) (inner := []) (k₁ := hi) (k₂ := lo)
-    (arrayDims_of hd) hw ha hb
+    (l := m2) (r := 0) (inner := [])
+    (arrayDims_of hd) hw (partLabels_of_aff hx hy hox hoy hlh)
     (by rw [labelOffset_desc0 hm2, labelOffset_desc0 hm2]; exact hlh)
   rw [this, labelOffset_desc0 hm2, labelOffset_desc0 hm2]
   have h1 : ((dimCount m2 0 : Nat) : Int) = m2 + 1 := dimCount_desc0 hm2
   simp only [dimsStride, Nat.mul_one, h1, Int.add_zero]
 
-theorem arrayPartRead_part2 {E : IEnv} {n : String} {ie a b : PExpr} {m1 m2 k hi lo : Int}
+theorem arrayPartRead_part2 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {ie a b : PExpr}
+    {m1 m2 k : Int} {x y : Aff}
     (hd : E.dims.lookup n = some [(m1, 0), (m2, 0)])
     (hev : evalInt E ie = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m1)
-    (ha : evalInt E a = .ok hi) (hb : evalInt E b = .ok lo) (hlo : 0 ≤ lo) (hlh : lo ≤ hi)
-    (hhi : hi ≤ m2) :
-    arrayPartRead E n [ie] .range a b =
-      .slice (.ident n) (k * (m2 + 1) + lo).toNat (hi - lo + 1).toNat := by
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlo : 0 ≤ y.eval σ) (hlh : y.eval σ ≤ x.eval σ)
+    (hhi : x.eval σ ≤ m2) :
+    arrayPartRead E n [ie] mode a b =
+      .slice (.ident n) (k * (m2 + 1) + y.eval σ).toNat (x.eval σ - y.eval σ + 1).toNat := by
   have hm2 : 0 ≤ m2 := by omega
-  have hg := arrayPartGeom_part2 hd hm2 hev hk0 hk1 ha hb hlh
+  have hg := arrayPartGeom_part2 hd hm2 hev hk0 hk1 hx hy hox hoy hlh
   have hc := dimCount_desc0 hm2
   rw [arrayPartRead_of_inRange hg hlo (by omega)]
   simp
 
-theorem arrayPartTarget_part2 {E : IEnv} {n : String} {ie a b : PExpr} {m1 m2 k hi lo : Int}
+theorem arrayPartTarget_part2 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {ie a b : PExpr}
+    {m1 m2 k : Int} {x y : Aff}
     (hd : E.dims.lookup n = some [(m1, 0), (m2, 0)])
     (hev : evalInt E ie = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m1)
-    (ha : evalInt E a = .ok hi) (hb : evalInt E b = .ok lo) (hlo : 0 ≤ lo) (hlh : lo ≤ hi)
-    (hhi : hi ≤ m2) :
-    arrayPartTarget E n [ie] .range a b =
-      .ok (.slice n (k * (m2 + 1) + lo).toNat (hi - lo + 1).toNat, (hi - lo + 1).toNat) := by
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlo : 0 ≤ y.eval σ) (hlh : y.eval σ ≤ x.eval σ)
+    (hhi : x.eval σ ≤ m2) :
+    arrayPartTarget E n [ie] mode a b =
+      .ok (.slice n (k * (m2 + 1) + y.eval σ).toNat (x.eval σ - y.eval σ + 1).toNat,
+        (x.eval σ - y.eval σ + 1).toNat) := by
   have hm2 : 0 ≤ m2 := by omega
-  have hg := arrayPartGeom_part2 hd hm2 hev hk0 hk1 ha hb hlh
+  have hg := arrayPartGeom_part2 hd hm2 hev hk0 hk1 hx hy hox hoy hlh
   have hc := dimCount_desc0 hm2
   rw [arrayPartTarget_of_inRange hg hlo (by omega)]
   simp
@@ -137,12 +227,13 @@ theorem elemAcc?_cases {ds : List DeclT} {n : String} {is : List PExpr} {a : Acc
   split at h <;> (try split at h) <;> (try split at h) <;> (try split at h) <;> (try split at h) <;>
     simp_all <;> (subst_vars; try simp) <;> (try (refine ⟨_, _, ⟨rfl, rfl⟩, ?_, ?_⟩ <;> assumption))
 
+/-- The access of a part select of any mode (`partAcc?`), through the bounds `partRange` gives. -/
 theorem partAcc?_cases {ds : List DeclT} {n : String} {is : List PExpr} {mode : PartMode}
     {hi lo : PExpr} {a : Acc} (h : partAcc? ds n is mode hi lo = .ok a) :
-    mode = .range ∧
-    ((∃ x y, is = [] ∧ affOf? hi = some x ∧ affOf? lo = some y ∧ a = .part1 n x y) ∨
-     (∃ i r x y w, is = [i] ∧ affOf? i = some r ∧ affOf? hi = some x ∧ affOf? lo = some y ∧
-        a = .part2 n w r x y)) := by
+    (∃ x y, is = [] ∧ affOf? (partRange mode hi lo).1 = some x ∧ affOf? (partRange mode hi lo).2 = some y ∧
+        a = .part1 n x y) ∨
+     (∃ i r x y w, is = [i] ∧ affOf? i = some r ∧ affOf? (partRange mode hi lo).1 = some x ∧
+        affOf? (partRange mode hi lo).2 = some y ∧ a = .part2 n w r x y) := by
   unfold partAcc? at h
   split at h <;> (try split at h) <;> (try split at h) <;> (try split at h) <;> (try split at h) <;>
     (try split at h) <;> simp_all <;> (subst_vars; try simp) <;>
@@ -2260,7 +2351,8 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
       cases b with
       | ident n =>
           simp only [leafRd?] at h
-          obtain ⟨-, hc⟩ := partAcc?_cases h
+          have hc := partAcc?_cases h
+          simp only [partRange] at hc
           rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
           · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
             rw [inst_partSel C hdg hx hy hagx hy0 hyx ctx]
@@ -2300,27 +2392,27 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
           Acc.rd, Acc.name, Acc.lo, hw, hcell]
   | arrayPart n is mode hi lo =>
       simp only [leafRd?] at h
-      obtain ⟨rfl, hc⟩ := partAcc?_cases h
+      have hc := partAcc?_cases h
       rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩
       · -- n[hi:lo], 1-D
         obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
         have hd := C.dims n _ hdg
-        obtain ⟨-, heh⟩ := affOf?_sound hi x hx (hagx x (by simp [Acc.affs]))
-        obtain ⟨-, hel⟩ := affOf?_sound lo y hy (hagx y (by simp [Acc.affs]))
-        have hg := arrayPartGeom_part1 hd (by omega) heh hel hyx
+        have hox := hagx x (by simp [Acc.affs])
+        have hoy := hagx y (by simp [Acc.affs])
+        have hg := arrayPartGeom_part1 hd (by omega) hx hy hox hoy hyx
         rw [instExpr2_arrayPart _ (dynPartPlan_of_geom hg),
-          arrayPartRead_part1 hd (by omega) heh hel hy0 hyx hxm]
+          arrayPartRead_part1 hd (by omega) hx hy hox hoy hy0 hyx hxm]
         simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
           Acc.rd, Acc.name, Acc.lo, Acc.wid]
       · -- n[i][hi:lo], part of a row
         obtain ⟨m1, m2, hdg, hw, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
         have hd := C.dims n _ hdg
         obtain ⟨-, hei⟩ := affOf?_sound i r hr (hagx r (by simp [Acc.affs]))
-        obtain ⟨-, heh⟩ := affOf?_sound hi x hx (hagx x (by simp [Acc.affs]))
-        obtain ⟨-, hel⟩ := affOf?_sound lo y hy (hagx y (by simp [Acc.affs]))
-        have hg := arrayPartGeom_part2 hd (by omega) hei hr0 hr1 heh hel hyx
+        have hox := hagx x (by simp [Acc.affs])
+        have hoy := hagx y (by simp [Acc.affs])
+        have hg := arrayPartGeom_part2 hd (by omega) hei hr0 hr1 hx hy hox hoy hyx
         rw [instExpr2_arrayPart _ (dynPartPlan_of_geom hg),
-          arrayPartRead_part2 hd hei hr0 hr1 heh hel hy0 hyx hxm]
+          arrayPartRead_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
         have hcell := rmN_eq_toNat (W := m2 + 1) (i := r.eval σ) (j := y.eval σ) (by omega) hr0 hy0
         simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
           Acc.rd, Acc.name, Acc.lo, Acc.wid, hw, hcell]
@@ -3627,26 +3719,27 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
         simp [Acc.lhs, Acc.lo, hw, hcell]⟩
   · -- part path
     rw [instLhs2_arrayPart]
-    obtain ⟨rfl, hc⟩ := partAcc?_cases hp
+    have hc := partAcc?_cases hp
     rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩
     · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
       have hd := C.dims n _ hdg
-      obtain ⟨-, heh⟩ := affOf?_sound hi x hx (hagx x (by simp [Acc.affs]))
-      obtain ⟨-, hel⟩ := affOf?_sound lo y hy (hagx y (by simp [Acc.affs]))
+      have hox := hagx x (by simp [Acc.affs])
+      have hoy := hagx y (by simp [Acc.affs])
       exact ⟨(x.eval σ - y.eval σ + 1).toNat, by
-        rw [arrayPartTarget_part1 hd (by omega) heh hel hy0 hyx hxm]
+        rw [arrayPartTarget_part1 hd (by omega) hx hy hox hoy hy0 hyx hxm]
         simp [Acc.lhs, Acc.lo, Acc.wid]⟩
     · obtain ⟨m1, m2, hdg, hw, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
       have hd := C.dims n _ hdg
       obtain ⟨-, hei⟩ := affOf?_sound i r hr (hagx r (by simp [Acc.affs]))
-      obtain ⟨-, heh⟩ := affOf?_sound hi x hx (hagx x (by simp [Acc.affs]))
-      obtain ⟨-, hel⟩ := affOf?_sound lo y hy (hagx y (by simp [Acc.affs]))
+      have hox := hagx x (by simp [Acc.affs])
+      have hoy := hagx y (by simp [Acc.affs])
       have hcell := rmN_eq_toNat (W := m2 + 1) (i := r.eval σ) (j := y.eval σ) (by omega) hr0 hy0
       exact ⟨(x.eval σ - y.eval σ + 1).toNat, by
-        rw [arrayPartTarget_part2 hd hei hr0 hr1 heh hel hy0 hyx hxm]
+        rw [arrayPartTarget_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
         simp [Acc.lhs, Acc.lo, Acc.wid, hw, hcell]⟩
   · -- legacy part select
-    obtain ⟨-, hc⟩ := partAcc?_cases hp
+    have hc := partAcc?_cases hp
+    simp only [partRange] at hc
     rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
     · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
       exact ⟨(x.eval σ - y.eval σ + 1).toNat, by
