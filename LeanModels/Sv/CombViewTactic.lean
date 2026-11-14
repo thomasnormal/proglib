@@ -2030,7 +2030,7 @@ def addClog2PowFacts (es : Array Lean.Expr) : TacticM Unit := do
       if let some h ← omegaProves (← mkAppM ``LE.le #[toExpr (1 : Nat), a]) then
         assertMainM `hclog2_pow_lt (mkAppM ``LeanModels.Sv.CombView.two_pow_clog2_lt_int #[a, h])
 
-@[tactic svPowFacts] def evalSvPowFacts : Tactic := fun _ => do
+@[tactic svPowFacts] def evalSvPowFacts : Tactic := fun _ => withDeepRec do
   evalTactic (← `(tactic| intros))
   -- each step builds its propositions over the goal's own hypotheses (the variables `intros` just bound): in the
   -- goal's context
@@ -2043,7 +2043,7 @@ def addClog2PowFacts (es : Array Lean.Expr) : TacticM Unit := do
   inGoal do LeanModels.Sv.CombView.addPowFacts (← goalExprs)
   inGoal do LeanModels.Sv.CombView.addAtomFacts (← goalExprs)
 
-@[tactic svPowOmega] def evalSvPowOmega : Tactic := fun _ => do
+@[tactic svPowOmega] def evalSvPowOmega : Tactic := fun _ => withDeepRec do
   evalTactic (← `(tactic| sv_pow_facts))
   unless (← getGoals).isEmpty do evalTactic (← `(tactic| omega))
 
