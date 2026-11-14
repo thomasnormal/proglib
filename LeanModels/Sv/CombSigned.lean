@@ -234,13 +234,22 @@ theorem Summary.structOk_of_mapProcs {g : PProcess → PProcess} {s : Summary}
   rw [List.pairwise_map] at h8
   exact h8
 
+theorem Summary.xObl_of_mapProcs {g : PProcess → PProcess} {s : Summary} {σ : String → Int}
+    (h : (s.mapProcs g).XObl σ) : s.XObl σ := by
+  obtain ⟨h1, h2, h3⟩ := h
+  rw [Summary.lsites_mapProcs] at h1
+  rw [Summary.hdrSteps_mapProcs] at h2
+  rw [Summary.condSteps_mapProcs] at h3
+  simp only [List.forall_mem_map] at h1
+  exact ⟨h1, h2, h3⟩
+
 theorem Summary.autoObl_of_mapProcs {g : PProcess → PProcess} {s : Summary} {σ : String → Int} {args : List Int}
     (h : (s.mapProcs g).AutoObl σ args) : s.AutoObl σ args := by
-  obtain ⟨h1, h2, h3⟩ := h
+  obtain ⟨h1, h2, h3, h4⟩ := h
   rw [Summary.lsites_mapProcs] at h1 h2
   rw [Summary.hdrSteps_mapProcs, Summary.condSteps_mapProcs] at h3
   simp only [List.forall_mem_map] at h1 h2
-  exact ⟨h1, h2, h3⟩
+  exact ⟨h1, h2, h3, Summary.xObl_of_mapProcs h4⟩
 
 /-! ## The recognizer of the design as written -/
 

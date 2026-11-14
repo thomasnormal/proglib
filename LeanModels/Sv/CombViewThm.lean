@@ -908,8 +908,9 @@ theorem constW_eval (σ : String → Int) : ∀ {ps : List (Aff × Aff)} {w : Na
         · simp [hr] at h
         · simp only [hr, Option.map_some, Option.some.injEq] at h
           subst h
-          simp [affPairsW, constW_eval σ hr, Aff.eval_of_terms_nil σ m hc.1.1.1 hc.1.2,
-            Aff.eval_of_terms_nil σ l hc.1.1.2 hc.2]
+          obtain ⟨⟨⟨⟨⟨hmt, hlt⟩, hmq⟩, hlq⟩, hmx⟩, hlx⟩ := hc
+          simp [affPairsW, constW_eval σ hr, Aff.eval_of_terms_nil σ m hmt hmq hmx,
+            Aff.eval_of_terms_nil σ l hlt hlq hlx]
       · simp at h
 
 /-- **The width fact of a signed comparison the recognizer accepts holds at every valuation** (`scmpPairs_dims`): the
@@ -974,7 +975,7 @@ theorem unsignL_of_partsRdW {ds : List DeclT} :
             | lit v => rfl
             | repl c x =>
                 simp only [partRdW?, repRd?] at hp
-                rcases hk : affOf? c with _ | k
+                rcases hk : affOfN? c with _ | k
                 · simp [hk] at hp
                 · simp only [hk] at hp
                   show PExpr.repl c x.unsign = _
@@ -1039,7 +1040,7 @@ theorem unsign_of_rdsOfW {ds : List DeclT} :
   | .repl c a, rs, h => by
       have h' : repRd? ds c a = .ok rs := by simpa [rdsOfW?] using h
       unfold repRd? at h'
-      rcases hk : affOf? c with _ | k
+      rcases hk : affOfN? c with _ | k
       · simp [hk] at h'
       · simp only [hk] at h'
         show PExpr.repl c a.unsign = _
@@ -1117,6 +1118,25 @@ def InWin (σd σs : String → Int) (st : TSite) : Prop :=
      | .bit n a => a.eval σs + 1 ≤ (s.dw σd n : Int)
      | _ => True)
 
+/-- **The shift and power atoms in range** (`XAt.Ok`, item 4): every atom of every index of every access of every site
+at every valuation of its loops (under its guards), of every loop bound at every valuation of the loops around it, and
+of every subterm of every generate condition wherever it is evaluated. There the instantiation's evaluation is defined
+and is the atom's value (`affOf?_sound`, `guard_eval`). For a design without atoms it holds by `xObl_of_atomFree`. -/
+def XObl (σ : String → Int) : Prop :=
+  (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' =>
+    ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), ∀ x ∈ a.affs, x.XOk σ') ∧
+  (∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' => q.2.bound.XOk σ') ∧
+  (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' => ∀ a ∈ c.2.2.rngs, a.XOk σ')
+
+/-- **A design without atoms owes nothing of `XObl`.** -/
+theorem xObl_of_atomFree (h : s.atomFree = true) (σ : String → Int) : s.XObl σ := by
+  simp only [atomFree, Bool.and_eq_true, List.all_eq_true, List.isEmpty_iff] at h
+  obtain ⟨⟨h1, h2⟩, h3⟩ := h
+  refine ⟨fun ls hls => ?_, fun q hq => ?_, fun c hc => ?_⟩
+  · exact (Loops.all_iff _ _ _).mpr fun σ' _ a ha x hx => Aff.xOk_of_nil (h1 ls hls a ha x hx)
+  · exact (Loops.all_iff _ _ _).mpr fun σ' _ => Aff.xOk_of_nil (h2 q hq)
+  · exact (Loops.all_iff _ _ _).mpr fun σ' _ a ha => Aff.xOk_of_nil (h3 c hc a ha)
+
 /-- The facts the tactic closes by `omega`: reads in range, dimensions nonnegative, loop bounds
 within the generate fuel. The fuel is `(Σ|args| + 2)² + 64` (`PDesign.surfaceFuel`), so any loop
 count affine in the parameters with coefficient sum at most 4 is within it: the bound used here is
@@ -1130,7 +1150,20 @@ def AutoObl (σ : String → Int) (args : List Int) : Prop :=
   ((∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' =>
     (q.2.bound.eval σ' - q.2.c0).toNat ≤ 4 * (args.map Int.natAbs).sum + 60) ∧
    (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' =>
-    ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648))
+    ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)) ∧
+  s.XObl σ
+
+/-- `AutoObl` from its first three conjuncts (the form the tactics normalize) and the atom obligation (`XObl`, which they
+close apart: by `xObl_of_atomFree` for a design without shift and power atoms). -/
+theorem autoObl_intro {σ : String → Int} {args : List Int}
+    (h : (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' => ∀ r ∈ ls.site.rds, s.InR σ σ' r) ∧
+      (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), s.DimNum σ a) ∧
+      ((∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' =>
+        (q.2.bound.eval σ' - q.2.c0).toNat ≤ 4 * (args.map Int.natAbs).sum + 60) ∧
+       (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' =>
+        ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)))
+    (hx : s.XObl σ) : s.AutoObl σ args :=
+  ⟨h.1, h.2.1, h.2.2, hx⟩
 
 /-- A FURTHER target access of a site (`TSite.more`) lies inside its declared signal: `InWin` for one access. -/
 def InWinAcc (σd σs : String → Int) (a : Acc) : Prop :=
@@ -2127,7 +2160,7 @@ theorem Ctx.bindVal {σ : String → Int} {E : IEnv} {elems : List (String × Na
 def AccOK (σ : String → Int) (DW : String → Option Nat)
     (DG : String → Option (List (Int × Int))) (EW : String → Option Nat) (ns : List String)
     (a : Acc) : Prop :=
-  (DW a.name).isSome = true ∧ AccGeom σ DG EW a ∧ ∀ x ∈ a.affs, ∀ n ∈ x.names, n ∈ ns
+  (DW a.name).isSome = true ∧ AccGeom σ DG EW a ∧ (∀ x ∈ a.affs, ∀ n ∈ x.names, n ∈ ns) ∧ ∀ x ∈ a.affs, x.XOk σ
 
 section sites
 
@@ -2150,7 +2183,7 @@ theorem ctxElemsOne (C : Ctx σ E elems DW DG EW ns) {n : String} {m : Int}
 /-- **A legacy part select of a one-dimensional declaration** instantiates to the window `Acc.part1` promises. -/
 theorem inst_partSel (C : Ctx σ E elems DW DG EW ns) {n : String} {msb lsb : PExpr} {x y : Aff} {m : Int}
     (hdg : DG n = some [(m, 0)]) (hx : affOf? msb = some x) (hy : affOf? lsb = some y)
-    (hagx : ∀ a ∈ [x, y], ∀ v ∈ a.names, E.intVal? v = some (σ v))
+    (hagx : ∀ a ∈ [x, y], a.Ok E σ)
     (hy0 : 0 ≤ y.eval σ) (hyx : y.eval σ ≤ x.eval σ) (ctx : Option Nat) :
     instExpr2 E elems ctx (.partSel (.ident n) msb lsb) =
       .slice (.ident n) (y.eval σ).toNat (x.eval σ - y.eval σ + 1).toNat := by
@@ -2163,7 +2196,7 @@ theorem inst_partSel (C : Ctx σ E elems DW DG EW ns) {n : String} {msb lsb : PE
 /-- … and its self-width. -/
 theorem selfWidth_partSel (C : Ctx σ E elems DW DG EW ns) {n : String} {msb lsb : PExpr} {x y : Aff} {m : Int}
     (hdg : DG n = some [(m, 0)]) (hx : affOf? msb = some x) (hy : affOf? lsb = some y)
-    (hagx : ∀ a ∈ [x, y], ∀ v ∈ a.names, E.intVal? v = some (σ v))
+    (hagx : ∀ a ∈ [x, y], a.Ok E σ)
     (hy0 : 0 ≤ y.eval σ) (hyx : y.eval σ ≤ x.eval σ) :
     selfWidth2 E elems (.partSel (.ident n) msb lsb) = some (x.eval σ - y.eval σ + 1).toNat := by
   obtain ⟨-, heh⟩ := affOf?_sound msb x hx (hagx x (by simp))
@@ -2175,7 +2208,7 @@ theorem selfWidth_partSel (C : Ctx σ E elems DW DG EW ns) {n : String} {msb lsb
 /-- … and the write window of a legacy part-select target. -/
 theorem instLhs_partSel (C : Ctx σ E elems DW DG EW ns) {n : String} {msb lsb : PExpr} {x y : Aff} {m : Int}
     (hdg : DG n = some [(m, 0)]) (hx : affOf? msb = some x) (hy : affOf? lsb = some y)
-    (hagx : ∀ a ∈ [x, y], ∀ v ∈ a.names, E.intVal? v = some (σ v))
+    (hagx : ∀ a ∈ [x, y], a.Ok E σ)
     (hy0 : 0 ≤ y.eval σ) (hyx : y.eval σ ≤ x.eval σ) :
     instLhs2 E elems (.partSel n msb lsb) =
       .ok (.slice n (y.eval σ).toNat (x.eval σ - y.eval σ + 1).toNat, (x.eval σ - y.eval σ + 1).toNat) := by
@@ -2190,9 +2223,9 @@ identifier), with no loud node. -/
 theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr} {a : Acc}
     (h : leafRd? ds e = .ok a) (ha : AccOK σ DW DG EW ns a) (ctx : Option Nat) :
     RdOK σ [a] (instExpr2 E elems ctx e) := by
-  obtain ⟨hdec, hgeo, hns⟩ := ha
-  have hagx : ∀ x ∈ a.affs, ∀ n ∈ x.names, E.intVal? n = some (σ n) :=
-    fun x hx n hn => C.agree n (hns x hx n hn)
+  obtain ⟨hdec, hgeo, hns, hxk⟩ := ha
+  have hagx : ∀ x ∈ a.affs, x.Ok E σ :=
+    fun x hx => ⟨fun n hn => C.agree n (hns x hx n hn), hxk x hx⟩
   cases e with
   | ident n =>
       simp only [leafRd?, Except.ok.injEq] at h
@@ -2590,29 +2623,30 @@ theorem rdsLeaf_ne_repl {ds : List DeclT} {p : PExpr} {rs : List Acc} (h : rdsLe
   simp [rdsLeaf?, leafRd?] at h
 
 theorem repRd?_cases {ds : List DeclT} {c a : PExpr} {rs : List Acc} (h : repRd? ds c a = .ok rs) :
-    ∃ k, affOf? c = some k ∧ repArgRd? ds a = .ok rs := by
+    ∃ k, affOfN? c = some k ∧ repArgRd? ds a = .ok rs := by
   unfold repRd? at h
-  rcases hk : affOf? c with _ | k
+  rcases hk : affOfN? c with _ | k
   · simp [hk] at h
   · simp only [hk] at h
     exact ⟨k, rfl, h⟩
 
 /-- The count of a replication evaluates to its affine form and is non-negative (the scope and range facts of
 `ConstOK`). -/
-theorem repl_facts (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOf? c = some k)
+theorem repl_facts (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOfN? c = some k)
     (hco : ConstOK σ ns (.repl c a)) : evalInt E c = .ok (k.eval σ) ∧ 0 ≤ k.eval σ := by
+  have hk' : affOf? c = some k := (affOfN?_some hk).1
   have hn : ∀ n ∈ k.names, E.intVal? n = some (σ n) := by
     intro n hn
     apply C.agree n
     apply hco.1 n
-    simp [PExpr.cnames, repAff, hk, hn]
+    simp [PExpr.cnames, repAff, hk', hn]
   have hpos : 0 ≤ k.eval σ := by
     apply hco.2 k
-    simp [PExpr.rcounts, repAff, hk]
-  exact ⟨(affOf?_sound c k hk hn).2, hpos⟩
+    simp [PExpr.rcounts, repAff, hk']
+  exact ⟨(affOfN?_sound c k hk hn).2, hpos⟩
 
 /-- **A replication instantiates to the replication of its argument at its own width.** -/
-theorem inst_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOf? c = some k)
+theorem inst_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOfN? c = some k)
     (hco : ConstOK σ ns (.repl c a)) (ctx : Option Nat) :
     instExpr2 E elems ctx (.repl c a) =
       .repl (k.eval σ).toNat (instExpr2 E elems (selfWidth2 E elems a) a) := by
@@ -2621,7 +2655,7 @@ theorem inst_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk :
 
 /-- … and its self-determined width is the count times the argument's. -/
 theorem selfWidth_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} {w : Nat}
-    (hk : affOf? c = some k) (hco : ConstOK σ ns (.repl c a)) (hw : selfWidth2 E elems a = some w) :
+    (hk : affOfN? c = some k) (hco : ConstOK σ ns (.repl c a)) (hw : selfWidth2 E elems a = some w) :
     selfWidth2 E elems (.repl c a) = some ((k.eval σ).toNat * w) := by
   obtain ⟨hev, hpos⟩ := repl_facts C hk hco
   simp [selfWidth2, hev, hpos, hw]
@@ -3028,9 +3062,9 @@ theorem repArgRdD?_cases {ds : List DeclT} {a : PExpr} {rs : List Acc} (h : repA
   · simp at h
 
 theorem repRdD?_cases {ds : List DeclT} {c a : PExpr} {rs : List Acc} (h : repRdD? ds c a = .ok rs) :
-    ∃ k, affOf? c = some k ∧ repArgRdD? ds a = .ok rs := by
+    ∃ k, affOfN? c = some k ∧ repArgRdD? ds a = .ok rs := by
   unfold repRdD? at h
-  rcases hk : affOf? c with _ | k
+  rcases hk : affOfN? c with _ | k
   · simp [hk] at h
   · simp only [hk] at h
     exact ⟨k, rfl, h⟩
@@ -3541,9 +3575,9 @@ def Desc (names : List String) (si : SiteInst) (p : Process2) : Prop :=
 theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs} {a : Acc}
     (h : tgtOf? ds l = .ok a) (ha : AccOK σ DW DG EW ns a) :
     ∃ w, instLhs2 E elems l = .ok (a.lhs σ, w) := by
-  obtain ⟨hdec, hgeo, hns⟩ := ha
-  have hagx : ∀ x ∈ a.affs, ∀ n ∈ x.names, E.intVal? n = some (σ n) :=
-    fun x hx n hn => C.agree n (hns x hx n hn)
+  obtain ⟨hdec, hgeo, hns, hxk⟩ := ha
+  have hagx : ∀ x ∈ a.affs, x.Ok E σ :=
+    fun x hx => ⟨fun n hn => C.agree n (hns x hx n hn), hxk x hx⟩
   rcases tgtOf?_cases h with ⟨n, rfl, rfl⟩ | ⟨n, i, x, rfl, hx, hba⟩ | ⟨n, is, rfl, he⟩ |
     ⟨n, is, mode, hi, lo, rfl, hp⟩ | ⟨n, msb, lsb, rfl, hp⟩
   · -- whole signal

@@ -81,11 +81,11 @@ set_option maxRecDepth 4096 in
 /-- `sv_norm_core` with the vocabulary of the procedural sites (`NoSelfRead`, the skeleton). -/
 macro "svL_norm_core" : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombProc.PTR.rds, LeanModels.Sv.CombView.Summary.NoSelfRead, LeanModels.Sv.CombView.isCombProc, LeanModels.Sv.CombView.Summary.EqsL, LeanModels.Sv.CombView.Summary.EqSiteL, LeanModels.Sv.CombView.Summary.WidthOblL, LeanModels.Sv.CombEq.rhsSk, LeanModels.Sv.CombEq.stmtSk, LeanModels.Sv.CombEq.stmtSkL, LeanModels.Sv.CombEq.stepSk, LeanModels.Sv.CombEq.ovrSk, LeanModels.Sv.CombEq.stmtRcnt, LeanModels.Sv.CombEq.stmtRcntL, LeanModels.Sv.CombEq.rcnt, LeanModels.Sv.CombEq.pcnt, LeanModels.Sv.CombEq.PSk.bit, LeanModels.Sv.CombEq.pskArmsBit, LeanModels.Sv.CombEq.PskArmsOk, LeanModels.Sv.CombEq.armRcnt, LeanModels.Sv.CombEq.itemsRcnt, LeanModels.Sv.CombEq.armSk, LeanModels.Sv.CombEq.caseSkItems, LeanModels.Sv.CombEq.patLit, LeanModels.Sv.CombProc.PLfR.armRds, LeanModels.Sv.CombProc.PLfR.rds, LeanModels.Sv.XF.caseSel_nil, LeanModels.Sv.LVec.width_mk_toArray,  LeanModels.Sv.CombEq.PSk.WidthOk, LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -98,7 +98,8 @@ macro "svL_norm_core" : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -149,11 +150,11 @@ set_option maxRecDepth 4096 in
 macro "svL_eq_norm_at" h:ident : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombProc.PTR.rds, LeanModels.Sv.CombView.Summary.NoSelfRead, LeanModels.Sv.CombView.isCombProc, LeanModels.Sv.CombView.Summary.EqsL, LeanModels.Sv.CombView.Summary.EqSiteL, LeanModels.Sv.CombView.Summary.WidthOblL, LeanModels.Sv.CombEq.rhsSk, LeanModels.Sv.CombEq.stmtSk, LeanModels.Sv.CombEq.stmtSkL, LeanModels.Sv.CombEq.stepSk, LeanModels.Sv.CombEq.ovrSk, LeanModels.Sv.CombEq.stmtRcnt, LeanModels.Sv.CombEq.stmtRcntL, LeanModels.Sv.CombEq.rcnt, LeanModels.Sv.CombEq.pcnt, LeanModels.Sv.CombEq.PSk.bit, LeanModels.Sv.CombEq.pskArmsBit, LeanModels.Sv.CombEq.PskArmsOk, LeanModels.Sv.CombEq.armRcnt, LeanModels.Sv.CombEq.itemsRcnt, LeanModels.Sv.CombEq.armSk, LeanModels.Sv.CombEq.caseSkItems, LeanModels.Sv.CombEq.patLit, LeanModels.Sv.CombProc.PLfR.armRds, LeanModels.Sv.CombProc.PLfR.rds, LeanModels.Sv.XF.caseSel_nil, LeanModels.Sv.LVec.width_mk_toArray,  LeanModels.Sv.CombEq.PSk.WidthOk, LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv, List.lookup_cons, List.lookup_nil, LeanModels.Sv.CombView.CE.eval,
       LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -166,7 +167,8 @@ macro "svL_eq_norm_at" h:ident : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -234,11 +236,11 @@ set_option maxRecDepth 4096 in
 macro "svL_eq_norm" : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombProc.PTR.rds, LeanModels.Sv.CombView.Summary.NoSelfRead, LeanModels.Sv.CombView.isCombProc, LeanModels.Sv.CombView.Summary.EqsL, LeanModels.Sv.CombView.Summary.EqSiteL, LeanModels.Sv.CombView.Summary.WidthOblL, LeanModels.Sv.CombEq.rhsSk, LeanModels.Sv.CombEq.stmtSk, LeanModels.Sv.CombEq.stmtSkL, LeanModels.Sv.CombEq.stepSk, LeanModels.Sv.CombEq.ovrSk, LeanModels.Sv.CombEq.stmtRcnt, LeanModels.Sv.CombEq.stmtRcntL, LeanModels.Sv.CombEq.rcnt, LeanModels.Sv.CombEq.pcnt, LeanModels.Sv.CombEq.PSk.bit, LeanModels.Sv.CombEq.pskArmsBit, LeanModels.Sv.CombEq.PskArmsOk, LeanModels.Sv.CombEq.armRcnt, LeanModels.Sv.CombEq.itemsRcnt, LeanModels.Sv.CombEq.armSk, LeanModels.Sv.CombEq.caseSkItems, LeanModels.Sv.CombEq.patLit, LeanModels.Sv.CombProc.PLfR.armRds, LeanModels.Sv.CombProc.PLfR.rds, LeanModels.Sv.XF.caseSel_nil, LeanModels.Sv.LVec.width_mk_toArray,  LeanModels.Sv.CombEq.PSk.WidthOk, LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv, List.lookup_cons, List.lookup_nil, LeanModels.Sv.CombView.CE.eval,
       LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -251,7 +253,8 @@ macro "svL_eq_norm" : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -317,11 +320,11 @@ set_option maxRecDepth 4096 in
 macro "svL_eq_norm_multi_at" h:ident : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombProc.PTR.rds, LeanModels.Sv.CombView.Summary.NoSelfRead, LeanModels.Sv.CombView.isCombProc, LeanModels.Sv.CombView.Summary.EqsL, LeanModels.Sv.CombView.Summary.EqsM, LeanModels.Sv.CombView.Summary.KnownsM, LeanModels.Sv.CombView.Summary.WidthOblM, LeanModels.Sv.CombView.Summary.CoverOblM, LeanModels.Sv.CombView.Summary.SrcSM, LeanModels.Sv.CombView.Summary.DisjWithin, LeanModels.Sv.CombEq.procSks, LeanModels.Sv.CombEq.windowSks, LeanModels.Sv.CombEq.windowSksF, LeanModels.Sv.CombEq.spanOvr, LeanModels.Sv.CombEq.listSk, List.tail_cons, List.tail_nil, List.zip_nil_left, LeanModels.Sv.CombView.Summary.EqSiteL, LeanModels.Sv.CombView.Summary.WidthOblL, LeanModels.Sv.CombEq.rhsSk, LeanModels.Sv.CombEq.stmtSk, LeanModels.Sv.CombEq.stmtSkL, LeanModels.Sv.CombEq.stepSk, LeanModels.Sv.CombEq.ovrSk, LeanModels.Sv.CombEq.stmtRcnt, LeanModels.Sv.CombEq.stmtRcntL, LeanModels.Sv.CombEq.rcnt, LeanModels.Sv.CombEq.pcnt, LeanModels.Sv.CombEq.PSk.bit, LeanModels.Sv.CombEq.pskArmsBit, LeanModels.Sv.CombEq.PskArmsOk, LeanModels.Sv.CombEq.armRcnt, LeanModels.Sv.CombEq.itemsRcnt, LeanModels.Sv.CombEq.armSk, LeanModels.Sv.CombEq.caseSkItems, LeanModels.Sv.CombEq.patLit, LeanModels.Sv.CombProc.PLfR.armRds, LeanModels.Sv.CombProc.PLfR.rds, LeanModels.Sv.XF.caseSel_nil, LeanModels.Sv.LVec.width_mk_toArray,  LeanModels.Sv.CombEq.PSk.WidthOk, LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv, List.lookup_cons, List.lookup_nil, LeanModels.Sv.CombView.CE.eval,
       LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -334,7 +337,8 @@ macro "svL_eq_norm_multi_at" h:ident : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -401,11 +405,11 @@ set_option maxRecDepth 4096 in
 macro "svL_eq_norm_multi" : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombProc.PTR.rds, LeanModels.Sv.CombView.Summary.NoSelfRead, LeanModels.Sv.CombView.isCombProc, LeanModels.Sv.CombView.Summary.EqsL, LeanModels.Sv.CombView.Summary.EqsM, LeanModels.Sv.CombView.Summary.KnownsM, LeanModels.Sv.CombView.Summary.WidthOblM, LeanModels.Sv.CombView.Summary.CoverOblM, LeanModels.Sv.CombView.Summary.SrcSM, LeanModels.Sv.CombView.Summary.DisjWithin, LeanModels.Sv.CombEq.procSks, LeanModels.Sv.CombEq.windowSks, LeanModels.Sv.CombEq.windowSksF, LeanModels.Sv.CombEq.spanOvr, LeanModels.Sv.CombEq.listSk, List.tail_cons, List.tail_nil, List.zip_nil_left, LeanModels.Sv.CombView.Summary.EqSiteL, LeanModels.Sv.CombView.Summary.WidthOblL, LeanModels.Sv.CombEq.rhsSk, LeanModels.Sv.CombEq.stmtSk, LeanModels.Sv.CombEq.stmtSkL, LeanModels.Sv.CombEq.stepSk, LeanModels.Sv.CombEq.ovrSk, LeanModels.Sv.CombEq.stmtRcnt, LeanModels.Sv.CombEq.stmtRcntL, LeanModels.Sv.CombEq.rcnt, LeanModels.Sv.CombEq.pcnt, LeanModels.Sv.CombEq.PSk.bit, LeanModels.Sv.CombEq.pskArmsBit, LeanModels.Sv.CombEq.PskArmsOk, LeanModels.Sv.CombEq.armRcnt, LeanModels.Sv.CombEq.itemsRcnt, LeanModels.Sv.CombEq.armSk, LeanModels.Sv.CombEq.caseSkItems, LeanModels.Sv.CombEq.patLit, LeanModels.Sv.CombProc.PLfR.armRds, LeanModels.Sv.CombProc.PLfR.rds, LeanModels.Sv.XF.caseSel_nil, LeanModels.Sv.LVec.width_mk_toArray,  LeanModels.Sv.CombEq.PSk.WidthOk, LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv, List.lookup_cons, List.lookup_nil, LeanModels.Sv.CombView.CE.eval,
       LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -418,7 +422,8 @@ macro "svL_eq_norm_multi" : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -763,11 +768,14 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
           i := i + 1
           g.setTag (if k == 1 then Name.mkSimple nm else Name.mkSimple s!"{nm}_{i}")
         return rest
+      let autoClose : TSyntax `tactic ←
+        if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
       out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
         (try simp only [$preL,*])
+        sv_auto_split
         $normR:tactic
         repeat' refine And.intro ?_ ?_
-        all_goals first | (intros; omega) | skip))).toArray
+        all_goals first | $autoClose:tactic | skip))).toArray
       out := out ++ (← runOb `hin "inRange" (← `(tacticSeq|
         (try simp only [$preL,*])
         $normR:tactic
@@ -892,11 +900,12 @@ unsafe def runSvInterfaceL : TacticM Unit := do
         evalTactic (← `(tactic|
           sv_simp [LeanModels.Sv.CombView.DeclT.toDecl, LeanModels.Sv.CombView.DeclT.width,
             LeanModels.Sv.CombView.dimsW, LeanModels.Sv.CombView.Aff.eval,
-            LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.sub,
-            LeanModels.Sv.CombView.Aff.neg, LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs,
-            LeanModels.Sv.CombView.Aff.add, LeanModels.Sv.CombView.Aff.var,
+            LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, LeanModels.Sv.CombView.Aff.sub,
+            LeanModels.Sv.CombView.Aff.neg, LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs,
+            LeanModels.Sv.CombView.Aff.add, LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom,
             LeanModels.Sv.CombView.Aff.const, LeanModels.Sv.CombView.Aff.scale,
-            LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.σL,
+            LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, LeanModels.Sv.CombView.σL,
             LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv,
             LeanModels.Sv.CombView.CE.eval, List.lookup_cons, List.lookup_nil, $pdId:ident,
             List.zip_cons_cons, List.zip_nil_right, List.lookup_cons_self, Option.getD_some,
@@ -1163,11 +1172,14 @@ unsafe def runSvEquationsL (hintOnly : Bool) : TacticM Unit := do
           i := i + 1
           g.setTag (if k == 1 then Name.mkSimple nm else Name.mkSimple s!"{nm}_{i}")
         return rest
+      let autoClose : TSyntax `tactic ←
+        if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
       out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
         (try simp only [$preL,*])
+        sv_auto_split
         $normR:tactic
         repeat' refine And.intro ?_ ?_
-        all_goals first | (intros; omega) | skip))).toArray
+        all_goals first | $autoClose:tactic | skip))).toArray
       out := out ++ (← runOb `hin "inRange" (← `(tacticSeq|
         (try simp only [$preL,*])
         $normR:tactic

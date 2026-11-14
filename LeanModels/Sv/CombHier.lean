@@ -149,9 +149,17 @@ def PLocalParam.hren (pfx : String) (lp : PLocalParam) : PLocalParam :=
 
 namespace CombView
 
+/-- A shift or power atom over the child's names, under the prefix. -/
+def XAt.hren (pfx : String) : XAt → XAt
+  | .pow b n => .pow b (pfx ++ n)
+  | .shr m n => .shr (pfx ++ m) (pfx ++ n)
+  | .shl m n => .shl (pfx ++ m) (pfx ++ n)
+  | .bit m n => .bit (pfx ++ m) (pfx ++ n)
+
 /-- An affine form over the child's names, under the prefix. -/
 def Aff.hren (pfx : String) (a : Aff) : Aff :=
-  { terms := a.terms.map (fun p => (pfx ++ p.1, p.2)), c := a.c, qs := a.qs.map (fun p => (pfx ++ p.1, p.2)) }
+  { terms := a.terms.map (fun p => (pfx ++ p.1, p.2)), c := a.c, qs := a.qs.map (fun p => (pfx ++ p.1, p.2)),
+    xs := a.xs.map (fun p => (p.1, p.2.hren pfx)) }
 
 /-- An access of the child's scope under the prefix. -/
 def Acc.hren (pfx : String) : Acc → Acc
@@ -279,9 +287,18 @@ theorem Aff.evalQs_hren (σ : String → Int) (pfx : String) : ∀ qs : List (St
   | [] => rfl
   | (n, k, d) :: qs => by simp [Aff.evalQs, Aff.evalQs_hren σ pfx qs]
 
+theorem XAt.eval_hren (σ : String → Int) (pfx : String) (x : XAt) :
+    (x.hren pfx).eval σ = x.eval (fun n => σ (pfx ++ n)) := by
+  cases x <;> rfl
+
+theorem Aff.evalXs_hren (σ : String → Int) (pfx : String) : ∀ xs : List (Int × XAt),
+    Aff.evalXs σ (xs.map fun p => (p.1, p.2.hren pfx)) = Aff.evalXs (fun n => σ (pfx ++ n)) xs
+  | [] => rfl
+  | (k, x) :: xs => by simp [Aff.evalXs, Aff.evalXs_hren σ pfx xs, XAt.eval_hren]
+
 @[simp] theorem Aff.eval_hren (σ : String → Int) (pfx : String) (a : Aff) :
     (a.hren pfx).eval σ = a.eval (fun n => σ (pfx ++ n)) := by
-  simp only [Aff.hren, Aff.eval, Aff.evalTerms_hren, Aff.evalQs_hren]
+  simp only [Aff.hren, Aff.eval, Aff.evalTerms_hren, Aff.evalQs_hren, Aff.evalXs_hren]
 
 @[simp] theorem Acc.name_hren (pfx : String) (a : Acc) : (a.hren pfx).name = pfx ++ a.name := by
   cases a <;> rfl
@@ -404,6 +421,16 @@ theorem Aff.scaleQs_hren (pfx : String) (k : Int) : ∀ qs : List (String × Int
   | [] => rfl
   | (n, m, d) :: qs => by simp [Aff.scaleQs, Aff.scaleQs_hren pfx k qs]
 
+theorem Aff.negXs_hren (pfx : String) : ∀ xs : List (Int × XAt),
+    Aff.negXs (xs.map fun p => (p.1, p.2.hren pfx)) = (Aff.negXs xs).map fun p => (p.1, p.2.hren pfx)
+  | [] => rfl
+  | (k, x) :: xs => by simp [Aff.negXs, Aff.negXs_hren pfx xs]
+
+theorem Aff.scaleXs_hren (pfx : String) (k : Int) : ∀ xs : List (Int × XAt),
+    Aff.scaleXs k (xs.map fun p => (p.1, p.2.hren pfx)) = (Aff.scaleXs k xs).map fun p => (p.1, p.2.hren pfx)
+  | [] => rfl
+  | (m, x) :: xs => by simp [Aff.scaleXs, Aff.scaleXs_hren pfx k xs]
+
 theorem Aff.negTerms_hren (pfx : String) : ∀ ts : List (String × Int),
     Aff.negTerms (ts.map fun p => (pfx ++ p.1, p.2)) = (Aff.negTerms ts).map fun p => (pfx ++ p.1, p.2)
   | [] => rfl
@@ -414,37 +441,74 @@ theorem Aff.scaleTerms_hren (pfx : String) (k : Int) : ∀ ts : List (String × 
   | [] => rfl
   | (n, m) :: ts => by simp [Aff.scaleTerms, Aff.scaleTerms_hren pfx k ts]
 
-theorem affMul_hren {a b c : Aff} (pfx : String) (h : affMul a b = some c) :
-    affMul (a.hren pfx) (b.hren pfx) = some (c.hren pfx) := by
-  unfold affMul at h ⊢
-  have e1 : ((a.hren pfx).terms.isEmpty && (a.hren pfx).qs.isEmpty) = (a.terms.isEmpty && a.qs.isEmpty) := by
+theorem Aff.hren_sub (pfx : String) (a b : Aff) : (a.sub b).hren pfx = (a.hren pfx).sub (b.hren pfx) := by
+  simp [Aff.sub, Aff.add, Aff.neg, Aff.hren, Aff.negTerms_hren, Aff.negQs_hren, Aff.negXs_hren]
+
+theorem Aff.hren_scale (pfx : String) (k : Int) (a : Aff) : (a.scale k).hren pfx = (a.hren pfx).scale k := by
+  simp [Aff.scale, Aff.hren, Aff.scaleTerms_hren, Aff.scaleQs_hren, Aff.scaleXs_hren]
+
+/-- A product under the prefix is the product of the renamed forms. -/
+theorem affMul_hren_eq (pfx : String) (a b : Aff) :
+    affMul (a.hren pfx) (b.hren pfx) = (affMul a b).map (·.hren pfx) := by
+  unfold affMul
+  have e1 : ((a.hren pfx).terms.isEmpty && (a.hren pfx).qs.isEmpty && (a.hren pfx).xs.isEmpty) =
+      (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) := by
     simp [Aff.hren]
-  have e2 : ((b.hren pfx).terms.isEmpty && (b.hren pfx).qs.isEmpty) = (b.terms.isEmpty && b.qs.isEmpty) := by
+  have e2 : ((b.hren pfx).terms.isEmpty && (b.hren pfx).qs.isEmpty && (b.hren pfx).xs.isEmpty) =
+      (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) := by
     simp [Aff.hren]
   rw [e1, e2]
-  cases ha : (a.terms.isEmpty && a.qs.isEmpty) <;> cases hb : (b.terms.isEmpty && b.qs.isEmpty) <;>
-    simp only [ha, hb, if_true, if_false, Bool.false_eq_true, Option.some.injEq, reduceCtorEq] at h ⊢ <;>
-    subst h <;> simp [Aff.scale, Aff.hren, Aff.scaleTerms_hren, Aff.scaleQs_hren]
+  have ec : (a.hren pfx).c = a.c := rfl
+  have ec' : (b.hren pfx).c = b.c := rfl
+  cases (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) <;> cases (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) <;>
+    simp [ec, ec', Aff.hren_scale]
+
+theorem affMul_hren {a b c : Aff} (pfx : String) (h : affMul a b = some c) :
+    affMul (a.hren pfx) (b.hren pfx) = some (c.hren pfx) := by
+  rw [affMul_hren_eq, h]; rfl
+
+/-- A quotient under the prefix is the quotient of the renamed forms. -/
+theorem affDiv_hren_eq (pfx : String) (a b : Aff) :
+    affDiv (a.hren pfx) (b.hren pfx) = (affDiv a b).map (·.hren pfx) := by
+  rcases a with ⟨ts, c, qs, xs⟩
+  rcases ts with _ | ⟨⟨n, k⟩, _ | ⟨t2, ts⟩⟩ <;> rcases qs with _ | ⟨q, qs⟩ <;> rcases xs with _ | ⟨x, xs⟩ <;>
+    simp [affDiv, Aff.hren]
 
 theorem affDiv_hren {a b c : Aff} (pfx : String) (h : affDiv a b = some c) :
     affDiv (a.hren pfx) (b.hren pfx) = some (c.hren pfx) := by
-  obtain ⟨n, rfl, hbt, hbq, hbc, rfl⟩ := affDiv_cases h
+  obtain ⟨n, rfl, hbt, hbq, hbx, hbc, rfl⟩ := affDiv_cases h
   have hb' : b.hren pfx = { c := b.c } := by
-    cases b; simp only at hbt hbq; subst hbt; subst hbq; rfl
+    cases b; simp only at hbt hbq hbx; subst hbt; subst hbq; subst hbx; rfl
   rw [hb']
   simp [affDiv, Aff.var, Aff.hren, hbc]
 
+theorem affBin_hren_eq (pfx : String) (op : SymBinOp) (a b : Aff) :
+    affBin op (a.hren pfx) (b.hren pfx) = (affBin op a b).map (·.hren pfx) := by
+  cases op with
+  | m0 bop =>
+      cases bop <;> simp [affBin, Aff.hren_add, Aff.hren_sub, affMul_hren_eq]
+  | mul => simp [affBin, affMul_hren_eq]
+  | div => simp [affBin, affDiv_hren_eq]
+  | _ => simp [affBin]
+
 theorem affBin_hren {op : SymBinOp} {a b c : Aff} (pfx : String) (h : affBin op a b = some c) :
     affBin op (a.hren pfx) (b.hren pfx) = some (c.hren pfx) := by
-  unfold affBin at h ⊢
-  split at h
-  · simp only [Option.some.injEq] at h; subst h; simp [Aff.hren_add]
-  · simp only [Option.some.injEq] at h; subst h
-    simp [Aff.sub, Aff.add, Aff.neg, Aff.hren, Aff.negTerms_hren, Aff.negQs_hren]
-  · exact affMul_hren pfx h
-  · exact affMul_hren pfx h
-  · exact affDiv_hren pfx h
-  · simp at h
+  rw [affBin_hren_eq, h]; rfl
+
+theorem nameOf?_hren (pfx : String) {e : PExpr} {n : String} (h : nameOf? e = some n) :
+    nameOf? (e.hren pfx) = some (pfx ++ n) := by
+  rcases nameOf?_cases h with rfl | rfl <;> rfl
+
+/-- A shift or power atom under the prefix is the renamed atom. -/
+theorem xatOf?_hren (pfx : String) {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r = some x) :
+    xatOf? op (l.hren pfx) (r.hren pfx) = some (x.hren pfx) := by
+  rcases xatOf?_cases h with ⟨rfl, rfl, n, hn, rfl⟩ | ⟨b, n, rfl, rfl, hb, hn, rfl⟩ | ⟨m, n, rfl, hm, hn, rfl⟩ |
+    ⟨l', r', m, n, rfl, rfl, hm, hn', hn, rfl⟩ | ⟨l', r', m, n, rfl, rfl, rfl, hm, hn, rfl⟩
+  · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hn, XAt.hren]
+  · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hn, XAt.hren, hb]
+  · simp [xatOf?, nameOf?_hren pfx hm, nameOf?_hren pfx hn, XAt.hren]
+  · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hm, nameOf?_hren pfx hn', nameOf?_hren pfx hn, XAt.hren]
+  · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hm, nameOf?_hren pfx hn, XAt.hren]
 
 theorem affOf?_hren (pfx : String) : ∀ {e : PExpr} {a : Aff}, affOf? e = some a →
     affOf? (e.hren pfx) = some (a.hren pfx)
@@ -458,8 +522,17 @@ theorem affOf?_hren (pfx : String) : ∀ {e : PExpr} {a : Aff}, affOf? e = some 
       simp only [affOf?] at h
       rcases hl : affOf? l with _ | al <;> rcases hr : affOf? r with _ | ar <;>
         simp only [hl, hr, reduceCtorEq] at h
-      simp only [PExpr.hren, affOf?, affOf?_hren pfx hl, affOf?_hren pfx hr]
-      exact affBin_hren pfx h
+      simp only [PExpr.hren, affOf?, affOf?_hren pfx hl, affOf?_hren pfx hr, affBin_hren_eq]
+      rcases hab : affBin op al ar with _ | c
+      · rw [hab] at h
+        rcases hx : xatOf? op l r with _ | x <;> simp only [hx, Option.map_none, Option.map_some, reduceCtorEq,
+          Option.some.injEq] at h
+        subst h
+        simp [xatOf?_hren pfx hx, Aff.atom, Aff.hren]
+      · rw [hab] at h
+        simp only [Option.some.injEq] at h
+        subst h
+        rfl
   | .lit _, _, h | .ident _, _, h | .paramRef _ (some _), _, h | .enumRef .., _, h | .fill _, _, h
   | .unary .., _, h | .ternary .., _, h | .concat _, _, h | .resize .., _, h | .signedResize .., _, h
   | .squash2 .., _, h | .sysCall .., _, h | .bitSel .., _, h | .partSel .., _, h | .repl .., _, h
@@ -469,9 +542,17 @@ theorem affOf?_hren (pfx : String) : ∀ {e : PExpr} {a : Aff}, affOf? e = some 
 theorem dimOf?_hren (pfx nm nm' : String) {d : PDim} {p : PDim × Aff × Aff} (h : dimOf? nm d = .ok p) :
     dimOf? nm' (PDim.hren pfx d) = .ok (PDim.hren pfx p.1, p.2.1.hren pfx, p.2.2.hren pfx) := by
   unfold dimOf? at h ⊢
-  rcases hm : affOf? d.msb with _ | m <;> rcases hl : affOf? d.lsb with _ | l <;> simp [hm, hl] at h
-  subst h
-  simp [PDim.hren, affOf?_hren pfx hm, affOf?_hren pfx hl]
+  rcases hm : affOf? d.msb with _ | m
+  · simp [hm] at h
+  rcases hl : affOf? d.lsb with _ | l
+  · simp [hm, hl] at h
+  simp only [hm, hl] at h
+  by_cases hx : (m.xs.isEmpty && l.xs.isEmpty) = true
+  · rw [if_pos hx, Except.ok.injEq] at h
+    subst h
+    have hx' : ((m.hren pfx).xs.isEmpty && (l.hren pfx).xs.isEmpty) = true := by simpa [Aff.hren] using hx
+    simp [PDim.hren, affOf?_hren pfx hm, affOf?_hren pfx hl, hx']
+  · rw [if_neg hx] at h; simp at h
 
 theorem declOf?_hren (pfx : String) {pd : PDecl} {dt : DeclT} (h : declOf? pd = .ok dt) :
     declOf? (pd.hren pfx) = .ok (dt.hren pfx) := by
@@ -598,7 +679,7 @@ theorem site_acc {s : Summary} {args : List Int} (hok : s.StructOk) (hauto : s.A
     ∀ a ∈ ls.site.tgt :: ls.site.rds, AccOK σ (s.DW σ) (s.DG σ) (s.EW σ) s.params a := by
   have hok' := hok
   obtain ⟨-, hnames, -, haff, -, hdecl, hacc, -⟩ := hok'
-  obtain ⟨hauto1, hauto2, -⟩ := hauto
+  obtain ⟨hauto1, hauto2, -, hxobl⟩ := hauto
   have hpar : ∀ n ∈ s.params, σ n = σ n := fun _ _ => rfl
   have hin' : s.InWin σ σ ls.site := by have := hin.1 ls hls; rw [hh] at this; exact this
   have hrd : ∀ r ∈ ls.site.rds, s.InR σ σ r := by have := hauto1 ls hls; rw [hh] at this; exact this
@@ -607,8 +688,10 @@ theorem site_acc {s : Summary} {args : List Int} (hok : s.StructOk) (hauto : s.A
     rcases List.mem_cons.mp ha with rfl | hm
     · exact hin'.1
     · exact hrd a hm
+  have hxk : ∀ x ∈ a.affs, x.XOk σ := by
+    have := hxobl.1 ls hls; rw [hh] at this; exact this a (TSite.mem_accs ha)
   refine ⟨?_, accGeom_of hpar hdecl (hacc ls hls a (TSite.mem_accs ha)) hInR (hauto2 ls hls a (TSite.mem_accs ha)),
-    ?_⟩
+    ?_, hxk⟩
   · have hn : a.name ∈ s.declNames := by
       apply hnames ls hls
       simp only [TSite.names, List.mem_cons, List.mem_map]
@@ -783,6 +866,27 @@ theorem instBodyProc_assign (pfx : String) (i : PInst) (ports : List Decl) (bare
     (t : Lhs2) (e : Expr2) :
     instBodyProc pfx i ports bare (.assign t e) = .assign (t.rename (pfx ++ ·)) (e.rename (pfx ++ ·)) := by
   simp [instBodyProc, Process2.clock?, Process2.rename, Process2.inInstance]
+
+theorem XAt.ok_hren (σ : String → Int) (pfx : String) (x : XAt) :
+    (x.hren pfx).Ok σ ↔ x.Ok (fun n => σ (pfx ++ n)) := by
+  cases x <;> rfl
+
+theorem Aff.xOk_hren (σ : String → Int) (pfx : String) (a : Aff) :
+    (a.hren pfx).XOk σ ↔ a.XOk (fun n => σ (pfx ++ n)) := by
+  unfold Aff.XOk Aff.hren
+  induction a.xs with
+  | nil => simp
+  | cons p xs ih => obtain ⟨k, x⟩ := p; simp [XAt.ok_hren, ih]
+
+theorem Acc.affs_hren (pfx : String) (a : Acc) : (a.hren pfx).affs = a.affs.map (·.hren pfx) := by
+  cases a <;> rfl
+
+/-- The atoms of a child's access in range at its own parameter point, from those of its renamed copy in the twin. -/
+theorem xOk_of_hren {σF : String → Int} {pfx : String} {a : Acc} (h : ∀ x ∈ (a.hren pfx).affs, x.XOk σF) :
+    ∀ x ∈ a.affs, x.XOk (fun n => σF (pfx ++ n)) := by
+  intro x hx
+  have := h (x.hren pfx) (by rw [Acc.affs_hren]; exact List.mem_map_of_mem hx)
+  rwa [Aff.xOk_hren] at this
 
 /-- The access facts of a child's site at its own parameter point, from those of its renamed copy in the twin. -/
 theorem accGeom_of_hren {σF : String → Int} {DGF DGC : String → Option (List (Int × Int))}
@@ -1383,7 +1487,7 @@ theorem accOK_parent {d : PDesign} {dsP : List DeclT} {sF : Summary} {σF : Stri
     (h : AccOK σF (sF.DW σF) (sF.DG σF) (sF.EW σF) sF.params a) (hin : AccIn dsP (parentNames d) a) :
     AccOK σF ((parentSum d dsP).DW σF) ((parentSum d dsP).DG σF) ((parentSum d dsP).EW σF) (parentNames d) a := by
   have hf : (parentSum d dsP).find a.name = sF.find a.name := hPF a.name hin.1
-  refine ⟨?_, accGeom_congr h.2.1 ?_ ?_, hin.2⟩
+  refine ⟨?_, accGeom_congr h.2.1 ?_ ?_, hin.2, h.2.2.2⟩
   · simp only [Summary.DW, hf]; exact h.1
   · simp [Summary.DG, hf]
   · simp [Summary.EW, hf]
@@ -1597,7 +1701,7 @@ theorem inst_step {d : PDesign} {lib : List PDesign} {sF : Summary} {dsP : List 
         · rw [htg]; exact List.mem_cons_self ..
         · rw [hrds]; exact List.mem_cons_of_mem _ (List.mem_map_of_mem hm)
       have hFacc := TF.acc stF hFS _ haF
-      refine ⟨by simp [Summary.DW, hdt], accGeom_of_hren hFacc.2.1 ?_ ?_, hans⟩
+      refine ⟨by simp [Summary.DW, hdt], accGeom_of_hren hFacc.2.1 ?_ ?_, hans, xOk_of_hren hFacc.2.2.2⟩
       · simp [Summary.DG, hF', hdt]
       · simp [Summary.EW, hF', hdt]
     have hcnC : stC.ConstOK (fun n => σF (hpfx i ++ n)) sc.params := by

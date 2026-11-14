@@ -113,11 +113,11 @@ the equation vocabulary. -/
 macro "sv_eq_norm_at" h:ident : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv, List.lookup_cons, List.lookup_nil, LeanModels.Sv.CombView.CE.eval,
       LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -130,7 +130,8 @@ macro "sv_eq_norm_at" h:ident : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -198,11 +199,11 @@ set_option maxRecDepth 4096 in
 macro "sv_eq_norm" : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv, List.lookup_cons, List.lookup_nil, LeanModels.Sv.CombView.CE.eval,
       LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -215,7 +216,8 @@ macro "sv_eq_norm" : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -763,11 +765,14 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
             "an in-range fact of a flat netlist does not hold") then
           decided := decided.push "auto"
         else
+          let autoClose : TSyntax `tactic ←
+            if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
           out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
             (try simp only [$preL,*])
+            sv_auto_split
             $normR:tactic
             repeat' refine And.intro ?_ ?_
-            all_goals first | (intros; omega) | skip))).toArray
+            all_goals first | $autoClose:tactic | skip))).toArray
         if (← tryClosePlain s (← find `hin) ``LeanModels.Sv.CombView.Summary.inRangeObl_of_plain
             "the in-range obligation of a flat netlist does not hold") then
           decided := decided.push "inRange"

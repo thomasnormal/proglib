@@ -292,7 +292,7 @@ theorem site_ok {s : Summary} {σ : String → Int} {envD : IEnv} {elems : List 
       (a.win σ' (s.dw σ)).2.1 + (a.win σ' (s.dw σ)).2.2 ≤ s.dw σ a.name) := by
   have hok' := hok
   obtain ⟨hnodup, hnames, hinput, haff, hpaths, hdecl, hacc, hkeys⟩ := hok'
-  obtain ⟨hauto1, hauto2, hauto3⟩ := hauto
+  obtain ⟨hauto1, hauto2, hauto3, hxobl⟩ := hauto
   have hpar : ∀ n ∈ s.params, σ' n = σ n := by
     exact Reach_params (ReachE_Reach hr) (lsite_g_notin ⟨hnodup, hnames, hinput, haff, hpaths, hdecl, hacc, hkeys⟩ hls)
   have C' := Ctx.reachE C hr (ns' := ls.hdrs.map (·.g) ++ s.params) (fun n hn => hn)
@@ -307,7 +307,8 @@ theorem site_ok {s : Summary} {σ : String → Int} {envD : IEnv} {elems : List 
       AccOK σ' (s.DW σ) (s.DG σ) (s.EW σ) (ls.hdrs.map (·.g) ++ s.params) a := by
     intro a ha
     refine ⟨?_, accGeom_of hpar hdecl (hacc ls hls a (TSite.mem_accs ha)) (hInR a ha)
-      (hauto2 ls hls a (TSite.mem_accs ha)), ?_⟩
+      (hauto2 ls hls a (TSite.mem_accs ha)), ?_,
+      (Loops.all_iff _ _ _).mp (hxobl.1 ls hls) σ' (ReachE_Reach hr) a (TSite.mem_accs ha)⟩
     · have hn : a.name ∈ s.declNames := by
         apply hnames ls hls
         simp only [TSite.names, List.mem_cons, List.mem_map]

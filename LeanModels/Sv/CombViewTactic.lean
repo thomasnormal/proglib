@@ -277,6 +277,67 @@ theorem ediv_two_pow_le_lit {x : Int} {t c : Nat} (m : Int) (hx : 0 ≤ x) (h : 
   rw [e1, e2, ← Int.natCast_ediv, ← Int.natCast_ediv]
   exact Int.ofNat_le.mpr (Nat.div_le_div_left (Nat.pow_le_pow_right (by decide) h) (Nat.two_pow_pos c))
 
+/-! **The facts of the shift and power atoms** (item 4, `XAt`), which `omega` reads as opaque atoms: `sv_pow_omega` puts
+them in context for the atoms of the goal and the hypotheses. Every one is proved here. -/
+
+/-- The monotonicity of a power of a base `b ≥ 1` in its exponent, as a disjunction `omega` reads; with both orders of
+two exponents it is also their congruence (`t1 = t2` gives `b ^ t1 = b ^ t2`). -/
+theorem pow_le_pow_or {b : Int} (hb : 1 ≤ b) (t1 t2 : Nat) : t2 < t1 ∨ b ^ t1 ≤ b ^ t2 := by
+  by_cases h : t1 ≤ t2
+  · right
+    have e : b = ((b.toNat : Nat) : Int) := (Int.toNat_of_nonneg (by omega)).symm
+    rw [e, ← Int.natCast_pow, ← Int.natCast_pow]
+    exact Int.ofNat_le.mpr (Nat.pow_le_pow_right (by omega) h)
+  · left; omega
+
+/-- … and its strict monotonicity: a larger exponent gives at least `b` times the power. -/
+theorem pow_lt_pow_or {b : Int} (hb : 1 ≤ b) (t1 t2 : Nat) : t2 ≤ t1 ∨ b * b ^ t1 ≤ b ^ t2 := by
+  by_cases h : t1 < t2
+  · right
+    have h1 : b * b ^ t1 = b ^ (t1 + 1) := by rw [Int.pow_succ, Int.mul_comm]
+    rw [h1]
+    rcases pow_le_pow_or hb (t1 + 1) t2 with h2 | h2
+    · omega
+    · exact h2
+  · left; omega
+
+/-- Two right shifts by powers of two of equal operands are equal (a disjunction `omega` reads). -/
+theorem div_pow_congr_or (x1 x2 : Int) (t1 t2 : Nat) :
+    x1 < x2 ∨ x2 < x1 ∨ t1 < t2 ∨ t2 < t1 ∨ x1 / 2 ^ t1 = x2 / 2 ^ t2 := by
+  by_cases h1 : x1 = x2
+  · by_cases h2 : t1 = t2
+    · subst h1; subst h2; exact Or.inr (Or.inr (Or.inr (Or.inr rfl)))
+    · omega
+  · omega
+
+/-- … and so are two `(x >> t) << t`. -/
+theorem mul_pow_congr_or (x1 x2 : Int) (t1 t2 : Nat) :
+    x1 < x2 ∨ x2 < x1 ∨ t1 < t2 ∨ t2 < t1 ∨ x1 / 2 ^ t1 * 2 ^ t1 = x2 / 2 ^ t2 * 2 ^ t2 := by
+  by_cases h1 : x1 = x2
+  · by_cases h2 : t1 = t2
+    · subst h1; subst h2; exact Or.inr (Or.inr (Or.inr (Or.inr rfl)))
+    · omega
+  · omega
+
+/-- `(x >> t) << t` of a non-negative `x` (`x` with its low `t` bits cleared): between `x - 2^t` and `x`, and at least
+`2^t` where bit `t` of `x` is set. -/
+theorem shl_shr_facts {x : Int} (t : Nat) (h : 0 ≤ x) :
+    0 ≤ x / 2 ^ t * 2 ^ t ∧ x / 2 ^ t * 2 ^ t ≤ x ∧ x < x / 2 ^ t * 2 ^ t + 2 ^ t ∧
+      (x / 2 ^ t % 2 = 0 ∨ 2 ^ t ≤ x / 2 ^ t * 2 ^ t) := by
+  have hp : (0 : Int) < 2 ^ t := Int.pow_pos (by decide)
+  have hq : 0 ≤ x / 2 ^ t := Int.ediv_nonneg h (Int.le_of_lt hp)
+  refine ⟨Int.mul_nonneg hq (Int.le_of_lt hp), Int.ediv_mul_le x (by omega), ?_, ?_⟩
+  · have := Int.lt_ediv_add_one_mul_self x hp
+    rw [Int.add_mul, Int.one_mul] at this
+    exact this
+  · rcases Int.emod_two_eq (x / 2 ^ t) with h2 | h2
+    · exact Or.inl h2
+    · right
+      have h1 : 1 ≤ x / 2 ^ t := by omega
+      have := Int.mul_le_mul_of_nonneg_right h1 (Int.le_of_lt hp)
+      rw [Int.one_mul] at this
+      exact this
+
 /-- The 32-bit range of a wrapped value. -/
 theorem canonInt32_bounds (x : Int) : -2147483648 ≤ canonInt 32 true x ∧ canonInt 32 true x < 2147483648 :=
   Loop2.int32_inInt32 x
@@ -465,11 +526,11 @@ set_option maxRecDepth 4096 in
 affine forms, name the windows. -/
 macro "sv_norm_core" : tactic =>
   `(tactic| (simp (config := { maxSteps := 4000000 }) only [LeanModels.Sv.CombView.Summary.AutoObl, LeanModels.Sv.CombView.Summary.lsites, LeanModels.Sv.CombView.Aff.add,
-      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.const, List.append_nil,
+      LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom, LeanModels.Sv.CombView.Aff.const, List.append_nil,
       Int.zero_add, LeanModels.Sv.CombView.Aff.sub, LeanModels.Sv.CombView.Aff.neg,
-      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, Int.reduceNeg, Int.reduceAdd,
+      LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs, Int.reduceNeg, Int.reduceAdd,
       List.nil_append, Nat.zero_add, Nat.reduceAdd,
-      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, Int.mul_one,
+      LeanModels.Sv.CombView.Aff.scale, LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, Int.mul_one,
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
@@ -482,7 +543,8 @@ macro "sv_norm_core" : tactic =>
       List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
       LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
-      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, Int.add_zero, Std.le_refl,
+      LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
@@ -912,6 +974,67 @@ def addPowFacts (es : Array Lean.Expr) : TacticM Unit := do
         assertMainM `hdiv_pow (mkAppM ``LeanModels.Sv.CombView.ediv_two_pow_neg #[t, h])
       else
         assertMainM `hdiv_pow (mkAppM ``LeanModels.Sv.CombView.ediv_two_pow_between #[x, t])
+
+/-- The pairs `(x, t)` of the `x / 2 ^ t * 2 ^ t` subterms of `e` (`(x >> t) << t`, closed under no binder). -/
+partial def shlArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
+  let here : Array (Lean.Expr × Lean.Expr) :=
+    if e.isAppOfArity ``HMul.hMul 6 && !e.hasLooseBVars && e.getArg! 0 == mkConst ``Int then
+      let a := e.getArg! 4
+      let b := e.getArg! 5
+      if a.isAppOfArity ``HDiv.hDiv 6 && b.isAppOfArity ``HPow.hPow 6 && a.getArg! 5 == b then
+        #[(a.getArg! 4, b.getArg! 5)]
+      else #[]
+    else #[]
+  let sub : Array (Lean.Expr × Lean.Expr) :=
+    match e with
+    | .app f a => shlArgs f ++ shlArgs a
+    | .mdata _ b | .proj _ _ b => shlArgs b
+    | _ => #[]
+  here ++ sub
+
+/-- **Put the facts of the shift and power atoms in the context of the main goal** (item 4), beyond `addPowFacts`'s
+bounds: for two powers `b ^ t1`, `b ^ t2` of one literal base, both orders of `pow_le_pow_or` (monotonicity, and the
+congruence `omega` cannot see inside an atom); for two quotients `x / 2 ^ t` and two `x / 2 ^ t * 2 ^ t`, their
+congruence (`div_pow_congr_or`, `mul_pow_congr_or`); for each `x / 2 ^ t * 2 ^ t` of an `x` that `omega` shows
+non-negative, `shl_shr_facts`. Every fact is proved; none is assumed. -/
+def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
+  let mut pows : Array (Lean.Expr × Int × Lean.Expr) := #[]
+  let mut divs : Array (Lean.Expr × Lean.Expr) := #[]
+  let mut shls : Array (Lean.Expr × Lean.Expr) := #[]
+  for e in es do
+    let eI ← instantiateMVars e
+    let (_, ds) := powArgs eI
+    for (b, t) in powBases eI do
+      if let some k ← getIntValue? b then
+        if 1 ≤ k && !pows.any (fun (b', _, t') => b' == b && t' == t) then pows := pows.push (b, k, t)
+    for d in ds do
+      unless divs.contains d do divs := divs.push d
+    for d in shlArgs eI do
+      unless shls.contains d do shls := shls.push d
+  for i in [0:pows.size] do
+    for j in [0:pows.size] do
+      let (b1, k1, t1) := pows[i]!
+      let (_, k2, t2) := pows[j]!
+      if i != j && k1 == k2 then
+        assertMainM `hpow_mono do
+          let hb ← mkDecideProof (← mkAppM ``LE.le #[toExpr (1 : Int), b1])
+          mkAppOptM ``LeanModels.Sv.CombView.pow_le_pow_or #[b1, hb, t1, t2]
+        assertMainM `hpow_smono do
+          let hb ← mkDecideProof (← mkAppM ``LE.le #[toExpr (1 : Int), b1])
+          mkAppOptM ``LeanModels.Sv.CombView.pow_lt_pow_or #[b1, hb, t1, t2]
+  for i in [0:divs.size] do
+    for j in [i+1:divs.size] do
+      let (x1, t1) := divs[i]!
+      let (x2, t2) := divs[j]!
+      assertMainM `hdiv_congr (mkAppM ``LeanModels.Sv.CombView.div_pow_congr_or #[x1, x2, t1, t2])
+  for i in [0:shls.size] do
+    for j in [i+1:shls.size] do
+      let (x1, t1) := shls[i]!
+      let (x2, t2) := shls[j]!
+      assertMainM `hshl_congr (mkAppM ``LeanModels.Sv.CombView.mul_pow_congr_or #[x1, x2, t1, t2])
+  for (x, t) in shls do
+    if let some h ← omegaProves (← mkAppM ``LE.le #[toExpr (0 : Int), x]) then
+      assertMainM `hshl (mkAppM ``LeanModels.Sv.CombView.shl_shr_facts #[t, h])
 
 /-- The arguments `x` of the `canonInt 32 true x` subterms of `e` that mention a free variable, innermost first (refusal
 text only). -/
@@ -1874,6 +1997,99 @@ def signedWrap (pd args : Lean.Expr) (tm : TSyntax `term) : TacticM (TSyntax `te
       (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok)
       (hauto := ?hauto) (hin := ?hin) (hfrag := ?hfrag) (hwid := ?hwid) (hbit := ?hbit))) $tm)
 
+
+/-- **The facts of the shift and power atoms** (item 4), in context for `omega`: `intros`, then, for the atoms of the goal
+and of every hypothesis, the `$clog2` facts (`addClog2Facts`, and the powers they bound, `addClog2PowFacts`), a wrapped
+32-bit value read as itself where `omega` places it in range (`canonInt32_of_bounds`), the bounds of every power and
+quotient (`addPowFacts`), and their monotonicity and congruence (`addAtomFacts`). Every fact is a proved lemma. Before
+`sv_rowmajor`, whose side conditions `omega` discharges from the context. -/
+syntax (name := svPowFacts) "sv_pow_facts" : tactic
+
+/-- **`omega` with the facts of the shift and power atoms**: `sv_pow_facts`, then `omega`. The tactics use it as the
+closing step of the obligations of a design whose summary has atoms; a player may call it on what is left. -/
+syntax (name := svPowOmega) "sv_pow_omega" : tactic
+
+/-- The types of the main goal and of its hypotheses. -/
+def goalExprs : TacticM (Array Lean.Expr) := do
+  let g ← getMainGoal
+  g.withContext do
+    let mut es : Array Lean.Expr := #[← instantiateMVars (← g.getType)]
+    for d in ← getLCtx do
+      unless d.isImplementationDetail do es := es.push (← instantiateMVars d.type)
+    pure es
+
+/-- For every `clog2 a` of the terms `es`, the two facts relating it to the power it bounds: `a ≤ 2 ^ clog2 a`
+(`le_two_pow_clog2_int`) and, where `omega` shows `1 ≤ a`, `2 ^ clog2 a < 2 * a` (`two_pow_clog2_lt_int`). -/
+def addClog2PowFacts (es : Array Lean.Expr) : TacticM Unit := do
+  let mut seen : Array Lean.Expr := #[]
+  for e in es do
+    for a in clog2Args (← instantiateMVars e) do
+      if seen.contains a then continue
+      seen := seen.push a
+      assertMainM `hclog2_pow (mkAppM ``LeanModels.Sv.CombView.le_two_pow_clog2_int #[a])
+      if let some h ← omegaProves (← mkAppM ``LE.le #[toExpr (1 : Nat), a]) then
+        assertMainM `hclog2_pow_lt (mkAppM ``LeanModels.Sv.CombView.two_pow_clog2_lt_int #[a, h])
+
+@[tactic svPowFacts] def evalSvPowFacts : Tactic := fun _ => do
+  evalTactic (← `(tactic| intros))
+  -- each step builds its propositions over the goal's own hypotheses (the variables `intros` just bound): in the
+  -- goal's context
+  let inGoal (x : TacticM Unit) : TacticM Unit := do (← getMainGoal).withContext x
+  inGoal do LeanModels.Sv.CombView.addClog2Facts (← goalExprs)
+  -- a wrapped 32-bit value (an `int` localparam) is its own value where `omega` places it in the range
+  evalTactic (← `(tactic| (try simp (disch := omega) only [LeanModels.Sv.CombView.canonInt32_of_bounds] at *)))
+  if (← getGoals).isEmpty then return
+  inGoal do addClog2PowFacts (← goalExprs)
+  inGoal do LeanModels.Sv.CombView.addPowFacts (← goalExprs)
+  inGoal do LeanModels.Sv.CombView.addAtomFacts (← goalExprs)
+
+@[tactic svPowOmega] def evalSvPowOmega : Tactic := fun _ => do
+  evalTactic (← `(tactic| sv_pow_facts))
+  unless (← getGoals).isEmpty do evalTactic (← `(tactic| omega))
+
+/-- **The atom obligation apart** (`Summary.autoObl_intro`): the main goal `s.AutoObl σ args` becomes its first three
+conjuncts, which the tactics normalize as before, and `s.XObl σ`, which is closed here: for a summary without shift or
+power atoms (`Summary.atomFree`, decided natively and by the kernel, `closeByDecide`) by `xObl_of_atomFree`, with no
+normalization (so every such design's goals and cost are those it had); otherwise it is normalized (`Summary.XObl`, the
+atoms' ranges `XAt.Ok`) and each conjunct is closed by `sv_pow_omega` where it can be, the rest kept after the main
+goal. A goal of another shape is left unchanged. -/
+syntax (name := svAutoSplit) "sv_auto_split" : tactic
+
+set_option maxRecDepth 4096 in
+@[tactic svAutoSplit] unsafe def evalSvAutoSplit : Tactic := fun _ => do
+  let g ← getMainGoal
+  let ty ← instantiateMVars (← g.getType)
+  unless ty.isAppOfArity ``LeanModels.Sv.CombView.Summary.AutoObl 3 do return
+  let sE := ty.getArg! 0
+  let σE := ty.getArg! 1
+  let gs ← g.apply (mkApp (mkConst ``LeanModels.Sv.CombView.Summary.autoObl_intro) sE)
+  let mut gx? : Option MVarId := none
+  let mut gMain : List MVarId := []
+  for m in gs do
+    if (← instantiateMVars (← m.getType)).isAppOfArity ``LeanModels.Sv.CombView.Summary.XObl 2 then gx? := some m
+    else gMain := gMain ++ [m]
+  let some gx := gx? | throwError "sv_comb: internal error: the atom obligation was not split off"
+  let afTy ← mkEq (mkApp (mkConst ``LeanModels.Sv.CombView.Summary.atomFree) sE) (mkConst ``Bool.true)
+  let af ← mkFreshExprMVar afTy
+  let closed ← try closeByDecide af.mvarId! "atoms"; pure true catch _ => pure false
+  if closed then
+    gx.assign (mkApp3 (mkConst ``LeanModels.Sv.CombView.Summary.xObl_of_atomFree) sE (← instantiateMVars af) σE)
+    setGoals gMain
+  else
+    setGoals [gx]
+    evalTactic (← `(tactic| (
+      simp only [LeanModels.Sv.CombView.Summary.XObl]
+      (try sv_norm_core)
+      (try simp only [LeanModels.Sv.CombView.Acc.affs, LeanModels.Sv.CombView.Aff.XOk,
+        LeanModels.Sv.CombView.Aff.XOkL, LeanModels.Sv.CombView.XAt.Ok, and_true, true_and, implies_true,
+        List.forall_mem_cons, List.forall_mem_nil, List.not_mem_nil, false_implies, forall_const])
+      (try sv_norm_core)
+      (try sv_lp_norm)
+      repeat' refine And.intro ?_ ?_
+      all_goals first | sv_pow_omega | skip)))
+    let rest ← getGoals
+    setGoals (gMain ++ rest)
+
 /-- Run the structural stage. (`unsafe`: it evaluates the recognizer on the design with
 `evalExpr`, at tactic time only.) With `hook?` the design has signed reads and is read through its unsigned twin
 (`SignedHook`). -/
@@ -2136,11 +2352,14 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
         tryClosePlain s (← find n) lem what
       unless (← closePlain `hauto ``LeanModels.Sv.CombView.Summary.autoObl_of_plain
           "an in-range fact of a flat netlist does not hold") do
+        let autoClose : TSyntax `tactic ←
+          if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
         out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
           (try simp only [$preL,*])
+          sv_auto_split
           $normR:tactic
           repeat' refine And.intro ?_ ?_
-          all_goals first | (intros; omega) | skip))).toArray
+          all_goals first | $autoClose:tactic | skip))).toArray
       unless (← closePlain `hin ``LeanModels.Sv.CombView.Summary.inRangeObl_of_plain
           "the in-range obligation of a flat netlist does not hold") do
         out := out ++ (← runOb `hin "inRange" (← `(tacticSeq|
@@ -2298,11 +2517,12 @@ unsafe def runSvInterface : TacticM Unit := do
         evalTactic (← `(tactic|
           sv_simp [LeanModels.Sv.CombView.DeclT.toDecl, LeanModels.Sv.CombView.DeclT.width,
             LeanModels.Sv.CombView.dimsW, LeanModels.Sv.CombView.Aff.eval,
-            LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.sub,
-            LeanModels.Sv.CombView.Aff.neg, LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs,
-            LeanModels.Sv.CombView.Aff.add, LeanModels.Sv.CombView.Aff.var,
+            LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.XAt.eval, LeanModels.Sv.CombView.Aff.sub,
+            LeanModels.Sv.CombView.Aff.neg, LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs,
+            LeanModels.Sv.CombView.Aff.add, LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom,
             LeanModels.Sv.CombView.Aff.const, LeanModels.Sv.CombView.Aff.scale,
-            LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.σL,
+            LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs, LeanModels.Sv.CombView.Aff.scaleXs, LeanModels.Sv.CombView.σL,
             LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv,
             LeanModels.Sv.CombView.CE.eval, List.lookup_cons, List.lookup_nil, $pdId:ident,
             List.zip_cons_cons, List.zip_nil_right, List.lookup_cons_self, Option.getD_some,

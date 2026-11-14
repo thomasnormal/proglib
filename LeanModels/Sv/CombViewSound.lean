@@ -983,7 +983,7 @@ theorem siteCtx_of_reach {s : Summary} {args : List Int} {σ : String → Int} {
     {σ' : String → Int} {E' : IEnv} (hr : ReachE ls.hdrs σ envD σ' E') :
     SiteCtx s σ elems ls σ' E' := by
   obtain ⟨hnodup, hnames, hinput, haff, hpaths, hdecl, hacc, hkeys⟩ := hok
-  obtain ⟨hauto1, hauto2, hauto3⟩ := hauto
+  obtain ⟨hauto1, hauto2, hauto3, hxobl⟩ := hauto
   have hnm : ∀ n, (s.DW σ n).isSome = true → n ∈ s.declNames := by
     intro n hn
     exact mem_declNames_of_find (by simpa [Summary.DW] using hn)
@@ -993,6 +993,7 @@ theorem siteCtx_of_reach {s : Summary} {args : List Int} {σ : String → Int} {
   have hin' := (Loops.all_iff _ _ _).mp (hin.1 ls hls) σ' (ReachE_Reach hr)
   have hauto' := (Loops.all_iff _ _ _).mp (hauto1 ls hls) σ' (ReachE_Reach hr)
   have hinM := (Loops.all_iff _ _ _).mp (hin.more_all ls hls) σ' (ReachE_Reach hr)
+  have hxk := (Loops.all_iff _ _ _).mp (hxobl.1 ls hls) σ' (ReachE_Reach hr)
   have hInR : ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), s.InR σ σ' a := by
     intro a ha
     rcases List.mem_cons.mp ha with rfl | hm
@@ -1003,7 +1004,7 @@ theorem siteCtx_of_reach {s : Summary} {args : List Int} {σ : String → Int} {
   have hso : ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds),
       AccOK σ' (s.DW σ) (s.DG σ) (s.EW σ) (ls.hdrs.map (·.g) ++ s.params) a := by
     intro a ha
-    refine ⟨?_, accGeom_of hpar hdecl (hacc ls hls a ha) (hInR a ha) (hauto2 ls hls a ha), ?_⟩
+    refine ⟨?_, accGeom_of hpar hdecl (hacc ls hls a ha) (hInR a ha) (hauto2 ls hls a ha), ?_, hxk a ha⟩
     · have hn : a.name ∈ s.declNames := by
         apply hnames ls hls
         simp only [TSite.names, List.mem_cons, List.mem_map]
@@ -1071,7 +1072,7 @@ theorem pairs_desc {s : Summary} {args : List Int} {σ : String → Int} {envD :
 
 theorem Hdr.expand2 {env : IEnv} {elems : List (String × Nat)} {F : Nat} {σ : String → Int}
     {ns : List String} (hag : Agrees σ env ns) {h : Hdr} (hwf : h.Wf)
-    (hbn : ∀ n ∈ h.bound.names, n ∈ ns ∧ n ≠ h.g)
+    (hbn : ∀ n ∈ h.bound.names, n ∈ ns ∧ n ≠ h.g) (hbx : h.bound.XOk σ)
     (hF : (h.bound.eval σ - h.c0).toNat < F) (rc : Option Nat) (body : List GenItem)
     {f : Int → List Process2}
     (hf : ∀ v, h.Rng σ v → expandList2 (env.bindVal h.g v) elems F body = .ok (f v)) :
@@ -1083,9 +1084,9 @@ theorem Hdr.expand2 {env : IEnv} {elems : List (String × Nat)} {F : Nat} {σ : 
     have hb' : (n == h.g) = false := beq_eq_false_iff_ne.2 hng
     exact (IEnv.intVal?_bindVal_ne i hng).trans (hag n hnp)
   have hei : ∀ i : Int, h.bndE.isInt (env.bindVal h.g i) = true :=
-    fun i => (affOf?_sound h.bndE h.bound hwf.1 (hbag i)).1
+    fun i => (affOf?_sound h.bndE h.bound hwf.1 ⟨hbag i, hbx⟩).1
   have he : ∀ i : Int, evalInt (env.bindVal h.g i) h.bndE = .ok (h.bound.eval σ) :=
-    fun i => (affOf?_sound h.bndE h.bound hwf.1 (hbag i)).2
+    fun i => (affOf?_sound h.bndE h.bound hwf.1 ⟨hbag i, hbx⟩).2
   rw [Hdr.range_of_wf hwf]
   exact GenItem.expand2_genFor_ascending_flatMap (evalInt_int h.c0) hei he hF
     (fun v hv1 hv2 => hf v ⟨hv1, hv2, by rw [hwf.2]; trivial⟩)
@@ -1110,10 +1111,11 @@ around them. -/
 def TItem.ExpOk (F : Nat) : List String → List String → (String → Int) → TItem → Prop
   | _, _, _, .site _ => True
   | gvs, ns, σ, .loop h _ body => h.Wf ∧ (∀ n ∈ h.bound.names, n ∈ ns ∧ n ≠ h.g) ∧
-      (h.bound.eval σ - h.c0).toNat < F ∧
+      (h.bound.eval σ - h.c0).toNat < F ∧ h.bound.XOk σ ∧
       ∀ j, h.Rng σ j → TItem.ExpOkL F (h.g :: gvs) (h.g :: ns) (bindσ h.g j σ) body
   | gvs, ns, σ, .cond c g thn els => guardOf? c = some g ∧ (∀ n ∈ c.gvLeaves, n ∈ gvs) ∧
       (∀ n ∈ c.pLeaves, n ∈ ns) ∧ (∀ a ∈ g.rngs, -2147483648 ≤ a.eval σ ∧ a.eval σ < 2147483648) ∧
+      (∀ a ∈ g.rngs, a.XOk σ) ∧
       (g.holds σ → TItem.ExpOkL F gvs ns σ thn) ∧ (¬ g.holds σ → TItem.ExpOkL F gvs ns σ els)
 
 def TItem.ExpOkL (F : Nat) : List String → List String → (String → Int) → List TItem → Prop
@@ -1131,16 +1133,16 @@ theorem TItem.expand2_eq {elems : List (String × Nat)} {F : Nat} :
   | _, _, _, _, _, _, _, .site st, _, _, _ => by simp [TItem.toGen, TItem.enumAt, procB]
   | gvs, ns, σ, E, outer, cur, blk, .loop hd rc body, hav, hag, hok => by
       simp only [TItem.ExpOk] at hok
-      obtain ⟨hwf, hbn, hF, hb⟩ := hok
+      obtain ⟨hwf, hbn, hF, hbx, hb⟩ := hok
       rw [TItem.toGen_loop]
       simp only [TItem.enumAt]
-      exact Hdr.expand2 hag hwf hbn hF rc (body.map TItem.toGen)
+      exact Hdr.expand2 hag hwf hbn hbx hF rc (body.map TItem.toGen)
         (fun v hv => TItem.expandL_eq (hd.g :: gvs) (hd.g :: ns) (bindσ hd.g v σ) (E.bindVal hd.g v)
           (outer ++ [cur]) hd hd.name body (hav.bindVal hd.g v) (hag.bindVal hd.g v) (hb v hv))
   | gvs, ns, σ, E, outer, cur, blk, .cond c g thn els, hav, hag, hok => by
       simp only [TItem.ExpOk] at hok
-      obtain ⟨hg, hgv, hpv, hr, ht, he⟩ := hok
-      have hc := guard_eval (E := E) (σ := σ) hg (fun n hn => hav n (hgv n hn)) (fun n hn => hag n (hpv n hn)) hr
+      obtain ⟨hg, hgv, hpv, hr, hrx, ht, he⟩ := hok
+      have hc := guard_eval (E := E) (σ := σ) hg (fun n hn => hav n (hgv n hn)) (fun n hn => hag n (hpv n hn)) hr hrx
       rw [TItem.toGen_cond]
       simp only [TItem.enumAt]
       by_cases hh : g.holds σ
@@ -1189,13 +1191,15 @@ and its count within the fuel at every valuation of the loops around it. -/
 def StepFacts (ps : List String) (σ0 : String → Int) (F : Nat) (q : List Hdr × Hdr) : Prop :=
   ((q.1 ++ [q.2]).map (·.g) ++ ps).Nodup ∧
     (∀ n ∈ q.2.bound.names, n ∈ ps ∨ (n ∈ (q.1 ++ [q.2]).map (·.g) ∧ n ≠ q.2.g)) ∧
-    Loops.all q.1 σ0 (fun σ' => (q.2.bound.eval σ' - q.2.c0).toNat < F)
+    Loops.all q.1 σ0 (fun σ' => (q.2.bound.eval σ' - q.2.c0).toNat < F) ∧
+    Loops.all q.1 σ0 (fun σ' => q.2.bound.XOk σ')
 
 /-- The per-condition facts the expansion needs: for a condition under the loops `c.1`, its operands reading the
 genvars of those loops and the constants `ps`, their subterms' values 32-bit at every valuation of the loops around it. -/
 def CondFacts (ps : List String) (σ0 : String → Int) (c : List Hdr × PExpr × Guard) : Prop :=
   (∀ n ∈ c.2.1.gvLeaves, n ∈ c.1.map (·.g)) ∧ (∀ n ∈ c.2.1.pLeaves, n ∈ ps) ∧
-    Loops.all c.1 σ0 (fun σ' => ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)
+    Loops.all c.1 σ0 (fun σ' => ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648) ∧
+    Loops.all c.1 σ0 (fun σ' => ∀ a ∈ c.2.2.rngs, a.XOk σ')
 
 mutual
 /-- The expansion side conditions of an item in the body of `cur` (under `outer`), from the facts about its loop
@@ -1210,7 +1214,7 @@ theorem TItem.expOk_of {ps : List String} {σ0 : String → Int} {F : Nat} :
   | outer, cur, σ1, gvs, ns, .loop hd rc body, hr, hgv, hns, hwf, hst, hcd => by
       rw [TItem.wf_loop] at hwf
       have hq : StepFacts ps σ0 F (outer ++ [cur], hd) := hst _ (by simp [TItem.stepsAt])
-      obtain ⟨hnd, hbn, hfu⟩ := hq
+      obtain ⟨hnd, hbn, hfu, hfx⟩ := hq
       have hgps : hd.g ∉ ps := notin_of_nodup hnd (by simp)
       have hgpre : hd.g ∉ (outer ++ [cur]).map (·.g) := by
         intro hm
@@ -1218,7 +1222,8 @@ theorem TItem.expOk_of {ps : List String} {σ0 : String → Int} {F : Nat} :
         rw [List.map_append (l₁ := outer ++ [cur])] at h2
         exact (List.nodup_append.mp h2).2.2 hd.g hm hd.g (by simp) rfl
       simp only [TItem.ExpOk]
-      refine ⟨hwf.1, fun n hn => ?_, (Loops.all_iff _ _ _).mp hfu σ1 hr, fun j hj => ?_⟩
+      refine ⟨hwf.1, fun n hn => ?_, (Loops.all_iff _ _ _).mp hfu σ1 hr, (Loops.all_iff _ _ _).mp hfx σ1 hr,
+        fun j hj => ?_⟩
       · rcases hbn n hn with h | ⟨h1, h2⟩
         · exact ⟨hns n (List.mem_append_right _ h), fun e => hgps (e ▸ h)⟩
         · refine ⟨hns n (List.mem_append_left _ ?_), h2⟩
@@ -1247,12 +1252,12 @@ theorem TItem.expOk_of {ps : List String} {σ0 : String → Int} {F : Nat} :
       rw [TItem.wf_cond] at hwf
       obtain ⟨hgw, hwt, hwe⟩ := hwf
       have hc : CondFacts ps σ0 (outer ++ [cur], c, g) := hcd _ (by simp [TItem.condsAt])
-      obtain ⟨hcg, hcp, hcr⟩ := hc
+      obtain ⟨hcg, hcp, hcr, hcx⟩ := hc
       have hgmap : ∀ gs : List (Guard × Bool), (outer ++ [cur.guards gs]).map (·.g) = (outer ++ [cur]).map (·.g) :=
         fun gs => by simp
       simp only [TItem.ExpOk]
       refine ⟨hgw, fun n hn => hgv n (hcg n hn), fun n hn => hns n (List.mem_append_right _ (hcp n hn)),
-        (Loops.all_iff _ _ _).mp hcr σ1 hr, fun hh => ?_, fun hh => ?_⟩
+        (Loops.all_iff _ _ _).mp hcr σ1 hr, (Loops.all_iff _ _ _).mp hcx σ1 hr, fun hh => ?_, fun hh => ?_⟩
       · refine TItem.expOkL_of outer (cur.guards [(g, true)]) σ1 gvs ns thn
           (Reach_guards hr ⟨hh, trivial⟩) (fun n hn => hgv n (by rwa [hgmap] at hn))
           (fun n hn => hns n (by rwa [hgmap] at hn)) hwt
@@ -1306,12 +1311,15 @@ operands of every condition have 32-bit values wherever it is evaluated (the thi
 def Summary.FuelOk (s : Summary) (σ : String → Int) (F : Nat) : Prop :=
   (∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' => (q.2.bound.eval σ' - q.2.c0).toNat < F) ∧
   (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' =>
-    ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)
+    ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648) ∧
+  (∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' => q.2.bound.XOk σ') ∧
+  (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' => ∀ a ∈ c.2.2.rngs, a.XOk σ')
 
 /-- The fuel of the instantiation (`PDesign.surfaceFuel`) is enough, by the third conjunct of `AutoObl`. -/
 theorem Summary.fuelOk_of_auto {s : Summary} {σ : String → Int} {args : List Int} (h : s.AutoObl σ args) :
     s.FuelOk σ (PDesign.surfaceFuel args) :=
-  ⟨fun q hq => Loops.all_imp q.1 σ (fun _ h' => surfaceFuel_gt args _ h') (h.2.2.1 q hq), h.2.2.2⟩
+  ⟨fun q hq => Loops.all_imp q.1 σ (fun _ h' => surfaceFuel_gt args _ h') (h.2.2.1.1 q hq), h.2.2.1.2,
+    h.2.2.2.2.1, h.2.2.2.2.2⟩
 
 /-- **A top-level generate loop expands to the closed form `TFam.enum`**, at any depth of nesting, with conditional
 generate constructs. An inner loop's bound may name the genvars of the loops around it: it is read under their binding,
@@ -1346,7 +1354,7 @@ theorem fam_expand2 {s : Summary} {σ : String → Int} {env : IEnv} {elems : Li
       exact ⟨f, hf, Or.inr hq⟩
     have hp : q.1 ++ [q.2] ∈ s.hdrPaths := List.mem_map.mpr ⟨q, hq', rfl⟩
     obtain ⟨hnd, hb⟩ := path_facts hok hp
-    exact ⟨hnd, (hb q.2 (by simp)).1, hfuel.1 q hq'⟩
+    exact ⟨hnd, (hb q.2 (by simp)).1, hfuel.1 q hq', hfuel.2.2.1 q hq'⟩
   have hconds : ∀ c ∈ TItem.condsAtL [] f.hdr f.body, CondFacts s.params σ c := by
     intro c hc
     have hc' : c ∈ s.condSteps := by
@@ -1354,8 +1362,8 @@ theorem fam_expand2 {s : Summary} {σ : String → Int} {env : IEnv} {elems : Li
       simp only [List.mem_flatMap]
       exact ⟨f, hf, hc⟩
     obtain ⟨h1, h2⟩ := hok.2.2.2.2.2.2.2.2 c hc'
-    exact ⟨h1, h2, hfuel.2 c hc'⟩
-  have := Hdr.expand2 hag hwf.1 hbn (hfuel.1 _ hs1) f.rc (f.body.map TItem.toGen)
+    exact ⟨h1, h2, hfuel.2.1 c hc', hfuel.2.2.2 c hc'⟩
+  have := Hdr.expand2 hag hwf.1 hbn (hfuel.2.2.1 _ hs1) (hfuel.1 _ hs1) f.rc (f.body.map TItem.toGen)
     (f := fun i => TItem.enumAtL (procB elems) [] f.hdr f.hdr.name (bindσ f.hdr.g i σ) (env.bindVal f.hdr.g i)
       f.body)
     (fun v hv => TItem.expandL_eq [f.hdr.g] (f.hdr.g :: s.params) (bindσ f.hdr.g v σ) (env.bindVal f.hdr.g v)

@@ -56,22 +56,84 @@ namespace CombView
 
 /-! ## Affine terms -/
 
-/-- `Σ k·n + c + Σ k·(n ÷ d)` over named integers (genvars and parameters): a linear form, plus QUOTIENT ATOMS, each a
-named constant divided by a positive integer literal (`W / 2` in `a[W/2-1:0]`). `÷` is `Int.tdiv`, `evalInt`'s own `/`
-(IEEE 1800-2023 §11.4.2: integer division truncates toward zero); a quotient is an opaque atom for the obligations, which
-`sv_lp_norm` turns into the floor `/` that `omega` reads where the numerator is provably non-negative. -/
+/-- **A shift or power atom** of a generate-time integer expression (item 4 of the comb widening): a power of a named
+constant and the shifts of one named constant by another (`m`, `n`: genvars, parameters or localparams).
+
+* `pow b n`  `b ^ n`             from `1 << n` (`b = 2`) and `b ** n` (a literal `b ≥ 2`)
+* `shr m n`  `m / 2 ^ n`         from `m >> n`
+* `shl m n`  `m / 2 ^ n * 2 ^ n` from `(m >> n) << n`
+* `bit m n`  `m / 2 ^ n % 2`     from `(m >> n) & 1`
+
+`/` and `%` are the floor ones (`Int.ediv`, `Int.emod`), the instantiation's `tdiv` on the non-negative numerator the
+range `XAt.Ok` demands. IEEE 1800-2023 §11.4.10 (shifts: the amount is unsigned, a logical `>>` fills with zeros),
+§11.4.3 (`**`), §11.4.8 (`&`), all of 32-bit `int` operands (§27.4: a genvar is an integer). -/
+inductive XAt where
+  | pow (b : Int) (n : String)
+  | shr (m n : String)
+  | shl (m n : String)
+  | bit (m n : String)
+deriving Repr, BEq, DecidableEq, Inhabited
+
+namespace XAt
+
+/-- The atom's value. -/
+def eval (σ : String → Int) : XAt → Int
+  | .pow b n => b ^ (σ n).toNat
+  | .shr m n => σ m / 2 ^ (σ n).toNat
+  | .shl m n => σ m / 2 ^ (σ n).toNat * 2 ^ (σ n).toNat
+  | .bit m n => σ m / 2 ^ (σ n).toNat % 2
+
+/-- The names the atom reads. -/
+def names : XAt → List String
+  | .pow _ n => [n]
+  | .shr m n => [m, n]
+  | .shl m n => [m, n]
+  | .bit m n => [m, n]
+
+/-- **The atom's range**: where the instantiation's two evaluators (`evalInt`, unbounded, for indices and loop bounds;
+`evalAt` at the signed 32-bit type for generate conditions) are defined and give the atom's value, and that value is
+IEEE's 32-bit `int` one: a shift amount in `[0, 32)`, a shifted name a non-negative 32-bit value, a power a 32-bit
+value. -/
+def Ok (σ : String → Int) : XAt → Prop
+  | .pow b n => 0 ≤ σ n ∧ σ n < 32 ∧ b ^ (σ n).toNat < 2147483648
+  | .shr m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
+  | .shl m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
+  | .bit m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
+
+instance (σ : String → Int) (x : XAt) : Decidable (x.Ok σ) := by
+  cases x <;> unfold XAt.Ok <;> infer_instance
+
+theorem eval_congr (σ σ' : String → Int) (x : XAt) (h : ∀ n ∈ x.names, σ n = σ' n) : x.eval σ = x.eval σ' := by
+  cases x <;> simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
+    forall_eq] at h <;> simp only [eval, h]
+
+theorem ok_congr (σ σ' : String → Int) (x : XAt) (h : ∀ n ∈ x.names, σ n = σ' n) : x.Ok σ ↔ x.Ok σ' := by
+  cases x <;> simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
+    forall_eq] at h <;> simp only [Ok, h]
+
+end XAt
+
+/-- `Σ k·n + c + Σ k·(n ÷ d) + Σ k·x` over named integers (genvars and parameters): a linear form, plus QUOTIENT ATOMS,
+each a named constant divided by a positive integer literal (`W / 2` in `a[W/2-1:0]`), plus SHIFT AND POWER ATOMS (`XAt`:
+`1 << l`, `b ** l`, `i >> l`, `(i >> l) << l`, `(i >> l) & 1`). `÷` is `Int.tdiv`, `evalInt`'s own `/` (IEEE 1800-2023
+§11.4.2: integer division truncates toward zero); a quotient is an opaque atom for the obligations, which `sv_lp_norm`
+turns into the floor `/` that `omega` reads where the numerator is provably non-negative. -/
 structure Aff where
   terms : List (String × Int) := []
   c : Int := 0
   /-- The quotient atoms `(n, k, d)`: `k * (σ n ÷ d)`, `0 < d`. -/
   qs : List (String × Int × Int) := []
+  /-- The shift and power atoms `(k, x)`: `k * x.eval σ` (`XAt`). -/
+  xs : List (Int × XAt) := []
 deriving Repr, BEq, DecidableEq, Inhabited
 
 namespace Aff
 
 def const (c : Int) : Aff := { c := c }
 def var (n : String) : Aff := { terms := [(n, 1)] }
-def add (a b : Aff) : Aff := { terms := a.terms ++ b.terms, c := a.c + b.c, qs := a.qs ++ b.qs }
+/-- One shift or power atom. -/
+def atom (x : XAt) : Aff := { xs := [(1, x)] }
+def add (a b : Aff) : Aff := { terms := a.terms ++ b.terms, c := a.c + b.c, qs := a.qs ++ b.qs, xs := a.xs ++ b.xs }
 
 def negTerms : List (String × Int) → List (String × Int)
   | [] => []
@@ -81,9 +143,19 @@ def negQs : List (String × Int × Int) → List (String × Int × Int)
   | [] => []
   | (n, k, d) :: qs => (n, -k, d) :: negQs qs
 
-def neg (a : Aff) : Aff := { terms := negTerms a.terms, c := -a.c, qs := negQs a.qs }
+def negXs : List (Int × XAt) → List (Int × XAt)
+  | [] => []
+  | (k, x) :: xs => (-k, x) :: negXs xs
+
+def neg (a : Aff) : Aff := { terms := negTerms a.terms, c := -a.c, qs := negQs a.qs, xs := negXs a.xs }
 def sub (a b : Aff) : Aff := a.add b.neg
-def names (a : Aff) : List String := a.terms.map Prod.fst ++ a.qs.map Prod.fst
+
+/-- The names an atom list reads. -/
+def xsNames : List (Int × XAt) → List String
+  | [] => []
+  | (_, x) :: xs => x.names ++ xsNames xs
+
+def names (a : Aff) : List String := a.terms.map Prod.fst ++ a.qs.map Prod.fst ++ xsNames a.xs
 
 def scaleTerms (k : Int) : List (String × Int) → List (String × Int)
   | [] => []
@@ -93,8 +165,13 @@ def scaleQs (k : Int) : List (String × Int × Int) → List (String × Int × I
   | [] => []
   | (n, m, d) :: qs => (n, k * m, d) :: scaleQs k qs
 
+def scaleXs (k : Int) : List (Int × XAt) → List (Int × XAt)
+  | [] => []
+  | (m, x) :: xs => (k * m, x) :: scaleXs k xs
+
 /-- Scaling by a constant. -/
-def scale (k : Int) (a : Aff) : Aff := { terms := scaleTerms k a.terms, c := k * a.c, qs := scaleQs k a.qs }
+def scale (k : Int) (a : Aff) : Aff :=
+  { terms := scaleTerms k a.terms, c := k * a.c, qs := scaleQs k a.qs, xs := scaleXs k a.xs }
 
 def evalTerms (σ : String → Int) : List (String × Int) → Int
   | [] => 0
@@ -105,12 +182,33 @@ def evalTerms (σ : String → Int) : List (String × Int) → Int
   | [] => 0
   | (n, k, d) :: qs => k * (σ n).tdiv d + evalQs σ qs
 
-def eval (σ : String → Int) (a : Aff) : Int := evalTerms σ a.terms + a.c + evalQs σ a.qs
+/-- The shift and power atoms' value. -/
+@[simp] def evalXs (σ : String → Int) : List (Int × XAt) → Int
+  | [] => 0
+  | (k, x) :: xs => k * x.eval σ + evalXs σ xs
 
-theorem eval_eq (σ : String → Int) (a : Aff) : a.eval σ = evalTerms σ a.terms + a.c + evalQs σ a.qs := rfl
-theorem names_eq (a : Aff) : a.names = a.terms.map Prod.fst ++ a.qs.map Prod.fst := rfl
+def eval (σ : String → Int) (a : Aff) : Int := evalTerms σ a.terms + a.c + evalQs σ a.qs + evalXs σ a.xs
+
+/-- Every atom of a list in its range (`XAt.Ok`). -/
+@[simp] def XOkL (σ : String → Int) : List (Int × XAt) → Prop
+  | [] => True
+  | (_, x) :: xs => x.Ok σ ∧ XOkL σ xs
+
+/-- **Every shift and power atom of the form in its range** (`XAt.Ok`): `True` for a form without one. -/
+def XOk (σ : String → Int) (a : Aff) : Prop := XOkL σ a.xs
+
+/-- **What the soundness of the affine reading needs** (`affOf?_sound`): the names the form reads have their values in
+the environment, and its atoms are in their range. -/
+def Ok (E : IEnv) (σ : String → Int) (a : Aff) : Prop :=
+  (∀ n ∈ a.names, E.intVal? n = some (σ n)) ∧ a.XOk σ
+
+theorem eval_eq (σ : String → Int) (a : Aff) :
+    a.eval σ = evalTerms σ a.terms + a.c + evalQs σ a.qs + evalXs σ a.xs := rfl
+theorem names_eq (a : Aff) : a.names = a.terms.map Prod.fst ++ a.qs.map Prod.fst ++ xsNames a.xs := rfl
 theorem neg_qs (a : Aff) : a.neg.qs = negQs a.qs := rfl
 theorem scale_qs (k : Int) (a : Aff) : (a.scale k).qs = scaleQs k a.qs := rfl
+theorem neg_xs (a : Aff) : a.neg.xs = negXs a.xs := rfl
+theorem scale_xs (k : Int) (a : Aff) : (a.scale k).xs = scaleXs k a.xs := rfl
 
 theorem evalTerms_append (σ : String → Int) (a b : List (String × Int)) :
     evalTerms σ (a ++ b) = evalTerms σ a + evalTerms σ b := by
@@ -179,13 +277,80 @@ theorem names_scaleQs (k : Int) (a : List (String × Int × Int)) :
   | nil => simp [scaleQs]
   | cons p ts ih => obtain ⟨n, m, d⟩ := p; simp [scaleQs, ih]
 
+theorem evalXs_append (σ : String → Int) (a b : List (Int × XAt)) :
+    evalXs σ (a ++ b) = evalXs σ a + evalXs σ b := by
+  induction a with
+  | nil => simp [evalXs]
+  | cons p ts ih => obtain ⟨k, x⟩ := p; simp [evalXs, ih, Int.add_assoc]
+
+theorem evalXs_negXs (σ : String → Int) (a : List (Int × XAt)) : evalXs σ (negXs a) = - evalXs σ a := by
+  induction a with
+  | nil => simp [negXs, evalXs]
+  | cons p ts ih =>
+    obtain ⟨k, x⟩ := p
+    simp [negXs, evalXs, ih, Int.neg_mul, Int.neg_add]
+
+theorem evalXs_scaleXs (σ : String → Int) (k : Int) (a : List (Int × XAt)) :
+    evalXs σ (scaleXs k a) = k * evalXs σ a := by
+  induction a with
+  | nil => simp [scaleXs, evalXs]
+  | cons p ts ih =>
+    obtain ⟨m, x⟩ := p
+    simp [scaleXs, evalXs, ih, Int.mul_add, Int.mul_assoc]
+
+theorem xsNames_append (a b : List (Int × XAt)) : xsNames (a ++ b) = xsNames a ++ xsNames b := by
+  induction a with
+  | nil => rfl
+  | cons p ts ih => obtain ⟨k, x⟩ := p; simp [xsNames, ih]
+
+theorem xsNames_negXs (a : List (Int × XAt)) : xsNames (negXs a) = xsNames a := by
+  induction a with
+  | nil => rfl
+  | cons p ts ih => obtain ⟨k, x⟩ := p; simp [xsNames, negXs, ih]
+
+theorem xsNames_scaleXs (k : Int) (a : List (Int × XAt)) : xsNames (scaleXs k a) = xsNames a := by
+  induction a with
+  | nil => rfl
+  | cons p ts ih => obtain ⟨m, x⟩ := p; simp [xsNames, scaleXs, ih]
+
+theorem xOkL_append (σ : String → Int) (a b : List (Int × XAt)) : XOkL σ (a ++ b) ↔ XOkL σ a ∧ XOkL σ b := by
+  induction a with
+  | nil => simp
+  | cons p ts ih => obtain ⟨k, x⟩ := p; simp [ih, and_assoc]
+
+theorem xOkL_negXs (σ : String → Int) (a : List (Int × XAt)) : XOkL σ (negXs a) ↔ XOkL σ a := by
+  induction a with
+  | nil => simp [negXs]
+  | cons p ts ih => obtain ⟨k, x⟩ := p; simp [negXs, ih]
+
+theorem xOkL_scaleXs (σ : String → Int) (k : Int) (a : List (Int × XAt)) : XOkL σ (scaleXs k a) ↔ XOkL σ a := by
+  induction a with
+  | nil => simp [scaleXs]
+  | cons p ts ih => obtain ⟨m, x⟩ := p; simp [scaleXs, ih]
+
+theorem xOk_add {σ : String → Int} {a b : Aff} : (a.add b).XOk σ ↔ a.XOk σ ∧ b.XOk σ := by
+  simp only [XOk, add, xOkL_append]
+
+theorem xOk_neg {σ : String → Int} {a : Aff} : a.neg.XOk σ ↔ a.XOk σ := by
+  simp only [XOk, neg, xOkL_negXs]
+
+theorem xOk_sub {σ : String → Int} {a b : Aff} : (a.sub b).XOk σ ↔ a.XOk σ ∧ b.XOk σ := by
+  rw [sub, xOk_add, xOk_neg]
+
+theorem xOk_scale {σ : String → Int} {k : Int} {a : Aff} : (a.scale k).XOk σ ↔ a.XOk σ := by
+  simp only [XOk, scale, xOkL_scaleXs]
+
+/-- A form without an atom is in range. -/
+theorem xOk_of_nil {σ : String → Int} {a : Aff} (h : a.xs = []) : a.XOk σ := by
+  simp [XOk, h]
+
 theorem eval_add (σ : String → Int) (a b : Aff) : (a.add b).eval σ = a.eval σ + b.eval σ := by
-  simp only [eval_eq, add, evalTerms_append, evalQs_append]
+  simp only [eval_eq, add, evalTerms_append, evalQs_append, evalXs_append]
   omega
 
 theorem eval_neg (σ : String → Int) (a : Aff) : a.neg.eval σ = - a.eval σ := by
-  rw [eval_eq, eval_eq, neg_qs]
-  simp only [neg, evalTerms_negTerms, evalQs_negQs]
+  rw [eval_eq, eval_eq, neg_qs, neg_xs]
+  simp only [neg, evalTerms_negTerms, evalQs_negQs, evalXs_negXs]
   omega
 
 theorem eval_sub (σ : String → Int) (a b : Aff) : (a.sub b).eval σ = a.eval σ - b.eval σ := by
@@ -193,9 +358,9 @@ theorem eval_sub (σ : String → Int) (a b : Aff) : (a.sub b).eval σ = a.eval 
   omega
 
 theorem eval_scale (σ : String → Int) (k : Int) (a : Aff) : (a.scale k).eval σ = k * a.eval σ := by
-  rw [eval_eq, eval_eq, scale_qs]
-  simp only [scale, evalTerms_scaleTerms, evalQs_scaleQs]
-  rw [Int.mul_add, Int.mul_add]
+  rw [eval_eq, eval_eq, scale_qs, scale_xs]
+  simp only [scale, evalTerms_scaleTerms, evalQs_scaleQs, evalXs_scaleXs]
+  rw [Int.mul_add, Int.mul_add, Int.mul_add]
 
 theorem eval_const (σ : String → Int) (c : Int) : (const c).eval σ = c := by
   simp [eval, const, evalTerms]
@@ -203,23 +368,51 @@ theorem eval_const (σ : String → Int) (c : Int) : (const c).eval σ = c := by
 theorem eval_var (σ : String → Int) (n : String) : (var n).eval σ = σ n := by
   simp [eval, var, evalTerms]
 
+theorem eval_atom (σ : String → Int) (x : XAt) : (atom x).eval σ = x.eval σ := by
+  simp [eval, atom, evalTerms]
+
 theorem mem_names_add {a b : Aff} {n : String} : n ∈ (a.add b).names ↔ n ∈ a.names ∨ n ∈ b.names := by
-  simp only [names_eq, add, List.map_append, List.mem_append]
+  simp only [names_eq, add, List.map_append, List.mem_append, xsNames_append]
   constructor
-  · rintro ((h | h) | h | h) <;> simp [h]
-  · rintro ((h | h) | h | h) <;> simp [h]
+  · rintro (((h | h) | h | h) | h | h) <;> simp [h]
+  · rintro (((h | h) | h) | ((h | h) | h)) <;> simp [h]
 
 theorem mem_names_sub {a b : Aff} {n : String} : n ∈ (a.sub b).names ↔ n ∈ a.names ∨ n ∈ b.names := by
-  simp only [names_eq, sub, add, neg, List.map_append, List.mem_append, names_negTerms, names_negQs]
+  simp only [names_eq, sub, add, neg, List.map_append, List.mem_append, names_negTerms, names_negQs, xsNames_append,
+    xsNames_negXs]
   constructor
-  · rintro ((h | h) | h | h) <;> simp [h]
-  · rintro ((h | h) | h | h) <;> simp [h]
+  · rintro (((h | h) | h | h) | h | h) <;> simp [h]
+  · rintro (((h | h) | h) | ((h | h) | h)) <;> simp [h]
 
 theorem names_scale (k : Int) (a : Aff) : (a.scale k).names = a.names := by
-  simp only [names_eq, scale, names_scaleTerms, names_scaleQs]
+  simp only [names_eq, scale, names_scaleTerms, names_scaleQs, xsNames_scaleXs]
 
-theorem eval_of_terms_nil (σ : String → Int) (a : Aff) (h : a.terms = []) (hq : a.qs = []) : a.eval σ = a.c := by
-  simp [eval, h, hq, evalTerms]
+theorem eval_of_terms_nil (σ : String → Int) (a : Aff) (h : a.terms = []) (hq : a.qs = []) (hx : a.xs = []) :
+    a.eval σ = a.c := by
+  simp [eval, h, hq, hx, evalTerms]
+
+theorem evalXs_congr (σ σ' : String → Int) (a : List (Int × XAt))
+    (h : ∀ n ∈ xsNames a, σ n = σ' n) : evalXs σ a = evalXs σ' a := by
+  induction a with
+  | nil => rfl
+  | cons p ts ih =>
+    obtain ⟨k, x⟩ := p
+    simp only [evalXs]
+    rw [x.eval_congr σ σ' (fun n hn => h n (by simp [xsNames, hn])),
+      ih (fun m hm => h m (by simp [xsNames, hm]))]
+
+theorem xOkL_congr (σ σ' : String → Int) (a : List (Int × XAt))
+    (h : ∀ n ∈ xsNames a, σ n = σ' n) : XOkL σ a ↔ XOkL σ' a := by
+  induction a with
+  | nil => simp
+  | cons p ts ih =>
+    obtain ⟨k, x⟩ := p
+    simp only [XOkL]
+    rw [x.ok_congr σ σ' (fun n hn => h n (by simp [xsNames, hn])),
+      ih (fun m hm => h m (by simp [xsNames, hm]))]
+
+theorem xOk_congr (σ σ' : String → Int) (a : Aff) (h : ∀ n ∈ a.names, σ n = σ' n) : a.XOk σ ↔ a.XOk σ' :=
+  xOkL_congr σ σ' a.xs (fun n hn => h n (by rw [names_eq]; exact List.mem_append_right _ hn))
 
 theorem evalTerms_congr (σ σ' : String → Int) (a : List (String × Int))
     (h : ∀ n ∈ a.map Prod.fst, σ n = σ' n) : evalTerms σ a = evalTerms σ' a := by
@@ -243,8 +436,9 @@ theorem eval_congr (σ σ' : String → Int) (a : Aff) (h : ∀ n ∈ a.names, �
     a.eval σ = a.eval σ' := by
   rw [names_eq] at h
   rw [eval_eq, eval_eq]
-  rw [evalTerms_congr σ σ' a.terms (fun n hn => h n (List.mem_append_left _ hn)),
-    evalQs_congr σ σ' a.qs (fun n hn => h n (List.mem_append_right _ hn))]
+  rw [evalTerms_congr σ σ' a.terms (fun n hn => h n (List.mem_append_left _ (List.mem_append_left _ hn))),
+    evalQs_congr σ σ' a.qs (fun n hn => h n (List.mem_append_left _ (List.mem_append_right _ hn))),
+    evalXs_congr σ σ' a.xs (fun n hn => h n (List.mem_append_right _ hn))]
 
 end Aff
 
@@ -356,16 +550,16 @@ theorem Agrees.mono {σ : String → Int} {E : IEnv} {ns ms : List String} (h : 
 /-! ## Recognizing an affine constant expression -/
 
 def affMul (a b : Aff) : Option Aff :=
-  if a.terms.isEmpty && a.qs.isEmpty then some (b.scale a.c)
-  else if b.terms.isEmpty && b.qs.isEmpty then some (a.scale b.c)
+  if a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty then some (b.scale a.c)
+  else if b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty then some (a.scale b.c)
   else none
 
 /-- `n / d` for a named constant `n` and a positive integer constant `d`: one quotient atom. Any other quotient (of a sum,
 of a product, by a parameter) is not read. -/
 def affDiv (a b : Aff) : Option Aff :=
   match a with
-  | ⟨[(n, k)], c, []⟩ =>
-      if k = 1 ∧ c = 0 ∧ b.terms = [] ∧ b.qs = [] ∧ 0 < b.c then some { qs := [(n, 1, b.c)] } else none
+  | ⟨[(n, k)], c, [], []⟩ =>
+      if k = 1 ∧ c = 0 ∧ b.terms = [] ∧ b.qs = [] ∧ b.xs = [] ∧ 0 < b.c then some { qs := [(n, 1, b.c)] } else none
   | _ => none
 
 def affBin : SymBinOp → Aff → Aff → Option Aff
@@ -376,13 +570,45 @@ def affBin : SymBinOp → Aff → Aff → Option Aff
   | .div, a, b => affDiv a b
   | _, _, _ => none
 
+/-- A named constant: a genvar or a parameter (localparam) reference. -/
+def nameOf? : PExpr → Option String
+  | .genvarRef n => some n
+  | .paramRef n none => some n
+  | _ => none
+
+/-- **A shift or power atom** at the node `op l r` (`XAt`): `1 << n`, `b ** n` (a literal `b ≥ 2`), `m >> n`,
+`(m >> n) << n` and `(m >> n) & 1`, `m` and `n` named constants. A pure pattern match on the envelope's node and its
+operands; anything else (a shift by a sum, `c << n` for `c ≠ 1`, `>>>`, `<<<`) is not an atom. -/
+def xatOf? (op : SymBinOp) (l r : PExpr) : Option XAt :=
+  match op, l with
+  | .shl, .int v => if v = 1 then (nameOf? r).map (XAt.pow 2) else none
+  | .pow, .int b => if 2 ≤ b then (nameOf? r).map (XAt.pow b) else none
+  | .shr, l =>
+      match nameOf? l, nameOf? r with
+      | some m, some n => some (.shr m n)
+      | _, _ => none
+  | .shl, .binary .shr l' r' =>
+      match nameOf? l', nameOf? r', nameOf? r with
+      | some m, some n, some n' => if n = n' then some (.shl m n) else none
+      | _, _, _ => none
+  | .m0 .and, .binary .shr l' r' =>
+      match r, nameOf? l', nameOf? r' with
+      | .int v, some m, some n => if v = 1 then some (.bit m n) else none
+      | _, _, _ => none
+  | _, _ => none
+
+/-- The affine reading of a constant expression of the parameters and genvars: linear forms, quotient atoms and shift
+and power atoms (`xatOf?`, read where the linear operators do not apply). -/
 def affOf? : PExpr → Option Aff
   | .int v => some (Aff.const v)
   | .genvarRef n => some (Aff.var n)
   | .paramRef n none => some (Aff.var n)
   | .binary op l r =>
       match affOf? l, affOf? r with
-      | some a, some b => affBin op a b
+      | some a, some b =>
+          match affBin op a b with
+          | some c => some c
+          | none => (xatOf? op l r).map Aff.atom
       | _, _ => none
   | _ => none
 
@@ -397,49 +623,61 @@ theorem ExactAffObl.mono {σ : String → Int} {e : PExpr}
 theorem affMul_eval {a b c : Aff} (σ : String → Int) (h : affMul a b = some c) :
     c.eval σ = a.eval σ * b.eval σ := by
   unfold affMul at h
-  by_cases ha : (a.terms.isEmpty && a.qs.isEmpty) = true
+  by_cases ha : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = true
   · simp only [ha, if_true, Option.some.injEq] at h
     subst h
     simp only [Bool.and_eq_true, List.isEmpty_iff] at ha
-    rw [Aff.eval_scale, Aff.eval_of_terms_nil σ a ha.1 ha.2]
-  · have ha' : (a.terms.isEmpty && a.qs.isEmpty) = false := by simpa using ha
+    rw [Aff.eval_scale, Aff.eval_of_terms_nil σ a ha.1.1 ha.1.2 ha.2]
+  · have ha' : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = false := by simpa using ha
     simp only [ha', Bool.false_eq_true, if_false] at h
-    by_cases hb : (b.terms.isEmpty && b.qs.isEmpty) = true
+    by_cases hb : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = true
     · simp only [hb, if_true, Option.some.injEq] at h
       subst h
       simp only [Bool.and_eq_true, List.isEmpty_iff] at hb
-      rw [Aff.eval_scale, Aff.eval_of_terms_nil σ b hb.1 hb.2, Int.mul_comm]
-    · have hb' : (b.terms.isEmpty && b.qs.isEmpty) = false := by simpa using hb
+      rw [Aff.eval_scale, Aff.eval_of_terms_nil σ b hb.1.1 hb.1.2 hb.2, Int.mul_comm]
+    · have hb' : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = false := by simpa using hb
       simp [hb'] at h
 
 theorem affMul_names {a b c : Aff} (h : affMul a b = some c) :
-    (a.terms = [] ∧ a.qs = [] ∧ c.names = b.names) ∨ (b.terms = [] ∧ b.qs = [] ∧ c.names = a.names) := by
+    (a.terms = [] ∧ a.qs = [] ∧ a.xs = [] ∧ c.names = b.names ∧ c.xs = Aff.scaleXs a.c b.xs) ∨
+    (b.terms = [] ∧ b.qs = [] ∧ b.xs = [] ∧ c.names = a.names ∧ c.xs = Aff.scaleXs b.c a.xs) := by
   unfold affMul at h
-  by_cases ha : (a.terms.isEmpty && a.qs.isEmpty) = true
+  by_cases ha : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = true
   · simp only [ha, if_true, Option.some.injEq] at h
     subst h
     simp only [Bool.and_eq_true, List.isEmpty_iff] at ha
-    exact Or.inl ⟨ha.1, ha.2, by simp [Aff.names_scale]⟩
-  · have ha' : (a.terms.isEmpty && a.qs.isEmpty) = false := by simpa using ha
+    exact Or.inl ⟨ha.1.1, ha.1.2, ha.2, by simp [Aff.names_scale], rfl⟩
+  · have ha' : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = false := by simpa using ha
     simp only [ha', Bool.false_eq_true, if_false] at h
-    by_cases hb : (b.terms.isEmpty && b.qs.isEmpty) = true
+    by_cases hb : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = true
     · simp only [hb, if_true, Option.some.injEq] at h
       subst h
       simp only [Bool.and_eq_true, List.isEmpty_iff] at hb
-      exact Or.inr ⟨hb.1, hb.2, by simp [Aff.names_scale]⟩
-    · have hb' : (b.terms.isEmpty && b.qs.isEmpty) = false := by simpa using hb
+      exact Or.inr ⟨hb.1.1, hb.1.2, hb.2, by simp [Aff.names_scale], rfl⟩
+    · have hb' : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = false := by simpa using hb
       simp [hb'] at h
+
+/-- The atoms of a product are those of its non-constant side: in range where that side's are. -/
+theorem affMul_xOk {a b c : Aff} {σ : String → Int} (h : affMul a b = some c) (hc : c.XOk σ) :
+    a.XOk σ ∧ b.XOk σ := by
+  rcases affMul_names h with ⟨-, -, hx, -, hcx⟩ | ⟨-, -, hx, -, hcx⟩
+  · refine ⟨Aff.xOk_of_nil hx, ?_⟩
+    unfold Aff.XOk at hc ⊢
+    rwa [hcx, Aff.xOkL_scaleXs] at hc
+  · refine ⟨?_, Aff.xOk_of_nil hx⟩
+    unfold Aff.XOk at hc ⊢
+    rwa [hcx, Aff.xOkL_scaleXs] at hc
 
 /-- A quotient atom: the numerator is one named constant, the divisor a positive constant. -/
 theorem affDiv_cases {a b c : Aff} (h : affDiv a b = some c) :
-    ∃ n, a = Aff.var n ∧ b.terms = [] ∧ b.qs = [] ∧ 0 < b.c ∧ c = { qs := [(n, 1, b.c)] } := by
+    ∃ n, a = Aff.var n ∧ b.terms = [] ∧ b.qs = [] ∧ b.xs = [] ∧ 0 < b.c ∧ c = { qs := [(n, 1, b.c)] } := by
   unfold affDiv at h
   split at h
   · rename_i n k c0
-    by_cases hc : k = 1 ∧ c0 = 0 ∧ b.terms = [] ∧ b.qs = [] ∧ 0 < b.c
+    by_cases hc : k = 1 ∧ c0 = 0 ∧ b.terms = [] ∧ b.qs = [] ∧ b.xs = [] ∧ 0 < b.c
     · rw [if_pos hc, Option.some.injEq] at h
-      obtain ⟨rfl, rfl, h1, h2, h3⟩ := hc
-      exact ⟨n, rfl, h1, h2, h3, h.symm⟩
+      obtain ⟨rfl, rfl, h1, h2, h3, h4⟩ := hc
+      exact ⟨n, rfl, h1, h2, h3, h4, h.symm⟩
     · rw [if_neg hc] at h; exact absurd h (by simp)
   · exact absurd h (by simp)
 
@@ -455,11 +693,191 @@ theorem evalInt_div_of {E : IEnv} {l r : PExpr} {a b : Int}
     evalInt E (.binary .div l r) = .ok (a.tdiv b) := by
   simp [evalInt, hil, hir, hl, hr, hb, Gen2.except_ok_bind]
 
-/-- **Affine recognition is sound**: an `Aff`-recognized expression is INT-class and evaluates
-to its affine value, in every environment that binds the names it mentions. -/
+/-! ### The shift and power atoms, as `evalInt` computes them -/
+
+theorem nameOf?_cases {e : PExpr} {n : String} (h : nameOf? e = some n) :
+    e = .genvarRef n ∨ e = .paramRef n none := by
+  unfold nameOf? at h
+  split at h <;> simp_all
+
+/-- A named constant is INT-class and evaluates to its value. -/
+theorem nameOf?_eval {E : IEnv} {e : PExpr} {n : String} {v : Int} (h : nameOf? e = some n)
+    (hv : E.intVal? n = some v) : e.isInt E = true ∧ evalInt E e = .ok v := by
+  rcases nameOf?_cases h with rfl | rfl
+  · exact ⟨by simp [PExpr.isInt], evalInt_genvarRef_of_intVal hv⟩
+  · exact ⟨isInt_paramRef_of_intVal hv, evalInt_paramRef_of_intVal hv⟩
+
+/-- `x &&& 1` of a non-negative integer is its remainder modulo `2`. -/
+theorem ofNat_land_one {a : Int} (h : 0 ≤ a) : Int.ofNat (a.toNat &&& 1) = a % 2 := by
+  have e : a.toNat &&& 1 = a.toNat % 2 := by
+    have := Nat.and_two_pow_sub_one_eq_mod a.toNat 1
+    simpa using this
+  rw [e]
+  simp only [Int.ofNat_eq_coe]
+  omega
+
+/-- `m >> n` of two named constants: `σ m / 2 ^ σ n`, a logical shift right of the non-negative value (IEEE 1800-2023
+§11.4.10), where `0 ≤ σ m` and `0 ≤ σ n < 32`. -/
+theorem evalInt_shr_names {E : IEnv} {σ : String → Int} {l r : PExpr} {m n : String}
+    (hl : nameOf? l = some m) (hr : nameOf? r = some n)
+    (hm : E.intVal? m = some (σ m)) (hn : E.intVal? n = some (σ n))
+    (h0 : 0 ≤ σ m) (h1 : 0 ≤ σ n) (h2 : σ n < 32) :
+    (PExpr.binary .shr l r).isInt E = true ∧
+      evalInt E (.binary .shr l r) = .ok (σ m / 2 ^ (σ n).toNat) := by
+  obtain ⟨hil, hel⟩ := nameOf?_eval hl hm
+  obtain ⟨hir, her⟩ := nameOf?_eval hr hn
+  have n0 : ¬ σ m < 0 := by omega
+  have n1 : ¬ σ n < 0 := by omega
+  have n2 : ¬ 32 ≤ σ n := by omega
+  refine ⟨by simp [PExpr.isInt, hil, hir], ?_⟩
+  simp only [evalInt, hil, hir, Bool.and_self, if_true, hel, her, Gen2.except_ok_bind, n0, n1, n2,
+    decide_false, Bool.false_or, Bool.or_false, if_false, Bool.false_eq_true]
+  rw [Int.tdiv_eq_ediv_of_nonneg h0]
+
+/-- The shapes `xatOf?` reads. -/
+theorem xatOf?_cases {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r = some x) :
+    (op = .shl ∧ l = .int 1 ∧ ∃ n, nameOf? r = some n ∧ x = .pow 2 n) ∨
+    (∃ b n, op = .pow ∧ l = .int b ∧ 2 ≤ b ∧ nameOf? r = some n ∧ x = .pow b n) ∨
+    (∃ m n, op = .shr ∧ nameOf? l = some m ∧ nameOf? r = some n ∧ x = .shr m n) ∨
+    (∃ l' r' m n, op = .shl ∧ l = .binary .shr l' r' ∧ nameOf? l' = some m ∧ nameOf? r' = some n ∧
+      nameOf? r = some n ∧ x = .shl m n) ∨
+    (∃ l' r' m n, op = .m0 .and ∧ l = .binary .shr l' r' ∧ r = .int 1 ∧ nameOf? l' = some m ∧
+      nameOf? r' = some n ∧ x = .bit m n) := by
+  unfold xatOf? at h
+  split at h
+  · rename_i v
+    by_cases hv : v = 1
+    · subst hv
+      rw [if_pos rfl] at h
+      rcases hr : nameOf? r with _ | n
+      · simp [hr] at h
+      · simp only [hr, Option.map_some, Option.some.injEq] at h
+        exact Or.inl ⟨rfl, rfl, n, rfl, h.symm⟩
+    · rw [if_neg hv] at h; simp at h
+  · rename_i b
+    by_cases hb : 2 ≤ b
+    · rw [if_pos hb] at h
+      rcases hr : nameOf? r with _ | n
+      · simp [hr] at h
+      · simp only [hr, Option.map_some, Option.some.injEq] at h
+        exact Or.inr (Or.inl ⟨b, n, rfl, rfl, hb, rfl, h.symm⟩)
+    · rw [if_neg hb] at h; simp at h
+  · rcases hl : nameOf? l with _ | m <;> rcases hr : nameOf? r with _ | n <;> simp only [hl, hr, reduceCtorEq,
+      Option.some.injEq] at h
+    exact Or.inr (Or.inr (Or.inl ⟨m, n, rfl, rfl, rfl, h.symm⟩))
+  · rename_i l' r'
+    rcases hl : nameOf? l' with _ | m <;> rcases hr' : nameOf? r' with _ | n <;>
+      rcases hr : nameOf? r with _ | n' <;> simp only [hl, hr', hr, reduceCtorEq] at h
+    by_cases he : n = n'
+    · subst he
+      rw [if_pos rfl, Option.some.injEq] at h
+      exact Or.inr (Or.inr (Or.inr (Or.inl ⟨l', r', m, n, rfl, rfl, hl, hr', rfl, h.symm⟩)))
+    · rw [if_neg he] at h; simp at h
+  · rename_i l' r'
+    split at h
+    · rename_i v m n hl hr'
+      by_cases hv : v = 1
+      · subst hv
+        rw [if_pos rfl, Option.some.injEq] at h
+        exact Or.inr (Or.inr (Or.inr (Or.inr ⟨l', r', m, n, rfl, rfl, rfl, hl, hr', h.symm⟩)))
+      · rw [if_neg hv] at h; simp at h
+    · simp at h
+  · simp at h
+
+/-- **A shift or power atom evaluates to its value** (`evalInt`, the reading of indices and loop bounds), where the names
+it reads have their values in the environment and it is in its range (`XAt.Ok`). -/
+theorem xatOf?_sound {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PExpr} {x : XAt}
+    (h : xatOf? op l r = some x) (hn : ∀ n ∈ x.names, E.intVal? n = some (σ n)) (hx : x.Ok σ) :
+    (PExpr.binary op l r).isInt E = true ∧ evalInt E (.binary op l r) = .ok (x.eval σ) := by
+  unfold xatOf? at h
+  split at h
+  · -- `1 << n`
+    rename_i v
+    by_cases hv : v = 1
+    · subst hv
+      rw [if_pos rfl] at h
+      rcases hr : nameOf? r with _ | n
+      · simp [hr] at h
+      · simp only [hr, Option.map_some, Option.some.injEq] at h
+        subst h
+        have hvn := hn n (by simp [XAt.names])
+        obtain ⟨hir, her⟩ := nameOf?_eval hr hvn
+        obtain ⟨h0, h32, -⟩ := hx
+        have n1 : ¬ σ n < 0 := by omega
+        have n2 : ¬ 32 ≤ σ n := by omega
+        refine ⟨by simp [PExpr.isInt, hir], ?_⟩
+        simp only [evalInt, PExpr.isInt, hir, Bool.and_self, if_true, her, Gen2.except_ok_bind, n1, n2,
+          if_false, XAt.eval, Int.one_mul]
+    · rw [if_neg hv] at h; simp at h
+  · -- `b ** n`
+    rename_i b
+    by_cases hb : 2 ≤ b
+    · rw [if_pos hb] at h
+      rcases hr : nameOf? r with _ | n
+      · simp [hr] at h
+      · simp only [hr, Option.map_some, Option.some.injEq] at h
+        subst h
+        have hvn := hn n (by simp [XAt.names])
+        obtain ⟨hir, her⟩ := nameOf?_eval hr hvn
+        obtain ⟨h0, -, -⟩ := hx
+        have n1 : ¬ σ n < 0 := by omega
+        refine ⟨by simp [PExpr.isInt, hir], ?_⟩
+        simp only [evalInt, PExpr.isInt, hir, Bool.and_self, if_true, her, Gen2.except_ok_bind, n1,
+          if_false, XAt.eval]
+    · rw [if_neg hb] at h; simp at h
+  · -- `m >> n`
+    rcases hl : nameOf? l with _ | m <;> rcases hr : nameOf? r with _ | n <;> simp only [hl, hr, reduceCtorEq,
+      Option.some.injEq] at h
+    subst h
+    obtain ⟨h0, -, h1, h2⟩ := hx
+    exact evalInt_shr_names hl hr (hn m (by simp [XAt.names])) (hn n (by simp [XAt.names])) h0 h1 h2
+  · -- `(m >> n) << n`
+    rename_i l' r'
+    rcases hl : nameOf? l' with _ | m <;> rcases hr' : nameOf? r' with _ | n <;>
+      rcases hr : nameOf? r with _ | n' <;> simp only [hl, hr', hr, reduceCtorEq] at h
+    by_cases he : n = n'
+    · subst he
+      rw [if_pos rfl, Option.some.injEq] at h
+      subst h
+      obtain ⟨h0, -, h1, h2⟩ := hx
+      have hvn := hn n (by simp [XAt.names])
+      obtain ⟨hil, hel⟩ := evalInt_shr_names hl hr' (hn m (by simp [XAt.names])) hvn h0 h1 h2
+      obtain ⟨hir, her⟩ := nameOf?_eval hr hvn
+      have n1 : ¬ σ n < 0 := by omega
+      have n2 : ¬ 32 ≤ σ n := by omega
+      refine ⟨by simp only [PExpr.isInt, SymBinOp.intArith, Bool.true_and] at hil ⊢; simp [hil, hir], ?_⟩
+      rw [evalInt]
+      simp only [hil, hir, Bool.and_self, if_true, hel, her, Gen2.except_ok_bind, n1, n2, if_false, XAt.eval]
+    · rw [if_neg he] at h; simp at h
+  · -- `(m >> n) & 1`
+    rename_i l' r'
+    split at h
+    · rename_i v m n hl hr'
+      by_cases hv : v = 1
+      · subst hv
+        rw [if_pos rfl, Option.some.injEq] at h
+        subst h
+        obtain ⟨h0, -, h1, h2⟩ := hx
+        obtain ⟨hil, hel⟩ := evalInt_shr_names hl hr' (hn m (by simp [XAt.names])) (hn n (by simp [XAt.names]))
+          h0 h1 h2
+        have hq : 0 ≤ σ m / 2 ^ (σ n).toNat := Int.ediv_nonneg h0 (Int.le_of_lt (Int.pow_pos (by decide)))
+        have n0 : ¬ σ m / 2 ^ (σ n).toNat < 0 := by omega
+        refine ⟨by simp only [PExpr.isInt, SymBinOp.intArith, Bool.true_and] at hil ⊢; simp [hil], ?_⟩
+        rw [evalInt]
+        have hi1 : (PExpr.int 1).isInt E = true := rfl
+        have he1 : evalInt E (PExpr.int 1) = .ok 1 := rfl
+        have n1 : ¬ (1 : Int) < 0 := by decide
+        simp only [hil, hi1, Bool.and_self, ↓reduceIte, hel, he1, Gen2.except_ok_bind, n0, n1, decide_false,
+          Bool.false_or, Bool.or_false, Bool.false_eq_true, XAt.eval]
+        rw [show (1 : Int).toNat = 1 by rfl, ofNat_land_one hq]
+      · rw [if_neg hv] at h; simp at h
+    · simp at h
+  · simp at h
+
+/-- **Affine recognition is sound**: an `Aff`-recognized expression is INT-class and evaluates to its affine value, in
+every environment that binds the names it mentions, where its shift and power atoms are in their range (`Aff.Ok`). -/
 theorem affOf?_sound {E : IEnv} {σ : String → Int} :
-    ∀ (e : PExpr) (a : Aff), affOf? e = some a →
-      (∀ n ∈ a.names, E.intVal? n = some (σ n)) →
+    ∀ (e : PExpr) (a : Aff), affOf? e = some a → a.Ok E σ →
       e.isInt E = true ∧ evalInt E e = .ok (a.eval σ)
   | .int v, a, h, _ => by
       simp only [affOf?, Option.some.injEq] at h
@@ -468,64 +886,81 @@ theorem affOf?_sound {E : IEnv} {σ : String → Int} :
   | .genvarRef n, a, h, hb => by
       simp only [affOf?, Option.some.injEq] at h
       subst h
-      have hl : E.intVal? n = some (σ n) := hb n (by simp [Aff.names_eq, Aff.var])
+      have hl : E.intVal? n = some (σ n) := hb.1 n (by simp [Aff.names_eq, Aff.var, Aff.xsNames])
       refine ⟨by simp [PExpr.isInt], ?_⟩
       rw [evalInt_genvarRef_of_intVal hl, Aff.eval_var]
   | .paramRef n none, a, h, hb => by
       simp only [affOf?, Option.some.injEq] at h
       subst h
-      have hl : E.intVal? n = some (σ n) := hb n (by simp [Aff.names_eq, Aff.var])
+      have hl : E.intVal? n = some (σ n) := hb.1 n (by simp [Aff.names_eq, Aff.var, Aff.xsNames])
       refine ⟨isInt_paramRef_of_intVal hl, ?_⟩
       rw [evalInt_paramRef_of_intVal hl, Aff.eval_var]
   | .binary op l r, a, h, hb => by
       simp only [affOf?] at h
       rcases h1 : affOf? l with _ | a1 <;> rcases h2 : affOf? r with _ | a2 <;>
         simp only [h1, h2] at h <;> try exact absurd h (by simp)
-      rcases affBin_cases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨hop, hm⟩ | ⟨rfl, hd⟩
-      · have hb1 : ∀ n ∈ a1.names, E.intVal? n = some (σ n) :=
-          fun n hn => hb n (Aff.mem_names_add.2 (Or.inl hn))
-        have hb2 : ∀ n ∈ a2.names, E.intVal? n = some (σ n) :=
-          fun n hn => hb n (Aff.mem_names_add.2 (Or.inr hn))
+      rcases hab : affBin op a1 a2 with _ | c
+      · -- a shift or power atom
+        rcases hx : xatOf? op l r with _ | x <;> simp only [hab, hx, Option.map_none, Option.map_some,
+          reduceCtorEq, Option.some.injEq] at h
+        subst h
+        have hn : ∀ n ∈ x.names, E.intVal? n = some (σ n) :=
+          fun n hn => hb.1 n (by simp [Aff.names_eq, Aff.atom, Aff.xsNames, hn])
+        have hxo : x.Ok σ := by
+          have := hb.2
+          simp only [Aff.XOk, Aff.atom, Aff.XOkL, and_true] at this
+          exact this
+        obtain ⟨hi, he⟩ := xatOf?_sound hx hn hxo
+        exact ⟨hi, by rw [he, Aff.eval_atom]⟩
+      simp only [hab, Option.some.injEq] at h
+      subst h
+      rcases affBin_cases hab with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨hop, hm⟩ | ⟨rfl, hd⟩
+      · have hb1 : a1.Ok E σ :=
+          ⟨fun n hn => hb.1 n (Aff.mem_names_add.2 (Or.inl hn)), (Aff.xOk_add.1 hb.2).1⟩
+        have hb2 : a2.Ok E σ :=
+          ⟨fun n hn => hb.1 n (Aff.mem_names_add.2 (Or.inr hn)), (Aff.xOk_add.1 hb.2).2⟩
         obtain ⟨hi1, he1⟩ := affOf?_sound l a1 h1 hb1
         obtain ⟨hi2, he2⟩ := affOf?_sound r a2 h2 hb2
         exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_add_of hi1 hi2 he1 he2, Aff.eval_add]⟩
-      · have hb1 : ∀ n ∈ a1.names, E.intVal? n = some (σ n) :=
-          fun n hn => hb n (Aff.mem_names_sub.2 (Or.inl hn))
-        have hb2 : ∀ n ∈ a2.names, E.intVal? n = some (σ n) :=
-          fun n hn => hb n (Aff.mem_names_sub.2 (Or.inr hn))
+      · have hb1 : a1.Ok E σ :=
+          ⟨fun n hn => hb.1 n (Aff.mem_names_sub.2 (Or.inl hn)), (Aff.xOk_sub.1 hb.2).1⟩
+        have hb2 : a2.Ok E σ :=
+          ⟨fun n hn => hb.1 n (Aff.mem_names_sub.2 (Or.inr hn)), (Aff.xOk_sub.1 hb.2).2⟩
         obtain ⟨hi1, he1⟩ := affOf?_sound l a1 h1 hb1
         obtain ⟨hi2, he2⟩ := affOf?_sound r a2 h2 hb2
         exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_sub_of hi1 hi2 he1 he2, Aff.eval_sub]⟩
       · have hev := affMul_eval σ hm
         have hn := affMul_names hm
-        have hb1 : ∀ n ∈ a1.names, E.intVal? n = some (σ n) := by
-          intro n hn1
-          rcases hn with ⟨h0, h0', -⟩ | ⟨-, -, hc⟩
-          · simp [Aff.names_eq, h0, h0'] at hn1
-          · exact hb n (by rw [hc]; exact hn1)
-        have hb2 : ∀ n ∈ a2.names, E.intVal? n = some (σ n) := by
-          intro n hn2
-          rcases hn with ⟨-, -, hc⟩ | ⟨h0, h0', -⟩
-          · exact hb n (by rw [hc]; exact hn2)
-          · simp [Aff.names_eq, h0, h0'] at hn2
+        have hxk := affMul_xOk hm hb.2
+        have hb1 : a1.Ok E σ := by
+          refine ⟨fun n hn1 => ?_, hxk.1⟩
+          rcases hn with ⟨h0, h0', h0'', -⟩ | ⟨-, -, -, hc, -⟩
+          · simp [Aff.names_eq, h0, h0', h0'', Aff.xsNames] at hn1
+          · exact hb.1 n (by rw [hc]; exact hn1)
+        have hb2 : a2.Ok E σ := by
+          refine ⟨fun n hn2 => ?_, hxk.2⟩
+          rcases hn with ⟨-, -, -, hc, -⟩ | ⟨h0, h0', h0'', -⟩
+          · exact hb.1 n (by rw [hc]; exact hn2)
+          · simp [Aff.names_eq, h0, h0', h0'', Aff.xsNames] at hn2
         obtain ⟨hi1, he1⟩ := affOf?_sound l a1 h1 hb1
         obtain ⟨hi2, he2⟩ := affOf?_sound r a2 h2 hb2
         rcases hop with rfl | rfl
         · exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_mul_of hi1 hi2 he1 he2, hev]⟩
         · exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_m0_mul_of hi1 hi2 he1 he2, hev]⟩
       · -- a quotient atom `n / d`: `evalInt`'s `/` is `Int.tdiv` by the non-zero divisor
-        obtain ⟨n, rfl, hbt, hbq, hbc, rfl⟩ := affDiv_cases hd
-        have hb1 : ∀ m ∈ (Aff.var n).names, E.intVal? m = some (σ m) := by
-          intro m hm
-          have hmn : m = n := by simpa [Aff.names_eq, Aff.var] using hm
+        obtain ⟨n, rfl, hbt, hbq, hbx, hbc, rfl⟩ := affDiv_cases hd
+        have hb1 : (Aff.var n).Ok E σ := by
+          refine ⟨fun m hm => ?_, Aff.xOk_of_nil rfl⟩
+          have hmn : m = n := by simpa [Aff.names_eq, Aff.var, Aff.xsNames] using hm
           rw [hmn]
-          exact hb n (by simp [Aff.names_eq])
-        have hb2 : ∀ m ∈ a2.names, E.intVal? m = some (σ m) := by
-          intro m hm; simp [Aff.names_eq, hbt, hbq] at hm
+          exact hb.1 n (by simp [Aff.names_eq, Aff.xsNames])
+        have hb2 : a2.Ok E σ := by
+          refine ⟨fun m hm => ?_, Aff.xOk_of_nil hbx⟩
+          simp [Aff.names_eq, hbt, hbq, hbx, Aff.xsNames] at hm
         obtain ⟨hi1, he1⟩ := affOf?_sound l _ h1 hb1
         obtain ⟨hi2, he2⟩ := affOf?_sound r a2 h2 hb2
         rw [Aff.eval_var] at he1
-        rw [Aff.eval_of_terms_nil σ a2 hbt hbq] at he2
+        rw [Aff.eval_of_terms_nil σ a2 hbt hbq hbx] at he2
         refine ⟨isInt_binary_of (by simp) hi1 hi2, ?_⟩
         rw [evalInt_div_of hi1 hi2 he1 he2 (by omega)]
         simp [Aff.eval, Aff.evalTerms]
@@ -537,6 +972,14 @@ theorem affOf?_sound {E : IEnv} {σ : String → Int} :
   | .cast _ _, a, h, _ | .arrayElem _ _, a, h, _ | .arrayPart _ _ _ _ _, a, h, _
   | .unsupported _ _, a, h, _ => by simp [affOf?] at h
 
+/-- `Aff.Ok` from the two halves. -/
+theorem Aff.ok_of {E : IEnv} {σ : String → Int} {a : Aff} (hb : ∀ n ∈ a.names, E.intVal? n = some (σ n))
+    (hx : a.XOk σ) : a.Ok E σ := ⟨hb, hx⟩
+
+/-- A form without an atom: `Aff.Ok` is the agreement of its names. -/
+theorem Aff.ok_of_nil {E : IEnv} {σ : String → Int} {a : Aff} (hb : ∀ n ∈ a.names, E.intVal? n = some (σ n))
+    (hx : a.xs = []) : a.Ok E σ := ⟨hb, Aff.xOk_of_nil hx⟩
+
 /-! ## Template sites -/
 
 /-- The identity of a rank site (design principle 13): a plain process by its position among the
@@ -547,8 +990,31 @@ inductive SiteId where
   | fam (label : String) (pos : Nat) (idx : List Int)
 deriving Repr, DecidableEq, Inhabited
 
+/-- The affine reading WITHOUT shift and power atoms (`affOf?` where the form has no `XAt`): the count of a replication,
+which the fragment keeps atom-free (its soundness, `affOfN?_sound`, needs no range). -/
+def affOfN? (e : PExpr) : Option Aff :=
+  match affOf? e with
+  | some a => if a.xs.isEmpty then some a else none
+  | none => none
+
+theorem affOfN?_some {e : PExpr} {a : Aff} (h : affOfN? e = some a) : affOf? e = some a ∧ a.xs = [] := by
+  unfold affOfN? at h
+  rcases he : affOf? e with _ | b
+  · simp [he] at h
+  · simp only [he] at h
+    by_cases hx : b.xs.isEmpty = true
+    · rw [if_pos hx, Option.some.injEq] at h
+      subst h
+      exact ⟨rfl, List.isEmpty_iff.mp hx⟩
+    · rw [if_neg hx] at h; simp at h
+
+/-- **The atom-free affine reading is sound** where the names it reads have their values (no range: it has no atom). -/
+theorem affOfN?_sound {E : IEnv} {σ : String → Int} (e : PExpr) (a : Aff) (h : affOfN? e = some a)
+    (hb : ∀ n ∈ a.names, E.intVal? n = some (σ n)) : e.isInt E = true ∧ evalInt E e = .ok (a.eval σ) :=
+  affOf?_sound e a (affOfN?_some h).1 (Aff.ok_of_nil hb (affOfN?_some h).2)
+
 /-- The count of a replication `{c{x}}` as an affine form (WP-B2 gate 4c; `0` when it is not affine, which the recognizer
-refuses before this is read). -/
+refuses before this is read). The recognizer reads a count without shift or power atoms (`affOfN?`). -/
 def repAff (c : PExpr) : Aff := (affOf? c).getD (Aff.const 0)
 
 /-- The names a replication count mentions, and the replication counts, of ONE concatenation part or operand (`[]` for
@@ -826,7 +1292,9 @@ def DeclT.toDecl (σ : String → Int) (dt : DeclT) : Decl :=
 
 def dimOf? (name : String) (d : PDim) : Except String (PDim × Aff × Aff) :=
   match affOf? d.msb, affOf? d.lsb with
-  | some m, some l => .ok (d, m, l)
+  | some m, some l =>
+      if m.xs.isEmpty && l.xs.isEmpty then .ok (d, m, l)
+      else .error s!"declaration `{name}`: a packed bound holds a shift or a power of a parameter (outside the fragment: name the value with a localparam)"
   | _, _ => .error s!"declaration `{name}`: packed bounds are not affine in the parameters"
 
 def declOf? (pd : PDecl) : Except String DeclT :=
@@ -874,7 +1342,7 @@ declaration has at every parameter point. -/
 def constW : List (Aff × Aff) → Option Nat
   | [] => some 1
   | (m, l) :: rest =>
-      if m.terms.isEmpty && l.terms.isEmpty && m.qs.isEmpty && l.qs.isEmpty then
+      if m.terms.isEmpty && l.terms.isEmpty && m.qs.isEmpty && l.qs.isEmpty && m.xs.isEmpty && l.xs.isEmpty then
         (constW rest).map fun w => ((m.c - l.c).natAbs + 1) * w
       else none
 
@@ -1044,11 +1512,18 @@ def repArgRd? (ds : List DeclT) : PExpr → Except String (List Acc)
   | .concat [e] => notWhole (rdsLeaf? ds e)
   | _ => .error "replication of a concatenation of several parts (outside the v1 fragment: replicate a sized literal, a bit select or a part select)"
 
-/-- A replication `{c{a}}`: an affine count (parameters and genvars) over a literal or one access. -/
+/-- The refusal of a replication count `affOfN?` does not read. -/
+def repCountRefusal (c : PExpr) : String :=
+  if (affOf? c).isSome then "replication count holds a shift or a power of a genvar or parameter (outside the fragment)"
+  else "replication count is not affine (outside the v1 fragment: dynamic or nonlinear)"
+
+/-- A replication `{c{a}}`: an affine count (parameters and genvars, no shift or power atom) over a literal or one
+access. -/
+
 def repRd? (ds : List DeclT) (c a : PExpr) : Except String (List Acc) :=
-  match affOf? c with
+  match affOfN? c with
   | some _ => repArgRd? ds a
-  | none => .error "replication count is not affine (outside the v1 fragment: dynamic or nonlinear)"
+  | none => .error (repCountRefusal c)
 
 /-- A concatenation part of the word-level fragment: a literal, one access, or a replication. -/
 def partRdW? (ds : List DeclT) (e : PExpr) : Except String (List Acc) :=
@@ -1486,9 +1961,9 @@ def repArgRdD? (ds : List DeclT) : PExpr → Except String (List Acc)
   | _ => .error "replication of a concatenation of several parts (outside the v1 fragment: replicate a sized literal, a bit select or a part select)"
 
 def repRdD? (ds : List DeclT) (c a : PExpr) : Except String (List Acc) :=
-  match affOf? c with
+  match affOfN? c with
   | some _ => repArgRdD? ds a
-  | none => .error "replication count is not affine (outside the v1 fragment: dynamic or nonlinear)"
+  | none => .error (repCountRefusal c)
 
 def partRdDW? (ds : List DeclT) (p : PExpr) : Except String (List Acc) :=
   match p with
@@ -2025,10 +2500,25 @@ instance Guard.decAll : (gs : List (Guard × Bool)) → (σ : String → Int) �
   | (g, true) :: rest, σ => @instDecidableAnd _ _ inferInstance (Guard.decAll rest σ)
   | (g, false) :: rest, σ => @instDecidableAnd _ _ inferInstance (Guard.decAll rest σ)
 
+/-- The linear operators of a generate condition's operand: `+`, `-`, and `*` with a constant side. -/
+def opdBin : SymBinOp → Aff → Aff → Option Aff
+  | .m0 .add, a, b => some (a.add b)
+  | .m0 .sub, a, b => some (a.sub b)
+  | .m0 .mul, a, b => affMul a b
+  | .mul, a, b => affMul a b
+  | _, _, _ => none
+
+theorem opdBin_cases {op : SymBinOp} {a b c : Aff} (h : opdBin op a b = some c) :
+    (op = .m0 .add ∧ c = a.add b) ∨ (op = .m0 .sub ∧ c = a.sub b) ∨
+    ((op = .mul ∨ op = .m0 .mul) ∧ affMul a b = some c) := by
+  unfold opdBin at h
+  split at h <;> simp_all
+
 /-- An operand of a generate condition, read as an affine form together with the affine forms of all its subterms (its
-leaves and each intermediate result): an integer literal, a genvar or a parameter, `+`, `-`, and `*` with a constant
-side. The instantiation evaluates the operand at the signed 32-bit type (`evalGenGuard`, `evalAt`), so its value is the
-affine one exactly where every subterm's is a 32-bit value (`guard_eval`). -/
+leaves and each intermediate result): an integer literal, a genvar or a parameter, `+`, `-`, `*` with a constant
+side, and a shift or power atom (`xatOf?`: `1 << n`, `b ** n`, `m >> n`, `(m >> n) << n`, `(m >> n) & 1`). The
+instantiation evaluates the operand at the signed 32-bit type (`evalGenGuard`, `evalAt`), so its value is the affine one
+exactly where every subterm's is a 32-bit value and every atom is in its range (`guard_eval`). -/
 def opdAffs? : PExpr → Option (Aff × List Aff)
   | .int v => some (Aff.const v, [Aff.const v])
   | .genvarRef n => some (Aff.var n, [Aff.var n])
@@ -2036,14 +2526,12 @@ def opdAffs? : PExpr → Option (Aff × List Aff)
   | .binary op l r =>
       match opdAffs? l, opdAffs? r with
       | some (a, ra), some (b, rb) =>
-          match op with
-          | .m0 .add => some (a.add b, ra ++ rb ++ [a.add b])
-          | .m0 .sub => some (a.sub b, ra ++ rb ++ [a.sub b])
-          | .m0 .mul | .mul =>
-              match affMul a b with
-              | some c => some (c, ra ++ rb ++ [c])
+          match opdBin op a b with
+          | some c => some (c, ra ++ rb ++ [c])
+          | none =>
+              match xatOf? op l r with
+              | some x => some (Aff.atom x, ra ++ rb ++ [Aff.atom x])
               | none => none
-          | _ => none
       | _, _ => none
   | _ => none
 
@@ -2299,7 +2787,8 @@ end
 def condRefusal : String :=
   "conditional generate inside a generate loop: the condition is outside the v1 fragment (a signed comparison " ++
   "`s< s<= s> s>=`, or `==`, `!=`, of two affine forms in the parameters and the enclosing genvars: integer literals, " ++
-  "`+`, `-`, `*` by a constant)"
+  "`+`, `-`, `*` by a constant, and the atoms `1 << n`, `b ** n`, `m >> n`, `(m >> n) << n`, `(m >> n) & 1` of " ++
+  "names `m`, `n`)"
 
 mutual
 /-- An item of a generate loop's body at position `pos` (generic in the process recognizer `so`): a site, a loop whose
@@ -2898,6 +3387,13 @@ def condSteps : List (List Hdr × PExpr × Guard) :=
 /-- The loop-header paths of the generate tree: each loop under the loops around it (outermost first). -/
 def hdrPaths : List (List Hdr) := s.hdrSteps.map fun q => q.1 ++ [q.2]
 
+/-- No affine form of the summary holds a shift or power atom (`XAt`): a decidable fact about closed data, which closes
+the atom obligation `Summary.XObl` of such a design (`xObl_of_atomFree`). -/
+def atomFree : Bool :=
+  s.lsites.all (fun ls => (ls.site.tgt :: (ls.site.more ++ ls.site.rds)).all fun a => a.affs.all fun x => x.xs.isEmpty) &&
+  s.hdrSteps.all (fun q => q.2.bound.xs.isEmpty) &&
+  s.condSteps.all (fun c => c.2.2.rngs.all fun a => a.xs.isEmpty)
+
 end Summary
 
 /-! ## What the summary promises: footprints of the instantiated processes -/
@@ -3055,16 +3551,23 @@ theorem declOf?_spec {pd : PDecl} {dt : DeclT} (h : declOf? pd = .ok dt) :
     dt.name = pd.name ∧ dt.isInput = pd.isInput ∧ dt.isOutput = pd.isOutput ∧
     dt.isNet = pd.isNet ∧ pd.init = none ∧
     (∃ r, pd.type = .packed dt.pdims r) ∧ dt.dims.length ≤ 2 ∧
-    (∀ p ∈ dt.dims, affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2) ∧
+    (∀ p ∈ dt.dims, affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2 ∧ p.2.1.xs = [] ∧ p.2.2.xs = []) ∧
     dt.isSigned = pd.isSigned ∧ pd.twoState = false := by
   have hdim : ∀ {nm : String} {d : PDim} {p : PDim × Aff × Aff}, dimOf? nm d = .ok p →
-      p.1 = d ∧ affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2 := by
+      p.1 = d ∧ affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2 ∧ p.2.1.xs = [] ∧ p.2.2.xs = [] := by
     intro nm d p hp
     unfold dimOf? at hp
-    rcases hm : affOf? d.msb with _ | m <;> rcases hl : affOf? d.lsb with _ | l <;>
-      simp [hm, hl] at hp
-    subst hp
-    exact ⟨rfl, hm, hl⟩
+    rcases hm : affOf? d.msb with _ | m
+    · simp [hm] at hp
+    rcases hl : affOf? d.lsb with _ | l
+    · simp [hm, hl] at hp
+    simp only [hm, hl] at hp
+    by_cases hx : (m.xs.isEmpty && l.xs.isEmpty) = true
+    · rw [if_pos hx, Except.ok.injEq] at hp
+      subst hp
+      simp only [Bool.and_eq_true, List.isEmpty_iff] at hx
+      exact ⟨rfl, hm, hl, hx.1, hx.2⟩
+    · rw [if_neg hx] at hp; simp at hp
   unfold declOf? at h
   split at h
   · cases h
@@ -3090,12 +3593,12 @@ theorem declOf?_spec {pd : PDecl} {dt : DeclT} (h : declOf? pd = .ok dt) :
           · simp [hp] at h
           · simp only [hp, Except.ok.injEq] at h
             subst h
-            obtain ⟨h1, h2, h3⟩ := hdim hp
+            obtain ⟨h1, h2, h3, h4, h5⟩ := hdim hp
             refine ⟨rfl, rfl, rfl, rfl, rfl, ⟨r, by simp [DeclT.pdims, h1]⟩, by simp, ?_, rfl, hs.2⟩
             intro q hq
             simp only [List.mem_singleton] at hq
             subst hq
-            exact ⟨h2, h3⟩
+            exact ⟨h2, h3, h4, h5⟩
         | [d1, d2], h =>
           rcases hp1 : dimOf? pd.name d1 with e | p1
           · simp [hp1] at h
@@ -3103,14 +3606,14 @@ theorem declOf?_spec {pd : PDecl} {dt : DeclT} (h : declOf? pd = .ok dt) :
             · simp [hp1, hp2] at h
             · simp only [hp1, hp2, Except.ok.injEq] at h
               subst h
-              obtain ⟨h1, h2, h3⟩ := hdim hp1
-              obtain ⟨k1, k2, k3⟩ := hdim hp2
+              obtain ⟨h1, h2, h3, h4, h5⟩ := hdim hp1
+              obtain ⟨k1, k2, k3, k4, k5⟩ := hdim hp2
               refine ⟨rfl, rfl, rfl, rfl, rfl, ⟨r, by simp [DeclT.pdims, h1, k1]⟩, by simp, ?_, rfl, hs.2⟩
               intro q hq
               simp only [List.mem_cons, List.not_mem_nil, or_false] at hq
               rcases hq with rfl | rfl
-              · exact ⟨h2, h3⟩
-              · exact ⟨k2, k3⟩
+              · exact ⟨h2, h3, h4, h5⟩
+              · exact ⟨k2, k3, k4, k5⟩
         | _ :: _ :: _ :: _, h => simp at h
       | typeRef n pkg r => rw [hty] at h; simp at h
       | unrecoverable r => rw [hty] at h; simp at h
@@ -3129,18 +3632,18 @@ theorem declsOf?_cons {pd : PDecl} {rest : List PDecl} {sd : List DeclT}
 /-- `evalDims` of the recognized dimensions, computed. -/
 theorem evalDims_dims {env : IEnv} {σ : String → Int} :
     ∀ (dims : List (PDim × Aff × Aff)),
-      (∀ p ∈ dims, affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2) →
+      (∀ p ∈ dims, affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2 ∧ p.2.1.xs = [] ∧ p.2.2.xs = []) →
       (∀ p ∈ dims, ∀ n ∈ p.2.1.names ++ p.2.2.names, env.intVal? n = some (σ n)) →
       evalDims env (dims.map (·.1)) = .ok (dims.map fun p => (p.2.1.eval σ, p.2.2.eval σ))
   | [], _, _ => by simp
   | p :: rest, ha, hg => by
-      obtain ⟨hm, hl⟩ := ha p (List.mem_cons_self ..)
+      obtain ⟨hm, hl, hmx, hlx⟩ := ha p (List.mem_cons_self ..)
       have hm' : ∀ n ∈ p.2.1.names, env.intVal? n = some (σ n) :=
         fun n hn => hg p (List.mem_cons_self ..) n (List.mem_append_left _ hn)
       have hl' : ∀ n ∈ p.2.2.names, env.intVal? n = some (σ n) :=
         fun n hn => hg p (List.mem_cons_self ..) n (List.mem_append_right _ hn)
-      obtain ⟨-, hem⟩ := affOf?_sound _ _ hm hm'
-      obtain ⟨-, hel⟩ := affOf?_sound _ _ hl hl'
+      obtain ⟨-, hem⟩ := affOf?_sound _ _ hm (Aff.ok_of_nil hm' hmx)
+      obtain ⟨-, hel⟩ := affOf?_sound _ _ hl (Aff.ok_of_nil hl' hlx)
       have ih := evalDims_dims rest (fun q hq => ha q (List.mem_cons_of_mem _ hq))
         (fun q hq => hg q (List.mem_cons_of_mem _ hq))
       exact evalDims_cons_of hem hel ih
@@ -3148,18 +3651,18 @@ theorem evalDims_dims {env : IEnv} {σ : String → Int} :
 /-- `PType.width` of the recognized dimensions, computed. -/
 theorem width_dims {env : IEnv} {σ : String → Int} (r : Option Nat) :
     ∀ (dims : List (PDim × Aff × Aff)),
-      (∀ p ∈ dims, affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2) →
+      (∀ p ∈ dims, affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2 ∧ p.2.1.xs = [] ∧ p.2.2.xs = []) →
       (∀ p ∈ dims, ∀ n ∈ p.2.1.names ++ p.2.2.names, env.intVal? n = some (σ n)) →
       (PType.packed (dims.map (·.1)) r).width env = .ok (dimsW σ dims)
   | [], _, _ => by simp [dimsW]
   | p :: rest, ha, hg => by
-      obtain ⟨hm, hl⟩ := ha p (List.mem_cons_self ..)
+      obtain ⟨hm, hl, hmx, hlx⟩ := ha p (List.mem_cons_self ..)
       have hm' : ∀ n ∈ p.2.1.names, env.intVal? n = some (σ n) :=
         fun n hn => hg p (List.mem_cons_self ..) n (List.mem_append_left _ hn)
       have hl' : ∀ n ∈ p.2.2.names, env.intVal? n = some (σ n) :=
         fun n hn => hg p (List.mem_cons_self ..) n (List.mem_append_right _ hn)
-      obtain ⟨-, hem⟩ := affOf?_sound _ _ hm hm'
-      obtain ⟨-, hel⟩ := affOf?_sound _ _ hl hl'
+      obtain ⟨-, hem⟩ := affOf?_sound _ _ hm (Aff.ok_of_nil hm' hmx)
+      obtain ⟨-, hel⟩ := affOf?_sound _ _ hl (Aff.ok_of_nil hl' hlx)
       have ih := width_dims r rest (fun q hq => ha q (List.mem_cons_of_mem _ hq))
         (fun q hq => hg q (List.mem_cons_of_mem _ hq))
       rw [List.map_cons, PType.width_packed_cons, ih]
@@ -3195,12 +3698,11 @@ theorem elemWidth_decl {env : IEnv} {σ : String → Int} {pd : PDecl} {dt : Dec
   | [p], _ => simp [DeclT.elemW, hdt]
   | [p1, p2], _ =>
       have hp2 : p2 ∈ dt.dims := by rw [hdt]; simp
-      have hm : affOf? p2.1.msb = some p2.2.1 := (hdim p2 hp2).1
-      have hl : affOf? p2.1.lsb = some p2.2.2 := (hdim p2 hp2).2
+      obtain ⟨hm, hl, hmx, hlx⟩ := hdim p2 hp2
       obtain ⟨-, hem⟩ := affOf?_sound _ _ hm
-        (fun n hn => hag' p2 hp2 n (List.mem_append_left _ hn))
+        (Aff.ok_of_nil (fun n hn => hag' p2 hp2 n (List.mem_append_left _ hn)) hmx)
       obtain ⟨-, hel⟩ := affOf?_sound _ _ hl
-        (fun n hn => hag' p2 hp2 n (List.mem_append_right _ hn))
+        (Aff.ok_of_nil (fun n hn => hag' p2 hp2 n (List.mem_append_right _ hn)) hlx)
       simp [PType.elemWidth, DeclT.elemW, hdt, PDim.width, hem, hel, List.foldlM, Gen2.except_ok_bind]
   | _ :: _ :: _ :: _, hl => simp at hl
 

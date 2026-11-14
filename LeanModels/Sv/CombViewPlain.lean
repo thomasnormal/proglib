@@ -87,10 +87,10 @@ theorem autoObl_of_plain (s : Summary) (σ : String → Int) (args : List Int)
       (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: ls.site.rds, s.DimNum σ a) ∧
       (∀ q ∈ s.hdrSteps, q.1.isEmpty = true ∧
         (q.2.bound.eval σ - q.2.c0).toNat ≤ 4 * (args.map Int.natAbs).sum + 60) ∧
-      s.condSteps.isEmpty = true) :
+      s.condSteps.isEmpty = true) (hx : s.atomFree = true) :
     s.AutoObl σ args := by
   obtain ⟨h1, h2, h3, h4⟩ := h
-  refine ⟨fun ls hls => ?_, fun ls hls a ha => ?_, fun q hq => ?_, fun c hc => ?_⟩
+  refine ⟨fun ls hls => ?_, fun ls hls a ha => ?_, ⟨fun q hq => ?_, fun c hc => ?_⟩, s.xObl_of_atomFree hx σ⟩
   · simp only [List.isEmpty_iff.mp (hp _ hls).1, Loops.all]
     exact h1 ls hls
   · rw [List.isEmpty_iff.mp (hp ls hls).2, List.nil_append] at ha
@@ -128,7 +128,7 @@ end LeanModels.Sv
 #guard_msgs (whitespace := lax) in
 #print axioms LeanModels.Sv.CombView.Summary.rankObl'_of_plain
 
-/-- info: 'LeanModels.Sv.CombView.Summary.autoObl_of_plain' depends on axioms: [propext] -/
+/-- info: 'LeanModels.Sv.CombView.Summary.autoObl_of_plain' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms LeanModels.Sv.CombView.Summary.autoObl_of_plain
 

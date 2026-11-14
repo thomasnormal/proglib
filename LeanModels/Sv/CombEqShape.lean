@@ -382,9 +382,9 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
     (h : leafRd? ds e = .ok a) (ha : AccOK σ DW DG EW ns a) :
     selfWidth2 E elems e = some (a.win σ dw).2.2 ∧ (∀ ctx, instExpr2 E elems ctx e = accExpr σ a) ∧
       rigidExpr e = true := by
-  obtain ⟨hdec, hgeo, hns⟩ := ha
-  have hagx : ∀ x ∈ a.affs, ∀ n ∈ x.names, E.intVal? n = some (σ n) :=
-    fun x hx n hn => C.agree n (hns x hx n hn)
+  obtain ⟨hdec, hgeo, hns, hxk⟩ := ha
+  have hagx : ∀ x ∈ a.affs, x.Ok E σ :=
+    fun x hx => ⟨fun n hn => C.agree n (hns x hx n hn), hxk x hx⟩
   cases e with
   | ident n =>
       simp only [leafRd?, Except.ok.injEq] at h
@@ -882,7 +882,7 @@ theorem repl_shape (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         selfWidth2 E elems (.repl c a) = some ((Part.reprd (repAff c) x).wid σ dw) ∧
         ∀ ctx, instExpr2 E elems ctx (.repl c a) = (Part.reprd (repAff c) x).expr σ) := by
   obtain ⟨k, hk, harg⟩ := repRd?_cases h
-  have hrc : repAff c = k := by simp [repAff, hk]
+  have hrc : repAff c = k := by simp [repAff, (affOfN?_some hk).1]
   rw [hrc]
   rcases repArgRd?_cases harg with ⟨v, rfl, rfl⟩ | ⟨e, rfl, hl, hnl, hnw⟩
   · left
@@ -916,7 +916,7 @@ theorem repl_shapeU (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       selfWidth2 E elems (.repl c a) = some (p.wid σ dw) ∧
       ∀ ctx, instExpr2 E elems ctx (.repl c a) = p.expr σ := by
   obtain ⟨k, hk, harg⟩ := repRd?_cases h
-  have hrc : repAff c = k := by simp [repAff, hk]
+  have hrc : repAff c = k := by simp [repAff, (affOfN?_some hk).1]
   rcases repArgRd?_cases harg with ⟨v, hv, rfl⟩ | ⟨e', hv, hl, hnl, hnw⟩
   · obtain ⟨e, rfl, he⟩ := unsign_eq_concat1 hv
     obtain rfl := unsign_eq_lit he
@@ -1167,13 +1167,13 @@ theorem divW_eq_selfW (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PE
   | partSel b msb lsb =>
       cases b with
       | ident n =>
-          obtain ⟨hdec, hgeo, hns⟩ := ha
+          obtain ⟨hdec, hgeo, hns, hxk⟩ := ha
           simp only [leafRd?] at h
           obtain ⟨-, hc⟩ := partAcc?_cases h
           rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
           · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
-            have hagx : ∀ x' ∈ [x, y], ∀ v ∈ x'.names, E.intVal? v = some (σ v) :=
-              fun x' hx' v hv => C.agree v (hns x' hx' v hv)
+            have hagx : ∀ x' ∈ [x, y], x'.Ok E σ :=
+              fun x' hx' => ⟨fun v hv => C.agree v (hns x' hx' v hv), hxk x' hx'⟩
             obtain ⟨-, heh⟩ := affOf?_sound msb x hx (hagx x (by simp))
             obtain ⟨-, hel⟩ := affOf?_sound lsb y hy (hagx y (by simp))
             have hel1 := ctxElemsOne C hdg
@@ -1621,7 +1621,7 @@ theorem repl_shapeDD (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         fitDivOperand2 s (some k) (some ((repPartD c a (rs ++ tl)).wid σ dw)) ((repPartD c a (rs ++ tl)).expr σ) := by
   obtain ⟨k, hk, harg⟩ := repRdD?_cases h
   obtain ⟨hev, h0⟩ := repl_facts C hk hco
-  have hrk : repAff c = k := by simp [repAff, hk]
+  have hrk : repAff c = k := by simp [repAff, (affOfN?_some hk).1]
   obtain ⟨x, rfl, hx⟩ := repArgRdD?_cases harg
   have hpx : partRdD? ds x = .ok rs := by
     unfold partRdD?
@@ -2611,9 +2611,9 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
     {ds : List DeclT} {l : PLhs} {a : Acc}
     (h : tgtOf? ds l = .ok a) (ha : AccOK σ DW DG EW ns a) :
     instLhs2 E elems l = .ok (a.lhs σ, (a.win σ dw).2.2) := by
-  obtain ⟨hdec, hgeo, hns⟩ := ha
-  have hagx : ∀ x ∈ a.affs, ∀ n ∈ x.names, E.intVal? n = some (σ n) :=
-    fun x hx n hn => C.agree n (hns x hx n hn)
+  obtain ⟨hdec, hgeo, hns, hxk⟩ := ha
+  have hagx : ∀ x ∈ a.affs, x.Ok E σ :=
+    fun x hx => ⟨fun n hn => C.agree n (hns x hx n hn), hxk x hx⟩
   rcases tgtOf?_cases h with ⟨n, rfl, rfl⟩ | ⟨n, i, x, rfl, hx, hba⟩ | ⟨n, is, rfl, he⟩ |
     ⟨n, is, mode, hi, lo, rfl, hp⟩ | ⟨n, msb, lsb, rfl, hp⟩
   · have hW : E.widths.lookup n = some (dw n) := by

@@ -17,11 +17,20 @@ namespace CombView
 
 /-! ## Printing -/
 
+/-- Print a shift or power atom in the source's spelling, renaming variables. -/
+def XAt.showR (x : XAt) (rn : String → String) : String :=
+  match x with
+  | .pow b n => if b == 2 then s!"(1 << {rn n})" else s!"{b}**{rn n}"
+  | .shr m n => s!"({rn m} >> {rn n})"
+  | .shl m n => s!"(({rn m} >> {rn n}) << {rn n})"
+  | .bit m n => s!"(({rn m} >> {rn n}) & 1)"
+
 /-- Print an affine form, renaming variables (the second loop index is shown as `i'`). -/
 def Aff.showR (a : Aff) (rn : String → String) : String :=
   let ts := a.terms.map fun (n, k) => if k == 1 then rn n else s!"{k}*{rn n}"
   let qs := a.qs.map fun (n, k, d) => if k == 1 then s!"{rn n}/{d}" else s!"{k}*({rn n}/{d})"
-  let ts := ts ++ qs
+  let xs := a.xs.map fun (k, x) => if k == 1 then x.showR rn else s!"{k}*{x.showR rn}"
+  let ts := ts ++ qs ++ xs
   let parts := ts ++ (if a.c != 0 || ts.isEmpty then [toString a.c] else [])
   (" + ".intercalate parts).replace "+ -" "- "
 

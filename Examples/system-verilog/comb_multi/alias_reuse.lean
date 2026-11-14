@@ -21,9 +21,12 @@ open Examples.«system-verilog».comb_multi.gen
 
 namespace Examples.«system-verilog».comb_multi.alias_reuse
 
+set_option maxHeartbeats 400000 in
 /-- **The reference proof's inputs, from `add_proc_m`**: the five equations (`add_final`'s `e0`, `ep`, `estep`,
 `esum`, `eout`) and the knownness of `s` and `cout`, from the aliases `eq_c_1`, `eq_p_1`, `eq_c_2`, `eq_s_1`,
-`eq_cout_1`, `known_s_1`, `known_cout_1`, with the same closers for the obligations. -/
+`eq_cout_1`, `known_s_1`, `known_cout_1`, with the same closers for the obligations. (The heartbeat budget: this
+theorem took between 150000 and 200000 of the default 200000 before the affine forms gained their shift and power atoms,
+whose vocabulary the normalizations now carry, and takes between 200000 and 250000 since.) -/
 theorem add_proc_m_aliases (N : Nat) (hN : 1 ≤ N) (hR : (N : Int) < 2147483648) {d' : Design2}
     (_hl : (add_proc_m.sem N).lowerComb = some d') (_hc : CombDesign d') (_ha : Acyclic d')
     (st : SvState) (_heqs : CombEqs d' st) (_hsh : StateShape d' st) (x y : BitVec N) (c0 : Bool)
