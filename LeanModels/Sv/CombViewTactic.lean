@@ -6,6 +6,7 @@ import LeanModels.Sv.CombViewGroup
 import LeanModels.Sv.CombShared
 import LeanModels.Sv.CombAliasInert
 import LeanModels.Sv.CombSigned
+import LeanModels.Sv.CombToExpr
 
 /-!
 # `sv_structure` / `sv_structure?`: the structural stage of the `sv_comb` tactic (v0)
@@ -21,9 +22,12 @@ theorem mul_acyclic (N : Nat) (hN : 1 ≤ N) : Acyclic (mul_n.sem N) := by
   sv_structure (lexRank := fun | .plain 0 => (0, 1, 0) | … | .fam "g_bit" 0 [i, j] => (i.toNat, j.toNat + 1, 1) …)
   -- the rank is a LEXICOGRAPHIC key (row, column, phase) over site identities
 theorem mul_acyclic' (N : Nat) (hN : 1 ≤ N) (hc : CombDesign (mul_n.sem N)) : Acyclic (mul_n.sem N) := by
-  sv_structure using hc (lexRank := …)   -- the in-range and one-driver goals are not asked again
+  sv_structure (lexRank := …) using hc   -- the in-range and one-driver goals are not asked again
 theorem ripple_struct (N : Nat) (hN : 1 ≤ N) : CombDesign (ripple_add.sem N) ∧ Acyclic (ripple_add.sem N) := by
   sv_structure (rank := rippleRank …)   -- ONE round of obligations for both (WP-P): `obtain ⟨hc, ha⟩ := ripple_struct N hN`
+theorem ks_comb (N : Nat) (hN : 1 ≤ N) : CombDesign (ks.sem N) ∧ SharedObl ks.pdesign [N] := by
+  sv_structure   -- the profile and the shared obligations; `sv_structure (lexRank := …) using hc` on `Acyclic` and
+                 -- `sv_equations` read `auto` and `inRange` from the `SharedObl` hypothesis (tac5)
 sv_structure?            -- prints the families, site identities and the required rank relation
 ```
 
@@ -300,6 +304,30 @@ theorem pow_lt_pow_or {b : Int} (hb : 1 ≤ b) (t1 t2 : Nat) : t2 ≤ t1 ∨ b *
     · omega
     · exact h2
   · left; omega
+
+/-- A power of a base at most `4` is at most the square of the power of two (`b ^ n ≤ 4 ^ n = 2 ^ n · 2 ^ n`). -/
+theorem pow_le_two_pow_sq {b : Int} (hb0 : 0 ≤ b) (hb : b ≤ 4) : ∀ n : Nat, b ^ n ≤ 2 ^ n * 2 ^ n
+  | 0 => by simp
+  | n + 1 => by
+    have ih := pow_le_two_pow_sq hb0 hb n
+    have h2 : 0 < (2 : Int) ^ n := Int.pow_pos (by decide)
+    have e : (2 : Int) ^ (n + 1) * 2 ^ (n + 1) = 2 ^ n * 2 ^ n * 4 := by
+      rw [Int.pow_succ]; grind
+    rw [Int.pow_succ, e]
+    exact Int.mul_le_mul ih hb hb0 (Int.le_of_lt (Int.mul_pos h2 h2))
+
+/-- **A power against the square of a parameter** (tac5, the exact generate fuel: `AutoObl` owes a loop count at most
+`fuelSq X + 4 X + 67`): where `2 ^ t ≤ X + c`, a power of a base at most `4` is at most `(X + c)²`, the square written as
+the `fuelSq X` the fuel bound holds (a `Nat` atom for `omega`) and the linear rest. -/
+theorem pow_le_sq_of_two_pow_le {b : Int} (hb0 : 0 ≤ b) (hb : b ≤ 4) (t X c : Nat)
+    (h : (2 : Int) ^ t ≤ (X : Int) + (c : Int)) :
+    b ^ t ≤ ((fuelSq X : Nat) : Int) + 2 * (c : Int) * (X : Int) + (c : Int) * (c : Int) := by
+  have h2 : 0 < (2 : Int) ^ t := Int.pow_pos (by decide)
+  have hsq := Int.mul_le_mul h h (Int.le_of_lt h2) (Int.le_trans (Int.le_of_lt h2) h)
+  have e : ((X : Int) + (c : Int)) * ((X : Int) + (c : Int)) =
+      ((fuelSq X : Nat) : Int) + 2 * (c : Int) * (X : Int) + (c : Int) * (c : Int) := by
+    rw [fuelSq, Int.natCast_mul]; grind
+  exact Int.le_trans (pow_le_two_pow_sq hb0 hb t) (e ▸ hsq)
 
 /-- Two right shifts by powers of two of equal operands are equal (a disjunction `omega` reads). -/
 theorem div_pow_congr_or (x1 x2 : Int) (t1 t2 : Nat) :
@@ -1035,6 +1063,76 @@ def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
   for (x, t) in shls do
     if let some h ← omegaProves (← mkAppM ``LE.le #[toExpr (0 : Int), x]) then
       assertMainM `hshl (mkAppM ``LeanModels.Sv.CombView.shl_shr_facts #[t, h])
+
+/-- The arguments `X` of the squares `fuelSq X` of `e` (closed under no binder): the square of the parameters in the
+generate fuel bound (`AutoObl`, tac5). -/
+partial def squareArgs (e : Lean.Expr) : Array Lean.Expr :=
+  let here : Array Lean.Expr :=
+    if e.isAppOfArity ``LeanModels.Sv.CombView.fuelSq 1 && !e.hasLooseBVars then #[e.appArg!]
+    else #[]
+  let sub : Array Lean.Expr :=
+    match e with
+    | .app f a => squareArgs f ++ squareArgs a
+    | .mdata _ b | .proj _ _ b => squareArgs b
+    | _ => #[]
+  here ++ sub
+
+/-- **The powers against the square of the parameters** (tac5, the exact generate fuel bound `fuelSq X + 4 X + 67` of
+`AutoObl`): for every square `fuelSq X` and every power `b ^ t` of a literal base `2 ≤ b ≤ 4` in the terms `es`,
+`b ^ t ≤ fuelSq X + 2 c X + c²` (`pow_le_sq_of_two_pow_le`) for the least `c ≤ 4` with `2 ^ t ≤ X + c` provable by
+`omega` from the context and the monotonicity of `2 ^ t` against the other powers of two in it (`pow_le_pow_or`,
+`pow_lt_pow_or`: the bounds of a `$clog2` the exponent stays below). A tree whose level `l` has `3 ^ l` nodes for
+`l < $clog2(…)` then has its loop counts within the fuel at every size. Every fact is proved; none is assumed. -/
+def addSquareFacts (es : Array Lean.Expr) : TacticM Unit := do
+  let mut sqs : Array Lean.Expr := #[]
+  let mut pows : Array (Lean.Expr × Int × Lean.Expr) := #[]
+  let mut twos : Array Lean.Expr := #[]
+  for e in es do
+    let eI ← instantiateMVars e
+    for x in squareArgs eI do
+      unless sqs.contains x do sqs := sqs.push x
+    for (b, t) in powBases eI do
+      if let some k ← getIntValue? b then
+        if k == 2 && !twos.contains t then twos := twos.push t
+        if 2 ≤ k && k ≤ 4 && !pows.any (fun (b', _, t') => b' == b && t' == t) then pows := pows.push (b, k, t)
+  if sqs.isEmpty || pows.isEmpty then return
+  let two := toExpr (2 : Int)
+  for (b, _, t) in pows do
+    for x in sqs do
+      let mut done := false
+      for c in [0, 1, 2, 3, 4] do
+        if done then break
+        let g ← getMainGoal
+        let st ← saveState
+        -- `2 ^ t ≤ ↑x + c`, in a goal of its own with the monotonicity facts of `2 ^ t` against the other powers of two
+        let target ← g.withContext do
+          mkAppM ``LE.le #[← mkAppM ``HPow.hPow #[two, t],
+            ← mkAppM ``HAdd.hAdd #[← mkAppOptM ``Nat.cast #[mkConst ``Int, none, x],
+              ← mkAppOptM ``Nat.cast #[mkConst ``Int, none, toExpr c]]]
+        let m ← g.withContext (mkFreshExprSyntheticOpaqueMVar target)
+        setGoals [m.mvarId!]
+        let ok ← try
+            for t' in twos do
+              if t' == t then continue
+              assertMainM `hpow_mono do
+                let h1 ← mkDecideProof (← mkAppM ``LE.le #[toExpr (1 : Int), two])
+                mkAppOptM ``LeanModels.Sv.CombView.pow_lt_pow_or #[two, h1, t, t']
+              assertMainM `hpow_mono do
+                let h1 ← mkDecideProof (← mkAppM ``LE.le #[toExpr (1 : Int), two])
+                mkAppOptM ``LeanModels.Sv.CombView.pow_le_pow_or #[two, h1, t, t']
+            evalTactic (← `(tactic| omega))
+            pure (← getGoals).isEmpty
+          catch _ => pure false
+        if ok then
+          let pf ← instantiateMVars m
+          setGoals [g]
+          assertMainM `hsq do
+            let hb0 ← mkDecideProof (← mkAppM ``LE.le #[toExpr (0 : Int), b])
+            let hb ← mkDecideProof (← mkAppM ``LE.le #[b, toExpr (4 : Int)])
+            mkAppOptM ``LeanModels.Sv.CombView.pow_le_sq_of_two_pow_le #[b, hb0, hb, t, x, toExpr c, pf]
+          done := true
+        else
+          st.restore
 
 /-- The arguments `x` of the `canonInt 32 true x` subterms of `e` that mention a free variable, innermost first (refusal
 text only). -/
@@ -2042,6 +2140,7 @@ def addClog2PowFacts (es : Array Lean.Expr) : TacticM Unit := do
   inGoal do addClog2PowFacts (← goalExprs)
   inGoal do LeanModels.Sv.CombView.addPowFacts (← goalExprs)
   inGoal do LeanModels.Sv.CombView.addAtomFacts (← goalExprs)
+  inGoal do LeanModels.Sv.CombView.addSquareFacts (← goalExprs)
 
 @[tactic svPowOmega] def evalSvPowOmega : Tactic := fun _ => withDeepRec do
   evalTactic (← `(tactic| sv_pow_facts))
@@ -2110,11 +2209,16 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
     let isBoth := isShared || (ty.isAppOfArity ``And 2 &&
       ty.appFn!.appArg!.getAppFn.isConstOf ``LeanModels.Sv.CombDesign &&
       ty.appArg!.getAppFn.isConstOf ``LeanModels.Sv.Acyclic)
-    let isComb := ty.getAppFn.isConstOf ``LeanModels.Sv.CombDesign
+    -- the pair `CombDesign D ∧ SharedObl X.pdesign args` (tac5, CombShared.lean): the profile, and the shared
+    -- obligations for a later `sv_structure (rank := …) using hc` on `Acyclic D` and for `sv_equations`
+    let isCombShared := ty.isAppOfArity ``And 2 &&
+      ty.appFn!.appArg!.getAppFn.isConstOf ``LeanModels.Sv.CombDesign &&
+      ty.appArg!.getAppFn.isConstOf ``LeanModels.Sv.CombView.SharedObl
+    let isComb := ty.getAppFn.isConstOf ``LeanModels.Sv.CombDesign || isCombShared
     let isAcyc := ty.getAppFn.isConstOf ``LeanModels.Sv.Acyclic || isBoth
     unless isComb || isAcyc do
-      throwError "sv_structure: the goal must be `CombDesign (X.sem N)`, `Acyclic (X.sem N)`, their conjunction `CombDesign (X.sem N) ∧ Acyclic (X.sem N)`, or that conjunction with the shared obligations `∧ SharedObl X.pdesign [N]` (for `sv_equations`)"
-    let dGoal := if isBoth then ty.appFn!.appArg!.appArg! else ty.appArg!
+      throwError "sv_structure: the goal must be `CombDesign (X.sem N)`, `Acyclic (X.sem N)`, their conjunction `CombDesign (X.sem N) ∧ Acyclic (X.sem N)`, that conjunction with the shared obligations `∧ SharedObl X.pdesign [N]` (for `sv_equations`), or `CombDesign (X.sem N) ∧ SharedObl X.pdesign [N]`"
+    let dGoal := if isBoth || isCombShared then ty.appFn!.appArg!.appArg! else ty.appArg!
     let twin? := hook?.bind (·.twin?)
     let (pd, args, aliased) ← match twin? with
       | some tw => pure (tw.design, tw.args, false)
@@ -2134,7 +2238,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       | none => "a design with signed reads (its summary is the unsigned twin's)"
     if hook?.isSome && usingStx?.isSome then
       throwError "sv_structure: `using hc` is not available for {twinWhat}; prove `CombDesign (X.sem N) ∧ Acyclic (X.sem N)` in one call"
-    if hook?.isSome && isShared then
+    if hook?.isSome && (isShared || isCombShared) then
       throwError "sv_structure: the shared obligations `SharedObl X.pdesign [N]` are not available for {twinWhat}; prove `CombDesign (X.sem N) ∧ Acyclic (X.sem N)` and let `sv_equations` normalize its obligations"
     match ← evalSummary pdS with
     | .error msg =>
@@ -2238,7 +2342,9 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
         if s.hasRepl then `(tactic| (sv_norm [$keyLemmas,*]; (try simp only [$replL,*]); try sv_norm [$keyLemmas,*]))
         else `(tactic| sv_norm [$keyLemmas,*])
       if isComb then
-        evalTactic (← `(tactic| refine $(← wrapT (← `(LeanModels.Sv.CombView.comb_view (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
+        let thm := mkIdent (if isCombShared then ``LeanModels.Sv.CombView.comb_shared_view
+          else ``LeanModels.Sv.CombView.comb_view)
+        evalTactic (← `(tactic| refine $(← wrapT (← `($thm:ident (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
             (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj))))))
       else if isBoth then
         if lexE?.isSome then
@@ -2313,7 +2419,9 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
         catch _ =>
           -- false (or not evaluable): the kernel decision, for its own report, as before WP-P
           closeWith n what (← `(tactic| decide +kernel))
-      closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
+      -- the summary as a literal (`CombToExpr.lean`): later normalizations read evaluated fields
+      unless ← closeSummaryLit (← find `hs) pdS s do
+        closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond)
       closeHag "sv_structure" (← find `hag) s args
@@ -2350,7 +2458,30 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       -- is false) takes the normalization below, unchanged.
       let closePlain (n : Name) (lem : Name) (what : String) : TacticM Bool := do
         tryClosePlain s (← find n) lem what
-      unless (← closePlain `hauto ``LeanModels.Sv.CombView.Summary.autoObl_of_plain
+      -- the shared obligations (tac5, CombShared.lean): `auto` and `inRange` from a `SharedObl` hypothesis of this design in
+      -- the context (`sv_structure` on `CombDesign D ∧ SharedObl …`), not normalized again; any mismatch takes the routes
+      -- below. Not on the goals that package `SharedObl` themselves.
+      let mut fromShared := false
+      unless isShared || isCombShared do
+        for d in ← getLCtx do
+          if d.isImplementationDetail then continue
+          unless (← instantiateMVars d.type).getAppFn.isConstOf ``LeanModels.Sv.CombView.SharedObl do continue
+          let st0 ← saveState
+          try
+            let hsV ← instantiateMVars (mkMVar (← find `hs))
+            let pa ← mkAppM ``LeanModels.Sv.CombView.SharedObl.auto #[d.toExpr, hsV]
+            let pi ← mkAppM ``LeanModels.Sv.CombView.SharedObl.inRange #[d.toExpr, hsV]
+            let gA ← find `hauto
+            let gI ← find `hin
+            unless (← isDefEq (← inferType pa) (← gA.getType)) do throwError "auto"
+            unless (← isDefEq (← inferType pi) (← gI.getType)) do throwError "inRange"
+            gA.assign pa
+            gI.assign pi
+            fromShared := true
+            break
+          catch _ =>
+            st0.restore
+      unless fromShared || (← closePlain `hauto ``LeanModels.Sv.CombView.Summary.autoObl_of_plain
           "an in-range fact of a flat netlist does not hold") do
         let autoClose : TSyntax `tactic ←
           if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
@@ -2360,7 +2491,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
           $normR:tactic
           repeat' refine And.intro ?_ ?_
           all_goals first | $autoClose:tactic | skip))).toArray
-      unless (← closePlain `hin ``LeanModels.Sv.CombView.Summary.inRangeObl_of_plain
+      unless fromShared || (← closePlain `hin ``LeanModels.Sv.CombView.Summary.inRangeObl_of_plain
           "the in-range obligation of a flat netlist does not hold") do
         out := out ++ (← runOb `hin "inRange" (← `(tacticSeq|
           (try simp only [$preL,*])
@@ -2510,7 +2641,8 @@ unsafe def runSvInterface : TacticM Unit := do
         catch _ =>
           -- false (or not evaluable): the kernel decision, for its own report, as before WP-P
           closeWith n what (← `(tactic| decide +kernel))
-      closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
+      unless ← closeSummaryLit (← find `hs) pd s do
+        closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeParamEnv "sv_interface" (← find `h1) (lift := s.hasCond)
       closeHag "sv_interface" (← find `hag) s args
       closeDecide `hok "the structural check failed"

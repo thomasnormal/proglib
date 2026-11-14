@@ -738,7 +738,8 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
           setGoals []
         catch _ =>
           closeWith n what (← `(tactic| decide +kernel))
-      closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
+      unless ← closeSummaryLit (← find `hs) pd s ``LeanModels.Sv.PDesign.summaryP do
+        closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond)
       closeHag "sv_structure" (← find `hag) s args
@@ -881,7 +882,8 @@ unsafe def runSvInterfaceL : TacticM Unit := do
           setGoals []
         catch _ =>
           closeWith n what (← `(tactic| decide +kernel))
-      closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
+      unless ← closeSummaryLit (← find `hs) pd s ``LeanModels.Sv.PDesign.summaryP do
+        closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeParamEnv "sv_interface" (← find `h1) (lift := s.hasCond)
       closeHag "sv_interface" (← find `hag) s args
       closeDecide `hok "the structural check failed"
@@ -1132,7 +1134,8 @@ unsafe def runSvEquationsL (hintOnly : Bool) : TacticM Unit := do
           setGoals []
         catch _ =>
           closeWith n what (← `(tactic| decide +kernel))
-      closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
+      unless ← closeSummaryLit (← find `hs) pd s ``LeanModels.Sv.PDesign.summaryP do
+        closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_equations" (← find `h1) (lift := s.hasCond)
       closeHag "sv_equations" (← find `hag) s args

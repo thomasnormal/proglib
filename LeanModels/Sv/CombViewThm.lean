@@ -1138,17 +1138,19 @@ theorem xObl_of_atomFree (h : s.atomFree = true) (σ : String → Int) : s.XObl 
   · exact (Loops.all_iff _ _ _).mpr fun σ' _ a ha => Aff.xOk_of_nil (h3 c hc a ha)
 
 /-- The facts the tactic closes by `omega`: reads in range, dimensions nonnegative, loop bounds
-within the generate fuel. The fuel is `(Σ|args| + 2)² + 64` (`PDesign.surfaceFuel`), so any loop
-count affine in the parameters with coefficient sum at most 4 is within it: the bound used here is
-the linear `4 · Σ|args| + 60` (a loop over `2*N` columns is admitted; svGolf `mul` tree design). A loop's count is
-owed at every valuation of the loops around it (`hdrSteps`): an inner bound may mention an outer genvar. The operands of
+within the generate fuel. The fuel is `(Σ|args| + 2)² + 64` (`PDesign.surfaceFuel`: each generate loop of the
+instantiation runs fewer iterations than it), and the bound owed here is EXACTLY that: a count at most
+`Σ|args|² + 4 · Σ|args| + 67`. The square is `fuelSq N`, a `Nat` atom for `omega`, so a count affine in the
+parameters closes as before (the bound was the linear `4 · Σ|args| + 60` until the tac5 round), and a count bounded by a
+power (a tree's level of `3 ^ l` nodes) gets the facts that relate the power to the square (`sv_pow_facts`). A loop's
+count is owed at every valuation of the loops around it (`hdrSteps`): an inner bound may mention an outer genvar. The operands of
 a generate condition are evaluated at the signed 32-bit type: each subterm's value is owed in that range wherever the
 condition is evaluated (`condSteps`, `guard_eval`). -/
 def AutoObl (σ : String → Int) (args : List Int) : Prop :=
   (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' => ∀ r ∈ ls.site.rds, s.InR σ σ' r) ∧
   (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), s.DimNum σ a) ∧
   ((∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' =>
-    (q.2.bound.eval σ' - q.2.c0).toNat ≤ 4 * (args.map Int.natAbs).sum + 60) ∧
+    (q.2.bound.eval σ' - q.2.c0).toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
    (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' =>
     ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)) ∧
   s.XObl σ
@@ -1159,7 +1161,7 @@ theorem autoObl_intro {σ : String → Int} {args : List Int}
     (h : (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' => ∀ r ∈ ls.site.rds, s.InR σ σ' r) ∧
       (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), s.DimNum σ a) ∧
       ((∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' =>
-        (q.2.bound.eval σ' - q.2.c0).toNat ≤ 4 * (args.map Int.natAbs).sum + 60) ∧
+        (q.2.bound.eval σ' - q.2.c0).toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
        (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' =>
         ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)))
     (hx : s.XObl σ) : s.AutoObl σ args :=

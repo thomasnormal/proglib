@@ -660,7 +660,9 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
         catch _ =>
           -- false (or not evaluable): the kernel decision, for its own report, as before WP-P
           closeWith n what (← `(tactic| decide +kernel))
-      closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
+      -- the summary as a literal (`CombToExpr.lean`): later normalizations read evaluated fields
+      unless ← closeSummaryLit (← find `hs) pdS s do
+        closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_equations" (← find `h1) (lift := s.hasCond)
       closeHag "sv_equations" (← find `hag) s args

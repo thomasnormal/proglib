@@ -25,8 +25,9 @@ equations `r(a) = R`, `c₀(b) = C`. The rule therefore
    for a window `r = R ∧ 0 ≤ c₀ ∧ 0 ≤ C ∧ c₀ ≤ C + e ∧ C + e < c₀ + wd` (the premises of the single
    sufficiency lemma `rmN_win_suff`, which is all the arithmetic of `rmN` the rule needs);
 3. walks the disjunction: `Classical.em L`, `L` gives the disjunct (the proof is built from the
-   components of `L`, no tactic runs), `¬L` goes to the next disjunct; the LAST disjunct is proved by
-   `omega` from the negations of the others and the hypotheses;
+   components of `L`, no tactic runs), `¬L` goes to the next disjunct; the LAST disjunct is proved
+   component by component from the negations of the others and the hypotheses (`proveLin`: each
+   component first from the hypotheses alone, then with the negations split one writer at a time);
 4. closes a conjunct that already occurred in the goal by the proof of its first occurrence.
 
 `L` is only sufficient (the lemma has no converse), but the witnesses are the unique solution of the
@@ -339,6 +340,78 @@ private partial def readOf? (d : Lean.Expr) : Option Lean.Expr :=
 shape it does not read. -/
 def diagPrefix : String := "sv_cover: the cell is not covered"
 
+/-! ## The last writer, per writer
+
+The writer of the LAST disjunct is proved from the negations `¬ L` of the writers before it. Handed to `omega` as one
+goal (the old step 4), every negation is a disjunction over its components, each holding `Int.toNat`, a division or a
+`% 2`, and `omega` case-splits all of them at once: on the shifted read of a Sklansky-shaped node
+(`Examples/system-verilog/gen_bit`) that exhausted the recursion limit. Now each component of `L` is a goal of its own,
+tried first from the context without the negations; one that needs them takes the negations one writer at a time
+(`splitNeg`): a component of `¬ L` that the context already proves is a fact, not a case, and each remaining component
+is one case with its single negated atom, the original disjunction cleared. -/
+
+/-- `omega` (or `trivial`) on `g`; a failure, and the exhaustion of the recursion limit (a runtime exception), is
+`false` with the state restored. -/
+def linOk (g : MVarId) : TacticM Bool := do
+  let saved ← saveState
+  setGoals [g]
+  let ok ← tryCatchRuntimeEx
+      (do
+        evalTactic (← `(tactic| first | omega | trivial))
+        pure (← getGoals).isEmpty)
+      fun _ => pure false
+  unless ok do saved.restore
+  pure ok
+
+/-- `linOk` on `g` with the hypotheses `hs` cleared (where nothing depends on them). -/
+def linOkWithout (g : MVarId) (hs : Array FVarId) : TacticM Bool := do
+  let saved ← saveState
+  let g' ← g.tryClearMany hs
+  if ← linOk g' then return true
+  saved.restore
+  return false
+
+mutual
+/-- Prove the linear goal `g` from the context, where `negs` are the hypotheses `h : ¬ L` of the writers ruled out
+before it (with their `L`): first without them, then splitting them one writer at a time. -/
+partial def proveLin (g : MVarId) (negs : List (FVarId × Lean.Expr)) : TacticM Bool := do
+  if ← linOkWithout g (negs.map (·.1)).toArray then return true
+  match negs with
+  | [] => return false
+  | (h, L) :: rest => splitNeg g h L rest
+
+/-- `h : ¬ L` split along `L = a ∧ b`: a component the context proves (without the negations) is a fact; any other is
+a case (`¬ a`: the atom stays, `h` goes; `a`: on to `¬ b`). A last component `¬ b` that is not a conjunction is an atom. -/
+partial def splitNeg (g : MVarId) (h : FVarId) (L : Lean.Expr) (rest : List (FVarId × Lean.Expr)) :
+    TacticM Bool := g.withContext do
+  unless L.isAppOfArity ``And 2 do return ← proveLin g rest
+  let a := L.appFn!.appArg!
+  let b := L.appArg!
+  let T ← g.getType
+  -- `h' : ¬ b` from `h` and a proof `ha` of `a`; `h` cleared
+  let onward (g : MVarId) (ha : Lean.Expr) : TacticM Bool := g.withContext do
+    let pf ← withLocalDeclD `hb b fun hb => do
+      mkLambdaFVars #[hb] (mkApp (mkFVar h) (← mkAppM ``And.intro #[ha, hb]))
+    let (h', g1) ← (← g.assert `hneg (mkNot b) pf).intro1P
+    let g2 ← g1.tryClear h
+    splitNeg g2 h' b rest
+  let ga ← mkFreshExprSyntheticOpaqueMVar a
+  if ← linOkWithout ga.mvarId! ((h :: rest.map (·.1)).toArray) then
+    return ← onward g ga
+  let emA ← mkAppM ``Classical.em #[a]
+  let saved ← saveState
+  let gs ← g.apply (← mkAppOptM ``Or.elim #[some a, some (mkNot a), some T, some emA])
+  let [gl, gr] := gs | saved.restore; return false
+  let (ha, gl') ← gl.intro1
+  let (_, gr') ← gr.intro1
+  -- `¬ a`: the atom replaces `h`
+  let ok1 ← proveLin (← gr'.tryClear h) rest
+  unless ok1 do saved.restore; return false
+  let ok2 ← onward gl' (mkFVar ha)
+  unless ok2 do saved.restore; return false
+  return true
+end
+
 /-- Prove the cover statement `g` (a disjunction of writers, one writer, a window, a conjunction of
 such, or a linear fact). `store` holds the conjuncts proved so far. -/
 partial def coverGoal (store : IO.Ref (Array (Lean.Expr × Lean.Expr))) (g : MVarId) : TacticM Unit := do
@@ -349,7 +422,7 @@ partial def coverGoal (store : IO.Ref (Array (Lean.Expr × Lean.Expr))) (g : MVa
         g.assign pf
         return
     if T.isAppOfArity ``Or 2 || T.isAppOfArity ``Exists 2 || (matchWin T).isSome then
-      chain #[] g
+      chain #[] [] g
     else if T.isAppOfArity ``And 2 then
       let gs ← g.apply (← mkConstWithFreshMVarLevels ``And.intro)
       let [ga, gb] := gs | throwError "sv_cover: internal error (And.intro)"
@@ -368,14 +441,10 @@ where
     let saved ← saveState
     let m ← mkFreshExprSyntheticOpaqueMVar (mkForall `h .default L (mkConst ``False))
     let (_, m') ← m.mvarId!.intro1
-    setGoals [m']
-    let ok ← try
-        evalTactic (← `(tactic| omega))
-        pure (← getGoals).isEmpty
-      catch _ => pure false
+    let ok ← linOk m'
     unless ok do saved.restore
     pure ok
-  chain (tried : Array Lean.Expr) (g : MVarId) : TacticM Unit := do
+  chain (tried : Array Lean.Expr) (negs : List (FVarId × Lean.Expr)) (g : MVarId) : TacticM Unit := do
     g.withContext do
       let T ← instantiateMVars (← g.getType)
       if T.isAppOfArity ``Or 2 then
@@ -387,7 +456,7 @@ where
         if skip then
           let gs' ← g.apply (mkApp2 (mkConst ``Or.inr) d rest)
           let [g''] := gs' | throwError "sv_cover: internal error (Or.inr)"
-          chain (tried.push L) g''
+          chain (tried.push L) negs g''
         else
           let emL ← mkAppM ``Classical.em #[L]
           let gs ← g.apply (← mkAppOptM ``Or.elim #[some L, some (mkNot L), some T, some emL])
@@ -398,27 +467,30 @@ where
             let (pf, _, _) ← build d plan.ws.toList hs.toList
             unless (← isDefEq (← inferType pf) d) do throwError "sv_cover: internal error (ill-typed proof)"
             gl'.assign (mkApp3 (mkConst ``Or.inl) d rest pf)
-          let (_, gr') ← gr.intro1
+          let (hn, gr') ← gr.intro1
           let gs' ← gr'.apply (mkApp2 (mkConst ``Or.inr) d rest)
           let [g''] := gs' | throwError "sv_cover: internal error (Or.inr)"
-          chain (tried.push L) g''
+          chain (tried.push L) (negs ++ [(hn, L)]) g''
       else
         let plan ← planOf T
         let L := mkAndAll plan.inL
-        let gL ← mkFreshExprSyntheticOpaqueMVar L
-        setGoals [gL.mvarId!]
-        let ok ← try
-            evalTactic (← `(tactic| first | omega | trivial))
-            pure (← getGoals).isEmpty
-          catch _ => pure false
-        unless ok do
+        -- each component on its own, the writers before it split one at a time (`proveLin`)
+        let mut prfs : Array Lean.Expr := #[]
+        let mut failed : Option Lean.Expr := none
+        for c in plan.inL do
+          let gc ← g.withContext (mkFreshExprSyntheticOpaqueMVar c)
+          if ← proveLin gc.mvarId! negs then prfs := prfs.push gc
+          else
+            failed := some c
+            break
+        if let some c := failed then
           let tried := tried.push L
           let mut lines : MessageData := m!""
           for (c, i) in tried.toList.zipIdx do
             lines := lines ++ m!"\n  ({i + 1}) {← tidy c}"
           let rd := (readOf? T).getD T
-          throwError "{diagPrefix}{indentExpr rd}\nneeds, for one of its writers (witnesses solved from the read's index), one of:{lines}\nand none of them follows from the hypotheses"
-        let hs := plan.fullHs (← projs gL plan.inL.size)
+          throwError "{diagPrefix}{indentExpr rd}\nneeds, for one of its writers (witnesses solved from the read's index), one of:{lines}\nand none of them follows from the hypotheses; for the last writer, the condition that does not follow (from the hypotheses and the other writers' failures) is{indentExpr (← tidy c)}"
+        let hs := plan.fullHs (← prfs.mapM instantiateMVars)
         let (pf, _, _) ← build T plan.ws.toList hs.toList
         unless (← isDefEq (← inferType pf) T) do throwError "sv_cover: internal error (ill-typed proof)"
         g.assign pf

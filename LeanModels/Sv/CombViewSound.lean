@@ -293,12 +293,14 @@ theorem summary_spec {d : PDesign} {s : Summary} (h : d.summary = .ok s) :
     d.generates = s.fams.map TFam.toGen ∧ s.SpecOk :=
   summaryG_spec siteOf? siteOf?_proc' h
 
-theorem surfaceFuel_gt (args : List Int) (x : Nat) (hx : x ≤ 4 * (args.map Int.natAbs).sum + 60) :
+/-- The fuel bound the obligations owe is exactly the instantiation's fuel: `x ≤ s² + 4s + 67` iff `x < (s + 2)² + 64`. -/
+theorem surfaceFuel_gt (args : List Int) (x : Nat)
+    (hx : x ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) :
     x < PDesign.surfaceFuel args := by
   show x < ((args.map Int.natAbs).sum + 2) * ((args.map Int.natAbs).sum + 2) + 64
   have h : ((args.map Int.natAbs).sum + 2) * ((args.map Int.natAbs).sum + 2) =
-      (args.map Int.natAbs).sum * (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 4 := by
-    simp only [Nat.add_mul, Nat.mul_add]
+      fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 4 := by
+    simp only [fuelSq, Nat.add_mul, Nat.mul_add]
     omega
   omega
 

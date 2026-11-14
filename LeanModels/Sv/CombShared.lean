@@ -18,6 +18,12 @@ mul_tree 78 of 772, add_n 19 of 134 (5 to 14% of the file).
 two of them packaged), and `sv_equations` reads a `SharedObl` hypothesis of the design from the context instead of
 normalizing `auto` and `inRange` again (it returns no `auto_k`/`inRange_k` goals then). Without it both tactics behave
 as before: opt-in, nothing else changes.
+
+Since the tac5 round `sv_structure` also proves `CombDesign (X.sem N) ∧ SharedObl X.pdesign [N]` (`comb_shared_view`),
+and `sv_structure (rank := …) using hc` on `Acyclic (X.sem N)` reads `auto` and `inRange` from a `SharedObl` hypothesis
+too: the profile, the rank and the equations then live in three declarations, each normalizing only its own obligations
+(measured on the Kogge-Stone adder of `Examples/system-verilog/prefix_ks`: the bundle needed 223 thousand heartbeat
+units, over the default 200 000 budget, and `sv_equations` normalized `auto` and `inRange` a second time).
 -/
 
 namespace LeanModels.Sv.CombView
@@ -68,5 +74,18 @@ theorem comb_lex_shared_view {d : PDesign} {s : Summary} {args : List Int} {env 
     CombDesign (d.instantiateGD2 args) ∧ Acyclic (d.instantiateGD2 args) ∧ SharedObl d args :=
   let h := comb_lex_view hs harity h1 hag hok hauto hin hdisj κ hrank
   ⟨h.1, h.2, sharedObl_of hs hauto hin⟩
+
+/-- `comb_view`, and the shared obligations packaged (`sv_structure` on `CombDesign D ∧ SharedObl X.pdesign args`, tac5):
+the profile and the two obligations a later `sv_structure (rank := …) using hc` and `sv_equations` read from the context,
+each theorem in a declaration (and a heartbeat budget) of its own. -/
+theorem comb_shared_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
+    (hs : d.summary = .ok s) (harity : args.length = d.params.length)
+    (h1 : d.paramEnv2 args = .ok env)
+    (hag : s.params.map (fun n => env.intVal? n) =
+      s.params.map (fun n => some (s.val args n)))
+    (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
+    (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args)) :
+    CombDesign (d.instantiateGD2 args) ∧ SharedObl d args :=
+  ⟨comb_view hs harity h1 hag hok hauto hin hdisj, sharedObl_of hs hauto hin⟩
 
 end LeanModels.Sv.CombView

@@ -3158,6 +3158,12 @@ def ceOf? (nm : String) (scope : List String) : PExpr → Except String CE
   | _ =>
       .error s!"localparam `{nm}`: the initializer is outside the v1 fragment (a localparam may use integer literals, parameters, earlier localparams, + - *, / % by an integer literal, the shifts << <<< >> >>>, `**`, `$clog2`, and `?:` on a comparison s< s<= s> s>= == !=)"
 
+/-- The square `s * s` of the generate fuel bound (`AutoObl`), under a name: `omega` reads `fuelSq N` as one atom of
+type `Nat`, so it knows the square is non-negative (the product `N * N` it would read as an `Int` product of two casts,
+whose sign it does not know), and a loop count affine in the parameters closes against `fuelSq N + 4 N + 67` as it did
+against the linear bound. -/
+def fuelSq (s : Nat) : Nat := s * s
+
 /-- The localparam's declared type: `int`/`integer` (packed `[31:0]`, signed or default) or none — the
 INT class, which `bindLocal` binds in `IEnv.vals`, where the parameters are. -/
 def lpTypeOk (lp : PLocalParam) : Bool :=
