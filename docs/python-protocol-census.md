@@ -642,3 +642,7 @@ work is the other body flow classes and the recursive call continuation.
 `Monadic.twinAgrees_callInM_top_body_ret` composes the same arbitrary raw body
 result transport for a returned value, preserving the resulting world and
 restoring the top call depth before exposing the value to the caller.
+
+`Monadic.twinAgrees_callInM_top_body_break` composes the arbitrary raw body
+transport for `RFlow.brk`; after restoring the top call depth, the top-level
+call boundary produces the faithful `"'break' outside loop"` refusal.
