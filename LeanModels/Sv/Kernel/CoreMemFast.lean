@@ -272,6 +272,7 @@ theorem CoreMemDesign.fastSettleAssignAt_scalar_array_refines
     (hv₂ : E.evalExpr E.env E.elems a₁.toState
       (some md₂.shape.elemWidth) value₂ = .ok v₂)
     (h₁ : E.fastScalarAssignAt s view index name₁ value₁ = .ok a₁)
+    (hstate₁ : a₁.toState = E.setScalarState s.toState name₁ v₁)
     (h₂ : E.fastSettleAssignAt E.env E.elems a₁
       (SvState.set view name₁ v₁) (index + 1)
       [.assign (.arrayElem name₂ [indexExpr₂]) value₂] =
@@ -283,7 +284,7 @@ theorem CoreMemDesign.fastSettleAssignAt_scalar_array_refines
   have hs₁ := E.fastScalarAssignAt_toState s a₁ view index name₁ value₁
     width₁ v₁ x₁ hwidth₁ hresolve₁ hpath₁ hbound₁ hv₁ h₁
   have hv₂' := hv₂
-  rw [hs₁] at hv₂'
+  rw [hstate₁] at hv₂'
   simp [CoreMemDesign.fastSettleAssignAt, hmem₂, hv₂'] at h₂
   rcases h₂ with ⟨b, hb, hb₂⟩
   rcases hb₂ with ⟨c, hbc, hc₂⟩
@@ -294,8 +295,8 @@ theorem CoreMemDesign.fastSettleAssignAt_scalar_array_refines
         simp [CoreMemFastState.ofState_toState]
       _ = a₂.toState := congrArg CoreMemFastState.toState hc₂
   have hbc' := hbc
-  rw [hs₁, hbv, hc_to] at hbc'
-  simp [CoreMemDesign.settleAssignAt, hwidth₁, hmem₂, hv₁, hv₂', hs₁]
+  rw [hstate₁, hbv, hc_to] at hbc'
+  simp [CoreMemDesign.settleAssignAt, hwidth₁, hmem₂, hv₁, hv₂', hstate₁]
   exact hbc'
 
 theorem CoreMemDesign.fastSettleAssignAt_array_scalar_refines
@@ -313,7 +314,8 @@ theorem CoreMemDesign.fastSettleAssignAt_array_scalar_refines
       (some width₂) (index + 1) value₂ = .ok v₂)
     (h₁ : E.fastSettleAssignAt E.env E.elems s view index
       [.assign (.arrayElem name₁ [indexExpr₁]) value₁] = .ok (a₁, view))
-    (h₂ : E.fastScalarAssignAt a₁ view (index + 1) name₂ value₂ = .ok a₂) :
+    (h₂ : E.fastScalarAssignAt a₁ view (index + 1) name₂ value₂ = .ok a₂)
+    (hstate₂ : a₂.toState = E.setScalarState a₁.toState name₂ v₂) :
     E.settleAssignAt E.env E.elems s.toState view index
       [.assign (.arrayElem name₁ [indexExpr₁]) value₁,
        .assign (.ident name₂) value₂] =
@@ -330,7 +332,7 @@ theorem CoreMemDesign.fastSettleAssignAt_array_scalar_refines
       _ = a₁.toState := congrArg CoreMemFastState.toState hc₁
   have hc' := hc
   rw [hc_to] at hc'
-  simp [CoreMemDesign.settleAssignAt, hmem₁, hwidth₂, hv₁, hs₂, hc']
+  simp [CoreMemDesign.settleAssignAt, hmem₁, hwidth₂, hv₁, hstate₂, hc']
   exact ⟨v₂, hv₂, rfl, rfl⟩
 
 theorem CoreMemDesign.settleAssignAt_two_ident_fast_refines
@@ -350,7 +352,9 @@ theorem CoreMemDesign.settleAssignAt_two_ident_fast_refines
       (SvState.set view name₁ v₁) (some width₂) (index + 1) value₂ = .ok v₂)
     (h₁ : E.fastScalarAssignAt s view index name₁ value₁ = .ok a₁)
     (h₂ : E.fastScalarAssignAt a₁ (SvState.set view name₁ v₁)
-      (index + 1) name₂ value₂ = .ok a₂) :
+      (index + 1) name₂ value₂ = .ok a₂)
+    (hstate₁ : a₁.toState = E.setScalarState s.toState name₁ v₁)
+    (hstate₂ : a₂.toState = E.setScalarState a₁.toState name₂ v₂) :
     E.settleAssignAt E.env E.elems s.toState view index
       [.assign (.ident name₁) value₁, .assign (.ident name₂) value₂] =
       .ok (a₂.toState, SvState.set (SvState.set view name₁ v₁) name₂ v₂) := by
@@ -359,7 +363,7 @@ theorem CoreMemDesign.settleAssignAt_two_ident_fast_refines
   have hs₂ := E.fastScalarAssignAt_toState a₁ a₂ (SvState.set view name₁ v₁)
     (index + 1) name₂ value₂ width₂ v₂ x₂ hwidth₂ hresolve₂ hpath₂ hbound₂ hv₂ h₂
   have hv₂' := hv₂
-  rw [hs₁] at hv₂'
-  simp [CoreMemDesign.settleAssignAt, hwidth₁, hwidth₂, hv₁, hv₂', hs₁, hs₂]
+  rw [hstate₁] at hv₂'
+  simp [CoreMemDesign.settleAssignAt, hwidth₁, hwidth₂, hv₁, hv₂', hstate₁, hstate₂]
 
 end LeanModels.Sv.Kernel
