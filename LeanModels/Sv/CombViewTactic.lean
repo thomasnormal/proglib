@@ -2422,16 +2422,30 @@ structural check), and what remains is the arithmetic of the widths, which the t
 `simp` and `omega`. It generalizes the 23-line recipe that every proof carried until WP-P (the
 `Summary.sound`/`σL`/`Aff.eval` incantation of svgolf/PROVING.md §2.2) and, unlike it, does not
 re-derive the in-range obligations the profile already stands for. Designs with localparams need no
-change: the valuation is `Summary.val`. -/
+change: the valuation is `Summary.val`.
+
+The goal may also be any statement about the port lists of `CombTask.lean` (`(X.sem N).inputPorts = …`,
+`(X.sem N).outputPorts = …`, their conjunction) or about `(X.sem N).decls` itself: a statement written over
+ls-sv alone, without a task structure (`Examples/system-verilog/prefix_ks/add_proof.lean`). -/
+
+/-- The design a goal about ports names: the argument of the first `Design2.inputPorts`, `Design2.outputPorts` or
+`Design2.decls` in it (the second form of `sv_interface`'s goal). -/
+def portsDesign? (ty : Expr) : Option Expr :=
+  (ty.find? fun e =>
+    -- (single backticks: `CombTask.lean`, which defines the port lists, is not imported here)
+    (e.isAppOfArity `LeanModels.Sv.Design2.inputPorts 1 || e.isAppOfArity `LeanModels.Sv.Design2.outputPorts 1 ||
+      e.isAppOfArity ``LeanModels.Sv.Design2.decls 1)).map (·.appArg!)
 
 /-- Run the interface stage. -/
 unsafe def runSvInterface : TacticM Unit := do
   let goal ← getMainGoal
   goal.withContext do
     let ty ← instantiateMVars (← goal.getType)
-    unless ty.isApp && ty.getAppNumArgs ≥ 3 && ty.getAppFn.isConst do
-      throwError "sv_interface: the goal must be a task's interface statement `t.Interface N (X.sem N)`"
-    let D := ty.appArg!
+    -- Two goal forms: a task's interface statement `t.Interface N (X.sem N)` (its head is unfolded), or any statement
+    -- about `(X.sem N).inputPorts`, `.outputPorts` or `.decls` (the ports of `CombTask.lean`).
+    let taskForm := ty.isApp && ty.getAppNumArgs ≥ 3 && ty.getAppFn.isConst && (portsDesign? ty).isNone
+    let some D := (if taskForm then some ty.appArg! else portsDesign? ty)
+      | throwError "sv_interface: the goal must be a task's interface statement `t.Interface N (X.sem N)`, or a statement about the ports (`Design2.inputPorts`, `Design2.outputPorts`) or the declarations of `X.sem N`"
     let some (pd, args, aliased) ← findGD2A D 8
       | if (← isHD2Family D 8) then throwError (hierarchyRefusal "sv_interface")
         else throwError "sv_interface: cannot read a `load_design_sv2` family (`X.sem N`) off the design in the goal"
@@ -2502,17 +2516,24 @@ unsafe def runSvInterface : TacticM Unit := do
       closeDecide `hok "the structural check failed"
       setGoals [bodyGoal]
       -- unfold the statement and the task, and evaluate the declarations' widths
-      let headId := mkIdent ty.getAppFn.constName!
       let taskIds : Array Ident :=
-        match ty.getArg! 0 with
-        | .const n _ => #[mkIdent n]
-        | _ => #[]
+        if taskForm then
+          match ty.getArg! 0 with
+          | .const n _ => #[mkIdent n]
+          | _ => #[]
+        else #[]
       let taskLemmas ← taskIds.mapM fun i => `(Lean.Parser.Tactic.simpLemma| $i:ident)
       try
-        -- (`SvGolf` is not imported here: the names are built without macro scopes, resolved in the user's file)
-        let inPorts := mkIdent `SvGolf.inputPorts
-        let outPorts := mkIdent `SvGolf.outputPorts
-        evalTactic (← `(tactic| simp only [$headId:ident, $inPorts:ident, $outPorts:ident]))
+        -- the statement's head and the port lists that exist in the user's environment (`SvGolf` and `CombTask.lean`
+        -- are not imported here: the names are built without macro scopes and resolved in the user's file)
+        let env ← getEnv
+        let unfoldNames : List Name := (if taskForm then [ty.getAppFn.constName!] else []) ++
+          ([`SvGolf.inputPorts, `SvGolf.outputPorts, `LeanModels.Sv.Design2.inputPorts,
+            `LeanModels.Sv.Design2.outputPorts].filter env.contains)
+        let unfoldLemmas ← (unfoldNames.map mkIdent).toArray.mapM fun i =>
+          `(Lean.Parser.Tactic.simpLemma| $i:ident)
+        unless unfoldLemmas.isEmpty do
+          evalTactic (← `(tactic| simp only [$unfoldLemmas,*]))
         evalTactic (← `(tactic| rw [$keyI:ident]))
         evalTactic (← `(tactic|
           sv_simp [LeanModels.Sv.CombView.DeclT.toDecl, LeanModels.Sv.CombView.DeclT.width,
