@@ -3,10 +3,10 @@ import LeanModels.Sv.CombProcTactic
 open LeanModels.Sv LeanModels.Sv.CombView
 open Examples.«system-verilog».sklansky_guards.nonaffine.gen
 namespace Examples.«system-verilog».sklansky_guards.nonaffine.comb_errors
-/--
-error: sv_structure: outside the supported fragment — site `g_bit#0`: non-affine genvar-index obligation: read `a[…]` has a dynamic or nonlinear index, so the driven window cannot be determined
--/
-#guard_msgs (whitespace := lax) in
-example (N : Nat) (hN : 1 ≤ N) : CombDesign (nonaffine.sem N) := by
+/-- `a[(i >> 1) << 1]` (a shift of the genvar by a literal amount, IEEE 1800-2023 §11.4.10) was refused as a non-affine
+index until tac6; it is now the atom `shlK i 1`, owed in its range (`0 ≤ i < 2^31`), which a range premise provides. -/
+theorem nonaffine_comb (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 30) : CombDesign (nonaffine.sem N) := by
   sv_structure
+  all_goals (intros; first | omega | sv_pow_omega)
+
 end Examples.«system-verilog».sklansky_guards.nonaffine.comb_errors
