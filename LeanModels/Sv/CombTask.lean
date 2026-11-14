@@ -14,7 +14,9 @@ function is generic, and this file proves it once:
 * `CombDesign.unclocked`: no process runs in the edge phase (every process is a continuous assign);
 * `CombDesign.lowerComb_eq`: a comb-profile design lowers to itself, so `Acyclic d` is its loop-freedom;
 * `Models2.of_comb_ports`: a property of every cycle's stimulus entry and snapshot, from the settled-state form, where
-  each input port the entry drives holds the driven value.
+  each input port the entry drives holds the driven value;
+* `CombTask.of_comb` (tac6): the whole statement shape (ports, the generic conjuncts, the stimulus form) from
+  `CombDesign`, `Acyclic` and the ports, so a task proof starts at the settled-state goal.
 
 Nothing here is trusted: every theorem is proved, and nothing mentions a tactic.
 -/
@@ -83,5 +85,27 @@ theorem Models2.of_comb_ports {d : Design2} (hd : CombDesign d) {Q : SvState →
   intro stim tr h c inputs st hi hc
   obtain ⟨heqs, hs, hin⟩ := h c st hc
   exact hQ inputs st heqs hs fun n hn v hv => hin inputs hi n (by rwa [Design2.inputPorts_map_fst] at hn) v hv
+
+/-- **A combinational task's statement from the comb products** (tac6): the ports `ins`/`outs`, no clocked process, the
+design its own lowering with the rank certificate `ha`, termination, and a property `Q` of every cycle's stimulus entry
+and snapshot, from the settled-state form (`Models2.of_comb_ports`, with the port list read through `hp`). The shape is
+the statement of a combinational task (svGolf's `CombTask.SatisfiedAt` unfolded, e.g. `prefix_ks/statement.lean`). -/
+theorem CombTask.of_comb {d : Design2} {ins outs : List (String × Nat)} {Q : SvState → SvState → Prop}
+    (hc : CombDesign d) (ha : Acyclic d) (hp : d.inputPorts = ins ∧ d.outputPorts = outs)
+    (hQ : ∀ inputs st, CombEqs d st → StateShape d st →
+      (∀ n ∈ ins.map Prod.fst, ∀ v, SvState.lookup inputs n = some v → SvState.lookup st n = some v) →
+      Q inputs st) :
+    (d.inputPorts = ins ∧ d.outputPorts = outs) ∧
+      ((∀ p ∈ d.processes.toList, p.isEdgePhase = false) ∧ (∃ d', d.lowerComb = some d' ∧ Acyclic d') ∧
+        Terminates2 d) ∧
+      d ⊨₂ spec2 fun stim tr => ∀ (c : Nat) (inputs st : SvState),
+        stim[c]? = some inputs → tr[c]? = some st → Q inputs st :=
+  ⟨hp, ⟨hc.unclocked, ⟨_, hc.lowerComb_eq, ha⟩, Terminates2.of_acyclic hc ha⟩,
+    Models2.of_comb_ports hc fun inputs st heqs hsh hin => hQ inputs st heqs hsh (by rw [← hp.1]; exact hin)⟩
+
+/-- A one-bit vector is the `BitVec.ofBool` of its bit (the port of a task statement's `cin : BitVec 1`, read as the
+`Bool` the equations hold). -/
+theorem CombTask.bv1_eq_ofBool (x : BitVec 1) : x = BitVec.ofBool (x.getLsbD 0) :=
+  BitVec.eq_of_getLsbD_eq fun i hi => by obtain rfl : i = 0 := (by omega); simp
 
 end LeanModels.Sv
