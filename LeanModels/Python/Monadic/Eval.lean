@@ -4823,6 +4823,44 @@ theorem finishCallM_inWorld_of_unsupported {α : Type} (depth : Nat)
     rw [h]
   exact finishCallM_of_unsupported depth (inWorld locals action) w cause msg snapshot hi
 
+theorem twinAgrees_callInM_top_body_exn
+    (K : Kont) (m : Module) (fname : String) (args : Array RVal)
+    (f : FunctionDefn) (w : World) (st' : FrameState) (e : PyErr)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList K m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.error e, st')) :
+    toRun (callInM K m fname args)
+      { w with callDepth := pythonTopCallDepth } =
+      .exn { st'.world with callDepth := pythonTopCallDepth } e := by
+  unfold callInM
+  rw [hfind]
+  simp only [hgen, hargs, hlocal, hnotgen, harity,
+    Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+  rw [toRun_get_bind]
+  rw [if_pos (beq_self_eq_true _)]
+  rw [toRun_bind]
+  rw [toRun_set]
+  simp only [Run.bind]
+  rw [toRun_bind]
+  have hfinish : toRun (finishCallM pythonTopCallDepth
+      (inWorld (globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal)
+        (execOpenList K m f.body.toList))) { w with callDepth := 1 } =
+      .exn { st'.world with callDepth := pythonTopCallDepth } e := by
+    exact finishCallM_inWorld_of_exn pythonTopCallDepth
+      (globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal)
+      (execOpenList K m f.body.toList) { w with callDepth := 1 } st' e hbody
+  rw [hfinish]
+  rfl
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by

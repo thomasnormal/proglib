@@ -650,3 +650,7 @@ call boundary produces the faithful `"'break' outside loop"` refusal.
 `Monadic.twinAgrees_callInM_top_body_continue` provides the corresponding
 arbitrary raw body transport for `RFlow.cont`, yielding the faithful
 `"'continue' outside loop"` refusal at top-level call entry.
+
+`Monadic.twinAgrees_callInM_top_body_exn` composes an arbitrary raw body
+exception through the top-depth call boundary. The post-body world is retained,
+the call depth is restored, and the original `PyErr` is propagated unchanged.
