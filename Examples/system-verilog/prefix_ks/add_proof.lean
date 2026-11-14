@@ -87,7 +87,6 @@ theorem ks_ports (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) (hc : CombDesign (pr
 
 /-! ## 3. The statement -/
 
-set_option maxHeartbeats 400000 in
 /-- **The Kogge-Stone adder meets the svGolf `add` statement**, at every `N` with `1 ≤ N < 2^20`. -/
 theorem prefix_ks_add : AddStatement prefix_ks.sem := by
   intro N ⟨hN, hR⟩

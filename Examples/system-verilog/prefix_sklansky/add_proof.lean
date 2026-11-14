@@ -104,7 +104,7 @@ theorem skl_ports (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) (hc : CombDesign (p
 
 /-! ## 3. The statement -/
 
-set_option maxHeartbeats 400000 in
+set_option maxHeartbeats 300000 in
 /-- **The Sklansky adder meets the svGolf `add` statement**, at every `N` with `1 ≤ N < 2^20`. -/
 theorem prefix_sklansky_add : AddStatement prefix_sklansky.sem := by
   intro N ⟨hN, hR⟩
