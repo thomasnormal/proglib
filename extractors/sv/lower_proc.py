@@ -1037,9 +1037,16 @@ def net_driver_reason(ex, sm, symbol, dtype):
                 # module scope.  Keep the source-shaped genvar window; the
                 # interval coverage below and Design2.driverGuard check the
                 # actual parameter point for one driver per bit.
-                if kind != "ContinuousAssignSymbol":
+                if kind == "ContinuousAssignSymbol":
+                    generated_windows = True
+                elif kind == "InstanceSymbol":
+                    # A child instance in an active generate branch is the
+                    # same source-shaped full-width driver as a module-level
+                    # instance; its concrete branch is selected by E's
+                    # generate expansion.
+                    generated_windows = True
+                else:
                     return "a driver inside a generate scope"
-                generated_windows = True
             if kind == "ContinuousAssignSymbol" and (has_strength(owner) or getattr(owner, "delay", None) is not None):
                 return "an explicit drive strength or a delay"
             lo, hi = d.bounds
@@ -1057,6 +1064,13 @@ def net_driver_reason(ex, sm, symbol, dtype):
         if len(records) == 1 and texts[0] == symbol.name and not generated_windows:
             return None                                                       # (A)
         if generated_windows:
+            # A mutually exclusive conditional-generate arm can be the sole
+            # full-width driver at the elaborated parameter point.  Slang
+            # marks that driver as generated even though it has no genvar
+            # index; retain the source-shaped assignment and let the
+            # concrete generate expansion select the active arm.
+            if len(records) == 1 and all(t == symbol.name for t in texts):
+                return None
             gen_window = re.compile(r"^%s\s*\[\s*[A-Za-z_$][A-Za-z0-9_$]*\s*\]$" % re.escape(symbol.name))
             if all(gen_window.match(t) for t in texts):
                 return None                                                       # generated genvar windows

@@ -1024,7 +1024,25 @@ class NetsAsVariables(Base):
         m = self.top("wire [3:0] w; for (genvar i = 0; i < 4; i++) begin : g assign w[i] = a[i]; end assign y = w;")
         self.assertEqual(sv_kinds(m), [])
         self.assertEqual(self.decl(m, "w")["kind"], "Var")
-        self.refused_net("wire [3:0] w; if (1) begin : g assign w = a; end assign y = w;")
+
+    def test_generated_full_width_output_port_driver(self):
+        m = self.top(
+            "if (1) begin : g assign z_out = 1'b0; end",
+            ports="input logic clk, output wire z_out")
+        self.assertNotIn("PortSymbol:net-z", sv_kinds(m))
+        z = [p for p in m["ports"] if p["name"] == "z_out"][0]
+        self.assertTrue(z["net_as_variable"])
+
+    def test_generated_instance_full_width_output_port_driver(self):
+        child = "module leaf(input logic a, output wire y); assign y = a; endmodule"
+        top = "module top(input logic a, output wire y); if (1) begin : g leaf u(.a(a), .y(y)); end endmodule"
+        m = self.module(top, top="top", more=(child,))
+        self.assertNotIn("PortSymbol:net-z", sv_kinds(m))
+        y = [p for p in m["ports"] if p["name"] == "y"][0]
+        self.assertTrue(y["net_as_variable"])
+        m = self.top("wire [3:0] w; if (1) begin : g assign w = a; end assign y = w;")
+        self.assertEqual(sv_kinds(m), [])
+        self.assertEqual(self.decl(m, "w")["kind"], "Var")
 
     def test_nets_declared_in_a_generate_scope(self):
         m = self.top("if (1) begin : g wire [3:0] w; assign w = a; assign y = w; end")

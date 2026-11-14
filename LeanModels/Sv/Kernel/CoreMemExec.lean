@@ -236,7 +236,12 @@ def instScalarDecl1 (env : IEnv) (pd : PDecl) : Res (Option Decl) :=
             let dc : Decl :=
               { name := pd.name, width := w, isSigned := pd.isSigned,
                 isNet := pd.isNet, twoState := pd.twoState,
-                isInput := pd.isInput, isOutput := pd.isOutput }
+                isInput := pd.isInput, isOutput := pd.isOutput,
+                -- IEEE 1800-2023 §6.6: an undriven four-state net reads z
+                -- at time zero.  This also covers output-wire ports admitted
+                -- as a single generated driver; the retained declaration is
+                -- still a net and must not inherit the variable x start.
+                init := if pd.isNet then some (LVec.replicate w .lz) else none }
             .ok (some dc)
         | some init =>
             match instExpr env (some w) init with

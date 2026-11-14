@@ -1,0 +1,185 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "net_generated_output_port_canonical_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/net_generated_output_port_canonical_e/net_generated_output_port_canonical_e.sv",
+      "sha256": "a212f0cf60f4c427aa9a3a8c1899e8416e51583861d250aaad4ca8e33bc1e7a1"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 11,
+          "end_col": 10
+        },
+        "name": "net_generated_output_port_canonical_e",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 66,
+              "end_line": 2,
+              "end_col": 71
+            },
+            "name": "N",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 66,
+                      "end_line": 2,
+                      "end_col": 71
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 66,
+                      "end_line": 2,
+                      "end_col": 71
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 2,
+                "col": 70,
+                "end_line": 2,
+                "end_col": 71
+              },
+              "value": 1,
+              "resolved_width": 32
+            },
+            "resolved": 1
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 17,
+              "end_line": 3,
+              "end_col": 20
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 17,
+              "end_line": 4,
+              "end_col": 22
+            },
+            "name": "z_out",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "net_as_variable": true
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "GenerateIf",
+            "span": {
+              "line": 7,
+              "col": 5,
+              "end_line": 9,
+              "end_col": 8
+            },
+            "label": "g",
+            "else_label": null,
+            "cond": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 7,
+                "col": 9,
+                "end_line": 7,
+                "end_col": 10
+              },
+              "name": "N"
+            },
+            "then": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 8,
+                  "col": 14,
+                  "end_line": 8,
+                  "end_col": 26
+                },
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 8,
+                    "col": 14,
+                    "end_line": 8,
+                    "end_col": 19
+                  },
+                  "width": 1,
+                  "name": "z_out"
+                },
+                "value": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 8,
+                    "col": 22,
+                    "end_line": 8,
+                    "end_col": 26
+                  },
+                  "width": 1,
+                  "bits": "0"
+                }
+              }
+            ],
+            "else": null
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
