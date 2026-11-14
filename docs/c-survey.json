@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 947,
+   "passed": 948,
    "refused-libc": 34,
    "refused-ub": 98,
-   "refused-unsupported": 507,
+   "refused-unsupported": 506,
    "timeout": 64
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1127,
+  "passed": 1128,
   "refused-libc": 38,
   "refused-ub": 107,
-  "refused-unsupported": 581,
+  "refused-unsupported": 580,
   "timeout": 66
  },
  "dynamic_wall_ranking": [
@@ -882,18 +882,6 @@
   },
   {
    "files": [
-    "00010.c",
-    "00199.c",
-    "20040704-1.c",
-    "pr119291.c",
-    "pr17078-1.c"
-   ],
-   "present": 5,
-   "sole": 5,
-   "wall": "unsupported:break, continue or goto escaped a function body"
-  },
-  {
-   "files": [
     "20021118-2.c",
     "20041212-1.c",
     "20101011-1.c",
@@ -949,6 +937,17 @@
    "present": 4,
    "sole": 4,
    "wall": "libc-call: __builtin_malloc"
+  },
+  {
+   "files": [
+    "00010.c",
+    "00199.c",
+    "20040704-1.c",
+    "pr119291.c"
+   ],
+   "present": 4,
+   "sole": 4,
+   "wall": "unsupported:break, continue or goto escaped a function body"
   },
   {
    "files": [
@@ -3139,8 +3138,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-14T16:18:18Z",
- "measured_commit": "922b99b3e31f9d8a06250c4526c102b06c485b20",
+ "measured_at_utc": "2026-11-14T17:24:17Z",
+ "measured_commit": "f0920b001b75afada50ffc7cddfdfff0e0e3e4be",
  "pin": {
   "corpora": [
    "C1",
@@ -21579,13 +21578,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "break, continue or goto escaped a function body",
-   "dynamic_wall": "unsupported:break, continue or goto escaped a function body",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr17078-1.c",
    "sha256": "c26101464fa3b8842c83fad03c34325ed0591a7848e6f72200fe4fc656999cb6",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
