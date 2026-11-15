@@ -780,3 +780,8 @@ fuel automatically gets the corresponding expression-statement bridge.
 for a unary operator over an integer literal.  Its two-step threshold records
 both the unary child evaluation and the enclosing expression-statement step;
 the recursive continuation and richer expression cases remain open.
+
+`Monadic.twinAgrees_execStmt_expr_intAdd` supplies the corresponding binary
+integer-literal addition instance through the generic expression-statement
+control rule.  The child list is handled by the existing left-to-right bridge;
+no fixed-length body or assignment matrix is introduced.
