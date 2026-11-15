@@ -1111,16 +1111,27 @@ def storeBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
   match ctx.layout.fieldBits recordTy field, ctx.layout.size storageRecordTy,
       intTyOf? (ctx.layout.normalizeTy fieldTy), v with
   | some (offsetBits, width), some recordSize, some storageTy, .int _ n =>
-      let basePtr := { fieldPtr with off := fieldPtr.off - (offsetBits / 8 : Int), bound := none }
-      let bs ← readMem (fun m => m.loadBytes basePtr recordSize)
-      -- Store the declared value's raw width-bit representation.  A signed
-      -- `-1` must occupy all one bits; converting the signed wrapped value
-      -- directly with `Int.toNat` would turn it into zero instead of its
-      -- two's-complement residue.
-      let modulus : Int := (2 : Int) ^ width
-      let fieldValue := ((n % modulus + modulus) % modulus).toNat
-      let bytes := bitFieldStoreBytes bs offsetBits width fieldValue
-      writeMem (fun m => m.storeBytes basePtr bytes)
+      -- C23 §6.3.1.3p3 leaves conversion to a signed type outside its
+      -- range implementation-defined (J.3.6(3)).  The profile does not
+      -- pin a signed bit-field conversion rule, so do not silently choose
+      -- the two's-complement residue here; a conforming consumer must make
+      -- this case a loud refusal until that fact is measured and recorded.
+      let fieldTy' := (intTyOf? (ctx.layout.normalizeTy fieldTy)).getD storageTy
+      let fieldMin := -((2 : Int) ^ (width - 1))
+      let fieldMax := (2 : Int) ^ (width - 1) - 1
+      if fieldTy'.signed && (n < fieldMin || n > fieldMax) then
+        refuseUnsupported "implementation-defined bit-field conversion"
+      else
+        let basePtr := { fieldPtr with off := fieldPtr.off - (offsetBits / 8 : Int), bound := none }
+        let bs ← readMem (fun m => m.loadBytes basePtr recordSize)
+        -- Store the declared value's raw width-bit representation.  A signed
+        -- `-1` must occupy all one bits; converting the signed wrapped value
+        -- directly with `Int.toNat` would turn it into zero instead of its
+        -- two's-complement residue.
+        let modulus : Int := (2 : Int) ^ width
+        let fieldValue := ((n % modulus + modulus) % modulus).toNat
+        let bytes := bitFieldStoreBytes bs offsetBits width fieldValue
+        writeMem (fun m => m.storeBytes basePtr bytes)
   | some _, _, _, _ => refuseUnsupported s!"unsupported bit-field store '{fieldTy}'"
   | none, _, _, _ => refuseUnsupported s!"no bit-field layout for '{field}'"
 
