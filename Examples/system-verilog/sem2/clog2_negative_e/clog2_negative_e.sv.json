@@ -1,0 +1,202 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "clog2_negative_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/clog2_negative_e/clog2_negative_e.sv",
+      "sha256": "63bc5a8f5fc7aa30444df45659ee102ce745d99d866f4a059365c4369e055d46"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 4,
+          "end_col": 10
+        },
+        "name": "clog2_negative_e",
+        "imports": [],
+        "params": [
+          {
+            "kind": "LocalParam",
+            "span": {
+              "line": 2,
+              "col": 18,
+              "end_line": 2,
+              "end_col": 32
+            },
+            "name": "W",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 18,
+                      "end_line": 2,
+                      "end_col": 32
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 18,
+                      "end_line": 2,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "expr": {
+              "kind": "Squash2",
+              "span": {
+                "line": 2,
+                "col": 22,
+                "end_line": 2,
+                "end_col": 32
+              },
+              "width": 32,
+              "operand": {
+                "kind": "SysCall",
+                "span": {
+                  "line": 2,
+                  "col": 22,
+                  "end_line": 2,
+                  "end_col": 32
+                },
+                "name": "$clog2",
+                "args": [
+                  {
+                    "kind": "Unary",
+                    "span": {
+                      "line": 2,
+                      "col": 29,
+                      "end_line": 2,
+                      "end_col": 31
+                    },
+                    "width": 32,
+                    "op": "-",
+                    "operand": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 2,
+                        "col": 30,
+                        "end_line": 2,
+                        "end_col": 31
+                      },
+                      "value": 1,
+                      "resolved_width": 32
+                    }
+                  }
+                ],
+                "resolved": 32
+              }
+            },
+            "resolved": 32
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 44,
+              "end_line": 1,
+              "end_col": 45
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 39,
+                      "end_line": 1,
+                      "end_col": 40
+                    },
+                    "value": 5,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 41,
+                      "end_line": 1,
+                      "end_col": 42
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 6
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 3,
+              "col": 10,
+              "end_line": 3,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 10,
+                "end_line": 3,
+                "end_col": 11
+              },
+              "width": 6,
+              "name": "y"
+            },
+            "value": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 3,
+                "col": 14,
+                "end_line": 3,
+                "end_col": 15
+              },
+              "name": "W"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

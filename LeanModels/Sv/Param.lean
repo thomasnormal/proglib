@@ -1363,9 +1363,13 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
   | .sysCall fn a =>
       match fn, a with
       | .clog2, e => do
-          let v ← evalAt env (← ctype env e) e
-          if v < 0 then .error "$clog2 of a negative value"
-          else .ok (convertConst 32 ty.1 ty.2 (clog2 v.toNat : Int))
+          -- IEEE 1800-2023 §20.8.1 reads the argument as unsigned.  The
+          -- argument's self-determined width supplies the modulo domain, so
+          -- `$clog2(-1)` on an unsized 32-bit integer is 32, not a refusal.
+          let ety ← ctype env e
+          let v ← evalAt env ety e
+          let u := v.emod ((2 : Int) ^ ety.1)
+          .ok (convertConst 32 ty.1 ty.2 (clog2 u.toNat : Int))
       | .bits, .ident n =>
           match env.widths.lookup n with
           | some w => .ok (convertConst 32 ty.1 ty.2 (w : Int))
@@ -1857,7 +1861,10 @@ def evalInt (env : IEnv) : PExpr → Except String Int
       match fn, a with
       | .clog2, e => do
           let v ← evalInt env e
-          if v < 0 then .error "$clog2 of a negative value" else .ok (clog2 v.toNat : Int)
+          -- The INT-class path is exactly the unsized 32-bit argument of
+          -- §20.8.1, including negative values interpreted modulo 2^32.
+          let u := if v < 0 then v.emod ((2 : Int) ^ 32) else v
+          .ok (clog2 u.toNat : Int)
       | .bits, .ident n =>
           match env.widths.lookup n with
           | some w => .ok (w : Int)
