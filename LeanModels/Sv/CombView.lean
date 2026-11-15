@@ -3250,7 +3250,9 @@ theorem opdBin_cases {op : SymBinOp} {a b c : Aff} (h : opdBin op a b = some c) 
 leaves and each intermediate result): an integer literal, a genvar or a parameter, `+`, `-`, `*` with a constant
 side, and a shift or power atom (`xatOf?`: `1 << n`, `b ** n`, `m >> n`, `(m >> n) << n`, `(m >> n) & 1`). The
 instantiation evaluates the operand at the signed 32-bit type (`evalGenGuard`, `evalAt`), so its value is the affine one
-exactly where every subterm's is a 32-bit value and every atom is in its range (`guard_eval`). -/
+exactly where every subterm's is a 32-bit value and every atom is in its range (`guard_eval`). A `?:` whose condition
+compares two such operands and whose arms are such operands is one conditional atom (tac8: `XAt.cond`, the `CL` that
+`clOf?` reads; `opd_eval` shows `evalAt`'s value is the atom's), its four operands' subterms owed in the range. -/
 def opdAffs? : PExpr → Option (Aff × List Aff)
   | .int v => some (Aff.const v, [Aff.const v])
   | .genvarRef n => some (Aff.var n, [Aff.var n])
@@ -3265,6 +3267,11 @@ def opdAffs? : PExpr → Option (Aff × List Aff)
               | some x => some (Aff.atom x, ra ++ rb ++ [Aff.atom x])
               | none => none
       | _, _ => none
+  | .ternary (.binary cop l r) t e =>
+      match clOf? (.ternary (.binary cop l r) t e), opdAffs? l, opdAffs? r, opdAffs? t, opdAffs? e with
+      | some x, some (_, rl), some (_, rr), some (_, rt), some (_, re) =>
+          some (Aff.atom (.cond x), rl ++ rr ++ rt ++ re)
+      | _, _, _, _, _ => none
   | _ => none
 
 /-- The comparison of a generate condition: the signed orders `s< s<= s> s>=` and `==`, `!=` (the envelope's spellings
@@ -3290,12 +3297,14 @@ def guardOf? : PExpr → Option Guard
 def _root_.LeanModels.Sv.PExpr.gvLeaves : PExpr → List String
   | .genvarRef n => [n]
   | .binary _ l r => l.gvLeaves ++ r.gvLeaves
+  | .ternary c t e => c.gvLeaves ++ t.gvLeaves ++ e.gvLeaves
   | _ => []
 
 /-- The parameters an affine operand reads. -/
 def _root_.LeanModels.Sv.PExpr.pLeaves : PExpr → List String
   | .paramRef n none => [n]
   | .binary _ l r => l.pLeaves ++ r.pLeaves
+  | .ternary c t e => c.pLeaves ++ t.pLeaves ++ e.pLeaves
   | _ => []
 
 theorem Guard.all_append : ∀ (a b : List (Guard × Bool)) (σ : String → Int),

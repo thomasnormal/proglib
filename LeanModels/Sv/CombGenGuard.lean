@@ -284,6 +284,126 @@ theorem opd_eval_xat {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
     · simp at hx
   · simp at hx
 
+/-- The operators of a shift or power atom. -/
+theorem xatOf?_op {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r = some x) :
+    op = .shl ∨ op = .pow ∨ op = .shr ∨ op = .m0 .and := by
+  rcases xatOf?_cases h with ⟨rfl, -⟩ | ⟨_, _, rfl, -⟩ | ⟨_, _, rfl, -⟩ | ⟨_, _, _, _, rfl, -⟩ | ⟨_, _, _, _, rfl, -⟩ |
+    ⟨_, _, rfl, -⟩ | ⟨_, _, _, _, rfl, -⟩ | ⟨_, _, _, rfl, -⟩ <;> simp
+
+/-- The operators of a linear step of an operand. -/
+theorem opdBin_op {op : SymBinOp} {a b c : Aff} (h : opdBin op a b = some c) :
+    op = .m0 .add ∨ op = .m0 .sub ∨ op = .mul ∨ op = .m0 .mul := by
+  rcases opdBin_cases h with ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl | rfl, -⟩ <;> simp
+
+/-- **The two readings of an operand agree** (tac8): where both the conditional reading (`clOf?`) and the operand
+reading (`opdAffs?`) accept an expression, they give it the same value, at every valuation. -/
+theorem clOf?_opd_eval {σ : String → Int} :
+    ∀ (e : PExpr) (x : CL) (a : Aff) (rs : List Aff), clOf? e = some x → opdAffs? e = some (a, rs) →
+      x.eval σ = a.eval σ
+  | .int v, x, a, rs, h1, h2 => by
+      simp only [clOf?, Option.some.injEq] at h1
+      simp only [opdAffs?, Option.some.injEq, Prod.mk.injEq] at h2
+      obtain ⟨rfl, -⟩ := h2
+      subst h1
+      simp [CL.eval, CL.linEval, Aff.eval_const]
+  | .genvarRef n, x, a, rs, h1, h2 => by
+      simp only [clOf?, Option.some.injEq] at h1
+      simp only [opdAffs?, Option.some.injEq, Prod.mk.injEq] at h2
+      obtain ⟨rfl, -⟩ := h2
+      subst h1
+      simp [CL.eval, CL.linEval, Aff.eval_var]
+  | .paramRef n none, x, a, rs, h1, h2 => by
+      simp only [clOf?, Option.some.injEq] at h1
+      simp only [opdAffs?, Option.some.injEq, Prod.mk.injEq] at h2
+      obtain ⟨rfl, -⟩ := h2
+      subst h1
+      simp [CL.eval, CL.linEval, Aff.eval_var]
+  | .binary op l r, x, a, rs, h1, h2 => by
+      simp only [clOf?] at h1
+      simp only [opdAffs?] at h2
+      rcases hl : clOf? l with _ | xl
+      · simp [hl] at h1
+      rcases hr : clOf? r with _ | xr
+      · simp [hl, hr] at h1
+      rcases hla : opdAffs? l with _ | ⟨al, ral⟩
+      · simp [hla] at h2
+      rcases hra : opdAffs? r with _ | ⟨ar, rar⟩
+      · simp [hla, hra] at h2
+      simp only [hl, hr] at h1
+      simp only [hla, hra] at h2
+      have il := clOf?_opd_eval (σ := σ) l xl al ral hl hla
+      have ir := clOf?_opd_eval (σ := σ) r xr ar rar hr hra
+      rcases hob : opdBin op al ar with _ | c
+      · -- the operand reading is an atom: the conditional reading's shift by a literal
+        rcases hxa : xatOf? op l r with _ | y
+        · simp [hob, hxa] at h2
+        simp only [hob, hxa, Option.some.injEq, Prod.mk.injEq] at h2
+        obtain ⟨rfl, -⟩ := h2
+        rcases hb : clBin op xl xr with _ | c'
+        · simp only [hb] at h1
+          obtain ⟨m, k, hx, rfl⟩ := clShr_cases h1
+          rw [hxa, Option.some.injEq] at hx
+          subst hx
+          simp [CL.eval, Aff.eval_atom, XAt.eval]
+        · -- `clBin` applies to the linear operators only, none of which an atom has
+          rcases clBin_cases hb with ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨hop, -⟩
+          · rcases xatOf?_op hxa with h | h | h | h <;> cases h
+          · rcases xatOf?_op hxa with h | h | h | h <;> cases h
+          · rcases hop with rfl | rfl <;> rcases xatOf?_op hxa with h | h | h | h <;> cases h
+      · simp only [hob, Option.some.injEq, Prod.mk.injEq] at h2
+        obtain ⟨rfl, -⟩ := h2
+        rcases hb : clBin op xl xr with _ | c'
+        · -- a shift by a literal is not a linear step
+          simp only [hb] at h1
+          obtain ⟨m, k, hx, rfl⟩ := clShr_cases h1
+          rcases opdBin_op hob with rfl | rfl | rfl | rfl <;> rcases xatOf?_op hx with h | h | h | h <;> cases h
+        simp only [hb, Option.some.injEq] at h1
+        subst h1
+        rcases clBin_cases hb with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨hop, ⟨k, rfl, rfl⟩ | ⟨k, rfl, rfl⟩⟩
+        · simp only [opdBin, Option.some.injEq] at hob
+          subst hob
+          simp only [CL.eval, il, ir, Aff.eval_add]
+        · simp only [opdBin, Option.some.injEq] at hob
+          subst hob
+          simp only [CL.eval, il, ir, Aff.eval_sub]
+          omega
+        · simp only [CL.eval, CL.linEval, Int.zero_add] at il
+          have hm : affMul al ar = some c := by
+            rcases hop with rfl | rfl <;> simpa [opdBin] using hob
+          rw [affMul_eval σ hm]
+          simp only [CL.eval, ir, il]
+        · simp only [CL.eval, CL.linEval, Int.zero_add] at ir
+          have hm : affMul al ar = some c := by
+            rcases hop with rfl | rfl <;> simpa [opdBin] using hob
+          rw [affMul_eval σ hm]
+          simp only [CL.eval, il, ← ir]
+          exact Int.mul_comm _ _
+  | .ternary c t e, x, a, rs, h1, h2 => by
+      -- one conditional atom in both readings: the same `clOf?` value
+      cases c with
+      | binary cop l r =>
+          simp only [opdAffs?] at h2
+          rw [h1] at h2
+          rcases hla : opdAffs? l with _ | ⟨al, ral⟩
+          · simp [hla] at h2
+          rcases hra : opdAffs? r with _ | ⟨ar, rar⟩
+          · simp [hla, hra] at h2
+          rcases hta : opdAffs? t with _ | ⟨at', rat⟩
+          · simp [hla, hra, hta] at h2
+          rcases hea : opdAffs? e with _ | ⟨ae, rae⟩
+          · simp [hla, hra, hta, hea] at h2
+          simp only [hla, hra, hta, hea, Option.some.injEq, Prod.mk.injEq] at h2
+          obtain ⟨rfl, -⟩ := h2
+          simp [Aff.eval_atom, XAt.eval]
+      | _ => simp [opdAffs?] at h2
+  | .paramRef _ (some _), _, _, _, _, h2 => by simp [opdAffs?] at h2
+  | .lit _, _, _, _, _, h2 | .ident _, _, _, _, _, h2 | .enumRef .., _, _, _, _, h2 | .fill _, _, _, _, _, h2
+  | .unary .., _, _, _, _, h2 | .concat _, _, _, _, _, h2 | .resize .., _, _, _, _, h2
+  | .signedResize .., _, _, _, _, h2 | .squash2 .., _, _, _, _, h2 | .sysCall .., _, _, _, _, h2
+  | .bitSel .., _, _, _, _, h2 | .partSel .., _, _, _, _, h2 | .repl .., _, _, _, _, h2 | .reduce .., _, _, _, _, h2
+  | .cast .., _, _, _, _, h2 | .arrayElem .., _, _, _, _, h2 | .arrayPart .., _, _, _, _, h2
+  | .unsupported .., _, _, _, _, h2 | .functionCall .., _, _, _, _, h2 => by simp [opdAffs?] at h2
+
 /-- **An affine operand evaluates to its affine value at the signed 32-bit type**, where the genvars it reads are bound
 in `vals`, the parameters agree, every subterm's value is a 32-bit value, and every atom is in its range. -/
 theorem opd_eval {E : IEnv} {σ : String → Int} :
@@ -381,9 +501,84 @@ theorem opd_eval {E : IEnv} {σ : String → Int} :
           simp only [evalAt, SymBinOp.constClass, hel, her, Gen2.except_ok_bind]
           unfold_param_private
           rw [canonInt32_id hc]
+  | .ternary (.binary cop l r) t e, a, rs, h, hg, hp, hr, hxk => by
+      -- tac8: a `?:` operand, one conditional atom. `evalAt` evaluates the condition at its own type (a comparison of
+      -- two `int` operands at the signed 32-bit type, IEEE 1800-2023 §11.8.1) and only the chosen arm at the context
+      -- (§11.4.11); the atom's value is the same choice of the same values (`clOf?_opd_eval`)
+      simp only [opdAffs?] at h
+      rcases hx : clOf? (.ternary (.binary cop l r) t e) with _ | x
+      · simp [hx] at h
+      rcases hla : opdAffs? l with _ | ⟨al, ral⟩
+      · simp [hx, hla] at h
+      rcases hra : opdAffs? r with _ | ⟨ar, rar⟩
+      · simp [hx, hla, hra] at h
+      rcases hta : opdAffs? t with _ | ⟨at', rat⟩
+      · simp [hx, hla, hra, hta] at h
+      rcases hea : opdAffs? e with _ | ⟨ae, rae⟩
+      · simp [hx, hla, hra, hta, hea] at h
+      simp only [hx, hla, hra, hta, hea, Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl⟩ := h
+      have hx' := hx
+      simp only [clOf?] at hx'
+      rcases hc : ccmpOf? cop with _ | cc <;> rcases h1 : clOf? l with _ | xl <;> rcases h2 : clOf? r with _ | xr <;>
+        rcases h3 : clOf? t with _ | xt <;> rcases h4 : clOf? e with _ | xe <;>
+        simp only [hc, h1, h2, h3, h4, reduceCtorEq, Option.some.injEq] at hx'
+      subst hx'
+      obtain ⟨hcl, hel⟩ := opd_eval l al ral hla (fun n hn => hg n (by simp [PExpr.gvLeaves, hn]))
+        (fun n hn => hp n (by simp [PExpr.pLeaves, hn])) (fun y hy => hr y (by simp [hy]))
+        (fun y hy => hxk y (by simp [hy]))
+      obtain ⟨hcr, her⟩ := opd_eval r ar rar hra (fun n hn => hg n (by simp [PExpr.gvLeaves, hn]))
+        (fun n hn => hp n (by simp [PExpr.pLeaves, hn])) (fun y hy => hr y (by simp [hy]))
+        (fun y hy => hxk y (by simp [hy]))
+      obtain ⟨hct, het⟩ := opd_eval t at' rat hta (fun n hn => hg n (by simp [PExpr.gvLeaves, hn]))
+        (fun n hn => hp n (by simp [PExpr.pLeaves, hn])) (fun y hy => hr y (by simp [hy]))
+        (fun y hy => hxk y (by simp [hy]))
+      obtain ⟨hce, hee⟩ := opd_eval e ae rae hea (fun n hn => hg n (by simp [PExpr.gvLeaves, hn]))
+        (fun n hn => hp n (by simp [PExpr.pLeaves, hn])) (fun y hy => hr y (by simp [hy]))
+        (fun y hy => hxk y (by simp [hy]))
+      have el := clOf?_opd_eval (σ := σ) l xl al ral h1 hla
+      have er := clOf?_opd_eval (σ := σ) r xr ar rar h2 hra
+      have et := clOf?_opd_eval (σ := σ) t xt at' rat h3 hta
+      have ee := clOf?_opd_eval (σ := σ) e xe ae rae h4 hea
+      refine ⟨by simp only [ctype, hct, hce, Gen2.except_ok_bind]; rfl, ?_⟩
+      rw [Aff.eval_atom]
+      simp only [XAt.eval, CL.eval, el, er, et, ee]
+      rcases ccmpOf?_cases hc with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;>
+        simp only [evalAt, ctype, SymBinOp.constClass, hcl, hcr, Gen2.except_ok_bind] <;>
+        unfold_param_private
+      · by_cases hh : al.eval σ < ar.eval σ <;>
+          simp [hh, hel, her, het, hee, Gen2.except_ok_bind, CCmp.holds, convertConst, canonInt] <;>
+            first | rfl | (intro hm; exact absurd hm (by decide))
+      · by_cases hh : al.eval σ ≤ ar.eval σ <;>
+          simp [hh, hel, her, het, hee, Gen2.except_ok_bind, CCmp.holds, convertConst, canonInt] <;>
+            first | rfl | (intro hm; exact absurd hm (by decide))
+      · by_cases hh : ar.eval σ < al.eval σ <;>
+          simp [hh, hel, her, het, hee, Gen2.except_ok_bind, CCmp.holds, convertConst, canonInt] <;>
+            first | rfl | (intro hm; exact absurd hm (by decide))
+      · by_cases hh : ar.eval σ ≤ al.eval σ <;>
+          simp [hh, hel, her, het, hee, Gen2.except_ok_bind, CCmp.holds, convertConst, canonInt] <;>
+            first | rfl | (intro hm; exact absurd hm (by decide))
+      · by_cases hh : al.eval σ = ar.eval σ <;>
+          simp [hh, hel, her, het, hee, Gen2.except_ok_bind, CCmp.holds, convertConst, canonInt] <;>
+            first | rfl | (intro hm; exact absurd hm (by decide))
+      · by_cases hh : al.eval σ = ar.eval σ <;>
+          simp [hh, hel, her, het, hee, Gen2.except_ok_bind, CCmp.holds, convertConst, canonInt] <;>
+            first | rfl | (intro hm; exact absurd hm (by decide))
+  | .ternary (.int _) _ _, _, _, h, _, _, _, _ | .ternary (.lit _) _ _, _, _, h, _, _, _, _
+  | .ternary (.ident _) _ _, _, _, h, _, _, _, _ | .ternary (.genvarRef _) _ _, _, _, h, _, _, _, _
+  | .ternary (.paramRef _ _) _ _, _, _, h, _, _, _, _ | .ternary (.enumRef _ _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.fill _) _ _, _, _, h, _, _, _, _ | .ternary (.unary _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.ternary _ _ _) _ _, _, _, h, _, _, _, _ | .ternary (.concat _) _ _, _, _, h, _, _, _, _
+  | .ternary (.resize _ _) _ _, _, _, h, _, _, _, _ | .ternary (.signedResize _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.squash2 _ _) _ _, _, _, h, _, _, _, _ | .ternary (.sysCall _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.bitSel _ _) _ _, _, _, h, _, _, _, _ | .ternary (.partSel _ _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.repl _ _) _ _, _, _, h, _, _, _, _ | .ternary (.reduce _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.cast _ _) _ _, _, _, h, _, _, _, _ | .ternary (.arrayElem _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.arrayPart _ _ _ _ _) _ _, _, _, h, _, _, _, _ | .ternary (.unsupported _ _) _ _, _, _, h, _, _, _, _
+  | .ternary (.functionCall _ _) _ _, _, _, h, _, _, _, _ => by simp [opdAffs?] at h
   | .paramRef _ (some _), _, _, h, _, _, _, _ => by simp [opdAffs?] at h
   | .lit _, _, _, h, _, _, _, _ | .ident _, _, _, h, _, _, _, _ | .enumRef .., _, _, h, _, _, _, _
-  | .unary .., _, _, h, _, _, _, _ | .ternary .., _, _, h, _, _, _, _ | .bitSel .., _, _, h, _, _, _, _
+  | .unary .., _, _, h, _, _, _, _ | .bitSel .., _, _, h, _, _, _, _
   | .partSel .., _, _, h, _, _, _, _ | .arrayElem .., _, _, h, _, _, _, _ | .arrayPart .., _, _, h, _, _, _, _
   | .fill _, _, _, h, _, _, _, _ | .concat _, _, _, h, _, _, _, _ | .repl .., _, _, h, _, _, _, _
   | .reduce .., _, _, h, _, _, _, _ | .resize .., _, _, h, _, _, _, _ | .signedResize .., _, _, h, _, _, _, _
