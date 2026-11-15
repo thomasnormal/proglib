@@ -1,5 +1,6 @@
 import Examples.«system-verilog».mul_dadda.gen
 import LeanModels.Sv.CombViewTactic
+import LeanModels.Sv.CombPlumbing
 
 /-!
 # The Dadda record's structure, at every `1 ≤ N < 2^30` (`Examples/system-verilog/mul_dadda`, tac10)
@@ -12,12 +13,13 @@ range of the record's own height table: `d(50) < 2^30 < d(51)`), by the `sv_comb
   CombParamComp.lean), linear in their size;
 * `sv_structure` with the localparams as variables (`sv_comb.lp_atoms`) and no automatic closers (`sv_comb.auto_close
   false`) states the structural obligations: 99 goals, 73 of them holding the record's 51-leaf table of stage targets;
-* the player's closer (`dadda_close`, below) proves each, in isolation (`closeIsolated`: the finished proof becomes an
+* the player's closer (`dadda_close`, below) proves each, in isolation (the library's `closeIsolated`,
+  `CombPlumbing.lean`: the finished proof becomes an
   auxiliary lemma, so the closing's intermediate states do not accumulate over 99 goals of up to 64 000 characters):
   every copy of the table is the function `dT` of its index (`dadda_abs`, definitionally the record's `?:` chain); the
   one-iteration genvars of a stage (`t`, `u`, `f`, `h`, `c`) are substituted by their values (`dadda_pin`); the facts of
   `dT` at the indices in context and of the stage count (`dadda_facts`: the heights increase by half,
-  `d(S-1) < N ≤ d(S-1) + d(S-1)/2`) are put in context; the row-major offsets are decomposed (`dadda_rowmajor`, whose
+  `d(S-1) < N ≤ d(S-1) + d(S-1)/2`) are put in context; the row-major offsets are decomposed (the library's `sv_rowmajor_connected [N, S, NP]`, whose
   side conditions are proved in the part of the context connected to them); a goal about two sites is split on the
   order of their stage and column genvars (`dadda_pair`), so that where the instances coincide their terms do; and each
   branch closes by `omega`, `sv_ite_omega` or, with the pairwise facts of the table, `sv_ite_omega`.
@@ -462,124 +464,6 @@ elab "dadda_pairwise" : tactic => withMainContext do
         | some (pj0, _), some (_, pi1) => assertMainM `hdm (mkAppM ``dT_mono2 #[xj, xi, pj0, pi1])
         | _, _ => assertMainM `hdm (mkAppM ``dT_mono_or #[xj, xi])
 
-/-- `omega`; failing that, a split on the first condition of an `if-then-else` of the goal (decided in the goal only, so
-that its terms keep their form: `s = 0` must not turn `dT (S - 1 - s)` into another atom), at most `fuel` deep; with
-the goal free of them, a split on a condition of the hypotheses' (decided everywhere at once), at most `hfuel` deep.
-The context is the side condition's connected part (`dadda_disch`). -/
-partial def iteGoalOmega (fuel : Nat) (hfuel : Nat := 2) : TacticM Unit := do
-  let saved ← saveState
-  try
-    evalTactic (← `(tactic| omega))
-    return
-  catch e =>
-    saved.restore
-    if fuel = 0 then throw e
-  let g ← getMainGoal
-  let goalT ← instantiateMVars (← g.getType)
-  match (iteConds goalT #[])[0]? with
-  | some c =>
-    let cStx ← g.withContext (Term.exprToSyntax c)
-    evalTactic (← `(tactic| by_cases hdi : $cStx))
-    for g' in ← getGoals do
-      setGoals [g']
-      try evalTactic (← `(tactic| first | simp only [eq_true hdi, ↓reduceIte] at ⊢ | simp only [eq_false hdi, ↓reduceIte] at ⊢))
-      catch _ => pure ()
-      unless (← getGoals).isEmpty do iteGoalOmega (fuel - 1) hfuel
-    setGoals []
-  | none =>
-    -- the conditions of the hypotheses' `if-then-else` terms (the context is the side condition's connected part
-    -- already), decided everywhere at once so that the atoms stay consistent
-    if hfuel = 0 then throwError "iteGoalOmega: no condition left"
-    let c? ← g.withContext do
-      let mut cs : Array Lean.Expr := #[]
-      for d in ← getLCtx do
-        unless d.isImplementationDetail do cs := iteConds (← instantiateMVars d.type) cs
-      pure cs[0]?
-    let some c := c? | throwError "iteGoalOmega: no condition left"
-    let cStx ← g.withContext (Term.exprToSyntax c)
-    evalTactic (← `(tactic| by_cases hdi : $cStx))
-    for g' in ← getGoals do
-      setGoals [g']
-      try evalTactic (← `(tactic| simp only [hdi, if_true, if_false, ↓reduceIte, not_false_eq_true] at *))
-      catch _ => pure ()
-      unless (← getGoals).isEmpty do iteGoalOmega fuel (hfuel - 1)
-    setGoals []
-
-/-- The discharger of `dadda_rowmajor`: `omega` on the side condition in the part of the context connected to it (the
-hypotheses that share a local with it, transitively, through every local but `N`, `S` and `NP`, and those about these
-alone), split on the `if-then-else` conditions of the side condition itself (`iteGoalOmega`). The other site's
-hypotheses are cleared first: on a two-site goal the row-major rewriting with `omega` over the whole context took 3.4M
-heartbeats, with the connected part 95k. -/
-elab "dadda_disch" : tactic => do
-  let g ← getMainGoal
-  let g' ← g.withContext do
-    let lctx ← getLCtx
-    let glob : Array Name := #[`N, `S, `NP]
-    let isGlob (f : FVarId) : Bool := glob.contains (lctx.get! f).userName
-    let fvs (e : Lean.Expr) : Array FVarId := (Lean.collectFVars {} e).fvarIds
-    let mut reach : Std.HashSet FVarId := {}
-    for f in fvs (← instantiateMVars (← g.getType)) do reach := reach.insert f
-    let decls := lctx.foldl (init := #[]) fun acc d => if d.isImplementationDetail then acc else acc.push d
-    let mut keep : Std.HashSet FVarId := {}
-    let mut props : Array (FVarId × Array FVarId) := #[]
-    for d in decls do
-      let ty ← instantiateMVars d.type
-      if ← Meta.isProp ty then
-        -- an implication (the obligation's premise relating the two instances) is no in-range fact, and would join
-        -- the two sites' parts
-        unless ty.isForall do props := props.push (d.fvarId, (fvs ty).filter (!isGlob ·))
-      else keep := keep.insert d.fvarId
-    let mut changed := true
-    while changed do
-      changed := false
-      for (h, nonGlob) in props do
-        if keep.contains h then continue
-        if nonGlob.isEmpty || nonGlob.any reach.contains then
-          keep := keep.insert h
-          for f in nonGlob do reach := reach.insert f
-          changed := true
-    g.tryClearMany (decls.filter (fun d => !keep.contains d.fvarId) |>.map (·.fvarId))
-  setGoals [g']
-  -- within 200k heartbeats: a side condition `omega` cannot show from the connected part fails fast
-  let now ← IO.getNumHeartbeats
-  let ok ← tryCatchRuntimeEx
-    (withTheReader Core.Context (fun c => { c with maxHeartbeats := 200000 * 1000, initHeartbeats := now }) do
-      iteGoalOmega 4
-      pure true)
-    (fun _ => pure false)
-  unless ok do throwError "dadda_disch: not shown"
-
-/-- `sv_rowmajor` (CombViewTactic.lean, the same lemmas) with the discharger `dadda_disch`. -/
-macro "dadda_rowmajor" : tactic =>
-  `(tactic| (try simp (disch := dadda_disch) only [LeanModels.Sv.CombView.rmN_add_col,
-      LeanModels.Sv.CombView.rmN_lt_iff, LeanModels.Sv.CombView.rmN_le_iff,
-      LeanModels.Sv.CombView.rmN_cast_lt_iff, LeanModels.Sv.CombView.rmN_cast_le_iff,
-      LeanModels.Sv.CombView.rmN_cast_eq_iff, ↓LeanModels.Sv.CombView.rmN3_plane_end,
-      ↓LeanModels.Sv.CombView.rmN3_plane_end_k,
-      and_true, true_and] at *))
-
-/-- Close the main goal by `tac`, keeping only the finished proof: it becomes an auxiliary lemma (checked by the kernel
-there), and every intermediate state of the closing is dropped. The record has 99 structural goals of up to 64 000
-characters; with each closing's intermediate states kept alive until the end of the theorem the pass did not fit 8 GB. -/
-def closeIsolated (tac : TacticM Unit) : TacticM Unit := do
-  let g ← getMainGoal
-  let s ← saveState
-  tac
-  unless (← getGoals).isEmpty do throwError "isolated: goals left"
-  let p ← instantiateMVars (mkMVar g)
-  if p.hasMVar then throwError "isolated: the proof has metavariables"
-  let ty ← instantiateMVars (← g.getType)
-  let fvars ← g.withContext do
-    return (← getLCtx).foldl (init := #[]) fun acc d => if d.isImplementationDetail then acc else acc.push d.toExpr
-  -- drop the closing's metavariables, keep its environment: the proof names the auxiliary lemmas `omega` added
-  let env ← getEnv
-  s.restore
-  setEnv env
-  let (t, v) ← g.withContext do pure (← mkForallFVars fvars ty, ← mkLambdaFVars fvars p)
-  let n ← mkAuxLemma [] t v
-  g.assign (mkAppN (mkConst n) fvars)
-  replaceMainGoal []
-
 /-- The first of `alts` that closes the main goal, each attempt within `cap` heartbeats (an attempt that runs out is a
 failure like any other, its state undone). -/
 def firstCapped (cap : Nat) (alts : List (TSyntax `tactic)) : TacticM Unit := do
@@ -598,12 +482,12 @@ def firstCapped (cap : Nat) (alts : List (TSyntax `tactic)) : TacticM Unit := do
   throwError "dadda_close: no closer proves the goal {(← g.getTag).eraseMacroScopes}"
 
 /-- The player's closer of one structural goal of the record (the description above), in isolation: the table as `dT`,
-the one-iteration genvars substituted, the facts of the table, the row-major offsets decomposed (`dadda_rowmajor`), then
+the one-iteration genvars substituted, the facts of the table, the row-major offsets decomposed (`sv_rowmajor_connected`), then
 the split on the two sites' corresponding genvars, and per branch the first of `omega`, `sv_ite_omega`, and the pairwise
 facts of the table with `sv_ite_omega`. -/
 elab "dadda_close" : tactic => withEnableInfoTree false <| closeIsolated do
   evalTactic (← `(tactic| (intros; dadda_abs; dadda_pin; dadda_facts)))
-  evalTactic (← `(tactic| (dadda_rowmajor; (try simp only [true_and, and_true]); dadda_pair)))
+  evalTactic (← `(tactic| (sv_rowmajor_connected [N, S, NP]; (try simp only [true_and, and_true]); dadda_pair)))
   let alts : List (TSyntax `tactic) :=
     [← `(tactic| omega), ← `(tactic| sv_ite_omega), ← `(tactic| (dadda_pairwise; sv_ite_omega))]
   for g in ← getGoals do
