@@ -728,3 +728,7 @@ returns `v` after restoring the normalized top depth.
 `Monadic.callInMono_succ_body_break` composes the public successor-fuel seam
 with the explicit `RFlow.brk` body result and produces the faithful
 `"'break' outside loop"` refusal.
+
+`Monadic.callInMono_succ_body_continue` completes the public successor-fuel
+flow mappings for explicit body results by producing the faithful
+`"'continue' outside loop"` refusal from `RFlow.cont`.

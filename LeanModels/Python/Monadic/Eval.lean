@@ -4778,6 +4778,26 @@ theorem twinAgrees_callInM_top_body_continue
   rw [hfinish]
   rfl
 
+theorem callInMono_succ_body_continue
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (st' : FrameState)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok RFlow.cont, st')) :
+    callInMono m (fuel + 1) w fname args =
+      .unsupported "'continue' outside loop" := by
+  rw [callInMono_succ]
+  exact twinAgrees_callInM_top_body_continue (kont m fuel) m fname args f
+    { w with callDepth := pythonTopCallDepth } st' hfind hgen hargs hlocal
+    hnotgen harity hbody
+
 theorem twinAgrees_execOpenList_nil (K : Kont) (m : Module) (st : FrameState) :
     toRun (execOpenList K m []) st = .ok st .next := by
   rfl
