@@ -11,7 +11,7 @@ OUT = ROOT / "docs" / "sv-real-designs.md"
 # output table is generated; changing a result requires changing its measured
 # receipt and rerunning this script.
 ROWS = [
-    ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "no", "Constant: AssignmentPattern:default-point (prim_alert_pkg::ALERT_TX_DEFAULT)"),
+    ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "no", "Constant: $bits argument outside the declared-signal tier (prim_pad_wrapper_pkg::AttrDw)"),
     ("prim_arbiter_ppc", "OpenTitan 0a6ff685", "11", "no", "T2:Initial (CheckNGreaterZero_A, line 57)"),
     ("prim_packer", "OpenTitan 0a6ff685", "20", "no", "PortSymbol:net-z (ready_o, line 18)"),
     ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "no", "AlwaysPosedge:edge"),

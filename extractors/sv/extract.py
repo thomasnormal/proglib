@@ -8207,9 +8207,20 @@ def _convert_expr(sm, e):
             "SimpleAssignmentPatternExpression", "StructuredAssignmentPatternExpression",
             "ReplicatedAssignmentPatternExpression"):
         # The packed-pattern converter is pure and width-exact.  In symbolic
-        # mode keep it to a fixed-point module: a parameter-dependent pattern
-        # would freeze slang's default-point element widths.
-        if _SYM is None or not _sym_family_point_dependent():
+        # mode keep parameter-dependent array geometry loud, but retain a
+        # fixed packed struct/integer pattern from a package type.  Its field
+        # widths are parser-resolved by Slang and do not depend on the module
+        # parameter family, so the ordinary constant evaluator can consume
+        # the source-shaped default without freezing a point-dependent range.
+        fixed_packed_type = False
+        if _SYM is not None and _sym_family_point_dependent():
+            try:
+                fixed_packed_type = type(e.type.canonicalType).__name__ in (
+                    "PackedStructType", "PackedUnionType", "PredefinedIntegerType",
+                    "EnumType") and type_width_2s(e.type)[2] is None
+            except Exception:
+                fixed_packed_type = False
+        if _SYM is None or not _sym_family_point_dependent() or fixed_packed_type:
             return _convert_packed_pattern(sm, e)
         return unsupported(sm, e, "AssignmentPattern:default-point")
     if cname == "MemberAccessExpression":
