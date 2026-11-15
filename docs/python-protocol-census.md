@@ -678,3 +678,7 @@ no depth restoration.
 successful `leaveCallM` result with the non-top-depth `callInM` branch. Under
 explicit depth and recursion-capacity guards, it restores the caller's frame
 depth and maps `RFlow.next` to the returned `none` value.
+
+`Monadic.twinAgrees_callInM_recursive_body_ret` composes the same guarded
+recursive branch for `RFlow.ret v`, preserving the decremented post-body world
+and returning `v` directly.
