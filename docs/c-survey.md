@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1129/2214 MATCH (passed 1129, failed 0, oracle 0)
+- verdicts: 1130/2214 MATCH (passed 1130, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `6ab3d3faf`
-- measured at: `2026-11-14T23:59:31Z`
+- measured commit: `ba5f2b36b`
+- measured at: `2026-11-15T04:53:31Z`
 
 ## Verdict counts
 
@@ -13,20 +13,20 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1129 |
+| `passed` | 1130 |
 | `refused-libc` | 38 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 579 |
+| `refused-unsupported` | 578 |
 | `timeout` | 66 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
-| `c-testsuite/single-exec` | `passed` | 176 |
+| `c-testsuite/single-exec` | `passed` | 177 |
 | `c-testsuite/single-exec` | `refused-libc` | 2 |
 | `c-testsuite/single-exec` | `refused-ub` | 8 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 32 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 31 |
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
@@ -447,7 +447,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'int (*)[++i]'` | 1 | 1 | gcc/testsuite/gcc.dg/c23-auto-2.c |
 | `unsupported:no layout for declared type 'int *volatile'` | 1 | 1 | builtin-prefetch-3.c |
 | `unsupported:no layout for declared type 'int[len][len]'` | 1 | 1 | 20221006-1.c |
-| `unsupported:no layout for declared type 's'` | 1 | 1 | 00046.c |
 | `unsupported:no layout for declared type 'struc'` | 1 | 1 | 20001101.c |
 | `unsupported:no layout for declared type 'struct A'` | 1 | 1 | 20040709-2.c |
 | `unsupported:no layout for declared type 'struct S[21]'` | 1 | 1 | pr70602.c |
