@@ -85,9 +85,10 @@ register_option sv_comb.profile : Bool := {
 or a parameter with the in-range facts of the read and of the writer's window as premises
 (`Summary.rankObl'_of_groupsR`, CombViewGroup.lean): the columns of two row-major windows are then inside their rows by
 hypothesis, and a rank goal needs no fact about the index arithmetic (what proves the windows in range is proved once, in
-the `auto` and `inRange` obligations). Off by default: the rank goals of every existing proof keep their form. -/
+the `auto` and `inRange` obligations). On by default since tac10: with it on, every proof of the comb regression (237
+targets) builds unchanged; `set_option sv_comb.rank_ranged false` gives the plain rank form. -/
 register_option sv_comb.rank_ranged : Bool := {
-  defValue := false
+  defValue := true
   descr := "sv_structure: state the rank obligations with the in-range facts of both windows as premises" }
 
 /-- `set_option sv_comb.lp_atoms true` (tac9): `sv_structure` and `sv_equations` state their obligations with each
