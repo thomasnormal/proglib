@@ -155,6 +155,7 @@
               ],
               "resolved": 5
             },
+            "signed": false,
             "formals": [
               {
                 "kind": "Var",
@@ -196,7 +197,8 @@
                   "resolved": 5
                 },
                 "dir": "in",
-                "init": null
+                "init": null,
+                "signed": false
               }
             ],
             "body": {

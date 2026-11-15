@@ -11966,7 +11966,7 @@ def _sym_case_function_shape(subroutine):
             if type(block).__name__ != "BlockStatement":
                 return None
             block_list = getattr(getattr(block, "body", None), "list", None)
-            if block_list is None or len(block_list) != 2:
+            if block_list is None or len(block_list) not in (2, 3):
                 return None
         else:
             # A function body may omit an explicit begin/end block.  Slang
@@ -11974,7 +11974,48 @@ def _sym_case_function_shape(subroutine):
             # this is the same straight-line source shape and must not make a
             # generated call fall through to the generic CallExpression wall.
             block_list = statements
-        case, case_ret = block_list
+        # A source function may initialize its temporary and put the case and
+        # final function-name assignment in an explicit ``begin/end`` block:
+        # ``t = init; case (...) ...; f = t``.  Keep that parser-shaped case
+        # declaration as one function node.  The initialization is required
+        # to be a pure value; the case itself overwrites the local on every
+        # path because this profile requires a default arm.  The returned
+        # expression below is still the direct case result, so no call-site
+        # inlining or source-text parsing is introduced (§13.4, §12.5).
+        initial_assignment = None
+        final_assignment = None
+        if len(block_list) == 3:
+            initial_statement, case, final_statement = block_list
+            if (type(initial_statement).__name__ != "ExpressionStatement"
+                    or type(final_statement).__name__ != "ExpressionStatement"):
+                return None
+            initial_assignment = getattr(initial_statement, "expr", None)
+            final_assignment = getattr(final_statement, "expr", None)
+            initial_left = getattr(initial_assignment, "left", None)
+            final_left = getattr(final_assignment, "left", None)
+            final_right = getattr(final_assignment, "right", None)
+            if (type(initial_assignment).__name__ != "AssignmentExpression"
+                    or getattr(initial_assignment, "op", None) is not None
+                    or getattr(initial_assignment, "timingControl", None) is not None
+                    or getattr(initial_assignment, "isNonBlocking", False)
+                    or type(initial_left).__name__ != "NamedValueExpression"
+                    or getattr(initial_left, "symbol", None) is not getattr(declarations[0], "symbol", None)
+                    or not _literal_function_return(getattr(initial_assignment, "right", None))
+                    or type(final_assignment).__name__ != "AssignmentExpression"
+                    or getattr(final_assignment, "op", None) is not None
+                    or getattr(final_assignment, "timingControl", None) is not None
+                    or getattr(final_assignment, "isNonBlocking", False)
+                    or type(final_left).__name__ != "NamedValueExpression"
+                    or getattr(getattr(final_left, "symbol", None), "name", None)
+                    != getattr(subroutine, "name", None)
+                    or type(final_right).__name__ != "NamedValueExpression"
+                    or getattr(final_right, "symbol", None) is not getattr(declarations[0], "symbol", None)):
+                return None
+            # The final assignment is the function's implicit return spelling.
+            # Reuse the existing return handling by carrying its local symbol.
+            case_ret = final_statement
+        else:
+            case, case_ret = block_list
         if type(case).__name__ != "CaseStatement":
             return None
         if str(getattr(case, "condition", "")).split(".")[-1] != "Normal":
@@ -11983,9 +12024,12 @@ def _sym_case_function_shape(subroutine):
         if check not in CASE_CHECKS:
             return None
         ret = case_ret
-        if type(ret).__name__ != "ReturnStatement":
-            return None
-        returned = getattr(ret, "expr", None)
+        if final_assignment is not None:
+            returned = getattr(final_assignment, "right", None)
+        else:
+            if type(ret).__name__ != "ReturnStatement":
+                return None
+            returned = getattr(ret, "expr", None)
         if type(returned).__name__ != "NamedValueExpression":
             return None
         local = getattr(returned, "symbol", None)

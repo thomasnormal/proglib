@@ -421,6 +421,40 @@ class EmptyFunctionCalls(unittest.TestCase):
         self.assertFalse(any(node.get("sv_kind") == "CallExpression"
                              for node in nodes(design)))
 
+    def test_retained_local_case_function_keeps_call_and_declaration(self):
+        design = self.symbolic(
+            "module top(input logic [4:0] a, output logic [4:0] y); "
+            "function automatic logic [4:0] lookup(input logic [4:0] x); "
+            "logic [4:0] t; begin t = 5'h1f; unique case (x) "
+            "5'h00: t = 5'h1f; 5'h01: t = 5'h1e; default: t = x; "
+            "endcase lookup = t; end endfunction assign y = lookup(a); "
+            "endmodule", retain_proc_rewrites=True)
+        module = design["modules"][0]
+        self.assertEqual([f["name"] for f in module["functions"]], ["lookup"])
+        self.assertFalse(any(node.get("sv_kind") == "SubroutineSymbol:body"
+                             for node in nodes(module)))
+        calls = [node for node in nodes(module)
+                 if node.get("kind") == "FunctionCall"]
+        self.assertEqual(len(calls), 1)
+        self.assertTrue(calls[0].get("symbolic_user_function_retained"))
+        self.assertEqual(module["functions"][0]["body"]["kind"], "Ternary")
+
+    def test_retained_package_case_function_is_carried_to_module(self):
+        design = self.symbolic(
+            "package p; function automatic logic [4:0] lookup(input logic [4:0] x); "
+            "logic [4:0] t; begin t = 5'h1f; unique case (x) "
+            "5'h00: t = 5'h1f; 5'h01: t = 5'h1e; default: t = x; "
+            "endcase lookup = t; end endfunction endpackage "
+            "module top(input logic [4:0] a, output logic [4:0] y); "
+            "import p::*; assign y = lookup(a); endmodule",
+            retain_proc_rewrites=True)
+        module = design["modules"][0]
+        self.assertEqual([f["name"] for f in module["functions"]], ["lookup"])
+        self.assertFalse(module["others"])
+        self.assertTrue(any(node.get("kind") == "FunctionCall"
+                            and node.get("symbolic_user_function_retained")
+                            for node in nodes(module)))
+
     def test_symbolic_local_case_function_without_begin_is_inlined_in_generate(self):
         design = self.symbolic(
             "module top(input logic [19:0] a, output logic [19:0] y); "
