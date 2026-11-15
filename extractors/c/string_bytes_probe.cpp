@@ -39,9 +39,20 @@ public:
     llvm::json::Array bytes;
     for (unsigned char byte : literal->getBytes())
       bytes.push_back(static_cast<int64_t>(byte));
-    const auto location = sources->getExpansionLoc(literal->getBeginLoc());
-    if (!sources->isWrittenInMainFile(location)) return true;
-    const auto end_location = sources->getExpansionLoc(literal->getEndLoc());
+    // Macro/include self-tests can expand a parser node at a non-main
+    // include location even though its spelling is in the main source.  Join
+    // by Clang's spelling location in that case; never decode or reparse the
+    // source text to recover the node.
+    const auto main_location = sources->getLocForStartOfFile(sources->getMainFileID());
+    const auto main_file = sources->getFilename(main_location);
+    auto location = sources->getExpansionLoc(literal->getBeginLoc());
+    auto end_location = sources->getExpansionLoc(literal->getEndLoc());
+    if (sources->getFilename(location) != main_file) {
+      location = sources->getSpellingLoc(literal->getBeginLoc());
+      end_location = sources->getSpellingLoc(literal->getEndLoc());
+    }
+    if (main_file.empty() || sources->getFilename(location) != main_file)
+      return true;
     const auto end = clang::Lexer::getLocForEndOfToken(
         end_location, 0, *sources, clang::LangOptions());
     const auto begin_offset = sources->getFileOffset(location);
