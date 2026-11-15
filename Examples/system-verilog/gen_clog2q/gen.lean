@@ -64,9 +64,11 @@ def lpAt (pd : PDesign) (args : List Int) (n : String) : Option Int :=
 #guard (gen_ktree.pdesign.summary.toOption.map fun s => (List.range 64).map fun (n : Nat) =>
     (s.val [(n + 1 : Int)] "L", s.val [(n + 1 : Int)] "T")) == some (icarusL.map fun l => (l, 3 ^ l.toNat))
 
--- `gen_clog2q_neg`: the instantiation reads the negative quotient at `N ≤ 12` as unsigned (`NI = 33`) and agrees with
--- Icarus at every `N ≤ 30`.
+-- `gen_clog2q_neg`: the instantiation and the summary read the negative quotient at `N ≤ 12` as unsigned (`NI = 33`)
+-- and agree with Icarus at every `N ≤ 30`.
 #guard (List.range 30).map (fun (n : Nat) => lpAt gen_clog2q_neg.pdesign [(n + 1 : Int)] "NI") == icarusNegNI.map some
+#guard (gen_clog2q_neg.pdesign.summary.toOption.map fun s => (List.range 30).map fun (n : Nat) => s.val [(n + 1 : Int)] "NI")
+  == some icarusNegNI
 
 -- At `N = 9` the tree has `T = 9` leaves, `1 + 3` nodes and the output: as many processes as the summary's instances.
 #guard ((gen_ktree.pdesign.instantiate2 [9] (PDesign.surfaceFuel [9])).toOption.map fun m => m.processes.size) == some 14

@@ -82,16 +82,17 @@ def CE.show (c : CE) : String := c.showP 0
 /-- The signed 32-bit range. -/
 def inInt32 (v : Int) : Bool := decide (-2147483648 ≤ v) && decide (v < 2147483648)
 
-/-- (Refusal text only.) The operand `a` of `c` (`/`, `%`, `$clog2`) outside the range. -/
+/-- (Refusal text only.) The operand `a` of `c` (`/`, `%`, the exponent of `**`, a comparison) outside the range. -/
 def CE.operandDiag (σ : String → Int) (c a : CE) : Option String :=
   let v := a.eval σ
   if inInt32 v then none
-  else some s!"the operand `{a.show}` of `{c.show}` is {v} at these parameters, outside the signed 32-bit range [-2147483648, 2147483647]: the instantiation wraps it to {canonInt 32 true v} first (IEEE 1800-2023 §11.4, §11.6.1, §11.8.1: every operand and result of an `int` expression is 32 bits wide) and the summary reads the unbounded value, so a definition that divides, takes a remainder of or the `$clog2` of a value outside the range is outside the fragment"
+  else some s!"the operand `{a.show}` of `{c.show}` is {v} at these parameters, outside the signed 32-bit range [-2147483648, 2147483647]: the instantiation wraps it to {canonInt 32 true v} first (IEEE 1800-2023 §11.4, §11.6.1, §11.8.1: every operand and result of an `int` expression is 32 bits wide) and the summary reads the unbounded value, so a definition that divides or takes a remainder of a value outside the range is outside the fragment"
 
 /-- (Refusal text only.) The operations of a definition where the summary and the instantiation read an operand or a
-result differently, innermost first (`CE.wrapDiag`): an operand of `/`, `%` or `$clog2` outside the 32-bit range (the
-summary reads it unbounded, the instantiation at its 32-bit value), and a `>>>` of a negative `int` by a negative amount
-(below). `+ - *` and the shifts read their operands as 32-bit patterns or values already (`CE.eval`), and the
+result differently, innermost first (`CE.wrapDiag`): an operand of `/` or `%` outside the 32-bit range (the summary
+reads it unbounded, the instantiation at its 32-bit value), and a `>>>` of a negative `int` by a negative amount
+(below). `+ - *`, the shifts and `$clog2` (its argument's 32-bit pattern, IEEE 1800-2023 §20.8.1) read their operands as
+32-bit patterns or values already (`CE.eval`), and the
 instantiation's `<<` and `>>` agree with IEEE 1800-2023 §11.4.10 on every amount (a negative one, an unsigned amount of
 2^31 or more, shifts every bit out: 0), so for them only the RESULT's range matters, at the root.
 
@@ -111,8 +112,7 @@ def CE.opDiag (σ : String → Int) : CE → Option String
       c.opDiag σ <|> CE.operandDiag σ (.cond c a b) c <|> (if c.eval σ = 0 then b.opDiag σ else a.opDiag σ)
   | .divK a k => a.opDiag σ <|> CE.operandDiag σ (.divK a k) a
   | .modK a k => a.opDiag σ <|> CE.operandDiag σ (.modK a k) a
-  | .clog2 a => a.opDiag σ <|> CE.operandDiag σ (.clog2 a) a
-  | .clog2S a => a.opDiag σ <|> CE.operandDiag σ (.clog2S a) a
+  | .clog2 a | .clog2S a => a.opDiag σ
   | .ashr a b =>
       a.opDiag σ <|> b.opDiag σ <|>
         (let va := canonInt 32 true (a.eval σ)

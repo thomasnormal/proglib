@@ -663,7 +663,7 @@ def int32Bound : Lean.Elab.Tactic.TacticM Unit := do
       LeanModels.Sv.CombView.shr_pattern_canon, LeanModels.Sv.CombView.canonInt32_of_bounds]) <;> omega)))
 
 /-- **A decision of the parameter stage** (`p` or `¬ p`, the proposition of a stuck `Decidable` instance: the sign test of
-`$clog2`'s argument or of a shift amount) from the hypotheses in context: `int32Bound` with the conversion of a constant to
+a shift amount) from the hypotheses in context: `int32Bound` with the conversion of a constant to
 its type unfolded (`convertConst`, the form the instance's proposition keeps), its widths computed. -/
 def int32Decide : Lean.Elab.Tactic.TacticM Unit := do
   Lean.Elab.Tactic.evalTactic (← `(tactic| ((try simp (disch := omega) only [LeanModels.Sv.convertConst,
@@ -855,14 +855,18 @@ syntax "sv_norm" ("[" Lean.Parser.Tactic.simpLemma,* "]")? : tactic
 /-- The truncating `/` and `%` of a localparam's definition (`Int.tdiv`, `Int.tmod`: C semantics, what
 the elaborated design computes) as the floor `/` and `%` that `omega` understands, where the
 numerator is provably non-negative from the hypotheses in context (`hN : 1 ≤ N`). A numerator that
-may be negative stays as `Int.tdiv`/`Int.tmod` in the goal (they really differ there). A no-op for a
-design without localparams. -/
+may be negative stays as `Int.tdiv`/`Int.tmod` in the goal (they really differ there). And `$clog2` of its argument's
+32-bit pattern (`clog2 (x % 2^32).toNat`, the unsigned reading of IEEE 1800-2023 §20.8.1, `CE.eval`) as `clog2 x.toNat`
+where `omega` places `x` in `[0, 2^32)` (`clog2_emod_of_lt`); a possibly negative argument keeps its pattern. A no-op for
+a design without localparams. -/
 macro "sv_lp_norm" : tactic =>
-  `(tactic| (try simp (disch := omega) only [Int.tdiv_eq_ediv_of_nonneg, Int.tmod_eq_emod_of_nonneg]))
+  `(tactic| (try simp (disch := omega) only [Int.tdiv_eq_ediv_of_nonneg, Int.tmod_eq_emod_of_nonneg,
+    LeanModels.Sv.CombView.clog2_emod_of_lt]))
 
 /-- … on a hypothesis. -/
 macro "sv_lp_norm_at" h:ident : tactic =>
-  `(tactic| (try simp (disch := omega) only [Int.tdiv_eq_ediv_of_nonneg, Int.tmod_eq_emod_of_nonneg] at $h:ident))
+  `(tactic| (try simp (disch := omega) only [Int.tdiv_eq_ediv_of_nonneg, Int.tmod_eq_emod_of_nonneg,
+    LeanModels.Sv.CombView.clog2_emod_of_lt] at $h:ident))
 
 macro_rules
   | `(tactic| sv_norm) => `(tactic| (sv_norm_core; sv_lp_norm; try sv_simp))
@@ -1154,10 +1158,12 @@ partial def ceTerm (m : List (String × Lean.Expr)) : CE → MetaM Lean.Expr
   | .divK a k => do mkAppM ``Int.tdiv #[← ceTerm m a, toExpr k]
   | .modK a k => do mkAppM ``Int.tmod #[← ceTerm m a, toExpr k]
   | .clog2 a => do
-      let n ← mkAppM ``LeanModels.Sv.clog2 #[← mkAppM ``Int.toNat #[← ceTerm m a]]
+      let u ← mkAppM ``HMod.hMod #[← ceTerm m a, toExpr (4294967296 : Int)]
+      let n ← mkAppM ``LeanModels.Sv.clog2 #[← mkAppM ``Int.toNat #[u]]
       mkAppOptM ``Nat.cast #[mkConst ``Int, none, n]
   | .clog2S a => do
-      let n ← mkAppM ``LeanModels.Sv.clog2 #[← mkAppM ``Int.toNat #[← ceTerm m a]]
+      let u ← mkAppM ``HMod.hMod #[← ceTerm m a, toExpr (4294967296 : Int)]
+      let n ← mkAppM ``LeanModels.Sv.clog2 #[← mkAppM ``Int.toNat #[u]]
       let c ← mkAppOptM ``Nat.cast #[mkConst ``Int, none, n]
       pure (mkApp3 (mkConst ``LeanModels.Sv.canonInt) (toExpr (32 : Nat)) (toExpr true) c)
   | .shl a b => do mkAppM ``HMul.hMul #[← ceTerm m a, ← shPowOf (← ceTerm m b)]
@@ -1947,7 +1953,8 @@ unsafe def closeHag (tac : String) (g : MVarId) (sv : Summary) (args : Lean.Expr
 
 `h1 : pd.paramEnv2 args = .ok ?env` is the instantiation environment, computed by `rfl`. At a symbolic `int`
 argument the computation carries `canonInt 32 true v`, the exact 32-bit value, and it stops wherever it DECIDES on such a
-value: the sign test of `$clog2` (`$clog2` of a negative value is an error), and any fold after it. `closeParamEnv`
+value: the sign test of a shift amount, a divisor's test for zero, and any fold after it (`$clog2` reads its argument's
+32-bit pattern with no test, IEEE 1800-2023 §20.8.1). `closeParamEnv`
 first tries `rfl`; where `rfl` is stuck it evaluates the left-hand side with `canonInt` held back
 (`whnfCanon`) down to the first `canonInt 32 true x` the evaluation needs (`exposeCanon`: the term is reduced only along
 the path to it, so it is definitionally the goal's), shows `x` in the signed 32-bit range from the hypotheses in context
@@ -2570,7 +2577,7 @@ q`, a constant motive, arms `X` and `Y` that do not use the case: the `?:` of `e
 parameter, IEEE 1800-2023 §11.4.11), each arm is evaluated on its own (`closeParamEnv` on `X = .ok ?x`, `Y = .ok ?y`), and
 `r` is rewritten to `.ok (if q' then x else y)`, `q'` the condition in the form `omega` reads (`liftCond`, `q = q'`).
 `none` (the state restored) where `r` is not such an `if` or an arm has no value: a decision that selects an error (the
-sign test of `$clog2`'s argument, a divisor's test for zero) is not lifted, and is refused as before. Returns the new goal
+divisor's test for zero) is not lifted, and is refused as before. Returns the new goal
 and the instance of the `if` left in the value. -/
 unsafe def liftIte (tac : String) (g : MVarId) (t : Lean.Expr) : TacticM (Option (MVarId × Lean.Expr)) := do
   let .proj _ _ inst := t | return none
@@ -2863,7 +2870,7 @@ unsafe def closeParamEnv (tac : String) (g : MVarId) (lift : Bool := false) (com
           if ← tryRfl g then return
           continue
         if pending?.isNone then
-          pending? := some m!"{tac}: {what}: the instantiation decides `{← unwrapShow p}` at a symbolic parameter (the sign test of a shift amount or of `$clog2`'s argument, a divisor's test for zero, ...), and `omega` could not decide it from the hypotheses in context (a theorem at a symbolic parameter needs premises that fix the decision, e.g. `(h : 1 ≤ E)` for a shift by `E - 1`)"
+          pending? := some m!"{tac}: {what}: the instantiation decides `{← unwrapShow p}` at a symbolic parameter (the sign test of a shift amount, a divisor's test for zero, ...), and `omega` could not decide it from the hypotheses in context (a theorem at a symbolic parameter needs premises that fix the decision, e.g. `(h : 1 ≤ E)` for a shift by `E - 1`)"
         skip := skip.push inst
         g := gN
         continue
@@ -2883,7 +2890,7 @@ unsafe def closeParamEnv (tac : String) (g : MVarId) (lift : Bool := false) (com
               if ← tryRfl g then return
               continue
           if pending?.isNone then
-            pending? := some m!"{tac}: {what}: the instantiation decides `{← unwrapShow p}` at a symbolic parameter (the sign test of `$clog2`'s argument or of a shift amount, a divisor's test for zero, ...; every value in it is wrapped to 32 bits, IEEE 1800-2023 §11.4, §11.6.1, §11.8.1), and `omega` could not decide it from the hypotheses in context (a theorem at a symbolic parameter needs premises that fix the decision and keep the values in it in range, e.g. `N < 2147483647` for `$clog2(N + 1)`)"
+            pending? := some m!"{tac}: {what}: the instantiation decides `{← unwrapShow p}` at a symbolic parameter (the sign test of a shift amount, a divisor's test for zero, ...; every value in it is wrapped to 32 bits, IEEE 1800-2023 §11.4, §11.6.1, §11.8.1), and `omega` could not decide it from the hypotheses in context (a theorem at a symbolic parameter needs premises that fix the decision and keep the values in it in range, e.g. `N < 2147483647` for a shift by `N + 1`)"
           skip := skip.push inst
           g := gN
           continue

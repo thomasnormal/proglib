@@ -3803,8 +3803,8 @@ instantiation cannot decide the condition either, and the parameter stage evalua
 (`closeParamEnv`'s `liftIte`, CombViewTactic.lean). A comparison is read only as such a condition (`CE.cmpOk`).
 
 `$clog2 (e)` is not linear: downstream (widths, loop bounds, the obligations) its value is an opaque atom, `↑(clog2 n)`
-for the natural number `n` of its argument, which `omega` reads as a non-negative unknown. A fact about it that an
-obligation needs (`2 ^ NI ≥ …`) is the player's to supply.
+for the natural number `n` of its argument read as unsigned (`(e % 2^32).toNat`, IEEE 1800-2023 §20.8.1), which `omega`
+reads as a non-negative unknown. A fact about it that an obligation needs (`2 ^ NI ≥ …`) is the player's to supply.
 
 Nothing here is trusted. `Summary.sound` and everything built on it need only
 `Agrees σ env s.params` for the environment `paramEnv2` really produced; the tactics close that by
@@ -3816,9 +3816,9 @@ constant read and every result of `+ - * / %` and of a shift is a 32-bit `int` (
 and the instantiation evaluates it so, wrapping at every node (`evalIntExact`, `canonInt 32 true` around each one). `CE.eval`
 is an unbounded value of the same tree whose low 32 bits are the IEEE result's: `+ - *` and `<<` need no wrap of their
 operands for that (the low bits of a sum, difference, product or left shift depend only on the low bits of the operands,
-§11.4.3), `>>` reads its operand's 32-bit pattern and `>>>` its 32-bit value, while `/`, `%` and `$clog2` read their
+§11.4.3), `>>` and `$clog2` read their operand's 32-bit pattern and `>>>` its 32-bit value, while `/` and `%` read their
 operand's unbounded value (`Int.tdiv`/`Int.tmod`). So `hag` holds exactly where the definition's value is in [-2^31, 2^31)
-(the instantiation's value is its 32-bit wrap) and every operand of `/`, `%` and `$clog2` is too (and no `>>>` shifts a
+(the instantiation's value is its 32-bit wrap) and every operand of `/` and `%` is too (and no `>>>` shifts a
 negative `int` by a negative amount: `CE.eval`, below): `(1 << (E - 1)) - 1` is
 read at `E = 32`, where `1 << 31` wraps to `-2^31` and the difference back to `2^31 - 1`; `(N * 1000000) / 1000000` is not
 read where the product leaves the range. At concrete arguments `rfl` decides it; at a symbolic one the tactics bring the
@@ -3865,9 +3865,9 @@ inductive CE where
 deriving Repr, BEq, DecidableEq, Inhabited
 
 /-- The value of a definition, unbounded (`/` and `%` truncate toward zero, IEEE 1800-2023 §11.4.2; `$clog2` is
-`LeanModels.Sv.clog2` of the argument's `toNat`, where the instantiation refuses a negative argument). It is the 32-bit
-`int` value of the instantiation wherever it is in the 32-bit range and so is every operand of `/`, `%` and `$clog2` (see
-"The 32-bit reading" above).
+`LeanModels.Sv.clog2` of the argument read as unsigned, its 32-bit pattern `a % 2^32`, §20.8.1, as the instantiation
+reads it: `$clog2(-1)` is 32). It is the 32-bit `int` value of the instantiation wherever it is in the 32-bit range and so
+is every operand of `/` and `%` (see "The 32-bit reading" above).
 
 The shifts are the 32-bit `int` operations of IEEE 1800-2023 §11.4.10 on the values of their operands as 32-bit
 patterns, so that the value is exact for every operand value, not only where the operands stay in the 32-bit range. The
@@ -3901,8 +3901,8 @@ def CE.eval (σ : String → Int) : CE → Int
   | .mul a b => a.eval σ * b.eval σ
   | .divK a k => (a.eval σ).tdiv k
   | .modK a k => (a.eval σ).tmod k
-  | .clog2 a => (LeanModels.Sv.clog2 (a.eval σ).toNat : Int)
-  | .clog2S a => canonInt 32 true (LeanModels.Sv.clog2 (a.eval σ).toNat : Int)
+  | .clog2 a => (LeanModels.Sv.clog2 (a.eval σ % 4294967296).toNat : Int)
+  | .clog2S a => canonInt 32 true (LeanModels.Sv.clog2 (a.eval σ % 4294967296).toNat : Int)
   | .shl a b => a.eval σ * 2 ^ (b.eval σ % 4294967296).toNat
   | .shr a b => a.eval σ % 4294967296 / 2 ^ (b.eval σ % 4294967296).toNat
   | .ashr a b => canonInt 32 true (a.eval σ) / 2 ^ (b.eval σ % 4294967296).toNat
@@ -3935,6 +3935,13 @@ theorem clog2_le (n : Nat) : LeanModels.Sv.clog2 n ≤ n := by
   · omega
   · have := (Nat.log2_lt (n := n - 1) (k := n - 1) (by omega)).mpr (Nat.lt_two_pow_self)
     omega
+
+/-- `$clog2` of an argument read as unsigned (`CE.eval`: its 32-bit pattern, IEEE 1800-2023 §20.8.1) is `$clog2` of
+the argument itself where that is in `[0, 2^32)`: the tactics' normalization (`sv_lp_norm`) states the valuation so
+wherever `omega` places the argument there, and the obligations keep the atom `clog2 x.toNat`. -/
+theorem clog2_emod_of_lt {x : Int} (h0 : 0 ≤ x) (h1 : x < 4294967296) :
+    LeanModels.Sv.clog2 (x % 4294967296).toNat = LeanModels.Sv.clog2 x.toNat := by
+  rw [Int.emod_eq_of_lt h0 h1]
 
 /-- `n ≤ 2 ^ $clog2 n`, the defining property of the ceiling logarithm. -/
 theorem le_two_pow_clog2 (n : Nat) : n ≤ 2 ^ LeanModels.Sv.clog2 n := by
