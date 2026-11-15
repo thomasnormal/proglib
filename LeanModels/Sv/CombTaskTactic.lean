@@ -376,7 +376,8 @@ elab "sv_known_inputs" : tactic => withMainContext do
 closer is tried on an obligation of another kind, where it fails at a cost: `sv_pow_omega` on a coverage goal runs its
 whole bisection before failing). `inputsKnown_k` by `sv_known_inputs`; `cover_k` by `sv_cover`, then
 `sv_pow_facts <;> sv_cover` (the other order where the goal holds a wrapped constant, a `$clog2` or a power); `auto_k`, `inRange_k`, `width_k`, `bitRead_k` by `intros; omega`, then `sv_pow_omega`. A goal
-of another tag (the main goal) is left untouched, and so is an obligation none of its closers proves. -/
+of another tag (the main goal) is left untouched, and so is an obligation none of its closers proves. The closers run
+without info trees (tac10): a failed attempt's trees would otherwise stay alive after its state is restored. -/
 elab "sv_obligations" : tactic => do
   let gs ← getGoals
   let mut rest : Array MVarId := #[]
@@ -401,7 +402,7 @@ elab "sv_obligations" : tactic => do
     setGoals [g]
     let st ← saveState
     try
-      evalTactic tac
+      withEnableInfoTree false (evalTactic tac)
       rest := rest ++ (← getGoals).toArray
     catch _ =>
       st.restore

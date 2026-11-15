@@ -968,11 +968,12 @@ partial def svIteOmegaGo (fuel : Nat) : TacticM Unit := do
 
 /-- **`sv_ite_omega`** (tac9): close an arithmetic goal with `if-then-else` terms (conditional atoms, `XAt.cond`, and the
 `?:` starts of generate loops) by `omega`, splitting on a condition only where `omega` fails, and trying `omega` again in
-each branch before splitting further. At most 64 nested splits. -/
+each branch before splitting further. At most 64 nested splits. The search runs without info trees (tac10): each failed
+`omega` is a restored state, which would keep its info trees alive (`sv_cover`, CombEqTactic.lean, has the measurement). -/
 elab "sv_ite_omega" : tactic => do
   for g in ← getGoals do
     setGoals [g]
-    svIteOmegaGo 64
+    withEnableInfoTree false (svIteOmegaGo 64)
   setGoals []
 
 /-- **Close a decidable structural fact without an auxiliary lemma** (WP-P). `decide +kernel` turns the
@@ -1295,7 +1296,8 @@ partial def tdivArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
     | _ => #[]
   here ++ sub
 
-/-- A proof of `p` by `omega` in the context of the main goal, if there is one (the goal list is restored). -/
+/-- A proof of `p` by `omega` in the context of the main goal, if there is one (the goal list is restored). Without
+info trees (tac10): the bisections call it many times, and a failed call's restored state would keep its trees. -/
 def omegaProves (p : Lean.Expr) : TacticM (Option Lean.Expr) := do
   let st ← saveState
   let gs ← getGoals
@@ -1303,7 +1305,7 @@ def omegaProves (p : Lean.Expr) : TacticM (Option Lean.Expr) := do
   let m ← g.withContext (mkFreshExprSyntheticOpaqueMVar p)
   setGoals [m.mvarId!]
   try
-    evalTactic (← `(tactic| omega))
+    withEnableInfoTree false (evalTactic (← `(tactic| omega)))
     if (← getGoals).isEmpty then
       -- keep the state: the proof may use auxiliary lemmas `omega` added to the environment
       let pf ← instantiateMVars m
