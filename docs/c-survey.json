@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 954,
+   "passed": 955,
    "refused-libc": 33,
    "refused-ub": 98,
-   "refused-unsupported": 500,
+   "refused-unsupported": 499,
    "timeout": 65
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1135,
+  "passed": 1136,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 573,
+  "refused-unsupported": 572,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -907,18 +907,6 @@
   },
   {
    "files": [
-    "00189.c",
-    "fprintf-1.c",
-    "fprintf-chk-1.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c"
-   ],
-   "present": 5,
-   "sole": 5,
-   "wall": "unsupported:unbound declaration 'id180' (name 'stdout')"
-  },
-  {
-   "files": [
     "20230630-2.c",
     "20230630-4.c",
     "gcc/testsuite/gcc.dg/c23-nullptr-5.c",
@@ -982,6 +970,17 @@
    "present": 4,
    "sole": 4,
    "wall": "unsupported:no layout for declared type 'struct S'"
+  },
+  {
+   "files": [
+    "00189.c",
+    "fprintf-chk-1.c",
+    "vfprintf-1.c",
+    "vfprintf-chk-1.c"
+   ],
+   "present": 4,
+   "sole": 4,
+   "wall": "unsupported:unbound declaration 'id180' (name 'stdout')"
   },
   {
    "files": [
@@ -3096,8 +3095,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T07:54:42Z",
- "measured_commit": "e9f0ea8db",
+ "measured_at_utc": "2026-11-15T08:31:08Z",
+ "measured_commit": "055da65ad",
  "pin": {
   "corpora": [
    "C1",
@@ -17417,8 +17416,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id180' (name 'stdout')",
-   "dynamic_wall": "unsupported:unbound declaration 'id180' (name 'stdout')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "fprintf-1.c",
    "sha256": "06ca4691a6d3d3a47c26ca643ca2b962f3ed8be57af27c1454846e0324b73bca",
@@ -17427,7 +17426,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
