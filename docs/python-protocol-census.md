@@ -763,3 +763,7 @@ is the public successor composition using that inversion path.
 step: an existing pointwise monadic/trunk statement bridge plus an explicit
 `execStmt` `.next` result now supplies the raw body premise and the public
 successor result for arbitrary statement-list length.
+
+`Monadic.twinAgrees_execStmt_pass` is the first concrete statement-node bridge;
+the empty-body/pass base case `Monadic.callInMono_succ_pass_body` confirms the
+public successor result without introducing a fixed-count assignment theorem.

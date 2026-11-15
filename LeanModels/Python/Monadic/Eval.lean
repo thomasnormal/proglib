@@ -3818,6 +3818,13 @@ theorem twinAgrees_execOpenList_of_each (K : Kont) (m : Module) :
                   | cont => simp [hres, execStmts, toRun_pure, Run.bind]
                   | ret v => simp [hres, execStmts, toRun_pure, Run.bind]
 
+theorem twinAgrees_execStmt_pass (K : Kont) (m : Module) (st : FrameState)
+    (sp : Span) (fuel : Nat) (hfuel : 0 < fuel) :
+    toRun (execOpen K m (.pass sp)) st = execStmt m fuel st (.pass sp) := by
+  cases fuel with
+  | zero => omega
+  | succ fuel => rfl
+
 /-- Any finite list of assignment statements composes through the open executor.
 The induction owns sequencing; callers supply the one-statement assignment
 bridge for every element and the shape premise keeps this theorem on the
@@ -4735,6 +4742,33 @@ theorem callInMono_succ_body_next_of_execStmt_each
   rcases hNext s hs st' with ⟨st'', hs''⟩
   refine ⟨st'', ?_⟩
   rw [hBridge s hs st' 1 (by omega), hs'']
+
+theorem callInMono_succ_pass_body
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (sp : Span)
+    (hbodyEq : f.body.toList = [.pass sp])
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true) :
+    callInMono m (fuel + 1) w fname args =
+      .ok { w with callDepth := pythonTopCallDepth } .none := by
+  have hbody : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok RFlow.next,
+        ⟨{ w with callDepth := 1 },
+          globalCallEnv { w with callDepth := pythonTopCallDepth }
+            f.params args f.body f.hasGlobal⟩) := by
+    rw [hbodyEq]
+    rfl
+  exact callInMono_succ_body_next m fuel w fname args f
+    ⟨{ w with callDepth := 1 },
+      globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal⟩ hfind hgen hargs hlocal hnotgen
+    harity hbody
 
 theorem twinAgrees_callInM_top_body_ret
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
