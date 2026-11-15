@@ -4816,19 +4816,10 @@ theorem twinAgrees_execStmt_expr_unaryInt (K : Kont) (m : Module)
       (.exprStmt (.unaryOp op (.constant (.int a) sp) sp) sp)) st =
       execStmt m fuel st
         (.exprStmt (.unaryOp op (.constant (.int a) sp) sp) sp) := by
-  cases fuel with
-  | zero => omega
-  | succ fuel =>
-      cases fuel with
-      | zero => omega
-      | succ fuel =>
-          cases fuel with
-          | zero => omega
-          | succ fuel =>
-              rw [execStmt]
-              have hu := twinAgrees_evalOpen_unaryInt K m st op a sp
-                (fuel + 2) (by omega)
-              simp only [execOpen, toRun_bind, hu, Run.bind, toRun_pure]
+  have hu := twinAgrees_evalOpen_unaryInt K m st op a sp
+    (fuel - 1) (by omega)
+  exact twinAgrees_execStmt_expr_of_evalOpen_exact K m st
+    (.unaryOp op (.constant (.int a) sp) sp) sp fuel (by omega) hu
 
 theorem twinAgrees_execStmt_expr_intAdd (K : Kont) (m : Module)
     (st : FrameState) (a b : Int) (sp : Span) (fuel : Nat)
@@ -4839,20 +4830,10 @@ theorem twinAgrees_execStmt_expr_intAdd (K : Kont) (m : Module)
       execStmt m fuel st
         (.exprStmt
           (.binOp (.constant (.int a) sp) .add (.constant (.int b) sp) sp) sp) := by
-  cases fuel with
-  | zero => omega
-  | succ fuel =>
-      cases fuel with
-      | zero => omega
-      | succ fuel =>
-          cases fuel with
-          | zero => omega
-          | succ fuel =>
-              have ha := twinAgrees_evalOpen_intAdd K m st a b sp
-                (fuel + 2) (by omega)
-              exact twinAgrees_execStmt_expr_of_evalOpen K m st
-                (.binOp (.constant (.int a) sp) .add (.constant (.int b) sp) sp)
-                sp (fuel + 2) (by omega) ha
+  have ha := twinAgrees_evalOpen_intAdd K m st a b sp
+    (fuel - 1) (by omega)
+  exact twinAgrees_execStmt_expr_of_evalOpen_exact K m st
+    (.binOp (.constant (.int a) sp) .add (.constant (.int b) sp) sp) sp fuel (by omega) ha
 
 theorem twinAgrees_callInM_top_body_ret
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
