@@ -11,10 +11,10 @@
    "failed": 3,
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 977,
+   "passed": 982,
    "refused-libc": 18,
    "refused-ub": 89,
-   "refused-unsupported": 483,
+   "refused-unsupported": 478,
    "timeout": 80
   },
   "gcc.c23-run": {
@@ -30,10 +30,10 @@
   "failed": 3,
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1116,
+  "passed": 1121,
   "refused-libc": 21,
   "refused-ub": 97,
-  "refused-unsupported": 599,
+  "refused-unsupported": 594,
   "timeout": 83
  },
  "dynamic_wall_ranking": [
@@ -912,22 +912,6 @@
   },
   {
    "files": [
-    "00179.c",
-    "00180.c",
-    "20021011-1.c",
-    "20120207-1.c",
-    "921117-1.c",
-    "980707-1.c",
-    "built-in-setjmp.c",
-    "pr84339.c",
-    "string-opt-17.c"
-   ],
-   "present": 9,
-   "sole": 9,
-   "wall": "unsupported:__builtin_strcpy"
-  },
-  {
-   "files": [
     "pr105613.c",
     "pr110817-1.c",
     "pr110817-2.c",
@@ -1021,6 +1005,17 @@
    "present": 5,
    "sole": 5,
    "wall": "unsupported:no layout for declared type '_Complex double'"
+  },
+  {
+   "files": [
+    "00179.c",
+    "00180.c",
+    "built-in-setjmp.c",
+    "pr84339.c"
+   ],
+   "present": 4,
+   "sole": 4,
+   "wall": "unsupported:__builtin_strcpy"
   },
   {
    "files": [
@@ -2743,8 +2738,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T18:16:09Z",
- "measured_commit": "4661412ed",
+ "measured_at_utc": "2026-11-15T18:50:32Z",
+ "measured_commit": "6af6c9c5a",
  "pin": {
   "corpora": [
    "C1",
@@ -7603,8 +7598,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20021011-1.c",
    "sha256": "cc2e4b4355551ef32eeca6b9fa46e4351f475f3c686f5287974a3f38fb427301",
@@ -7614,7 +7609,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10436,8 +10431,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20120207-1.c",
    "sha256": "54547af0299635162ae5fbd31c63f73a2cf8bf3841ed501a5b465e999883cb22",
@@ -10446,7 +10441,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11617,8 +11612,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921117-1.c",
    "sha256": "0e2ba7511fba9c9146762719400a71a9feb7764ef706b852d54089ab9a3b8534",
@@ -11628,7 +11623,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13604,8 +13599,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "980707-1.c",
    "sha256": "5521d0bf62e7210d9e0d74cc80322eb8ca1e7379fa643d747b70c956c5c5b9e5",
@@ -13615,7 +13610,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28286,8 +28281,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "string-opt-17.c",
    "sha256": "f1f764b90fd97e4b42a2a2faf505f26fd6c7fa8c4f5740f6092a1a63e0767e5c",
@@ -28297,7 +28292,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1116/2214 MATCH (passed 1116, failed 3, oracle 0)
+- verdicts: 1121/2214 MATCH (passed 1121, failed 3, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `4661412ed`
-- measured at: `2026-11-15T18:16:09Z`
+- measured commit: `6af6c9c5a`
+- measured at: `2026-11-15T18:50:32Z`
 
 ## Verdict counts
 
@@ -14,10 +14,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `failed` | 3 |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1116 |
+| `passed` | 1121 |
 | `refused-libc` | 21 |
 | `refused-ub` | 97 |
-| `refused-unsupported` | 599 |
+| `refused-unsupported` | 594 |
 | `timeout` | 83 |
 
 ## Counts by corpus
@@ -32,10 +32,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 977 |
+| `gcc.c-torture/execute` | `passed` | 982 |
 | `gcc.c-torture/execute` | `refused-libc` | 18 |
 | `gcc.c-torture/execute` | `refused-ub` | 89 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 483 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 478 |
 | `gcc.c-torture/execute` | `timeout` | 80 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 3 |
@@ -317,7 +317,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:long double floating literal` | 10 | 10 | 20030914-1.c, 20080502-1.c, gcc/testsuite/gcc.dg/c23-float-1.c, ieee/20010226-1.c, ieee/inf-2.c |
 | `unsequenced-effects` | 9 | 9 | 20001228-1.c, 20020406-1.c, 20051021-1.c, 20230510-1.c, 920501-6.c |
 | `unsupported:AddrLabelExpr` | 9 | 9 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920302-1.c, 920501-4.c |
-| `unsupported:__builtin_strcpy` | 9 | 9 | 00179.c, 00180.c, 20021011-1.c, 20120207-1.c, 921117-1.c |
 | `unsupported:no layout for declared type 'V'` | 9 | 9 | pr105613.c, pr110817-1.c, pr110817-2.c, pr110817-3.c, pr71626-1.c |
 | `unsupported:strcmp` | 8 | 8 | 20010915-1.c, 20030715-1.c, 20050502-1.c, 921006-1.c, 921007-1.c |
 | `unsupported:StmtExpr` | 7 | 7 | 20000703-1.c, 20000917-1.c, 20020206-1.c, 20020320-1.c, 930406-1.c |
@@ -325,6 +324,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:sprintf` | 6 | 6 | 00186.c, 920501-8.c, 920726-1.c, 980605-1.c, ieee/920810-1.c |
 | `unsupported:strlen` | 6 | 6 | 20111208-1.c, pr36321.c, pr80153.c, string-opt-5.c, va-arg-10.c |
 | `unsupported:no layout for declared type '_Complex double'` | 5 | 5 | 20030910-1.c, 960512-1.c, complex-1.c, complex-2.c, ieee/cdivchkd.c |
+| `unsupported:__builtin_strcpy` | 4 | 4 | 00179.c, 00180.c, built-in-setjmp.c, pr84339.c |
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
 | `unsupported:floating cast has incompatible source and destination` | 4 | 4 | 00204.c, 20020413-1.c, 990413-2.c, align-2.c |
 | `unsupported:no layout for declared type 'long double'` | 4 | 4 | 20040208-1.c, ieee/20011123-1.c, ieee/inf-1.c, ieee/pr29302-1.c |
