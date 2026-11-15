@@ -5405,6 +5405,44 @@ theorem twinAgrees_callInM_top_body_unsupported
   rw [hfinish]
   rfl
 
+theorem callInMono_succ_body_timeout
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ = .error .timeout) :
+    callInMono m (fuel + 1) w fname args = .timeout := by
+  rw [callInMono_succ]
+  exact twinAgrees_callInM_top_body_timeout (kont m fuel) m fname args f
+    { w with callDepth := pythonTopCallDepth } hfind hgen hargs hlocal
+    hnotgen harity hbody
+
+theorem callInMono_succ_body_unsupported
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (cause : RefusalCause Unit)
+    (msg : String) (snapshot : Option Unit)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .error (.unsupported cause msg snapshot)) :
+    callInMono m (fuel + 1) w fname args = .unsupported msg := by
+  rw [callInMono_succ]
+  exact twinAgrees_callInM_top_body_unsupported (kont m fuel) m fname args f
+    { w with callDepth := pythonTopCallDepth } cause msg snapshot hfind hgen
+    hargs hlocal hnotgen harity hbody
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by

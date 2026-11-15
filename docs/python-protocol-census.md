@@ -736,3 +736,8 @@ flow mappings for explicit body results by producing the faithful
 `Monadic.callInMono_succ_body_exn` adds the corresponding public successor-fuel
 composition for a Python exception, preserving the post-body world and the
 original error at normalized top depth.
+
+`Monadic.callInMono_succ_body_timeout` and
+`Monadic.callInMono_succ_body_unsupported` complete the public successor-fuel
+body-result matrix for timeout and classified refusal, preserving timeout and
+refusal-message observations.
