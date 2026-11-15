@@ -4984,6 +4984,45 @@ theorem twinAgrees_callInM_recursive_body_ret
   rw [hfinish]
   rfl
 
+theorem twinAgrees_callInM_recursive_body_break
+    (K : Kont) (m : Module) (fname : String) (args : Array RVal)
+    (f : FunctionDefn) (w : World) (st' : FrameState)
+    (hdepth : w.callDepth ≠ pythonTopCallDepth)
+    (hfull : pythonFrameFull w.callDepth = false)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList K m f.body.toList
+      ⟨{ w with callDepth := w.callDepth + 1 },
+        globalCallEnv w f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok RFlow.brk, st')) :
+    toRun (callInM K m fname args) w =
+      .unsupported "'break' outside loop" := by
+  unfold callInM
+  rw [hfind]
+  simp only [hgen, hargs, hlocal, hnotgen, harity,
+    Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+  rw [toRun_get_bind]
+  rw [if_neg (by simp [hdepth])]
+  rw [if_neg (by simp [hfull])]
+  rw [toRun_bind]
+  rw [toRun_set]
+  simp only [Run.bind]
+  rw [toRun_bind]
+  have hfinish : toRun (leaveCallM
+      (inWorld (globalCallEnv w f.params args f.body f.hasGlobal)
+        (execOpenList K m f.body.toList)))
+      { w with callDepth := w.callDepth + 1 } =
+      .ok { st'.world with callDepth := st'.world.callDepth.pred } RFlow.brk := by
+    exact leaveCallM_inWorld_of_ok
+      (globalCallEnv w f.params args f.body f.hasGlobal)
+      (execOpenList K m f.body.toList)
+      { w with callDepth := w.callDepth + 1 } st' RFlow.brk hbody
+  rw [hfinish]
+  rfl
+
 theorem twinAgrees_callInM_top_body_exn
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (e : PyErr)

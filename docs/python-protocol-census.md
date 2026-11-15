@@ -682,3 +682,7 @@ depth and maps `RFlow.next` to the returned `none` value.
 `Monadic.twinAgrees_callInM_recursive_body_ret` composes the same guarded
 recursive branch for `RFlow.ret v`, preserving the decremented post-body world
 and returning `v` directly.
+
+`Monadic.twinAgrees_callInM_recursive_body_break` composes the guarded
+recursive branch for `RFlow.brk`; after `leaveCallM` restores the caller depth,
+the call boundary yields the faithful `"'break' outside loop"` refusal.
