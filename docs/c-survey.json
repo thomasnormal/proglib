@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 951,
+   "passed": 952,
    "refused-libc": 34,
    "refused-ub": 98,
-   "refused-unsupported": 502,
+   "refused-unsupported": 501,
    "timeout": 65
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1132,
+  "passed": 1133,
   "refused-libc": 38,
   "refused-ub": 107,
-  "refused-unsupported": 575,
+  "refused-unsupported": 574,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -1322,15 +1322,6 @@
   },
   {
    "files": [
-    "printf-1.c",
-    "widechar-3.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:string literal with escape or non-ASCII spelling"
-  },
-  {
-   "files": [
     "20030221-1.c",
     "strlen-3.c"
    ],
@@ -2514,6 +2505,14 @@
   },
   {
    "files": [
+    "printf-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:string literal with escape or non-ASCII spelling"
+  },
+  {
+   "files": [
     "20050121-1.c"
    ],
    "present": 1,
@@ -3106,8 +3105,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T07:04:11Z",
- "measured_commit": "5e553633e",
+ "measured_at_utc": "2026-11-15T07:13:12Z",
+ "measured_commit": "2c52d4d2a",
  "pin": {
   "corpora": [
    "C1",
@@ -29568,8 +29567,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "widechar-3.c",
    "sha256": "5d4286b40e5d9479dbf6b34789f480fd4b0f9f183ad4da1cc20d957bf31160b0",
@@ -29578,7 +29577,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

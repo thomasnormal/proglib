@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1132/2214 MATCH (passed 1132, failed 0, oracle 0)
+- verdicts: 1133/2214 MATCH (passed 1133, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `5e553633e`
-- measured at: `2026-11-15T07:04:11Z`
+- measured commit: `2c52d4d2a`
+- measured at: `2026-11-15T07:13:12Z`
 
 ## Verdict counts
 
@@ -13,10 +13,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1132 |
+| `passed` | 1133 |
 | `refused-libc` | 38 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 575 |
+| `refused-unsupported` | 574 |
 | `timeout` | 67 |
 
 ## Counts by corpus
@@ -30,10 +30,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 951 |
+| `gcc.c-torture/execute` | `passed` | 952 |
 | `gcc.c-torture/execute` | `refused-libc` | 34 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 502 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 501 |
 | `gcc.c-torture/execute` | `timeout` | 65 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -363,7 +363,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:not an integer type: 'double'` | 2 | 2 | 961223-1.c, stdarg-4.c |
 | `unsupported:not an integer type: 'float'` | 2 | 2 | postmod-1.c, pr15262-2.c |
 | `unsupported:sizeof: no layout for operand type 'struct S'` | 2 | 2 | 20120105-1.c, pr86492.c |
-| `unsupported:string literal with escape or non-ASCII spelling` | 2 | 2 | printf-1.c, widechar-3.c |
 | `unsupported:strlen` | 2 | 2 | 20030221-1.c, strlen-3.c |
 | `unsupported:unbound declaration 'id15' (name 'a')` | 2 | 2 | gcc/testsuite/gcc.dg/c23-imaginary-constants-1.c, gcc/testsuite/gcc.dg/c23-imaginary-constants-7.c |
 | `unsupported:unbound declaration 'id21' (name 'a')` | 2 | 2 | 00091.c, pr56837.c |
@@ -511,6 +510,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:src/strlen-5.c` | 1 | 1 | strlen-5.c |
 | `unsupported:src/strncmp-1.c` | 1 | 1 | strncmp-1.c |
 | `unsupported:strcmp` | 1 | 1 | p18298.c |
+| `unsupported:string literal with escape or non-ASCII spelling` | 1 | 1 | printf-1.c |
 | `unsupported:unary operator '__real'` | 1 | 1 | 20050121-1.c |
 | `unsupported:unbound declaration 'id103' (name 'test')` | 1 | 1 | pr71083.c |
 | `unsupported:unbound declaration 'id15' (name 'extfunc')` | 1 | 1 | pr67037.c |
