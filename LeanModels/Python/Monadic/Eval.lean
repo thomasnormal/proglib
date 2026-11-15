@@ -3818,6 +3818,55 @@ theorem twinAgrees_execOpenList_of_each (K : Kont) (m : Module) :
                   | cont => simp [hres, execStmts, toRun_pure, Run.bind]
                   | ret v => simp [hres, execStmts, toRun_pure, Run.bind]
 
+/- A threshold form for callers that have one uniform lower fuel bound for all
+   statement nodes.  The bound is preserved by the legacy tail recursion: a
+   list of length `L + 1` at fuel `F + 1` leaves the tail at `F`, while
+   `base + L < F` is exactly the induction hypothesis. -/
+theorem twinAgrees_execOpenList_of_threshold (K : Kont) (m : Module) :
+    ∀ (ss : List Stmt) (base fuel : Nat) (st : FrameState),
+      base + ss.length < fuel →
+      (∀ s ∈ ss, ∀ st' g, base ≤ g → 0 < g →
+        toRun (execOpen K m s) st' = execStmt m g st' s) →
+      toRun (execOpenList K m ss) st = execStmts m fuel st ss := by
+  intro ss
+  induction ss with
+  | nil =>
+      intro base fuel st hlen hEach
+      cases fuel with
+      | zero => omega
+      | succ fuel => rfl
+  | cons s ss ih =>
+      intro base fuel st hlen hEach
+      cases fuel with
+      | zero => omega
+      | succ fuel =>
+          have htailLen : base + ss.length < fuel := by
+            simp only [List.length_cons] at hlen
+            omega
+          have hhead := hEach s (by simp) st fuel (by omega) (by omega)
+          have htailEach : ∀ s' ∈ ss, ∀ st' g, base ≤ g → 0 < g →
+              toRun (execOpen K m s') st' = execStmt m g st' s' := by
+            intro s' hs' st' g hbase hpos
+            exact hEach s' (by simp [hs']) st' g hbase hpos
+          have hi : ∀ st', toRun (execOpenList K m ss) st' =
+              execStmts m fuel st' ss := by
+            intro st'
+            exact ih base fuel st' htailLen htailEach
+          simp only [execOpenList, toRun_bind]
+          rw [hhead]
+          simp only [Run.bind]
+          generalize hres : execStmt m fuel st s = r
+          cases r with
+          | timeout => simp [hres, execStmts, Run.bind]
+          | unsupported msg => simp [hres, execStmts, Run.bind]
+          | exn st' err => simp [hres, execStmts, Run.bind]
+          | ok st' flow =>
+              cases flow with
+              | next => simp [hres, hi st', execStmts, toRun_pure, Run.bind]
+              | brk => simp [hres, execStmts, toRun_pure, Run.bind]
+              | cont => simp [hres, execStmts, toRun_pure, Run.bind]
+              | ret v => simp [hres, execStmts, toRun_pure, Run.bind]
+
 theorem twinAgrees_execStmt_pass (K : Kont) (m : Module) (st : FrameState)
     (sp : Span) (fuel : Nat) (hfuel : 0 < fuel) :
     toRun (execOpen K m (.pass sp)) st = execStmt m fuel st (.pass sp) := by
