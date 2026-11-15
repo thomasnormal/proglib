@@ -759,6 +759,10 @@ back to raw monadic results, so existing `toRun`-level statement bridges can
 feed the state-threaded induction. `Monadic.callInMono_succ_body_next_of_toRun_each`
 is the public successor composition using that inversion path.
 
+`Monadic.execOpenList_raw_of_toRun_next` extends the inversion to an entire
+statement list.  This keeps the successful `.next` body result available to
+the raw `callInM` transport after a thresholded legacy-list comparison.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply

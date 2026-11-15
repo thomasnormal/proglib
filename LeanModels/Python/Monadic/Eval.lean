@@ -3980,6 +3980,28 @@ theorem execOpen_raw_of_toRun_next (K : Kont) (m : Module) (s : Stmt)
               | ret v => simp at h
           | error e => simp [hraw] at h
 
+theorem execOpenList_raw_of_toRun_next (K : Kont) (m : Module)
+    (ss : List Stmt) (st st' : FrameState)
+    (h : toRun (execOpenList K m ss) st = .ok st' RFlow.next) :
+    execOpenList K m ss st = .ok (.ok RFlow.next, st') := by
+  unfold toRun at h
+  generalize hraw : execOpenList K m ss st = q at h
+  cases q with
+  | error l => cases l <;> simp at h
+  | ok p =>
+      cases p with
+      | mk r st'' =>
+          cases r with
+          | ok v =>
+              cases v with
+              | next =>
+                  cases h
+                  rfl
+              | brk => simp at h
+              | cont => simp at h
+              | ret v => simp at h
+          | error e => simp [hraw] at h
+
 theorem execOpenList_next_threaded_of_toRun (K : Kont) (m : Module) :
     ∀ (ss : List Stmt) (st : FrameState),
       (∀ s ∈ ss, ∀ st', ∃ st'',
