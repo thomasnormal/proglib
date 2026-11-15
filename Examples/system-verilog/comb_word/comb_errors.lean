@@ -27,7 +27,8 @@ what the checker's `--tactics` advisory reports as `in_fragment false`):
   (`neg_repl_leaf`: the procedural chain does not carry the scope of a constant of the instance);
 * `neg_part_nz`, `neg_row_nz`, `neg_row_3d` (gate 4a): a part select of a declaration whose range is not zero-based
   (`[8:1]`), a whole-row select of a two-dimensional declaration whose first range is not zero-based (`[4:1][2:0]`), and a
-  declaration of three packed dimensions: the legacy selects of gate 4a are read over zero-based descending ranges only.
+  select of a declaration of three packed dimensions (the declaration itself is read since tac7): the legacy selects of
+  gate 4a are read over zero-based descending one- and two-dimensional ranges only.
 
 (A sum in an `always_comb` leaf was the seventh negative of gate 1; the procedural chain reads the word-level
 fragment since gate 2: `addp`.)
@@ -130,9 +131,12 @@ error: sv_structure: structural check failed:
 example : CombDesign (neg_row_nz.sem) := by
   sv_structure
 
--- three packed dimensions
+-- a select of a three-dimensional declaration (the declaration is read since tac7, as a whole signal; a select of it is
+-- not: here the legacy select `r[0]`, a bit select over a 3-D declaration, which the structural check refuses)
 /--
-error: sv_structure: outside the supported fragment — declaration `r`: only scalar, 1-D and 2-D packed declarations are in the v1 fragment
+error: sv_structure: structural check failed:
+  site `plain#0`: the access `r[0]` does not match the declaration of `r` (a select needs zero-based descending packed dimensions `[hi:0]`, with the number of selects the declaration allows)
+  site `plain#1`: the access `r[0]` does not match the declaration of `r` (a select needs zero-based descending packed dimensions `[hi:0]`, with the number of selects the declaration allows)
 -/
 #guard_msgs (whitespace := lax) in
 example : CombDesign (neg_row_3d.sem) := by
