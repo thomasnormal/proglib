@@ -800,7 +800,8 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
           g.setTag (if k == 1 then Name.mkSimple nm else Name.mkSimple s!"{nm}_{i}")
         return rest
       let autoClose : TSyntax `tactic ←
-        if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
+        if !sv_comb.auto_close.get (← getOptions) then `(tactic| fail)
+        else if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
       out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
         (try simp only [$preL,*])
         sv_auto_split
@@ -1217,7 +1218,8 @@ unsafe def runSvEquationsL (hintOnly : Bool) : TacticM Unit := do
           g.setTag (if k == 1 then Name.mkSimple nm else Name.mkSimple s!"{nm}_{i}")
         return rest
       let autoClose : TSyntax `tactic ←
-        if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
+        if !sv_comb.auto_close.get (← getOptions) then `(tactic| fail)
+        else if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
       out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
         (try simp only [$preL,*])
         sv_auto_split

@@ -735,6 +735,8 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
                 st.restore
                 pure g0)
           else pure g0
+        -- tac9: the localparams as variables of the obligation (`sv_comb.lp_atoms`, `lpAtoms`)
+        let g ← if sv_comb.lp_atoms.get (← getOptions) then lpAtoms s g else pure g
         setGoals [g]
         try svObProfile nm (evalTactic tac)
         catch e => throwError "sv_equations: while normalizing the obligation `{nm}`: {e.toMessageData}"
@@ -782,7 +784,8 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
           decided := decided.push "auto"
         else
           let autoClose : TSyntax `tactic ←
-            if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
+            if !sv_comb.auto_close.get (← getOptions) then `(tactic| fail)
+            else if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
           out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
             (try simp only [$preL,*])
             sv_auto_split

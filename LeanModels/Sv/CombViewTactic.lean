@@ -89,12 +89,21 @@ register_option sv_comb.rank_ranged : Bool := {
   defValue := false
   descr := "sv_structure: state the rank obligations with the in-range facts of both windows as premises" }
 
-/-- `set_option sv_comb.lp_atoms true` (tac9): `sv_structure` states its obligations with each localparam a variable named
-after it and its definition a hypothesis `hlp_<name>` (`lpAtoms`), instead of a copy of the definition wherever the
-localparam is read. Off by default: the obligations of every existing proof keep their form. -/
+/-- `set_option sv_comb.lp_atoms true` (tac9): `sv_structure` and `sv_equations` state their obligations with each
+localparam a variable named after it and its definition a hypothesis `hlp_<name>` (`lpAtoms`), instead of a copy of the
+definition wherever the localparam is read (the netlist view of `sv_equations` keeps the definitions). Off by default:
+the obligations of every existing proof keep their form. -/
 register_option sv_comb.lp_atoms : Bool := {
   defValue := false
-  descr := "sv_structure: keep each localparam a variable of the obligations, its definition a hypothesis" }
+  descr := "sv_structure/sv_equations: keep each localparam a variable of the obligations, its definition a hypothesis" }
+
+/-- `set_option sv_comb.auto_close false` (tac9): the tactics leave every goal of the in-range (`auto`) and atom (`XObl`)
+obligations to the player instead of trying `omega` and `sv_pow_omega` on each first. On a design whose goals hold large
+`if-then-else` terms (the Dadda record's schedule tables) those attempts are where the time goes; the player's closer then
+chooses the order (`sv_ite_omega`). On by default: every existing proof sees the goals it saw. -/
+register_option sv_comb.auto_close : Bool := {
+  defValue := true
+  descr := "sv_structure/sv_equations: try omega and sv_pow_omega on each in-range and atom goal before returning it" }
 
 /-- Run the normalization of the obligation `nm`; with `sv_comb.profile` set, log what it cost. -/
 def svObProfile (nm : String) (act : TacticM Unit) : TacticM Unit := do
@@ -208,6 +217,19 @@ range, which the tactics show from the hypotheses in context (`closeHag`). -/
 theorem canonInt32_of_bounds {v : Int} (h1 : -2147483648 ≤ v) (h2 : v < 2147483648) :
     canonInt 32 true v = v :=
   canonInt32_of_range ⟨h1, h2⟩
+
+/-- A comparison's `int` value against zero (a `?:` whose condition is a comparison, `CE.cond (CE.cmp …)`, reads the
+comparison as `1`/`0` first): the comparison itself (tac9, the definitions `lpAtoms` states). -/
+theorem ite_one_zero_eq_zero (c : Prop) [Decidable c] : ((if c then (1 : Int) else 0) = 0) ↔ ¬ c := by
+  by_cases h : c <;> simp [h]
+
+/-- An `if-then-else` of two values in `[lo, hi]` is in `[lo, hi]` (tac9, `addIteFacts`: the bounds of a localparam's
+`?:` with literal arms, which `omega` otherwise reaches only by splitting the condition). -/
+theorem ite_mem_int {c : Prop} [Decidable c] {a b lo hi : Int} (ha : lo ≤ a ∧ a ≤ hi) (hb : lo ≤ b ∧ b ≤ hi) :
+    lo ≤ (if c then a else b) ∧ (if c then a else b) ≤ hi := by
+  split
+  · exact ha
+  · exact hb
 
 /-- `Int.emod` as the `%` that `omega` reads (the instantiation's conversion of a constant to a width, `convertConst`, takes
 the operand modulo `2 ^ w` with `Int.emod`: `$clog2 (N)` reads `N` at its 32-bit type). -/
@@ -1056,7 +1078,8 @@ unsafe def lpAtoms (s : LeanModels.Sv.CombView.Summary) (g : MVarId) : TacticM M
     let hI := mkIdent h
     try evalTactic (← `(tactic| simp only [LeanModels.Sv.CombView.CE.eval, LeanModels.Sv.CombView.σL,
         List.lookup_cons, List.lookup_nil, String.reduceBEq, Bool.false_eq_true, ↓reduceIte, cond_false, cond_true,
-        Option.getD_some, Option.getD_none, Int.reduceAdd, Int.reduceSub, Int.reduceMul, Int.reduceNeg] at $hI:ident))
+        Option.getD_some, Option.getD_none, Int.reduceAdd, Int.reduceSub, Int.reduceMul, Int.reduceNeg,
+        Int.ofNat_eq_natCast, LeanModels.Sv.CombView.ite_one_zero_eq_zero, ite_not] at $hI:ident))
     catch _ => pure ()
   let some g3 := (← getGoals).head? | throwError "sv_comb (lp_atoms): internal error: the goal closed"
   return g3
@@ -1187,6 +1210,38 @@ def addClog2Facts (es : Array Lean.Expr) : TacticM Unit := do
       let g ← g.assert `hclog2_lt (← inferType h2) h2
       let (_, g) ← g.intro1P
       replaceMainGoal [g]
+
+/-- The closed `if-then-else` subterms of `e` of type `Int` whose two arms are integer literals (tac9, `addIteFacts`). -/
+partial def iteIntLits (e : Lean.Expr) (acc : Array Lean.Expr) : Array Lean.Expr :=
+  let acc := if e.isAppOfArity ``ite 5 && !e.hasLooseBVars && e.getArg! 0 == mkConst ``Int &&
+      (e.getArg! 3).int?.isSome && (e.getArg! 4).int?.isSome && !acc.contains e then acc.push e else acc
+  match e with
+  | .app f a => iteIntLits a (iteIntLits f acc)
+  | .mdata _ b | .proj _ _ b => iteIntLits b acc
+  | .lam _ t b _ | .forallE _ t b _ => iteIntLits b (iteIntLits t acc)
+  | .letE _ t v b _ => iteIntLits b (iteIntLits v (iteIntLits t acc))
+  | _ => acc
+
+/-- **The bounds of the `?:` with literal arms** (tac9): for each closed `if c then a else b` of `es` with integer literals
+`a`, `b`, the fact `min a b ≤ … ∧ … ≤ max a b` (`ite_mem_int`) in the context of the main goal. A localparam that sums
+such `?:` (the Dadda record's stage count, 51 of them) is then a linear sum of bounded atoms to `omega`, which needs no
+case split to place a partial sum in the 32-bit range. Nothing is added where `es` has no such term. -/
+def addIteFacts (es : Array Lean.Expr) : TacticM Unit := do
+  let mut ites : Array Lean.Expr := #[]
+  for e in es do ites := iteIntLits (← instantiateMVars e) ites
+  for e in ites do
+    let some a := (e.getArg! 3).int? | continue
+    let some b := (e.getArg! 4).int? | continue
+    let lo := toExpr (min a b)
+    let hi := toExpr (max a b)
+    let ha ← mkDecideProof (← mkAppM ``And #[← mkAppM ``LE.le #[lo, e.getArg! 3], ← mkAppM ``LE.le #[e.getArg! 3, hi]])
+    let hb ← mkDecideProof (← mkAppM ``And #[← mkAppM ``LE.le #[lo, e.getArg! 4], ← mkAppM ``LE.le #[e.getArg! 4, hi]])
+    let pf ← mkAppOptM ``LeanModels.Sv.CombView.ite_mem_int
+      #[some (e.getArg! 1), some (e.getArg! 2), some (e.getArg! 3), some (e.getArg! 4), some lo, some hi, some ha, some hb]
+    let g ← getMainGoal
+    let g ← g.assert `hite_mem (← inferType pf) pf
+    let (_, g) ← g.intro1P
+    replaceMainGoal [g]
 
 /-- The exponents `t` of the `(2 : Int) ^ t` subterms of `e`, and the pairs `(x, t)` of its `x / 2 ^ t` (closed under no
 binder). -/
@@ -1690,6 +1745,7 @@ unsafe def closeHagWith (tac : String) (g : MVarId) (names : List String) (val :
       let pg ← mkFreshExprSyntheticOpaqueMVar (← mkEq (← mkAppM ``Option.some #[v]) (← mkAppM ``Option.some #[r]))
       setGoals [pg.mvarId!]
       addClog2Facts #[v, r]
+      addIteFacts #[v, r]
       -- a definition with a shift (`CE.shl`/`shr`/`ashr`, a power of two in its term) takes the route below only: the
       -- general one ends in `rfl`, which would unfold the instantiation's `Int.fdiv`/`Int.tdiv` and the summary's `%`
       let hasShift := !(powArgs (← instantiateMVars r)).1.isEmpty
@@ -2767,8 +2823,10 @@ set_option maxRecDepth 4096 in
         List.forall_mem_cons, List.forall_mem_nil, List.not_mem_nil, false_implies, forall_const])
       (try sv_norm_core)
       (try sv_lp_norm)
-      repeat' refine And.intro ?_ ?_
-      all_goals first | sv_pow_omega | skip)))
+      repeat' refine And.intro ?_ ?_)))
+    -- (tac9: not with `sv_comb.auto_close false`)
+    if sv_comb.auto_close.get (← getOptions) then
+      evalTactic (← `(tactic| all_goals first | sv_pow_omega | skip))
     let rest ← getGoals
     setGoals (gMain ++ rest)
 
@@ -3088,7 +3146,8 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       unless fromShared || (← closePlain `hauto ``LeanModels.Sv.CombView.Summary.autoObl_of_plain
           "an in-range fact of a flat netlist does not hold") do
         let autoClose : TSyntax `tactic ←
-          if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
+          if !sv_comb.auto_close.get (← getOptions) then `(tactic| fail)
+          else if s.atomFree then `(tactic| (intros; omega)) else `(tactic| first | (intros; omega) | sv_pow_omega)
         out := out ++ (← runOb `hauto "auto" (← `(tacticSeq|
           (try simp only [$preL,*])
           sv_auto_split
