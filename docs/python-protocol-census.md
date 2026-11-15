@@ -776,6 +776,11 @@ needed by the legacy evaluator's child-expression step.
 any expression whose `evalOpen`/`evalExpr` bridge is supplied at positive child
 fuel automatically gets the corresponding expression-statement bridge.
 
+`Monadic.twinAgrees_execStmt_expr_of_evalOpen_exact` exposes the same rule at
+the enclosing statement's exact fuel: callers supply the child relation at
+`fuel - 1`, and the theorem accounts for the statement step once.  This is the
+fuel shape needed when the mutual continuation invariant is instantiated.
+
 `Monadic.twinAgrees_execStmt_expr_unaryInt` supplies the next concrete instance
 for a unary operator over an integer literal.  Its two-step threshold records
 both the unary child evaluation and the enclosing expression-statement step;

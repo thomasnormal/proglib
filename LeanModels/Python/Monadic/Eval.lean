@@ -4793,6 +4793,22 @@ theorem twinAgrees_execStmt_expr_of_evalOpen (K : Kont) (m : Module)
   unfold execStmt
   simp only [execOpen, toRun_bind, Run.bind, toRun_pure, hEval]
 
+/- Exact-fuel form for callers that already account for the enclosing statement
+   step.  The child expression runs at `fuel - 1`; keeping that arithmetic in a
+   reusable theorem avoids repeating syntax-specific successor cases. -/
+theorem twinAgrees_execStmt_expr_of_evalOpen_exact (K : Kont) (m : Module)
+    (st : FrameState) (e : Expr) (sp : Span) (fuel : Nat) (hfuel : 1 < fuel)
+    (hEval : toRun (evalOpen K m e) st = evalExpr m (fuel - 1) st e) :
+    toRun (execOpen K m (.exprStmt e sp)) st =
+      execStmt m fuel st (.exprStmt e sp) := by
+  cases fuel with
+  | zero => omega
+  | succ fuel =>
+      have hEval' : toRun (evalOpen K m e) st = evalExpr m fuel st e := by
+        simpa using hEval
+      exact twinAgrees_execStmt_expr_of_evalOpen K m st e sp fuel
+        (by omega) hEval'
+
 theorem twinAgrees_execStmt_expr_unaryInt (K : Kont) (m : Module)
     (st : FrameState) (op : UnaryOp) (a : Int) (sp : Span) (fuel : Nat)
     (hfuel : 2 < fuel) :
