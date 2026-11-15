@@ -10,6 +10,9 @@ The call denominator is lower than the first run because the oracle now records 
 
 The observed refusal ranking is measured by function flips first, then newly agreed calls, with `sole` and `present` retained as context. The required stall-rule rerun used the complete 141-row survey JSON on 2026-11-12 with
 `python3 harness/library_rank.py --provenance census:library --json /tmp/library-rank-current.json /tmp/library-current.json`.
+The published figures were revalidated on 2026-11-15 against the post-opaque-import
+survey artifact `/tmp/library-full-next.json`; the pre-refresh `/tmp/library-current.json`
+artifact predates the `email.charset` flip and is not a comparable ranking input.
 The price columns are measured surfaces, not promises: modules, public functions, driven calls, matched calls, rows that would become verified, and functions that would become verified if that wall alone were removed.
 
 | Wall | Present | Sole | Modules | Public functions | Driven calls | Matched calls | Potential rows | Function flips |
