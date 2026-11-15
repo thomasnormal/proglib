@@ -1135,6 +1135,15 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 | .error r => throw r
               runPrintf (fmt :: args)
           | _ => refuseUnsupported "vprintf: wrong argument count"
+        let runVfprintf : List CVal → ExecM CVal := fun vs =>
+          match vs with
+          | stream :: fmt :: ap :: _ =>
+              match stream, prog.stdoutObj with
+              | .ptr p, some o =>
+                  if p.obj == some o then runVprintf [fmt, ap]
+                  else refuseUnsupported "vfprintf: non-stdout stream"
+              | _, _ => refuseUnsupported "vfprintf: non-stdout stream"
+          | _ => refuseUnsupported "vfprintf: wrong argument count"
         let runFprintf : List CVal → ExecM CVal := fun vs =>
           match vs with
           | stream :: fmt :: args =>
@@ -1757,6 +1766,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 runFprintf vs
               else if nm == "vprintf" || nm == "__builtin_vprintf" then
                 runVprintf vs
+              else if nm == "vfprintf" || nm == "__builtin_vfprintf" then
+                runVfprintf vs
               else if nm == "abort" || nm == "exit" then
                 throw (.libc nm)
               else match prog.findId? declaration with
@@ -1765,6 +1776,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                     else if nm == "memcpy" || nm == "__builtin_memcpy" then runMemcpy vs
                     else if nm == "mempcpy" || nm == "__builtin_mempcpy" then runMempcpy vs
                     else if nm == "fprintf" || nm == "__builtin_fprintf" then runFprintf vs
+                    else if nm == "vfprintf" || nm == "__builtin_vfprintf" then runVfprintf vs
                     else if nm == "memmove" || nm == "__builtin_memmove" then runMemmove vs
                     else if nm == "__builtin_strcmp" then runStrcmp vs
                     else if nm == "__builtin_memcmp" || nm == "memcmp" then runMemcmp vs
