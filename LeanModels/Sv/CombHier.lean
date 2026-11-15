@@ -174,6 +174,11 @@ def Acc.hren (pfx : String) : Acc → Acc
   | .cell2 n w r c => .cell2 (pfx ++ n) (w.hren pfx) (r.hren pfx) (c.hren pfx)
   | .part1 n hi lo => .part1 (pfx ++ n) (hi.hren pfx) (lo.hren pfx)
   | .part2 n w r hi lo => .part2 (pfx ++ n) (w.hren pfx) (r.hren pfx) (hi.hren pfx) (lo.hren pfx)
+  | .plane3 n w2 w3 p => .plane3 (pfx ++ n) (w2.hren pfx) (w3.hren pfx) (p.hren pfx)
+  | .row3 n w2 w3 p r => .row3 (pfx ++ n) (w2.hren pfx) (w3.hren pfx) (p.hren pfx) (r.hren pfx)
+  | .cell3 n w2 w3 p r c => .cell3 (pfx ++ n) (w2.hren pfx) (w3.hren pfx) (p.hren pfx) (r.hren pfx) (c.hren pfx)
+  | .part3 n w2 w3 p r hi lo =>
+      .part3 (pfx ++ n) (w2.hren pfx) (w3.hren pfx) (p.hren pfx) (r.hren pfx) (hi.hren pfx) (lo.hren pfx)
 
 /-- A declaration of the child's summary under the prefix, port flags cleared. -/
 def DeclT.hren (pfx : String) (dt : DeclT) : DeclT :=

@@ -1153,6 +1153,20 @@ theorem acc_rd_pos {σ : String → Int} {DW : String → Option Nat}
       obtain ⟨m1, m2, -, hw, -, -, h0, hlh, -⟩ := hg
       simp only [Acc.rd, ReadWin.pos, Acc.wid]
       omega
+  | plane3 n w2 w3 p =>
+      obtain ⟨m1, m2, m3, -, h2, h3, hw2, hw3, -⟩ := hg
+      simp only [Acc.rd, ReadWin.pos, Acc.wid, hw2, hw3]
+      have := Int.mul_pos (show (0 : Int) < m2 + 1 by omega) (show (0 : Int) < m3 + 1 by omega)
+      omega
+  | row3 n w2 w3 p r =>
+      obtain ⟨m1, m2, m3, -, h3, hw2, hw3, -⟩ := hg
+      simp only [Acc.rd, ReadWin.pos, Acc.wid, hw3]
+      omega
+  | cell3 n w2 w3 p r c => simp [Acc.rd, ReadWin.pos]
+  | part3 n w2 w3 p r hi lo =>
+      obtain ⟨m1, m2, m3, -, hw2, hw3, -, -, -, -, h0, hlh, -⟩ := hg
+      simp only [Acc.rd, ReadWin.pos, Acc.wid]
+      omega
 
 /-- No read of the tree is near the window `W` (overlapping it or empty), given that no read ACCESS
 overlaps it (the summary's `noSelfRead` obligation) and every access is in range. -/
@@ -1215,6 +1229,10 @@ theorem lhs_eq_win_lhs (σ : String → Int) (dw : String → Nat) :
   | .cell2 .., _ => rfl
   | .part1 .., _ => rfl
   | .part2 .., _ => rfl
+  | .plane3 .., _ => rfl
+  | .row3 .., _ => rfl
+  | .cell3 .., _ => rfl
+  | .part3 .., _ => rfl
 
 /-- The facts about the lowered target `tg.lhs σ` that the lowering and the self-read guard read:
 its symbolic window is the access's window, it may write exactly that window and reads nothing.

@@ -401,6 +401,63 @@ theorem acc_win_facts {s : Summary} {σd σs : String → Int} {a : Acc}
       have e2 : (m2 + 1).toNat = m2.natAbs + 1 := by omega
       rw [e1, e2] at this
       exact this
+  | plane3 n w2 w3 p =>
+      obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hp0, hp1⟩ := hg
+      have h1 : s.dw σd n = (m1.natAbs + 1) * ((m2.natAbs + 1) * (m3.natAbs + 1)) := by
+        rw [dw_of_DG hdg]; simp [valsW]
+      simp only [Acc.win, Acc.lo, Acc.wid, Acc.name, hw2, hw3]
+      have hpos : 0 < (m2 + 1) * (m3 + 1) := Int.mul_pos (by omega) (by omega)
+      refine ⟨by omega, ?_⟩
+      have := rmN3_plane_le (W2 := m2 + 1) (W3 := m3 + 1) (s := p.eval σs) (m1 := m1) hp1 (by omega)
+        (by omega) hp0
+      have e1 : (m1 + 1).toNat = m1.natAbs + 1 := by omega
+      have e2 : (m2 + 1).toNat = m2.natAbs + 1 := by omega
+      have e3 : (m3 + 1).toNat = m3.natAbs + 1 := by omega
+      rw [e1, e2, e3, Nat.mul_assoc] at this
+      rw [h1]
+      omega
+  | row3 n w2 w3 p r =>
+      obtain ⟨m1, m2, m3, hdg, hm3, hw2, hw3, hp0, hp1, hr0, hr1⟩ := hg
+      have h1 : s.dw σd n = (m1.natAbs + 1) * ((m2.natAbs + 1) * (m3.natAbs + 1)) := by
+        rw [dw_of_DG hdg]; simp [valsW]
+      simp only [Acc.win, Acc.lo, Acc.wid, Acc.name, hw2, hw3]
+      refine ⟨by omega, ?_⟩
+      have := rmN3_le (W2 := m2 + 1) (W3 := m3 + 1) (s := p.eval σs) (k := r.eval σs) (m1 := m1) (c := 0)
+        (w := (m3 + 1).toNat) hp1 (by omega) (by omega) hr0 hp0 (Int.le_refl 0) (by omega)
+      have e1 : (m1 + 1).toNat = m1.natAbs + 1 := by omega
+      have e2 : (m2 + 1).toNat = m2.natAbs + 1 := by omega
+      have e3 : (m3 + 1).toNat = m3.natAbs + 1 := by omega
+      rw [e1, e2, e3, Nat.mul_assoc] at this
+      rw [h1]
+      omega
+  | cell3 n w2 w3 p r c =>
+      obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hc0, hc1⟩ := hg
+      have h1 : s.dw σd n = (m1.natAbs + 1) * ((m2.natAbs + 1) * (m3.natAbs + 1)) := by
+        rw [dw_of_DG hdg]; simp [valsW]
+      simp only [Acc.win, Acc.lo, Acc.name, hw2, hw3]
+      refine ⟨by omega, ?_⟩
+      have := rmN3_le (W2 := m2 + 1) (W3 := m3 + 1) (s := p.eval σs) (k := r.eval σs) (m1 := m1) (c := c.eval σs)
+        (w := 1) hp1 (by omega) (by omega) hr0 hp0 hc0 (by omega)
+      have e1 : (m1 + 1).toNat = m1.natAbs + 1 := by omega
+      have e2 : (m2 + 1).toNat = m2.natAbs + 1 := by omega
+      have e3 : (m3 + 1).toNat = m3.natAbs + 1 := by omega
+      rw [e1, e2, e3, Nat.mul_assoc] at this
+      rw [h1]
+      omega
+  | part3 n w2 w3 p r hi lo =>
+      obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hg
+      have h1 : s.dw σd n = (m1.natAbs + 1) * ((m2.natAbs + 1) * (m3.natAbs + 1)) := by
+        rw [dw_of_DG hdg]; simp [valsW]
+      simp only [Acc.win, Acc.lo, Acc.wid, Acc.name, hw2, hw3]
+      refine ⟨by omega, ?_⟩
+      have := rmN3_le (W2 := m2 + 1) (W3 := m3 + 1) (s := p.eval σs) (k := r.eval σs) (m1 := m1)
+        (c := lo.eval σs) (w := (hi.eval σs - lo.eval σs + 1).toNat) hp1 (by omega) (by omega) hr0 hp0 hy0 (by omega)
+      have e1 : (m1 + 1).toNat = m1.natAbs + 1 := by omega
+      have e2 : (m2 + 1).toNat = m2.natAbs + 1 := by omega
+      have e3 : (m3 + 1).toNat = m3.natAbs + 1 := by omega
+      rw [e1, e2, e3, Nat.mul_assoc] at this
+      rw [h1]
+      omega
 
 /-- **The geometry of every target window of a located site at a reached valuation** (the head and the further
 ones): the access is consistent with its declaration, and its window is positive and inside the declared signal. -/
@@ -487,6 +544,10 @@ theorem acc_windows {s : Summary} {σd σs : String → Int} {m : Design2}
   | cell2 n w r c => simp [Acc.lhs, Acc.win, Lhs2.windows?, Lhs2.window?]
   | part1 n hi lo => simp [Acc.lhs, Acc.win, Lhs2.windows?, Lhs2.window?]
   | part2 n w r hi lo => simp [Acc.lhs, Acc.win, Lhs2.windows?, Lhs2.window?]
+  | plane3 n w2 w3 p => simp [Acc.lhs, Acc.win, Lhs2.windows?, Lhs2.window?]
+  | row3 n w2 w3 p r => simp [Acc.lhs, Acc.win, Lhs2.windows?, Lhs2.window?]
+  | cell3 n w2 w3 p r c => simp [Acc.lhs, Acc.win, Lhs2.windows?, Lhs2.window?]
+  | part3 n w2 w3 p r hi lo => simp [Acc.lhs, Acc.win, Lhs2.windows?, Lhs2.window?]
 
 theorem inrange_insts {s : Summary} {σ : String → Int} {E : IEnv} {args : List Int}
     (hok : s.StructOk) (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) {a : SiteInst}

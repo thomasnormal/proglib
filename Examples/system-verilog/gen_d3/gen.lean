@@ -11,7 +11,9 @@ inner two (`DeclT.elemW`, the instantiation's `PType.elemWidth`). A whole-signal
 refused, naming it (the 3-D access forms are not built).
 
 * `gen_d3.sv`: `t = a ^ b`, `y = t`, all three 3-D;
-* `neg/gen_d3_sel.sv`: `y = t[1][0][2]`, a select of a 3-D declaration: refused (`comb_errors`).
+* `neg/gen_d3_sel.sv`: `y = t[1][0][2]`, a cell of a 3-D declaration: refused until tac8, read since (`Acc.cell3`;
+  `comb_errors` proves its structure);
+* `neg/gen_d3_nz.sv`: the same select of a declaration whose plane range is `[2:1]`: refused (`comb_errors`).
 
 Oracle: Icarus Verilog 12.0 (stable), `tac7/icarus/tb_d3.sv` of the round's notes, every input at `N = 1`, every 4097th
 at `N = 2` (8192 rows): its `y` is `a ^ b` on every row; `d3Check` checks the model against it.
@@ -26,10 +28,13 @@ open LeanModels.Sv LeanModels.Sv.CombView
 
 load_design_sv2 gen_d3 from "Examples/system-verilog/gen_d3/gen_d3.sv.json"
 load_design_sv2 gen_d3_sel from "Examples/system-verilog/gen_d3/neg/gen_d3_sel.sv.json"
+load_design_sv2 gen_d3_nz from "Examples/system-verilog/gen_d3/neg/gen_d3_nz.sv.json"
 
 -- the declarations: three of three dimensions each
 #guard (gen_d3.pdesign.summary.toOption.map fun s => s.decls.map fun dt => dt.dims.length) == some [3, 3, 3, 3]
-#guard (gen_d3_sel.pdesign.summary.toOption).isNone
+-- the cell select of `gen_d3_sel` is read since tac8 (`Acc.cell3`); the non-zero-based declaration's is refused
+#guard (gen_d3_sel.pdesign.summary.toOption).isSome
+#guard (gen_d3_nz.pdesign.summary.toOption).isNone
 
 /-- Every input pair `(a, b)` whose index is a multiple of `step`, at width `N` (a test, evaluated by the compiler). -/
 def d3Check (σ : ScheduleOracle) (step N : Nat) : Bool :=

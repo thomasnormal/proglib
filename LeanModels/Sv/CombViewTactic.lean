@@ -699,6 +699,39 @@ private def headConst? (e : Expr) : Option Name :=
   | .const n _ => some n
   | _ => none
 
+namespace LeanModels.Sv.CombView
+
+open Lean Meta Simp in
+/-- Unfold `e`, an application of a definition by pattern matching on an access, only where the access `a` is a
+constructor application, so that the `match` it unfolds to reduces at once (tac8). Unfolded at a variable access (a
+generic `Acc.win σ dw ls.site.tgt` under a binder of an obligation, before the site list is expanded), the definition
+is a `match` that cannot reduce, and the normalization simplified every one of its arms for nothing: each access form
+added to `Acc` made every normalization slower (measured on gen_deep's equations: +23% time, the proof term 61548 ->
+82046, with the three-dimensional forms). -/
+def unfoldAtCtor (e a : Lean.Expr) : SimpM Step := do
+  unless (← isConstructorApp (← whnfR a)) do return .continue
+  let some e' ← unfoldDefinition? e (ignoreTransparency := true) | return .continue
+  return .visit { expr := e' }
+
+open Lean Meta Simp in
+/-- `Summary.dm s σ n k` unfolds only at a literal name `n` (tac8): at a variable name, the declaration lookup it unfolds
+to cannot decide, and the normalization walked the whole declaration list for nothing. -/
+def unfoldDmAtLit (e : Lean.Expr) : SimpM Step := do
+  let .lit (.strVal _) ← whnfR (e.getArg! 2) | return .continue
+  let some e' ← unfoldDefinition? e (ignoreTransparency := true) | return .continue
+  return .visit { expr := e' }
+
+simproc_decl svAccName (LeanModels.Sv.CombView.Acc.name _) := fun e => unfoldAtCtor e e.appArg!
+simproc_decl svAccLo (LeanModels.Sv.CombView.Acc.lo _ _) := fun e => unfoldAtCtor e e.appArg!
+simproc_decl svAccWid (LeanModels.Sv.CombView.Acc.wid _ _) := fun e => unfoldAtCtor e e.appArg!
+simproc_decl svAccWin (LeanModels.Sv.CombView.Acc.win _ _ _) := fun e => unfoldAtCtor e e.appArg!
+simproc_decl svAccRd (LeanModels.Sv.CombView.Acc.rd _ _) := fun e => unfoldAtCtor e e.appArg!
+simproc_decl svInR (LeanModels.Sv.CombView.Summary.InR _ _ _ _) := fun e => unfoldAtCtor e e.appArg!
+simproc_decl svDimNum (LeanModels.Sv.CombView.Summary.DimNum _ _ _) := fun e => unfoldAtCtor e e.appArg!
+simproc_decl svDm (LeanModels.Sv.CombView.Summary.dm _ _ _ _) := fun e => unfoldDmAtLit e
+
+end LeanModels.Sv.CombView
+
 -- COPY NOTE (literal simp list, kept in step by hand): `sv_norm_core` is one of six copies of the same
 -- vocabulary: `sv_norm_core` (CombViewTactic.lean), `sv_eq_norm_at` and `sv_eq_norm` (CombEqTactic.lean),
 -- `svL_norm_core`, `svL_eq_norm_at` and `svL_eq_norm` (CombProcTactic.lean). The L copies are the plain ones plus
@@ -706,6 +739,10 @@ private def headConst? (e : Expr) : Option Name :=
 -- the others at the goal. A lemma added to one list belongs in its siblings unless the difference is intended and
 -- stated here. The multi-window copies `svL_eq_norm_multi_at` and `svL_eq_norm_multi` (CombProcTactic.lean) are
 -- `svL_eq_norm_at` and `svL_eq_norm` plus the skeleton vocabulary; they name this note and each other.
+-- (tac8: `Nat.one_lt_succ_succ` decides `getElem?_pos`'s side condition `1 < 3` for `dims[1]?` of a declaration of
+-- three dimensions, the one index `Nat.zero_lt_succ`/`Nat.lt_add_one` miss. The access functions `Acc.name`/`lo`/`wid`/
+-- `win`/`rd`, `Summary.InR`/`DimNum` unfold through the gated simprocs `svAccName`, ..., `svDimNum` (only at a
+-- constructor), and `Summary.dm` through `svDm` (only at a literal name), never by name; all eight copies.)
 set_option maxRecDepth 4096 in
 /-- The normalization of the obligation `Prop`s: unfold the summary functions, evaluate the
 affine forms, name the windows. -/
@@ -725,21 +762,21 @@ macro "sv_norm_core" : tactic =>
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
       List.flatMap_nil, List.mem_cons, List.not_mem_nil,
       or_false, Int.ofNat_eq_natCast, List.zip_cons_cons,
-      List.zip_nil_right, LeanModels.Sv.CombView.Summary.InR, LeanModels.Sv.CombView.Aff.eval,
-      LeanModels.Sv.CombView.Summary.dm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
+      List.zip_nil_right, LeanModels.Sv.CombView.svInR, LeanModels.Sv.CombView.Aff.eval,
+      LeanModels.Sv.CombView.svDm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
       LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
       LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
       List.length_cons, List.length_nil, Nat.zero_lt_succ,
-      getElem?_pos, List.getElem_cons_zero, LeanModels.Sv.CombView.σL,
+      getElem?_pos, Nat.one_lt_succ_succ, List.getElem_cons_zero, LeanModels.Sv.CombView.σL,
       List.lookup_cons_self, Int.one_mul, true_and,
       false_implies, implies_true, Int.zero_le_ofNat,
       Nat.lt_add_one, List.getElem_cons_succ, and_true,
       LeanModels.Sv.CombView.Hdr.Rng, LeanModels.Sv.CombView.bindσ, String.reduceEq,
       ↓reduceIte, and_imp, Int.add_le_add_iff_right,
-      Int.natCast_nonneg, and_self, LeanModels.Sv.CombView.Summary.DimNum,
+      Int.natCast_nonneg, and_self, LeanModels.Sv.CombView.svDimNum,
       LeanModels.Sv.CombView.Summary.hdrPaths, LeanModels.Sv.CombView.Summary.hdrSteps, Option.some.injEq,
       List.filterMap_cons_some,
       List.filterMap_nil, List.filterMap_cons_none, Int.natAbs_natCast,
@@ -750,7 +787,7 @@ macro "sv_norm_core" : tactic =>
       LeanModels.Sv.CombView.DeclT.width, Option.map_some, LeanModels.Sv.CombView.dimsW,
       Nat.mul_one, LeanModels.Sv.CombView.Summary.DisjObl, List.pairwise_cons,
       LeanModels.Sv.CombView.Summary.DisjOne, LeanModels.Sv.CombView.LSite.id, ne_eq,
-      LeanModels.Sv.CombView.Acc.win, LeanModels.Sv.CombView.Acc.lo, LeanModels.Sv.CombView.Acc.wid,
+      LeanModels.Sv.CombView.svAccWin, LeanModels.Sv.CombView.svAccLo, LeanModels.Sv.CombView.svAccWid,
       Int.toNat_natCast_add_one, LeanModels.Sv.CombView.SiteId.plain.injEq, Nat.zero_ne_one,
       LeanModels.Sv.Win.overlaps_eq_false, or_self, true_or,
       imp_self, reduceCtorEq, Int.toNat_natCast,
@@ -759,8 +796,8 @@ macro "sv_norm_core" : tactic =>
       List.cons_ne_self, and_false, false_and,
       List.ne_cons_self, Nat.succ_ne_self, List.Pairwise.nil,
       not_and, LeanModels.Sv.CombView.Summary.LexObl, LeanModels.Sv.CombView.Summary.RankObl',
-      LeanModels.Sv.CombView.Summary.writersOf, LeanModels.Sv.CombView.Acc.name, List.mem_filter,
-      beq_iff_eq, LeanModels.Sv.ReadWin.overlaps, LeanModels.Sv.CombView.Acc.rd,
+      LeanModels.Sv.CombView.Summary.writersOf, LeanModels.Sv.CombView.svAccName, List.mem_filter,
+      beq_iff_eq, LeanModels.Sv.ReadWin.overlaps, LeanModels.Sv.CombView.svAccRd,
       LeanModels.Sv.CombView.KLt, Nat.lt_irrefl, imp_false,
       Bool.not_eq_true, LeanModels.Sv.Win.overlaps_eq_true, Nat.lt_add_right_iff_pos,
       Nat.lt_add_left_iff_pos, Int.sub_add_cancel, Int.toNat_lt',
@@ -796,12 +833,20 @@ cells, a cell inside a row or a part of a row, the overlap of a read with a writ
 two such offsets. `sv_rowmajor` rewrites those comparisons into lexicographic comparisons of
 `(row, column)` with the library lemmas `rmN_add_col` (a window's end is the offset of its end
 column), `rmN_lt_iff` and `rmN_le_iff` (row-major order IS lexicographic order, for columns inside
-the row); their side conditions (indices nonnegative, columns inside the row) are discharged by
+the row), and, for a 3-D array, whose row is itself an offset `rmN W2 s k` (tac8), `rmN_cast_lt_iff`, `rmN_cast_le_iff`
+and `rmN_cast_eq_iff` (the rows compare as the inner offsets, again lexicographically); their side conditions (indices nonnegative, columns inside the row) are discharged by
 `omega` from the loop bounds in the context. What it leaves is linear: finish with `omega`. It is
 NOT part of `sv_structure`: the player calls it, on goals that mention `rmN`. -/
 macro "sv_rowmajor" : tactic =>
   `(tactic| (try simp (disch := omega) only [LeanModels.Sv.CombView.rmN_add_col,
-      LeanModels.Sv.CombView.rmN_lt_iff, LeanModels.Sv.CombView.rmN_le_iff] at *))
+      LeanModels.Sv.CombView.rmN_lt_iff, LeanModels.Sv.CombView.rmN_le_iff,
+      -- tac8: the nested offsets of a 3-D array, `rmN W3 (rmN W2 s k) c` (only a cast of an `rmN` matches these), and
+      -- the end of a plane as the start of the next (before `rmN_add_col`, which would make it a column past the row)
+      LeanModels.Sv.CombView.rmN_cast_lt_iff, LeanModels.Sv.CombView.rmN_cast_le_iff,
+      LeanModels.Sv.CombView.rmN_cast_eq_iff, ↓LeanModels.Sv.CombView.rmN3_plane_end,
+      ↓LeanModels.Sv.CombView.rmN3_plane_end_k,
+      -- a column comparison of two literals decides to `True` inside a conjunction (`0 = 0` of two rows' columns)
+      and_true, true_and] at *))
 
 /-- **Close a decidable structural fact without an auxiliary lemma** (WP-P). `decide +kernel` turns the
 fact into an auxiliary theorem and adds it to the environment synchronously, and in the asynchronous

@@ -216,16 +216,164 @@ theorem arrayPartTarget_part2 {E : IEnv} {σ : String → Int} {n : String} {mod
   rw [arrayPartTarget_of_inRange hg hlo (by omega)]
   simp
 
+/-! ### Three dimensions (tac8)
+
+The flat offset of an in-range path of a zero-based descending 3-D array `[m1:0][m2:0][m3:0]` is the nested row-major
+`rmN (m3+1) (rmN (m2+1) s k) i` (plane `s`, row `k`, bit `i`): `walkIndices` gives `s·((m2+1)(m3+1)) + (k·(m3+1) + i)`,
+the same number. -/
+
+/-- The nested row-major offset, as an integer. -/
+theorem rmN3_cast {W2 W3 s k i : Int} (h2 : 0 ≤ W2) (h3 : 0 ≤ W3) (hs : 0 ≤ s) (hk : 0 ≤ k) (hi : 0 ≤ i) :
+    ((rmN W3 (rmN W2 s k : Int) i : Nat) : Int) = s * (W2 * W3) + (k * W3 + i) := by
+  rw [rmN_cast h3 (Int.natCast_nonneg _) hi, rmN_cast h2 hs hk, Int.add_mul, Int.mul_assoc]
+  omega
+
+/-- The path's offsets through `walkIndices` over three zero-based descending dimensions: one, two or three indices. -/
+theorem walkIndices_3_1 {E : IEnv} {ie : PExpr} {m1 m2 m3 s : Int} (hm2 : 0 ≤ m2) (hm3 : 0 ≤ m3)
+    (hev : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1) :
+    walkIndices E [(m1, 0), (m2, 0), (m3, 0)] [ie] =
+      .ok ((rmN (m3 + 1) (rmN (m2 + 1) s 0 : Int) 0 : Nat), true, [(m2, 0), (m3, 0)]) := by
+  rw [walkIndices_desc0_cons (by omega) hev hs0 hs1 (walkIndices_nil (env := E) [(m2, 0), (m3, 0)]),
+    rmN3_cast (by omega) (by omega) hs0 (Int.le_refl 0) (Int.le_refl 0)]
+  have h2 : ((dimCount m2 0 : Nat) : Int) = m2 + 1 := dimCount_desc0 hm2
+  have h3 : ((dimCount m3 0 : Nat) : Int) = m3 + 1 := dimCount_desc0 hm3
+  simp only [dimsStride, Nat.mul_one, Int.natCast_mul, h2, h3]
+  try simp
+
+theorem walkIndices_3_2 {E : IEnv} {ie je : PExpr} {m1 m2 m3 s k : Int} (hm3 : 0 ≤ m3)
+    (hes : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1)
+    (hek : evalInt E je = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m2) :
+    walkIndices E [(m1, 0), (m2, 0), (m3, 0)] [ie, je] =
+      .ok ((rmN (m3 + 1) (rmN (m2 + 1) s k : Int) 0 : Nat), true, [(m3, 0)]) := by
+  have hm2 : 0 ≤ m2 := by omega
+  rw [walkIndices_desc0_cons (by omega) hes hs0 hs1
+      (walkIndices_desc0_cons hm2 hek hk0 hk1 (walkIndices_nil (env := E) [(m3, 0)])),
+    rmN3_cast (by omega) (by omega) hs0 hk0 (Int.le_refl 0)]
+  have h2 : ((dimCount m2 0 : Nat) : Int) = m2 + 1 := dimCount_desc0 hm2
+  have h3 : ((dimCount m3 0 : Nat) : Int) = m3 + 1 := dimCount_desc0 hm3
+  simp only [dimsStride, Nat.mul_one, Int.natCast_mul, h2, h3]
+  try simp
+
+theorem walkIndices_3_3 {E : IEnv} {ie je ke : PExpr} {m1 m2 m3 s k i : Int}
+    (hes : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1)
+    (hek : evalInt E je = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m2)
+    (hei : evalInt E ke = .ok i) (hi0 : 0 ≤ i) (hi1 : i ≤ m3) :
+    walkIndices E [(m1, 0), (m2, 0), (m3, 0)] [ie, je, ke] =
+      .ok ((rmN (m3 + 1) (rmN (m2 + 1) s k : Int) i : Nat), true, []) := by
+  have hm2 : 0 ≤ m2 := by omega
+  have hm3 : 0 ≤ m3 := by omega
+  rw [walkIndices_desc0_cons (by omega) hes hs0 hs1
+      (walkIndices_desc0_cons hm2 hek hk0 hk1
+        (walkIndices_desc0_cons hm3 hei hi0 hi1 (walkIndices_nil (env := E) []))),
+    rmN3_cast (by omega) (by omega) hs0 hk0 hi0]
+  have h2 : ((dimCount m2 0 : Nat) : Int) = m2 + 1 := dimCount_desc0 hm2
+  have h3 : ((dimCount m3 0 : Nat) : Int) = m3 + 1 := dimCount_desc0 hm3
+  simp only [dimsStride, Nat.mul_one, Int.natCast_mul, h2, h3]
+  try simp
+
+/-- A plane of a 3-D zero-based descending array: `(m2+1)(m3+1)` bits. -/
+theorem arrayElemWindow_plane3 {E : IEnv} {n : String} {ie : PExpr} {m1 m2 m3 s : Int}
+    (hd : E.dims.lookup n = some [(m1, 0), (m2, 0), (m3, 0)]) (hm2 : 0 ≤ m2) (hm3 : 0 ≤ m3)
+    (hev : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1) :
+    arrayElemWindow E n [ie] =
+      .ok ((rmN (m3 + 1) (rmN (m2 + 1) s 0 : Int) 0 : Nat), ((m2 + 1) * (m3 + 1)).toNat, true) := by
+  rw [arrayElemWindow_of (arrayDims_of hd) (walkIndices_3_1 hm2 hm3 hev hs0 hs1)]
+  have h2 : ((dimCount m2 0 : Nat) : Int) = m2 + 1 := dimCount_desc0 hm2
+  have h3 : ((dimCount m3 0 : Nat) : Int) = m3 + 1 := dimCount_desc0 hm3
+  have e : dimsStride [(m2, 0), (m3, 0)] = ((m2 + 1) * (m3 + 1)).toNat := by
+    rw [← h2, ← h3, ← Int.natCast_mul, Int.toNat_natCast]
+    simp [dimsStride]
+  rw [e]
+
+/-- A row of a 3-D zero-based descending array: `m3 + 1` bits. -/
+theorem arrayElemWindow_row3 {E : IEnv} {n : String} {ie je : PExpr} {m1 m2 m3 s k : Int}
+    (hd : E.dims.lookup n = some [(m1, 0), (m2, 0), (m3, 0)]) (hm3 : 0 ≤ m3)
+    (hes : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1)
+    (hek : evalInt E je = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m2) :
+    arrayElemWindow E n [ie, je] =
+      .ok ((rmN (m3 + 1) (rmN (m2 + 1) s k : Int) 0 : Nat), (m3 + 1).toNat, true) := by
+  rw [arrayElemWindow_of (arrayDims_of hd) (walkIndices_3_2 hm3 hes hs0 hs1 hek hk0 hk1)]
+  have h3 : ((dimCount m3 0 : Nat) : Int) = m3 + 1 := dimCount_desc0 hm3
+  have e : dimsStride [(m3, 0)] = (m3 + 1).toNat := by
+    rw [← h3, Int.toNat_natCast]
+    simp [dimsStride]
+  rw [e]
+
+/-- A cell of a 3-D zero-based descending array. -/
+theorem arrayElemWindow_cell3 {E : IEnv} {n : String} {ie je ke : PExpr} {m1 m2 m3 s k i : Int}
+    (hd : E.dims.lookup n = some [(m1, 0), (m2, 0), (m3, 0)])
+    (hes : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1)
+    (hek : evalInt E je = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m2)
+    (hei : evalInt E ke = .ok i) (hi0 : 0 ≤ i) (hi1 : i ≤ m3) :
+    arrayElemWindow E n [ie, je, ke] = .ok ((rmN (m3 + 1) (rmN (m2 + 1) s k : Int) i : Nat), 1, true) := by
+  rw [arrayElemWindow_of (arrayDims_of hd) (walkIndices_3_3 hes hs0 hs1 hek hk0 hk1 hei hi0 hi1)]
+  rfl
+
+/-- Part `[hi:lo]` (or `[b +: w]`, `[b -: w]`) of a row of a 3-D zero-based descending array. -/
+theorem arrayPartGeom_part3 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {ie je a b : PExpr}
+    {m1 m2 m3 s k : Int} {x y : Aff}
+    (hd : E.dims.lookup n = some [(m1, 0), (m2, 0), (m3, 0)]) (hm3 : 0 ≤ m3)
+    (hes : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1)
+    (hek : evalInt E je = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m2)
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlh : y.eval σ ≤ x.eval σ) :
+    arrayPartGeom E n [ie, je] mode a b =
+      .ok ((rmN (m3 + 1) (rmN (m2 + 1) s k : Int) 0 : Nat), true, 1, dimCount m3 0, y.eval σ, x.eval σ) := by
+  have := arrayPartGeom_of_labels (E := E) (n := n) (is := [ie, je]) (mode := mode) (a := a) (b := b)
+    (es := [(m1, 0), (m2, 0), (m3, 0)]) (ok := true) (l := m3) (r := 0) (inner := [])
+    (arrayDims_of hd) (walkIndices_3_2 hm3 hes hs0 hs1 hek hk0 hk1) (partLabels_of_aff hx hy hox hoy hlh)
+    (by rw [labelOffset_desc0 hm3, labelOffset_desc0 hm3]; exact hlh)
+  rw [this, labelOffset_desc0 hm3, labelOffset_desc0 hm3]
+  simp
+
+theorem arrayPartRead_part3 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {ie je a b : PExpr}
+    {m1 m2 m3 s k : Int} {x y : Aff}
+    (hd : E.dims.lookup n = some [(m1, 0), (m2, 0), (m3, 0)])
+    (hes : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1)
+    (hek : evalInt E je = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m2)
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlo : 0 ≤ y.eval σ) (hlh : y.eval σ ≤ x.eval σ)
+    (hhi : x.eval σ ≤ m3) :
+    arrayPartRead E n [ie, je] mode a b =
+      .slice (.ident n) (rmN (m3 + 1) (rmN (m2 + 1) s k : Int) (y.eval σ)) (x.eval σ - y.eval σ + 1).toNat := by
+  have hm3 : 0 ≤ m3 := by omega
+  have hg := arrayPartGeom_part3 hd hm3 hes hs0 hs1 hek hk0 hk1 hx hy hox hoy hlh
+  have hc := dimCount_desc0 hm3
+  rw [arrayPartRead_of_inRange hg hlo (by omega)]
+  congr 1 <;> first | omega | (unfold rmN; omega)
+
+theorem arrayPartTarget_part3 {E : IEnv} {σ : String → Int} {n : String} {mode : PartMode} {ie je a b : PExpr}
+    {m1 m2 m3 s k : Int} {x y : Aff}
+    (hd : E.dims.lookup n = some [(m1, 0), (m2, 0), (m3, 0)])
+    (hes : evalInt E ie = .ok s) (hs0 : 0 ≤ s) (hs1 : s ≤ m1)
+    (hek : evalInt E je = .ok k) (hk0 : 0 ≤ k) (hk1 : k ≤ m2)
+    (hx : affOf? (partRange mode a b).1 = some x) (hy : affOf? (partRange mode a b).2 = some y)
+    (hox : x.Ok E σ) (hoy : y.Ok E σ) (hlo : 0 ≤ y.eval σ) (hlh : y.eval σ ≤ x.eval σ)
+    (hhi : x.eval σ ≤ m3) :
+    arrayPartTarget E n [ie, je] mode a b =
+      .ok (.slice n (rmN (m3 + 1) (rmN (m2 + 1) s k : Int) (y.eval σ)) (x.eval σ - y.eval σ + 1).toNat,
+        (x.eval σ - y.eval σ + 1).toNat) := by
+  have hm3 : 0 ≤ m3 := by omega
+  have hg := arrayPartGeom_part3 hd hm3 hes hs0 hs1 hek hk0 hk1 hx hy hox hoy hlh
+  have hc := dimCount_desc0 hm3
+  rw [arrayPartTarget_of_inRange hg hlo (by omega)]
+  congr 3 <;> first | omega | (unfold rmN; omega)
+
 /-! ## Inversion of the recognizers -/
 
 theorem elemAcc?_cases {ds : List DeclT} {n : String} {is : List PExpr} {a : Acc}
     (h : elemAcc? ds n is = .ok a) :
     (∃ i x, is = [i] ∧ affOf? i = some x ∧ a = .cell1 n x) ∨
     (∃ i x w, is = [i] ∧ affOf? i = some x ∧ a = .row n w x) ∨
-    (∃ i j x y w, is = [i, j] ∧ affOf? i = some x ∧ affOf? j = some y ∧ a = .cell2 n w x y) := by
+    (∃ i j x y w, is = [i, j] ∧ affOf? i = some x ∧ affOf? j = some y ∧ a = .cell2 n w x y) ∨
+    (∃ i x w2 w3, is = [i] ∧ affOf? i = some x ∧ a = .plane3 n w2 w3 x) ∨
+    (∃ i j x y w2 w3, is = [i, j] ∧ affOf? i = some x ∧ affOf? j = some y ∧ a = .row3 n w2 w3 x y) ∨
+    (∃ i j k x y z w2 w3, is = [i, j, k] ∧ affOf? i = some x ∧ affOf? j = some y ∧ affOf? k = some z ∧
+      a = .cell3 n w2 w3 x y z) := by
   unfold elemAcc? at h
   split at h <;> (try split at h) <;> (try split at h) <;> (try split at h) <;> (try split at h) <;>
-    simp_all <;> (subst_vars; try simp) <;> (try (refine ⟨_, _, ⟨rfl, rfl⟩, ?_, ?_⟩ <;> assumption))
+    simp_all <;> (subst_vars; try simp) <;> (try (refine ⟨_, _, ⟨rfl, rfl⟩, ?_, ?_⟩ <;> assumption)) <;>
+    (try exact ⟨_, _, _, ⟨rfl, rfl, rfl⟩, _, by assumption, _, by assumption, _, by assumption, rfl, rfl, rfl⟩)
 
 /-- The access of a part select of any mode (`partAcc?`), through the bounds `partRange` gives. -/
 theorem partAcc?_cases {ds : List DeclT} {n : String} {is : List PExpr} {mode : PartMode}
@@ -233,7 +381,10 @@ theorem partAcc?_cases {ds : List DeclT} {n : String} {is : List PExpr} {mode : 
     (∃ x y, is = [] ∧ affOf? (partRange mode hi lo).1 = some x ∧ affOf? (partRange mode hi lo).2 = some y ∧
         a = .part1 n x y) ∨
      (∃ i r x y w, is = [i] ∧ affOf? i = some r ∧ affOf? (partRange mode hi lo).1 = some x ∧
-        affOf? (partRange mode hi lo).2 = some y ∧ a = .part2 n w r x y) := by
+        affOf? (partRange mode hi lo).2 = some y ∧ a = .part2 n w r x y) ∨
+     (∃ i j p r x y w2 w3, is = [i, j] ∧ affOf? i = some p ∧ affOf? j = some r ∧
+        affOf? (partRange mode hi lo).1 = some x ∧ affOf? (partRange mode hi lo).2 = some y ∧
+        a = .part3 n w2 w3 p r x y) := by
   unfold partAcc? at h
   split at h <;> (try split at h) <;> (try split at h) <;> (try split at h) <;> (try split at h) <;>
     (try split at h) <;> simp_all <;> (subst_vars; try simp) <;>
@@ -1186,6 +1337,8 @@ variable (s : Summary)
 tactic's `omega`. -/
 def DimNum (σ : String → Int) : Acc → Prop
   | .row n _ _ => 0 ≤ s.dm σ n 1
+  | .plane3 n _ _ _ => 0 ≤ s.dm σ n 1 ∧ 0 ≤ s.dm σ n 2
+  | .row3 n _ _ _ _ => 0 ≤ s.dm σ n 2
   | _ => True
 
 /-- The in-range facts of an access, in the form a player reads: indices nonnegative and inside the
@@ -1201,6 +1354,15 @@ def InR (σd σs : String → Int) : Acc → Prop
   | .part2 n _ r hi lo =>
       0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ lo.eval σs ∧ lo.eval σs ≤ hi.eval σs ∧
         hi.eval σs ≤ s.dm σd n 1
+  | .plane3 n _ _ p => 0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0
+  | .row3 n _ _ p r =>
+      0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 1
+  | .cell3 n _ _ p r c =>
+      0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 1 ∧
+        0 ≤ c.eval σs ∧ c.eval σs ≤ s.dm σd n 2
+  | .part3 n _ _ p r hi lo =>
+      0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 1 ∧
+        0 ≤ lo.eval σs ∧ lo.eval σs ≤ hi.eval σs ∧ hi.eval σs ≤ s.dm σd n 2
 
 /-- A site's write window lies inside its declared signal (`inWidth`). -/
 def InWin (σd σs : String → Int) (st : TSite) : Prop :=
@@ -2221,6 +2383,20 @@ def AccGeom (σ : String → Int) (DG : String → Option (List (Int × Int)))
   | .part2 n w r hi lo =>
       ∃ m1 m2, DG n = some [(m1, 0), (m2, 0)] ∧ w.eval σ = m2 + 1 ∧ 0 ≤ r.eval σ ∧
         r.eval σ ≤ m1 ∧ 0 ≤ lo.eval σ ∧ lo.eval σ ≤ hi.eval σ ∧ hi.eval σ ≤ m2
+  | .plane3 n w2 w3 p =>
+      ∃ m1 m2 m3, DG n = some [(m1, 0), (m2, 0), (m3, 0)] ∧ 0 ≤ m2 ∧ 0 ≤ m3 ∧ w2.eval σ = m2 + 1 ∧
+        w3.eval σ = m3 + 1 ∧ 0 ≤ p.eval σ ∧ p.eval σ ≤ m1
+  | .row3 n w2 w3 p r =>
+      ∃ m1 m2 m3, DG n = some [(m1, 0), (m2, 0), (m3, 0)] ∧ 0 ≤ m3 ∧ w2.eval σ = m2 + 1 ∧
+        w3.eval σ = m3 + 1 ∧ 0 ≤ p.eval σ ∧ p.eval σ ≤ m1 ∧ 0 ≤ r.eval σ ∧ r.eval σ ≤ m2
+  | .cell3 n w2 w3 p r c =>
+      ∃ m1 m2 m3, DG n = some [(m1, 0), (m2, 0), (m3, 0)] ∧ w2.eval σ = m2 + 1 ∧
+        w3.eval σ = m3 + 1 ∧ 0 ≤ p.eval σ ∧ p.eval σ ≤ m1 ∧ 0 ≤ r.eval σ ∧ r.eval σ ≤ m2 ∧
+        0 ≤ c.eval σ ∧ c.eval σ ≤ m3
+  | .part3 n w2 w3 p r hi lo =>
+      ∃ m1 m2 m3, DG n = some [(m1, 0), (m2, 0), (m3, 0)] ∧ w2.eval σ = m2 + 1 ∧
+        w3.eval σ = m3 + 1 ∧ 0 ≤ p.eval σ ∧ p.eval σ ≤ m1 ∧ 0 ≤ r.eval σ ∧ r.eval σ ≤ m2 ∧
+        0 ≤ lo.eval σ ∧ lo.eval σ ≤ hi.eval σ ∧ hi.eval σ ≤ m3
 
 /-- The element width `buildElems` records for a declaration of the evaluated dimensions `ds`: the width of the second
 dimension of a two-dimensional one, the product of the second and third of a three-dimensional one, `1` otherwise
@@ -2271,6 +2447,25 @@ theorem ctxElemsRow (C : Ctx σ E elems DW DG EW ns) {n : String} {m1 m2 : Int}
   have h := C.elemsG n _ hdg
   have e : elemWOfDims [(m1, 0), (m2, 0)] = (m2 + 1).toNat := by simp [elemWOfDims]; omega
   rwa [e] at h
+
+/-- The element width of a zero-based three-dimensional declaration is its plane width (tac8). -/
+theorem ctxElemsPlane (C : Ctx σ E elems DW DG EW ns) {n : String} {m1 m2 m3 : Int}
+    (hdg : DG n = some [(m1, 0), (m2, 0), (m3, 0)]) (hm2 : 0 ≤ m2) (hm3 : 0 ≤ m3) :
+    elems.lookup n = some ((m2 + 1) * (m3 + 1)).toNat := by
+  have h := C.elemsG n _ hdg
+  have e : elemWOfDims [(m1, 0), (m2, 0), (m3, 0)] = ((m2 + 1) * (m3 + 1)).toNat := by
+    simp only [elemWOfDims, Int.sub_zero, Nat.one_mul]
+    rw [Int.toNat_mul (by omega) (by omega), show m2.natAbs + 1 = (m2 + 1).toNat by omega,
+      show m3.natAbs + 1 = (m3 + 1).toNat by omega]
+  rwa [e] at h
+
+/-- The legacy select of a plane, `n[i]` over a 3-D declaration, is the plane's nested row-major offset. -/
+theorem plane_lo_eq {m2 m3 i : Int} (hm2 : 0 ≤ m2) (hm3 : 0 ≤ m3) (_hi : 0 ≤ i) :
+    i.toNat * ((m2 + 1) * (m3 + 1)).toNat = rmN (m3 + 1) (rmN (m2 + 1) i 0 : Int) 0 := by
+  show i.toNat * ((m2 + 1) * (m3 + 1)).toNat = ((rmN (m2 + 1) i 0 : Nat) : Int).toNat * (m3 + 1).toNat + (0 : Int).toNat
+  rw [Int.toNat_natCast, Int.toNat_mul (by omega) (by omega)]
+  show i.toNat * ((m2 + 1).toNat * (m3 + 1).toNat) = (i.toNat * (m2 + 1).toNat + (0 : Int).toNat) * (m3 + 1).toNat + (0 : Int).toNat
+  simp only [Int.toNat_zero, Nat.add_zero, Nat.mul_assoc]
 
 /-- … and of a one-dimensional one is one. -/
 theorem ctxElemsOne (C : Ctx σ E elems DW DG EW ns) {n : String} {m : Int}
@@ -2335,7 +2530,7 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
           rcases hx : affOf? i with _ | x
           · simp [hx] at h
           · simp only [hx] at h
-            rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ <;> rw [hb] at h <;>
+            rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ | ⟨w2, w3, hb⟩ <;> rw [hb] at h <;>
               simp only [Except.ok.injEq] at h <;> subst h
             · obtain ⟨hnn, hel⟩ := hgeo
               have hel' : elems.lookup n = some 1 := C.elems n hel
@@ -2350,6 +2545,13 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
               rw [instExpr2_bitSel_ident ctx hel' hev hx0]
               simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
                 Acc.rd, Acc.name, Acc.lo, Acc.wid, rmN, hw]
+            · -- a legacy select of a plane of a three-dimensional declaration (tac8)
+              obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+              have hel' := ctxElemsPlane C hdg hm2 hm3
+              obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+              rw [instExpr2_bitSel_ident ctx hel' hev hx0, plane_lo_eq hm2 hm3 hx0]
+              simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
+                Acc.rd, Acc.name, Acc.lo, Acc.wid, hw2, hw3]
       | _ => simp [leafRd?] at h
   | partSel b msb lsb =>
       cases b with
@@ -2357,17 +2559,19 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
           simp only [leafRd?] at h
           have hc := partAcc?_cases h
           simp only [partRange] at hc
-          rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
+          rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩ | ⟨i, j, p, r, x, y, w2, w3, hnil, -⟩
           · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
             rw [inst_partSel C hdg hx hy hagx hy0 hyx ctx]
             simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
               Acc.rd, Acc.name, Acc.lo, Acc.wid]
           · exact absurd hnil (by simp)
+          · exact absurd hnil (by simp)
       | _ => simp [leafRd?] at h
   | arrayElem n is =>
       simp only [leafRd?] at h
       rcases elemAcc?_cases h with ⟨i, x, rfl, hx, rfl⟩ | ⟨i, x, w, rfl, hx, rfl⟩ |
-        ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩
+        ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩ | ⟨i, x, w2, w3, rfl, hx, rfl⟩ |
+        ⟨i, j, x, y, w2, w3, rfl, hx, hy, rfl⟩ | ⟨i, j, k, x, y, z, w2, w3, rfl, hx, hy, hz, rfl⟩
       · -- n[i], 1-D
         obtain ⟨m, hdg, hx0, hx1⟩ := hgeo
         have hd := C.dims n _ hdg
@@ -2394,10 +2598,37 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
         have hcell := rmN_eq_toNat (W := m2 + 1) (i := x.eval σ) (j := y.eval σ) (by omega) hx0 hy0
         simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
           Acc.rd, Acc.name, Acc.lo, hw, hcell]
+      · -- n[s], a plane of a 3-D array (tac8)
+        obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+        rw [instExpr2_arrayElem, arrayElemRead_of_inRange (arrayElemWindow_plane3 hd hm2 hm3 hev hx0 hx1)]
+        simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
+          Acc.rd, Acc.name, Acc.lo, Acc.wid, hw2, hw3]
+      · -- n[s][k], a row of a 3-D array
+        obtain ⟨m1, m2, m3, hdg, hm3, hw2, hw3, hx0, hx1, hy0, hy1⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+        obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+        rw [instExpr2_arrayElem,
+          arrayElemRead_of_inRange (arrayElemWindow_row3 hd hm3 hevi hx0 hx1 hevj hy0 hy1)]
+        simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
+          Acc.rd, Acc.name, Acc.lo, Acc.wid, hw2, hw3]
+      · -- n[s][k][i], a cell of a 3-D array
+        obtain ⟨m1, m2, m3, hdg, hw2, hw3, hx0, hx1, hy0, hy1, hz0, hz1⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+        obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+        obtain ⟨-, hevk⟩ := affOf?_sound k z hz (hagx z (by simp [Acc.affs]))
+        rw [instExpr2_arrayElem,
+          arrayElemRead_of_inRange (arrayElemWindow_cell3 hd hevi hx0 hx1 hevj hy0 hy1 hevk hz0 hz1)]
+        simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
+          Acc.rd, Acc.name, Acc.lo, hw2, hw3]
   | arrayPart n is mode hi lo =>
       simp only [leafRd?] at h
       have hc := partAcc?_cases h
-      rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩
+      rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩ |
+        ⟨i, j, p, r, x, y, w2, w3, rfl, hp, hr, hx, hy, rfl⟩
       · -- n[hi:lo], 1-D
         obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
         have hd := C.dims n _ hdg
@@ -2420,6 +2651,18 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
         have hcell := rmN_eq_toNat (W := m2 + 1) (i := r.eval σ) (j := y.eval σ) (by omega) hr0 hy0
         simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
           Acc.rd, Acc.name, Acc.lo, Acc.wid, hw, hcell]
+      · -- n[s][k][hi:lo], part of a row of a 3-D array (tac8)
+        obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hep⟩ := affOf?_sound i p hp (hagx p (by simp [Acc.affs]))
+        obtain ⟨-, her⟩ := affOf?_sound j r hr (hagx r (by simp [Acc.affs]))
+        have hox := hagx x (by simp [Acc.affs])
+        have hoy := hagx y (by simp [Acc.affs])
+        have hg := arrayPartGeom_part3 hd (by omega) hep hp0 hp1 her hr0 hr1 hx hy hox hoy hyx
+        rw [instExpr2_arrayPart _ (dynPartPlan_of_geom hg),
+          arrayPartRead_part3 hd hep hp0 hp1 her hr0 hr1 hx hy hox hoy hy0 hyx hxm]
+        simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
+          Acc.rd, Acc.name, Acc.lo, Acc.wid, hw2, hw3]
   | _ => simp [leafRd?] at h
 
 theorem inst_rdsLeaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
@@ -3682,8 +3925,8 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
     have hW : E.widths.lookup n = some w := by rw [C.widths n]; simpa [Acc.name] using hw
     exact ⟨w, by rw [instLhs2_ident hW]; rfl⟩
   · -- n[i]
-    rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ <;> rw [hb] at hba <;> simp only [Except.ok.injEq] at hba <;>
-      subst hba
+    rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ | ⟨w2, w3, hb⟩ <;> rw [hb] at hba <;>
+      simp only [Except.ok.injEq] at hba <;> subst hba
     · obtain ⟨hnn, hel⟩ := hgeo
       have hel' : elems.lookup n = some 1 := C.elems n hel
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -3695,10 +3938,18 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
       exact ⟨(m2 + 1).toNat, by
         rw [instLhs2_bitSel hel' hev hx0]
         simp [Acc.lhs, Acc.lo, Acc.wid, rmN, hw]⟩
+    · -- a legacy select of a plane (tac8)
+      obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+      have hel' := ctxElemsPlane C hdg hm2 hm3
+      obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      exact ⟨((m2 + 1) * (m3 + 1)).toNat, by
+        rw [instLhs2_bitSel hel' hev hx0, plane_lo_eq hm2 hm3 hx0]
+        simp [Acc.lhs, Acc.lo, Acc.wid, hw2, hw3]⟩
   · -- element path
     rw [instLhs2_arrayElem]
     rcases elemAcc?_cases he with ⟨i, x, rfl, hx, rfl⟩ | ⟨i, x, w, rfl, hx, rfl⟩ |
-      ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩
+      ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩ | ⟨i, x, w2, w3, rfl, hx, rfl⟩ |
+      ⟨i, j, x, y, w2, w3, rfl, hx, hy, rfl⟩ | ⟨i, j, k, x, y, z, w2, w3, rfl, hx, hy, hz, rfl⟩
     · obtain ⟨m, hdg, hx0, hx1⟩ := hgeo
       have hd := C.dims n _ hdg
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -3720,10 +3971,35 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
       exact ⟨1, by
         rw [arrayElemTarget_of_inRange (arrayElemWindow_cell2 hd hevi hx0 hx1 hevj hy0 hy1)]
         simp [Acc.lhs, Acc.lo, hw, hcell]⟩
+    · -- a plane of a 3-D array (tac8)
+      obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      exact ⟨((m2 + 1) * (m3 + 1)).toNat, by
+        rw [arrayElemTarget_of_inRange (arrayElemWindow_plane3 hd hm2 hm3 hev hx0 hx1)]
+        simp [Acc.lhs, Acc.lo, Acc.wid, hw2, hw3]⟩
+    · -- a row of a 3-D array
+      obtain ⟨m1, m2, m3, hdg, hm3, hw2, hw3, hx0, hx1, hy0, hy1⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+      exact ⟨(m3 + 1).toNat, by
+        rw [arrayElemTarget_of_inRange (arrayElemWindow_row3 hd hm3 hevi hx0 hx1 hevj hy0 hy1)]
+        simp [Acc.lhs, Acc.lo, Acc.wid, hw2, hw3]⟩
+    · -- a cell of a 3-D array
+      obtain ⟨m1, m2, m3, hdg, hw2, hw3, hx0, hx1, hy0, hy1, hz0, hz1⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+      obtain ⟨-, hevk⟩ := affOf?_sound k z hz (hagx z (by simp [Acc.affs]))
+      exact ⟨1, by
+        rw [arrayElemTarget_of_inRange (arrayElemWindow_cell3 hd hevi hx0 hx1 hevj hy0 hy1 hevk hz0 hz1)]
+        simp [Acc.lhs, Acc.lo, hw2, hw3]⟩
   · -- part path
     rw [instLhs2_arrayPart]
     have hc := partAcc?_cases hp
-    rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩
+    rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩ |
+      ⟨i, j, p, r, x, y, w2, w3, rfl, hpa, hr, hx, hy, rfl⟩
     · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
       have hd := C.dims n _ hdg
       have hox := hagx x (by simp [Acc.affs])
@@ -3740,14 +4016,25 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
       exact ⟨(x.eval σ - y.eval σ + 1).toNat, by
         rw [arrayPartTarget_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
         simp [Acc.lhs, Acc.lo, Acc.wid, hw, hcell]⟩
+    · -- part of a row of a 3-D array (tac8)
+      obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hep⟩ := affOf?_sound i p hpa (hagx p (by simp [Acc.affs]))
+      obtain ⟨-, her⟩ := affOf?_sound j r hr (hagx r (by simp [Acc.affs]))
+      have hox := hagx x (by simp [Acc.affs])
+      have hoy := hagx y (by simp [Acc.affs])
+      exact ⟨(x.eval σ - y.eval σ + 1).toNat, by
+        rw [arrayPartTarget_part3 hd hep hp0 hp1 her hr0 hr1 hx hy hox hoy hy0 hyx hxm]
+        simp [Acc.lhs, Acc.lo, Acc.wid, hw2, hw3]⟩
   · -- legacy part select
     have hc := partAcc?_cases hp
     simp only [partRange] at hc
-    rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
+    rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩ | ⟨i, j, p, r, x, y, w2, w3, hnil, -⟩
     · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
       exact ⟨(x.eval σ - y.eval σ + 1).toNat, by
         rw [instLhs_partSel C hdg hx hy hagx hy0 hyx]
         simp [Acc.lhs, Acc.lo, Acc.wid]⟩
+    · exact absurd hnil (by simp)
     · exact absurd hnil (by simp)
 
 theorem desc_mk {names : List String} {si : SiteInst} {p : Process2}

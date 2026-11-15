@@ -165,6 +165,85 @@ theorem rmN_cell_le {W i j m1 : Int} (hi : i ≤ m1) (_hW : 0 ≤ W) (hj : j < W
   rw [Nat.add_mul] at h1
   omega
 
+/-- tac8: a window `[c, c + w)` of row `k` of plane `s` of a 3-D array (planes of `W2` rows of `W3` bits) ends inside the
+vector of `m1 + 1` planes. -/
+theorem rmN3_le {W2 W3 s k m1 c : Int} {w : Nat} (hs1 : s ≤ m1) (hW2 : 0 ≤ W2) (hk1 : k < W2) (hk0 : 0 ≤ k)
+    (hs0 : 0 ≤ s) (hc0 : 0 ≤ c) (hcw : c + w ≤ W3) :
+    rmN W3 (rmN W2 s k : Int) c + w ≤ (m1 + 1).toNat * W2.toNat * W3.toNat := by
+  have h1 := rmN_cell_le (W := W2) (i := s) (j := k) (m1 := m1) hs1 hW2 hk1 hk0 hs0
+  have h2 : (rmN W2 s k + 1) * W3.toNat ≤ (m1 + 1).toNat * W2.toNat * W3.toNat :=
+    Nat.mul_le_mul_right _ h1
+  rw [Nat.add_mul, Nat.one_mul] at h2
+  have e : rmN W3 (rmN W2 s k : Int) c = rmN W2 s k * W3.toNat + c.toNat := by
+    show ((rmN W2 s k : Nat) : Int).toNat * W3.toNat + c.toNat = _
+    rw [Int.toNat_natCast]
+  rw [e]
+  omega
+
+/-- tac8: plane `s` of a 3-D array (planes of `W2` rows of `W3` bits) ends inside the vector of `m1 + 1` planes. -/
+theorem rmN3_plane_le {W2 W3 s m1 : Int} (hs1 : s ≤ m1) (hW2 : 0 ≤ W2) (hW3 : 0 ≤ W3) (hs0 : 0 ≤ s) :
+    rmN W3 (rmN W2 s 0 : Int) 0 + (W2 * W3).toNat ≤ (m1 + 1).toNat * W2.toNat * W3.toNat := by
+  have h1 : (s.toNat + 1) * W2.toNat ≤ (m1 + 1).toNat * W2.toNat := Nat.mul_le_mul_right _ (by omega)
+  have h2 : (s.toNat + 1) * W2.toNat * W3.toNat ≤ (m1 + 1).toNat * W2.toNat * W3.toNat :=
+    Nat.mul_le_mul_right _ h1
+  have e1 : rmN W3 (rmN W2 s 0 : Int) 0 = s.toNat * W2.toNat * W3.toNat := by
+    show ((rmN W2 s 0 : Nat) : Int).toNat * W3.toNat + (0 : Int).toNat = _
+    rw [Int.toNat_natCast]
+    show (s.toNat * W2.toNat + (0 : Int).toNat) * W3.toNat + (0 : Int).toNat = _
+    simp
+  have e2 : (W2 * W3).toNat = W2.toNat * W3.toNat := Int.toNat_mul hW2 hW3
+  rw [e1, e2]
+  rw [Nat.add_mul, Nat.add_mul, Nat.one_mul] at h2
+  rw [Nat.mul_assoc s.toNat] at h2 ⊢
+  omega
+
+/-! ### Nested row-major offsets (tac8)
+
+A 3-D array's offset `rmN W3 (rmN W2 s k) c` is a row-major offset whose ROW is itself a row-major offset (cast to
+`Int`). After `rmN_lt_iff`/`rmN_le_iff` on the outer offset, the rows compare as casts; the lemmas below compare them
+as the inner offsets, and `sv_rowmajor` applies them, so two 3-D windows reduce to lexicographic comparisons of
+`(plane, row, column)`. -/
+
+theorem rmN_cast_lt_iff {W a c b d : Int} :
+    ((rmN W a c : Nat) : Int) < ((rmN W b d : Nat) : Int) ↔ rmN W a c < rmN W b d := Int.ofNat_lt
+
+theorem rmN_cast_le_iff {W a c b d : Int} :
+    ((rmN W a c : Nat) : Int) ≤ ((rmN W b d : Nat) : Int) ↔ rmN W a c ≤ rmN W b d := Int.ofNat_le
+
+/-- Two inner offsets, as rows, are equal iff their (row, column) agree (columns inside the row). -/
+theorem rmN_cast_eq_iff {W a c b d : Int} (ha : 0 ≤ a) (hb : 0 ≤ b) (hc0 : 0 ≤ c) (hc : c < W)
+    (hd0 : 0 ≤ d) (hd : d < W) :
+    ((rmN W a c : Nat) : Int) = ((rmN W b d : Nat) : Int) ↔ a = b ∧ c = d := by
+  constructor
+  · intro h
+    exact rmN_inj ha hb hc0 hc hd0 hd (Int.ofNat_inj.mp h)
+  · rintro ⟨rfl, rfl⟩
+    rfl
+
+/-- The end of plane `s` is the start of plane `s + 1`. -/
+theorem rmN3_plane_end {W2 W3 s : Int} (hW2 : 0 ≤ W2) (hW3 : 0 ≤ W3) (hs : 0 ≤ s) :
+    rmN W3 (rmN W2 s 0 : Int) 0 + (W2 * W3).toNat = rmN W3 (rmN W2 (s + 1) 0 : Int) 0 := by
+  have e1 : rmN W3 (rmN W2 s 0 : Int) 0 = s.toNat * W2.toNat * W3.toNat := by
+    show ((rmN W2 s 0 : Nat) : Int).toNat * W3.toNat + (0 : Int).toNat = _
+    rw [Int.toNat_natCast]
+    show (s.toNat * W2.toNat + (0 : Int).toNat) * W3.toNat + (0 : Int).toNat = _
+    simp
+  have e2 : rmN W3 (rmN W2 (s + 1) 0 : Int) 0 = (s + 1).toNat * W2.toNat * W3.toNat := by
+    show ((rmN W2 (s + 1) 0 : Nat) : Int).toNat * W3.toNat + (0 : Int).toNat = _
+    rw [Int.toNat_natCast]
+    show ((s + 1).toNat * W2.toNat + (0 : Int).toNat) * W3.toNat + (0 : Int).toNat = _
+    simp
+  rw [e1, e2, Int.toNat_mul hW2 hW3, show (s + 1).toNat = s.toNat + 1 by omega, Nat.add_mul, Nat.add_mul,
+    Nat.one_mul, Nat.mul_assoc]
+
+/-- `rmN3_plane_end` with the plane's width given as any natural number equal to `W2 * W3` (a width whose product the
+normalization folded to a literal: `3 * 4` is `12`). -/
+theorem rmN3_plane_end_k {W2 W3 s : Int} {k : Nat} (hk : (k : Int) = W2 * W3) (hW2 : 0 ≤ W2) (hW3 : 0 ≤ W3)
+    (hs : 0 ≤ s) : rmN W3 (rmN W2 s 0 : Int) 0 + k = rmN W3 (rmN W2 (s + 1) 0 : Int) 0 := by
+  have e : k = (W2 * W3).toNat := by omega
+  subst e
+  exact rmN3_plane_end hW2 hW3 hs
+
 /-! ## List lemmas -/
 
 /-- `flatMap` respects pointwise equality on the members. -/

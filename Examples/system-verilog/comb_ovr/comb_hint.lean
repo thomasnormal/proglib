@@ -40,19 +40,18 @@ info: sv_equations: the netlist view and the obligations (lowered design)
   [noSelfRead] ⊢ ∀ (i : Int), 0 ≤ i → i < ↑N → (i + 1).toNat + 1 ≤ i.toNat ∨ i.toNat + 1 ≤ (i + 1).toNat
   [bitRead_1] ⊢ ∀ (i : Int), 0 ≤ i → i < ↑N → i ≤ ↑(↑N + -1).natAbs
   [bitRead_2] ⊢ ∀ (i : Int), 0 ≤ i → i < ↑N → i ≤ ↑(↑N + -1).natAbs ∧ i ≤ ↑N
-  [cover_1] ⊢ N = 0 ∨ ∃ i, i < N ∧ ↑i + 1 ≤ ↑N ∧ N < i + 1 + 1
+  [cover_1] ⊢ N = 0 ∨ ∃ i, i < N ∧ i + 1 ≤ N ∧ N < i + 1 + 1
   [cover_2] ⊢ ∀ (i : Int), 0 ≤ i → i < ↑N → i < ↑(↑N + -1).natAbs + 1
   [cover_3] ⊢ ∀ (i : Int),
   0 ≤ i →
     i < ↑N →
       i < ↑(↑N + -1).natAbs + 1 ∧
-        (∃ i_1, i_1 < N ∧ ↑i_1 ≤ max i 0 ∧ i < ↑i_1 + 1) ∧
-          (0 ≤ max i 0 ∧ i < 1 ∨ ∃ i_1, i_1 < N ∧ ↑i_1 + 1 ≤ max i 0 ∧ i < max (↑i_1 + 1) 0 + 1)
+        (∃ i_1, i_1 < N ∧ i_1 ≤ i.toNat ∧ i < ↑i_1 + 1) ∧
+          (i ≤ 0 ∨ ∃ i_1, i_1 < N ∧ i_1 + 1 ≤ i.toNat ∧ i < ↑i_1 + 1 + 1)
   [cover_4] ⊢ ∀ (i : Int),
   0 ≤ i →
     i < ↑N →
-      (∃ i_1, i_1 < N ∧ ↑i_1 ≤ max i 0 ∧ i < ↑i_1 + 1) ∧
-        (0 ≤ max i 0 ∧ i < 1 ∨ ∃ i_1, i_1 < N ∧ ↑i_1 + 1 ≤ max i 0 ∧ i < max (↑i_1 + 1) 0 + 1)
+      (∃ i_1, i_1 < N ∧ i_1 ≤ i.toNat ∧ i < ↑i_1 + 1) ∧ (i ≤ 0 ∨ ∃ i_1, i_1 < N ∧ i_1 + 1 ≤ i.toNat ∧ i < ↑i_1 + 1 + 1)
   [inputsKnown_1] ⊢ ∃ v, st.lookup "a" = some v ∧ v.allKnown = true ∧ v.width = (↑N + -1).natAbs + 1
   [inputsKnown_2] ⊢ ∃ v, st.lookup "b" = some v ∧ v.allKnown = true ∧ v.width = (↑N + -1).natAbs + 1
   [inputsKnown_3] ⊢ ∃ v, st.lookup "cin" = some v ∧ v.allKnown = true ∧ v.width = 1

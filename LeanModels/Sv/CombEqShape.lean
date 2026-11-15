@@ -400,7 +400,7 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
           rcases hx : affOf? i with _ | x
           · simp [hx] at h
           · simp only [hx] at h
-            rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ <;> rw [hb] at h <;>
+            rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ | ⟨w2, w3, hb⟩ <;> rw [hb] at h <;>
               simp only [Except.ok.injEq] at h <;> subst h
             · obtain ⟨hnn, hel⟩ := hgeo
               have hel' : elems.lookup n = some 1 := C.elems n hel
@@ -417,6 +417,14 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
               · rw [selfWidth2_bitSel_ident, hel']; simp [Acc.win, Acc.wid, hw]
               · rw [instExpr2_bitSel_ident ctx hel' hev hx0]
                 simp [accExpr, Acc.lo, Acc.wid, rmN, hw]
+            · -- a legacy select of a plane of a three-dimensional declaration (tac8)
+              obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+              have hel' := ctxElemsPlane C hdg hm2 hm3
+              obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+              refine ⟨?_, fun ctx => ?_, rfl⟩
+              · rw [selfWidth2_bitSel_ident, hel']; simp [Acc.win, Acc.wid, hw2, hw3]
+              · rw [instExpr2_bitSel_ident ctx hel' hev hx0, plane_lo_eq hm2 hm3 hx0]
+                simp [accExpr, Acc.lo, Acc.wid, hw2, hw3]
       | _ => simp [leafRd?] at h
   | partSel b msb lsb =>
       cases b with
@@ -424,7 +432,7 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
           simp only [leafRd?] at h
           have hc := partAcc?_cases h
           simp only [partRange] at hc
-          rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
+          rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩ | ⟨i, j, p, r, x, y, w2, w3, hnil, -⟩
           · -- a legacy part select of a one-dimensional declaration
             obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
             refine ⟨?_, fun ctx => ?_, rfl⟩
@@ -432,11 +440,13 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
             · rw [inst_partSel C hdg hx hy hagx hy0 hyx ctx]
               simp [accExpr, Acc.lo, Acc.wid]
           · exact absurd hnil (by simp)
+          · exact absurd hnil (by simp)
       | _ => simp [leafRd?] at h
   | arrayElem n is =>
       simp only [leafRd?] at h
       rcases elemAcc?_cases h with ⟨i, x, rfl, hx, rfl⟩ | ⟨i, x, w, rfl, hx, rfl⟩ |
-        ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩
+        ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩ | ⟨i, x, w2, w3, rfl, hx, rfl⟩ |
+        ⟨i, j, x, y, w2, w3, rfl, hx, hy, rfl⟩ | ⟨i, j, k, x, y, z, w2, w3, rfl, hx, hy, hz, rfl⟩
       · obtain ⟨m, hdg, hx0, hx1⟩ := hgeo
         have hd := C.dims n _ hdg
         obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -464,10 +474,41 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         · rw [selfWidth2_arrayElem_of hwin]; rfl
         · rw [instExpr2_arrayElem, arrayElemRead_of_inRange hwin]
           simp [accExpr, Acc.lo, Acc.wid, hw, hcell]
+      · -- a plane of a 3-D array (tac8)
+        obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+        have hwin := arrayElemWindow_plane3 hd hm2 hm3 hev hx0 hx1
+        refine ⟨?_, fun ctx => ?_, rfl⟩
+        · rw [selfWidth2_arrayElem_of hwin]; simp [Acc.win, Acc.wid, hw2, hw3]
+        · rw [instExpr2_arrayElem, arrayElemRead_of_inRange hwin]
+          simp [accExpr, Acc.lo, Acc.wid, hw2, hw3]
+      · -- a row of a 3-D array
+        obtain ⟨m1, m2, m3, hdg, hm3, hw2, hw3, hx0, hx1, hy0, hy1⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+        obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+        have hwin := arrayElemWindow_row3 hd hm3 hevi hx0 hx1 hevj hy0 hy1
+        refine ⟨?_, fun ctx => ?_, rfl⟩
+        · rw [selfWidth2_arrayElem_of hwin]; simp [Acc.win, Acc.wid, hw2, hw3]
+        · rw [instExpr2_arrayElem, arrayElemRead_of_inRange hwin]
+          simp [accExpr, Acc.lo, Acc.wid, hw2, hw3]
+      · -- a cell of a 3-D array
+        obtain ⟨m1, m2, m3, hdg, hw2, hw3, hx0, hx1, hy0, hy1, hz0, hz1⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+        obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+        obtain ⟨-, hevk⟩ := affOf?_sound k z hz (hagx z (by simp [Acc.affs]))
+        have hwin := arrayElemWindow_cell3 hd hevi hx0 hx1 hevj hy0 hy1 hevk hz0 hz1
+        refine ⟨?_, fun ctx => ?_, rfl⟩
+        · rw [selfWidth2_arrayElem_of hwin]; rfl
+        · rw [instExpr2_arrayElem, arrayElemRead_of_inRange hwin]
+          simp [accExpr, Acc.lo, Acc.wid, hw2, hw3]
   | arrayPart n is mode hi lo =>
       simp only [leafRd?] at h
       have hc := partAcc?_cases h
-      rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩
+      rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩ |
+        ⟨i, j, p, r, x, y, w2, w3, rfl, hp, hr, hx, hy, rfl⟩
       · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
         have hd := C.dims n _ hdg
         have hox := hagx x (by simp [Acc.affs])
@@ -490,6 +531,19 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         · rw [instExpr2_arrayPart _ (dynPartPlan_of_geom hg),
             arrayPartRead_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
           simp [accExpr, Acc.lo, Acc.wid, hw, hcell]
+      · -- part of a row of a 3-D array (tac8)
+        obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
+        have hd := C.dims n _ hdg
+        obtain ⟨-, hep⟩ := affOf?_sound i p hp (hagx p (by simp [Acc.affs]))
+        obtain ⟨-, her⟩ := affOf?_sound j r hr (hagx r (by simp [Acc.affs]))
+        have hox := hagx x (by simp [Acc.affs])
+        have hoy := hagx y (by simp [Acc.affs])
+        have hg := arrayPartGeom_part3 hd (by omega) hep hp0 hp1 her hr0 hr1 hx hy hox hoy hyx
+        refine ⟨?_, fun ctx => ?_, rfl⟩
+        · rw [selfWidth2_arrayPart_of hg]; simp [Acc.win, Acc.wid]
+        · rw [instExpr2_arrayPart _ (dynPartPlan_of_geom hg),
+            arrayPartRead_part3 hd hep hp0 hp1 her hr0 hr1 hx hy hox hoy hy0 hyx hxm]
+          simp [accExpr, Acc.lo, Acc.wid, hw2, hw3]
   | _ => simp [leafRd?] at h
 
 /-- A leaf operand of the right width is not resized: `fitExpr2` is the slice. -/
@@ -1172,7 +1226,7 @@ theorem divW_eq_selfW (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PE
           simp only [leafRd?] at h
           have hc := partAcc?_cases h
           simp only [partRange] at hc
-          rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
+          rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩ | ⟨i, j, p, r, x, y, w2, w3, hnil, -⟩
           · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
             have hagx : ∀ x' ∈ [x, y], x'.Ok E σ :=
               fun x' hx' => ⟨fun v hv => C.agree v (hns x' hx' v hv), hxk x' hx'⟩
@@ -1181,6 +1235,7 @@ theorem divW_eq_selfW (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PE
             have hel1 := ctxElemsOne C hdg
             have h1 : 0 ≤ y.eval σ ∧ y.eval σ ≤ x.eval σ := ⟨hy0, hyx⟩
             simp [divOperandWidth2, selfWidth2, elemOf, hel1, heh, hel, h1.1, h1.2]
+          · exact absurd hnil (by simp)
           · exact absurd hnil (by simp)
       | _ => simp [leafRd?] at h
   | arrayElem n is => simp [divOperandWidth2, selfWidth2]
@@ -2621,8 +2676,8 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
   · have hW : E.widths.lookup n = some (dw n) := by
       rw [C.widths n]; exact hdw n (by simpa [Acc.name] using hdec)
     rw [instLhs2_ident hW]; rfl
-  · rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ <;> rw [hb] at hba <;> simp only [Except.ok.injEq] at hba <;>
-      subst hba
+  · rcases bitAcc?_cases ds n x with hb | ⟨w, hb⟩ | ⟨w2, w3, hb⟩ <;> rw [hb] at hba <;>
+      simp only [Except.ok.injEq] at hba <;> subst hba
     · obtain ⟨hnn, hel⟩ := hgeo
       have hel' : elems.lookup n = some 1 := C.elems n hel
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -2634,9 +2689,16 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
       rw [instLhs2_bitSel hel' hev hx0]
       simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, rmN, hw]
+    · -- a legacy select of a plane (tac8)
+      obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+      have hel' := ctxElemsPlane C hdg hm2 hm3
+      obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      rw [instLhs2_bitSel hel' hev hx0, plane_lo_eq hm2 hm3 hx0]
+      simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, hw2, hw3]
   · rw [instLhs2_arrayElem]
     rcases elemAcc?_cases he with ⟨i, x, rfl, hx, rfl⟩ | ⟨i, x, w, rfl, hx, rfl⟩ |
-      ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩
+      ⟨i, j, x, y, w, rfl, hx, hy, rfl⟩ | ⟨i, x, w2, w3, rfl, hx, rfl⟩ |
+      ⟨i, j, x, y, w2, w3, rfl, hx, hy, rfl⟩ | ⟨i, j, k, x, y, z, w2, w3, rfl, hx, hy, hz, rfl⟩
     · obtain ⟨m, hdg, hx0, hx1⟩ := hgeo
       have hd := C.dims n _ hdg
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -2655,9 +2717,31 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       have hcell := rmN_eq_toNat (W := m2 + 1) (i := x.eval σ) (j := y.eval σ) (by omega) hx0 hy0
       rw [arrayElemTarget_of_inRange (arrayElemWindow_cell2 hd hevi hx0 hx1 hevj hy0 hy1)]
       simp [Acc.lhs, Acc.lo, Acc.win, hw, hcell]
+    · -- a plane of a 3-D array (tac8)
+      obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      rw [arrayElemTarget_of_inRange (arrayElemWindow_plane3 hd hm2 hm3 hev hx0 hx1)]
+      simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, hw2, hw3]
+    · -- a row of a 3-D array
+      obtain ⟨m1, m2, m3, hdg, hm3, hw2, hw3, hx0, hx1, hy0, hy1⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+      rw [arrayElemTarget_of_inRange (arrayElemWindow_row3 hd hm3 hevi hx0 hx1 hevj hy0 hy1)]
+      simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, hw2, hw3]
+    · -- a cell of a 3-D array
+      obtain ⟨m1, m2, m3, hdg, hw2, hw3, hx0, hx1, hy0, hy1, hz0, hz1⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hevi⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
+      obtain ⟨-, hevj⟩ := affOf?_sound j y hy (hagx y (by simp [Acc.affs]))
+      obtain ⟨-, hevk⟩ := affOf?_sound k z hz (hagx z (by simp [Acc.affs]))
+      rw [arrayElemTarget_of_inRange (arrayElemWindow_cell3 hd hevi hx0 hx1 hevj hy0 hy1 hevk hz0 hz1)]
+      simp [Acc.lhs, Acc.lo, Acc.win, hw2, hw3]
   · rw [instLhs2_arrayPart]
     have hc := partAcc?_cases hp
-    rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩
+    rcases hc with ⟨x, y, rfl, hx, hy, rfl⟩ | ⟨i, r, x, y, w, rfl, hr, hx, hy, rfl⟩ |
+      ⟨i, j, p, r, x, y, w2, w3, rfl, hpa, hr, hx, hy, rfl⟩
     · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
       have hd := C.dims n _ hdg
       have hox := hagx x (by simp [Acc.affs])
@@ -2672,13 +2756,23 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       have hcell := rmN_eq_toNat (W := m2 + 1) (i := r.eval σ) (j := y.eval σ) (by omega) hr0 hy0
       rw [arrayPartTarget_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
       simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, hw, hcell]
+    · -- part of a row of a 3-D array (tac8)
+      obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
+      have hd := C.dims n _ hdg
+      obtain ⟨-, hep⟩ := affOf?_sound i p hpa (hagx p (by simp [Acc.affs]))
+      obtain ⟨-, her⟩ := affOf?_sound j r hr (hagx r (by simp [Acc.affs]))
+      have hox := hagx x (by simp [Acc.affs])
+      have hoy := hagx y (by simp [Acc.affs])
+      rw [arrayPartTarget_part3 hd hep hp0 hp1 her hr0 hr1 hx hy hox hoy hy0 hyx hxm]
+      simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, hw2, hw3]
   · -- legacy part select
     have hc := partAcc?_cases hp
     simp only [partRange] at hc
-    rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩
+    rcases hc with ⟨x, y, -, hx, hy, rfl⟩ | ⟨i, r, x, y, w, hnil, -⟩ | ⟨i, j, p, r, x, y, w2, w3, hnil, -⟩
     · obtain ⟨m, hdg, hy0, hyx, hxm⟩ := hgeo
       rw [instLhs_partSel C hdg hx hy hagx hy0 hyx]
       simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win]
+    · exact absurd hnil (by simp)
     · exact absurd hnil (by simp)
 
 /-- **A site instantiates to the promised assign with the promised right-hand side** (the word-level reading of

@@ -383,6 +383,20 @@ theorem dims2_of {s : Summary} {n : String} {M1 L1 M2 L2 : Aff}
     exact ⟨dt, d1, d2, hf, hm, hdd⟩
   · simp [hdd] at hd
 
+theorem dims3_of {s : Summary} {n : String} {M1 L1 M2 L2 M3 L3 : Aff}
+    (h : s.dimsOf' n = some [(M1, L1), (M2, L2), (M3, L3)]) :
+    ∃ dt d1 d2 d3, s.find n = some dt ∧ dt ∈ s.decls ∧
+      dt.dims = [(d1, M1, L1), (d2, M2, L2), (d3, M3, L3)] := by
+  obtain ⟨dt, hf, hm, hd⟩ := dimsOf'_some h
+  rcases hdd : dt.dims with _ | ⟨⟨d1, M1', L1'⟩, _ | ⟨⟨d2, M2', L2'⟩, _ | ⟨⟨d3, M3', L3'⟩, _ | ⟨q, rest⟩⟩⟩⟩
+  · simp [hdd] at hd
+  · simp [hdd] at hd
+  · simp [hdd] at hd
+  · simp only [hdd, List.map_cons, List.map_nil, List.cons.injEq, Prod.mk.injEq, and_true] at hd
+    obtain ⟨⟨h1, h2⟩, ⟨h3, h4⟩, h5, h6⟩ := hd
+    subst h1 h2 h3 h4 h5 h6
+    exact ⟨dt, d1, d2, d3, hf, hm, hdd⟩
+  · simp [hdd] at hd
 
 /-- Parameters are not rebound by the loops. -/
 theorem Reach_params : ∀ {hs : List Hdr} {σ σ' : String → Int}, Reach hs σ σ' →
@@ -431,6 +445,43 @@ theorem decl2_facts {s : Summary} {σd : String → Int} {n : String} {M1 L1 M2 
   · simp [Summary.dw, hf, DeclT.width, hdt, dimsW, Aff.eval_const]
   · intro x hx
     exact hdecl dt hm x (by simp [DeclT.affNames, hdt, hx])
+
+/-- The facts for a 3-D declaration `[M1:0][M2:0][M3:0]` (tac8). -/
+theorem decl3_facts {s : Summary} {σd : String → Int} {n : String} {M1 L1 M2 L2 M3 L3 : Aff}
+    (hdecl : ∀ dt ∈ s.decls, ∀ n ∈ dt.affNames, n ∈ s.params)
+    (h : s.dimsOf' n = some [(M1, L1), (M2, L2), (M3, L3)]) (hL1 : L1 = Aff.const 0)
+    (hL2 : L2 = Aff.const 0) (hL3 : L3 = Aff.const 0) :
+    s.DG σd n = some [(M1.eval σd, 0), (M2.eval σd, 0), (M3.eval σd, 0)] ∧ s.dm σd n 0 = M1.eval σd ∧
+      s.dm σd n 1 = M2.eval σd ∧ s.dm σd n 2 = M3.eval σd ∧
+      (∀ x ∈ M2.names, x ∈ s.params) ∧ (∀ x ∈ M3.names, x ∈ s.params) := by
+  obtain ⟨dt, d1, d2, d3, hf, hm, hdt⟩ := dims3_of h
+  subst hL1 hL2 hL3
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [Summary.DG, hf, DeclT.vals, hdt, Aff.eval_const]
+  · simp [Summary.dm, hf, hdt]
+  · simp [Summary.dm, hf, hdt]
+  · simp [Summary.dm, hf, hdt]
+  · intro x hx
+    exact hdecl dt hm x (by simp [DeclT.affNames, hdt, hx])
+  · intro x hx
+    exact hdecl dt hm x (by simp [DeclT.affNames, hdt, hx])
+
+/-- `acc3Ok` (tac8): the declaration's three dimensions and the recorded widths. -/
+theorem acc3Ok_facts {s : Summary} {n : String} {w2 w3 : Aff} (h : s.acc3Ok n w2 w3 = true) :
+    ∃ M1 M2 M3, s.dimsOf' n = some [(M1, Aff.const 0), (M2, Aff.const 0), (M3, Aff.const 0)] ∧
+      w2 = M2.add (Aff.const 1) ∧ w3 = M3.add (Aff.const 1) := by
+  unfold Summary.acc3Ok at h
+  rcases hdn : s.dimsOf' n with _ | dims
+  · simp [hdn] at h
+  · rcases dims with _ | ⟨⟨M1, L1⟩, _ | ⟨⟨M2, L2⟩, _ | ⟨⟨M3, L3⟩, _ | ⟨q, rest⟩⟩⟩⟩
+    · simp [hdn] at h
+    · simp [hdn] at h
+    · simp [hdn] at h
+    · simp only [hdn, Bool.and_eq_true, decide_eq_true_eq] at h
+      obtain ⟨⟨⟨⟨hL1, hL2⟩, hL3⟩, hw2⟩, hw3⟩ := h
+      subst hL1 hL2 hL3
+      exact ⟨M1, M2, M3, rfl, hw2, hw3⟩
+    · simp [hdn] at h
 
 theorem bit_elemW {s : Summary} {σd : String → Int} {n : String}
     (hok : (match s.dimsOf' n with | some [] => true | some [_] => true | _ => false) = true) :
@@ -521,6 +572,42 @@ theorem accGeom_of {s : Summary} {σd σs : String → Int}
           refine ⟨M1.eval σd, M2.eval σd, hG, ?_, hr.1, hr.2.1, hr.2.2.1, hr.2.2.2.1, hr.2.2.2.2⟩
           rw [hw, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM2]
         · simp [hdn] at hok
+  | plane3 n w2 w3 p =>
+      simp only [Summary.accOk] at hok
+      obtain ⟨M1, M2, M3, hdn, hw2, hw3⟩ := acc3Ok_facts hok
+      obtain ⟨hG, hdm0, hdm1, hdm2, hM2, hM3⟩ := decl3_facts (σd := σd) hdecl hdn rfl rfl rfl
+      simp only [Summary.InR, hdm0] at hr
+      simp only [Summary.DimNum, hdm1, hdm2] at hd
+      refine ⟨M1.eval σd, M2.eval σd, M3.eval σd, hG, hd.1, hd.2, ?_, ?_, hr.1, hr.2⟩
+      · rw [hw2, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM2]
+      · rw [hw3, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM3]
+  | row3 n w2 w3 p r =>
+      simp only [Summary.accOk] at hok
+      obtain ⟨M1, M2, M3, hdn, hw2, hw3⟩ := acc3Ok_facts hok
+      obtain ⟨hG, hdm0, hdm1, hdm2, hM2, hM3⟩ := decl3_facts (σd := σd) hdecl hdn rfl rfl rfl
+      simp only [Summary.InR, hdm0, hdm1] at hr
+      simp only [Summary.DimNum, hdm2] at hd
+      refine ⟨M1.eval σd, M2.eval σd, M3.eval σd, hG, hd, ?_, ?_, hr.1, hr.2.1, hr.2.2.1, hr.2.2.2⟩
+      · rw [hw2, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM2]
+      · rw [hw3, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM3]
+  | cell3 n w2 w3 p r c =>
+      simp only [Summary.accOk] at hok
+      obtain ⟨M1, M2, M3, hdn, hw2, hw3⟩ := acc3Ok_facts hok
+      obtain ⟨hG, hdm0, hdm1, hdm2, hM2, hM3⟩ := decl3_facts (σd := σd) hdecl hdn rfl rfl rfl
+      simp only [Summary.InR, hdm0, hdm1, hdm2] at hr
+      refine ⟨M1.eval σd, M2.eval σd, M3.eval σd, hG, ?_, ?_, hr.1, hr.2.1, hr.2.2.1, hr.2.2.2.1,
+        hr.2.2.2.2.1, hr.2.2.2.2.2⟩
+      · rw [hw2, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM2]
+      · rw [hw3, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM3]
+  | part3 n w2 w3 p r hi lo =>
+      simp only [Summary.accOk] at hok
+      obtain ⟨M1, M2, M3, hdn, hw2, hw3⟩ := acc3Ok_facts hok
+      obtain ⟨hG, hdm0, hdm1, hdm2, hM2, hM3⟩ := decl3_facts (σd := σd) hdecl hdn rfl rfl rfl
+      simp only [Summary.InR, hdm0, hdm1, hdm2] at hr
+      refine ⟨M1.eval σd, M2.eval σd, M3.eval σd, hG, ?_, ?_, hr.1, hr.2.1, hr.2.2.1, hr.2.2.2.1,
+        hr.2.2.2.2.1, hr.2.2.2.2.2.1, hr.2.2.2.2.2.2⟩
+      · rw [hw2, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM2]
+      · rw [hw3, Aff.eval_add, Aff.eval_const, aff_eval_eq hpar hM3]
 
 
 /-! ## The declaration stage -/

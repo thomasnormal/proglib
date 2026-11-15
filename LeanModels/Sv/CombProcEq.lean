@@ -1941,6 +1941,10 @@ theorem eq_of_summaryL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {ar
     | cell2 n w r' c => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
     | part1 n h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
     | part2 n w r' h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | plane3 n w2 w3 p' => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | row3 n w2 w3 p' r' => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | cell3 n w2 w3 p' r' c => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | part3 n w2 w3 p' r' h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
   have hmain : ∀ ls ∈ s.lsites, ∀ σ' E', ReachE ls.hdrs σ E σ' E' →
       s.EqSiteL σ σ' st ls ∧ s.KnownSite σ σ' st ls := by
     intro ls hls σ' E' hr
@@ -2151,6 +2155,10 @@ theorem eq_of_summaryM {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {ar
     | cell2 n w r' c => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
     | part1 n h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
     | part2 n w r' h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | plane3 n w2 w3 p' => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | row3 n w2 w3 p' r' => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | cell3 n w2 w3 p' r' c => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | part3 n w2 w3 p' r' h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
   -- the knownness of a window of the lowered target, and the equation of a placed window
   have hknown : ∀ (i : Nat) (t : Lhs2) (e : Expr2) (wins : List Win) (W : List (Win × Nat × PSk))
       (σ' : String → Int), d0.processes[i]? = some (.assign t e) →

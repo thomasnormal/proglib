@@ -162,6 +162,10 @@ def Acc.showR (rn : String → String) : Acc → String
   | .cell2 n _ r c => s!"{n}[{r.showR rn}][{c.showR rn}]"
   | .part1 n hi lo => s!"{n}[{hi.showR rn}:{lo.showR rn}]"
   | .part2 n _ r hi lo => s!"{n}[{r.showR rn}][{hi.showR rn}:{lo.showR rn}]"
+  | .plane3 n _ _ p => s!"{n}[{p.showR rn}]"
+  | .row3 n _ _ p r => s!"{n}[{p.showR rn}][{r.showR rn}]"
+  | .cell3 n _ _ p r c => s!"{n}[{p.showR rn}][{r.showR rn}][{c.showR rn}]"
+  | .part3 n _ _ p r hi lo => s!"{n}[{p.showR rn}][{r.showR rn}][{hi.showR rn}:{lo.showR rn}]"
 
 def Acc.show (a : Acc) : String := a.showR id
 
@@ -174,6 +178,10 @@ def Acc.showVal (σ : String → Int) : Acc → String
   | .cell2 n _ r c => s!"{n}[{r.eval σ}][{c.eval σ}]"
   | .part1 n hi lo => s!"{n}[{hi.eval σ}:{lo.eval σ}]"
   | .part2 n _ r hi lo => s!"{n}[{r.eval σ}][{hi.eval σ}:{lo.eval σ}]"
+  | .plane3 n _ _ p => s!"{n}[{p.eval σ}]"
+  | .row3 n _ _ p r => s!"{n}[{p.eval σ}][{r.eval σ}]"
+  | .cell3 n _ _ p r c => s!"{n}[{p.eval σ}][{r.eval σ}][{c.eval σ}]"
+  | .part3 n _ _ p r hi lo => s!"{n}[{p.eval σ}][{r.eval σ}][{hi.eval σ}:{lo.eval σ}]"
 
 def SiteId.show : SiteId → String
   | .plain p => s!"plain#{p}"
@@ -357,6 +365,15 @@ def Summary.inRBool (s : Summary) (σd σs : String → Int) : Acc → Bool
   | .part2 n _ r hi lo =>
       decide (0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ lo.eval σs ∧ lo.eval σs ≤ hi.eval σs ∧
         hi.eval σs ≤ s.dm σd n 1)
+  | .plane3 n _ _ p => decide (0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0)
+  | .row3 n _ _ p r =>
+      decide (0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 1)
+  | .cell3 n _ _ p r c =>
+      decide (0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 1 ∧
+        0 ≤ c.eval σs ∧ c.eval σs ≤ s.dm σd n 2)
+  | .part3 n _ _ p r hi lo =>
+      decide (0 ≤ p.eval σs ∧ p.eval σs ≤ s.dm σd n 0 ∧ 0 ≤ r.eval σs ∧ r.eval σs ≤ s.dm σd n 1 ∧
+        0 ≤ lo.eval σs ∧ lo.eval σs ≤ hi.eval σs ∧ hi.eval σs ≤ s.dm σd n 2)
 
 /-- An access outside the declared dimensions of its signal (a negative index, a row or column past
 the end). -/

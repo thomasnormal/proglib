@@ -25,10 +25,11 @@ what the checker's `--tactics` advisory reports as `in_fragment false`):
   declared one, replicate a bit or a part select), with a count that is a product of two parameters (`{N*M{a[0]}}`), of an operation
   (`{2{a & b}}`), in a self-determined position (`|{4{a[0]}}`: those operands keep the v1 fragment), and in a leaf of an `always_comb` tree
   (`neg_repl_leaf`: the procedural chain does not carry the scope of a constant of the instance);
-* `neg_part_nz`, `neg_row_nz`, `neg_row_3d` (gate 4a): a part select of a declaration whose range is not zero-based
-  (`[8:1]`), a whole-row select of a two-dimensional declaration whose first range is not zero-based (`[4:1][2:0]`), and a
-  select of a declaration of three packed dimensions (the declaration itself is read since tac7): the legacy selects of
-  gate 4a are read over zero-based descending one- and two-dimensional ranges only.
+* `neg_part_nz`, `neg_row_nz` (gate 4a): a part select of a declaration whose range is not zero-based (`[8:1]`) and a
+  whole-row select of a two-dimensional declaration whose first range is not zero-based (`[4:1][2:0]`): the legacy selects
+  of gate 4a are read over zero-based descending ranges only. (`neg_row_3d`, a select of a declaration of three packed
+  dimensions, was refused here until tac8; the legacy select over a zero-based 3-D declaration is a plane since, and the
+  file now proves its structure.)
 
 (A sum in an `always_comb` leaf was the seventh negative of gate 1; the procedural chain reads the word-level
 fragment since gate 2: `addp`.)
@@ -131,14 +132,9 @@ error: sv_structure: structural check failed:
 example : CombDesign (neg_row_nz.sem) := by
   sv_structure
 
--- a select of a three-dimensional declaration (the declaration is read since tac7, as a whole signal; a select of it is
--- not: here the legacy select `r[0]`, a bit select over a 3-D declaration, which the structural check refuses)
-/--
-error: sv_structure: structural check failed:
-  site `plain#0`: the access `r[0]` does not match the declaration of `r` (a select needs zero-based descending packed dimensions `[hi:0]`, with the number of selects the declaration allows)
-  site `plain#1`: the access `r[0]` does not match the declaration of `r` (a select needs zero-based descending packed dimensions `[hi:0]`, with the number of selects the declaration allows)
--/
-#guard_msgs (whitespace := lax) in
+-- a select of a three-dimensional declaration: refused until tac8 (tac7 read the declaration as a whole signal only); the
+-- legacy select `r[0]` over a zero-based 3-D declaration is a whole plane since tac8 (`Acc.plane3`), so this flat netlist
+-- is now read and its structure decided
 example : CombDesign (neg_row_3d.sem) := by
   sv_structure
 

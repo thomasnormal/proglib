@@ -1382,6 +1382,13 @@ inductive Acc where
   | cell2 (n : String) (w : Aff) (r c : Aff)
   | part1 (n : String) (hi lo : Aff)
   | part2 (n : String) (w : Aff) (r hi lo : Aff)
+  /-- tac8: the selects of a zero-based descending 3-D declaration `n[m1:0][m2:0][m3:0]` (`w2 = m2 + 1` rows of
+  `w3 = m3 + 1` bits in a plane): a plane `n[s]`, a row `n[s][k]`, a cell `n[s][k][i]`, a part of a row
+  `n[s][k][hi:lo]`. The flat offset of a cell is the nested row-major `rmN w3 (rmN w2 s k) i`. -/
+  | plane3 (n : String) (w2 w3 : Aff) (s : Aff)
+  | row3 (n : String) (w2 w3 : Aff) (s k : Aff)
+  | cell3 (n : String) (w2 w3 : Aff) (s k i : Aff)
+  | part3 (n : String) (w2 w3 : Aff) (s k hi lo : Aff)
 deriving Repr, DecidableEq, Inhabited
 
 def Acc.name : Acc → String
@@ -1392,6 +1399,10 @@ def Acc.name : Acc → String
   | .cell2 n _ _ _ => n
   | .part1 n _ _ => n
   | .part2 n _ _ _ _ => n
+  | .plane3 n _ _ _ => n
+  | .row3 n _ _ _ _ => n
+  | .cell3 n _ _ _ _ _ => n
+  | .part3 n _ _ _ _ _ _ => n
 
 /-- The index expressions (not the row width, which the declaration determines). -/
 def Acc.affs : Acc → List Aff
@@ -1402,6 +1413,10 @@ def Acc.affs : Acc → List Aff
   | .cell2 _ _ r c => [r, c]
   | .part1 _ hi lo => [hi, lo]
   | .part2 _ _ r hi lo => [r, hi, lo]
+  | .plane3 _ _ _ s => [s]
+  | .row3 _ _ _ s k => [s, k]
+  | .cell3 _ _ _ s k i => [s, k, i]
+  | .part3 _ _ _ s k hi lo => [s, k, hi, lo]
 
 /-- Bit offset of an access (a row-major offset for the 2-D forms). -/
 def Acc.lo (σ : String → Int) : Acc → Nat
@@ -1412,6 +1427,10 @@ def Acc.lo (σ : String → Int) : Acc → Nat
   | .cell2 _ w r c => rmN (w.eval σ) (r.eval σ) (c.eval σ)
   | .part1 _ _ lo => (lo.eval σ).toNat
   | .part2 _ w r _ lo => rmN (w.eval σ) (r.eval σ) (lo.eval σ)
+  | .plane3 _ w2 w3 s => rmN (w3.eval σ) (rmN (w2.eval σ) (s.eval σ) 0) 0
+  | .row3 _ w2 w3 s k => rmN (w3.eval σ) (rmN (w2.eval σ) (s.eval σ) (k.eval σ)) 0
+  | .cell3 _ w2 w3 s k i => rmN (w3.eval σ) (rmN (w2.eval σ) (s.eval σ) (k.eval σ)) (i.eval σ)
+  | .part3 _ w2 w3 s k _ lo => rmN (w3.eval σ) (rmN (w2.eval σ) (s.eval σ) (k.eval σ)) (lo.eval σ)
 
 /-- Bit width of an access (`0` for the whole signal: its width is the declared one). -/
 def Acc.wid (σ : String → Int) : Acc → Nat
@@ -1422,6 +1441,10 @@ def Acc.wid (σ : String → Int) : Acc → Nat
   | .cell2 _ _ _ _ => 1
   | .part1 _ hi lo => (hi.eval σ - lo.eval σ + 1).toNat
   | .part2 _ _ _ hi lo => (hi.eval σ - lo.eval σ + 1).toNat
+  | .plane3 _ w2 w3 _ => (w2.eval σ * w3.eval σ).toNat
+  | .row3 _ _ w3 _ _ => (w3.eval σ).toNat
+  | .cell3 _ _ _ _ _ _ => 1
+  | .part3 _ _ _ _ _ hi lo => (hi.eval σ - lo.eval σ + 1).toNat
 
 /-- The write window of a target access. -/
 def Acc.win (σ : String → Int) (dw : String → Nat) : Acc → Win
@@ -1432,6 +1455,10 @@ def Acc.win (σ : String → Int) (dw : String → Nat) : Acc → Win
   | .cell2 n w r c => (n, Acc.lo σ (.cell2 n w r c), 1)
   | .part1 n hi lo => (n, Acc.lo σ (.part1 n hi lo), Acc.wid σ (.part1 n hi lo))
   | .part2 n w r hi lo => (n, Acc.lo σ (.part2 n w r hi lo), Acc.wid σ (.part2 n w r hi lo))
+  | .plane3 n w2 w3 s => (n, Acc.lo σ (.plane3 n w2 w3 s), Acc.wid σ (.plane3 n w2 w3 s))
+  | .row3 n w2 w3 s k => (n, Acc.lo σ (.row3 n w2 w3 s k), Acc.wid σ (.row3 n w2 w3 s k))
+  | .cell3 n w2 w3 s k i => (n, Acc.lo σ (.cell3 n w2 w3 s k i), 1)
+  | .part3 n w2 w3 s k hi lo => (n, Acc.lo σ (.part3 n w2 w3 s k hi lo), Acc.wid σ (.part3 n w2 w3 s k hi lo))
 
 /-- The lowered target. -/
 def Acc.lhs (σ : String → Int) : Acc → Lhs2
@@ -1443,6 +1470,11 @@ def Acc.lhs (σ : String → Int) : Acc → Lhs2
   | .part1 n hi lo => .slice n (Acc.lo σ (.part1 n hi lo)) (Acc.wid σ (.part1 n hi lo))
   | .part2 n w r hi lo =>
       .slice n (Acc.lo σ (.part2 n w r hi lo)) (Acc.wid σ (.part2 n w r hi lo))
+  | .plane3 n w2 w3 s => .slice n (Acc.lo σ (.plane3 n w2 w3 s)) (Acc.wid σ (.plane3 n w2 w3 s))
+  | .row3 n w2 w3 s k => .slice n (Acc.lo σ (.row3 n w2 w3 s k)) (Acc.wid σ (.row3 n w2 w3 s k))
+  | .cell3 n w2 w3 s k i => .slice n (Acc.lo σ (.cell3 n w2 w3 s k i)) 1
+  | .part3 n w2 w3 s k hi lo =>
+      .slice n (Acc.lo σ (.part3 n w2 w3 s k hi lo)) (Acc.wid σ (.part3 n w2 w3 s k hi lo))
 
 /-- The read it promises. -/
 def Acc.rd (σ : String → Int) : Acc → ReadWin
@@ -1453,6 +1485,10 @@ def Acc.rd (σ : String → Int) : Acc → ReadWin
   | .cell2 n w r c => .win n (Acc.lo σ (.cell2 n w r c)) 1
   | .part1 n hi lo => .win n (Acc.lo σ (.part1 n hi lo)) (Acc.wid σ (.part1 n hi lo))
   | .part2 n w r hi lo => .win n (Acc.lo σ (.part2 n w r hi lo)) (Acc.wid σ (.part2 n w r hi lo))
+  | .plane3 n w2 w3 s => .win n (Acc.lo σ (.plane3 n w2 w3 s)) (Acc.wid σ (.plane3 n w2 w3 s))
+  | .row3 n w2 w3 s k => .win n (Acc.lo σ (.row3 n w2 w3 s k)) (Acc.wid σ (.row3 n w2 w3 s k))
+  | .cell3 n w2 w3 s k i => .win n (Acc.lo σ (.cell3 n w2 w3 s k i)) 1
+  | .part3 n w2 w3 s k hi lo => .win n (Acc.lo σ (.part3 n w2 w3 s k hi lo)) (Acc.wid σ (.part3 n w2 w3 s k hi lo))
 
 /-- A template process with its footprint: the write, the reads, and the process itself (the
 equation schema kept for the later stages). -/
@@ -1668,7 +1704,24 @@ def elemAcc? (ds : List DeclT) (n : String) (is : List PExpr) : Except String Ac
             | some a, some b => .ok (.cell2 n (m2.add (Aff.const 1)) a b)
             | _, _ => .error s!"an index of `{n}[…][…]` is not affine (dynamic or nonlinear){quotNote [i, j]}"
           else .error s!"`{n}`: element selects need zero-based descending dimensions `[hi:0][hi:0]`"
-      | [_, _, _], _ => .error s!"a select of the three-dimensional declaration `{n}` (outside the fragment: a 3-D declaration is read as a whole signal; selects are read of 1-D and 2-D declarations)"
+      | [(_, l1), (m2, l2), (m3, l3)], [i] =>
+          if l1 = Aff.const 0 ∧ l2 = Aff.const 0 ∧ l3 = Aff.const 0 then
+            match affOf? i with
+            | some a => .ok (.plane3 n (m2.add (Aff.const 1)) (m3.add (Aff.const 1)) a)
+            | none => .error s!"index of `{n}[…]` is not affine (dynamic or nonlinear){quotNote [i]}"
+          else .error s!"`{n}`: element selects need zero-based descending dimensions `[hi:0][hi:0][hi:0]`"
+      | [(_, l1), (m2, l2), (m3, l3)], [i, j] =>
+          if l1 = Aff.const 0 ∧ l2 = Aff.const 0 ∧ l3 = Aff.const 0 then
+            match affOf? i, affOf? j with
+            | some a, some b => .ok (.row3 n (m2.add (Aff.const 1)) (m3.add (Aff.const 1)) a b)
+            | _, _ => .error s!"an index of `{n}[…][…]` is not affine (dynamic or nonlinear){quotNote [i, j]}"
+          else .error s!"`{n}`: element selects need zero-based descending dimensions `[hi:0][hi:0][hi:0]`"
+      | [(_, l1), (m2, l2), (m3, l3)], [i, j, k] =>
+          if l1 = Aff.const 0 ∧ l2 = Aff.const 0 ∧ l3 = Aff.const 0 then
+            match affOf? i, affOf? j, affOf? k with
+            | some a, some b, some c => .ok (.cell3 n (m2.add (Aff.const 1)) (m3.add (Aff.const 1)) a b c)
+            | _, _, _ => .error s!"an index of `{n}[…][…][…]` is not affine (dynamic or nonlinear){quotNote [i, j, k]}"
+          else .error s!"`{n}`: element selects need zero-based descending dimensions `[hi:0][hi:0][hi:0]`"
       | _, _ => .error s!"select path on `{n}` does not match its declared packed dimensions (outside the v1 fragment)"
 
 /-- The spelling of a part select's operands, for refusals. -/
@@ -1709,7 +1762,14 @@ def partAcc? (ds : List DeclT) (n : String) (is : List PExpr) (mode : PartMode) 
             | _, _, _ =>
                 .error s!"an index or bound of `{n}[…][{partSym mode}]` is not affine (dynamic or nonlinear){quotNote [i, a, b]}"
           else .error s!"`{n}`: part selects need zero-based descending dimensions `[hi:0][hi:0]`"
-      | [_, _, _], _ => .error s!"a part select of the three-dimensional declaration `{n}` (outside the fragment: a 3-D declaration is read as a whole signal; part selects are read of 1-D and 2-D declarations)"
+      | [(_, l1), (m2, l2), (m3, l3)], [i, j] =>
+          if l1 = Aff.const 0 ∧ l2 = Aff.const 0 ∧ l3 = Aff.const 0 then
+            match affOf? i, affOf? j, affOf? (partRange mode a b).1, affOf? (partRange mode a b).2 with
+            | some r, some c, some h, some l' =>
+                .ok (.part3 n (m2.add (Aff.const 1)) (m3.add (Aff.const 1)) r c h l')
+            | _, _, _, _ =>
+                .error s!"an index or bound of `{n}[…][…][{partSym mode}]` is not affine (dynamic or nonlinear){quotNote [i, j, a, b]}"
+          else .error s!"`{n}`: part selects need zero-based descending dimensions `[hi:0][hi:0][hi:0]`"
       | _, _ => .error s!"part select on `{n}` does not match its declared packed dimensions (outside the v1 fragment)"
 
 /-- WP-B2 gate 4a: the access a LEGACY select `n[i]` (the extractor's `BitSel`) stands for. Over a declaration of zero or
@@ -1720,14 +1780,24 @@ def bitAcc? (ds : List DeclT) (n : String) (a : Aff) : Except String Acc :=
   match dimsOf ds n with
   | some [(_, l1), (m2, l2)] =>
       if l1 = Aff.const 0 ∧ l2 = Aff.const 0 then .ok (.row n (m2.add (Aff.const 1)) a) else .ok (.bit n a)
+  | some [(_, l1), (m2, l2), (m3, l3)] =>
+      -- tac8: over a zero-based three-dimensional declaration the legacy select is a whole PLANE (`elemW` is the
+      -- product of the inner two extents)
+      if l1 = Aff.const 0 ∧ l2 = Aff.const 0 ∧ l3 = Aff.const 0 then
+        .ok (.plane3 n (m2.add (Aff.const 1)) (m3.add (Aff.const 1)) a)
+      else .ok (.bit n a)
   | _ => .ok (.bit n a)
 
 theorem bitAcc?_cases (ds : List DeclT) (n : String) (a : Aff) :
-    bitAcc? ds n a = .ok (.bit n a) ∨ ∃ w, bitAcc? ds n a = .ok (.row n w a) := by
+    bitAcc? ds n a = .ok (.bit n a) ∨ (∃ w, bitAcc? ds n a = .ok (.row n w a)) ∨
+      ∃ w2 w3, bitAcc? ds n a = .ok (.plane3 n w2 w3 a) := by
   unfold bitAcc?
   split
   · split
-    · exact Or.inr ⟨_, rfl⟩
+    · exact Or.inr (Or.inl ⟨_, rfl⟩)
+    · exact Or.inl rfl
+  · split
+    · exact Or.inr (Or.inr ⟨_, _, rfl⟩)
     · exact Or.inl rfl
   · exact Or.inl rfl
 
@@ -3736,6 +3806,15 @@ def dm (σ : String → Int) (n : String) (k : Nat) : Int :=
       | none => 0
       | some p => p.2.1.eval σ
 
+/-- A select of a 3-D declaration (tac8): the declaration has three zero-based descending dimensions, and the recorded
+widths are the extents of the second and the third. -/
+def acc3Ok (n : String) (w2 w3 : Aff) : Bool :=
+  match s.dimsOf' n with
+  | some [(_, l1), (m2, l2), (m3, l3)] =>
+      decide (l1 = Aff.const 0) && decide (l2 = Aff.const 0) && decide (l3 = Aff.const 0) &&
+        decide (w2 = m2.add (Aff.const 1)) && decide (w3 = m3.add (Aff.const 1))
+  | _ => false
+
 /-- The access is consistent with the declaration it names: right number of dimensions, zero-based
 descending, and the recorded row width is the second dimension's extent. -/
 def accOk : Acc → Bool
@@ -3768,6 +3847,10 @@ def accOk : Acc → Bool
       | some [(_, l1), (m2, l2)] =>
           decide (l1 = Aff.const 0) && decide (l2 = Aff.const 0) && decide (w = m2.add (Aff.const 1))
       | _ => false
+  | .plane3 n w2 w3 _ => s.acc3Ok n w2 w3
+  | .row3 n w2 w3 _ _ => s.acc3Ok n w2 w3
+  | .cell3 n w2 w3 _ _ _ => s.acc3Ok n w2 w3
+  | .part3 n w2 w3 _ _ _ _ => s.acc3Ok n w2 w3
 
 /-- The located sites, in instantiation order of their first instances. -/
 def lsites : List LSite :=

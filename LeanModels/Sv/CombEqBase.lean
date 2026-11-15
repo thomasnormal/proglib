@@ -709,6 +709,12 @@ def accExpr (σ : String → Int) : Acc → Expr2
   | .part1 n hi lo => .slice (.ident n) (Acc.lo σ (.part1 n hi lo)) (Acc.wid σ (.part1 n hi lo))
   | .part2 n w r hi lo =>
       .slice (.ident n) (Acc.lo σ (.part2 n w r hi lo)) (Acc.wid σ (.part2 n w r hi lo))
+  | .plane3 n w2 w3 p => .slice (.ident n) (Acc.lo σ (.plane3 n w2 w3 p)) (Acc.wid σ (.plane3 n w2 w3 p))
+  | .row3 n w2 w3 p r => .slice (.ident n) (Acc.lo σ (.row3 n w2 w3 p r)) (Acc.wid σ (.row3 n w2 w3 p r))
+  | .cell3 n w2 w3 p r c =>
+      .slice (.ident n) (Acc.lo σ (.cell3 n w2 w3 p r c)) (Acc.wid σ (.cell3 n w2 w3 p r c))
+  | .part3 n w2 w3 p r hi lo =>
+      .slice (.ident n) (Acc.lo σ (.part3 n w2 w3 p r hi lo)) (Acc.wid σ (.part3 n w2 w3 p r hi lo))
 
 def Part.expr (σ : String → Int) : Part → Expr2
   | .lit v => .lit v

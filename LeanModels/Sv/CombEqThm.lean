@@ -523,6 +523,10 @@ theorem eq_of_summaryV {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {arg
     | cell2 n w r' c => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
     | part1 n h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
     | part2 n w r' h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | plane3 n w2 w3 p' => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | row3 n w2 w3 p' r' => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | cell3 n w2 w3 p' r' c => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
+    | part3 n w2 w3 p' r' h l => simp only [Acc.rd, ReadWin.Covered]; intro k hk; exact hsrc _ _ (hco k hk)
   -- the equations and the knownness of every instance
   have hmain : ∀ ls ∈ s.lsites, ∀ σ' E', ReachE ls.hdrs σ E σ' E' →
       s.EqSite σ σ' st ls ∧ s.KnownSite σ σ' st ls := by
