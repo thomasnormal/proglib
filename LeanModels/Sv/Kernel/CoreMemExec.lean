@@ -113,6 +113,8 @@ def coreMemEquationB : List CoreMemProc → Bool
   | .assign (.bitSel _ _) _ :: rest => coreMemEquationB rest
   | .assign (.partSel _ _ _) _ :: rest => coreMemEquationB rest
   | .assign (.arrayPart _ [] .range _ _) _ :: rest => coreMemEquationB rest
+  | .assign (.arrayPart _ [] .up _ _) _ :: rest => coreMemEquationB rest
+  | .assign (.arrayPart _ [] .down _ _) _ :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ []) (.arrayElem _ []) :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ [_]) _ :: rest => coreMemEquationB rest
   | _ => false
@@ -1702,6 +1704,33 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
             let st' ← E.writeScalarPartAssign env elems st name msb lsb v
             let view' := E.scalar.view st'.scalar
             E.settleAssignAt env elems st' view' (index + 1) rest
+      | .arrayPart name [] mode base widthExpr =>
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+          let bv ← E.evalIndex env elems st base
+          let wv ← E.evalIndex env elems st widthExpr
+          let some b := bv.toNat? | .unsupported "10.3: indexed part-select base is unknown"
+          let some w := wv.toNat? | .unsupported "10.3: indexed part-select width is unknown"
+          if w == 0 then
+            .unsupported "10.3: indexed part-select has zero width"
+          else
+            let bounds := match mode with
+              | .up => if b + w - 1 < width then some (b, b + w - 1) else none
+              | .down => if b + 1 >= w && b < width then some (b - w + 1, b) else none
+              | .range => none
+            match bounds with
+            | none => .unsupported "10.3: indexed part-select bounds are outside the scalar target"
+            | some (lo, _) =>
+                let v ← E.evalScalarAssignAtView env elems st view (some w) index value
+                match E.scalar.resolve name with
+                | some x =>
+                    let old := st.scalar x
+                    let st' := E.setScalarState st name
+                      (old.bits.insertAt lo (v.resizeU w))
+                    let view' := E.scalar.view st'.scalar
+                    E.settleAssignAt env elems st' view' (index + 1) rest
+                | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
       | .arrayElem target [] =>
           (match value with
            | .arrayElem source [] =>
