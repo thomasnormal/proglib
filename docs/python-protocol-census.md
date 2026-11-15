@@ -771,3 +771,7 @@ public successor result without introducing a fixed-count assignment theorem.
 `Monadic.twinAgrees_execStmt_expr_constant` adds the analogous expression-
 statement bridge for a constant expression, with the explicit fuel threshold
 needed by the legacy evaluator's child-expression step.
+
+`Monadic.twinAgrees_execStmt_expr_of_evalOpen` generalizes that control step:
+any expression whose `evalOpen`/`evalExpr` bridge is supplied at positive child
+fuel automatically gets the corresponding expression-statement bridge.
