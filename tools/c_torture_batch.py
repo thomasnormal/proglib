@@ -19,7 +19,12 @@ from pathlib import Path
 
 
 def _why(entry: dict) -> str:
-    return str(entry.get("why") or "")
+    return _compact(str(entry.get("why") or ""))
+
+
+def _compact(detail: str) -> str:
+    """Keep the one-line batch protocol even when clang emits a diagnostic."""
+    return " ".join(detail.split())[:2000]
 
 
 def _static_row(entry: dict) -> tuple[str, str, str]:
@@ -74,12 +79,12 @@ def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
             print(f"{name}\ttimeout\tper-file wall timeout ({timeout:g}s)", flush=True)
             continue
         except OSError as exc:
-            print(f"{name}\trunner-error\t{exc}", flush=True)
+            print(f"{name}\trunner-error\t{_compact(str(exc))}", flush=True)
             continue
 
         row = _parse_child(name, proc.stdout)
         if row is None:
-            detail = proc.stderr.strip() or "runner produced no row"
+            detail = _compact(proc.stderr) or "runner produced no row"
             print(f"{name}\trunner-error\t{detail}", flush=True)
         else:
             print("\t".join(row), flush=True)
