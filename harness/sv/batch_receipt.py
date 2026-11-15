@@ -157,6 +157,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("signal_event_control.sv", "signal_event_control",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),),
             retain_proc_rewrites=True),
+    Fixture("untyped_localparam_refuse.sv", "untyped_localparam_refuse",
+            (Port("x", 1),), (Port("y", 1),)),
     Fixture("assign_target.sv", "assign_target",
             (Port("x", 1),), (Port("y", 1),)),
     Fixture("typed_bit_localparam.sv", "typed_localparam",
