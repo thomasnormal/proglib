@@ -715,3 +715,8 @@ not call dispatch.
 `Monadic.callInMono_succ` exposes the same seam at the public runner boundary:
 successor-fuel `callInMono` is definitionally the `toRun` projection of that
 `callInM` continuation at the normalized top depth.
+
+`Monadic.callInMono_succ_body_next` composes that public seam with the generic
+top-depth `.next` branch. Given the explicit raw `execOpenList` body result, it
+now yields a direct `callInMono` result at successor fuel; the recursive body
+relation itself remains a separate premise.

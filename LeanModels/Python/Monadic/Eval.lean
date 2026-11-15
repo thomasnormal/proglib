@@ -4598,6 +4598,26 @@ theorem twinAgrees_callInM_top_body_next
   rw [hfinish]
   rfl
 
+theorem callInMono_succ_body_next
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (st' : FrameState)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok RFlow.next, st')) :
+    callInMono m (fuel + 1) w fname args =
+      .ok { st'.world with callDepth := pythonTopCallDepth } .none := by
+  rw [callInMono_succ]
+  exact twinAgrees_callInM_top_body_next (kont m fuel) m fname args f
+    { w with callDepth := pythonTopCallDepth } st' hfind hgen hargs hlocal
+    hnotgen harity hbody
+
 theorem twinAgrees_callInM_top_body_ret
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (v : RVal)
