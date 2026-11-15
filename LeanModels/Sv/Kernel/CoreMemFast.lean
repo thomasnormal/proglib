@@ -558,11 +558,10 @@ theorem CoreMemDesign.flatScalarQueueB_of_success
 def CoreMemDesign.fastCommitScalarState (E : CoreMemDesign)
     (st : CoreMemState) (q : NbaQueue2) : Res CoreMemState :=
   let fs := CoreMemFastState.ofState E st
-  let fallback := E.normalizeScalar st (E.scalarEdge.commit st.scalar q)
   match E.fastCommitScalar fs q with
   | .ok fs' => .ok (E.normalizeScalar fs'.toState fs'.toState.scalar)
-  | .timeout => .ok fallback
-  | .unsupported _ => .ok fallback
+  | .timeout => .ok (E.normalizeScalar st (E.scalarEdge.commit st.scalar q))
+  | .unsupported _ => .ok (E.normalizeScalar st (E.scalarEdge.commit st.scalar q))
 
 theorem CoreMemDesign.normalizeScalar_eq_of
     (E : CoreMemDesign) (a b : CoreMemState)
