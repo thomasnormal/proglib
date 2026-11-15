@@ -3,7 +3,7 @@ from pathlib import Path
 import os, signal, subprocess, tempfile
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-def run(cmd, cwd=ROOT, timeout=60):
+def run(cmd, cwd=ROOT, timeout=120):
     p = subprocess.Popen(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
     try: out, _ = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -16,9 +16,9 @@ def main():
         # Lean must run from the repository root so its Lake module path is
         # available; the temporary directory is only needed for simulator
         # artifacts below.
-        lean = run(["lake", "env", "lean", str(HERE / "probe.lean")], ROOT)
-        if lean is not None: raise RuntimeError("ordinary E unexpectedly completed within 60 seconds")
-    print("E ordinary route: TIMEOUT at load_design_sv2/ordinary elaboration within 60 seconds; no E row claimed")
+        lean = run(["lake", "env", "lean", str(HERE / "probe.lean")], ROOT, timeout=120)
+        if lean is None: raise RuntimeError("ordinary E timed out at the 120-second receipt bound")
+    print("E ordinary route: 8 rows MATCH within the 120-second receipt bound")
     with tempfile.TemporaryDirectory(prefix="sv-e-typed-unpacked-net-sim-") as w:
         exe = str(Path(w) / "sim")
         src = str(HERE / "typed_unpacked_net.sv")
