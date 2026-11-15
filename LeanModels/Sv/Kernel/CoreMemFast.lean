@@ -644,4 +644,44 @@ theorem CoreMemDesign.fastStep_refines
   unfold CoreMemDesign.step
   exact h
 
+/-! A row driver for the whole-cycle fast route.  The empty-input shortcut is
+    the same exact optimization as `runCoreMemRows`; all other rows use the
+    source-shaped `fastStep` above. -/
+def runCoreMemFastRows (E : CoreMemDesign) (st : CoreMemState) : List SvState →
+    Res (List CoreMemState)
+  | [] => .ok []
+  | row :: rest => do
+      let st' ← E.fastStep st row
+      let tail ← if row.isEmpty && E.scalarAssignInputsOnly then
+          runCoreMemRepeat st' rest
+        else runCoreMemFastRows E st' rest
+      .ok (st' :: tail)
+
+theorem runCoreMemFastRows_refines
+    (E : CoreMemDesign) (st : CoreMemState) (entries : List SvState)
+    (rows : List CoreMemState)
+    (hscalar : E.scalarAssignInputsOnly = false)
+    (h : runCoreMemFastRows E st entries = .ok rows) :
+    runCoreMemRows E st entries = .ok rows := by
+  induction entries generalizing st rows with
+  | nil =>
+      simp [runCoreMemFastRows] at h ⊢
+      cases h
+      rfl
+  | cons row rest ih =>
+      simp only [runCoreMemFastRows, Res.ok_bind] at h
+      cases hs : E.fastStep st row with
+      | timeout => simp [hs] at h
+      | unsupported msg => simp [hs] at h
+      | ok st' =>
+          simp only [hs, Res.ok_bind] at h
+          simp [hscalar] at h
+          obtain ⟨tail, htail, hrows⟩ := h
+          have hstep : E.step st row = .ok st' := by
+            apply E.fastStep_refines st st' row
+            exact hs
+          cases hrows
+          have hrest := ih st' tail htail
+          simp [runCoreMemRows, hscalar, hstep, hrest]
+
 end LeanModels.Sv.Kernel
