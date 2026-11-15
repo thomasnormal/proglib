@@ -1,21 +1,21 @@
 {
  "by_corpus": {
   "c-testsuite/single-exec": {
-   "passed": 136,
+   "passed": 184,
    "refused-libc": 1,
-   "refused-ub": 5,
-   "refused-unsupported": 75,
+   "refused-ub": 4,
+   "refused-unsupported": 28,
    "timeout": 3
   },
   "gcc.c-torture/execute": {
    "failed": 3,
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 987,
-   "refused-libc": 18,
-   "refused-ub": 89,
-   "refused-unsupported": 473,
-   "timeout": 80
+   "passed": 960,
+   "refused-libc": 16,
+   "refused-ub": 68,
+   "refused-unsupported": 521,
+   "timeout": 82
   },
   "gcc.c23-run": {
    "not-parsed": 27,
@@ -30,11 +30,11 @@
   "failed": 3,
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1126,
-  "refused-libc": 21,
-  "refused-ub": 97,
-  "refused-unsupported": 589,
-  "timeout": 83
+  "passed": 1147,
+  "refused-libc": 19,
+  "refused-ub": 75,
+  "refused-unsupported": 590,
+  "timeout": 85
  },
  "dynamic_wall_ranking": [
   {
@@ -340,6 +340,141 @@
   },
   {
    "files": [
+    "00123.c",
+    "00174.c",
+    "00175.c",
+    "00195.c",
+    "00204.c",
+    "20000603-1.c",
+    "20000605-1.c",
+    "20000731-1.c",
+    "20001017-1.c",
+    "20010118-1.c",
+    "20011217-1.c",
+    "20020213-1.c",
+    "20020413-1.c",
+    "20020720-1.c",
+    "20021118-2.c",
+    "20030216-1.c",
+    "20030914-1.c",
+    "20031003-1.c",
+    "20031214-1.c",
+    "20040831-1.c",
+    "20041113-1.c",
+    "20071030-1.c",
+    "20080502-1.c",
+    "20080529-1.c",
+    "20120919-1.c",
+    "20190901-1.c",
+    "920501-8.c",
+    "920618-1.c",
+    "920625-1.c",
+    "920710-1.c",
+    "921019-2.c",
+    "921113-1.c",
+    "921208-1.c",
+    "930614-1.c",
+    "930614-2.c",
+    "930628-1.c",
+    "960513-1.c",
+    "961223-1.c",
+    "980205.c",
+    "980605-1.c",
+    "980709-1.c",
+    "990127-2.c",
+    "990826-0.c",
+    "990829-1.c",
+    "991019-1.c",
+    "991030-1.c",
+    "991228-1.c",
+    "align-2.c",
+    "builtins/memmove.c",
+    "cbrt.c",
+    "complex-3.c",
+    "float-floor.c",
+    "gofast.c",
+    "ieee/20001122-1.c",
+    "ieee/20010114-2.c",
+    "ieee/20010226-1.c",
+    "ieee/20011123-1.c",
+    "ieee/20030331-1.c",
+    "ieee/20041213-1.c",
+    "ieee/920518-1.c",
+    "ieee/930529-1.c",
+    "ieee/980619-1.c",
+    "ieee/acc1.c",
+    "ieee/acc2.c",
+    "ieee/compare-fp-2.c",
+    "ieee/copysign1.c",
+    "ieee/copysign2.c",
+    "ieee/fp-cmp-1.c",
+    "ieee/fp-cmp-2.c",
+    "ieee/fp-cmp-5.c",
+    "ieee/fp-cmp-6.c",
+    "ieee/fp-cmp-7.c",
+    "ieee/fp-cmp-8.c",
+    "ieee/fp-cmp-9.c",
+    "ieee/hugeval.c",
+    "ieee/inf-2.c",
+    "ieee/inf-3.c",
+    "ieee/mzero2.c",
+    "ieee/mzero3.c",
+    "ieee/mzero4.c",
+    "ieee/mzero5.c",
+    "ieee/mzero6.c",
+    "ieee/pr108540-1.c",
+    "ieee/pr108540-2.c",
+    "ieee/pr109008.c",
+    "ieee/pr119002.c",
+    "ieee/pr28634.c",
+    "ieee/pr30704.c",
+    "ieee/pr36332.c",
+    "ieee/pr67218.c",
+    "ieee/pr72824.c",
+    "ieee/pr84235.c",
+    "ieee/unsafe-fp-assoc-1.c",
+    "ieee/unsafe-fp-assoc.c",
+    "loop-8.c",
+    "loop-ivopts-1.c",
+    "packed-aligned.c",
+    "postmod-1.c",
+    "pr107879.c",
+    "pr15262-1.c",
+    "pr15262.c",
+    "pr23941.c",
+    "pr29798.c",
+    "pr35456.c",
+    "pr36343.c",
+    "pr38048-2.c",
+    "pr39501.c",
+    "pr44683.c",
+    "pr44942.c",
+    "pr47538.c",
+    "pr58574.c",
+    "pr59643.c",
+    "pr64979.c",
+    "pr67929_1.c",
+    "pr93434.c",
+    "stdarg-1.c",
+    "stdarg-3.c",
+    "stdarg-4.c",
+    "struct-ret-1.c",
+    "va-arg-12.c",
+    "va-arg-15.c",
+    "va-arg-16.c",
+    "va-arg-17.c",
+    "va-arg-18.c",
+    "va-arg-26.c",
+    "va-arg-5.c",
+    "va-arg-6.c",
+    "va-arg-7.c"
+   ],
+   "present": 128,
+   "sole": 128,
+   "wall": "unsupported:floating literal lacks parser-native bits"
+  },
+  {
+   "files": [
     "20040705-1.c",
     "20040705-2.c",
     "20040709-3.c",
@@ -359,7 +494,6 @@
     "builtins/memmove-2.c",
     "builtins/memmove-chk-lib.c",
     "builtins/memmove-lib.c",
-    "builtins/memmove.c",
     "builtins/mempcpy-2-lib.c",
     "builtins/mempcpy-chk-lib.c",
     "builtins/mempcpy-lib.c",
@@ -446,126 +580,21 @@
     "ieee/pr38016.c",
     "pr71626-2.c"
    ],
-   "present": 105,
-   "sole": 105,
+   "present": 104,
+   "sole": 104,
    "wall": "missing-main"
-  },
-  {
-   "files": [
-    "00032.c",
-    "00058.c",
-    "00141.c",
-    "00144.c",
-    "00200.c",
-    "20000910-1.c",
-    "20001203-2.c",
-    "20010409-1.c",
-    "20010904-1.c",
-    "20010904-2.c",
-    "20011024-1.c",
-    "20020129-1.c",
-    "20020508-2.c",
-    "20020508-3.c",
-    "20030404-1.c",
-    "20030920-1.c",
-    "20031003-1.c",
-    "20040409-1w.c",
-    "20040409-2w.c",
-    "20040409-3w.c",
-    "20041212-1.c",
-    "20050502-2.c",
-    "20050826-1.c",
-    "20060110-1.c",
-    "20060110-2.c",
-    "20071120-1.c",
-    "20080222-1.c",
-    "20090113-1.c",
-    "20090527-1.c",
-    "20100827-1.c",
-    "20121108-1.c",
-    "20171008-1.c",
-    "20191023-1.c",
-    "920612-1.c",
-    "920922-1.c",
-    "930429-1.c",
-    "930529-1.c",
-    "950704-1.c",
-    "960317-1.c",
-    "990524-1.c",
-    "bswap-2.c",
-    "builtin-prefetch-2.c",
-    "enum-3.c",
-    "gcc/testsuite/gcc.dg/c23-complit-1.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-1.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-2.c",
-    "ieee/20041213-1.c",
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-6.c",
-    "ieee/fp-cmp-8.c",
-    "ieee/fp-cmp-9.c",
-    "ieee/hugeval.c",
-    "ieee/mzero2.c",
-    "ieee/pr84235.c",
-    "loop-15.c",
-    "pr101188.c",
-    "pr108498-2.c",
-    "pr114965.c",
-    "pr17252.c",
-    "pr20601-1.c",
-    "pr21173.c",
-    "pr22493-1.c",
-    "pr23047.c",
-    "pr33870-1.c",
-    "pr33870.c",
-    "pr34099-2.c",
-    "pr34099.c",
-    "pr34176.c",
-    "pr39339.c",
-    "pr40386.c",
-    "pr41395-1.c",
-    "pr41395-2.c",
-    "pr41463.c",
-    "pr41750.c",
-    "pr43629.c",
-    "pr53084.c",
-    "pr56051.c",
-    "pr57124.c",
-    "pr58831.c",
-    "pr63302.c",
-    "pr71631.c",
-    "pr7284-1.c",
-    "pr79121.c",
-    "pr79286.c",
-    "pr99079.c",
-    "ptr-arith-1.c",
-    "return-addr.c",
-    "stdarg-3.c",
-    "strlen-7.c",
-    "va-arg-1.c",
-    "va-arg-12.c",
-    "va-arg-16.c",
-    "va-arg-17.c",
-    "va-arg-20.c",
-    "zero-struct-1.c",
-    "zero-struct-2.c",
-    "zerolen-1.c"
-   ],
-   "present": 97,
-   "sole": 97,
-   "wall": "undefined-behavior"
   },
   {
    "files": [
     "00040.c",
     "00041.c",
     "00128.c",
-    "20000314-1.c",
     "20000412-2.c",
-    "20000605-1.c",
     "20011008-3.c",
     "20020108-1.c",
     "20030916-1.c",
     "20040313-1.c",
+    "20040629-1.c",
     "20050224-1.c",
     "20060905-1.c",
     "20081218-1.c",
@@ -586,13 +615,15 @@
     "divcmp-3.c",
     "doloop-1.c",
     "doloop-2.c",
-    "ieee/20001122-1.c",
+    "fprintf-chk-1.c",
     "ieee/compare-fp-4.c",
     "loop-11.c",
     "loop-ivopts-2.c",
     "lshrdi-1.c",
     "memcpy-1.c",
+    "memcpy-2.c",
     "memcpy-bi.c",
+    "memset-1.c",
     "minmaxcmp-1.c",
     "mode-dependent-address.c",
     "multi-ix.c",
@@ -619,7 +650,6 @@
     "pr66556.c",
     "pr68506.c",
     "pr68532.c",
-    "pr69320-3.c",
     "pr71083.c",
     "pr78675.c",
     "pr82387.c",
@@ -631,77 +661,102 @@
     "pr94734.c",
     "pr95731.c",
     "pr98736.c",
+    "printf-chk-1.c",
     "shiftdi-2.c",
     "split-path-1.c",
     "ssad-run.c",
+    "strcpy-1.c",
     "strlen-3.c",
     "strlen-4.c",
     "subcmp-1.c",
     "switch-1.c",
     "usad-run.c"
    ],
-   "present": 83,
-   "sole": 83,
+   "present": 85,
+   "sole": 85,
    "wall": "timeout"
   },
   {
    "files": [
-    "00056.c",
-    "00125.c",
-    "00131.c",
-    "00132.c",
-    "00154.c",
-    "00156.c",
-    "00157.c",
-    "00158.c",
-    "00159.c",
-    "00160.c",
-    "00161.c",
-    "00163.c",
-    "00164.c",
-    "00165.c",
-    "00166.c",
-    "00167.c",
-    "00168.c",
-    "00169.c",
-    "00171.c",
-    "00172.c",
-    "00173.c",
-    "00174.c",
-    "00175.c",
-    "00176.c",
-    "00177.c",
-    "00178.c",
-    "00181.c",
-    "00182.c",
-    "00183.c",
-    "00184.c",
-    "00185.c",
-    "00188.c",
-    "00190.c",
-    "00191.c",
-    "00192.c",
-    "00193.c",
-    "00194.c",
-    "00195.c",
-    "00196.c",
-    "00197.c",
-    "00199.c",
-    "00201.c",
-    "00202.c",
-    "00203.c",
-    "00205.c",
-    "00206.c",
-    "00211.c",
-    "00212.c",
-    "00213.c",
-    "00215.c",
-    "00217.c",
-    "pr111863-1.c"
+    "00032.c",
+    "00141.c",
+    "00144.c",
+    "00200.c",
+    "20000910-1.c",
+    "20001203-2.c",
+    "20010409-1.c",
+    "20010904-1.c",
+    "20010904-2.c",
+    "20020129-1.c",
+    "20020508-2.c",
+    "20020508-3.c",
+    "20030404-1.c",
+    "20040409-1w.c",
+    "20040409-2w.c",
+    "20040409-3w.c",
+    "20041212-1.c",
+    "20050826-1.c",
+    "20060110-1.c",
+    "20060110-2.c",
+    "20071120-1.c",
+    "20080222-1.c",
+    "20090113-1.c",
+    "20090527-1.c",
+    "20121108-1.c",
+    "20171008-1.c",
+    "20191023-1.c",
+    "920612-1.c",
+    "920726-1.c",
+    "920922-1.c",
+    "930529-1.c",
+    "950704-1.c",
+    "960317-1.c",
+    "990524-1.c",
+    "bswap-2.c",
+    "builtin-prefetch-2.c",
+    "enum-3.c",
+    "gcc/testsuite/gcc.dg/c23-complit-1.c",
+    "gcc/testsuite/gcc.dg/c23-tag-alias-1.c",
+    "gcc/testsuite/gcc.dg/c23-tag-alias-2.c",
+    "loop-15.c",
+    "pr101188.c",
+    "pr17252.c",
+    "pr21173.c",
+    "pr22493-1.c",
+    "pr23047.c",
+    "pr33870-1.c",
+    "pr33870.c",
+    "pr34099-2.c",
+    "pr34099.c",
+    "pr34176.c",
+    "pr39339.c",
+    "pr40386.c",
+    "pr41395-1.c",
+    "pr41395-2.c",
+    "pr41463.c",
+    "pr41750.c",
+    "pr43629.c",
+    "pr56051.c",
+    "pr57124.c",
+    "pr58831.c",
+    "pr63302.c",
+    "pr7284-1.c",
+    "pr79121.c",
+    "pr79286.c",
+    "pr84339.c",
+    "pr99079.c",
+    "ptr-arith-1.c",
+    "return-addr.c",
+    "strlen-7.c",
+    "va-arg-1.c",
+    "va-arg-20.c",
+    "zero-struct-1.c",
+    "zero-struct-2.c",
+    "zerolen-1.c"
    ],
-   "present": 52,
-   "sole": 52,
-   "wall": "unsupported:printf"
+   "present": 75,
+   "sole": 75,
+   "wall": "undefined-behavior"
   },
   {
    "files": [
@@ -753,6 +808,7 @@
   {
    "files": [
     "00103.c",
+    "00170.c",
     "20001017-2.c",
     "20050316-1.c",
     "20050607-1.c",
@@ -766,7 +822,6 @@
     "pr10352-1.c",
     "pr123625.c",
     "pr28778.c",
-    "pr36343.c",
     "pr41317.c",
     "pr43987.c",
     "pr60003.c",
@@ -781,6 +836,7 @@
   },
   {
    "files": [
+    "00218.c",
     "20230630-1.c",
     "20230630-2.c",
     "20230630-3.c",
@@ -796,10 +852,11 @@
     "pr48973-2.c",
     "pr49123.c",
     "pr55750.c",
+    "signed1bitfield-1.c",
     "vrp-7.c"
    ],
-   "present": 16,
-   "sole": 16,
+   "present": 18,
+   "sole": 18,
    "wall": "unsupported:implementation-defined bit-field conversion"
   },
   {
@@ -845,41 +902,6 @@
   },
   {
    "files": [
-    "20010325-1.c",
-    "fprintf-1.c",
-    "fprintf-chk-1.c",
-    "printf-1.c",
-    "printf-chk-1.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c",
-    "vprintf-1.c",
-    "vprintf-chk-1.c",
-    "wchar_t-1.c",
-    "widechar-3.c"
-   ],
-   "present": 11,
-   "sole": 11,
-   "wall": "unsupported:string literal with escape or non-ASCII spelling"
-  },
-  {
-   "files": [
-    "20030914-1.c",
-    "20080502-1.c",
-    "gcc/testsuite/gcc.dg/c23-float-1.c",
-    "ieee/20010226-1.c",
-    "ieee/inf-2.c",
-    "ieee/inf-3.c",
-    "ieee/pr36332.c",
-    "pr44942.c",
-    "va-arg-5.c",
-    "va-arg-6.c"
-   ],
-   "present": 10,
-   "sole": 10,
-   "wall": "unsupported:long double floating literal"
-  },
-  {
-   "files": [
     "20001228-1.c",
     "20020406-1.c",
     "20051021-1.c",
@@ -888,10 +910,13 @@
     "930930-2.c",
     "pr17377.c",
     "pr20100-1.c",
-    "pr20621-1.c"
+    "pr20621-1.c",
+    "string-opt-5.c",
+    "va-arg-10.c",
+    "va-arg-9.c"
    ],
-   "present": 9,
-   "sole": 9,
+   "present": 12,
+   "sole": 12,
    "wall": "unsequenced-effects"
   },
   {
@@ -955,32 +980,6 @@
   },
   {
    "files": [
-    "00186.c",
-    "920501-8.c",
-    "920726-1.c",
-    "980605-1.c",
-    "ieee/920810-1.c",
-    "struct-ret-1.c"
-   ],
-   "present": 6,
-   "sole": 6,
-   "wall": "unsupported:sprintf"
-  },
-  {
-   "files": [
-    "20111208-1.c",
-    "pr36321.c",
-    "pr80153.c",
-    "string-opt-5.c",
-    "va-arg-10.c",
-    "va-arg-9.c"
-   ],
-   "present": 6,
-   "sole": 6,
-   "wall": "unsupported:strlen"
-  },
-  {
-   "files": [
     "20030910-1.c",
     "960512-1.c",
     "complex-1.c",
@@ -993,14 +992,14 @@
   },
   {
    "files": [
-    "00179.c",
-    "00180.c",
-    "built-in-setjmp.c",
-    "pr84339.c"
+    "00051.c",
+    "00143.c",
+    "20111208-1.c",
+    "medce-1.c"
    ],
    "present": 4,
    "sole": 4,
-   "wall": "unsupported:__builtin_strcpy"
+   "wall": "unsupported:case label nested in a control statement"
   },
   {
    "files": [
@@ -1012,28 +1011,6 @@
    "present": 4,
    "sole": 4,
    "wall": "unsupported:extern object 'b' has no definition in the translation unit"
-  },
-  {
-   "files": [
-    "00204.c",
-    "20020413-1.c",
-    "990413-2.c",
-    "align-2.c"
-   ],
-   "present": 4,
-   "sole": 4,
-   "wall": "unsupported:floating cast has incompatible source and destination"
-  },
-  {
-   "files": [
-    "20040208-1.c",
-    "ieee/20011123-1.c",
-    "ieee/inf-1.c",
-    "ieee/pr29302-1.c"
-   ],
-   "present": 4,
-   "sole": 4,
-   "wall": "unsupported:no layout for declared type 'long double'"
   },
   {
    "files": [
@@ -1058,43 +1035,13 @@
   },
   {
    "files": [
-    "970217-1.c",
-    "loop-8.c",
-    "pr28289.c"
+    "built-in-setjmp.c",
+    "pr64242.c",
+    "pr84521.c"
    ],
    "present": 3,
    "sole": 3,
-   "wall": "libc-call: exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)"
-  },
-  {
-   "files": [
-    "gcc/testsuite/gcc.dg/c23-float-3.c",
-    "ieee/copysign1.c",
-    "ieee/copysign2.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'"
-  },
-  {
-   "files": [
-    "00051.c",
-    "00143.c",
-    "medce-1.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:case label nested in a control statement"
-  },
-  {
-   "files": [
-    "960513-1.c",
-    "ieee/fp-cmp-1.c",
-    "ieee/fp-cmp-2.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:floating literal lacks parser-native bits"
+   "wall": "libc-call: __builtin_setjmp"
   },
   {
    "files": [
@@ -1118,13 +1065,33 @@
   },
   {
    "files": [
-    "20050502-1.c",
-    "921007-1.c",
-    "p18298.c"
+    "20040208-1.c",
+    "ieee/inf-1.c",
+    "ieee/pr29302-1.c"
    ],
    "present": 3,
    "sole": 3,
-   "wall": "unsupported:strcmp"
+   "wall": "unsupported:no layout for declared type 'long double'"
+  },
+  {
+   "files": [
+    "strcmp-1.c",
+    "strlen-1.c",
+    "strncmp-1.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:no layout for declared type 'size_t'"
+  },
+  {
+   "files": [
+    "00205.c",
+    "00213.c",
+    "00215.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:printf"
   },
   {
    "files": [
@@ -1165,12 +1132,12 @@
   },
   {
    "files": [
-    "pr64242.c",
-    "pr84521.c"
+    "970217-1.c",
+    "pr28289.c"
    ],
    "present": 2,
    "sole": 2,
-   "wall": "libc-call: __builtin_setjmp"
+   "wall": "libc-call: exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)"
   },
   {
    "files": [
@@ -1219,6 +1186,15 @@
   },
   {
    "files": [
+    "00199.c",
+    "20040704-1.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsupported:break, continue or goto escaped a function body"
+  },
+  {
+   "files": [
     "00210.c",
     "call-trap-1.c"
    ],
@@ -1252,15 +1228,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:extern object 'x' has no definition in the translation unit"
-  },
-  {
-   "files": [
-    "20000731-1.c",
-    "20011217-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:floating value used as an integer"
   },
   {
    "files": [
@@ -1345,30 +1312,21 @@
   },
   {
    "files": [
+    "980701-1.c",
+    "pr36321.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsupported:operator '-' on pointers without array provenance"
+  },
+  {
+   "files": [
     "gcc/testsuite/gcc.dg/c23-imaginary-constants-1.c",
     "gcc/testsuite/gcc.dg/c23-imaginary-constants-7.c"
    ],
    "present": 2,
    "sole": 2,
    "wall": "unsupported:unbound declaration 'id15' (name 'a')"
-  },
-  {
-   "files": [
-    "stdarg-1.c",
-    "stdarg-2.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:unbound declaration 'id29' (name 'gap')"
-  },
-  {
-   "files": [
-    "20050604-1.c",
-    "991228-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:unbound declaration 'id30' (name 'u')"
   },
   {
    "files": [
@@ -1453,27 +1411,11 @@
   },
   {
    "files": [
-    "980709-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: pow"
-  },
-  {
-   "files": [
     "20101011-1.c"
    ],
    "present": 1,
    "sole": 1,
    "wall": "libc-call: signal"
-  },
-  {
-   "files": [
-    "ieee/mzero4.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: sin"
   },
   {
    "files": [
@@ -1501,6 +1443,14 @@
   },
   {
    "files": [
+    "20050604-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:aggregate load without a layout '__attribute__((__vector_size__(4 * sizeof(unsigned short)))) unsigned short'"
+  },
+  {
+   "files": [
     "scope-1.c"
    ],
    "present": 1,
@@ -1509,11 +1459,11 @@
   },
   {
    "files": [
-    "20040704-1.c"
+    "gcc/testsuite/gcc.dg/c23-float-3.c"
    ],
    "present": 1,
    "sole": 1,
-   "wall": "unsupported:break, continue or goto escaped a function body"
+   "wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'"
   },
   {
    "files": [
@@ -1597,6 +1547,14 @@
   },
   {
    "files": [
+    "990413-2.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:floating cast has incompatible source and destination"
+  },
+  {
+   "files": [
     "eeprof-1.c"
    ],
    "present": 1,
@@ -1610,6 +1568,14 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:function-to-pointer decay of an unresolved function"
+  },
+  {
+   "files": [
+    "gcc/testsuite/gcc.dg/c23-float-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:long double floating literal"
   },
   {
    "files": [
@@ -1885,14 +1851,6 @@
   },
   {
    "files": [
-    "packed-aligned.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct c'"
-  },
-  {
-   "files": [
     "20111212-1.c"
    ],
    "present": 1,
@@ -2029,14 +1987,6 @@
   },
   {
    "files": [
-    "921208-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for parameter type 'double (*)(double)'"
-  },
-  {
-   "files": [
     "pr68390.c"
    ],
    "present": 1,
@@ -2069,22 +2019,6 @@
   },
   {
    "files": [
-    "20021118-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for parameter type 'void (*)(double)'"
-  },
-  {
-   "files": [
-    "cbrt.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no size for element type 'unsigned32'"
-  },
-  {
-   "files": [
     "memchr-1.c"
    ],
    "present": 1,
@@ -2109,14 +2043,6 @@
   },
   {
    "files": [
-    "stdarg-4.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:not an integer type: 'double'"
-  },
-  {
-   "files": [
     "20001011-1.c"
    ],
    "present": 1,
@@ -2130,14 +2056,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:operator '-' on pointers from different arrays"
-  },
-  {
-   "files": [
-    "980701-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:operator '-' on pointers without array provenance"
   },
   {
    "files": [
@@ -2189,19 +2107,19 @@
   },
   {
    "files": [
+    "ieee/920810-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:sprintf"
+  },
+  {
+   "files": [
     "20000412-5.c"
    ],
    "present": 1,
    "sole": 1,
    "wall": "unsupported:src/20000412-5.c"
-  },
-  {
-   "files": [
-    "930628-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/930628-1.c"
   },
   {
    "files": [
@@ -2218,70 +2136,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:src/ieee/mul-subnormal-single-1.c"
-  },
-  {
-   "files": [
-    "memcpy-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/memcpy-2.c"
-  },
-  {
-   "files": [
-    "memset-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/memset-1.c"
-  },
-  {
-   "files": [
-    "memset-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/memset-2.c"
-  },
-  {
-   "files": [
-    "memset-3.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/memset-3.c"
-  },
-  {
-   "files": [
-    "strcmp-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/strcmp-1.c"
-  },
-  {
-   "files": [
-    "strcpy-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/strcpy-1.c"
-  },
-  {
-   "files": [
-    "strlen-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/strlen-1.c"
-  },
-  {
-   "files": [
-    "strncmp-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/strncmp-1.c"
   },
   {
    "files": [
@@ -2341,46 +2195,6 @@
   },
   {
    "files": [
-    "20031214-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id18' (name 'g')"
-  },
-  {
-   "files": [
-    "20051104-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id18' (name 's')"
-  },
-  {
-   "files": [
-    "bitfld-signed1-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id19' (name 'b')"
-  },
-  {
-   "files": [
-    "signed1bitfield-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id19' (name 'f')"
-  },
-  {
-   "files": [
-    "00047.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id19' (name 's')"
-  },
-  {
-   "files": [
     "20010122-1.c"
    ],
    "present": 1,
@@ -2397,43 +2211,11 @@
   },
   {
    "files": [
-    "pr58726.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id22' (name 'b')"
-  },
-  {
-   "files": [
-    "pr103417.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id22' (name 'c')"
-  },
-  {
-   "files": [
-    "pr67781.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id22' (name 's')"
-  },
-  {
-   "files": [
     "packed-2.c"
    ],
    "present": 1,
    "sole": 1,
    "wall": "unsupported:unbound declaration 'id22' (name 't')"
-  },
-  {
-   "files": [
-    "pr19689.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id25' (name 'f')"
   },
   {
    "files": [
@@ -2461,6 +2243,14 @@
   },
   {
    "files": [
+    "stdarg-2.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:unbound declaration 'id29' (name 'gap')"
+  },
+  {
+   "files": [
     "20051012-1.c"
    ],
    "present": 1,
@@ -2477,14 +2267,6 @@
   },
   {
    "files": [
-    "20011019-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id30' (name 'x')"
-  },
-  {
-   "files": [
     "va-arg-trap-1.c"
    ],
    "present": 1,
@@ -2498,22 +2280,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:unbound declaration 'id31' (name 'global')"
-  },
-  {
-   "files": [
-    "980602-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id31' (name 't')"
-  },
-  {
-   "files": [
-    "anon-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id32' (name 'foo')"
   },
   {
    "files": [
@@ -2549,38 +2315,6 @@
   },
   {
    "files": [
-    "930408-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id36' (name 's')"
-  },
-  {
-   "files": [
-    "20040629-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id37' (name 'b')"
-  },
-  {
-   "files": [
-    "931110-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id37' (name 'x')"
-  },
-  {
-   "files": [
-    "struct-ini-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id40' (name 'x')"
-  },
-  {
-   "files": [
     "pr34456.c"
    ],
    "present": 1,
@@ -2602,14 +2336,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:unbound declaration 'id48' (name 'curval')"
-  },
-  {
-   "files": [
-    "struct-ini-3.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id49' (name 'result')"
   },
   {
    "files": [
@@ -2669,59 +2395,11 @@
   },
   {
    "files": [
-    "20030903-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unknown enum declaration 'id25' (name 'X2')"
-  },
-  {
-   "files": [
-    "builtin-prefetch-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unknown enum declaration 'id27' (name 'read')"
-  },
-  {
-   "files": [
-    "20011219-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unknown enum declaration 'id41' (name 'N')"
-  },
-  {
-   "files": [
-    "00218.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unknown enum declaration 'id46' (name 'AMBIG_CONV')"
-  },
-  {
-   "files": [
     "00198.c"
    ],
    "present": 1,
    "sole": 1,
-   "wall": "unsupported:unknown enum declaration 'id513' (name 'a')"
-  },
-  {
-   "files": [
-    "20071030-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unknown enum declaration 'id53' (name 'cs_server')"
-  },
-  {
-   "files": [
-    "00170.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unknown enum declaration 'id558' (name 'epos_two')"
+   "wall": "unsupported:unknown enum declaration 'id543' (name 'e')"
   },
   {
    "files": [
@@ -2733,7 +2411,7 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T19:10:48Z",
+ "measured_at_utc": "2026-11-15T21:39:45Z",
  "measured_commit": "11b3198dd",
  "pin": {
   "corpora": [
@@ -3171,7 +2849,7 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "per-file wall timeout (2s)",
+   "detail": "",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "00041.c",
@@ -3240,15 +2918,15 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "unbound declaration 'id19' (name 's')",
-   "dynamic_wall": "unsupported:unbound declaration 'id19' (name 's')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00047.c",
    "sha256": "633e5b94d80c62b975d7f35727892fe20d656eb5a2534c61ff1ac6b2a5a81e6a",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -3343,8 +3021,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00056.c",
    "sha256": "00c4a038a3b12b353e5115c122b136eb175a7dc1dba5d36bec5ad6878c16f4ae",
@@ -3353,7 +3031,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -3369,8 +3047,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 6 1 6",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00058.c",
    "sha256": "defd689fe520b73d5134d0d435ce6a7098e3dc8fa002478544915eaaee759afb",
@@ -3378,7 +3056,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4068,8 +3746,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "00123.c",
    "sha256": "08de725058f8cf389e5aa5f87d53ff3c4570d92df8eeafeb29b871d722ead304",
@@ -4077,7 +3755,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4093,8 +3771,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00125.c",
    "sha256": "b3d7c7a17e8c9d4e0c15a435f32e0fe288bd154f1b250bcb323ac227a59245f0",
@@ -4103,7 +3781,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4161,8 +3839,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00131.c",
    "sha256": "213dcb02fe9c196840dd91ea3eb2c81ca13d8b3a216414cde713dfd02eb879be",
@@ -4171,12 +3849,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00132.c",
    "sha256": "6baff8442e410d6bd98e6dc4f1ff0b61db0fab15ef2ec7ae51b6ab777b32bfb9",
@@ -4185,7 +3863,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4425,8 +4103,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00154.c",
    "sha256": "bf05a27879ccb6e512501c95c368e2f3f2b4bcb96aeccfe3f6a57847385e6369",
@@ -4435,7 +4113,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4449,8 +4127,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00156.c",
    "sha256": "54ab4ae99d7d1f7afa2bdacf9296012a7776cc000ad6e4877f29ef32075a820d",
@@ -4459,12 +4137,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00157.c",
    "sha256": "998a4efb891cc3fd13762abae41f1de8ce293081608c0638c2960274ae74c0fa",
@@ -4473,12 +4151,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00158.c",
    "sha256": "abf44e80a4a0cad8d2214cc1cdb8fe1a550755ddde8c729bd667ac2f24cdc5b2",
@@ -4487,12 +4165,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00159.c",
    "sha256": "3a2cde505ed84255947fa24a6df17bc03636f7af215505eebc92ca6a7c4212c4",
@@ -4502,12 +4180,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00160.c",
    "sha256": "12c491bee3cbe26de274402a5813a664be5d32f5ad82147d0d9eb71cc609f447",
@@ -4516,12 +4194,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00161.c",
    "sha256": "f330014c7302b5d7e30b7ba902dc8130dde283d77d94e4a5df5dffb0901fd73d",
@@ -4530,7 +4208,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4544,8 +4222,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00163.c",
    "sha256": "f56173b08aa78d2ce2c8753f9ca89542ced73a831a5fb3343cf23280b3f6a3f5",
@@ -4554,12 +4232,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00164.c",
    "sha256": "1a7a3d700f1509890f6175aaad92ff4c923ab401a0f2619ef3727ced7d8497dd",
@@ -4568,12 +4246,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00165.c",
    "sha256": "9118968eeccc74e136784555281ffe5eea6f6c615a10c88d4e0428a871afe507",
@@ -4582,12 +4260,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00166.c",
    "sha256": "82a17c717f3d85d66c4b7b5f73dff4a4544a8303431345fece4dd86f24011305",
@@ -4596,12 +4274,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00167.c",
    "sha256": "4e8838ecb463243d245df0db6c8851081be8ffc50858a04cbbe4e1852a90ba4c",
@@ -4610,12 +4288,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00168.c",
    "sha256": "f222fef343f1d0f86da59e1da77bd7b93b3dcde04cc4d1d73195cf0df65ad4f2",
@@ -4624,12 +4302,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00169.c",
    "sha256": "69cfb00323c7ab414844a6e6dd5c4262e5175a8d4b73d1ac2dbdb9385b93b90d",
@@ -4638,12 +4316,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "unknown enum declaration 'id558' (name 'epos_two')",
-   "dynamic_wall": "unsupported:unknown enum declaration 'id558' (name 'epos_two')",
+   "detail": "pointer bit-cast across incompatible effective types",
+   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
    "manifest_status": "parsed",
    "name": "00170.c",
    "sha256": "85e0fb40f9e57b9410b3c6c7c57dfa90f834e8c029ce6b130f021fbcbfc411c3",
@@ -4656,8 +4334,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00171.c",
    "sha256": "d3e31f6c40eb64eabcabf795cb470332fd085dc31eddef77c83586e3d4e46201",
@@ -4666,12 +4344,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00172.c",
    "sha256": "5cdbe48598d505f93a3b16a164bb4f5350c52019642bf08688517f696998d49e",
@@ -4680,12 +4358,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00173.c",
    "sha256": "e762670518c9ae8a9e4cc594e51b1fe0d5a6b90b0036d2ab91ace347d5bfa446",
@@ -4694,12 +4372,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "00174.c",
    "sha256": "179432fa8f0ffd84d95e44c410d6203fede9a8cb439ddd0e5710d413e30ae80b",
@@ -4715,8 +4393,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "00175.c",
    "sha256": "9140671105335599b144512673237a8ce1faf1e251840708a8c1999c9601dcee",
@@ -4732,8 +4410,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00176.c",
    "sha256": "ab95d157702eda14220fdd3faeca45ea7beb6628b5f9e8717076771a67125281",
@@ -4742,12 +4420,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00177.c",
    "sha256": "f474a1ac98c29fdf810538b5593c91496f8aeb45c17af641c3feeb7cd3634b61",
@@ -4756,12 +4434,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00178.c",
    "sha256": "07fa819c5235994beee3d5da11aed588484948371cb353677b13bdd7897d19ee",
@@ -4770,12 +4448,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00179.c",
    "sha256": "9d2a00c8420a356625a16e53a81d51ae5b00380039c8224e266d9a154509ee89",
@@ -4795,12 +4473,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00180.c",
    "sha256": "88c60602178ed9f825bc74c372cab81b366d58d44d9af13a82831097d18c133b",
@@ -4810,12 +4488,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00181.c",
    "sha256": "3ac82fb82f9af999590e8c0d15094126d4f7ec132d7f2c7c1e714278496c28e7",
@@ -4824,12 +4502,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00182.c",
    "sha256": "978fb36c70bcd39965a2f0a7be31495847662a496fc945024825d9e3b3c9f0de",
@@ -4838,12 +4516,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00183.c",
    "sha256": "03d7d13d543951d43a945546cfdbee4589a96fca840c76780e71bfb3e2d60c0d",
@@ -4852,12 +4530,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00184.c",
    "sha256": "706f51eee7da050fdb28acacb269f3b0a20aa78d6270b4bf365d18e5d10d8b98",
@@ -4866,12 +4544,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00185.c",
    "sha256": "e5fe44c73d1daafdcae71aca64a3e420df631063d9e1863338f8441eadfd7664",
@@ -4880,12 +4558,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "sprintf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:sprintf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00186.c",
    "sha256": "313641d23d56c9837e9b93096521374a6de5a2a9a08053090527808fdd5fb130",
@@ -4895,7 +4573,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4920,8 +4598,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00188.c",
    "sha256": "1277cb2b5213a471d003fa2d04452501de72034914bcf081b2178acd0b92b7a7",
@@ -4930,7 +4608,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4950,8 +4628,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00190.c",
    "sha256": "81c9704a64902514cdbc4a93862c1a0d263b70a977bd2065e2a155e04426462f",
@@ -4960,12 +4638,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00191.c",
    "sha256": "833b3339452c7a7300fdaebd68f4ea08d0d58aae7ab2667ef273d2fdb02ef1b3",
@@ -4974,12 +4652,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00192.c",
    "sha256": "88e1581109fa61483e3da940ee731df2da124d50a99fd5abcdc4057c9d3dde08",
@@ -4988,12 +4666,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00193.c",
    "sha256": "b5ee395e0fbddc3e95750fd6a7e9ee240ef46334dc7f03f693a4e41b5242a56d",
@@ -5002,12 +4680,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00194.c",
    "sha256": "164f79be0581a1b748b21cf5f6bb6a827af39d3276c0ec075a2c4250e342f467",
@@ -5016,12 +4694,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "00195.c",
    "sha256": "7ce62ef70e5360efcad044f5342f90d16bd1b7f8b2b17e4ee27106c1f0904c9b",
@@ -5034,8 +4712,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00196.c",
    "sha256": "36fa4c77a0cbb5055d92def9affaba99d90611eefd135628fff16577a381bda2",
@@ -5044,12 +4722,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00197.c",
    "sha256": "681552c8a2b0f917a3fc10ea0ac32fe7808b0e03a93ba9ef4ca6c547ce9c5e0f",
@@ -5058,12 +4736,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "unknown enum declaration 'id513' (name 'a')",
-   "dynamic_wall": "unsupported:unknown enum declaration 'id513' (name 'a')",
+   "detail": "unknown enum declaration 'id543' (name 'e')",
+   "dynamic_wall": "unsupported:unknown enum declaration 'id543' (name 'e')",
    "manifest_status": "parsed",
    "name": "00198.c",
    "sha256": "d63ae893ae0fc3214d7afeaaccb22b668395f98bcbcb613f9e55f13405d13d2c",
@@ -5076,8 +4754,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "break, continue or goto escaped a function body",
+   "dynamic_wall": "unsupported:break, continue or goto escaped a function body",
    "manifest_status": "parsed",
    "name": "00199.c",
    "sha256": "f6bd6978742eccc62d87eab0458c2c47dfcc4cc5e7b411017d65961fc64c4185",
@@ -5104,8 +4782,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00201.c",
    "sha256": "935e90c432c89b4503281e9755ae71a3c272c529ab05be9ba335a83b239bf84f",
@@ -5114,12 +4792,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00202.c",
    "sha256": "fd59bba67fcf1338a92826076779863807cdd16561655fb0747716b507ec2812",
@@ -5128,12 +4806,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00203.c",
    "sha256": "67e9ea6d27a1879495dba564b3a452ccf8a2eb74fc55b95a8444abc4f4bfc862",
@@ -5142,12 +4820,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "floating cast has incompatible source and destination",
-   "dynamic_wall": "unsupported:floating cast has incompatible source and destination",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "00204.c",
    "sha256": "cfa12d12c391f845fbc18176b14ae8f169cd680e1971902b10a4ac6f556530ea",
@@ -5164,7 +4842,7 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
+   "detail": "printf: unsupported format",
    "dynamic_wall": "unsupported:printf",
    "manifest_status": "parsed",
    "name": "00205.c",
@@ -5178,8 +4856,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00206.c",
    "sha256": "ffe817a4f1b8e449cc44a792c9bc56d7444b1a43ae458a172771b052dd504f7f",
@@ -5188,7 +4866,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -5250,8 +4928,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00211.c",
    "sha256": "4a9e8c5692db416b17cc78d755f16d3eae8c177a06584fc4aa8bd5a17127c39f",
@@ -5260,12 +4938,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00212.c",
    "sha256": "13317e3f7e71347dee512fb89cf51b245c6155cca0563447941297afba1fc163",
@@ -5274,11 +4952,11 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
+   "detail": "printf: unsupported format",
    "dynamic_wall": "unsupported:printf",
    "manifest_status": "parsed",
    "name": "00213.c",
@@ -5310,7 +4988,7 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
+   "detail": "printf: unsupported format",
    "dynamic_wall": "unsupported:printf",
    "manifest_status": "parsed",
    "name": "00215.c",
@@ -5341,8 +5019,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00217.c",
    "sha256": "a4095fd4b3b5e44aebc438f1375d161831d6f7e60140f61dc39e40ff975848fc",
@@ -5351,12 +5029,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "unknown enum declaration 'id46' (name 'AMBIG_CONV')",
-   "dynamic_wall": "unsupported:unknown enum declaration 'id46' (name 'AMBIG_CONV')",
+   "detail": "implementation-defined bit-field conversion",
+   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
    "manifest_status": "parsed",
    "name": "00218.c",
    "sha256": "92fd92f656c2aa1677d705f2bc7acf3187dda642d7b21651ed0a84428abde331",
@@ -5511,15 +5189,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "per-file wall timeout (2s)",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000314-1.c",
    "sha256": "4879268963d5d9f6f54f716eee27400cb92e5d48b77b878e504f8122fc2c3eb5",
    "static_walls": [
     "cast:IntegralToPointer"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5721,20 +5399,20 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20000603-1.c",
    "sha256": "bb432b670b6713008c4bd880e5efdd5c7944334d52a92caaf13b11ca462875d0",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20000605-1.c",
    "sha256": "0201957d2776e0467c21a5428affeae829962f43c4ab93ebe71ad375e5939bf1",
@@ -5744,7 +5422,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5969,8 +5647,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating value used as an integer",
-   "dynamic_wall": "unsupported:floating value used as an integer",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20000731-1.c",
    "sha256": "476361fed8a09c4236a8f1513a036c4c9f9318ff00374adc98af3c6041eb2cd0",
@@ -6195,15 +5873,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20001017-1.c",
    "sha256": "24686eb61a08cb232ae4b2c232eed5a54cd754fec9f8ffd69667219359ae8bd2",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6450,8 +6128,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20010118-1.c",
    "sha256": "6d99053e082ef58a7f54ac184039e97954248768810e5ecba140e29847704375",
@@ -6460,7 +6138,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6568,8 +6246,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20010325-1.c",
    "sha256": "d6f4ef2feed125398cfceadc13d71be6549660f96c32bfad4339af394d690710",
@@ -6577,7 +6255,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6758,7 +6436,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20010915-1.c",
@@ -6810,20 +6488,20 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id30' (name 'x')",
-   "dynamic_wall": "unsupported:unbound declaration 'id30' (name 'x')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20011019-1.c",
    "sha256": "0f820981a6d3643fe3336b6de07321ae4ca86db6560bfb0ce5495960872bc492",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 0 4 3",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20011024-1.c",
    "sha256": "318630ae7d1dd6ab618fb7ff8ebfc135c6154cc1e7479fa430e7c8196a6291e7",
@@ -6834,7 +6512,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6947,8 +6625,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating value used as an integer",
-   "dynamic_wall": "unsupported:floating value used as an integer",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20011217-1.c",
    "sha256": "f7587313713572270fdf254e5df681abf79287e2835ed0e1ffe5d65ad3b57686",
@@ -6959,8 +6637,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unknown enum declaration 'id41' (name 'N')",
-   "dynamic_wall": "unsupported:unknown enum declaration 'id41' (name 'N')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20011219-1.c",
    "sha256": "7a006cf07778d9e15218ca7310c712bbf2fbadf139959dda7130ab9c36a5064d",
@@ -6968,7 +6646,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7079,15 +6757,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20020213-1.c",
    "sha256": "153845b47ddb0d3ebc7e4bf6f0bfb3abac63562ed84cac21a821418e831c1297",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7317,8 +6995,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating cast has incompatible source and destination",
-   "dynamic_wall": "unsupported:floating cast has incompatible source and destination",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20020413-1.c",
    "sha256": "174c0584b0182b9dd51157210e1d7a42165700e8e5d33c0c46af23be7cb19ac0",
@@ -7483,8 +7161,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20020720-1.c",
    "sha256": "fa967332a209a596d6a8ef38a38d9ac2348073fb0087d597294abeb9010b9584",
@@ -7492,7 +7170,7 @@
     "libc-call: fabs",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7666,8 +7344,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for parameter type 'void (*)(double)'",
-   "dynamic_wall": "unsupported:no layout for parameter type 'void (*)(double)'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20021118-2.c",
    "sha256": "5403880bca6352d2e126d1ca98b42cf7f3076901536ac40dd3410aed9be2726e",
@@ -7721,7 +7399,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20021120-3.c",
@@ -7871,15 +7549,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20030216-1.c",
    "sha256": "0fa5fc61ea684e0deeccfa6c2c61b435ffe06359e23a5d8aac87101f864dc927",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8190,13 +7868,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unknown enum declaration 'id25' (name 'X2')",
-   "dynamic_wall": "unsupported:unknown enum declaration 'id25' (name 'X2')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030903-1.c",
    "sha256": "267cd90d53d2fa73fb1b36252b20ebb0d5f6953920465682cbfc41632a59d725",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8232,8 +7910,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20030914-1.c",
    "sha256": "e1144646acfaeec16469f32204884f69f82ad0cc575d06c40efb0a8baf6f2954",
@@ -8269,8 +7947,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 4 2 1 2",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030920-1.c",
    "sha256": "c8df090a4028952f82cb0c3ce035b69bea04a4e89599feb15271b4eec1a52f0a",
@@ -8278,7 +7956,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8295,8 +7973,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.floatingToIntegralOutOfRange { signed := true, bits := 32 }",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20031003-1.c",
    "sha256": "209f4e7a226a95031de13f682ae3cda1cab134fe247dac1974cdf54cfe871614",
@@ -8305,7 +7983,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8401,8 +8079,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id18' (name 'g')",
-   "dynamic_wall": "unsupported:unbound declaration 'id18' (name 'g')",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20031214-1.c",
    "sha256": "6004ea680664bd996c6e4326ca90ad37bf00d8ea93b5d7f81fae35787cfe3386",
@@ -8666,15 +8344,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id37' (name 'b')",
-   "dynamic_wall": "unsupported:unbound declaration 'id37' (name 'b')",
+   "detail": "",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "20040629-1.c",
    "sha256": "ad4cf873a5dadb85002c2742486f7ed3da45e31478a7ac7e3392fdb1f8fd7681",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8829,8 +8507,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20040831-1.c",
    "sha256": "eadcb4dbc48ac8cb3942508bd824657d941a581874d7394ec46833a06268c599",
@@ -8839,7 +8517,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8887,8 +8565,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20041113-1.c",
    "sha256": "d40b2c94b2f3748b538b251eeffc3b1d944680e75e42eba841aea43d2cadfaf1",
@@ -8897,7 +8575,7 @@
     "libc-call: __builtin_c23_va_start",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9237,8 +8915,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050502-1.c",
    "sha256": "c0193c330a5aa8d3c7d85780afc61fc5f439792ebc6d90a9f25b0a46c9665cf4",
@@ -9247,12 +8925,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 4 0 11 10",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050502-2.c",
    "sha256": "b16fc089d1975840561e3f3b7af8720741cfb5d0b3cb76e48255820c3e1a7f0f",
@@ -9261,12 +8939,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id30' (name 'u')",
-   "dynamic_wall": "unsupported:unbound declaration 'id30' (name 'u')",
+   "detail": "aggregate load without a layout '__attribute__((__vector_size__(4 * sizeof(unsigned short)))) unsigned short'",
+   "dynamic_wall": "unsupported:aggregate load without a layout '__attribute__((__vector_size__(4 * sizeof(unsigned short)))) unsigned short'",
    "manifest_status": "parsed",
    "name": "20050604-1.c",
    "sha256": "bbae86866c6345203a57e5d18d0be4497517de5413554a07137169b336ef6e74",
@@ -9313,7 +8991,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 0 6 5",
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 1 1 6 2048",
    "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "20050826-1.c",
@@ -9375,8 +9053,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id18' (name 's')",
-   "dynamic_wall": "unsupported:unbound declaration 'id18' (name 's')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20051104-1.c",
    "sha256": "d9efc115cc51ef2950498cb18700277d0a310c1b12c7051c8c7cc776c71f05e0",
@@ -9384,7 +9062,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9765,8 +9443,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unknown enum declaration 'id53' (name 'cs_server')",
-   "dynamic_wall": "unsupported:unknown enum declaration 'id53' (name 'cs_server')",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20071030-1.c",
    "sha256": "a149547a4bb6485847d48252da6eaf6d3b2e8185b74b062ac88bd6bcc23d79c2",
@@ -9968,8 +9646,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20080502-1.c",
    "sha256": "62937a986b39ec2488385c15c0c5aa46a97f396f8390fcb18f39fd9722255012",
@@ -10024,15 +9702,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20080529-1.c",
    "sha256": "7ea372bac1906fde771ed43ef5baf5c63dfc77ea941f6da4d0d9611fae4d7029",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10304,8 +9982,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 1 1 1 1",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20100827-1.c",
    "sha256": "02d59f1d5c866906ecaa3ae45ec45753dea383ddba352250caf74df884d40d60",
@@ -10313,7 +9991,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10361,8 +10039,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "case label nested in a control statement",
+   "dynamic_wall": "unsupported:case label nested in a control statement",
    "manifest_status": "parsed",
    "name": "20111208-1.c",
    "sha256": "92723158d592c7c9b386233062c8faede652bc2a9189b6af138ff322ae6fc5ce",
@@ -10492,8 +10170,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20120919-1.c",
    "sha256": "ce4e751620ea08602a3cae21044fcc3b42baf252bdca8c2eaa4da8e700d63f39",
@@ -10501,7 +10179,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10800,8 +10478,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "20190901-1.c",
    "sha256": "1a26bfd6faf94ca757cbd11d36a5a35eb6acc4f8a08edda0086e10f3f451d650",
@@ -10809,7 +10487,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11146,8 +10824,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sprintf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:sprintf",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "920501-8.c",
    "sha256": "cb8282773b7c14ebe4c0d9bc436fc102145e62f43f2358affa849f01cd6ac1e6",
@@ -11235,8 +10913,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "920618-1.c",
    "sha256": "525f02ade7535d328975308ca3883dbb3c6a74e027144cb88b063535830cb40c",
@@ -11244,12 +10922,12 @@
     "cast:FloatingCast",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "920625-1.c",
    "sha256": "f52358d28729f1c4c4036e663871f090b9992c52d2669742b3aabf61c8728d4f",
@@ -11258,12 +10936,12 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "920710-1.c",
    "sha256": "c052de87f6132c04337028d7c0fdae2650f8407fabc058f07f14ec7ce53f9e9c",
@@ -11272,7 +10950,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11326,8 +11004,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sprintf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:sprintf",
+   "detail": "LeanModels.C.C23.MemFault.indetAutomatic 9 0",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "920726-1.c",
    "sha256": "af90ff5eeb8799ed0e0d255bd276fbcac8bf6d890785a7fe998b82758e59d393",
@@ -11340,7 +11018,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11466,7 +11144,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921006-1.c",
@@ -11480,8 +11158,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921007-1.c",
    "sha256": "a5d368d43255b295a41f89061557d5f9edf7125baab0f4805dd952c98048fb5b",
@@ -11490,7 +11168,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11539,15 +11217,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "921019-2.c",
    "sha256": "6335f9c2b7c227693fc2e843009637193cf1a4915f3f2de0134271a0aba10b65",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11593,8 +11271,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "921113-1.c",
    "sha256": "b791176b451294a07fbc2962a66ca47b38988041ffe0e0160016f808f8ecaea6",
@@ -11603,11 +11281,11 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921117-1.c",
@@ -11696,8 +11374,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for parameter type 'double (*)(double)'",
-   "dynamic_wall": "unsupported:no layout for parameter type 'double (*)(double)'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "921208-1.c",
    "sha256": "70263e2971e1a53d79b4860a4d9bc69cffefdd117540fc444454c48b44041f4b",
@@ -11817,20 +11495,20 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id36' (name 's')",
-   "dynamic_wall": "unsupported:unbound declaration 'id36' (name 's')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "930408-1.c",
    "sha256": "a5b688398261a7e62c1a5e74bfe0e72cc77dc64b7d7d4b5cd4dba667b360af50",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 1 1 0",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "930429-1.c",
    "sha256": "f4412cbe15519cd91f247f90fbc00b6c4c6de1c51243d95ff7410d6eb37c7c88",
@@ -11838,7 +11516,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11958,8 +11636,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "930614-1.c",
    "sha256": "815196512bb1727e32158a913fd49c179a185314b541a4aa3253f8729aa4aa99",
@@ -11967,12 +11645,12 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "930614-2.c",
    "sha256": "9cb6c24688f1c331be79a4a0d6e9db2156627670b7cf3774c3635e875bb87a66",
@@ -11980,7 +11658,7 @@
     "cast:FloatingCast",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12019,8 +11697,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/930628-1.c:14:3)[2]'",
-   "dynamic_wall": "unsupported:src/930628-1.c",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "930628-1.c",
    "sha256": "4a9915c8ff719eaee492a2b6dde127214579c8b3f5a279ebf4cb15e417290d70",
@@ -12082,7 +11760,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "930725-1.c",
@@ -12434,15 +12112,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id37' (name 'x')",
-   "dynamic_wall": "unsupported:unbound declaration 'id37' (name 'x')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "931110-1.c",
    "sha256": "7bd3674f59e4963d3e85686f70f355fb41289fe57f785f6ad56404ac226047fc",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13025,7 +12703,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "960327-1.c",
@@ -13291,15 +12969,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "961223-1.c",
    "sha256": "46501b824f2ecd0efdd8168ed271fdfd62542e6707f5a2fa2d58ae58cd17b654",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13345,8 +13023,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "980205.c",
    "sha256": "12b700b76e4f3efe5726e041f39d370f71140cea0a6da7e7a84581af34845ce3",
@@ -13355,7 +13033,7 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13494,15 +13172,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id31' (name 't')",
-   "dynamic_wall": "unsupported:unbound declaration 'id31' (name 't')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "980602-2.c",
    "sha256": "0ac158d4b4e7df7c2e7b67ccd850e115902e2dbee376533562c51c58303b24f2",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13519,8 +13197,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sprintf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:sprintf",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "980605-1.c",
    "sha256": "4fce18a15b8674a4eb025d68f5c154bbfc61a066445526ef60ba52cfc22abfaf",
@@ -13594,7 +13272,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "980707-1.c",
@@ -13609,8 +13287,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pow",
-   "dynamic_wall": "libc-call: pow",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "980709-1.c",
    "sha256": "54368958f8fa7dce11630041f1333e5cf9f3ab65a056ddcb49b4265d1ecdf411",
@@ -13618,7 +13296,7 @@
     "libc-call: pow",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13732,15 +13410,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "990127-2.c",
    "sha256": "d0291b07a00ebc50e3ff23c7730f992cca9d2f455266e45039bdf2dad4c34d78",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13967,8 +13645,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "990826-0.c",
    "sha256": "7e70b4b33d21827679805af7083a70624d91a6a4be7b59bf43ccd7644f162166",
@@ -13976,7 +13654,7 @@
     "libc-call: floor",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13990,15 +13668,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "990829-1.c",
    "sha256": "575c60c6af37d89dd7922784a88dbfc329131fe89ff78d6a8dd9a75cd02658c6",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14032,15 +13710,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "991019-1.c",
    "sha256": "2d2eb0c511572590b8dafc4df6a841ebcdde0919f6d8129cf439b58813752df7",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14054,15 +13732,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "991030-1.c",
    "sha256": "fdf005e93cd153deac7321581a22a035cbccc3e035a8e20ffbf0b6fdcb50ff2d",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14192,8 +13870,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id30' (name 'u')",
-   "dynamic_wall": "unsupported:unbound declaration 'id30' (name 'u')",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "991228-1.c",
    "sha256": "ddb3f0d3698b8055a946ed2c464068448eb30893d5e6f5af6a6b89e269304b88",
@@ -14291,8 +13969,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating cast has incompatible source and destination",
-   "dynamic_wall": "unsupported:floating cast has incompatible source and destination",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "align-2.c",
    "sha256": "f61db3f451d76e6ef7fe4c475f3acf0f217f35781ddd21cfe85cb1747bb5c292",
@@ -14338,8 +14016,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id32' (name 'foo')",
-   "dynamic_wall": "unsupported:unbound declaration 'id32' (name 'foo')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "anon-1.c",
    "sha256": "adaca6603e2dc32c71d1e28b401308cee049d4d8aa1791a7e5ffeeec14e6f061",
@@ -14347,7 +14025,7 @@
     "type-layout",
     "unsupported:IndirectFieldDecl"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14601,8 +14279,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id19' (name 'b')",
-   "dynamic_wall": "unsupported:unbound declaration 'id19' (name 'b')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-signed1-1.c",
    "sha256": "a589061a77d3f05727e69d900f54549419ab23ab93e487dadf3d03848abb786d",
@@ -14610,7 +14288,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14670,8 +14348,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "__builtin_setjmp",
+   "dynamic_wall": "libc-call: __builtin_setjmp",
    "manifest_status": "parsed",
    "name": "built-in-setjmp.c",
    "sha256": "d2487c4a7733f29b51ab3db27fd7918589b4da586360772c994b53f88497497e",
@@ -14684,7 +14362,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-libc"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14739,8 +14417,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unknown enum declaration 'id27' (name 'read')",
-   "dynamic_wall": "unsupported:unknown enum declaration 'id27' (name 'read')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "builtin-prefetch-1.c",
    "sha256": "f5a50f44cb76761dbfc1c7b112b044ab2eb449ee71f97d622534b9220426c9f0",
@@ -14748,7 +14426,7 @@
     "libc-call: __builtin_prefetch",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -15445,8 +15123,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no definition for 'main'",
-   "dynamic_wall": "missing-main",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "builtins/memmove.c",
    "sha256": "856ff4798b9b1b8c5081432f37bddd45c080e117e788782035cebe546d7c6aa1",
@@ -16567,8 +16245,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no size for element type 'unsigned32'",
-   "dynamic_wall": "unsupported:no size for element type 'unsigned32'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "cbrt.c",
    "sha256": "5af344d4e08d8326268b026f474dbc63d51f5528aa5fa97b5e0fa7ebaa982b14",
@@ -16703,8 +16381,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "complex-3.c",
    "sha256": "f75c328ec0bd6fef7b9ac76aa0b5363bcb7af77c69159e5ce6a1bcf68ffc6c54",
@@ -16712,7 +16390,7 @@
     "cast:FloatingCast",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17013,7 +16691,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/ffs-2.c:1:1)[8]'",
+   "detail": "src/ffs-2.c:1:1)'",
    "dynamic_wall": "unsupported:src/ffs-2.c",
    "manifest_status": "parsed",
    "name": "ffs-2.c",
@@ -17026,8 +16704,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "float-floor.c",
    "sha256": "7058e692773c39351cfbdf99abcf3c6245437bb7c32b57ec972914009cee83ad",
@@ -17037,7 +16715,7 @@
     "libc-call: floor",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17054,8 +16732,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "fprintf-1.c",
    "sha256": "06ca4691a6d3d3a47c26ca643ca2b962f3ed8be57af27c1454846e0324b73bca",
@@ -17064,7 +16742,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17078,8 +16756,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "fprintf-chk-1.c",
    "sha256": "1f8ad943caf97cf3e4cd44c9466a36a57279d219a5185203225b99ab5480e837",
@@ -17090,7 +16768,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18008,8 +17686,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "gofast.c",
    "sha256": "c4d952febd2fc7563328cf549014014dc0690357242491b7a333162502fcda20",
@@ -18021,7 +17699,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18038,8 +17716,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/20001122-1.c",
    "sha256": "0a5874e451d4814910b999fce4018548afbf669532f37fd60700ab2fa4219256",
@@ -18047,12 +17725,12 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/20010114-2.c",
    "sha256": "fa1cc9944dd41cf27dd9406f6e27621bf4d45a15abaadb2850c700713cfba192",
@@ -18061,12 +17739,12 @@
     "libc-call: __builtin_fabs",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/20010226-1.c",
    "sha256": "109d76578275c4524ad4679f912c2fae36f55f4ef2c08ec41a585711d9909498",
@@ -18078,8 +17756,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'long double'",
-   "dynamic_wall": "unsupported:no layout for declared type 'long double'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/20011123-1.c",
    "sha256": "a4be6338ce9fd5ab7db5e410ef6f4372c5167341f5128b29c5eae4ca885e9030",
@@ -18091,8 +17769,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/20030331-1.c",
    "sha256": "d52fa029a9083725230aecafc1227829a9465ba0a4da49b254ece90eb85c5d79",
@@ -18101,12 +17779,12 @@
     "libc-call: __builtin_fabs",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/20041213-1.c",
    "sha256": "625aa7e6b26a3f201c47803734a8bd6a5dadfe65b8a7d21e00f586f6f43e6fd9",
@@ -18114,12 +17792,12 @@
     "libc-call: sqrt",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/920518-1.c",
    "sha256": "e8323edad389fed178fc5d5fe07518b2cb414e1b16735367046f94fa6c0d169f",
@@ -18128,7 +17806,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18148,51 +17826,51 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/930529-1.c",
    "sha256": "a2a42c2b6c74554e0b4ac24d6fb06a913d308a02c1c7857fc9ff0e7580731bee",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/980619-1.c",
    "sha256": "4220cff5847b9c581d9340dc07214a809807f265b51528389adbb45e4cac9ffc",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/acc1.c",
    "sha256": "4b93c4ad83a28c752e2ac4db3c4d98299ed494e7c6436e46af421ede1feda1d7",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/acc2.c",
    "sha256": "577c882fb2947be8f837a8ec0a1669703897db01dadc43f7eeb0bc43d52d0b9e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18300,8 +17978,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/compare-fp-2.c",
    "sha256": "bd72beeee5dfdf2087d9b595ae2e1f192cdb1591a9357b166d79156c47ef2756",
@@ -18309,7 +17987,7 @@
     "cast:FloatingToIntegral",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18345,8 +18023,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'",
-   "dynamic_wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/copysign1.c",
    "sha256": "eaa559171205738e58dbe5e0bb0c390594e9193c8845b1b3d2d479d7746acae6",
@@ -18369,8 +18047,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'",
-   "dynamic_wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/copysign2.c",
    "sha256": "fc8e48ba90e3146485d7acb6dede7c977cef18360756eb43f160238e4892b35c",
@@ -18552,8 +18230,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/fp-cmp-5.c",
    "sha256": "3287dadc1c6a407b00841baa398829495ee9863d5890a5ab25ea234e70752920",
@@ -18567,24 +18245,24 @@
     "libc-call: __builtin_isunordered",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/fp-cmp-6.c",
    "sha256": "bb2db5d54e40b3fa35470bace930e27eb3b3fe65b1a7b3d95f6ea5c20c42597d",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/fp-cmp-7.c",
    "sha256": "4c5e4fd4f70ee0a7ad465f6b3c9bf2e55dbd156ad9fdc60aea0ba7ddfb6541e4",
@@ -18593,12 +18271,12 @@
     "libc-call: link_error",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/fp-cmp-8.c",
    "sha256": "ff577c6ffef173008f543040c4da071a51d9002644d38a080d05c1ea126c4e87",
@@ -18612,7 +18290,7 @@
     "libc-call: __builtin_isunordered",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18646,15 +18324,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/fp-cmp-9.c",
    "sha256": "3a58c9a824af0093e78a986f226c21c4510c754d673a69683412b2bf8a6e8953",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18675,8 +18353,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/hugeval.c",
    "sha256": "cc39c196f7ed4ba25775b5de74fd939d082402f82b20d3136cfb3c70cbe31677",
@@ -18684,7 +18362,7 @@
     "libc-call: __builtin_huge_val",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18707,8 +18385,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/inf-2.c",
    "sha256": "fce93a1f743b41bdd5824363cf12ab818ccb5c9593a02ee6617f2785a5d91d9a",
@@ -18722,8 +18400,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/inf-3.c",
    "sha256": "894876215030f8f5b2443f3d50ec5f172021158caae2b4c5a4afffa1ff3c0e39",
@@ -18767,7 +18445,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/ieee/mul-subnormal-single-1.c:67:1)[3]'",
+   "detail": "src/ieee/mul-subnormal-single-1.c:67:1)'",
    "dynamic_wall": "unsupported:src/ieee/mul-subnormal-single-1.c",
    "manifest_status": "parsed",
    "name": "ieee/mul-subnormal-single-1.c",
@@ -18779,8 +18457,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/mzero2.c",
    "sha256": "b1bacef006256f3ef92cf8c10b2e8aa55376c81ac399c1b06fcc6ca3034ca8d9",
@@ -18788,12 +18466,12 @@
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/mzero3.c",
    "sha256": "d53f19ddc2a725234cc027113020e7d42af95b9599a7e6bcc1a4cbbd0f2fc228",
@@ -18802,12 +18480,12 @@
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sin",
-   "dynamic_wall": "libc-call: sin",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/mzero4.c",
    "sha256": "958e396fe53dfb62bc287fa22e8a48134321a00c4ec0915dc5ef28e5c6597dc4",
@@ -18821,12 +18499,12 @@
     "libc-call: tanf",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/mzero5.c",
    "sha256": "f3f1e0a190ddac55d529d702e9d7505b35389e4d39530dd8c126869f73b94e48",
@@ -18835,12 +18513,12 @@
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/mzero6.c",
    "sha256": "45b8dcb2138a1adb7dd09143de4f340feb9df5d3dea08d5b0f74e3be295c5ab7",
@@ -18848,12 +18526,12 @@
     "libc-call: __builtin_copysign",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr108540-1.c",
    "sha256": "c3a36f26713ef8442f46e4536dba02335743f21093a375da5cac2c1fa8f5c0c0",
@@ -18867,12 +18545,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr108540-2.c",
    "sha256": "63cfae9c4ba2854693e84b520b2f3f96b8e3196c5e96ed2cf7eeac36805bad1c",
@@ -18880,12 +18558,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr109008.c",
    "sha256": "727ae59f67a8660f37ea16709cf059a5fc1f72f8a3350d4de1a50b95733f74ed",
@@ -18893,7 +18571,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18915,8 +18593,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr119002.c",
    "sha256": "c400cfaef8076dbb1897ec7572ea228033c053134cf5ec0448429fb3d6ebaeb6",
@@ -18926,12 +18604,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr28634.c",
    "sha256": "26b484351490de1bd2cdb5f968a3258c61bb5d980473450aae9053527e90a7d3",
@@ -18939,7 +18617,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18957,8 +18635,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr30704.c",
    "sha256": "69e9e465770fdeb58624c8050bb90a150228d5972e4405d2062dd122b6640715",
@@ -18967,12 +18645,12 @@
     "libc-call: memcpy",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr36332.c",
    "sha256": "6cfdda7cae996f0d52c37f60e10368c0cb90983be70d6903fa4725b296ba71a7",
@@ -19005,8 +18683,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr67218.c",
    "sha256": "642deb67fcf37a615c1d2776f93e5d89f4f1131fe343c0e4cea0860e62ccf2b6",
@@ -19015,7 +18693,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19034,8 +18712,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr72824.c",
    "sha256": "f2e081e169d6313652e22b6423123b584957f411d60949aee9d5b76bad9f8158",
@@ -19045,12 +18723,12 @@
     "libc-call: __builtin_copysignf",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.divideByZero \"/\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/pr84235.c",
    "sha256": "d98635f47584257120157627bd02ef5564e00aa96b875fd29b20b71a3adedd75",
@@ -19058,7 +18736,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19077,8 +18755,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/unsafe-fp-assoc-1.c",
    "sha256": "34e1637d933dfffa381a748d759c1ed4851cc108711507dbb79dcc68232ef4e3",
@@ -19086,19 +18764,19 @@
     "libc-call: __builtin_expect",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "ieee/unsafe-fp-assoc.c",
    "sha256": "cf44021837b1fb2c4a13cfa6728192ae185a6004a732aacb1c70dead7b3db0d6",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19440,15 +19118,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)",
-   "dynamic_wall": "libc-call: exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "loop-8.c",
    "sha256": "e17724fa2e13e071cb75e798fff87d846fd36734fd40fbd5d3c58131318f1650",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19462,8 +19140,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "loop-ivopts-1.c",
    "sha256": "af3d6814164cd9af9c07374db2af3fb3daccad3ef974ed2c51225916c279717b",
@@ -19471,7 +19149,7 @@
     "cast:FloatingCast",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19602,8 +19280,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/memcpy-2.c:32:8)'",
-   "dynamic_wall": "unsupported:src/memcpy-2.c",
+   "detail": "",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "memcpy-2.c",
    "sha256": "4b70077da1952fa302f5e5ba44b62625955714c8005995c76d3213c3552655db",
@@ -19611,7 +19289,7 @@
     "libc-call: memcpy",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19670,8 +19348,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/memset-1.c:27:8)'",
-   "dynamic_wall": "unsupported:src/memset-1.c",
+   "detail": "",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "memset-1.c",
    "sha256": "ec4a2649b0a16fd7ae77591c0b3f37b0e6a24a90e7464ab6f2c14b2f2fd6061e",
@@ -19679,12 +19357,12 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/memset-2.c:27:8)'",
-   "dynamic_wall": "unsupported:src/memset-2.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "memset-2.c",
    "sha256": "9c05b5acd9d8b42857bccb176537bd9c315cb4cc314098c25fa4b688975ca767",
@@ -19692,12 +19370,12 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/memset-3.c:27:8)'",
-   "dynamic_wall": "unsupported:src/memset-3.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "memset-3.c",
    "sha256": "1e9c569754b474e3f86f4ad5037c08f370f5cf6f469e407bd636f0cb9fc1efd0",
@@ -19705,7 +19383,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19894,8 +19572,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "p18298.c",
    "sha256": "1513035cef91896f4384dec29c2aaf310fa7a4902adc43aa725cccb883106995",
@@ -19904,7 +19582,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19934,8 +19612,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct c'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct c'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "packed-aligned.c",
    "sha256": "b05af614cb3d96f7077aa86d23754c241e7e9632f20b5f470e0debff51001be6",
@@ -19958,8 +19636,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "postmod-1.c",
    "sha256": "f681a8610186c63caee06160883642ced6bb41bac20755d2b9a966f185f94a5d",
@@ -19967,7 +19645,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20080,8 +19758,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id22' (name 'c')",
-   "dynamic_wall": "unsupported:unbound declaration 'id22' (name 'c')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr103417.c",
    "sha256": "f2bd608d4d70b6dde5f5c706f3461c86ddfc17f4ab3cc990ebbf242607a52c27",
@@ -20089,7 +19767,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20223,8 +19901,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr107879.c",
    "sha256": "38af7839f7d7752343dbd042917b5e1c2202685d71220bcaccb5e1298409f039",
@@ -20233,7 +19911,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20283,8 +19961,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 6 0 16 15",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr108498-2.c",
    "sha256": "f31a0536be78d73f7060b3a52475629b312e9ecbb7336c6a3dde5ef16b098bf9",
@@ -20295,7 +19973,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20640,8 +20318,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "printf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr111863-1.c",
    "sha256": "00dff7816a81b80f8c11d196f9c46352bffa362847c2658147b55a65b7bd1d98",
@@ -20651,7 +20329,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20738,8 +20416,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 1 1 1 1",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr114965.c",
    "sha256": "e1713aa47404a0f7d0ad498dd32da1e03b5cc3f21a81af38a31e591f5bd4bcfb",
@@ -20748,7 +20426,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21109,8 +20787,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr15262-1.c",
    "sha256": "a66685499f0d76065c6c1a8afc0a7c9cf36de932ee7807911fc84822b7d2af33",
@@ -21120,7 +20798,7 @@
     "libc-call: __builtin_malloc",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21136,8 +20814,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr15262.c",
    "sha256": "89ee2a24ca23b44d71e28ac3578fa8095341728c36b1097b7fdadadbd53cbdfa",
@@ -21145,7 +20823,7 @@
     "cast:FloatingCast",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21274,15 +20952,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id25' (name 'f')",
-   "dynamic_wall": "unsupported:unbound declaration 'id25' (name 'f')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr19689.c",
    "sha256": "ab5d42ff058298540b7a734b606054e1330dd20e1b217d6e2bffec8ff5bbdfb3",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21328,8 +21006,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 10 2 1 2",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr20601-1.c",
    "sha256": "2c806b4cdec5d59f743c669860262171a9a45579f3abe244332c6365b38c27c8",
@@ -21337,7 +21015,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21596,8 +21274,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr23941.c",
    "sha256": "0bb15827ccdd9dd80cd6766562d040c4613cc2fcec5b5634e4354cedca5d80a4",
@@ -21605,7 +21283,7 @@
     "cast:FloatingCast",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21889,15 +21567,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr29798.c",
    "sha256": "c2c8752fa5868b5e5d188eb4944586c6ab3cd5e0ca2649b474d1bd346511b97e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22316,8 +21994,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr35456.c",
    "sha256": "439a70fd3b4e169b9fa8e152cbfefa747f1d1fed58e6e7f96c59b244df6baf5d",
@@ -22325,7 +22003,7 @@
     "libc-call: __builtin_signbit",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22405,8 +22083,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "operator '-' on pointers without array provenance",
+   "dynamic_wall": "unsupported:operator '-' on pointers without array provenance",
    "manifest_status": "parsed",
    "name": "pr36321.c",
    "sha256": "78612d5c3cdb0a935d80cca0c89c39a74043854d4d9b677fda00e7db2a01c1fa",
@@ -22434,8 +22112,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer bit-cast across incompatible effective types",
-   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr36343.c",
    "sha256": "c3005f683df31de2790342ea4d766278fe85d4f7022022599897dd28e84913fa",
@@ -22563,8 +22241,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr38048-2.c",
    "sha256": "1a322440174c812e8016ab7219c7ce6c805db317b4bfd66de61023bf50e3814d",
@@ -22572,7 +22250,7 @@
     "cast:FloatingToIntegral",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22749,15 +22427,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr39501.c",
    "sha256": "12ef655565b9df299b5e2a23cea6b5a8e248ac30c37e502aeab9f0c70e0ff112",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23305,8 +22983,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr44683.c",
    "sha256": "016c5bd32e7d9885030a194c02c0742ae1a2bca5a0d9af761f8150ae1f4b312a",
@@ -23315,7 +22993,7 @@
     "libc-call: __builtin_copysign",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23349,8 +23027,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr44942.c",
    "sha256": "a593433333b8ef20fa39c196c472aca96eb4f332d3e0da4dcbafdaee61fdc75a",
@@ -23516,8 +23194,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr47538.c",
    "sha256": "7ddc400661a1d3c0585c8a1e3c93d6aa4a0ec3410b9e099eaf7a9c2331f9fbb0",
@@ -23527,7 +23205,7 @@
     "libc-call: __builtin_memcpy",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23956,8 +23634,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 3 1 3",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr53084.c",
    "sha256": "4859f7937a03ccc0ef5d43c3229458ef7ec1b3c2f219e8a52a7dd000d0490779",
@@ -23965,7 +23643,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24509,8 +24187,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr58574.c",
    "sha256": "0d9ee9991bbcee2af0713c8f6846241e491e0ca8bdbc806bb9ccaae162d2f960",
@@ -24520,7 +24198,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24556,8 +24234,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id22' (name 'b')",
-   "dynamic_wall": "unsupported:unbound declaration 'id22' (name 'b')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr58726.c",
    "sha256": "ad7637c7a08451bd802eb4a496cc4d28bab5812dc2a4ac0e7fc412d9be7500d7",
@@ -24565,7 +24243,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24723,8 +24401,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr59643.c",
    "sha256": "9b103825a04442bb465f754a33ad4788b5138f6189cf87fbc0422f9bfdd55a23",
@@ -24733,7 +24411,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25113,8 +24791,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr64979.c",
    "sha256": "ebc80502935f4fca2dd98ae330c1da1e7e06d88ac8fa25d9f0a108ecc601e066",
@@ -25124,7 +24802,7 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25424,8 +25102,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id22' (name 's')",
-   "dynamic_wall": "unsupported:unbound declaration 'id22' (name 's')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr67781.c",
    "sha256": "f921c13fd6871fa3847097a672b1b112385a34e147fed6fb0c786501872622d8",
@@ -25433,12 +25111,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr67929_1.c",
    "sha256": "7564232499a44eab571882bed7b328ea5d95920939bc2231bb6f510621c242cd",
@@ -25447,7 +25125,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25685,15 +25363,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "per-file wall timeout (2s)",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr69320-3.c",
    "sha256": "832107426fb30bcaa4eb4251cb469bbd68eb338819a90d1a9eb3771b8835994b",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25948,8 +25626,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 16 2 1 2",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr71631.c",
    "sha256": "bbcf356ce773fb861b23822b21d24a0cff08fc5ec2a32e74fb5b044751a275bb",
@@ -25958,7 +25636,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26310,8 +25988,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr80153.c",
    "sha256": "154f48197e7d777dab2c8347e7ffa399cc0b1643b5430454c59d754981f331b7",
@@ -26321,7 +25999,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26583,8 +26261,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_strcpy: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:__builtin_strcpy",
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 4 8 24",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "pr84339.c",
    "sha256": "9a9dca877185622abd09a6b434e77b2b47df42ac718ab891f385159683c0df67",
@@ -26597,7 +26275,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27241,8 +26919,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "pr93434.c",
    "sha256": "6ecc8ddf38cbd2d69b38cc301b3fbb9860b980e49059dea9552573b788dd68cc",
@@ -27251,7 +26929,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27764,8 +27442,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "printf-1.c",
    "sha256": "1135335188e0afab823dc45243ce84fcd6cfe0676f7302172dce49674cc2513f",
@@ -27774,7 +27452,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27788,8 +27466,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "printf-chk-1.c",
    "sha256": "f085b13f50d60e7d4928c453fb38efbbc385625e16b4cb5313bc78eed03042d3",
@@ -27800,7 +27478,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27828,7 +27506,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 14 1 12",
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 14 1 13",
    "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "ptr-arith-1.c",
@@ -27988,8 +27666,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id19' (name 'f')",
-   "dynamic_wall": "unsupported:unbound declaration 'id19' (name 'f')",
+   "detail": "implementation-defined bit-field conversion",
+   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
    "manifest_status": "parsed",
    "name": "signed1bitfield-1.c",
    "sha256": "5a15170d1b0c815407047c65320c0faafd59c80697c799c5253174d3a6fb15b7",
@@ -28086,8 +27764,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id29' (name 'gap')",
-   "dynamic_wall": "unsupported:unbound declaration 'id29' (name 'gap')",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "stdarg-1.c",
    "sha256": "468a06ec36cc47513c6108c9259e603a7b6a0ee5be1f7778920f05214fd27f74",
@@ -28116,8 +27794,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.vaArgTypeMismatch \"int\" \"struct S2\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "stdarg-3.c",
    "sha256": "41807d647a4c4e20031c2bfedb1f37b6509863637fb45e6c12ef60412cf04bd3",
@@ -28127,12 +27805,12 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "not an integer type: 'double'",
-   "dynamic_wall": "unsupported:not an integer type: 'double'",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "stdarg-4.c",
    "sha256": "df92949fcdfbb1dec3c0d7fdad72e494a01ab6d678bd237196fa300234673e54",
@@ -28156,8 +27834,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/strcmp-1.c:28:8)'",
-   "dynamic_wall": "unsupported:src/strcmp-1.c",
+   "detail": "no layout for declared type 'size_t'",
+   "dynamic_wall": "unsupported:no layout for declared type 'size_t'",
    "manifest_status": "parsed",
    "name": "strcmp-1.c",
    "sha256": "5ee8f8099598bc6ad7e34428623c2520642bcd93a3f7b275ffb6f0bf33470159",
@@ -28169,8 +27847,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/strcpy-1.c:29:8)'",
-   "dynamic_wall": "unsupported:src/strcpy-1.c",
+   "detail": "",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "strcpy-1.c",
    "sha256": "1b3e448671092bdc6c1b79b6455e8a197c58280bf6bb82e3b2676fb4d470add3",
@@ -28178,7 +27856,7 @@
     "libc-call: strcpy",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28276,7 +27954,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "string-opt-17.c",
@@ -28310,8 +27988,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "unsequenced side effects in call arguments",
+   "dynamic_wall": "unsequenced-effects",
    "manifest_status": "parsed",
    "name": "string-opt-5.c",
    "sha256": "ae4d5bc865c6d2b4c4ca3a0633f3e87dd76e5c38b5a9dc6c2008b602e187ae8a",
@@ -28330,8 +28008,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/strlen-1.c:28:8)'",
-   "dynamic_wall": "unsupported:src/strlen-1.c",
+   "detail": "no layout for declared type 'size_t'",
+   "dynamic_wall": "unsupported:no layout for declared type 'size_t'",
    "manifest_status": "parsed",
    "name": "strlen-1.c",
    "sha256": "93b80cc7255924aa74cfc03632dde0db9f7f4fe90c54aa3d4004100496ad19d3",
@@ -28441,8 +28119,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/strncmp-1.c:29:8)'",
-   "dynamic_wall": "unsupported:src/strncmp-1.c",
+   "detail": "no layout for declared type 'size_t'",
+   "dynamic_wall": "unsupported:no layout for declared type 'size_t'",
    "manifest_status": "parsed",
    "name": "strncmp-1.c",
    "sha256": "5144ae0223f0612c42ae17107f5caaed4b7bc90a4101eec4240fda8e8a18bfe3",
@@ -28491,27 +28169,27 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id40' (name 'x')",
-   "dynamic_wall": "unsupported:unbound declaration 'id40' (name 'x')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "struct-ini-2.c",
    "sha256": "ebfe970ec4c78b51a18ee2f945c294d1b857e431288d33b013368517cab00f1b",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id49' (name 'result')",
-   "dynamic_wall": "unsupported:unbound declaration 'id49' (name 'result')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "struct-ini-3.c",
    "sha256": "d8557c455129cdfad066850de06e40896c9c787b47ee6c8fe9d083b63853ccee",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28527,8 +28205,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sprintf: non-concrete or unterminated format",
-   "dynamic_wall": "unsupported:sprintf",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "struct-ret-1.c",
    "sha256": "cc8d3fc1dcaa9721231f0fcde3544356f5d859785219755cc649e9c7ead8fe78",
@@ -28646,8 +28324,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "unsequenced side effects in binary operands",
+   "dynamic_wall": "unsequenced-effects",
    "manifest_status": "parsed",
    "name": "va-arg-10.c",
    "sha256": "5cb2d6ed423c050aaa81f9a50ce99c3dd43e88f2757c460a46a8b5836b09c4df",
@@ -28677,8 +28355,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.vaArgTypeMismatch \"L\" \"binary64\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-12.c",
    "sha256": "3ac1c4f014534ca3b3c10d0fc66df11b7d2fe0e97fff567fd00560029e470662",
@@ -28687,7 +28365,7 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28720,8 +28398,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-15.c",
    "sha256": "bc9aefd3656145f3f3e0110bab4fe674903e26cdb8c23b474e6f185e5d705a3d",
@@ -28732,12 +28410,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.vaArgTypeMismatch \"TYPE\" \"binary64\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-16.c",
    "sha256": "214db61e9e8a8749953ce90aa8d439142f6e51cca19d298af7cf268eb448b00a",
@@ -28746,12 +28424,12 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.UB.vaArgTypeMismatch \"TYPE\" \"binary64\"",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-17.c",
    "sha256": "e3bd464100e2fc2a2657d338e921a84ff7e2626e1b04ca51fde765b56fd3f046",
@@ -28761,12 +28439,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-18.c",
    "sha256": "5164ef08accb5ddac18b0d27f4406fded13ae687a456aaeb76df3ba8f8cde462",
@@ -28775,7 +28453,7 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28885,8 +28563,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-26.c",
    "sha256": "f3c7769ca80bb973c5251a07be8f90f0ab6580d55ca477b9f366c3d158c78e45",
@@ -28896,7 +28574,7 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28915,8 +28593,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-5.c",
    "sha256": "c4f21f1570c49976849ab2d5cb5fe9a49ae430ff19d27a3dd9069c0c6df8f2dd",
@@ -28929,8 +28607,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "long double floating literal",
-   "dynamic_wall": "unsupported:long double floating literal",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-6.c",
    "sha256": "b0eb9fc5a52d4e43b24c9eb561410f72dbfc27027a2afdfa4c6ac55c80173401",
@@ -28943,8 +28621,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "va-arg-7.c",
    "sha256": "d566662a26a3f877293048b058ac53e7ed8ccdb93717ded2a73ed96a836d4226",
@@ -28953,7 +28631,7 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28971,8 +28649,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "unsequenced side effects in binary operands",
+   "dynamic_wall": "unsequenced-effects",
    "manifest_status": "parsed",
    "name": "va-arg-9.c",
    "sha256": "d81cf4ba2a988b659534a2037ecff6039bac090a41e316dad99cfd094c743cba",
@@ -29011,8 +28689,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "vfprintf-1.c",
    "sha256": "7df1dbd5fd4f746a3bd234b8b05ea11d683aa60fbd934c58b194bf9a88c96a52",
@@ -29023,12 +28701,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "vfprintf-chk-1.c",
    "sha256": "189237de6ef718daac65cc669f1cdd773d6e50ddda996cc7909c62e9bb9372b4",
@@ -29039,7 +28717,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -29055,8 +28733,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "vprintf-1.c",
    "sha256": "b6598bdae9a2234785be0d52dbbbecf7825a5b9e549611f8faf0b5e7c0f30b86",
@@ -29067,12 +28745,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "vprintf-chk-1.c",
    "sha256": "7a02b4e6301753bc927c2b350ae0e5d08dfde5b49ff7ca574216e4b07f06767a",
@@ -29083,7 +28761,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -29159,8 +28837,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "wchar_t-1.c",
    "sha256": "a7f170a402ed9a12a8e4214009f94facfb14ca96325a7c3b3a90b566afe7fa01",
@@ -29168,7 +28846,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -29195,8 +28873,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "string literal with escape or non-ASCII spelling",
-   "dynamic_wall": "unsupported:string literal with escape or non-ASCII spelling",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "widechar-3.c",
    "sha256": "5d4286b40e5d9479dbf6b34789f480fd4b0f9f183ad4da1cc20d957bf31160b0",
@@ -29205,7 +28883,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
