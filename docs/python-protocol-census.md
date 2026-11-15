@@ -706,3 +706,8 @@ debt is fuel-indexed: `kont` supplies the recursive continuation used by
 arbitrary `K`. `callInMono_eq_ofHalt` projects a completed run but does not yet
 relate the fuel-indexed continuation to those body premises. The next theorem
 must state that mutual refinement or explicitly record the raw-run bridge.
+
+`Monadic.kont_call_succ` records the first fuel-indexed seam: the successor
+`Kont.call` field delegates definitionally to `callInM (kont m fuel)`. The
+remaining obligation is therefore the body-result relation at that continuation,
+not call dispatch.

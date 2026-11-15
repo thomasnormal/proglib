@@ -2864,6 +2864,16 @@ def callInMono (m : Module) (fuel : Nat) (w : World) (fname : String)
     (args : Array RVal) : Run World RVal :=
   toRun ((kont m fuel).call fname args) { w with callDepth := pythonTopCallDepth }
 
+/-! The successor-level call seam is the first equation of the
+    fuel-indexed refinement: `Kont.call` delegates one fuel level down to the
+    monadic `callInM` body. The remaining refinement work is the body result
+    relation, not dispatch. -/
+theorem kont_call_succ (m : Module) (fuel : Nat) (fname : String)
+    (args : Array RVal) :
+    (kont m (fuel + 1)).call fname args =
+      callInM (kont m fuel) m fname args := by
+  rfl
+
 /-! ### §4.1 THE CLASS THE PUBLIC WRAPPER ERASES
 
 `Run.unsupported` has ONE field, a `String`. `Loud.unsupported` has THREE — the
