@@ -17223,3 +17223,15 @@ DECIDED: the remaining blocker is a fuel-indexed mutual refinement theorem for
 `kont`/`callInM` (or an explicitly stated raw-run adequacy bridge), not another
 body-flow case. The branch matrix is closed; the next productive item is to
 state that refinement theorem and identify its induction invariant.
+
+The candidate invariant is now explicit.  For every fuel `n`, module `m`,
+continuation `kont m n`, and frame/world state, the relation must be mutual over
+`evalOpen`/`evalExpr`, `execOpen`/`execStmt`, and `execOpenList`/`execStmts`:
+each monadic result must equal the corresponding legacy result at the exact
+remaining fuel, while a successful `.next` result carries the same updated
+state into the list tail.  The call arm must instantiate the same relation at
+the strictly smaller `n` supplied by `kont` and then pass its flow through the
+already-proved `finishCallM`/`leaveCallM` branches.  This is the induction
+invariant needed to close the raw body premise without a fixed-count bridge
+series; no proof is claimed yet because the mutual statement and call-plan
+fuel accounting are not encoded as one theorem.
