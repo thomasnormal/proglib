@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1143/2214 MATCH (passed 1143, failed 0, oracle 0)
+- verdicts: 1144/2214 MATCH (passed 1144, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `6adbe81a8`
-- measured at: `2026-11-15T10:43:40Z`
+- measured commit: `a7733e882`
+- measured at: `2026-11-15T10:57:52Z`
 
 ## Verdict counts
 
@@ -13,10 +13,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1143 |
+| `passed` | 1144 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 564 |
+| `refused-unsupported` | 563 |
 | `timeout` | 67 |
 
 ## Counts by corpus
@@ -30,10 +30,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 957 |
+| `gcc.c-torture/execute` | `passed` | 958 |
 | `gcc.c-torture/execute` | `refused-libc` | 33 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 496 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 495 |
 | `gcc.c-torture/execute` | `timeout` | 65 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -546,7 +546,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:unbound declaration 'id31' (name 'ap')` | 1 | 1 | va-arg-trap-1.c |
 | `unsupported:unbound declaration 'id31' (name 'global')` | 1 | 1 | va-arg-14.c |
 | `unsupported:unbound declaration 'id31' (name 't')` | 1 | 1 | 980602-2.c |
-| `unsupported:unbound declaration 'id31' (name 'wordlist')` | 1 | 1 | 20000412-1.c |
 | `unsupported:unbound declaration 'id32' (name 'foo')` | 1 | 1 | anon-1.c |
 | `unsupported:unbound declaration 'id32' (name 'node')` | 1 | 1 | 20030224-2.c |
 | `unsupported:unbound declaration 'id33' (name 't')` | 1 | 1 | packed-1.c |
