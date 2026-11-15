@@ -116,7 +116,7 @@ private partial def generatedInstances (env : IEnv) (fuel : Nat) :
       .ok (here ++ tail)
 
 private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) :
-    Res (PDesign × PInst × String) :=
+    Res (PDesign × List Int × PInst × String × List PProcess) :=
   match lib.find? (·.name == i.module) with
   | none => .unsupported s!"module '{i.module}' is not in the envelope library"
   | some child =>
@@ -125,7 +125,16 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) :
       | _, .error e => .unsupported e
       | .ok given, .ok pfx =>
           match child.atPoint given with
-          | .ok (child', _) => .ok (child', i, pfx)
+          | .ok (child', cargs) => do
+              -- A child generate is source-shaped until its own parameter
+              -- point is known.  Expand that retained node at the child's
+              -- point before hoisting the process into the parent; dropping
+              -- it here turns a driven output into an initial x (IEEE
+              -- 1800-2023 §§27.4, 23.3.3).
+              let cenv ← child'.paramEnvH { int32 := true } cargs
+              let generated ← coreMemExpandList cenv
+                (PDesign.surfaceFuel cargs) [] child'.generates
+              .ok (child', cargs, i, pfx, generated)
           | .error e => .unsupported e
 
 /-- Build a one-child source-shaped memory design. The child may contain the
@@ -140,22 +149,22 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
     | .unsupported e => .unsupported e
   let insts ← generatedInstances env (PDesign.surfaceFuel args) top.generates
   let children ← insts.mapM fun (i, ie) => childFor ie lib i
-  let childDecls := children.flatMap fun (child, inst, pfx) => child.decls.map fun pd => { pd with
+  let childDecls := children.flatMap fun (child, _cargs, inst, pfx, _generated) => child.decls.map fun pd => { pd with
       name := pfx ++ pd.name
       isInput := false
       isOutput := false }
-  let childPs := children.flatMap fun (child, inst, pfx) =>
+  let childPs := children.flatMap fun (child, _cargs, inst, pfx, generated) =>
     let clockMap := inst.conns.filterMap fun c =>
       match c with | .input port (some (.ident actual)) _ => some (port, actual) | _ => none
-    child.processes.map (hProcess pfx clockMap)
-  let inputPs := children.flatMap fun (child, inst, pfx) => inst.conns.filterMap fun c =>
+    (child.processes ++ generated).map (hProcess pfx clockMap)
+  let inputPs := children.flatMap fun (_child, _cargs, inst, pfx, _generated) => inst.conns.filterMap fun c =>
       match c with
       | .input port (some actual) _ =>
           match actual with
           | .arrayElem _ [] => some (.assignL (.arrayElem (pfx ++ port) []) actual)
           | _ => some (.assign (pfx ++ port) actual)
       | _ => none
-  let outputPs := children.flatMap fun (child, inst, pfx) => inst.conns.filterMap fun c =>
+  let outputPs := children.flatMap fun (_child, _cargs, inst, pfx, _generated) => inst.conns.filterMap fun c =>
       match c with
       | .output port (some target) => some (.assignL target (.ident (pfx ++ port)))
       | _ => none
@@ -163,7 +172,7 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
       decls := top.decls ++ childDecls
       processes := top.processes ++ inputPs ++ childPs ++ outputPs
       generates := []
-      others := top.others ++ children.flatMap fun (child, _, _) => child.others }
+      others := top.others ++ children.flatMap fun (child, _, _, _, _) => child.others }
   match PDesign.instantiateCoreMem merged args with
   | .ok d => .ok d
   | .timeout => .timeout
