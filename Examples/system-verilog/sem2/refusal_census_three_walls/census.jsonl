@@ -1,0 +1,10 @@
+{"column": 8, "construct": "VariableSymbol:default-point-aggregate", "function": "extractors.sv.extract", "line": 14, "message": "s", "stage": "extractor"}
+{"column": 7, "construct": "VariableSymbol:default-point-aggregate", "function": "extractors.sv.extract", "line": 15, "message": "uv", "stage": "extractor"}
+{"column": 15, "construct": "RangeSelectExpression:query-label", "function": "extractors.sv.extract", "line": 18, "message": "v[$clog2($bits(s)) +: 2]", "stage": "extractor"}
+{"column": 15, "construct": "RangeSelectExpression:query-label", "function": "extractors.sv.extract", "line": 19, "message": "v[$bits(uv) +: 2]", "stage": "extractor"}
+{"column": 5, "construct": "AssignmentExpression:target", "function": "extractors.sv.extract", "line": 22, "message": "y[$bits(s) - 1 -: 2] = b;", "stage": "extractor"}
+{"column": 15, "construct": "RangeSelectExpression:query-label", "function": "parsePExpr", "line": 18, "message": "v[$clog2($bits(s)) +: 2]", "stage": "ordinary"}
+{"column": 15, "construct": "RangeSelectExpression:query-label", "function": "parsePExpr", "line": 19, "message": "v[$bits(uv) +: 2]", "stage": "ordinary"}
+{"column": 5, "construct": "AssignmentExpression:target", "function": "parsePStmt", "line": 22, "message": "y[$bits(s) - 1 -: 2] = b;", "stage": "ordinary"}
+{"column": 8, "construct": "VariableSymbol:default-point-aggregate", "function": "PDesign.instantiate", "line": 14, "message": "s", "stage": "ordinary"}
+{"column": 7, "construct": "VariableSymbol:default-point-aggregate", "function": "PDesign.instantiate", "line": 15, "message": "uv", "stage": "ordinary"}

@@ -35908,6 +35908,37 @@ def process_file(source_path, min_typ_max="typ", defines=None):
         f.write("\n")
 
 
+def refusal_census(envelope, stage="extractor"):
+    """Return one machine-readable record for every retained Unsupported node.
+
+    The envelope is already the Slang-shaped extraction result; this walk does
+    not inspect or reparse source text.  It is intentionally separate from
+    admission so a source can report all parser boundaries in one pass.
+    """
+    rows = []
+
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("kind") == "Unsupported":
+                span = node.get("span") or {}
+                rows.append({
+                    "stage": stage,
+                    "construct": node.get("sv_kind", "Unsupported"),
+                    "line": span.get("line"),
+                    "column": span.get("col"),
+                    "function": "extractors.sv.extract",
+                    "message": node.get("text", ""),
+                })
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(envelope)
+    return rows
+
+
 def main(argv=None):
     sys.setrecursionlimit(10000)
     parser = argparse.ArgumentParser(
@@ -35955,6 +35986,9 @@ def main(argv=None):
                         help="symbolic mode: retain source-level procedural "
                              "rewrites as named Unsupported nodes (default "
                              "keeps the established lowering path)")
+    parser.add_argument("--census", action="store_true",
+                        help="after extraction, print one JSON line for every "
+                             "retained Unsupported node")
     args = parser.parse_args(argv)
 
     try:
@@ -35969,6 +36003,11 @@ def main(argv=None):
                                    retain_proc_rewrites=args.retain_proc_rewrites,
                                    defines=args.defines)
             print(out)
+            if args.census:
+                with open(out, encoding="utf-8") as f:
+                    envelope = json.load(f)
+                for row in refusal_census(envelope):
+                    print(json.dumps(row, sort_keys=True))
             if points is not None:
                 print(write_probe_sidecar(args.top, args.sources, args.incdirs,
                                           out, points,
@@ -35984,6 +36023,11 @@ def main(argv=None):
                 raise ExtractError("--retain-loops requires --top (symbolic mode)")
             for src in args.sources:
                 process_file(src, args.min_typ_max, defines=args.defines)
+                if args.census:
+                    with open(src + ".json", encoding="utf-8") as f:
+                        envelope = json.load(f)
+                    for row in refusal_census(envelope):
+                        print(json.dumps(row, sort_keys=True))
     except ExtractError as e:
         print("error: %s" % e, file=sys.stderr)
         return 1
