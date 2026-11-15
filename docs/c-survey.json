@@ -3095,8 +3095,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T08:31:08Z",
- "measured_commit": "055da65ad",
+ "measured_at_utc": "2026-11-15T08:39:17Z",
+ "measured_commit": "d10879b8e",
  "pin": {
   "corpora": [
    "C1",
@@ -11508,8 +11508,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sprintf: unsupported format",
-   "dynamic_wall": "unsupported:sprintf",
+   "detail": "floating literal lacks parser-native bits",
+   "dynamic_wall": "unsupported:floating literal lacks parser-native bits",
    "manifest_status": "parsed",
    "name": "920501-8.c",
    "sha256": "cb8282773b7c14ebe4c0d9bc436fc102145e62f43f2358affa849f01cd6ac1e6",
