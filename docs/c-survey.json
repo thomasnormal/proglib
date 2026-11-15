@@ -1,10 +1,10 @@
 {
  "by_corpus": {
   "c-testsuite/single-exec": {
-   "passed": 181,
+   "passed": 182,
    "refused-libc": 2,
    "refused-ub": 8,
-   "refused-unsupported": 27,
+   "refused-unsupported": 26,
    "timeout": 2
   },
   "gcc.c-torture/execute": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 295,
   "oracle-tests-compiler": 1,
-  "passed": 1142,
+  "passed": 1143,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 565,
+  "refused-unsupported": 564,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -211,6 +211,7 @@
     "gcc/testsuite/gcc.dg/dfp/c23-constants-3.c",
     "gcc/testsuite/gcc.dg/dfp/c23-decimal64x-4.c",
     "gcc/testsuite/gcc.dg/dfp/c23-float-dfp-8.c",
+    "ieee/920810-1.c",
     "ieee/bfloat16-builtin-issignaling-1.c",
     "ieee/builtin-issignaling-1.c",
     "ieee/float128-builtin-issignaling-1.c",
@@ -332,8 +333,8 @@
     "user-printf.c",
     "va-arg-pack-1.c"
    ],
-   "present": 294,
-   "sole": 294,
+   "present": 295,
+   "sole": 295,
    "wall": "frontend"
   },
   {
@@ -929,17 +930,6 @@
   },
   {
    "files": [
-    "00010.c",
-    "00199.c",
-    "20040704-1.c",
-    "pr119291.c"
-   ],
-   "present": 4,
-   "sole": 4,
-   "wall": "unsupported:break, continue or goto escaped a function body"
-  },
-  {
-   "files": [
     "alias-2.c",
     "alias-3.c",
     "alias-4.c",
@@ -981,6 +971,16 @@
    "present": 4,
    "sole": 4,
    "wall": "unsupported:no layout for declared type 'struct S'"
+  },
+  {
+   "files": [
+    "00199.c",
+    "20040704-1.c",
+    "pr119291.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:break, continue or goto escaped a function body"
   },
   {
    "files": [
@@ -3060,8 +3060,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T10:16:15Z",
- "measured_commit": "d612b1128",
+ "measured_at_utc": "2026-11-15T10:43:40Z",
+ "measured_commit": "6adbe81a8",
  "pin": {
   "corpora": [
    "C1",
@@ -3163,13 +3163,13 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "break, continue or goto escaped a function body",
-   "dynamic_wall": "unsupported:break, continue or goto escaped a function body",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00010.c",
    "sha256": "56e777b7c0c77f4b38548c13ced92da329440833612c379c3c90bf03d4327a13",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",

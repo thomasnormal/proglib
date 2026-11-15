@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1142/2214 MATCH (passed 1142, failed 0, oracle 0)
+- verdicts: 1143/2214 MATCH (passed 1143, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `d612b1128`
-- measured at: `2026-11-15T10:16:15Z`
+- measured commit: `6adbe81a8`
+- measured at: `2026-11-15T10:43:40Z`
 
 ## Verdict counts
 
@@ -13,20 +13,20 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1142 |
+| `passed` | 1143 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 565 |
+| `refused-unsupported` | 564 |
 | `timeout` | 67 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
-| `c-testsuite/single-exec` | `passed` | 181 |
+| `c-testsuite/single-exec` | `passed` | 182 |
 | `c-testsuite/single-exec` | `refused-libc` | 2 |
 | `c-testsuite/single-exec` | `refused-ub` | 8 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 27 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 26 |
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
@@ -301,7 +301,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
-| `frontend` | 294 | 294 | 20000227-1.c, 20000412-3.c, 20000717-3.c, 20000822-1.c, 20001009-2.c |
+| `frontend` | 295 | 295 | 20000227-1.c, 20000412-3.c, 20000717-3.c, 20000822-1.c, 20001009-2.c |
 | `undefined-behavior` | 107 | 107 | 00032.c, 00115.c, 00141.c, 00144.c, 00200.c |
 | `missing-main` | 102 | 102 | 20040705-1.c, 20040705-2.c, 20040709-3.c, builtins/20010124-1.c, builtins/abs-1.c |
 | `timeout` | 67 | 67 | 00041.c, 00128.c, 20000412-2.c, 20011008-3.c, 20020108-1.c |
@@ -322,11 +322,11 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type '_Complex double'` | 5 | 5 | 20030910-1.c, 960512-1.c, complex-1.c, complex-2.c, ieee/cdivchkd.c |
 | `libc-call: __builtin_abort` | 4 | 4 | 20230630-2.c, 20230630-4.c, gcc/testsuite/gcc.dg/c23-nullptr-5.c, pr77767.c |
 | `libc-call: __builtin_malloc` | 4 | 4 | 20071120-1.c, pr43008.c, pr84339.c, strlen-7.c |
-| `unsupported:break, continue or goto escaped a function body` | 4 | 4 | 00010.c, 00199.c, 20040704-1.c, pr119291.c |
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
 | `unsupported:floating literal lacks parser-native bits` | 4 | 4 | 920501-8.c, 960513-1.c, ieee/fp-cmp-1.c, ieee/fp-cmp-2.c |
 | `unsupported:indirect call through a non-FunctionDecl reference` | 4 | 4 | 20010122-1.c, pr28289.c, pr34768-1.c, pr34768-2.c |
 | `unsupported:no layout for declared type 'struct S'` | 4 | 4 | 20050107-1.c, pr52979-1.c, pr52979-2.c, pr79737-1.c |
+| `unsupported:break, continue or goto escaped a function body` | 3 | 3 | 00199.c, 20040704-1.c, pr119291.c |
 | `unsupported:implicit value initialization in value position` | 3 | 3 | pr108498-2.c, pr88739.c, pr97764.c |
 | `unsupported:no layout for declared type 'A'` | 3 | 3 | 20010118-1.c, restrict-1.c, strct-pack-2.c |
 | `unsupported:no layout for declared type '_Complex float'` | 3 | 3 | complex-6.c, ieee/cdivchkf.c, pr38969.c |
