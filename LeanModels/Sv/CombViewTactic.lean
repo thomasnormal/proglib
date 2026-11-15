@@ -1077,7 +1077,7 @@ unsafe def lpAtoms (s : LeanModels.Sv.CombView.Summary) (g : MVarId) : TacticM M
   for h in hyps do
     let hI := mkIdent h
     try evalTactic (← `(tactic| simp only [LeanModels.Sv.CombView.CE.eval, LeanModels.Sv.CombView.σL,
-        List.lookup_cons, List.lookup_nil, String.reduceBEq, Bool.false_eq_true, ↓reduceIte, cond_false, cond_true,
+        List.lookup_cons, List.lookup_nil, String.reduceBEq, Bool.false_eq_true, ↓reduceIte, Bool.cond_false, Bool.cond_true,
         Option.getD_some, Option.getD_none, Int.reduceAdd, Int.reduceSub, Int.reduceMul, Int.reduceNeg,
         Int.ofNat_eq_natCast, LeanModels.Sv.CombView.ite_one_zero_eq_zero, ite_not] at $hI:ident))
     catch _ => pure ()
