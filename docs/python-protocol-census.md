@@ -673,3 +673,8 @@ and propagating the original Python error.
 `Monadic.leaveCallM_inWorld_of_unsupported` complete the recursive
 timeout/refusal projections; those outcomes carry no world and therefore need
 no depth restoration.
+
+`Monadic.twinAgrees_callInM_recursive_body_next` composes the generic
+successful `leaveCallM` result with the non-top-depth `callInM` branch. Under
+explicit depth and recursion-capacity guards, it restores the caller's frame
+depth and maps `RFlow.next` to the returned `none` value.
