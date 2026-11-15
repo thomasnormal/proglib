@@ -1013,6 +1013,25 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
               let pattern ← match takeSprintfString (fo.bytes.drop off) with
                 | some bytes => pure bytes
                 | none => refuseUnsupported "sprintf: non-concrete or unterminated format"
+              let digitByte (d : Nat) : CByte :=
+                if d < 10 then CByte.conc (UInt8.ofNat (48 + d))
+                else CByte.conc (UInt8.ofNat (87 + d))
+              let rec octDigits (n : Nat) : List CByte :=
+                if n < 8 then [digitByte n]
+                else octDigits (n / 8) ++ [digitByte (n % 8)]
+                termination_by n
+                decreasing_by exact Nat.div_lt_self (by omega) (by omega)
+              let rec hexDigits (n : Nat) : List CByte :=
+                if n < 16 then [digitByte n]
+                else hexDigits (n / 16) ++ [digitByte (n % 16)]
+                termination_by n
+                decreasing_by exact Nat.div_lt_self (by omega) (by omega)
+              let altOctal (n : Nat) : List CByte :=
+                if n == 0 then [CByte.conc 48]
+                else CByte.conc 48 :: octDigits n
+              let altHex (n : Nat) : List CByte :=
+                if n == 0 then [CByte.conc 48]
+                else [CByte.conc 48, CByte.conc 120] ++ hexDigits n
               let rec formatSprintf : List CByte → List CVal → ExecM (List CByte)
                 | [], _ => pure []
                 | .conc 37 :: .conc 37 :: rest, as => do
@@ -1031,6 +1050,14 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                     let rendered := if n >= 0 && n < 10 then "0" ++ toString n else toString n
                     let tail ← formatSprintf rest as
                     pure (rendered.toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 35 :: .conc 104 :: .conc 104 :: .conc 111 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← formatSprintf rest as
+                    pure (altOctal n.toNat ++ tail)
+                | .conc 37 :: .conc 35 :: .conc 104 :: .conc 104 :: .conc 120 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← formatSprintf rest as
+                    pure (altHex n.toNat ++ tail)
                 | .conc 37 :: .conc 115 :: rest, a :: as => do
                     let sp ← asPtr a
                     let current ← get
