@@ -3902,6 +3902,39 @@ theorem execOpenList_next_threaded (K : Kont) (m : Module) :
       rcases ih st₁ hTailEach with ⟨st₂, htail⟩
       exact ⟨st₂, by simpa [htail]⟩
 
+theorem execOpen_raw_of_toRun_next (K : Kont) (m : Module) (s : Stmt)
+    (st st' : FrameState)
+    (h : toRun (execOpen K m s) st = .ok st' RFlow.next) :
+    execOpen K m s st = .ok (.ok RFlow.next, st') := by
+  unfold toRun at h
+  generalize hraw : execOpen K m s st = q at h
+  cases q with
+  | error l => cases l <;> simp at h
+  | ok p =>
+      cases p with
+      | mk r st'' =>
+          cases r with
+          | ok v =>
+              cases v with
+              | next =>
+                  cases h
+                  rfl
+              | brk => simp at h
+              | cont => simp at h
+              | ret v => simp at h
+          | error e => simp [hraw] at h
+
+theorem execOpenList_next_threaded_of_toRun (K : Kont) (m : Module) :
+    ∀ (ss : List Stmt) (st : FrameState),
+      (∀ s ∈ ss, ∀ st', ∃ st'',
+        toRun (execOpen K m s) st' = .ok st'' RFlow.next) →
+      ∃ st', execOpenList K m ss st = .ok (.ok RFlow.next, st') := by
+  intro ss st hEach
+  apply execOpenList_next_threaded K m ss st
+  intro s hs st'
+  rcases hEach s hs st' with ⟨st'', hs''⟩
+  exact ⟨st'', execOpen_raw_of_toRun_next K m s st' st'' hs''⟩
+
 theorem execOpenList_assignments_ret_run (K : Kont) (m : Module) (v : RVal) :
     ∀ (ss : List Stmt) (ret : Stmt) (st : FrameState),
       (∀ s ∈ ss, ∃ targets value sp, s = .assign targets value sp) →
@@ -4654,6 +4687,27 @@ theorem callInMono_succ_body_next_of_each
     ∃ st' : FrameState, callInMono m (fuel + 1) w fname args =
       .ok { st'.world with callDepth := pythonTopCallDepth } .none := by
   have hbody := execOpenList_next_threaded (kont m fuel) m f.body.toList
+    ⟨{ w with callDepth := 1 },
+      globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal⟩ hEach
+  rcases hbody with ⟨st', hbody⟩
+  exact ⟨st', callInMono_succ_body_next m fuel w fname args f st' hfind hgen
+    hargs hlocal hnotgen harity hbody⟩
+
+theorem callInMono_succ_body_next_of_toRun_each
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hEach : ∀ s ∈ f.body.toList, ∀ st', ∃ st'',
+      toRun (execOpen (kont m fuel) m s) st' = .ok st'' RFlow.next) :
+    ∃ st' : FrameState, callInMono m (fuel + 1) w fname args =
+      .ok { st'.world with callDepth := pythonTopCallDepth } .none := by
+  have hbody := execOpenList_next_threaded_of_toRun (kont m fuel) m
+    f.body.toList
     ⟨{ w with callDepth := 1 },
       globalCallEnv { w with callDepth := pythonTopCallDepth }
         f.params args f.body f.hasGlobal⟩ hEach

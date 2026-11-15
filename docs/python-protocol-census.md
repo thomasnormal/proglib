@@ -752,3 +752,9 @@ step: arbitrary statements with pointwise `.next` frame results compose while
 threading the resulting `FrameState`. `Monadic.callInMono_succ_body_next_of_each`
 then lifts that list induction through the public successor call, leaving only
 the pointwise statement theorem as its premise.
+
+`Monadic.execOpen_raw_of_toRun_next` and
+`Monadic.execOpenList_next_threaded_of_toRun` invert successful `Run` projections
+back to raw monadic results, so existing `toRun`-level statement bridges can
+feed the state-threaded induction. `Monadic.callInMono_succ_body_next_of_toRun_each`
+is the public successor composition using that inversion path.
