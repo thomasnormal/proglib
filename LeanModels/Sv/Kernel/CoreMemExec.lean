@@ -108,6 +108,7 @@ equations remain loud until their memory-aware equation theorem is added. -/
 def coreMemEquationB : List CoreMemProc → Bool
   | [] => true
   | .assign (.ident _) _ :: rest => coreMemEquationB rest
+  | .assign (.bitSel _ _) _ :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ []) (.arrayElem _ []) :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ [_]) _ :: rest => coreMemEquationB rest
   | _ => false
@@ -878,6 +879,19 @@ def CoreMemDesign.evalExprLocals (E : CoreMemDesign) (env : IEnv) (elems : List 
       | some _ =>
           .unsupported s!"ArraySel:part: memory '{name}' part select is outside this E slice"
       | none => E.evalScalarLocals env elems st ctx locals e
+  | e@(.bitSel base index) =>
+      if LeanModels.Sv.PExpr.hasMemoryRead e then do
+        let bv ← E.evalExprLocals env elems st none locals base
+        let iv ← E.evalIndexLocals env elems st locals index
+        let position? := if index.signedCast then iv.toInt?
+          else iv.toNat?.map Int.ofNat
+        match position? with
+        | some position =>
+            if 0 ≤ position && position < bv.width then
+              .ok (bv.extract position.toNat 1)
+            else .ok (LVec.xVec 1)
+        | none => .ok (LVec.xVec 1)
+      else E.evalScalarLocals env elems st ctx locals e
   | .functionCall name args => E.evalFunction env elems st locals name args
   | e@(.unary op a) =>
       if LeanModels.Sv.PExpr.hasMemoryRead e then do
@@ -1054,6 +1068,26 @@ def CoreMemDesign.writeMemoryAssign (E : CoreMemDesign) (env : IEnv)
       | .error msg => .unsupported msg
       | .ok none => .unsupported "10.3: continuous target is not one-rank"
       | .ok (some memory) => .ok { st with memory }
+
+def CoreMemDesign.writeScalarBitAssign (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (name : String)
+    (index : PExpr) (value : PExpr) : Res CoreMemState := do
+  let width ← match E.scalarWidth? name with
+    | some w => .ok w
+    | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+  let iv ← E.evalIndex env elems st index
+  let vv ← E.evalExpr env elems st (some 1) value
+  let current ← match E.scalar.resolve name with
+    | some x => .ok (st.scalar x)
+    | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+  let position? := if index.signedCast then iv.toInt?
+    else iv.toNat?.map Int.ofNat
+  match position? with
+  | some position =>
+      if 0 ≤ position && position < width then
+        .ok (E.setScalarState st name (current.bits.insertAt position.toNat vv))
+      else .ok st
+  | none => .ok st
 
 /-! A whole unpacked-array port connection remains a source-shaped array
 assignment.  Its runtime meaning is the ordinary continuous assignment of
@@ -1586,6 +1620,10 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
           let v ← E.evalScalarAssignAtView env elems st view (some width) index value
           let st' := E.setScalarState st name v
           E.settleAssignAt env elems st' (SvState.set view name v) (index + 1) rest
+      | .bitSel name select =>
+          let st' ← E.writeScalarBitAssign env elems st name select value
+          let view' := E.scalar.view st'.scalar
+          E.settleAssignAt env elems st' view' (index + 1) rest
       | .arrayElem target [] =>
           (match value with
            | .arrayElem source [] =>

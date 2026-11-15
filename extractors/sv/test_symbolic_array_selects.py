@@ -267,6 +267,23 @@ class SymbolicArraySelects(unittest.TestCase):
         self.assertEqual(module["processes"][1]["value"]["kind"], "ArraySel")
         self.assertTrue(module["processes"][1]["value"]["unpacked"])
 
+    def test_retained_nested_select_keeps_array_then_packed_bit(self):
+        module = self.extract(
+            "module top #(parameter int W = 8) (input logic [W-1:0] x,"
+            " output logic [7:0] y); logic [W-1:0] state [0:1];"
+            " assign state[0] = x; genvar i;"
+            " for (i = 0; i < 1; i++) begin : g"
+            " assign y[i] = state[i][0]; end endmodule",
+            retain_proc_rewrites=True)
+        assignment = module["generates"][0]["body"][0]
+        value = assignment["value"]
+        self.assertEqual(value["kind"], "BitSel")
+        self.assertEqual(value["value"]["kind"], "ArraySel")
+        self.assertTrue(value["value"]["unpacked"])
+        self.assertEqual(value["value"]["name"], "state")
+        self.assertEqual(value["index"]["kind"], "Int")
+        self.assertEqual(value["index"]["value"], 0)
+
     def test_unexpected_failure_on_3d_chain_is_loud(self):
         # A failure inside the ArraySel builder must not fall back to the
         # legacy nested encoding (exact for two dimensions only).

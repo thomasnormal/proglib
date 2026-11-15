@@ -13691,6 +13691,26 @@ def _convert_sym_select_expr(sm, e, cname):
         if _SYM is not None and _RETAIN_PROC_REWRITES:
             try:
                 root = e.value
+                # A packed bit select of a selected unpacked element (for
+                # example ``state[i][0]``) remains two parser nodes: the
+                # inner unpacked ElementSelect is retained as ArraySel and
+                # the outer packed ElementSelect is retained as BitSel.
+                # Canonical E evaluates the two nodes directly (§7.4.6,
+                # §11.5.1); do not flatten the element into a generated cell.
+                if type(root).__name__ == "ElementSelectExpression":
+                    with _SymPos():
+                        base = _convert_expr(sm, root)
+                        index = _convert_expr(sm, e.selector)
+                    if (isinstance(base, dict)
+                            and base.get("kind") == "ArraySel"
+                            and base.get("unpacked") is True):
+                        return {
+                            "kind": "BitSel",
+                            "span": node_span(sm, e),
+                            "width": _safe_width(e),
+                            "value": base,
+                            "index": index,
+                        }
                 if type(root).__name__ == "NamedValueExpression":
                     shape = _fixed_array_dimensions(
                         root.type.canonicalType, max_cells=None)

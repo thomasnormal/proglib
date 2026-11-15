@@ -78,6 +78,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("generated_array_index.sv", "generated_array_index",
             (Port("x", 8),), (Port("y", 8),),
             retain_proc_rewrites=True),
+    Fixture("generated_array_nested.sv", "generated_array_nested",
+            (Port("x", 8), Port("taps", 8)), (Port("y", 8),),
+            (Point("W4", (4,)), Point("W8", (8,))),
+            retain_proc_rewrites=True),
     Fixture("generate_if_unpacked_array.sv", "generate_if_unpacked_array",
             (Port("x", 8),), (Port("y", 8),),
             (Point("N1", (1,)), Point("N2", (2,))),
@@ -185,6 +189,9 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
     if fixture.top == "packed_shift_register_canonical_e" and point.args \
             and port.name == "q":
         return point.args[0]
+    if fixture.top == "generated_array_nested" and point.args \
+            and port.name in ("x", "taps"):
+        return point.args[0]
     return port.width
 
 
@@ -253,6 +260,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "parameterized_size_cast_canonical_e": ("W",),
             "packed_shift_register_canonical_e": ("N",),
             "generate_if_unpacked_array": ("N",),
+            "generated_array_nested": ("W",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []
