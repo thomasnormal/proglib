@@ -659,3 +659,8 @@ the call depth is restored, and the original `PyErr` is propagated unchanged.
 `Monadic.twinAgrees_callInM_top_body_unsupported` complete the corresponding
 timeout and classified-refusal body outcomes, preserving the exact refusal
 message while keeping the top-depth boundary explicit.
+
+`Monadic.leaveCallM_inWorld_of_ok` starts the recursive-call boundary
+transport: an arbitrary successful frame action is projected through
+`inWorld`, then `leaveCallM` decrements the resulting frame depth while
+preserving the returned value.

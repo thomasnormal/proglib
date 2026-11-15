@@ -4823,6 +4823,21 @@ theorem finishCallM_inWorld_of_unsupported {α : Type} (depth : Nat)
     rw [h]
   exact finishCallM_of_unsupported depth (inWorld locals action) w cause msg snapshot hi
 
+theorem leaveCallM_inWorld_of_ok {α : Type}
+    (locals : REnv) (action : SemF α) (w : World)
+    (st' : FrameState) (v : α)
+    (h : action ⟨w, locals⟩ = .ok (.ok v, st')) :
+    toRun (leaveCallM (inWorld locals action)) w =
+      .ok { st'.world with callDepth := st'.world.callDepth.pred } v := by
+  have hi : (inWorld locals action) w =
+      .ok (.ok v, st'.world) := by
+    unfold inWorld zoomOut
+    rw [h]
+  unfold leaveCallM
+  apply toRun_tryCatch_ok
+  rw [bind_apply, hi]
+  rfl
+
 theorem twinAgrees_callInM_top_body_exn
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (e : PyErr)
