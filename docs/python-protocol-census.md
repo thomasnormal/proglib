@@ -741,3 +741,8 @@ original error at normalized top depth.
 `Monadic.callInMono_succ_body_unsupported` complete the public successor-fuel
 body-result matrix for timeout and classified refusal, preserving timeout and
 refusal-message observations.
+
+`Monadic.callInMono_succ_empty_body` discharges the raw body premise for the
+structural empty-body case. It is the first recursive refinement base case:
+the successor-fuel public call returns `none` after the top-depth restoration,
+with no per-count assignment bridge involved.

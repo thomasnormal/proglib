@@ -5443,6 +5443,33 @@ theorem callInMono_succ_body_unsupported
     { w with callDepth := pythonTopCallDepth } cause msg snapshot hfind hgen
     hargs hlocal hnotgen harity hbody
 
+theorem callInMono_succ_empty_body
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hbodyEq : f.body.toList = [])
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true) :
+    callInMono m (fuel + 1) w fname args =
+      .ok { w with callDepth := pythonTopCallDepth } .none := by
+  have hbody : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok RFlow.next,
+        ⟨{ w with callDepth := 1 },
+          globalCallEnv { w with callDepth := pythonTopCallDepth }
+            f.params args f.body f.hasGlobal⟩) := by
+    rw [hbodyEq]
+    rfl
+  exact callInMono_succ_body_next m fuel w fname args f
+    ⟨{ w with callDepth := 1 },
+      globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal⟩ hfind hgen hargs hlocal hnotgen
+    harity hbody
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by
