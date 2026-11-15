@@ -2223,14 +2223,16 @@ def AccGeom (σ : String → Int) (DG : String → Option (List (Int × Int)))
         r.eval σ ≤ m1 ∧ 0 ≤ lo.eval σ ∧ lo.eval σ ≤ hi.eval σ ∧ hi.eval σ ≤ m2
 
 /-- The element width `buildElems` records for a declaration of the evaluated dimensions `ds`: the width of the second
-dimension of a two-dimensional one, `1` otherwise (`DeclT.elemW`, on `DeclT.vals`). -/
+dimension of a two-dimensional one, the product of the second and third of a three-dimensional one, `1` otherwise
+(`DeclT.elemW`, on `DeclT.vals`). -/
 def elemWOfDims : List (Int × Int) → Nat
   | [_, p] => 1 * ((p.1 - p.2).natAbs + 1)
+  | [_, p, q] => 1 * ((p.1 - p.2).natAbs + 1) * ((q.1 - q.2).natAbs + 1)
   | _ => 1
 
 theorem DeclT.elemW_vals (σ : String → Int) (dt : DeclT) : dt.elemW σ = elemWOfDims (dt.vals σ) := by
   unfold DeclT.elemW DeclT.vals
-  rcases hd : dt.dims with _ | ⟨a, _ | ⟨b, _ | ⟨c, rest⟩⟩⟩ <;> simp [elemWOfDims]
+  rcases hd : dt.dims with _ | ⟨a, _ | ⟨b, _ | ⟨c, _ | ⟨d, rest⟩⟩⟩⟩ <;> simp [elemWOfDims]
 
 /-- The instantiation environment's facts the site lemmas read. -/
 structure Ctx (σ : String → Int) (E : IEnv) (elems : List (String × Nat))

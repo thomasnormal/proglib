@@ -1530,10 +1530,11 @@ def DeclT.vals (σ : String → Int) (dt : DeclT) : List (Int × Int) :=
 def DeclT.pdims (dt : DeclT) : List PDim := dt.dims.map (·.1)
 
 /-- The element width `buildElems` records: the width of the second dimension of a 2-D
-declaration, `1` otherwise. -/
+declaration, the product of the second and third of a 3-D one (tac7), `1` otherwise. -/
 def DeclT.elemW (σ : String → Int) (dt : DeclT) : Nat :=
   match dt.dims with
   | [_, p] => 1 * ((p.2.1.eval σ - p.2.2.eval σ).natAbs + 1)
+  | [_, p, q] => 1 * ((p.2.1.eval σ - p.2.2.eval σ).natAbs + 1) * ((q.2.1.eval σ - q.2.2.eval σ).natAbs + 1)
   | _ => 1
 
 def DeclT.affNames (dt : DeclT) : List String :=
@@ -1572,7 +1573,19 @@ def declOf? (pd : PDecl) : Except String DeclT :=
                 match dimOf? pd.name d2 with
                 | .error e => .error e
                 | .ok p2 => .ok ⟨pd.name, pd.isInput, pd.isOutput, pd.isNet, pd.isSigned, [p1, p2]⟩
-        | _ => .error s!"declaration `{pd.name}`: only scalar, 1-D and 2-D packed declarations are in the v1 fragment"
+        -- a 3-D packed declaration (tac7): read as a declaration (its width, its element width); a select of it is
+        -- refused by the access recognizer (`elemAcc?`, `partAcc?`), only the whole signal is an access
+        | .packed [d1, d2, d3] _ =>
+            match dimOf? pd.name d1 with
+            | .error e => .error e
+            | .ok p1 =>
+                match dimOf? pd.name d2 with
+                | .error e => .error e
+                | .ok p2 =>
+                    match dimOf? pd.name d3 with
+                    | .error e => .error e
+                    | .ok p3 => .ok ⟨pd.name, pd.isInput, pd.isOutput, pd.isNet, pd.isSigned, [p1, p2, p3]⟩
+        | _ => .error s!"declaration `{pd.name}`: only scalar, 1-D, 2-D and 3-D packed declarations are in the fragment"
 
 def declsOf? : List PDecl → Except String (List DeclT)
   | [] => .ok []
@@ -1655,6 +1668,7 @@ def elemAcc? (ds : List DeclT) (n : String) (is : List PExpr) : Except String Ac
             | some a, some b => .ok (.cell2 n (m2.add (Aff.const 1)) a b)
             | _, _ => .error s!"an index of `{n}[…][…]` is not affine (dynamic or nonlinear){quotNote [i, j]}"
           else .error s!"`{n}`: element selects need zero-based descending dimensions `[hi:0][hi:0]`"
+      | [_, _, _], _ => .error s!"a select of the three-dimensional declaration `{n}` (outside the fragment: a 3-D declaration is read as a whole signal; selects are read of 1-D and 2-D declarations)"
       | _, _ => .error s!"select path on `{n}` does not match its declared packed dimensions (outside the v1 fragment)"
 
 /-- The spelling of a part select's operands, for refusals. -/
@@ -1695,6 +1709,7 @@ def partAcc? (ds : List DeclT) (n : String) (is : List PExpr) (mode : PartMode) 
             | _, _, _ =>
                 .error s!"an index or bound of `{n}[…][{partSym mode}]` is not affine (dynamic or nonlinear){quotNote [i, a, b]}"
           else .error s!"`{n}`: part selects need zero-based descending dimensions `[hi:0][hi:0]`"
+      | [_, _, _], _ => .error s!"a part select of the three-dimensional declaration `{n}` (outside the fragment: a 3-D declaration is read as a whole signal; part selects are read of 1-D and 2-D declarations)"
       | _, _ => .error s!"part select on `{n}` does not match its declared packed dimensions (outside the v1 fragment)"
 
 /-- WP-B2 gate 4a: the access a LEGACY select `n[i]` (the extractor's `BitSel`) stands for. Over a declaration of zero or
@@ -3947,7 +3962,7 @@ theorem Summary.pairs_map_fst (s : Summary) (σ : String → Int) (E : IEnv)
 theorem declOf?_spec {pd : PDecl} {dt : DeclT} (h : declOf? pd = .ok dt) :
     dt.name = pd.name ∧ dt.isInput = pd.isInput ∧ dt.isOutput = pd.isOutput ∧
     dt.isNet = pd.isNet ∧ pd.init = none ∧
-    (∃ r, pd.type = .packed dt.pdims r) ∧ dt.dims.length ≤ 2 ∧
+    (∃ r, pd.type = .packed dt.pdims r) ∧ dt.dims.length ≤ 3 ∧
     (∀ p ∈ dt.dims, affOf? p.1.msb = some p.2.1 ∧ affOf? p.1.lsb = some p.2.2 ∧ p.2.1.xs = [] ∧ p.2.2.xs = []) ∧
     dt.isSigned = pd.isSigned ∧ pd.twoState = false := by
   have hdim : ∀ {nm : String} {d : PDim} {p : PDim × Aff × Aff}, dimOf? nm d = .ok p →
@@ -4011,7 +4026,26 @@ theorem declOf?_spec {pd : PDecl} {dt : DeclT} (h : declOf? pd = .ok dt) :
               rcases hq with rfl | rfl
               · exact ⟨h2, h3, h4, h5⟩
               · exact ⟨k2, k3, k4, k5⟩
-        | _ :: _ :: _ :: _, h => simp at h
+        | [d1, d2, d3], h =>
+          rcases hp1 : dimOf? pd.name d1 with e | p1
+          · simp [hp1] at h
+          · rcases hp2 : dimOf? pd.name d2 with e | p2
+            · simp [hp1, hp2] at h
+            · rcases hp3 : dimOf? pd.name d3 with e | p3
+              · simp [hp1, hp2, hp3] at h
+              · simp only [hp1, hp2, hp3, Except.ok.injEq] at h
+                subst h
+                obtain ⟨h1, h2, h3, h4, h5⟩ := hdim hp1
+                obtain ⟨k1, k2, k3, k4, k5⟩ := hdim hp2
+                obtain ⟨j1, j2, j3, j4, j5⟩ := hdim hp3
+                refine ⟨rfl, rfl, rfl, rfl, rfl, ⟨r, by simp [DeclT.pdims, h1, k1, j1]⟩, by simp, ?_, rfl, hs.2⟩
+                intro q hq
+                simp only [List.mem_cons, List.not_mem_nil, or_false] at hq
+                rcases hq with rfl | rfl | rfl
+                · exact ⟨h2, h3, h4, h5⟩
+                · exact ⟨k2, k3, k4, k5⟩
+                · exact ⟨j2, j3, j4, j5⟩
+        | _ :: _ :: _ :: _ :: _, h => simp at h
       | typeRef n pkg r => rw [hty] at h; simp at h
       | unrecoverable r => rw [hty] at h; simp at h
 
@@ -4101,7 +4135,22 @@ theorem elemWidth_decl {env : IEnv} {σ : String → Int} {pd : PDecl} {dt : Dec
       obtain ⟨-, hel⟩ := affOf?_sound _ _ hl
         (Aff.ok_of_nil (fun n hn => hag' p2 hp2 n (List.mem_append_right _ hn)) hlx)
       simp [PType.elemWidth, DeclT.elemW, hdt, PDim.width, hem, hel, List.foldlM, Gen2.except_ok_bind]
-  | _ :: _ :: _ :: _, hl => simp at hl
+  | [p1, p2, p3], _ =>
+      have hp2 : p2 ∈ dt.dims := by rw [hdt]; simp
+      have hp3 : p3 ∈ dt.dims := by rw [hdt]; simp
+      obtain ⟨hm, hl, hmx, hlx⟩ := hdim p2 hp2
+      obtain ⟨hm3, hl3, hmx3, hlx3⟩ := hdim p3 hp3
+      obtain ⟨-, hem⟩ := affOf?_sound _ _ hm
+        (Aff.ok_of_nil (fun n hn => hag' p2 hp2 n (List.mem_append_left _ hn)) hmx)
+      obtain ⟨-, hel⟩ := affOf?_sound _ _ hl
+        (Aff.ok_of_nil (fun n hn => hag' p2 hp2 n (List.mem_append_right _ hn)) hlx)
+      obtain ⟨-, hem3⟩ := affOf?_sound _ _ hm3
+        (Aff.ok_of_nil (fun n hn => hag' p3 hp3 n (List.mem_append_left _ hn)) hmx3)
+      obtain ⟨-, hel3⟩ := affOf?_sound _ _ hl3
+        (Aff.ok_of_nil (fun n hn => hag' p3 hp3 n (List.mem_append_right _ hn)) hlx3)
+      simp [PType.elemWidth, DeclT.elemW, hdt, PDim.width, hem, hel, hem3, hel3, List.foldlM, Gen2.except_ok_bind] <;>
+        rfl
+  | _ :: _ :: _ :: _ :: _, hl => simp at hl
 
 theorem buildDecls_summary {σ : String → Int} :
     ∀ (ds : List PDecl) (sd : List DeclT), declsOf? ds = .ok sd →

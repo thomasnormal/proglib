@@ -626,7 +626,7 @@ theorem declOf?_hren (pfx : String) {pd : PDecl} {dt : DeclT} (h : declOf? pd = 
         | unrecoverable _ => simp [hty'] at h
         | packed ds r =>
           simp only [hty'] at h
-          rcases ds with _ | ⟨d1, _ | ⟨d2, _ | ⟨d3, rest⟩⟩⟩
+          rcases ds with _ | ⟨d1, _ | ⟨d2, _ | ⟨d3, _ | ⟨d4, rest⟩⟩⟩⟩
           · simp only [Except.ok.injEq] at h; subst h
             simp [PType.hren, DeclT.hren, PDecl.hren]
           · rcases hd : dimOf? pd.name d1 with e | p1 <;> simp only [hd] at h
@@ -640,6 +640,16 @@ theorem declOf?_hren (pfx : String) {pd : PDecl} {dt : DeclT} (h : declOf? pd = 
             simp only [Except.ok.injEq] at h; subst h
             simp [PType.hren, DeclT.hren, PDecl.hren, dimOf?_hren pfx pd.name _ hd1,
               dimOf?_hren pfx pd.name _ hd2]
+          · -- a 3-D declaration (tac7)
+            rcases hd1 : dimOf? pd.name d1 with e | p1 <;> simp only [hd1] at h
+            · simp at h
+            rcases hd2 : dimOf? pd.name d2 with e | p2 <;> simp only [hd2] at h
+            · simp at h
+            rcases hd3 : dimOf? pd.name d3 with e | p3 <;> simp only [hd3] at h
+            · simp at h
+            simp only [Except.ok.injEq] at h; subst h
+            simp [PType.hren, DeclT.hren, PDecl.hren, dimOf?_hren pfx pd.name _ hd1,
+              dimOf?_hren pfx pd.name _ hd2, dimOf?_hren pfx pd.name _ hd3]
           · simp at h
     · simp [hinit] at h
   · simp [h0] at h
