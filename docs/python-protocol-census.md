@@ -758,3 +758,8 @@ the pointwise statement theorem as its premise.
 back to raw monadic results, so existing `toRun`-level statement bridges can
 feed the state-threaded induction. `Monadic.callInMono_succ_body_next_of_toRun_each`
 is the public successor composition using that inversion path.
+
+`Monadic.callInMono_succ_body_next_of_execStmt_each` closes the next composition
+step: an existing pointwise monadic/trunk statement bridge plus an explicit
+`execStmt` `.next` result now supplies the raw body premise and the public
+successor result for arbitrary statement-list length.

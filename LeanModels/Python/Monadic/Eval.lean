@@ -4715,6 +4715,27 @@ theorem callInMono_succ_body_next_of_toRun_each
   exact ⟨st', callInMono_succ_body_next m fuel w fname args f st' hfind hgen
     hargs hlocal hnotgen harity hbody⟩
 
+theorem callInMono_succ_body_next_of_execStmt_each
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hBridge : ∀ s ∈ f.body.toList, ∀ st' g, 0 < g →
+      toRun (execOpen (kont m fuel) m s) st' = execStmt m g st' s)
+    (hNext : ∀ s ∈ f.body.toList, ∀ st', ∃ st'',
+      execStmt m 1 st' s = .ok st'' RFlow.next) :
+    ∃ st' : FrameState, callInMono m (fuel + 1) w fname args =
+      .ok { st'.world with callDepth := pythonTopCallDepth } .none := by
+  apply callInMono_succ_body_next_of_toRun_each m fuel w fname args f
+    hfind hgen hargs hlocal hnotgen harity
+  intro s hs st'
+  rcases hNext s hs st' with ⟨st'', hs''⟩
+  refine ⟨st'', ?_⟩
+  rw [hBridge s hs st' 1 (by omega), hs'']
+
 theorem twinAgrees_callInM_top_body_ret
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (v : RVal)
