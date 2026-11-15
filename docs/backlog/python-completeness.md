@@ -17235,3 +17235,13 @@ already-proved `finishCallM`/`leaveCallM` branches.  This is the induction
 invariant needed to close the raw body premise without a fixed-count bridge
 series; no proof is claimed yet because the mutual statement and call-plan
 fuel accounting are not encoded as one theorem.
+
+The attempted exact-fuel list specialization identifies the first recursive
+equation that prevents a weaker invariant.  `execStmts m (n + 1) st (s :: ss)`
+executes `s` at `n` and, after `.next`, calls the tail at that same smaller
+`n`.  Therefore a hypothesis relating every element only at the outer
+`fuel - 1` cannot be reused for the tail: the tail needs its elements at
+`fuel - 2`, then `fuel - 3`, and so on.  The pointwise premise must quantify
+all positive child fuels (as the existing composition theorem does), or be
+replaced by a threshold relation proved monotone in the legacy evaluator.
+This is the first failing equation for the proposed list-level refinement.
