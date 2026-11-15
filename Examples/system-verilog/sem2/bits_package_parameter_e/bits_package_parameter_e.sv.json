@@ -1,0 +1,248 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "bits_package_parameter_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/bits_package_parameter_e/bits_package_parameter_e.sv",
+      "sha256": "5aad9700c13321d75ccc268825214bbefe150f38e008eab5912717abb7eac09b"
+    }
+  ],
+  "packages": [
+    "bits_package_parameter_e_pkg"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 4,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "bits_package_parameter_e",
+        "imports": [],
+        "params": [
+          {
+            "kind": "LocalParam",
+            "span": {
+              "line": 5,
+              "col": 18,
+              "end_line": 5,
+              "end_col": 65
+            },
+            "name": "W",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 18,
+                      "end_line": 5,
+                      "end_col": 65
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 18,
+                      "end_line": 5,
+                      "end_col": 65
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "expr": {
+              "kind": "Squash2",
+              "span": {
+                "line": 5,
+                "col": 22,
+                "end_line": 5,
+                "end_col": 65
+              },
+              "width": 32,
+              "operand": {
+                "kind": "SysCall",
+                "span": {
+                  "line": 5,
+                  "col": 22,
+                  "end_line": 5,
+                  "end_col": 65
+                },
+                "name": "$bits",
+                "args": [
+                  {
+                    "kind": "ParamRef",
+                    "span": {
+                      "line": 5,
+                      "col": 28,
+                      "end_line": 5,
+                      "end_col": 64
+                    },
+                    "name": "AttrDw",
+                    "from_package": "bits_package_parameter_e_pkg"
+                  }
+                ],
+                "resolved": 8
+              }
+            },
+            "resolved": 8
+          }
+        ],
+        "package_params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 25,
+              "end_line": 2,
+              "end_col": 39
+            },
+            "name": "AttrDw",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 20,
+                      "end_line": 2,
+                      "end_col": 21
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 22,
+                      "end_line": 2,
+                      "end_col": 23
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "resolved": 8,
+            "default": {
+              "kind": "Literal",
+              "span": {
+                "line": 2,
+                "col": 34,
+                "end_line": 2,
+                "end_col": 39
+              },
+              "width": 8,
+              "bits": "00001000"
+            },
+            "package": "bits_package_parameter_e_pkg"
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 52,
+              "end_line": 4,
+              "end_col": 53
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 47,
+                      "end_line": 4,
+                      "end_col": 48
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 49,
+                      "end_line": 4,
+                      "end_col": 50
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 6,
+              "col": 10,
+              "end_line": 6,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 6,
+                "col": 10,
+                "end_line": 6,
+                "end_col": 11
+              },
+              "width": 8,
+              "name": "y"
+            },
+            "value": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 6,
+                "col": 14,
+                "end_line": 6,
+                "end_col": 15
+              },
+              "name": "W"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
