@@ -724,3 +724,7 @@ relation itself remains a separate premise.
 `Monadic.callInMono_succ_body_ret` provides the corresponding public
 successor-fuel composition for an explicit `RFlow.ret v` body result and
 returns `v` after restoring the normalized top depth.
+
+`Monadic.callInMono_succ_body_break` composes the public successor-fuel seam
+with the explicit `RFlow.brk` body result and produces the faithful
+`"'break' outside loop"` refusal.
