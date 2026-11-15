@@ -2238,16 +2238,11 @@ def partRd? (ds : List DeclT) (e : PExpr) : Except String (List Acc) :=
   | .lit _ => .ok []
   | _ => rdsLeaf? ds e
 
-/-- The argument of a replication (WP-B2 gate 4c): a sized literal, or ONE access that is not a whole signal (the
-window of an access knows its own width; a whole signal's is the declared one). -/
-def notWhole (r : Except String (List Acc)) : Except String (List Acc) :=
-  match r with
-  | .ok [.whole _] => .error "replication of a whole signal (outside the v1 fragment: replicate a bit or a part select)"
-  | r => r
-
+/-- The argument of a replication (WP-B2 gate 4c): a sized literal, or ONE access, a whole signal included (tac8: the width
+of a replicated part is its window's, `Part.wid`, which for a whole signal is the declared width). -/
 def repArgRd? (ds : List DeclT) : PExpr → Except String (List Acc)
   | .concat [.lit _] => .ok []
-  | .concat [e] => notWhole (rdsLeaf? ds e)
+  | .concat [e] => rdsLeaf? ds e
   | _ => .error "replication of a concatenation of several parts (outside the v1 fragment: replicate a sized literal, a bit select or a part select)"
 
 /-- The refusal of a replication count `affOf?` does not read. -/
@@ -2694,7 +2689,7 @@ def repArgRdD? (ds : List DeclT) : PExpr → Except String (List Acc)
   | .concat [x] =>
       match x.peelMk with
       | .lit _ => .ok []
-      | y => notWhole (dLeaf? ds y)
+      | y => dLeaf? ds y
   | _ => .error "replication of a concatenation of several parts (outside the v1 fragment: replicate a sized literal, a bit select or a part select)"
 
 def repRdD? (ds : List DeclT) (c a : PExpr) : Except String (List Acc) :=

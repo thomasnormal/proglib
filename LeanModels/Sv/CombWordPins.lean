@@ -117,13 +117,13 @@ shape, index-freedom), the leaf guard of the proc chain, and the word-level theo
 
 /-!
 Gate 4c (replication `{N{x}}` of a sized literal or one access): the recognizer's cases (`repArgRd?_cases`,
-`repRd?_cases`, `notWhole_ok`), the instantiation of a replication and its self-width (`repl_facts`, `inst_repl`,
+`repRd?_cases`, `rdsLeaf_length`), the instantiation of a replication and its self-width (`repl_facts`, `inst_repl`,
 `selfWidth_repl`, `rd_repl`, `inst_partsW`), the shape of a replication and of the parts of a word-level concatenation
 (`repl_shape`, `parts_shapeW`, `rep_bundle`), the x-free layer of a part (`part_low`), the guarded non-negativity of the
 counts (`InRangeObl.rc_all`, `site_co`), and the index-freedom of the proc chain's readers.
 -/
 
-#pin_axioms LeanModels.Sv.CombView.repArgRd?_cases LeanModels.Sv.CombView.repRd?_cases LeanModels.Sv.CombView.notWhole_ok
+#pin_axioms LeanModels.Sv.CombView.repArgRd?_cases LeanModels.Sv.CombView.repRd?_cases LeanModels.Sv.CombView.rdsLeaf_length
   LeanModels.Sv.CombView.repl_facts LeanModels.Sv.CombView.inst_repl LeanModels.Sv.CombView.selfWidth_repl
   LeanModels.Sv.CombView.rd_repl LeanModels.Sv.CombView.inst_partsW LeanModels.Sv.CombView.Summary.InRangeObl.rc_all
   LeanModels.Sv.CombEq.repl_shape LeanModels.Sv.CombEq.parts_shapeW LeanModels.Sv.CombEq.rep_bundle

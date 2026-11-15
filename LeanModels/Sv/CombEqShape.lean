@@ -951,12 +951,11 @@ theorem repl_shape (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
   · right
     obtain ⟨x, hl', rfl⟩ := rdsLeaf_cases hl
     obtain ⟨hsw, hin, -⟩ := leaf_eq C hdw hl' (hacc x (by simp))
-    have hx : ∀ n, x ≠ .whole n := fun n hxn => hnw n (by rw [hxn])
     have hw : selfWidth2 E elems (.concat [e]) = some (x.win σ dw).2.2 := by
       rw [selfWidth2_concat]
       simpa using selfWidthSum2_cons_of (env := E) (elems := elems) (p := e) (ps := []) hsw selfWidthSum2_nil
     refine ⟨x, e, hnl, rfl, rfl, ?_, fun ctx => ?_⟩
-    · rw [selfWidth_repl C hk hco hw, Part.wid, win_wid_of_ne_whole hx]
+    · rw [selfWidth_repl C hk hco hw, Part.wid]
     · rw [inst_repl C hk hco ctx]
       simp only [instExpr2_concat, instParts2_cons, instParts2_nil, hin]
       rfl
@@ -986,7 +985,6 @@ theorem repl_shapeU (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
     subst he
     obtain ⟨x, hl', rfl⟩ := rdsLeaf_cases hl
     obtain ⟨hsw, hin, -⟩ := leaf_eqU C hdw hl' (hacc x (by simp))
-    have hx : ∀ n, x ≠ .whole n := fun n hxn => hnw n (by rw [hxn])
     have hw : selfWidth2 E elems (.concat [e]) = some (x.win σ dw).2.2 := by
       rw [selfWidth2_concat]
       simpa using selfWidthSum2_cons_of (env := E) (elems := elems) (p := e) (ps := []) hsw selfWidthSum2_nil
@@ -995,7 +993,7 @@ theorem repl_shapeU (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       simp only [PExpr.unsignL]
       generalize e.unsign = y at hnl
       cases y <;> first | rfl | exact absurd rfl (hnl _)
-    · rw [selfWidth_repl C hk hco hw, Part.wid, win_wid_of_ne_whole hx, hrc]
+    · rw [selfWidth_repl C hk hco hw, Part.wid, hrc]
     · rw [inst_repl C hk hco ctx]
       simp only [instExpr2_concat, instParts2_cons, instParts2_nil, hin]
       rw [hrc]
@@ -1695,10 +1693,9 @@ theorem repl_shapeDD (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
     rcases hx with ⟨v, hv, rfl⟩ | ⟨hl, hnl, hnw⟩
     · refine ⟨v.width, ?_, ?_, ?_⟩ <;> simp [repPartD_lit hv, dPart_lit hv, Part.wid, Part.expr, hrk]
     · obtain ⟨a', rfl, -⟩ := dLeaf_facts hl
-      have hnw' : ∀ n, a' ≠ .whole n := fun n hn => hnw n (by rw [hn])
-      refine ⟨Acc.wid σ a', ?_, ?_, ?_⟩
+      refine ⟨(a'.win σ dw).2.2, ?_, ?_, ?_⟩
       · simp [repPartD_rd hnl, Part.wid, hrk]
-      · simp [dPart_rd hnl, Part.wid, win_wid_of_ne_whole hnw']
+      · simp [dPart_rd hnl, Part.wid]
       · simp [repPartD_rd hnl, dPart_rd hnl, Part.expr, hrk]
   obtain ⟨w, hw1, hw2, hw3⟩ := hrp
   rw [hw2] at d1
@@ -2904,7 +2901,7 @@ theorem acc_ne_whole_of_known {a : Acc} (h : a.isWhole = false) : ∀ n, a ≠ .
 bits. -/
 theorem part_low {m : Design2} {σ : String → Int} {dw : String → Nat} (env : String → Nat → Bool) :
     ∀ (p : Part), partKnown [p] = true → (∀ a ∈ partLeaves [p], LeafOk m σ dw a) →
-      (p.expr σ).xfWidth m = some (p.wid σ dw) ∧ ∀ k, (p.expr σ).xfBits m env k = p.bit σ env k
+      (p.expr σ).xfWidth m = some (p.wid σ dw) ∧ ∀ k, (p.expr σ).xfBits m env k = p.bit σ dw env k
   | .lit v, hk, _ => by
       simp only [partKnown, Bool.and_true] at hk
       exact ⟨by simp [Part.expr, Part.wid, Expr2.xfWidth, hk], fun k => by
@@ -2918,14 +2915,12 @@ theorem part_low {m : Design2} {σ : String → Int} {dw : String → Nat} (env 
       refine ⟨?_, fun k => ?_⟩
       · simp [Part.expr, Part.wid, Expr2.xfWidth, Expr2.xfWidthSum, hk, Nat.mul_comm]
       · simp [Part.expr, Part.bit, Expr2.xfBits, Expr2.xfWidth, Expr2.xfWidthSum, Expr2.catBits, hk]
-  | .reprd c a, hk, hL => by
-      simp only [partKnown, Bool.and_true, Bool.not_eq_true'] at hk
+  | .reprd c a, _, hL => by
       have hA : LeafOk m σ dw a := hL a (by simp [partLeaves])
-      have hw := win_wid_of_ne_whole (σ := σ) (dw := dw) (acc_ne_whole_of_known hk)
       refine ⟨?_, fun k => ?_⟩
-      · simp [Part.expr, Part.wid, Expr2.xfWidth, Expr2.xfWidthSum, expr_xfWidth hA, hw, Nat.mul_comm]
+      · simp [Part.expr, Part.wid, Expr2.xfWidth, Expr2.xfWidthSum, expr_xfWidth hA, Nat.mul_comm]
       · simp [Part.expr, Part.bit, Expr2.xfBits, Expr2.xfWidth, Expr2.xfWidthSum, Expr2.catBits, expr_xfWidth hA,
-          expr_xfBits, hw]
+          expr_xfBits]
 
 /-- A concatenation of literals and accesses: its width and its bits. -/
 theorem cat_low {m : Design2} {σ : String → Int} {dw : String → Nat}
@@ -2956,9 +2951,9 @@ theorem cat_low {m : Design2} {σ : String → Int} {dw : String → Nat}
       · simp [Expr2.xfWidthSum, w1, ih1, Nat.add_comm]
       · simp [Expr2.catBits, catBit, ih1, ih2, b1, Part.wid]
   | .reprd c a :: ps, hk, hL => by
-      simp only [partKnown, Bool.and_eq_true] at hk
-      obtain ⟨ih1, ih2⟩ := cat_low env ps hk.2 (fun x hx => hL x (by simp [partLeaves, hx]))
-      obtain ⟨w1, b1⟩ := part_low (m := m) (σ := σ) (dw := dw) env (.reprd c a) (by simpa [partKnown] using hk.1)
+      simp only [partKnown] at hk
+      obtain ⟨ih1, ih2⟩ := cat_low env ps hk (fun x hx => hL x (by simp [partLeaves, hx]))
+      obtain ⟨w1, b1⟩ := part_low (m := m) (σ := σ) (dw := dw) env (.reprd c a) (by simp [partKnown])
         (fun x hx => hL x (by simp [partLeaves] at hx ⊢; simp [hx]))
       refine ⟨?_, fun k => ?_⟩
       · simp [Expr2.xfWidthSum, w1, ih1, Nat.add_comm]
@@ -3332,7 +3327,7 @@ theorem xf_lit_ofInt (m : Design2) (tw : Nat) (v : Int) :
 theorem part_xf {m : Design2} {σ : String → Int} {dw : String → Nat} (p : Part)
     (hk : partKnown [p] = true) (hL : ∀ x ∈ partLeaves [p], LeafOk m σ dw x)
     (env : String → Nat → Bool) :
-    (p.expr σ).xfWidth m = some (p.wid σ dw) ∧ ∀ k, (p.expr σ).xfBits m env k = p.bit σ env k :=
+    (p.expr σ).xfWidth m = some (p.wid σ dw) ∧ ∀ k, (p.expr σ).xfBits m env k = p.bit σ dw env k :=
   part_low env p hk hL
 
 /-- The `>>` arm of `Sk.bitC` for a left operand that is not a fitted zero-extended leaf: the operand at the operation

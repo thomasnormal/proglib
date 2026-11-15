@@ -21,8 +21,7 @@ what the checker's `--tactics` advisory reports as `in_fragment false`):
   `instDivOperand2` (`comb_shift`), and proved below by `sv_structure` and `sv_equations`;
 * `neg_selfdet`: `+` under a reduction (a self-determined position keeps the v1 fragment);
 * `neg_shift_gv` (gate 4b): a shift by an expression over a genvar (`a << (i + 1)`); the bare genvar `a << i` is read;
-* `neg_repl_whole`, `neg_repl_nonaffine`, `neg_repl_op`, `neg_repl_selfdet` (gate 4c): a replication of a WHOLE signal (`{2{a}}`: its width is the
-  declared one, replicate a bit or a part select), with a count that is a product of two parameters (`{N*M{a[0]}}`), of an operation
+* `neg_repl_nonaffine`, `neg_repl_op`, `neg_repl_selfdet` (gate 4c): a replication with a count that is a product of two parameters (`{N*M{a[0]}}`), of an operation
   (`{2{a & b}}`), in a self-determined position (`|{4{a[0]}}`: those operands keep the v1 fragment), and in a leaf of an `always_comb` tree
   (`neg_repl_leaf`: the procedural chain does not carry the scope of a constant of the instance);
 * `neg_part_nz`, `neg_row_nz` (gate 4a): a part select of a declaration whose range is not zero-based (`[8:1]`) and a
@@ -146,13 +145,11 @@ error: sv_structure: outside the supported fragment — site `g#0`: a shift amou
 example (N : Nat) (hN : 1 ≤ N) : CombDesign (neg_shift_gv.sem N) := by
   sv_structure
 
--- a replication of a whole signal
-/--
-error: sv_structure: outside the supported fragment — site `plain#0`: replication of a whole signal (outside the v1 fragment: replicate a bit or a part select)
--/
-#guard_msgs (whitespace := lax) in
-example (N : Nat) (hN : 1 ≤ N) : CombDesign (neg_repl_whole.sem N) := by
+-- a replication of a whole signal (`{2{a}}`): refused until tac8, read since (the window of a whole signal is its declared
+-- width, `Part.wid`; the design's file keeps its old name and comment)
+example (N : Nat) (hN : 1 ≤ N) (hR : (N : Int) < 2147483648) : CombDesign (neg_repl_whole.sem N) := by
   sv_structure
+  all_goals (intros; first | omega | (sv_rowmajor; (try simp only [true_and]); omega))
 
 -- a replication count that is a product of two parameters
 /--

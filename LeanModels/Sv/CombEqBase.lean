@@ -54,8 +54,8 @@ open CombView
 inductive Part where
   | lit (v : LVec)
   | rd (a : Acc)
-  /-- WP-B2 gate 4c: a replication `{c{v}}` of a sized literal, `{c{a}}` of one access that is not a whole signal
-  (the count affine, non-negative: an obligation of `InRangeObl`). -/
+  /-- WP-B2 gate 4c: a replication `{c{v}}` of a sized literal, `{c{a}}` of one access (a whole signal included, tac8:
+  its width is its window's, the declared width) (the count affine, non-negative: an obligation of `InRangeObl`). -/
   | replit (c : Aff) (v : LVec)
   | reprd (c : Aff) (a : Acc)
 
@@ -613,13 +613,13 @@ def Part.wid (σ : String → Int) (dw : String → Nat) : Part → Nat
   | .lit v => v.width
   | .rd a => (a.win σ dw).2.2
   | .replit c v => (c.eval σ).toNat * v.width
-  | .reprd c a => (c.eval σ).toNat * Acc.wid σ a
+  | .reprd c a => (c.eval σ).toNat * (a.win σ dw).2.2
 
-def Part.bit (σ : String → Int) (rd : String → Nat → Bool) : Part → Nat → Bool
+def Part.bit (σ : String → Int) (dw : String → Nat) (rd : String → Nat → Bool) : Part → Nat → Bool
   | .lit v => fun k => v.boolAt k
   | .rd a => fun k => accBit σ rd a k
   | .replit _ v => fun k => v.boolAt (k % v.width)
-  | .reprd _ a => fun k => accBit σ rd a (k % Acc.wid σ a)
+  | .reprd _ a => fun k => accBit σ rd a (k % (a.win σ dw).2.2)
 
 /-- A concatenation: parts in source order, the first part most significant. -/
 def catBit (σ : String → Int) (dw : String → Nat) (rd : String → Nat → Bool) :
@@ -627,7 +627,7 @@ def catBit (σ : String → Int) (dw : String → Nat) (rd : String → Nat → 
   | [], _ => false
   | p :: ps, k =>
       if k < (ps.map (Part.wid σ dw)).sum then catBit σ dw rd ps k
-      else p.bit σ rd (k - (ps.map (Part.wid σ dw)).sum)
+      else p.bit σ dw rd (k - (ps.map (Part.wid σ dw)).sum)
 
 /-- The self-determined (natural) width of a skeleton, `selfWidth2` of its expression: a gate, `+`, `-` or
 conditional has the widest of its operands (`Sk.SelfOk` / `Sk.WidthOk` say they agree where the v1 reading
@@ -667,7 +667,7 @@ def Sk.bit (σ : String → Int) (dw : String → Nat) (rd : String → Nat → 
   | .gate .or l r, k => l.bit σ dw rd k || r.bit σ dw rd k
   | .gate .xor l r, k => l.bit σ dw rd k ^^ r.bit σ dw rd k
   | .cat ps, k => catBit σ dw rd ps k
-  | .rep p, k => p.bit σ rd k
+  | .rep p, k => p.bit σ dw rd k
   | .fill b, _ => b == Logic.l1
   | .bnot a, k => !(a.bit σ dw rd k)
   | .lnot a, _ => !(XF.any (a.width σ dw) (a.bit σ dw rd))
@@ -854,8 +854,7 @@ def Sk.leaves : Sk → List Acc
   | .sx p => p.leaves
   | .zc _ => []
 
-/-- A replicated access is never a whole signal (the recognizer refuses it: its width is the declared one, which
-`Part.wid` does not read), and `partKnown` checks it, so the x-free layer can use `win` for its width. -/
+/-- A whole-signal access (no longer read by `partKnown`, tac8: a replicated whole signal has its window's width). -/
 def _root_.LeanModels.Sv.CombView.Acc.isWhole : Acc → Bool
   | .whole _ => true
   | _ => false
@@ -866,7 +865,7 @@ def partKnown : List Part → Bool
   | .lit v :: ps => v.knownB && partKnown ps
   | .rd _ :: ps => partKnown ps
   | .replit _ v :: ps => v.knownB && partKnown ps
-  | .reprd _ a :: ps => !a.isWhole && partKnown ps
+  | .reprd _ _ :: ps => partKnown ps
 
 def Sk.knownB : Sk → Bool
   | .lit v => v.knownB
@@ -1110,7 +1109,7 @@ def Sk.bitC (σ : String → Int) (dw : String → Nat) (tw : Nat) (rd : String 
   | .gate .or l r, k => l.bitC σ dw tw rd k || r.bitC σ dw tw rd k
   | .gate .xor l r, k => l.bitC σ dw tw rd k ^^ r.bitC σ dw tw rd k
   | .cat ps, k => catBit σ dw rd ps k
-  | .rep p, k => p.bit σ rd k
+  | .rep p, k => p.bit σ dw rd k
   | .fill b, _ => b == Logic.l1
   | .bnot a, k => !(a.bitC σ dw tw rd k)
   | .lnot a, _ => !(XF.any (a.width σ dw) (a.bitC σ dw (a.width σ dw) rd))
@@ -1141,7 +1140,7 @@ def Sk.bitC (σ : String → Int) (dw : String → Nat) (tw : Nat) (rd : String 
   | .cmp .ge l r, _ =>
       decide (XF.val (l.bitC σ dw (max (l.width σ dw) (r.width σ dw)) rd) (max (l.width σ dw) (r.width σ dw)) ≥
         XF.val (r.bitC σ dw (max (l.width σ dw) (r.width σ dw)) rd) (max (l.width σ dw) (r.width σ dw)))
-  | .ext p, k => XF.zext (p.wid σ dw) (p.bit σ rd) k
+  | .ext p, k => XF.zext (p.wid σ dw) (p.bit σ dw rd) k
   | .add l r, k => XF.addBits tw (l.bitC σ dw tw rd) tw (r.bitC σ dw tw rd) k
   | .sub l r, k => XF.subBits tw (l.bitC σ dw tw rd) tw (r.bitC σ dw tw rd) k
   | .mul l r, k => XF.mulBits tw (l.bitC σ dw tw rd) tw (r.bitC σ dw tw rd) k

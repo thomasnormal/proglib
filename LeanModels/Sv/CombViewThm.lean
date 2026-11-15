@@ -1015,8 +1015,7 @@ where
     split at h
     · exact Or.inl ⟨_, rfl, by simpa using h.symm⟩
     · rename_i e _
-      unfold notWhole at h
-      split at h <;> first | (simp at h) | exact Or.inr ⟨e, rfl, _, by assumption⟩
+      exact Or.inr ⟨e, rfl, _, h⟩
     · simp at h
 
 /-- An access leaf compares no signed signals. -/
@@ -2918,23 +2917,19 @@ theorem partsCO_cons {σ : String → Int} {ns : List String} {p : PExpr} {ps : 
   exact ⟨⟨fun n hn => h1 n (by simp [hn]), fun c hc => h2 c (by simp [hc])⟩,
     fun n hn => h1 n (by simp [hn]), fun c hc => h2 c (by simp [hc])⟩
 
-/-- The argument of a replication is a literal (no read) or one access (a non-literal). -/
-theorem notWhole_ok {r : Except String (List Acc)} {rs : List Acc} (h : notWhole r = .ok rs) :
-    r = .ok rs ∧ ∀ n, rs ≠ [.whole n] := by
-  rcases r with e | l
-  · simp [notWhole] at h
-  · rcases l with _ | ⟨x, _ | ⟨y, t⟩⟩
-    · simp only [notWhole, Except.ok.injEq] at h
-      subst h
-      exact ⟨rfl, fun n => by simp⟩
-    · cases x <;> simp [notWhole] at h <;> (subst h; exact ⟨rfl, fun n => by simp⟩)
-    · simp only [notWhole, Except.ok.injEq] at h
-      subst h
-      exact ⟨rfl, fun n => by simp⟩
+/-- A leaf read is one access. -/
+theorem rdsLeaf_length {ds : List DeclT} {e : PExpr} {rs : List Acc} (h : rdsLeaf? ds e = .ok rs) : rs.length = 1 := by
+  unfold rdsLeaf? at h
+  split at h
+  · simp only [Except.ok.injEq] at h
+    subst h
+    rfl
+  · simp at h
 
+/-- The argument of a replication is a literal (no read) or one access (a non-literal; a whole signal included, tac8). -/
 theorem repArgRd?_cases {ds : List DeclT} {a : PExpr} {rs : List Acc} (h : repArgRd? ds a = .ok rs) :
     (∃ v, a = .concat [.lit v] ∧ rs = []) ∨
-      (∃ e, a = .concat [e] ∧ rdsLeaf? ds e = .ok rs ∧ (∀ v, e ≠ .lit v) ∧ ∀ n, rs ≠ [.whole n]) := by
+      (∃ e, a = .concat [e] ∧ rdsLeaf? ds e = .ok rs ∧ (∀ v, e ≠ .lit v) ∧ rs.length = 1) := by
   by_cases hc : ∃ e, a = .concat [e]
   · obtain ⟨e, rfl⟩ := hc
     by_cases hl : ∃ v, e = .lit v
@@ -2943,10 +2938,9 @@ theorem repArgRd?_cases {ds : List DeclT} {a : PExpr} {rs : List Acc} (h : repAr
       exact ⟨v, rfl, by simpa [repArgRd?] using h.symm⟩
     · right
       have hnl : ∀ v, e ≠ .lit v := fun v hv => hl ⟨v, hv⟩
-      have h' : notWhole (rdsLeaf? ds e) = .ok rs := by
+      have h' : rdsLeaf? ds e = .ok rs := by
         cases e <;> first | exact h | exact absurd rfl (hnl _)
-      obtain ⟨h1, h2⟩ := notWhole_ok h'
-      exact ⟨e, rfl, h1, hnl, h2⟩
+      exact ⟨e, rfl, h', hnl, rdsLeaf_length h'⟩
   · exfalso
     cases a with
     | concat ps =>
@@ -3388,7 +3382,7 @@ theorem partRdD?_cases {ds : List DeclT} {p : PExpr} {rs : List Acc} (h : partRd
 
 theorem repArgRdD?_cases {ds : List DeclT} {a : PExpr} {rs : List Acc} (h : repArgRdD? ds a = .ok rs) :
     ∃ x, a = .concat [x] ∧ ((∃ v, x.peelMk = .lit v ∧ rs = []) ∨
-      (dLeaf? ds x.peelMk = .ok rs ∧ (∀ v, x.peelMk ≠ .lit v) ∧ ∀ n, rs ≠ [.whole n])) := by
+      (dLeaf? ds x.peelMk = .ok rs ∧ (∀ v, x.peelMk ≠ .lit v) ∧ rs.length = 1)) := by
   unfold repArgRdD? at h
   split at h
   · rename_i x
@@ -3397,8 +3391,7 @@ theorem repArgRdD?_cases {ds : List DeclT} {a : PExpr} {rs : List Acc} (h : repA
     · rename_i v hv
       exact Or.inl ⟨v, hv, by simpa using h.symm⟩
     · rename_i hnl
-      obtain ⟨h1, h2⟩ := notWhole_ok h
-      exact Or.inr ⟨h1, fun v hv => hnl v hv, h2⟩
+      exact Or.inr ⟨h, fun v hv => hnl v hv, rdsLeaf_length h⟩
   · simp at h
 
 theorem repRdD?_cases {ds : List DeclT} {c a : PExpr} {rs : List Acc} (h : repRdD? ds c a = .ok rs) :
