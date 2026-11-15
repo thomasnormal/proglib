@@ -65,10 +65,13 @@ constant and the shifts of one named constant by another (`m`, `n`: genvars, par
 * `bit m n`  `m / 2 ^ n % 2`     from `(m >> n) & 1`
 * `shrK m k` `m / 2 ^ k`         from `m >> k`, `k` an integer literal in `[0, 32)` (tac6)
 * `shlK m k` `m / 2 ^ k * 2 ^ k` from `(m >> k) << k`, the same literal twice (tac6)
+* `shrA m n c` `m / 2 ^ (n + c)` from `m >> (n + c)` and `m >> (n - c)`, `c` an integer literal (tac7)
+* `mul g x`  `g · x`             a named constant times an atom: the products `(3*t)*(P >> (l+1))` of a form of names
+                                 and an atom form (`affMul`), one per name and atom (tac7)
 
 `/` and `%` are the floor ones (`Int.ediv`, `Int.emod`), the instantiation's `tdiv` on the non-negative numerator the
 range `XAt.Ok` demands. IEEE 1800-2023 §11.4.10 (shifts: the amount is unsigned, a logical `>>` fills with zeros),
-§11.4.3 (`**`), §11.4.8 (`&`), all of 32-bit `int` operands (§27.4: a genvar is an integer). -/
+§11.4.3 (`**`), §11.4.8 (`&`), §11.4.2 (`*`), all of 32-bit `int` operands (§27.4: a genvar is an integer). -/
 inductive XAt where
   | pow (b : Int) (n : String)
   | shr (m n : String)
@@ -76,6 +79,8 @@ inductive XAt where
   | bit (m n : String)
   | shrK (m : String) (k : Nat)
   | shlK (m : String) (k : Nat)
+  | shrA (m n : String) (c : Int)
+  | mul (g : String) (x : XAt)
 deriving Repr, BEq, DecidableEq, Inhabited
 
 namespace XAt
@@ -88,6 +93,8 @@ def eval (σ : String → Int) : XAt → Int
   | .bit m n => σ m / 2 ^ (σ n).toNat % 2
   | .shrK m k => σ m / 2 ^ k
   | .shlK m k => σ m / 2 ^ k * 2 ^ k
+  | .shrA m n c => σ m / 2 ^ (σ n + c).toNat
+  | .mul g x => σ g * x.eval σ
 
 /-- The names the atom reads. -/
 def names : XAt → List String
@@ -97,11 +104,14 @@ def names : XAt → List String
   | .bit m n => [m, n]
   | .shrK m _ => [m]
   | .shlK m _ => [m]
+  | .shrA m n _ => [m, n]
+  | .mul g x => g :: x.names
 
 /-- **The atom's range**: where the instantiation's two evaluators (`evalInt`, unbounded, for indices and loop bounds;
 `evalAt` at the signed 32-bit type for generate conditions) are defined and give the atom's value, and that value is
 IEEE's 32-bit `int` one: a shift amount in `[0, 32)`, a shifted name a non-negative 32-bit value, a power a 32-bit
-value. -/
+value. A product is defined wherever its atom is: `evalInt`'s `*` is the unbounded product, and in a generate condition
+the product's own 32-bit range is owed with every other subterm's (`Guard.rngs`). -/
 def Ok (σ : String → Int) : XAt → Prop
   | .pow b n => 0 ≤ σ n ∧ σ n < 32 ∧ b ^ (σ n).toNat < 2147483648
   | .shr m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
@@ -109,17 +119,39 @@ def Ok (σ : String → Int) : XAt → Prop
   | .bit m n => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32
   | .shrK m k => 0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32
   | .shlK m k => 0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32
+  | .shrA m n c => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n + c ∧ σ n + c < 32
+  | .mul _ x => x.Ok σ
 
-instance (σ : String → Int) (x : XAt) : Decidable (x.Ok σ) := by
-  cases x <;> unfold XAt.Ok <;> infer_instance
+/-- The decision of `XAt.Ok` (structural: a product's is its atom's). -/
+def decOk (σ : String → Int) : (x : XAt) → Decidable (x.Ok σ)
+  | .pow b n => inferInstanceAs (Decidable (0 ≤ σ n ∧ σ n < 32 ∧ b ^ (σ n).toNat < 2147483648))
+  | .shr m n => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32))
+  | .shl m n => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32))
+  | .bit m n => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n ∧ σ n < 32))
+  | .shrK m k => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32))
+  | .shlK m k => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32))
+  | .shrA m n c => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n + c ∧ σ n + c < 32))
+  | .mul _ x => decOk σ x
+
+instance (σ : String → Int) (x : XAt) : Decidable (x.Ok σ) := decOk σ x
 
 theorem eval_congr (σ σ' : String → Int) (x : XAt) (h : ∀ n ∈ x.names, σ n = σ' n) : x.eval σ = x.eval σ' := by
-  cases x <;> simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
-    forall_eq] at h <;> simp only [eval, h]
+  induction x with
+  | mul g x ih =>
+      simp only [names, List.mem_cons, forall_eq_or_imp] at h
+      simp only [eval, h.1, ih h.2]
+  | _ =>
+      simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
+        forall_eq] at h <;> simp only [eval, h]
 
 theorem ok_congr (σ σ' : String → Int) (x : XAt) (h : ∀ n ∈ x.names, σ n = σ' n) : x.Ok σ ↔ x.Ok σ' := by
-  cases x <;> simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
-    forall_eq] at h <;> simp only [Ok, h]
+  induction x with
+  | mul g x ih =>
+      simp only [names, List.mem_cons, forall_eq_or_imp] at h
+      simp only [Ok, ih h.2]
+  | _ =>
+      simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
+        forall_eq] at h <;> simp only [Ok, h]
 
 end XAt
 
@@ -559,10 +591,26 @@ theorem Agrees.mono {σ : String → Int} {E : IEnv} {ns ms : List String} (h : 
 
 /-! ## Recognizing an affine constant expression -/
 
+/-- Each name of `ts` times each atom of `xs`: the product atoms `XAt.mul n x` with the product coefficients. -/
+def mulXs (ts : List (String × Int)) (xs : List (Int × XAt)) : List (Int × XAt) :=
+  ts.flatMap fun p => xs.map fun q => (p.2 * q.1, XAt.mul p.1 q.2)
+
+/-- **The product of a form of names and an atom form** (tac7, kara's slot bases `(3*t)*(P>>(l+1))`): `a` names and a
+constant (no quotient, no atom), `b` atoms and a constant (no name, no quotient). The product distributes:
+`(Σ kᵢ·nᵢ + c)·(Σ jₗ·xₗ + d) = Σ kᵢ·d·nᵢ + c·d + Σ kᵢ·jₗ·(nᵢ·xₗ) + Σ c·jₗ·xₗ`, each `nᵢ·xₗ` a product atom
+(`XAt.mul`). A product of two names, or of a name and a quotient, is not read. -/
+def affMulLX (a b : Aff) : Option Aff :=
+  if a.qs.isEmpty && a.xs.isEmpty && b.terms.isEmpty && b.qs.isEmpty then
+    some { terms := Aff.scaleTerms b.c a.terms, c := a.c * b.c, xs := mulXs a.terms b.xs ++ Aff.scaleXs a.c b.xs }
+  else none
+
 def affMul (a b : Aff) : Option Aff :=
   if a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty then some (b.scale a.c)
   else if b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty then some (a.scale b.c)
-  else none
+  else
+    match affMulLX a b with
+    | some c => some c
+    | none => affMulLX b a
 
 /-- `n / d` for a named constant `n` and a positive integer constant `d`: one quotient atom. Any other quotient (of a sum,
 of a product, by a parameter) is not read. -/
@@ -602,10 +650,34 @@ theorem litAmt?_eq {r : PExpr} {k : Nat} (h : litAmt? r = some k) : r = .int (k 
     · rw [if_neg hv] at h; simp at h
   · simp at h
 
+/-- An affine shift amount (`shrA`, tac7): a named constant plus or minus an integer literal, `n + c` or `n - c`, as
+`(n, c)` and `(n, -c)`. -/
+def affAmt? : PExpr → Option (String × Int)
+  | .binary (.m0 .add) l (.int c) => (nameOf? l).map fun n => (n, c)
+  | .binary (.m0 .sub) l (.int c) => (nameOf? l).map fun n => (n, -c)
+  | _ => none
+
+theorem affAmt?_cases {r : PExpr} {n : String} {c : Int} (h : affAmt? r = some (n, c)) :
+    ∃ l, nameOf? l = some n ∧ (r = .binary (.m0 .add) l (.int c) ∨ r = .binary (.m0 .sub) l (.int (-c))) := by
+  unfold affAmt? at h
+  split at h
+  · rename_i l c'
+    rcases hl : nameOf? l with _ | n' <;> simp only [hl, Option.map_none, Option.map_some, reduceCtorEq,
+      Option.some.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    exact ⟨l, hl, Or.inl rfl⟩
+  · rename_i l c'
+    rcases hl : nameOf? l with _ | n' <;> simp only [hl, Option.map_none, Option.map_some, reduceCtorEq,
+      Option.some.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    exact ⟨l, hl, Or.inr (by rw [Int.neg_neg])⟩
+  · simp at h
+
 /-- **A shift or power atom** at the node `op l r` (`XAt`): `1 << n`, `b ** n` (a literal `b ≥ 2`), `m >> n`,
-`(m >> n) << n` and `(m >> n) & 1`, `m` and `n` named constants, and `m >> k`, `(m >> k) << k` of a literal amount
-`k ∈ [0, 32)` (`shrK`, `shlK`). A pure pattern match on the envelope's node and its
-operands; anything else (a shift by a sum, `c << n` for `c ≠ 1`, `>>>`, `<<<`) is not an atom. -/
+`(m >> n) << n` and `(m >> n) & 1`, `m` and `n` named constants, `m >> k`, `(m >> k) << k` of a literal amount
+`k ∈ [0, 32)` (`shrK`, `shlK`), and `m >> (n + c)`, `m >> (n - c)` of an affine amount (`shrA`, `affAmt?`). A pure pattern
+match on the envelope's node and its operands; anything else (a shift by any other sum, `c << n` for `c ≠ 1`, `>>>`,
+`<<<`) is not an atom. -/
 def xatOf? (op : SymBinOp) (l r : PExpr) : Option XAt :=
   match op, l with
   | .shl, .int v => if v = 1 then (nameOf? r).map (XAt.pow 2) else none
@@ -613,7 +685,10 @@ def xatOf? (op : SymBinOp) (l r : PExpr) : Option XAt :=
   | .shr, l =>
       match nameOf? l, nameOf? r with
       | some m, some n => some (.shr m n)
-      | some m, none => (litAmt? r).map (XAt.shrK m)
+      | some m, none =>
+          match litAmt? r with
+          | some k => some (.shrK m k)
+          | none => (affAmt? r).map fun p => XAt.shrA m p.1 p.2
       | _, _ => none
   | .shl, .binary .shr l' r' =>
       match nameOf? l', nameOf? r', nameOf? r with
@@ -652,53 +727,122 @@ def ExactAffObl (σ : String → Int) (e : PExpr) : Prop :=
 theorem ExactAffObl.mono {σ : String → Int} {e : PExpr}
     (h : ExactAffObl σ e) : ExactAffObl σ e := h
 
+theorem evalXs_map_mul (σ : String → Int) (n : String) (k : Int) : ∀ xs : List (Int × XAt),
+    Aff.evalXs σ (xs.map fun q => (k * q.1, XAt.mul n q.2)) = k * σ n * Aff.evalXs σ xs
+  | [] => by simp
+  | (j, x) :: xs => by
+      simp only [List.map_cons, Aff.evalXs, XAt.eval, evalXs_map_mul σ n k xs]
+      grind
+
+theorem evalXs_mulXs (σ : String → Int) : ∀ (ts : List (String × Int)) (xs : List (Int × XAt)),
+    Aff.evalXs σ (mulXs ts xs) = Aff.evalTerms σ ts * Aff.evalXs σ xs
+  | [], xs => by simp [mulXs, Aff.evalTerms]
+  | (n, k) :: ts, xs => by
+      have ih := evalXs_mulXs σ ts xs
+      simp only [mulXs, List.flatMap_cons] at ih ⊢
+      rw [Aff.evalXs_append, evalXs_map_mul, ih, Aff.evalTerms]
+      grind
+
+theorem xsNames_map_mul (n : String) (k : Int) : ∀ xs : List (Int × XAt),
+    Aff.xsNames (xs.map fun q => (k * q.1, XAt.mul n q.2)) = xs.flatMap fun q => n :: q.2.names
+  | [] => rfl
+  | (j, x) :: xs => by simp [Aff.xsNames, XAt.names, xsNames_map_mul n k xs]
+
+theorem xOkL_map_mul (σ : String → Int) (n : String) (k : Int) : ∀ xs : List (Int × XAt),
+    Aff.XOkL σ (xs.map fun q => (k * q.1, XAt.mul n q.2)) ↔ Aff.XOkL σ xs
+  | [] => by simp
+  | (j, x) :: xs => by simp [XAt.Ok, xOkL_map_mul σ n k xs]
+
+theorem xOkL_mulXs (σ : String → Int) {xs : List (Int × XAt)} (h : Aff.XOkL σ xs) :
+    ∀ ts : List (String × Int), Aff.XOkL σ (mulXs ts xs)
+  | [] => by simp [mulXs]
+  | (n, k) :: ts => by
+      have ih := xOkL_mulXs σ h ts
+      simp only [mulXs, List.flatMap_cons] at ih ⊢
+      exact (Aff.xOkL_append σ _ _).2 ⟨(xOkL_map_mul σ n k xs).2 h, ih⟩
+
+/-- The shape `affMulLX` reads, and its result. -/
+theorem affMulLX_cases {a b c : Aff} (h : affMulLX a b = some c) :
+    a.qs = [] ∧ a.xs = [] ∧ b.terms = [] ∧ b.qs = [] ∧
+      c = { terms := Aff.scaleTerms b.c a.terms, c := a.c * b.c, xs := mulXs a.terms b.xs ++ Aff.scaleXs a.c b.xs } := by
+  unfold affMulLX at h
+  by_cases hc : (a.qs.isEmpty && a.xs.isEmpty && b.terms.isEmpty && b.qs.isEmpty) = true
+  · rw [if_pos hc, Option.some.injEq] at h
+    simp only [Bool.and_eq_true, List.isEmpty_iff] at hc
+    exact ⟨hc.1.1.1, hc.1.1.2, hc.1.2, hc.2, h.symm⟩
+  · rw [if_neg hc] at h; simp at h
+
+theorem affMulLX_eval {a b c : Aff} (σ : String → Int) (h : affMulLX a b = some c) :
+    c.eval σ = a.eval σ * b.eval σ := by
+  obtain ⟨h1, h2, h3, h4, rfl⟩ := affMulLX_cases h
+  simp only [Aff.eval_eq, h1, h2, h3, h4, Aff.evalQs, Aff.evalXs, Aff.evalXs_append, evalXs_mulXs,
+    Aff.evalXs_scaleXs, Aff.evalTerms_scaleTerms, Aff.evalTerms]
+  grind
+
+/-- The names of both factors are among the product's, and the product's atoms in range put the factors' in range. -/
+theorem affMulLX_names {a b c : Aff} {σ : String → Int} (h : affMulLX a b = some c) :
+    (∀ n ∈ a.names, n ∈ c.names) ∧ (∀ n ∈ b.names, n ∈ c.names) ∧ (c.XOk σ → a.XOk σ ∧ b.XOk σ) := by
+  obtain ⟨h1, h2, h3, h4, rfl⟩ := affMulLX_cases h
+  refine ⟨fun n hn => ?_, fun n hn => ?_, fun hc => ⟨Aff.xOk_of_nil h2, ?_⟩⟩
+  · simp only [Aff.names_eq, h1, h2, List.map_nil, List.append_nil, Aff.xsNames] at hn
+    simp only [Aff.names_eq, Aff.names_scaleTerms, List.mem_append]
+    exact Or.inl (Or.inl hn)
+  · simp only [Aff.names_eq, h3, h4, List.map_nil, List.nil_append] at hn
+    simp only [Aff.names_eq, List.mem_append, Aff.xsNames_append, Aff.xsNames_scaleXs]
+    exact Or.inr (Or.inr hn)
+  · unfold Aff.XOk at hc ⊢
+    exact (Aff.xOkL_scaleXs σ a.c b.xs).1 ((Aff.xOkL_append σ _ _).1 hc).2
+
+/-- **The three readings of a product**: a constant times a form, a form times a constant, and a form of names times an
+atom form in either order (`affMulLX`). -/
+theorem affMul_cases {a b c : Aff} (h : affMul a b = some c) :
+    (a.terms = [] ∧ a.qs = [] ∧ a.xs = [] ∧ c = b.scale a.c) ∨
+    (b.terms = [] ∧ b.qs = [] ∧ b.xs = [] ∧ c = a.scale b.c) ∨
+    affMulLX a b = some c ∨ affMulLX b a = some c := by
+  unfold affMul at h
+  by_cases ha : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = true
+  · simp only [ha, if_true, Option.some.injEq] at h
+    simp only [Bool.and_eq_true, List.isEmpty_iff] at ha
+    exact Or.inl ⟨ha.1.1, ha.1.2, ha.2, h.symm⟩
+  · have ha' : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = false := by simpa using ha
+    simp only [ha', Bool.false_eq_true, if_false] at h
+    by_cases hb : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = true
+    · simp only [hb, if_true, Option.some.injEq] at h
+      simp only [Bool.and_eq_true, List.isEmpty_iff] at hb
+      exact Or.inr (Or.inl ⟨hb.1.1, hb.1.2, hb.2, h.symm⟩)
+    · have hb' : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = false := by simpa using hb
+      simp only [hb', Bool.false_eq_true, if_false] at h
+      rcases h1 : affMulLX a b with _ | d
+      · rw [h1] at h; exact Or.inr (Or.inr (Or.inr h))
+      · rw [h1, Option.some.injEq] at h; subst h; exact Or.inr (Or.inr (Or.inl rfl))
+
 theorem affMul_eval {a b c : Aff} (σ : String → Int) (h : affMul a b = some c) :
     c.eval σ = a.eval σ * b.eval σ := by
-  unfold affMul at h
-  by_cases ha : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = true
-  · simp only [ha, if_true, Option.some.injEq] at h
-    subst h
-    simp only [Bool.and_eq_true, List.isEmpty_iff] at ha
-    rw [Aff.eval_scale, Aff.eval_of_terms_nil σ a ha.1.1 ha.1.2 ha.2]
-  · have ha' : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = false := by simpa using ha
-    simp only [ha', Bool.false_eq_true, if_false] at h
-    by_cases hb : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = true
-    · simp only [hb, if_true, Option.some.injEq] at h
-      subst h
-      simp only [Bool.and_eq_true, List.isEmpty_iff] at hb
-      rw [Aff.eval_scale, Aff.eval_of_terms_nil σ b hb.1.1 hb.1.2 hb.2, Int.mul_comm]
-    · have hb' : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = false := by simpa using hb
-      simp [hb'] at h
+  rcases affMul_cases h with ⟨h1, h2, h3, rfl⟩ | ⟨h1, h2, h3, rfl⟩ | h' | h'
+  · rw [Aff.eval_scale, Aff.eval_of_terms_nil σ a h1 h2 h3]
+  · rw [Aff.eval_scale, Aff.eval_of_terms_nil σ b h1 h2 h3, Int.mul_comm]
+  · exact affMulLX_eval σ h'
+  · rw [affMulLX_eval σ h', Int.mul_comm]
 
-theorem affMul_names {a b c : Aff} (h : affMul a b = some c) :
-    (a.terms = [] ∧ a.qs = [] ∧ a.xs = [] ∧ c.names = b.names ∧ c.xs = Aff.scaleXs a.c b.xs) ∨
-    (b.terms = [] ∧ b.qs = [] ∧ b.xs = [] ∧ c.names = a.names ∧ c.xs = Aff.scaleXs b.c a.xs) := by
-  unfold affMul at h
-  by_cases ha : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = true
-  · simp only [ha, if_true, Option.some.injEq] at h
-    subst h
-    simp only [Bool.and_eq_true, List.isEmpty_iff] at ha
-    exact Or.inl ⟨ha.1.1, ha.1.2, ha.2, by simp [Aff.names_scale], rfl⟩
-  · have ha' : (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) = false := by simpa using ha
-    simp only [ha', Bool.false_eq_true, if_false] at h
-    by_cases hb : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = true
-    · simp only [hb, if_true, Option.some.injEq] at h
-      subst h
-      simp only [Bool.and_eq_true, List.isEmpty_iff] at hb
-      exact Or.inr ⟨hb.1.1, hb.1.2, hb.2, by simp [Aff.names_scale], rfl⟩
-    · have hb' : (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) = false := by simpa using hb
-      simp [hb'] at h
+/-- The names of both factors are among the product's. -/
+theorem affMul_names_mem {a b c : Aff} (h : affMul a b = some c) :
+    (∀ n ∈ a.names, n ∈ c.names) ∧ (∀ n ∈ b.names, n ∈ c.names) := by
+  rcases affMul_cases h with ⟨h1, h2, h3, rfl⟩ | ⟨h1, h2, h3, rfl⟩ | h' | h'
+  · refine ⟨fun n hn => ?_, fun n hn => by rw [Aff.names_scale]; exact hn⟩
+    simp [Aff.names_eq, h1, h2, h3, Aff.xsNames] at hn
+  · refine ⟨fun n hn => by rw [Aff.names_scale]; exact hn, fun n hn => ?_⟩
+    simp [Aff.names_eq, h1, h2, h3, Aff.xsNames] at hn
+  · exact ⟨(affMulLX_names (σ := fun _ => 0) h').1, (affMulLX_names (σ := fun _ => 0) h').2.1⟩
+  · exact ⟨(affMulLX_names (σ := fun _ => 0) h').2.1, (affMulLX_names (σ := fun _ => 0) h').1⟩
 
-/-- The atoms of a product are those of its non-constant side: in range where that side's are. -/
+/-- The atoms of a product in range put those of its factors in range. -/
 theorem affMul_xOk {a b c : Aff} {σ : String → Int} (h : affMul a b = some c) (hc : c.XOk σ) :
     a.XOk σ ∧ b.XOk σ := by
-  rcases affMul_names h with ⟨-, -, hx, -, hcx⟩ | ⟨-, -, hx, -, hcx⟩
-  · refine ⟨Aff.xOk_of_nil hx, ?_⟩
-    unfold Aff.XOk at hc ⊢
-    rwa [hcx, Aff.xOkL_scaleXs] at hc
-  · refine ⟨?_, Aff.xOk_of_nil hx⟩
-    unfold Aff.XOk at hc ⊢
-    rwa [hcx, Aff.xOkL_scaleXs] at hc
+  rcases affMul_cases h with ⟨-, -, hx, rfl⟩ | ⟨-, -, hx, rfl⟩ | h' | h'
+  · exact ⟨Aff.xOk_of_nil hx, Aff.xOk_scale.1 hc⟩
+  · exact ⟨Aff.xOk_scale.1 hc, Aff.xOk_of_nil hx⟩
+  · exact (affMulLX_names h').2.2 hc
+  · exact ((affMulLX_names h').2.2 hc).symm
 
 /-- A quotient atom: the numerator is one named constant, the divisor a positive constant. -/
 theorem affDiv_cases {a b c : Aff} (h : affDiv a b = some c) :
@@ -769,6 +913,21 @@ theorem litAmt?_eval {E : IEnv} {r : PExpr} {k : Nat} (h : litAmt? r = some k) :
   obtain ⟨rfl, -⟩ := litAmt?_eq h
   exact ⟨rfl, rfl⟩
 
+/-- An affine amount `n + c` (or `n - c`) evaluates to the name's value plus the literal. -/
+theorem affAmt?_eval {E : IEnv} {r : PExpr} {n : String} {c v : Int} (h : affAmt? r = some (n, c))
+    (hv : E.intVal? n = some v) : r.isInt E = true ∧ evalInt E r = .ok (v + c) := by
+  obtain ⟨l, hl, rfl | rfl⟩ := affAmt?_cases h
+  · obtain ⟨hil, hel⟩ := nameOf?_eval hl hv
+    exact ⟨isInt_binary_of (by simp) hil rfl, evalInt_add_of hil rfl hel rfl⟩
+  · obtain ⟨hil, hel⟩ := nameOf?_eval hl hv
+    refine ⟨isInt_binary_of (by simp) hil rfl, ?_⟩
+    rw [evalInt_sub_of hil rfl hel rfl, Int.sub_neg]
+
+/-- An affine amount is no name and no literal. -/
+theorem affAmt?_nameOf {r : PExpr} {p : String × Int} (h : affAmt? r = some p) : nameOf? r = none ∧ litAmt? r = none := by
+  obtain ⟨n, c⟩ := p
+  obtain ⟨l, -, rfl | rfl⟩ := affAmt?_cases h <;> exact ⟨rfl, rfl⟩
+
 /-- `m >> n` of two named constants: `σ m / 2 ^ σ n`, a logical shift right of the non-negative value (IEEE 1800-2023
 §11.4.10), where `0 ≤ σ m` and `0 ≤ σ n < 32`. -/
 theorem evalInt_shr_names {E : IEnv} {σ : String → Int} {l r : PExpr} {m n : String}
@@ -798,7 +957,9 @@ theorem xatOf?_cases {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r 
       nameOf? r' = some n ∧ x = .bit m n) ∨
     (∃ m k, op = .shr ∧ nameOf? l = some m ∧ nameOf? r = none ∧ litAmt? r = some k ∧ x = .shrK m k) ∨
     (∃ l' r' m k, op = .shl ∧ l = .binary .shr l' r' ∧ nameOf? l' = some m ∧ nameOf? r' = none ∧
-      nameOf? r = none ∧ litAmt? r' = some k ∧ litAmt? r = some k ∧ x = .shlK m k) := by
+      nameOf? r = none ∧ litAmt? r' = some k ∧ litAmt? r = some k ∧ x = .shlK m k) ∨
+    (∃ m n c, op = .shr ∧ nameOf? l = some m ∧ nameOf? r = none ∧ litAmt? r = none ∧ affAmt? r = some (n, c) ∧
+      x = .shrA m n c) := by
   unfold xatOf? at h
   split at h
   · rename_i v
@@ -820,9 +981,11 @@ theorem xatOf?_cases {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r 
     · rw [if_neg hb] at h; simp at h
   · rcases hl : nameOf? l with _ | m <;> rcases hr : nameOf? r with _ | n <;> simp only [hl, hr, reduceCtorEq,
       Option.some.injEq] at h
-    · rcases hk : litAmt? r with _ | k <;> simp only [hk, Option.map_none, Option.map_some, reduceCtorEq,
-        Option.some.injEq] at h
-      exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨m, k, rfl, rfl, rfl, rfl, h.symm⟩)))))
+    · rcases hk : litAmt? r with _ | k <;> simp only [hk, reduceCtorEq, Option.some.injEq] at h
+      · rcases ha : affAmt? r with _ | ⟨n, c⟩ <;> simp only [ha, Option.map_none, Option.map_some, reduceCtorEq,
+          Option.some.injEq] at h
+        exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨m, n, c, rfl, rfl, rfl, rfl, rfl, h.symm⟩))))))
+      · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨m, k, rfl, rfl, rfl, rfl, h.symm⟩)))))
     · exact Or.inr (Or.inr (Or.inl ⟨m, n, rfl, rfl, rfl, h.symm⟩))
   · rename_i l' r'
     rcases hl : nameOf? l' with _ | m <;> rcases hr' : nameOf? r' with _ | n <;>
@@ -832,7 +995,8 @@ theorem xatOf?_cases {op : SymBinOp} {l r : PExpr} {x : XAt} (h : xatOf? op l r 
       by_cases he : k = k'
       · subst he
         rw [if_pos rfl, Option.some.injEq] at h
-        exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨l', r', m, k, rfl, rfl, hl, hr', rfl, hk, rfl, h.symm⟩)))))
+        exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl
+          ⟨l', r', m, k, rfl, rfl, hl, hr', rfl, hk, rfl, h.symm⟩))))))
       · rw [if_neg he] at h; simp at h
     · by_cases he : n = n'
       · subst he
@@ -891,11 +1055,16 @@ theorem xatOf?_sound {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
         simp only [evalInt, PExpr.isInt, hir, Bool.and_self, if_true, her, Gen2.except_ok_bind, n1,
           if_false, XAt.eval]
     · rw [if_neg hb] at h; simp at h
-  · -- `m >> n`, and `m >> k` of a literal `k`
+  · -- `m >> n`, `m >> k` of a literal `k`, and `m >> (n + c)` of an affine amount
     rcases hl : nameOf? l with _ | m <;> rcases hr : nameOf? r with _ | n <;> simp only [hl, hr, reduceCtorEq,
       Option.some.injEq] at h
-    · rcases hk : litAmt? r with _ | k <;> simp only [hk, Option.map_none, Option.map_some, reduceCtorEq,
-        Option.some.injEq] at h
+    · rcases hk : litAmt? r with _ | k <;> simp only [hk, reduceCtorEq, Option.some.injEq] at h
+      · rcases ha : affAmt? r with _ | ⟨n, c⟩ <;> simp only [ha, Option.map_none, Option.map_some, reduceCtorEq,
+          Option.some.injEq] at h
+        subst h
+        obtain ⟨h0, -, h1, h2⟩ := hx
+        exact evalInt_shr_of (nameOf?_eval hl (hn m (by simp [XAt.names])))
+          (affAmt?_eval ha (hn n (by simp [XAt.names]))) h0 h1 h2
       subst h
       obtain ⟨h0, -, hk32⟩ := hx
       obtain ⟨hil, hel⟩ := evalInt_shr_of (nameOf?_eval hl (hn m (by simp [XAt.names]))) (litAmt?_eval hk) h0
@@ -1020,18 +1189,10 @@ theorem affOf?_sound {E : IEnv} {σ : String → Int} :
         obtain ⟨hi2, he2⟩ := affOf?_sound r a2 h2 hb2
         exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_sub_of hi1 hi2 he1 he2, Aff.eval_sub]⟩
       · have hev := affMul_eval σ hm
-        have hn := affMul_names hm
+        have hn := affMul_names_mem hm
         have hxk := affMul_xOk hm hb.2
-        have hb1 : a1.Ok E σ := by
-          refine ⟨fun n hn1 => ?_, hxk.1⟩
-          rcases hn with ⟨h0, h0', h0'', -⟩ | ⟨-, -, -, hc, -⟩
-          · simp [Aff.names_eq, h0, h0', h0'', Aff.xsNames] at hn1
-          · exact hb.1 n (by rw [hc]; exact hn1)
-        have hb2 : a2.Ok E σ := by
-          refine ⟨fun n hn2 => ?_, hxk.2⟩
-          rcases hn with ⟨-, -, -, hc, -⟩ | ⟨h0, h0', h0'', -⟩
-          · exact hb.1 n (by rw [hc]; exact hn2)
-          · simp [Aff.names_eq, h0, h0', h0'', Aff.xsNames] at hn2
+        have hb1 : a1.Ok E σ := ⟨fun n hn1 => hb.1 n (hn.1 n hn1), hxk.1⟩
+        have hb2 : a2.Ok E σ := ⟨fun n hn2 => hb.1 n (hn.2 n hn2), hxk.2⟩
         obtain ⟨hi1, he1⟩ := affOf?_sound l a1 h1 hb1
         obtain ⟨hi2, he2⟩ := affOf?_sound r a2 h2 hb2
         rcases hop with rfl | rfl
@@ -1447,11 +1608,27 @@ def _root_.LeanModels.Sv.PExpr.badQuot : PExpr → Bool
   | .resize _ a => a.badQuot
   | _ => false
 
-/-- (Refusal text only.) What a refused index or bound adds when it holds a quotient the affine forms do not read. -/
+/-- (Refusal text only; tac7.) A product inside an index or a bound that `affOf?` does not read although it reads both
+factors: two factors with names (`i*i`), or a quotient on either side (`affMul`). -/
+def _root_.LeanModels.Sv.PExpr.badProd : PExpr → Bool
+  | .binary .mul l r =>
+      ((affOf? (.binary .mul l r)).isNone && (affOf? l).isSome && (affOf? r).isSome) || l.badProd || r.badProd
+  | .binary (.m0 .mul) l r =>
+      ((affOf? (.binary (.m0 .mul) l r)).isNone && (affOf? l).isSome && (affOf? r).isSome) || l.badProd || r.badProd
+  | .binary _ l r => l.badProd || r.badProd
+  | .unary _ a => a.badProd
+  | .resize _ a => a.badProd
+  | _ => false
+
+/-- (Refusal text only.) What a refused index or bound adds when it holds a quotient or a product the affine forms do not
+read. -/
 def quotNote (es : List PExpr) : String :=
-  if es.any PExpr.badQuot then
+  (if es.any PExpr.badQuot then
     " — it holds a quotient the affine forms do not read: a quotient is read only as `n / d`, one named constant `n` (a parameter, a localparam or a genvar) divided by a positive literal `d`"
-  else ""
+  else "") ++
+  (if es.any PExpr.badProd then
+    " — it holds a product the affine forms do not read: a product is read where one factor is a constant, or where one factor has only names and a constant (genvars, parameters, localparams) and the other only shifts and powers of named constants and a constant (`(3*t)*(P >> (l+1))`)"
+  else "")
 
 def elemAcc? (ds : List DeclT) (n : String) (is : List PExpr) : Except String Acc :=
   match dimsOf ds n with
@@ -2690,9 +2867,14 @@ structure Hdr where
   bound : Aff
   bndE : PExpr
   gs : List (Guard × Bool) := []
+  /-- The block's identity where its label is reused in another scope (tac7, `qualifyFams`): the label path
+  `outer.inner`; `none` (the block's own label) everywhere else. Only the site identities read it (`Hdr.name`). -/
+  qn : Option String := none
 deriving Repr, Inhabited
 
-def Hdr.name (h : Hdr) : String := h.lbl.getD "genblk"
+/-- The block's name in the site identities (`LSite.blk`, `SiteId.fam`): its label, or its label path where the label
+is reused in another scope (`Hdr.qn`). -/
+def Hdr.name (h : Hdr) : String := h.qn.getD (h.lbl.getD "genblk")
 
 /-- The loop index ranges over `[c0, bound)`, where the guards hold at the index. -/
 def Hdr.Rng (h : Hdr) (σ : String → Int) (i : Int) : Prop :=
@@ -2717,7 +2899,7 @@ theorem Hdr.guards_guards (h : Hdr) (a b : List (Guard × Bool)) : (h.guards a).
   simp [Hdr.guards, List.append_assoc]
 
 theorem Hdr.guards_inj {h : Hdr} {a b : List (Guard × Bool)} (e : h.guards a = h.guards b) : a = b := by
-  simp only [Hdr.guards, Hdr.mk.injEq, true_and] at e
+  simp only [Hdr.guards, Hdr.mk.injEq, true_and, and_true] at e
   exact List.append_cancel_left e
 
 @[simp] theorem Hdr.guards_g (h : Hdr) (gs : List (Guard × Bool)) : (h.guards gs).g = h.g := rfl
@@ -2818,6 +3000,107 @@ def TFam.Wf (f : TFam) : Prop := f.hdr.Wf ∧ ∀ it ∈ f.body, it.Wf
 
 theorem TFam.wf_item {f : TFam} : f.item.Wf ↔ f.Wf := TItem.wf_loop
 
+/-! ### Distinct identities for reused block labels (tac7)
+
+IEEE 1800-2023 §27.6 lets a generate block label be used again in another scope: kara's `g_split[l].g_node[t]` and
+`g_comb[l].g_node[t]` are two blocks. A site's identity names its innermost block (`LSite.blk`, `SiteId.fam`), so two such
+families would share their identities; `qualifyFams` gives each nested loop whose label labels more than one loop of the
+design its label path (`Hdr.qn`), and leaves every other loop's name alone, so the identities (and the equation names of
+`sv_equations`) of a design without a reused label are unchanged. Only `Hdr.qn` changes: the template (`toGen`), its
+well-formedness and its sites are the same (`TFam.toGen_qualify`, `TFam.wf_qualify`, `TItem.stList_qualify`). -/
+
+mutual
+/-- The explicit labels of the loops of an item. -/
+def TItem.labels : TItem → List String
+  | .site _ => []
+  | .loop h _ body => h.lbl.toList ++ TItem.labelsL body
+  | .cond _ _ thn els => TItem.labelsL thn ++ TItem.labelsL els
+
+def TItem.labelsL : List TItem → List String
+  | [] => []
+  | it :: rest => it.labels ++ TItem.labelsL rest
+end
+
+/-- The explicit labels that label more than one loop of the generate tree. -/
+def ambLabels (fs : List TFam) : List String :=
+  let ls := fs.flatMap fun f => f.hdr.lbl.toList ++ TItem.labelsL f.body
+  ls.filter fun l => decide (2 ≤ ls.count l)
+
+/-- A loop header at the label path `path` of the loops around it: its path as its identity where its label is reused. -/
+def Hdr.qualify (amb : List String) (path : String) (h : Hdr) : Hdr :=
+  match h.lbl with
+  | some l => if amb.contains l then { h with qn := some (path ++ "." ++ l) } else h
+  | none => h
+
+mutual
+def TItem.qualify (amb : List String) (path : String) : TItem → TItem
+  | .site st => .site st
+  | .loop h rc body => .loop (h.qualify amb path) rc (TItem.qualifyL amb (path ++ "." ++ h.lbl.getD "genblk") body)
+  | .cond c g thn els => .cond c g (TItem.qualifyL amb path thn) (TItem.qualifyL amb path els)
+
+def TItem.qualifyL (amb : List String) (path : String) : List TItem → List TItem
+  | [] => []
+  | it :: rest => it.qualify amb path :: TItem.qualifyL amb path rest
+end
+
+def TFam.qualify (amb : List String) (f : TFam) : TFam :=
+  { f with body := TItem.qualifyL amb (f.hdr.lbl.getD "genblk") f.body }
+
+/-- The generate tree with distinct identities for reused labels (`PDesign.summaryG`). -/
+def qualifyFams (fs : List TFam) : List TFam := fs.map (TFam.qualify (ambLabels fs))
+
+theorem TItem.qualifyL_eq (amb : List String) (path : String) :
+    ∀ l : List TItem, TItem.qualifyL amb path l = l.map (TItem.qualify amb path)
+  | [] => rfl
+  | it :: rest => by rw [TItem.qualifyL, TItem.qualifyL_eq amb path rest, List.map_cons]
+
+theorem Hdr.gen_qualify (amb : List String) (path : String) (h : Hdr) (rc : Option Nat) (body : List GenItem) :
+    (h.qualify amb path).gen rc body = h.gen rc body := by
+  unfold Hdr.qualify; split <;> (try split) <;> rfl
+
+theorem Hdr.wf_qualify (amb : List String) (path : String) (h : Hdr) : (h.qualify amb path).Wf ↔ h.Wf := by
+  unfold Hdr.qualify; split <;> (try split) <;> exact Iff.rfl
+
+mutual
+theorem TItem.toGen_qualify (amb : List String) : ∀ (path : String) (x : TItem), (x.qualify amb path).toGen = x.toGen
+  | _, .site _ => rfl
+  | path, .loop h rc body => by
+      simp only [TItem.qualify, TItem.toGen, Hdr.gen_qualify, TItem.toGenL_qualify amb _ body]
+  | path, .cond c g thn els => by
+      simp only [TItem.qualify, TItem.toGen, TItem.toGenL_qualify amb path thn, TItem.toGenL_qualify amb path els]
+
+theorem TItem.toGenL_qualify (amb : List String) :
+    ∀ (path : String) (l : List TItem), TItem.toGenL (TItem.qualifyL amb path l) = TItem.toGenL l
+  | _, [] => rfl
+  | path, it :: rest => by
+      simp only [TItem.qualifyL, TItem.toGenL, TItem.toGen_qualify amb path it, TItem.toGenL_qualify amb path rest]
+end
+
+mutual
+theorem TItem.wf_qualify (amb : List String) : ∀ (path : String) (x : TItem), (x.qualify amb path).Wf ↔ x.Wf
+  | _, .site _ => Iff.rfl
+  | path, .loop h rc body => by
+      simp only [TItem.qualify, TItem.Wf, Hdr.wf_qualify, TItem.wfL_qualify amb _ body]
+  | path, .cond c g thn els => by
+      simp only [TItem.qualify, TItem.Wf, TItem.wfL_qualify amb path thn, TItem.wfL_qualify amb path els]
+
+theorem TItem.wfL_qualify (amb : List String) :
+    ∀ (path : String) (l : List TItem), TItem.WfL (TItem.qualifyL amb path l) ↔ TItem.WfL l
+  | _, [] => Iff.rfl
+  | path, it :: rest => by
+      simp only [TItem.qualifyL, TItem.WfL, TItem.wf_qualify amb path it, TItem.wfL_qualify amb path rest]
+end
+
+theorem TFam.toGen_qualify (amb : List String) (f : TFam) : (f.qualify amb).toGen = f.toGen := by
+  simp only [TFam.qualify, TFam.toGen, ← TItem.toGenL_eq, TItem.toGenL_qualify]
+
+theorem TFam.wf_qualify (amb : List String) (f : TFam) : (f.qualify amb).Wf ↔ f.Wf := by
+  simp only [TFam.qualify, TFam.Wf, ← TItem.wfL_iff, TItem.wfL_qualify]
+
+theorem qualifyFams_toGen (fs : List TFam) : (qualifyFams fs).map TFam.toGen = fs.map TFam.toGen := by
+  simp only [qualifyFams, List.map_map]
+  exact List.map_congr_left fun f _ => TFam.toGen_qualify _ f
+
 def procsOf? : List GenItem → Option (List PProcess)
   | [] => some []
   | .process p :: rest =>
@@ -2848,7 +3131,7 @@ def hdrOf? (label : Option String) (g : String) (initE bound step : PExpr) : Exc
       if g' = g ∧ g'' = g then
         match affOf? bnd with
         | none => .error "generate bound is not affine in the parameters and the enclosing genvars"
-        | some b => .ok ⟨label, g, c0, b, bnd, []⟩
+        | some b => .ok ⟨label, g, c0, b, bnd, [], none⟩
       else .error "generate loop header mentions a second loop variable"
   | _, _, _ => .error "generate-for header outside `for (g = <int>; g < <affine>; g++)`"
 
@@ -3337,7 +3620,7 @@ def _root_.LeanModels.Sv.PDesign.summaryG (so : List DeclT → Nat → PProcess 
                 | .error e => .error e
                 | .ok fs =>
                     .ok { params := d.params.map (·.name) ++ lps.map Prod.fst, decls := ds,
-                          statics := sts, fams := fs, lps := lps }
+                          statics := sts, fams := qualifyFams fs, lps := lps }
 
 def _root_.LeanModels.Sv.PDesign.summary (d : PDesign) : Except String Summary :=
   d.summaryG siteOf?

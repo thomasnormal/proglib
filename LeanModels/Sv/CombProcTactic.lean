@@ -89,7 +89,7 @@ macro "svL_norm_core" : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -158,7 +158,7 @@ macro "svL_eq_norm_at" h:ident : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -244,7 +244,7 @@ macro "svL_eq_norm" : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -328,7 +328,7 @@ macro "svL_eq_norm_multi_at" h:ident : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -413,7 +413,7 @@ macro "svL_eq_norm_multi" : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -926,8 +926,8 @@ unsafe def runSvInterfaceL : TacticM Unit := do
 private partial def countAndL (e : Expr) : Nat :=
   if e.isAppOfArity ``And 2 then 1 + countAndL e.appArg! else 1
 
-private def eqNameL (ls : LSite) : String := s!"eq_{ls.site.tgt.name}_{ls.blk}_{ls.site.pos}"
-private def knownNameL (ls : LSite) : String := s!"known_{ls.site.tgt.name}_{ls.blk}_{ls.site.pos}"
+private def eqNameL (ls : LSite) : String := s!"eq_{ls.site.tgt.name}_{ls.blk.replace "." "_"}_{ls.site.pos}"
+private def knownNameL (ls : LSite) : String := s!"known_{ls.site.tgt.name}_{ls.blk.replace "." "_"}_{ls.site.pos}"
 
 private def peelNamesL (h : Ident) (names : List String) : TacticM Unit := do
   match names with
@@ -943,7 +943,7 @@ private def peelNamesL (h : Ident) (names : List String) : TacticM Unit := do
 name of the single-window route (`eq_<signal>_<block>_<position>`); window `j ≥ 1` of the same body is named after
 ITS signal, with the site's block and position and `_w<j>` (`eq_s_g_bit_1_w1`). `pre` is `eq` or `known`. -/
 private def windowNameL (pre : String) (ls : LSite) (a : Acc) (j : Nat) : String :=
-  s!"{pre}_{a.name}_{ls.blk}_{ls.site.pos}_w{j}"
+  s!"{pre}_{a.name}_{ls.blk.replace "." "_"}_{ls.site.pos}_w{j}"
 
 /-- The facts of the further windows of ONE site, in window order (none for a one-window site). -/
 private def windowGroupL (pre : String) (ls : LSite) : List String :=

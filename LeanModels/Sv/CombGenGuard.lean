@@ -137,11 +137,36 @@ theorem opd_eval_xat {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
         simp only [n1, n2, ↓reduceIte]
         rw [canonInt32_id hrng]
     · rw [if_neg hb] at hx; simp at hx
-  · -- `m >> n`, and `m >> k` of a literal `k`
+  · -- `m >> n`, `m >> k` of a literal `k`, and `m >> (n + c)` of an affine amount
     rcases hm : nameOf? l with _ | m <;> rcases hn : nameOf? r with _ | n <;> simp only [hm, hn, reduceCtorEq,
       Option.some.injEq] at hx
-    · rcases hk : litAmt? r with _ | k <;> simp only [hk, Option.map_none, Option.map_some, reduceCtorEq,
-        Option.some.injEq] at hx
+    · rcases hk : litAmt? r with _ | k <;> simp only [hk, reduceCtorEq, Option.some.injEq] at hx
+      · rcases ha : affAmt? r with _ | ⟨n, c⟩ <;> simp only [ha, Option.map_none, Option.map_some, reduceCtorEq,
+          Option.some.injEq] at hx
+        subst hx
+        have har : ar.eval σ = σ n + c := by
+          obtain ⟨l0, hl0, rfl | rfl⟩ := affAmt?_cases ha
+          · simp only [opdAffs?, opdAffs?_name hl0, opdBin, Option.some.injEq, Prod.mk.injEq] at hra
+            obtain ⟨rfl, -⟩ := hra
+            rw [Aff.eval_add, Aff.eval_var, Aff.eval_const]
+          · simp only [opdAffs?, opdAffs?_name hl0, opdBin, Option.some.injEq, Prod.mk.injEq] at hra
+            obtain ⟨rfl, -⟩ := hra
+            rw [Aff.eval_sub, Aff.eval_var, Aff.eval_const, Int.sub_neg]
+        rw [opdAffs?_name hm, Option.some.injEq, Prod.mk.injEq] at hla
+        obtain ⟨rfl, -⟩ := hla
+        rw [Aff.eval_var] at hel
+        rw [har] at her
+        obtain ⟨h0, h1, h2, h3⟩ := hok
+        simp only [XAt.eval] at hrng ⊢
+        have n1 : ¬ σ n + c < 0 := by omega
+        have n2 : ¬ ((32 : Nat) : Int) ≤ σ n + c := by omega
+        have e : (σ m).emod ((2 : Int) ^ 32) = σ m := Int.emod_eq_of_lt h0 (by omega)
+        refine ⟨by rw [ctype]; simp only [SymBinOp.constClass, hcl], ?_⟩
+        rw [evalAt]
+        simp only [SymBinOp.constClass, hel, her, hcr, Gen2.except_ok_bind]
+        unfold_param_private
+        simp only [n1, n2, ↓reduceIte]
+        rw [e, canonInt32_id hrng]
       subst hx
       obtain ⟨rfl, hk32⟩ := litAmt?_eq hk
       simp only [opdAffs?, Option.some.injEq, Prod.mk.injEq] at hra

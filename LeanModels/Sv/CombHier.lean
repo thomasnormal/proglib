@@ -157,6 +157,8 @@ def XAt.hren (pfx : String) : XAt → XAt
   | .bit m n => .bit (pfx ++ m) (pfx ++ n)
   | .shrK m k => .shrK (pfx ++ m) k
   | .shlK m k => .shlK (pfx ++ m) k
+  | .shrA m n c => .shrA (pfx ++ m) (pfx ++ n) c
+  | .mul g x => .mul (pfx ++ g) (x.hren pfx)
 
 /-- An affine form over the child's names, under the prefix. -/
 def Aff.hren (pfx : String) (a : Aff) : Aff :=
@@ -291,7 +293,9 @@ theorem Aff.evalQs_hren (σ : String → Int) (pfx : String) : ∀ qs : List (St
 
 theorem XAt.eval_hren (σ : String → Int) (pfx : String) (x : XAt) :
     (x.hren pfx).eval σ = x.eval (fun n => σ (pfx ++ n)) := by
-  cases x <;> rfl
+  induction x with
+  | mul g x ih => simp only [XAt.hren, XAt.eval, ih]
+  | _ => rfl
 
 theorem Aff.evalXs_hren (σ : String → Int) (pfx : String) : ∀ xs : List (Int × XAt),
     Aff.evalXs σ (xs.map fun p => (p.1, p.2.hren pfx)) = Aff.evalXs (fun n => σ (pfx ++ n)) xs
@@ -449,6 +453,34 @@ theorem Aff.hren_sub (pfx : String) (a b : Aff) : (a.sub b).hren pfx = (a.hren p
 theorem Aff.hren_scale (pfx : String) (k : Int) (a : Aff) : (a.scale k).hren pfx = (a.hren pfx).scale k := by
   simp [Aff.scale, Aff.hren, Aff.scaleTerms_hren, Aff.scaleQs_hren, Aff.scaleXs_hren]
 
+theorem mulXs_hren (pfx : String) : ∀ (ts : List (String × Int)) (xs : List (Int × XAt)),
+    mulXs (ts.map fun p => (pfx ++ p.1, p.2)) (xs.map fun p => (p.1, p.2.hren pfx)) =
+      (mulXs ts xs).map fun p => (p.1, p.2.hren pfx)
+  | [], _ => rfl
+  | (n, k) :: ts, xs => by
+      have ih := mulXs_hren pfx ts xs
+      simp only [mulXs, List.map_cons, List.flatMap_cons, List.map_append, List.map_map] at ih ⊢
+      rw [ih]
+      rfl
+
+/-- The product of a form of names and an atom form, under the prefix. -/
+theorem affMulLX_hren_eq (pfx : String) (a b : Aff) :
+    affMulLX (a.hren pfx) (b.hren pfx) = (affMulLX a b).map (·.hren pfx) := by
+  unfold affMulLX
+  have e : ((a.hren pfx).qs.isEmpty && (a.hren pfx).xs.isEmpty && (b.hren pfx).terms.isEmpty &&
+      (b.hren pfx).qs.isEmpty) = (a.qs.isEmpty && a.xs.isEmpty && b.terms.isEmpty && b.qs.isEmpty) := by
+    simp [Aff.hren]
+  rw [e]
+  split
+  · simp only [Option.map_some, Option.some.injEq]
+    have et : (a.hren pfx).terms = a.terms.map fun p => (pfx ++ p.1, p.2) := rfl
+    have ex : (b.hren pfx).xs = b.xs.map fun p => (p.1, p.2.hren pfx) := rfl
+    have ec : (a.hren pfx).c = a.c := rfl
+    have ec' : (b.hren pfx).c = b.c := rfl
+    rw [et, ex, ec, ec', Aff.scaleTerms_hren, mulXs_hren, Aff.scaleXs_hren]
+    simp [Aff.hren, List.map_append]
+  · rfl
+
 /-- A product under the prefix is the product of the renamed forms. -/
 theorem affMul_hren_eq (pfx : String) (a b : Aff) :
     affMul (a.hren pfx) (b.hren pfx) = (affMul a b).map (·.hren pfx) := by
@@ -462,8 +494,13 @@ theorem affMul_hren_eq (pfx : String) (a b : Aff) :
   rw [e1, e2]
   have ec : (a.hren pfx).c = a.c := rfl
   have ec' : (b.hren pfx).c = b.c := rfl
-  cases (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty) <;> cases (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty) <;>
-    simp [ec, ec', Aff.hren_scale]
+  cases (a.terms.isEmpty && a.qs.isEmpty && a.xs.isEmpty)
+  · cases (b.terms.isEmpty && b.qs.isEmpty && b.xs.isEmpty)
+    · simp only [Bool.false_eq_true, if_false]
+      rw [affMulLX_hren_eq pfx a b, affMulLX_hren_eq pfx b a]
+      rcases affMulLX a b with _ | d <;> rfl
+    · simp [ec', Aff.hren_scale]
+  · simp [ec, Aff.hren_scale]
 
 theorem affMul_hren {a b c : Aff} (pfx : String) (h : affMul a b = some c) :
     affMul (a.hren pfx) (b.hren pfx) = some (c.hren pfx) := by
@@ -506,7 +543,8 @@ theorem xatOf?_hren (pfx : String) {op : SymBinOp} {l r : PExpr} {x : XAt} (h : 
     xatOf? op (l.hren pfx) (r.hren pfx) = some (x.hren pfx) := by
   rcases xatOf?_cases h with ⟨rfl, rfl, n, hn, rfl⟩ | ⟨b, n, rfl, rfl, hb, hn, rfl⟩ | ⟨m, n, rfl, hm, hn, rfl⟩ |
     ⟨l', r', m, n, rfl, rfl, hm, hn', hn, rfl⟩ | ⟨l', r', m, n, rfl, rfl, rfl, hm, hn, rfl⟩ |
-    ⟨m, k, rfl, hm, hnr, hk, rfl⟩ | ⟨l', r', m, k, rfl, rfl, hm, hnr', hnr, hk', hk, rfl⟩
+    ⟨m, k, rfl, hm, hnr, hk, rfl⟩ | ⟨l', r', m, k, rfl, rfl, hm, hnr', hnr, hk', hk, rfl⟩ |
+    ⟨m, n, c, rfl, hm, hnr, hk, ha, rfl⟩
   · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hn, XAt.hren]
   · simp [xatOf?, PExpr.hren, nameOf?_hren pfx hn, XAt.hren, hb]
   · simp [xatOf?, nameOf?_hren pfx hm, nameOf?_hren pfx hn, XAt.hren]
@@ -517,6 +555,12 @@ theorem xatOf?_hren (pfx : String) {op : SymBinOp} {l r : PExpr} {x : XAt} (h : 
   · obtain ⟨rfl, -⟩ := litAmt?_eq hk
     obtain ⟨rfl, -⟩ := litAmt?_eq hk'
     simp [xatOf?, PExpr.hren, nameOf?_hren pfx hm, hnr, XAt.hren, hk]
+  · have e : affAmt? (r.hren pfx) = some (pfx ++ n, c) := by
+      obtain ⟨l0, hl0, rfl | rfl⟩ := affAmt?_cases ha
+      · simp only [PExpr.hren, affAmt?, nameOf?_hren pfx hl0, Option.map_some]
+      · simp only [PExpr.hren, affAmt?, nameOf?_hren pfx hl0, Option.map_some, Int.neg_neg]
+    have e1 := affAmt?_nameOf e
+    simp only [xatOf?, nameOf?_hren pfx hm, e1.1, e1.2, e, Option.map_some, XAt.hren]
 
 theorem affOf?_hren (pfx : String) : ∀ {e : PExpr} {a : Aff}, affOf? e = some a →
     affOf? (e.hren pfx) = some (a.hren pfx)
@@ -877,7 +921,9 @@ theorem instBodyProc_assign (pfx : String) (i : PInst) (ports : List Decl) (bare
 
 theorem XAt.ok_hren (σ : String → Int) (pfx : String) (x : XAt) :
     (x.hren pfx).Ok σ ↔ x.Ok (fun n => σ (pfx ++ n)) := by
-  cases x <;> rfl
+  induction x with
+  | mul g x ih => exact ih
+  | _ => rfl
 
 theorem Aff.xOk_hren (σ : String → Int) (pfx : String) (a : Aff) :
     (a.hren pfx).XOk σ ↔ a.XOk (fun n => σ (pfx ++ n)) := by

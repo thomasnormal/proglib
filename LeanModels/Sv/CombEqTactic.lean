@@ -121,7 +121,7 @@ macro "sv_eq_norm_at" h:ident : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -207,7 +207,7 @@ macro "sv_eq_norm" : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -302,8 +302,10 @@ conjunction counts once, except the LAST one, whose own parts continue the spine
 private partial def countAnd (e : Expr) : Nat :=
   if e.isAppOfArity ``And 2 then 1 + countAnd e.appArg! else 1
 
-private def eqName (ls : LSite) : String := s!"eq_{ls.site.tgt.name}_{ls.blk}_{ls.site.pos}"
-private def knownName (ls : LSite) : String := s!"known_{ls.site.tgt.name}_{ls.blk}_{ls.site.pos}"
+-- a block name that is a label path (`g_comb.g_node`, a label reused in another scope: `qualifyFams`) is written with
+-- `_` in the hypothesis names, so that they stay plain identifiers
+private def eqName (ls : LSite) : String := s!"eq_{ls.site.tgt.name}_{ls.blk.replace "." "_"}_{ls.site.pos}"
+private def knownName (ls : LSite) : String := s!"known_{ls.site.tgt.name}_{ls.blk.replace "." "_"}_{ls.site.pos}"
 
 /-- Presentation-only cleanup for the equations report.  The summary keeps
 indices in the Int affine domain so its soundness proofs can use the same

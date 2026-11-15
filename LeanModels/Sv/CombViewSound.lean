@@ -59,6 +59,22 @@ def TItem.stListL : List TItem → List TSite
   | it :: rest => it.stList ++ TItem.stListL rest
 end
 
+mutual
+/-- The qualification of reused block labels (tac7, `qualifyFams`) keeps the sites. -/
+theorem TItem.stList_qualify (amb : List String) : ∀ (path : String) (x : TItem), (x.qualify amb path).stList = x.stList
+  | _, .site _ => rfl
+  | path, .loop h rc body => by
+      simp only [TItem.qualify, TItem.stList, TItem.stListL_qualify amb _ body]
+  | path, .cond c g thn els => by
+      simp only [TItem.qualify, TItem.stList, TItem.stListL_qualify amb path thn, TItem.stListL_qualify amb path els]
+
+theorem TItem.stListL_qualify (amb : List String) :
+    ∀ (path : String) (l : List TItem), TItem.stListL (TItem.qualifyL amb path l) = TItem.stListL l
+  | _, [] => rfl
+  | path, it :: rest => by
+      simp only [TItem.qualifyL, TItem.stListL, TItem.stList_qualify amb path it, TItem.stListL_qualify amb path rest]
+end
+
 theorem TItem.mem_stListL {st : TSite} : ∀ {l : List TItem}, st ∈ TItem.stListL l ↔ ∃ it ∈ l, st ∈ it.stList
   | [] => by simp [TItem.stListL]
   | it :: rest => by simp [TItem.stListL, TItem.mem_stListL (l := rest)]
@@ -284,7 +300,17 @@ theorem summaryG_spec (so : List DeclT → Nat → PProcess → Except String TS
   subst h
   obtain ⟨k1, k2⟩ := famsOfG_spec so hso hg
   have hnames : lps.map Prod.fst = d.localParams.map (·.name) := lpsOf?_names hl
-  exact ⟨hnames, he, ho, rfl, rfl, hp, k1.symm, k2⟩
+  refine ⟨hnames, he, ho, rfl, rfl, hp, by rw [qualifyFams_toGen, k1], ?_⟩
+  -- the qualification of reused block labels keeps each loop's template, well-formedness and sites
+  intro f hf
+  simp only [qualifyFams, List.mem_map] at hf
+  obtain ⟨f0, hf0, rfl⟩ := hf
+  obtain ⟨hw, hst⟩ := k2 f0 hf0
+  refine ⟨(TFam.wf_qualify _ f0).2 hw, fun x hx st hst' => ?_⟩
+  simp only [TFam.qualify, TItem.qualifyL_eq, List.mem_map] at hx
+  obtain ⟨y, hy, rfl⟩ := hx
+  rw [TItem.stList_qualify] at hst'
+  exact hst y hy st hst'
 
 theorem summary_spec {d : PDesign} {s : Summary} (h : d.summary = .ok s) :
     s.lps.map Prod.fst = d.localParams.map (·.name) ∧ d.enums = [] ∧ d.others = [] ∧

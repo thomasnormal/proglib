@@ -65,6 +65,46 @@ def Summary.mapProcs (g : PProcess → PProcess) (s : Summary) : Summary :=
 def LSite.mapProc (g : PProcess → PProcess) (ls : LSite) : LSite := { ls with site := ls.site.mapProc g }
 
 mutual
+theorem TItem.labels_mapProcs (g : PProcess → PProcess) : ∀ it : TItem, (it.mapProcs g).labels = it.labels
+  | .site _ => rfl
+  | .loop h _ body => by simp only [TItem.mapProcs, TItem.labels, TItem.labelsL_mapProcs g body]
+  | .cond _ _ thn els => by
+      simp only [TItem.mapProcs, TItem.labels, TItem.labelsL_mapProcs g thn, TItem.labelsL_mapProcs g els]
+
+theorem TItem.labelsL_mapProcs (g : PProcess → PProcess) :
+    ∀ its : List TItem, TItem.labelsL (TItem.mapProcsL g its) = TItem.labelsL its
+  | [] => rfl
+  | it :: rest => by simp only [TItem.mapProcsL, TItem.labelsL, TItem.labels_mapProcs g it, TItem.labelsL_mapProcs g rest]
+end
+
+mutual
+theorem TItem.qualify_mapProcs (g : PProcess → PProcess) (amb : List String) : ∀ (path : String) (it : TItem),
+    (it.mapProcs g).qualify amb path = (it.qualify amb path).mapProcs g
+  | _, .site _ => rfl
+  | path, .loop h _ body => by simp only [TItem.mapProcs, TItem.qualify, TItem.qualifyL_mapProcs g amb _ body]
+  | path, .cond _ _ thn els => by
+      simp only [TItem.mapProcs, TItem.qualify, TItem.qualifyL_mapProcs g amb path thn,
+        TItem.qualifyL_mapProcs g amb path els]
+
+theorem TItem.qualifyL_mapProcs (g : PProcess → PProcess) (amb : List String) : ∀ (path : String) (its : List TItem),
+    TItem.qualifyL amb path (TItem.mapProcsL g its) = TItem.mapProcsL g (TItem.qualifyL amb path its)
+  | _, [] => rfl
+  | path, it :: rest => by
+      simp only [TItem.mapProcsL, TItem.qualifyL, TItem.qualify_mapProcs g amb path it,
+        TItem.qualifyL_mapProcs g amb path rest]
+end
+
+/-- The qualification of reused block labels (tac7) reads the labels only: it commutes with relabelling the processes. -/
+theorem qualifyFams_mapProcs (g : PProcess → PProcess) (fs : List TFam) :
+    qualifyFams (fs.map (TFam.mapProcs g)) = (qualifyFams fs).map (TFam.mapProcs g) := by
+  have ha : ambLabels (fs.map (TFam.mapProcs g)) = ambLabels fs := by
+    simp only [ambLabels, List.flatMap_map, TFam.mapProcs, ← TItem.mapProcsL_eq, TItem.labelsL_mapProcs]
+  simp only [qualifyFams, ha, List.map_map]
+  apply List.map_congr_left
+  intro f _
+  simp only [Function.comp_apply, TFam.qualify, TFam.mapProcs, ← TItem.mapProcsL_eq, TItem.qualifyL_mapProcs]
+
+mutual
 theorem TItem.lsAt_mapProcs (g : PProcess → PProcess) : ∀ (outer : List Hdr) (cur : Hdr) (blk : String) (it : TItem),
     (it.mapProcs g).lsAt outer cur blk = (it.lsAt outer cur blk).map (LSite.mapProc g)
   | _, _, _, .site _ => rfl
@@ -475,8 +515,10 @@ theorem summaryG_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary = .ok
   subst hs
   obtain ⟨sts', h1, h2⟩ := sitesOfG_unsign hp
   obtain ⟨fs', k1, k2⟩ := famsOfG_unsign hg
-  refine ⟨Summary.mk (d.params.map (·.name) ++ lps.map Prod.fst) ds sts' fs' lps, by simp only [h1, k1], ?_⟩
-  simp [Summary.mapProcs, h2, k2]
+  refine ⟨Summary.mk (d.params.map (·.name) ++ lps.map Prod.fst) ds sts' (qualifyFams fs') lps,
+    by simp only [h1, k1], ?_⟩
+  rw [← k2, qualifyFams_mapProcs]
+  simp [Summary.mapProcs, h2]
 
 /-! ## Enumerations that agree at every reached site -/
 

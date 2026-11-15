@@ -26,6 +26,8 @@ def XAt.showR (x : XAt) (rn : String → String) : String :=
   | .bit m n => s!"(({rn m} >> {rn n}) & 1)"
   | .shrK m k => s!"({rn m} >> {k})"
   | .shlK m k => s!"(({rn m} >> {k}) << {k})"
+  | .shrA m n c => if c < 0 then s!"({rn m} >> ({rn n} - {-c}))" else s!"({rn m} >> ({rn n} + {c}))"
+  | .mul g x => s!"{rn g}*{x.showR rn}"
 
 /-- Print an affine form, renaming variables (the second loop index is shown as `i'`). -/
 def Aff.showR (a : Aff) (rn : String → String) : String :=

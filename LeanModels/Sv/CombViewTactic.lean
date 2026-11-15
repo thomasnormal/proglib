@@ -327,6 +327,17 @@ theorem ediv_two_pow_le_lit {x : Int} {t c : Nat} (m : Int) (hx : 0 ≤ x) (h : 
   rw [e1, e2, ← Int.natCast_ediv, ← Int.natCast_ediv]
   exact Int.ofNat_le.mpr (Nat.div_le_div_left (Nat.pow_le_pow_right (by decide) h) (Nat.two_pow_pos c))
 
+/-- … and no smaller than the division by a larger power `m = 2 ^ d` (`t ≤ d`): a LOWER bound of a right shift from an
+upper bound of its amount (tac7: `(2*N) >> (l + 1)` is `N` where `l = 0`, so the width of a slot is positive). -/
+theorem ediv_two_pow_ge_lit {x : Int} {t d : Nat} (m : Int) (hx : 0 ≤ x) (h : t ≤ d) (hm : (2 : Int) ^ d = m) :
+    x / m ≤ x / 2 ^ t := by
+  subst hm
+  obtain ⟨n, rfl⟩ := Int.eq_ofNat_of_zero_le hx
+  have e1 : (2 : Int) ^ t = ((2 ^ t : Nat) : Int) := by simp
+  have e2 : (2 : Int) ^ d = ((2 ^ d : Nat) : Int) := by simp
+  rw [e1, e2, ← Int.natCast_ediv, ← Int.natCast_ediv]
+  exact Int.ofNat_le.mpr (Nat.div_le_div_left (Nat.pow_le_pow_right (by decide) h) (Nat.two_pow_pos t))
+
 /-! **The facts of the shift and power atoms** (item 4, `XAt`), which `omega` reads as opaque atoms: `sv_pow_omega` puts
 them in context for the atoms of the goal and the hypotheses. Every one is proved here. -/
 
@@ -350,6 +361,20 @@ theorem pow_lt_pow_or {b : Int} (hb : 1 ≤ b) (t1 t2 : Nat) : t2 ≤ t1 ∨ b *
     · omega
     · exact h2
   · left; omega
+
+/-- A power of a non-negative base is non-negative. -/
+theorem pow_nonneg_of {b : Int} (h : 0 ≤ b) : ∀ t : Nat, 0 ≤ b ^ t
+  | 0 => by simp
+  | t + 1 => by rw [Int.pow_succ]; exact Int.mul_nonneg (pow_nonneg_of h t) h
+
+/-- The powers of one exponent are monotone in the base (tac7: `2 ^ L ≤ 3 ^ L`, the padding `P = 4·2^L` of kara against
+its node count `T = 3^L`). -/
+theorem pow_le_pow_base {b1 b2 : Int} (h0 : 0 ≤ b1) (h : b1 ≤ b2) : ∀ t : Nat, b1 ^ t ≤ b2 ^ t
+  | 0 => by simp
+  | t + 1 => by
+    rw [Int.pow_succ, Int.pow_succ]
+    have ih := pow_le_pow_base h0 h t
+    exact Int.mul_le_mul ih h h0 (Int.le_trans (pow_nonneg_of h0 t) ih)
 
 /-- A power of a base at most `4` is at most the square of the power of two (`b ^ n ≤ 4 ^ n = 2 ^ n · 2 ^ n`). -/
 theorem pow_le_two_pow_sq {b : Int} (hb0 : 0 ≤ b) (hb : b ≤ 4) : ∀ n : Nat, b ^ n ≤ 2 ^ n * 2 ^ n
@@ -411,6 +436,64 @@ theorem shl_shr_facts {x : Int} (t : Nat) (h : 0 ≤ x) :
       have := Int.mul_le_mul_of_nonneg_right h1 (Int.le_of_lt hp)
       rw [Int.one_mul] at this
       exact this
+
+/-! **The facts of the product atoms** (tac7, `XAt.mul`: a genvar or parameter times a shift or power atom, kara's slot
+bases `(3*t)*(P >> (l+1))`), as disjunctions `omega` reads with the product an opaque atom. -/
+
+/-- A product of two non-negative factors is non-negative. -/
+theorem mul_nonneg_or (g y : Int) : g < 0 ∨ y < 0 ∨ 0 ≤ g * y := by
+  by_cases h1 : g < 0
+  · exact Or.inl h1
+  · by_cases h2 : y < 0
+    · exact Or.inr (Or.inl h2)
+    · exact Or.inr (Or.inr (Int.mul_nonneg (by omega) (by omega)))
+
+/-- The products of one non-negative factor `y` are strictly monotone in the other: `g1 < g2` gives `g1·y + y ≤ g2·y`
+(two slots `t·W` and `t'·W` of width `W` do not overlap). -/
+theorem mul_lt_mul_or (g1 g2 y : Int) : g2 ≤ g1 ∨ y < 0 ∨ g1 * y + y ≤ g2 * y := by
+  by_cases h1 : g2 ≤ g1
+  · exact Or.inl h1
+  · by_cases h2 : y < 0
+    · exact Or.inr (Or.inl h2)
+    · right; right
+      have h := Int.mul_le_mul_of_nonneg_right (show g1 + 1 ≤ g2 by omega) (show 0 ≤ y by omega)
+      rw [Int.add_mul, Int.one_mul] at h
+      exact h
+
+/-- … for two factors `y1`, `y2` that are equal without being the same term (two slot widths `x / 2 ^ t1`, `x / 2 ^ t2`
+of two loop instances whose amounts are equal). -/
+theorem mul_lt_mul_or₂ (g1 g2 y1 y2 : Int) : y1 < y2 ∨ y2 < y1 ∨ g2 ≤ g1 ∨ y1 < 0 ∨ g1 * y1 + y1 ≤ g2 * y2 := by
+  by_cases h : y1 = y2
+  · subst h
+    rcases mul_lt_mul_or g1 g2 y1 with h' | h' | h'
+    · exact Or.inr (Or.inr (Or.inl h'))
+    · exact Or.inr (Or.inr (Or.inr (Or.inl h')))
+    · exact Or.inr (Or.inr (Or.inr (Or.inr h')))
+  · omega
+
+/-- Two products of equal factors are equal (the congruence `omega` cannot see inside an atom). -/
+theorem mul_congr_or (g1 g2 y1 y2 : Int) : g1 < g2 ∨ g2 < g1 ∨ y1 < y2 ∨ y2 < y1 ∨ g1 * y1 = g2 * y2 := by
+  by_cases h1 : g1 = g2
+  · by_cases h2 : y1 = y2
+    · subst h1; subst h2; exact Or.inr (Or.inr (Or.inr (Or.inr rfl)))
+    · omega
+  · omega
+
+/-- An upper bound `c` of the factor `g` bounds the product: `g·y ≤ c·y` for a non-negative `y`. -/
+theorem mul_le_mul_lit_or (g y c : Int) : c < g ∨ y < 0 ∨ g * y ≤ c * y := by
+  by_cases h1 : c < g
+  · exact Or.inl h1
+  · by_cases h2 : y < 0
+    · exact Or.inr (Or.inl h2)
+    · exact Or.inr (Or.inr (Int.mul_le_mul_of_nonneg_right (by omega) (by omega)))
+
+/-- … and a lower bound: `c·y ≤ g·y`. -/
+theorem lit_mul_le_mul_or (g y c : Int) : g < c ∨ y < 0 ∨ c * y ≤ g * y := by
+  by_cases h1 : g < c
+  · exact Or.inl h1
+  · by_cases h2 : y < 0
+    · exact Or.inr (Or.inl h2)
+    · exact Or.inr (Or.inr (Int.mul_le_mul_of_nonneg_right (by omega) (by omega)))
 
 /-- The 32-bit range of a wrapped value. -/
 theorem canonInt32_bounds (x : Int) : -2147483648 ≤ canonInt 32 true x ∧ canonInt 32 true x < 2147483648 :=
@@ -608,7 +691,7 @@ macro "sv_norm_core" : tactic =>
       Int.mul_zero, List.map_cons, List.map_nil,
       List.cons_append, List.flatMap_cons, LeanModels.Sv.CombView.TFam.lsites,
       LeanModels.Sv.CombView.TItem.lsAt, LeanModels.Sv.CombView.TItem.lsAtL, LeanModels.Sv.CombView.TItem.stepsAt,
-      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some,
+      LeanModels.Sv.CombView.TItem.stepsAtL, LeanModels.Sv.CombView.Hdr.name, Option.getD_some, Option.getD_none,
       LeanModels.Sv.CombView.TItem.condsAt, LeanModels.Sv.CombView.TItem.condsAtL, LeanModels.Sv.CombView.Summary.condSteps,
       LeanModels.Sv.CombView.Guard.All, LeanModels.Sv.CombView.Guard.holds, LeanModels.Sv.CombView.GCmp.holds,
       LeanModels.Sv.CombView.Hdr.guards, LeanModels.Sv.GenItem.slots, LeanModels.Sv.GenItem.slotsL, true_implies,
@@ -973,6 +1056,8 @@ def addPowFacts (es : Array Lean.Expr) : TacticM Unit := do
   let mut seenD : Array (Lean.Expr × Lean.Expr) := #[]
   -- the greatest lower bound found for each exponent of a power of two, with its proof
   let mut lows : Array (Lean.Expr × Nat × Lean.Expr) := #[]
+  -- … and the least upper bound (tac7: the lower bound of a quotient, `ediv_two_pow_ge_lit`)
+  let mut highs : Array (Lean.Expr × Nat × Lean.Expr) := #[]
   let le (a b : Lean.Expr) : MetaM Lean.Expr := mkAppM ``LE.le #[a, b]
   let powLit (c : Nat) : MetaM (Lean.Expr × Lean.Expr) := do
     let m : Int := 2 ^ c
@@ -1036,6 +1121,7 @@ def addPowFacts (es : Array Lean.Expr) : TacticM Unit := do
           if k == 2 then
             let (m, hm) ← powLit hi
             assertMainM `hpow_le (mkAppOptM ``LeanModels.Sv.CombView.two_pow_le_lit #[t, toExpr hi, m, h, hm])
+            highs := highs.push (t, hi, h)
           else if let some hb := hb? then
             let (m, hm) ← powLitB b k hi
             assertMainM `hpow_le
@@ -1066,6 +1152,14 @@ def addPowFacts (es : Array Lean.Expr) : TacticM Unit := do
             let (m, hm) ← powLit c
             assertMainM `hdiv_pow_le
               (mkAppOptM ``LeanModels.Sv.CombView.ediv_two_pow_le_lit #[x, t, toExpr c, m, h, hc, hm])
+        -- where the exponent is pinned to one value (`c ≤ t ≤ c`), the quotient is the quotient by the literal power
+        -- from below too (tac7: the slot width `(2*N) >> (l + 1)` at `l = 0`); only there, so that the facts of a design
+        -- whose exponents range (the prefix adders' levels) are those it had
+        if let some (_, d, hd) := highs.find? (fun (t', _, _) => t' == t) then
+          if lows.any (fun (t', c, _) => t' == t && c == d) then
+            let (m, hm) ← powLit d
+            assertMainM `hdiv_pow_ge
+              (mkAppOptM ``LeanModels.Sv.CombView.ediv_two_pow_ge_lit #[x, t, toExpr d, m, h, hd, hm])
       else if let some h ← omegaProves (← mkAppM ``LT.lt #[x, toExpr (0 : Int)]) then
         assertMainM `hdiv_pow (mkAppM ``LeanModels.Sv.CombView.ediv_two_pow_neg #[t, h])
       else
@@ -1090,7 +1184,8 @@ partial def shlArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
 
 /-- **Put the facts of the shift and power atoms in the context of the main goal** (item 4), beyond `addPowFacts`'s
 bounds: for two powers `b ^ t1`, `b ^ t2` of one literal base, both orders of `pow_le_pow_or` (monotonicity, and the
-congruence `omega` cannot see inside an atom); for two quotients `x / 2 ^ t` and two `x / 2 ^ t * 2 ^ t`, their
+congruence `omega` cannot see inside an atom); for two powers `b1 ^ t`, `b2 ^ t` of one exponent and literal bases
+`0 ≤ b1 < b2`, `pow_le_pow_base` (tac7); for two quotients `x / 2 ^ t` and two `x / 2 ^ t * 2 ^ t`, their
 congruence (`div_pow_congr_or`, `mul_pow_congr_or`); for each `x / 2 ^ t * 2 ^ t` of an `x` that `omega` shows
 non-negative, `shl_shr_facts`. Every fact is proved; none is assumed. -/
 def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
@@ -1110,7 +1205,13 @@ def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
   for i in [0:pows.size] do
     for j in [0:pows.size] do
       let (b1, k1, t1) := pows[i]!
-      let (_, k2, t2) := pows[j]!
+      let (b2, k2, t2) := pows[j]!
+      -- two literal bases, one exponent: the smaller base's power is the smaller (tac7)
+      if i != j && 0 ≤ k1 && k1 < k2 && t1 == t2 then
+        assertMainM `hpow_base do
+          let h0 ← mkDecideProof (← mkAppM ``LE.le #[toExpr (0 : Int), b1])
+          let h ← mkDecideProof (← mkAppM ``LE.le #[b1, b2])
+          mkAppOptM ``LeanModels.Sv.CombView.pow_le_pow_base #[b1, b2, h0, h, t1]
       if i != j && k1 == k2 then
         assertMainM `hpow_mono do
           let hb ← mkDecideProof (← mkAppM ``LE.le #[toExpr (1 : Int), b1])
@@ -1131,6 +1232,75 @@ def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
   for (x, t) in shls do
     if let some h ← omegaProves (← mkAppM ``LE.le #[toExpr (0 : Int), x]) then
       assertMainM `hshl (mkAppM ``LeanModels.Sv.CombView.shl_shr_facts #[t, h])
+
+/-- The pairs `(g, y)` of the products `g * y` of `e` of type `Int` (closed under no binder) whose `g` is a variable and
+`y` a shift or power atom: the product atoms (`XAt.mul`, tac7). -/
+partial def mulArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
+  let isLit (x : Lean.Expr) : Bool :=
+    x.isAppOfArity ``OfNat.ofNat 3 || x.isAppOfArity ``Neg.neg 3 && (x.getArg! 2).isAppOfArity ``OfNat.ofNat 3
+  let here : Array (Lean.Expr × Lean.Expr) :=
+    if e.isAppOfArity ``HMul.hMul 6 && !e.hasLooseBVars && e.getArg! 0 == mkConst ``Int then
+      let a := e.getArg! 4
+      let b := e.getArg! 5
+      if isLit a || isLit b then #[]
+      -- `x / 2 ^ t * 2 ^ t` is a shift atom of its own (`shlArgs`), no product
+      else if a.isAppOfArity ``HDiv.hDiv 6 && b.isAppOfArity ``HPow.hPow 6 then #[]
+      -- `y`: a shift or power atom (`x / 2 ^ t`, `b ^ t`, `x / 2 ^ t * 2 ^ t`)
+      else if (a.isFVar || a.isAppOfArity ``Nat.cast 3) &&
+          ((b.isAppOfArity ``HDiv.hDiv 6 && (b.getArg! 5).isAppOfArity ``HPow.hPow 6) || b.isAppOfArity ``HPow.hPow 6 ||
+            (b.isAppOfArity ``HMul.hMul 6 && (b.getArg! 4).isAppOfArity ``HDiv.hDiv 6)) then #[(a, b)]
+      else #[]
+    else #[]
+  let sub : Array (Lean.Expr × Lean.Expr) :=
+    match e with
+    | .app f a => mulArgs f ++ mulArgs a
+    | .mdata _ b | .proj _ _ b => mulArgs b
+    | _ => #[]
+  here ++ sub
+
+/-- **The facts of the product atoms** (tac7, `XAt.mul`), for `omega`, which reads `g * y` as an opaque atom: for every
+product `g * y` of the terms `es`, its sign (`mul_nonneg_or`) and the bounds of the literal bounds of `g` that `omega`
+shows from the context, greatest lower and least upper in `[0, 64]` (`lit_mul_le_mul_or`, `mul_le_mul_lit_or`); for two
+products of the same `y`, their strict monotonicity in `g`, both orders (`mul_lt_mul_or`: slots `t·W` of width `W` do not
+overlap). Every fact is proved; none is assumed. -/
+def addMulFacts (es : Array Lean.Expr) : TacticM Unit := do
+  let mut muls : Array (Lean.Expr × Lean.Expr) := #[]
+  for e in es do
+    for d in mulArgs (← instantiateMVars e) do
+      unless muls.contains d do muls := muls.push d
+  if muls.isEmpty then return
+  let le (a b : Lean.Expr) : MetaM Lean.Expr := mkAppM ``LE.le #[a, b]
+  for (g, y) in muls do
+    assertMainM `hmul_nonneg (mkAppM ``LeanModels.Sv.CombView.mul_nonneg_or #[g, y])
+    -- the factor `g` as an `Int` (a `Nat` cast stays a cast: the bound is about the same term)
+    if (← omegaProves (← le g (toExpr (64 : Int)))).isSome then
+      let mut lo := -64
+      let mut hi := 64
+      while lo < hi do
+        let mid := (lo + hi) / 2
+        if (← omegaProves (← le g (toExpr mid))).isSome then hi := mid else lo := mid + 1
+      assertMainM `hmul_le (mkAppM ``LeanModels.Sv.CombView.mul_le_mul_lit_or #[g, y, toExpr hi])
+    if (← omegaProves (← le (toExpr (-64 : Int)) g)).isSome then
+      let mut lo := -64
+      let mut hi := 64
+      while lo < hi do
+        let mid := (lo + hi + 1) / 2
+        if (← omegaProves (← le (toExpr mid) g)).isSome then lo := mid else hi := mid - 1
+      assertMainM `hmul_ge (mkAppM ``LeanModels.Sv.CombView.lit_mul_le_mul_or #[g, y, toExpr lo])
+  -- the numerator of a quotient by a power (`x` of `x / 2 ^ t`): two such factors of the same `x` are slot widths of
+  -- two loop instances, equal where their amounts are
+  let numer (y : Lean.Expr) : Option Lean.Expr :=
+    if y.isAppOfArity ``HDiv.hDiv 6 && (y.getArg! 5).isAppOfArity ``HPow.hPow 6 then some (y.getArg! 4) else none
+  for i in [0:muls.size] do
+    for j in [0:muls.size] do
+      let (g1, y1) := muls[i]!
+      let (g2, y2) := muls[j]!
+      if i != j && y1 == y2 then
+        assertMainM `hmul_mono (mkAppM ``LeanModels.Sv.CombView.mul_lt_mul_or #[g1, g2, y1])
+      else if i != j && (numer y1).isSome && numer y1 == numer y2 then
+        assertMainM `hmul_mono (mkAppM ``LeanModels.Sv.CombView.mul_lt_mul_or₂ #[g1, g2, y1, y2])
+        if i < j then
+          assertMainM `hmul_congr (mkAppM ``LeanModels.Sv.CombView.mul_congr_or #[g1, g2, y1, y2])
 
 /-- The arguments `X` of the squares `fuelSq X` of `e` (closed under no binder): the square of the parameters in the
 generate fuel bound (`AutoObl`, tac5). -/
@@ -2304,6 +2474,7 @@ def addClog2PowFacts (es : Array Lean.Expr) : TacticM Unit := do
   inGoal do addClog2PowFacts (← goalExprs)
   inGoal do LeanModels.Sv.CombView.addPowFacts (← goalExprs)
   inGoal do LeanModels.Sv.CombView.addAtomFacts (← goalExprs)
+  inGoal do LeanModels.Sv.CombView.addMulFacts (← goalExprs)
   inGoal do LeanModels.Sv.CombView.addSquareFacts (← goalExprs)
 
 @[tactic svPowOmega] def evalSvPowOmega : Tactic := fun _ => withDeepRec do
