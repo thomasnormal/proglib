@@ -1,20 +1,20 @@
 {
  "by_corpus": {
   "c-testsuite/single-exec": {
-   "passed": 135,
+   "passed": 136,
    "refused-libc": 1,
    "refused-ub": 5,
-   "refused-unsupported": 76,
+   "refused-unsupported": 75,
    "timeout": 3
   },
   "gcc.c-torture/execute": {
    "failed": 3,
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 972,
+   "passed": 977,
    "refused-libc": 18,
    "refused-ub": 89,
-   "refused-unsupported": 488,
+   "refused-unsupported": 483,
    "timeout": 80
   },
   "gcc.c23-run": {
@@ -30,10 +30,10 @@
   "failed": 3,
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1110,
+  "passed": 1116,
   "refused-libc": 21,
   "refused-ub": 97,
-  "refused-unsupported": 605,
+  "refused-unsupported": 599,
   "timeout": 83
  },
  "dynamic_wall_ranking": [
@@ -845,25 +845,6 @@
   },
   {
    "files": [
-    "00025.c",
-    "20050218-1.c",
-    "20111208-1.c",
-    "pr110914.c",
-    "pr116799.c",
-    "pr36321.c",
-    "pr80153.c",
-    "pr86528.c",
-    "string-opt-5.c",
-    "strlen-6.c",
-    "va-arg-10.c",
-    "va-arg-9.c"
-   ],
-   "present": 12,
-   "sole": 12,
-   "wall": "unsupported:strlen"
-  },
-  {
-   "files": [
     "20010325-1.c",
     "fprintf-1.c",
     "fprintf-chk-1.c",
@@ -1015,6 +996,19 @@
    "present": 6,
    "sole": 6,
    "wall": "unsupported:sprintf"
+  },
+  {
+   "files": [
+    "20111208-1.c",
+    "pr36321.c",
+    "pr80153.c",
+    "string-opt-5.c",
+    "va-arg-10.c",
+    "va-arg-9.c"
+   ],
+   "present": 6,
+   "sole": 6,
+   "wall": "unsupported:strlen"
   },
   {
    "files": [
@@ -2749,8 +2743,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T17:58:57Z",
- "measured_commit": "e28fec766",
+ "measured_at_utc": "2026-11-15T18:16:09Z",
+ "measured_commit": "4661412ed",
  "pin": {
   "corpora": [
    "C1",
@@ -3014,8 +3008,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00025.c",
    "sha256": "9096fd094a7596a53ed720f728053226642c64e06babad4b49cf588b4f80ab96",
@@ -3024,7 +3018,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -9181,8 +9175,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050218-1.c",
    "sha256": "58cee76083f39fa4acffe227c321e93f5fed969a9bbd5acafdc1676d461c13af",
@@ -9192,7 +9186,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20519,8 +20513,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr110914.c",
    "sha256": "f00c55da1029a7214d391a05e0983bfb4e0c43a3dcce34035423de0f78d515df",
@@ -20531,7 +20525,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20792,8 +20786,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr116799.c",
    "sha256": "4c8b152e9be0e30fabe1ce363fddcd56e98107b8df401c0668b76260c6e7182d",
@@ -20803,7 +20797,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26805,8 +26799,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr86528.c",
    "sha256": "af206bddf203102d7dacd2a1eb95adfc187aa8b0ce304b607bd42686d68d2f4f",
@@ -26820,7 +26814,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28423,8 +28417,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strlen: no concrete NUL in object",
-   "dynamic_wall": "unsupported:strlen",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strlen-6.c",
    "sha256": "06b9b66210c9f2f154dd882779051d415a24c3de166269c10ff8efe4f6a06e1d",
@@ -28435,7 +28429,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
