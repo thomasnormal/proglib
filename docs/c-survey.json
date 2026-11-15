@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 949,
+   "passed": 950,
    "refused-libc": 34,
    "refused-ub": 98,
-   "refused-unsupported": 505,
+   "refused-unsupported": 504,
    "timeout": 64
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1130,
+  "passed": 1131,
   "refused-libc": 38,
   "refused-ub": 107,
-  "refused-unsupported": 578,
+  "refused-unsupported": 577,
   "timeout": 66
  },
  "dynamic_wall_ranking": [
@@ -1626,14 +1626,6 @@
   },
   {
    "files": [
-    "20050929-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:compound literal initializer callback unavailable"
-  },
-  {
-   "files": [
     "pr33382.c"
    ],
    "present": 1,
@@ -3122,8 +3114,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T04:53:31Z",
- "measured_commit": "ba5f2b36b",
+ "measured_at_utc": "2026-11-15T06:24:46Z",
+ "measured_commit": "e5d077d60",
  "pin": {
   "corpora": [
    "C1",
@@ -9730,15 +9722,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "compound literal initializer callback unavailable",
-   "dynamic_wall": "unsupported:compound literal initializer callback unavailable",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050929-1.c",
    "sha256": "7f3bb1dae22731ecb25b35dab9b67b1c7a10647d01fb09d53fa33a4a828f8a0c",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

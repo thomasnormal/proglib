@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1130/2214 MATCH (passed 1130, failed 0, oracle 0)
+- verdicts: 1131/2214 MATCH (passed 1131, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `ba5f2b36b`
-- measured at: `2026-11-15T04:53:31Z`
+- measured commit: `e5d077d60`
+- measured at: `2026-11-15T06:24:46Z`
 
 ## Verdict counts
 
@@ -13,10 +13,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1130 |
+| `passed` | 1131 |
 | `refused-libc` | 38 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 578 |
+| `refused-unsupported` | 577 |
 | `timeout` | 66 |
 
 ## Counts by corpus
@@ -30,10 +30,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 949 |
+| `gcc.c-torture/execute` | `passed` | 950 |
 | `gcc.c-torture/execute` | `refused-libc` | 34 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 505 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 504 |
 | `gcc.c-torture/execute` | `timeout` | 64 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -400,7 +400,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:cannot initialize aggregate 'int'` | 1 | 1 | gcc/testsuite/gcc.dg/c23-empty-init-1.c |
 | `unsupported:cannot initialize aggregate 'struct D'` | 1 | 1 | pr39339.c |
 | `unsupported:cannot initialize aggregate 'u8'` | 1 | 1 | 00216.c |
-| `unsupported:compound literal initializer callback unavailable` | 1 | 1 | 20050929-1.c |
 | `unsupported:explicit initializer for flexible array member 'j'` | 1 | 1 | pr33382.c |
 | `unsupported:explicit initializer for flexible array member 'z'` | 1 | 1 | 20030109-1.c |
 | `unsupported:extern object 'ReadyFlag_NotProperlyInitialized' has no definition in the translation unit` | 1 | 1 | pr31072.c |
