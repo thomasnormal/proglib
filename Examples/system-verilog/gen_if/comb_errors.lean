@@ -18,7 +18,7 @@ open Examples.«system-verilog».gen_if.gen
 namespace Examples.«system-verilog».gen_if.comb_errors
 
 /--
-error: sv_structure: outside the supported fragment — conditional generate inside a generate loop: the condition is outside the v1 fragment (a signed comparison `s< s<= s> s>=`, or `==`, `!=`, of two affine forms in the parameters and the enclosing genvars: integer literals, `+`, `-`, `*` by a constant, and the atoms `1 << n`, `b ** n`, `m >> n`, `(m >> n) << n`, `(m >> n) & 1` of names `m`, `n`)
+error: sv_structure: outside the supported fragment — conditional generate inside a generate loop: the condition is outside the v1 fragment (a signed comparison `s< s<= s> s>=`, or `==`, `!=`, of two affine forms in the parameters and the enclosing genvars: integer literals, `+`, `-`, `*` by a constant, the atoms `1 << n`, `b ** n`, `m >> n`, `(m >> n) << n`, `(m >> n) & 1` of names `m`, `n`, and `c ? x : y` of such forms under such a comparison `c`)
 -/
 #guard_msgs (whitespace := lax) in
 example (N : Nat) (hN : 1 ≤ N) (hR : (N : Int) < 2147483647) : CombDesign (gen_if_bit.sem N) := by
