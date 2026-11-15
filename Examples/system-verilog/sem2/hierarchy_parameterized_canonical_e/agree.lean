@@ -12,4 +12,7 @@ def outputs : Res (List String) := do
     [("a", LVec.lit "xxxxxxxx")]]
   .ok (rows.map fun s => SvState.showSignal (CoreMemState.view d s) "y")
 #guard outputs == .ok ["00000000", "00000001", "10100101", "11110000", "xxxxxxxx"]
+#guard match hierarchyE.e 8 with
+  | .ok d => decide d.EquationGate
+  | _ => false
 end Examples.«system-verilog».sem2.hierarchy_parameterized_canonical_e

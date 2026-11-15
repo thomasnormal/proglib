@@ -111,6 +111,8 @@ def coreMemEquationB : List CoreMemProc → Bool
   | [] => true
   | .assign (.ident _) _ :: rest => coreMemEquationB rest
   | .assign (.bitSel _ _) _ :: rest => coreMemEquationB rest
+  | .assign (.partSel _ _ _) _ :: rest => coreMemEquationB rest
+  | .assign (.arrayPart _ [] .range _ _) _ :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ []) (.arrayElem _ []) :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ [_]) _ :: rest => coreMemEquationB rest
   | _ => false
