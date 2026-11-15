@@ -38,14 +38,14 @@ conditional generate arms (`Hdr.gs`) hold. -/
 def LoopsN : List Hdr → (String → Int) → ((String → Int) → Prop) → Prop
   | [], σ, P => P σ
   | h :: hs, σ, P =>
-      ∀ i : Nat, h.c0 ≤ (i : Int) → (i : Int) < h.bound.eval σ → Guard.All h.gs (bindσ h.g (i : Int) σ) →
+      ∀ i : Nat, h.lo σ ≤ (i : Int) → (i : Int) < h.bound.eval σ → Guard.All h.gs (bindσ h.g (i : Int) σ) →
         LoopsN hs (bindσ h.g (i : Int) σ) P
 
 /-- `P` holds at SOME valuation of the loops. -/
 def LoopsE : List Hdr → (String → Int) → ((String → Int) → Prop) → Prop
   | [], σ, P => P σ
   | h :: hs, σ, P =>
-      ∃ i : Nat, h.c0 ≤ (i : Int) ∧ (i : Int) < h.bound.eval σ ∧ Guard.All h.gs (bindσ h.g (i : Int) σ) ∧
+      ∃ i : Nat, h.lo σ ≤ (i : Int) ∧ (i : Int) < h.bound.eval σ ∧ Guard.All h.gs (bindσ h.g (i : Int) σ) ∧
         LoopsE hs (bindσ h.g (i : Int) σ) P
 
 theorem LoopsN_of_reach : ∀ (hs : List Hdr) (σ : String → Int) (P : (String → Int) → Prop),

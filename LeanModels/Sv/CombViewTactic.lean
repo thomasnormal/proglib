@@ -89,6 +89,13 @@ register_option sv_comb.rank_ranged : Bool := {
   defValue := false
   descr := "sv_structure: state the rank obligations with the in-range facts of both windows as premises" }
 
+/-- `set_option sv_comb.lp_atoms true` (tac9): `sv_structure` states its obligations with each localparam a variable named
+after it and its definition a hypothesis `hlp_<name>` (`lpAtoms`), instead of a copy of the definition wherever the
+localparam is read. Off by default: the obligations of every existing proof keep their form. -/
+register_option sv_comb.lp_atoms : Bool := {
+  defValue := false
+  descr := "sv_structure: keep each localparam a variable of the obligations, its definition a hypothesis" }
+
 /-- Run the normalization of the obligation `nm`; with `sv_comb.profile` set, log what it cost. -/
 def svObProfile (nm : String) (act : TacticM Unit) : TacticM Unit := do
   if sv_comb.profile.get (← getOptions) then
@@ -779,7 +786,8 @@ macro "sv_norm_core" : tactic =>
       List.lookup_cons_self, Int.one_mul, true_and,
       false_implies, implies_true, Int.zero_le_ofNat,
       Nat.lt_add_one, List.getElem_cons_succ, and_true,
-      LeanModels.Sv.CombView.Hdr.Rng, LeanModels.Sv.CombView.bindσ, String.reduceEq,
+      LeanModels.Sv.CombView.Hdr.Rng, LeanModels.Sv.CombView.Hdr.lo, Option.elim_none, Option.elim_some,
+      LeanModels.Sv.CombView.bindσ, String.reduceEq,
       ↓reduceIte, and_imp, Int.add_le_add_iff_right,
       Int.natCast_nonneg, and_self, LeanModels.Sv.CombView.svDimNum,
       LeanModels.Sv.CombView.Summary.hdrPaths, LeanModels.Sv.CombView.Summary.hdrSteps, Option.some.injEq,
@@ -899,6 +907,45 @@ elab "sv_ite_cases" : tactic => do
     out := out ++ (← getGoals)
   setGoals out
 
+/-- One node of `sv_ite_omega` (tac9): `omega` first; where it fails, split on the first condition of an `if-then-else`
+(as `sv_ite_cases`), simplify both branches with their case, and continue in each. A branch that contradicts the context
+closes at its first `omega`, so a chain of conditions that exclude each other (`S - 1 - s == 0`, `== 1`, …) costs one
+node per live case, not one per combination. Fails where `omega` fails and no condition is left. -/
+partial def svIteOmegaGo (fuel : Nat) : TacticM Unit := do
+  let saved ← saveState
+  try
+    evalTactic (← `(tactic| omega))
+    return
+  catch e =>
+    saved.restore
+    if fuel = 0 then throw e
+  let g ← getMainGoal
+  let c? ← g.withContext do
+    let mut es := #[← instantiateMVars (← g.getType)]
+    for d in ← getLCtx do
+      unless d.isImplementationDetail do es := es.push (← instantiateMVars d.type)
+    return (es.foldl (fun acc e => iteConds e acc) #[])[0]?
+  let some c := c? | throwError "sv_ite_omega: `omega` fails and no `if-then-else` is left to split"
+  let cStx ← g.withContext (Term.exprToSyntax c)
+  evalTactic (← `(tactic| by_cases hsv_ite : $cStx))
+  let gs ← getGoals
+  for g' in gs do
+    setGoals [g']
+    try evalTactic (← `(tactic| simp only [hsv_ite, if_true, if_false, ↓reduceIte, not_false_eq_true] at *))
+    catch _ => pure ()
+    unless (← getGoals).isEmpty do
+      svIteOmegaGo (fuel - 1)
+  setGoals []
+
+/-- **`sv_ite_omega`** (tac9): close an arithmetic goal with `if-then-else` terms (conditional atoms, `XAt.cond`, and the
+`?:` starts of generate loops) by `omega`, splitting on a condition only where `omega` fails, and trying `omega` again in
+each branch before splitting further. At most 64 nested splits. -/
+elab "sv_ite_omega" : tactic => do
+  for g in ← getGoals do
+    setGoals [g]
+    svIteOmegaGo 64
+  setGoals []
+
 /-- **Close a decidable structural fact without an auxiliary lemma** (WP-P). `decide +kernel` turns the
 fact into an auxiliary theorem and adds it to the environment synchronously, and in the asynchronous
 elaboration of a file that addition waits for the kernel check of EVERY earlier declaration: the
@@ -961,6 +1008,58 @@ partial def listElemExprs (e : Expr) : MetaM (Array Expr) := do
     | (``List.nil, _) => break
     | _ => throwError "sv_comb: cannot read a list expression element by element"
   return acc
+
+/-- **The localparams as variables of an obligation** (tac9, `sv_comb.lp_atoms`). The valuation of an obligation of the
+summary `s`, `s.val args`, is `σL` of the parameters zipped with the arguments, each localparam's value over what precedes
+it put in front (`lpEnv`). Here that list is written out, each localparam's value `CE.eval (σL acc) c` (the term
+`isDefEq` checks against `s.val args`), and each value is generalized in turn to a variable named after the localparam
+(`MVarId.generalize`: the obligation for that variable implies it at the value), its definition kept as the hypothesis
+`hlp_<name> : <value> = <name>`, normalized by the localparam vocabulary. A localparam whose definition is large (the Dadda
+record's stage count, a sum of 51 `?:`) is then one atom wherever it is read, instead of a copy of its definition in every
+condition that reads it. A goal without `Summary.val`, or a summary without localparams, is returned unchanged. -/
+unsafe def lpAtoms (s : LeanModels.Sv.CombView.Summary) (g : MVarId) : TacticM MVarId := g.withContext do
+  if s.lps.isEmpty then return g
+  let ty ← instantiateMVars (← g.getType)
+  let some vE := ty.find? (fun e => e.isAppOfArity ``LeanModels.Sv.CombView.Summary.val 2) | return g
+  let args ← listElemExprs vE.appArg!
+  let nParams := s.params.length - s.lps.length
+  let pairTy := mkApp2 (mkConst ``Prod [levelZero, levelZero]) (mkConst ``String) (mkConst ``Int)
+  let mkPair (n : String) (v : Expr) : Expr :=
+    mkApp4 (mkConst ``Prod.mk [levelZero, levelZero]) (mkConst ``String) (mkConst ``Int) (toExpr n) v
+  let mkList (l : List Expr) : Expr :=
+    l.foldr (fun x acc => mkApp3 (mkConst ``List.cons [levelZero]) pairTy x acc) (mkApp (mkConst ``List.nil [levelZero]) pairTy)
+  -- `lpEnv lps acc` puts each localparam in front of what precedes it: the parameters zipped with the arguments, reversed
+  let mut acc : List Expr := ((s.params.take nParams).zip args.toList).map fun (n, a) => mkPair n a
+  let mut vals : List (String × Expr) := []
+  let σL0 := mkConst ``LeanModels.Sv.CombView.σL
+  for (n, c) in s.lps do
+    let v := mkApp2 (mkConst ``LeanModels.Sv.CombView.CE.eval) (mkApp σL0 (mkList acc)) (toExpr c)
+    vals := vals ++ [(n, v)]
+    acc := mkPair n v :: acc
+  let σNew := mkApp σL0 (mkList acc)
+  unless ← withDefault (isDefEq vE σNew) do
+    throwError "sv_comb (lp_atoms): internal error: the valuation `{vE}` is not the explicit environment"
+  let mut g' ← g.replaceTargetDefEq (ty.replace fun e => if e == vE then some σNew else none)
+  -- generalize the values in order; a later value reads the earlier ones, which are variables by then
+  let mut done : List (Expr × Expr) := []
+  let mut hyps : Array Name := #[]
+  for (n, v0) in vals do
+    let v := done.foldl (fun e (old, new) => e.replace fun x => if x == old then some new else none) v0
+    let hN := Name.mkSimple s!"hlp_{n}"
+    let (fvs, g2) ← g'.generalize #[{ expr := v, xName? := Name.mkSimple n, hName? := hN }]
+    g' := g2
+    done := done ++ [(v, mkFVar fvs[0]!)]
+    hyps := hyps.push hN
+  -- the definitions in the form a player reads (`CE.eval` unfolded, the lookups done)
+  setGoals [g']
+  for h in hyps do
+    let hI := mkIdent h
+    try evalTactic (← `(tactic| simp only [LeanModels.Sv.CombView.CE.eval, LeanModels.Sv.CombView.σL,
+        List.lookup_cons, List.lookup_nil, String.reduceBEq, Bool.false_eq_true, ↓reduceIte, cond_false, cond_true,
+        Option.getD_some, Option.getD_none, Int.reduceAdd, Int.reduceSub, Int.reduceMul, Int.reduceNeg] at $hI:ident))
+    catch _ => pure ()
+  let some g3 := (← getGoals).head? | throwError "sv_comb (lp_atoms): internal error: the goal closed"
+  return g3
 
 namespace LeanModels.Sv.CombView
 
@@ -2661,7 +2760,9 @@ set_option maxRecDepth 4096 in
         LeanModels.Sv.CombView.nameOf?, LeanModels.Sv.CombView.litAmt?, LeanModels.Sv.CombView.affAmt?,
         Option.map_some, Option.getD_some, List.isEmpty_nil, List.isEmpty_cons, List.flatMap_cons, List.flatMap_nil,
         List.append_nil, List.nil_append])
+      -- (tac9: a loop start's atoms, `Hdr.StXOk`, `True` at a literal start)
       (try simp only [LeanModels.Sv.CombView.Acc.affs, LeanModels.Sv.CombView.Aff.XOk,
+        LeanModels.Sv.CombView.Hdr.StXOk, Option.elim_none, Option.elim_some,
         LeanModels.Sv.CombView.Aff.XOkL, LeanModels.Sv.CombView.XAt.Ok, and_true, true_and, implies_true,
         List.forall_mem_cons, List.forall_mem_nil, List.not_mem_nil, false_implies, forall_const])
       (try sv_norm_core)
@@ -2910,6 +3011,8 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       closeDecide `hok "the structural check failed"
       let mut out : Array MVarId := #[]
       let ranged := sv_comb.rank_ranged.get (← getOptions)
+      -- tac9: the localparams as variables of the obligations (`sv_comb.lp_atoms`, `lpAtoms`)
+      let lpOn := sv_comb.lp_atoms.get (← getOptions)
       let runOb (n : Name) (nm : String) (tac : TSyntax ``Lean.Parser.Tactic.tacticSeq)
           (grouped : Bool := false) : TacticM (List MVarId) := do
         let g0 ← find n
@@ -2920,6 +3023,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
               groupStructureGoal s g0 (some (mkMVar (← find `hauto), mkMVar (← find `hin)))
             catch e =>
               throwError "sv_structure: the ranged rank form (`sv_comb.rank_ranged`) could not be stated: {e.toMessageData}"
+          let g ← if lpOn then lpAtoms s g else pure g
           setGoals [g]
           svObProfile nm (evalTactic tac)
           let rest ← getGoals
@@ -2940,6 +3044,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
                 st.restore
                 pure g0)
           else pure g0
+        let g ← if lpOn then lpAtoms s g else pure g
         setGoals [g]
         svObProfile nm (evalTactic tac)
         let rest ← getGoals

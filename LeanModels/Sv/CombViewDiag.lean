@@ -226,12 +226,18 @@ def GCmp.show : GCmp → String
 
 def Guard.show (g : Guard) : String := s!"{g.a.show} {g.op.show} {g.b.show}"
 
+/-- The start of a loop as `sv_structure?` prints it: the literal, or the start's affine reading (tac9). -/
+def Hdr.loShow (h : Hdr) : String :=
+  match h.st with
+  | none => toString h.c0
+  | some (_, a) => a.show
+
 mutual
 /-- The `sv_structure?` lines of an item of a loop body under the loops `pre`, in the block `blk` (indent `ind`). -/
 def showItem (ind : String) (pre : List Hdr) (blk : String) : TItem → String
   | .site st => s!"{ind}{st.show s!"{blk}#{st.pos}[{", ".intercalate (pre.map (·.g))}]"}\n"
   | .loop h _ body =>
-      s!"{ind}inner family `{h.name}`: for {h.g} in [{h.c0}, {h.bound.show}):\n" ++
+      s!"{ind}inner family `{h.name}`: for {h.g} in [{h.loShow}, {h.bound.show}):\n" ++
         showItems (ind ++ "  ") (pre ++ [h]) h.name body
   | .cond _ g thn els =>
       s!"{ind}if {g.show}:\n" ++ showItems (ind ++ "  ") pre blk thn ++
@@ -258,7 +264,7 @@ def Summary.describe (s : Summary) : String := Id.run do
   if s.fams.isEmpty then
     out := out ++ "families: none\n"
   for f in s.fams do
-    out := out ++ s!"family `{f.hdr.name}`: for {f.hdr.g} in [{f.hdr.c0}, {f.hdr.bound.show}):\n"
+    out := out ++ s!"family `{f.hdr.name}`: for {f.hdr.g} in [{f.hdr.loShow}, {f.hdr.bound.show}):\n"
     out := out ++ showItems "  " [f.hdr] f.hdr.name f.body
   out := out ++ "rank relation a certificate must satisfy (writer < reader whenever the read window\n"
   out := out ++ "overlaps the written window; ranks are functions of the site identity):\n"
@@ -300,6 +306,9 @@ def Summary.structProblems (s : Summary) : List String := Id.run do
       for n in h.bound.names do
         unless s.params.contains n || ((p.map (·.g)).contains n && n != h.g) do
           ps := ps ++ [s!"loop `{h.name}`: the bound mentions `{n}`, which is neither a parameter nor the genvar of an enclosing loop"]
+      for n in h.stNames do
+        unless s.params.contains n || ((p.map (·.g)).contains n && n != h.g) do
+          ps := ps ++ [s!"loop `{h.name}`: the start mentions `{n}`, which is neither a parameter nor the genvar of an enclosing loop"]
       if h.c0 < 0 then
         ps := ps ++ [s!"loop `{h.name}`: the loop starts at a negative value {h.c0}"]
   for c in s.condSteps do

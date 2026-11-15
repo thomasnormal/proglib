@@ -3328,18 +3328,54 @@ structure Hdr where
   /-- The block's identity where its label is reused in another scope (tac7, `qualifyFams`): the label path
   `outer.inner`; `none` (the block's own label) everywhere else. Only the site identities read it (`Hdr.name`). -/
   qn : Option String := none
+  /-- A start that is not an integer literal (tac9: `for (g = E; …)`, `E` an affine form of the parameters and the
+  enclosing genvars, a `?:` among them): the envelope's expression and its affine reading (`affOf?`). `none` for a
+  literal start, which is `c0`; where it is `some`, `c0` is `0` and nothing reads it (`Hdr.lo`, `Hdr.initE`). -/
+  st : Option (PExpr × Aff) := none
 deriving Repr, Inhabited
 
 /-- The block's name in the site identities (`LSite.blk`, `SiteId.fam`): its label, or its label path where the label
 is reused in another scope (`Hdr.qn`). -/
 def Hdr.name (h : Hdr) : String := h.qn.getD (h.lbl.getD "genblk")
 
-/-- The loop index ranges over `[c0, bound)`, where the guards hold at the index. -/
+/-- The loop's start at a valuation (tac9): the literal `c0`, or the value of the start's affine reading (`Hdr.st`).
+An `Option.elim`, not a `match`: unfolded at a variable header it leaves `Option.elim h.st …`, which reduces only where
+`h.st` is a constructor (`Option.elim_none`, `Option.elim_some`), so the obligation vocabulary unfolds it by name without
+simplifying arms it cannot select; at a literal start it is `c0` by `rfl`. -/
+def Hdr.lo (h : Hdr) (σ : String → Int) : Int := h.st.elim h.c0 fun p => p.2.eval σ
+
+/-- The start in the envelope (`Hdr.gen`): the literal, or the start expression. -/
+def Hdr.initE (h : Hdr) : PExpr := h.st.elim (.int h.c0) Prod.fst
+
+/-- The names the start reads (none for a literal). -/
+def Hdr.stNames (h : Hdr) : List String := h.st.elim [] fun p => p.2.names
+
+/-- The shift and power atoms of the start in range (`Aff.XOk`; `True` for a literal). -/
+def Hdr.StXOk (h : Hdr) (σ : String → Int) : Prop := h.st.elim True fun p => p.2.XOk σ
+
+/-- The start has no shift or power atom (`Summary.atomFree`). -/
+def Hdr.stAtomFree (h : Hdr) : Bool := h.st.elim true fun p => p.2.xs.isEmpty
+
+/-- The recorded reading of the start is the expression's (`affOf?`; `True` for a literal). -/
+def Hdr.StWf (h : Hdr) : Prop := h.st.elim True fun p => affOf? p.1 = some p.2
+
+theorem Hdr.lo_of_st_none {h : Hdr} (hs : h.st = none) (σ : String → Int) : h.lo σ = h.c0 := by
+  simp [Hdr.lo, hs]
+
+theorem Hdr.stXOk_of_atomFree {h : Hdr} (ha : h.stAtomFree = true) (σ : String → Int) : h.StXOk σ := by
+  unfold Hdr.stAtomFree at ha
+  unfold Hdr.StXOk
+  rcases hs : h.st with _ | ⟨e, a⟩
+  · trivial
+  · rw [hs] at ha
+    exact Aff.xOk_of_nil (List.isEmpty_iff.mp ha)
+
+/-- The loop index ranges over `[lo, bound)`, where the guards hold at the index. -/
 def Hdr.Rng (h : Hdr) (σ : String → Int) (i : Int) : Prop :=
-  h.c0 ≤ i ∧ i < h.bound.eval σ ∧ Guard.All h.gs (bindσ h.g i σ)
+  h.lo σ ≤ i ∧ i < h.bound.eval σ ∧ Guard.All h.gs (bindσ h.g i σ)
 
 def Hdr.range (h : Hdr) (σ : String → Int) : List Int :=
-  (intRange h.c0 (h.bound.eval σ - h.c0).toNat).filter fun i => decide (Guard.All h.gs (bindσ h.g i σ))
+  (intRange (h.lo σ) (h.bound.eval σ - h.lo σ).toNat).filter fun i => decide (Guard.All h.gs (bindσ h.g i σ))
 
 theorem Hdr.mem_range {h : Hdr} {σ : String → Int} {i : Int} : i ∈ h.range σ ↔ h.Rng σ i := by
   simp only [Hdr.range, Hdr.Rng, List.mem_filter, mem_intRange, decide_eq_true_eq]
@@ -3362,6 +3398,9 @@ theorem Hdr.guards_inj {h : Hdr} {a b : List (Guard × Bool)} (e : h.guards a = 
 
 @[simp] theorem Hdr.guards_g (h : Hdr) (gs : List (Guard × Bool)) : (h.guards gs).g = h.g := rfl
 
+@[simp] theorem Hdr.guards_lo (h : Hdr) (gs : List (Guard × Bool)) (σ : String → Int) :
+    (h.guards gs).lo σ = h.lo σ := rfl
+
 theorem Hdr.rng_guards {h : Hdr} {gs : List (Guard × Bool)} {σ : String → Int} {i : Int} :
     (h.guards gs).Rng σ i ↔ h.Rng σ i ∧ Guard.All gs (bindσ h.g i σ) := by
   simp only [Hdr.Rng, Hdr.guards, Guard.all_append]
@@ -3371,16 +3410,17 @@ theorem Hdr.rng_guards {h : Hdr} {gs : List (Guard × Bool)} {σ : String → In
 
 /-- The header's envelope form. -/
 def Hdr.gen (h : Hdr) (rc : Option Nat) (body : List GenItem) : GenItem :=
-  .genFor h.lbl h.g (.int h.c0) (.binary .slt (.genvarRef h.g) h.bndE)
+  .genFor h.lbl h.g h.initE (.binary .slt (.genvarRef h.g) h.bndE)
     (.unary .inc (.genvarRef h.g)) rc body
 
-/-- The header's recognized bound is the envelope's, and it carries no guard (a header of the generate tree). -/
-def Hdr.Wf (h : Hdr) : Prop := affOf? h.bndE = some h.bound ∧ h.gs = []
+/-- The header's recognized bound (and start, tac9) are the envelope's, and it carries no guard (a header of the
+generate tree). -/
+def Hdr.Wf (h : Hdr) : Prop := affOf? h.bndE = some h.bound ∧ h.gs = [] ∧ h.StWf
 
 theorem Hdr.range_of_wf {h : Hdr} (hw : h.Wf) (σ : String → Int) :
-    h.range σ = intRange h.c0 (h.bound.eval σ - h.c0).toNat := by
+    h.range σ = intRange (h.lo σ) (h.bound.eval σ - h.lo σ).toNat := by
   unfold Hdr.range
-  rw [hw.2]
+  rw [hw.2.1]
   exact List.filter_eq_self.mpr fun _ _ => decide_eq_true trivial
 
 /-- An item of a generate loop's body: a site, a generate loop over items, or a conditional generate construct whose
@@ -3583,33 +3623,64 @@ theorem procsOf?_eq : ∀ {l : List GenItem} {ps : List PProcess}, procsOf? l = 
   | .inst _ :: _, _, h => by simp [procsOf?] at h
   | .decl _ :: _, _, h => by simp [procsOf?] at h
 
+/-- The start of a generate loop (tac9): an integer literal is `c0` (`Hdr.st = none`, the form of every header before
+tac9); any other expression is read by `affOf?` (the parameters, the enclosing genvars, `?:` as a conditional atom),
+`evalInt`'s reading of it (`affOf?_sound`), and refused where that reading fails. -/
+def hdrStartOf? (initE : PExpr) : Except String (Int × Option (PExpr × Aff)) :=
+  match initE with
+  | .int c0 => .ok (c0, none)
+  | _ =>
+      match affOf? initE with
+      | some a => .ok (0, some (initE, a))
+      | none => .error "generate loop start is not affine in the parameters and the enclosing genvars (integer literals, `+`, `-`, `*` by a constant, the atoms `1 << n`, `b ** n`, `m >> n`, and `c ? x : y` of such forms under a comparison `c`)"
+
+theorem hdrStartOf?_spec {initE : PExpr} {c0 : Int} {st : Option (PExpr × Aff)}
+    (h : hdrStartOf? initE = .ok (c0, st)) :
+    st.elim (PExpr.int c0) Prod.fst = initE ∧ st.elim True (fun p => affOf? p.1 = some p.2) := by
+  unfold hdrStartOf? at h
+  split at h
+  · simp only [Except.ok.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    exact ⟨rfl, trivial⟩
+  · rcases ha : affOf? initE with _ | a
+    · simp [ha] at h
+    · simp only [ha, Except.ok.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl⟩ := h
+      exact ⟨rfl, ha⟩
+
 def hdrOf? (label : Option String) (g : String) (initE bound step : PExpr) : Except String Hdr :=
-  match initE, bound, step with
-  | .int c0, .binary .slt (.genvarRef g') bnd, .unary .inc (.genvarRef g'') =>
+  match bound, step with
+  | .binary .slt (.genvarRef g') bnd, .unary .inc (.genvarRef g'') =>
       if g' = g ∧ g'' = g then
         match affOf? bnd with
         | none => .error "generate bound is not affine in the parameters and the enclosing genvars"
-        | some b => .ok ⟨label, g, c0, b, bnd, [], none⟩
+        | some b =>
+            match hdrStartOf? initE with
+            | .error e => .error e
+            | .ok (c0, st) => .ok { lbl := label, g := g, c0 := c0, bound := b, bndE := bnd, st := st }
       else .error "generate loop header mentions a second loop variable"
-  | _, _, _ => .error "generate-for header outside `for (g = <int>; g < <affine>; g++)`"
+  | _, _ => .error "generate-for header outside `for (g = <start>; g < <affine>; g++)`"
 
 theorem hdrOf?_spec {label : Option String} {g : String} {initE bound step : PExpr} {h : Hdr}
     (hh : hdrOf? label g initE bound step = .ok h) :
     h.lbl = label ∧ h.g = g ∧ h.Wf ∧
-      initE = .int h.c0 ∧ bound = .binary .slt (.genvarRef h.g) h.bndE ∧
+      initE = h.initE ∧ bound = .binary .slt (.genvarRef h.g) h.bndE ∧
       step = .unary .inc (.genvarRef h.g) := by
   unfold hdrOf? at hh
   split at hh
-  · rename_i c0 g' bnd g''
+  · rename_i g' bnd g''
     by_cases hgg : g' = g ∧ g'' = g
     · obtain ⟨h1, h2⟩ := hgg
       subst h1 h2
       simp only [and_self, if_true] at hh
       rcases hb : affOf? bnd with _ | b
       · simp [hb] at hh
-      · simp only [hb, Except.ok.injEq] at hh
-        subst hh
-        exact ⟨rfl, rfl, ⟨hb, rfl⟩, rfl, rfl, rfl⟩
+      · rcases hs : hdrStartOf? initE with e | ⟨c0, st⟩
+        · simp [hb, hs] at hh
+        · simp only [hb, hs, Except.ok.injEq] at hh
+          subst hh
+          obtain ⟨hi, hw⟩ := hdrStartOf?_spec hs
+          exact ⟨rfl, rfl, ⟨hb, rfl, hw⟩, hi.symm, rfl, rfl⟩
     · simp [hgg] at hh
   · simp at hh
 
@@ -4257,7 +4328,7 @@ def hdrPaths : List (List Hdr) := s.hdrSteps.map fun q => q.1 ++ [q.2]
 the atom obligation `Summary.XObl` of such a design (`xObl_of_atomFree`). -/
 def atomFree : Bool :=
   s.lsites.all (fun ls => (ls.site.tgt :: (ls.site.more ++ ls.site.rds)).all fun a => a.affs.all fun x => x.xs.isEmpty) &&
-  s.hdrSteps.all (fun q => q.2.bound.xs.isEmpty) &&
+  s.hdrSteps.all (fun q => q.2.bound.xs.isEmpty && q.2.stAtomFree) &&
   s.condSteps.all (fun c => c.2.2.rngs.all fun a => a.xs.isEmpty) &&
   s.lsites.all (fun ls => ls.site.rcounts.all fun c => c.xs.isEmpty)
 

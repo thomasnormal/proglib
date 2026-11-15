@@ -86,7 +86,7 @@ theorem autoObl_of_plain (s : Summary) (σ : String → Int) (args : List Int)
     (h : (∀ ls ∈ s.lsites, ∀ r ∈ ls.site.rds, s.InR σ σ r) ∧
       (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: ls.site.rds, s.DimNum σ a) ∧
       (∀ q ∈ s.hdrSteps, q.1.isEmpty = true ∧
-        (q.2.bound.eval σ - q.2.c0).toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
+        (q.2.bound.eval σ - q.2.lo σ).toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
       s.condSteps.isEmpty = true) (hx : s.atomFree = true) :
     s.AutoObl σ args := by
   obtain ⟨h1, h2, h3, h4⟩ := h

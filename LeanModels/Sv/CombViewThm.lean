@@ -1319,12 +1319,16 @@ def Summary.StructOk (s : Summary) : Prop :=
   (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: ls.site.more, a.name ∉ s.inputNames) ∧
   (∀ ls ∈ s.lsites, ∀ n ∈ ls.site.affNames, n ∈ ls.hdrs.map (·.g) ++ s.params) ∧
   (∀ p ∈ s.hdrPaths, (p.map (·.g) ++ s.params).Nodup ∧
-    ∀ h ∈ p, (∀ n ∈ h.bound.names, n ∈ s.params ∨ (n ∈ p.map (·.g) ∧ n ≠ h.g)) ∧ 0 ≤ h.c0) ∧
+    ∀ h ∈ p, (∀ n ∈ h.bound.names, n ∈ s.params ∨ (n ∈ p.map (·.g) ∧ n ≠ h.g)) ∧ 0 ≤ h.c0 ∧
+      ∀ n ∈ h.stNames, n ∈ s.params ∨ (n ∈ p.map (·.g) ∧ n ≠ h.g)) ∧
   (∀ dt ∈ s.decls, ∀ n ∈ dt.affNames, n ∈ s.params) ∧
   (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), s.accOk a = true) ∧
   s.lsites.Pairwise (fun a b => a.key ≠ b.key) ∧
   (∀ c ∈ s.condSteps, (∀ n ∈ c.2.1.gvLeaves, n ∈ c.1.map (·.g)) ∧ ∀ n ∈ c.2.1.pLeaves, n ∈ s.params)
 
+-- (tac9: the start's names, the conjunct added to the path clause, take the instance search past its default size)
+set_option synthInstance.maxSize 1024 in
+set_option synthInstance.maxHeartbeats 200000 in
 instance (s : Summary) : Decidable s.StructOk := by
   unfold Summary.StructOk; infer_instance
 
@@ -1377,7 +1381,7 @@ and is the atom's value (`affOf?_sound`, `guard_eval`). For a design without ato
 def XObl (σ : String → Int) : Prop :=
   (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' =>
     ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), ∀ x ∈ a.affs, x.XOk σ') ∧
-  (∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' => q.2.bound.XOk σ') ∧
+  (∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' => q.2.bound.XOk σ' ∧ q.2.StXOk σ') ∧
   (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' => ∀ a ∈ c.2.2.rngs, a.XOk σ') ∧
   (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' => ∀ c ∈ ls.site.rcounts, c.XOk σ')
 
@@ -1387,7 +1391,7 @@ theorem xObl_of_atomFree (h : s.atomFree = true) (σ : String → Int) : s.XObl 
   obtain ⟨⟨⟨h1, h2⟩, h3⟩, h4⟩ := h
   refine ⟨fun ls hls => ?_, fun q hq => ?_, fun c hc => ?_, fun ls hls => ?_⟩
   · exact (Loops.all_iff _ _ _).mpr fun σ' _ a ha x hx => Aff.xOk_of_nil (h1 ls hls a ha x hx)
-  · exact (Loops.all_iff _ _ _).mpr fun σ' _ => Aff.xOk_of_nil (h2 q hq)
+  · exact (Loops.all_iff _ _ _).mpr fun σ' _ => ⟨Aff.xOk_of_nil (h2 q hq).1, Hdr.stXOk_of_atomFree (h2 q hq).2 σ'⟩
   · exact (Loops.all_iff _ _ _).mpr fun σ' _ a ha => Aff.xOk_of_nil (h3 c hc a ha)
   · exact (Loops.all_iff _ _ _).mpr fun σ' _ c hc => Aff.xOk_of_nil (h4 ls hls c hc)
 
@@ -1404,7 +1408,7 @@ def AutoObl (σ : String → Int) (args : List Int) : Prop :=
   (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' => ∀ r ∈ ls.site.rds, s.InR σ σ' r) ∧
   (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), s.DimNum σ a) ∧
   ((∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' =>
-    (q.2.bound.eval σ' - q.2.c0).toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
+    (q.2.bound.eval σ' - q.2.lo σ').toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
    (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' =>
     ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)) ∧
   s.XObl σ
@@ -1415,7 +1419,7 @@ theorem autoObl_intro {σ : String → Int} {args : List Int}
     (h : (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' => ∀ r ∈ ls.site.rds, s.InR σ σ' r) ∧
       (∀ ls ∈ s.lsites, ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), s.DimNum σ a) ∧
       ((∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' =>
-        (q.2.bound.eval σ' - q.2.c0).toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
+        (q.2.bound.eval σ' - q.2.lo σ').toNat ≤ fuelSq (args.map Int.natAbs).sum + 4 * (args.map Int.natAbs).sum + 67) ∧
        (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' =>
         ∀ a ∈ c.2.2.rngs, -2147483648 ≤ a.eval σ' ∧ a.eval σ' < 2147483648)))
     (hx : s.XObl σ) : s.AutoObl σ args :=
