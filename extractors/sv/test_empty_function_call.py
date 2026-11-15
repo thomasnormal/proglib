@@ -123,6 +123,28 @@ class EmptyFunctionCalls(unittest.TestCase):
         self.assertTrue(calls[0]["symbolic_user_function_retained"])
         self.assertEqual(calls[0]["name"], "step")
 
+    def test_symbolic_retain_mode_keeps_qualified_package_function(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source_path = Path(directory) / "qualified.sv"
+            output_path = Path(directory) / "qualified.sv.json"
+            source_path.write_text(
+                "package p; function automatic integer f(input integer x); "
+                "return (x > 1) ? $clog2(x) : 1; endfunction endpackage "
+                "module top #(parameter integer N = 8); "
+                "localparam integer W = p::f(N); "
+                "logic [W-1:0] value; assign value = W; endmodule")
+            extract.process_symbolic(
+                "top", [str(source_path)], [], str(output_path),
+                retain_proc_rewrites=True)
+            envelope = json.loads(output_path.read_text())
+        module = envelope["design"]["modules"][0]
+        self.assertEqual(envelope["packages"], ["p"])
+        self.assertEqual([f["name"] for f in module["functions"]], ["f"])
+        local = next(p for p in module["params"] if p["name"] == "W")
+        self.assertEqual(local["expr"]["kind"], "FunctionCall")
+        self.assertEqual(local["expr"]["name"], "f")
+        self.assertTrue(local["expr"]["symbolic_user_function_retained"])
+
     def test_symbolic_constant_expression_return_is_materialized(self):
         design = self.symbolic(
             "module top(output logic [3:0] y); "

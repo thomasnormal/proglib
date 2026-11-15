@@ -35214,9 +35214,13 @@ def _sym_package_functions(sm):
     Package functions are parser declarations just like module functions.  A
     package call in a parameter/localparam must carry that declaration into
     the envelope; dropping it turns an exact constant expression into a
-    misleading generic CallExpression refusal.
+    misleading generic CallExpression refusal.  Return the package names as
+    well: a qualified call has no import member in the module, so its package
+    provenance must come from the resolved Slang subroutine symbol rather
+    than from source spelling.
     """
     result = []
+    packages = set()
     try:
         root = _SYM.comp.getRoot()
         for unit in _SYM.comp.getCompilationUnits():
@@ -35229,12 +35233,13 @@ def _sym_package_functions(sm):
                         continue
                     if not _subroutine_is_referenced(root, member):
                         continue
+                    packages.add(package.name)
                     retained = _sym_function_node(sm, member)
                     if isinstance(retained, dict) and retained.get("kind") == "Function":
                         result.append(retained)
     except Exception:
-        return []
-    return result
+        return [], set()
+    return result, packages
 
 
 def convert_module_sym(sm, inst):
@@ -35369,7 +35374,8 @@ def convert_module_sym(sm, inst):
     decls.extend(lower_proc.hoisted_decls())                  # WP-PROC L1
 
     package_params = _sym_package_params(sm)
-    package_functions = _sym_package_functions(sm)
+    package_functions, function_packages = _sym_package_functions(sm)
+    _SYM.packages.update(function_packages)
     properties.extend(_SYM_PROPERTIES)
     cell_refs = []
     def collect_cell_refs(node):
