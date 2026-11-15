@@ -176,8 +176,17 @@ def CoreMemDesign.storeFromView (E : CoreMemDesign) (view : SvState) : Store :=
 
 def CoreMemDesign.compactScalar (E : CoreMemDesign) (st : CoreMemState) (view : SvState) :
     CoreMemState :=
-  let cache := E.scalarCacheOf (E.storeFromView view)
-  { st with scalar := E.scalarStore cache, scalarCache := cache }
+  if E.scalar.view st.scalar = view then
+    st
+  else
+    let cache := E.scalarCacheOf (E.storeFromView view)
+    { st with scalar := E.scalarStore cache, scalarCache := cache }
+
+theorem CoreMemDesign.compactScalar_of_view_eq
+    (E : CoreMemDesign) (st : CoreMemState) (view : SvState)
+    (h : E.scalar.view st.scalar = view) :
+    E.compactScalar st view = st := by
+  simp [CoreMemDesign.compactScalar, h]
 
 def CoreMemDesign.initial (E : CoreMemDesign) : CoreMemState :=
   let cache := E.scalarCacheOf E.scalar.initStore
