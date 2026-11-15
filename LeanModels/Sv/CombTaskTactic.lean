@@ -375,7 +375,8 @@ elab "sv_known_inputs" : tactic => withMainContext do
 /-- `sv_obligations`: the standard closers of the obligations `sv_equations` returns, chosen by each goal's tag (so no
 closer is tried on an obligation of another kind, where it fails at a cost: `sv_pow_omega` on a coverage goal runs its
 whole bisection before failing). `inputsKnown_k` by `sv_known_inputs`; `cover_k` by `sv_cover`, then
-`sv_pow_facts <;> sv_cover` (the other order where the goal holds a wrapped constant, a `$clog2` or a power); `auto_k`, `inRange_k`, `width_k`, `bitRead_k` by `intros; omega`, then `sv_pow_omega`. A goal
+`sv_pow_facts <;> sv_cover` (the other order where the goal holds a wrapped constant, a `$clog2` or a power, unless it also
+holds a product of two non-numeral factors: `sv_cover`'s slot-window rule states its own facts); `auto_k`, `inRange_k`, `width_k`, `bitRead_k` by `intros; omega`, then `sv_pow_omega`. A goal
 of another tag (the main goal) is left untouched, and so is an obligation none of its closers proves. The closers run
 without info trees (tac10): a failed attempt's trees would otherwise stay alive after its state is restored. -/
 elab "sv_obligations" : tactic => do
@@ -393,7 +394,11 @@ elab "sv_obligations" : tactic => do
         let ty ← instantiateMVars (← g.getType)
         let atoms := (ty.find? fun x => x.isConstOf ``LeanModels.Sv.canonInt || x.isConstOf ``LeanModels.Sv.clog2 ||
           x.isConstOf ``HPow.hPow).isSome
-        if atoms then pure (some (← `(tactic| first | (sv_pow_facts <;> sv_cover) | sv_cover)))
+        -- a goal with a product of two non-numeral factors (a slot width times a variable): `sv_cover`'s slot-window
+        -- rule states the facts it needs itself, and `sv_pow_facts`' facts would only slow it
+        let prods := (ty.find? fun x => x.isAppOfArity ``HMul.hMul 6 && (x.getArg! 0).isConstOf ``Int &&
+          !(LeanModels.Sv.CombCoverUnit.isNumeral (x.getArg! 4)) && !(LeanModels.Sv.CombCoverUnit.isNumeral (x.getArg! 5))).isSome
+        if atoms && !prods then pure (some (← `(tactic| first | (sv_pow_facts <;> sv_cover) | sv_cover)))
         else pure (some (← `(tactic| first | sv_cover | (sv_pow_facts <;> sv_cover))))
       else if isTag "auto" || isTag "inRange" || isTag "width" || isTag "bitRead" then
         pure (some (← `(tactic| first | (intros; omega) | sv_pow_omega)))

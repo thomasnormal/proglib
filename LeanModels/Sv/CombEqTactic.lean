@@ -5,6 +5,7 @@ import LeanModels.Sv.CombEqThm
 import LeanModels.Sv.CombEqPlain
 import LeanModels.Sv.CombBridge
 import LeanModels.Sv.CombCover
+import LeanModels.Sv.CombCoverUnit
 import LeanModels.Sv.CombEqGroup
 import LeanModels.Sv.CombHier
 import LeanModels.Sv.Ingest2
@@ -1466,6 +1467,20 @@ syntax (name := svCoverStx) "sv_cover" : tactic
 private partial def andParts (e : Expr) : List Expr :=
   if e.isAppOfArity ``And 2 then e.appFn!.appArg! :: andParts e.appArg! else [e]
 
+/-- The rule with slot windows, forced witnesses and nested rows (`CombCoverUnit.coverUnits`) on the main goal, where
+`sv_comb.cover_units` is set: `true` if it proves the goal; otherwise `false` with the state restored. -/
+private def coverUnitsOk (prep : Option Syntax := none) : TacticM Bool := do
+  unless sv_comb.cover_units.get (← getOptions) do return false
+  let st ← saveState
+  -- a runtime exception (a heartbeat or recursion limit inside the rule) is a failure of the rule like any other
+  tryCatchRuntimeEx
+    (do
+      LeanModels.Sv.CombCoverUnit.coverUnits prep
+      pure true)
+    fun _ => do
+      st.restore
+      pure false
+
 /-- One `sv_cover` call on the main goal. A CONJUNCTION with a quantified part (the coverage obligation of a site that
 writes a vector is a bit-level and a vector-level fact, `… ∧ ∀ k, k < w → …`) is split first and each part is a call of
 its own: its own `intros`, the 2-D rule, a fresh budget (perf, 2026-11-04). On such a conjunction as a whole the search
@@ -1474,7 +1489,7 @@ could not succeed (it does not introduce the `∀` of the second part) and spent
 them with its next alternative, `intros; refine ⟨?_, ?_⟩ <;> first | sv_cover | (intro k hk; sv_cover)`, in one or two
 thousand. Every other goal (a conjunction of quantifier-free reads included, whose repeated conjuncts the 2-D rule proves
 once) takes the route as before. -/
-private partial def svCoverMain : TacticM Unit := do
+private partial def svCoverMain (prep : Option Syntax := none) : TacticM Unit := do
   let g0 :: rest ← getGoals | throwError "sv_cover: no goals"
   setGoals [g0]
   try evalTactic (← `(tactic| intros)) catch _ => pure ()
@@ -1483,20 +1498,30 @@ private partial def svCoverMain : TacticM Unit := do
     evalTactic (← `(tactic| refine And.intro ?_ ?_))
     for p in ← getGoals do
       setGoals [p]
-      svCoverMain
+      svCoverMain prep
       unless (← getGoals).isEmpty do throwError "sv_cover: a part of the conjunction is left open"
     setGoals rest
   else
     -- the sign of every power of a genvar in the goal (the shift and power atoms), proved
     (← getMainGoal).withContext addPowPositivity
     let budget ← IO.mkRef 250
-    -- the 2-D rule first (`CombCover.lean`); a shape it does not read takes the search below
+    -- the 2-D rule first (`CombCover.lean`); where it fails, the rule with slot windows (`CombCoverUnit.lean`); a shape
+    -- neither reads takes the search below, a goal the 2-D rule reads and neither proves is reported
     let st ← saveState
-    let done ← try LeanModels.Sv.CombCover.coverCells; pure true
+    -- a read through a product of two non-numeral factors (a slot width times a variable): the 2-D rule cannot read it,
+    -- so the rule with slot windows goes first there
+    let ty ← instantiateMVars (← (← getMainGoal).getType)
+    let prods := (ty.find? fun x => x.isAppOfArity ``HMul.hMul 6 && (x.getArg! 0).isConstOf ``Int &&
+      !(LeanModels.Sv.CombCoverUnit.isNumeral (x.getArg! 4)) &&
+      !(LeanModels.Sv.CombCoverUnit.isNumeral (x.getArg! 5))).isSome
+    let done ← if prods then (do if ← coverUnitsOk prep then pure true else pure false) else pure false
+    let done ← if done then pure true else
+      try LeanModels.Sv.CombCover.coverCells; pure true
       catch e =>
-        if (← e.toMessageData.toString).startsWith LeanModels.Sv.CombCover.diagPrefix then throw e
         st.restore
-        pure false
+        if !prods && (← coverUnitsOk prep) then pure true
+        else if (← e.toMessageData.toString).startsWith LeanModels.Sv.CombCover.diagPrefix then throw e
+        else pure false
     unless done do svCover budget
     setGoals ((← getGoals) ++ rest)
 
@@ -1511,9 +1536,22 @@ on the Karatsuba record's 16 coverage goals, one capped `sv_cover` each: about 2
 info trees, 2.09 GB throughout without). -/
 @[tactic svCoverStx] def evalSvCover : Tactic := fun _ => withDeepRec do
   let st ← saveState
-  tryCatchRuntimeEx (withEnableInfoTree false svCoverMain) fun ex => do
+  tryCatchRuntimeEx (withEnableInfoTree false (svCoverMain none)) fun ex => do
     unless ex.isMaxRecDepth do throw ex
     st.restore
     throwError "sv_cover: a search step exceeded the recursion limit on this goal: `omega` was given a goal it cannot \
       prove from the context (a fact it needs is missing, such as the value of a wrapped constant or a bound of a \
       `$clog2`: `sv_pow_facts` puts those in context first)"
+
+/-- `sv_cover using tac`: `sv_cover`, where the rule with slot windows (`CombCoverUnit.lean`) runs `tac` once the
+writers' witnesses are solved, with every writer's condition in context as `L → L` (no claim): the player's facts about
+the design's own functions at the witnesses (a table of the schedule at a stage index the solution names), which the
+rule cannot know. `tac` must leave one goal; it may add hypotheses only. -/
+syntax (name := svCoverUsingStx) "sv_cover" " using " tactic : tactic
+
+@[tactic svCoverUsingStx] def evalSvCoverUsing : Tactic := fun stx => withDeepRec do
+  let st ← saveState
+  tryCatchRuntimeEx (withEnableInfoTree false (svCoverMain (some stx[2]))) fun ex => do
+    unless ex.isMaxRecDepth do throw ex
+    st.restore
+    throwError "sv_cover: a search step exceeded the recursion limit on this goal"
