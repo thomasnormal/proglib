@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1128/2214 MATCH (passed 1128, failed 0, oracle 0)
+- verdicts: 1129/2214 MATCH (passed 1129, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `f0920b001b75afada50ffc7cddfdfff0e0e3e4be`
-- measured at: `2026-11-14T17:24:17Z`
+- measured commit: `6ab3d3faf`
+- measured at: `2026-11-14T23:59:31Z`
 
 ## Verdict counts
 
@@ -13,10 +13,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1128 |
+| `passed` | 1129 |
 | `refused-libc` | 38 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 580 |
+| `refused-unsupported` | 579 |
 | `timeout` | 66 |
 
 ## Counts by corpus
@@ -30,10 +30,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 948 |
+| `gcc.c-torture/execute` | `passed` | 949 |
 | `gcc.c-torture/execute` | `refused-libc` | 34 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 506 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 505 |
 | `gcc.c-torture/execute` | `timeout` | 64 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -408,7 +408,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:extern object 'i' has no definition in the translation unit` | 1 | 1 | pure-1.c |
 | `unsupported:extern object 'p' has no definition in the translation unit` | 1 | 1 | gcc/testsuite/gcc.dg/c23-unreachable-1.c |
 | `unsupported:function instrumentation is outside the tier` | 1 | 1 | eeprof-1.c |
-| `unsupported:no layout for compound literal type 'T'` | 1 | 1 | 20071029-1.c |
 | `unsupported:no layout for compound literal type 'V'` | 1 | 1 | pr109040.c |
 | `unsupported:no layout for declared type 'A0'` | 1 | 1 | va-arg-22.c |
 | `unsupported:no layout for declared type 'DB_TXNLIST'` | 1 | 1 | 20011008-3.c |

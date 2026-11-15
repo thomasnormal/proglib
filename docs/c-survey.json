@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 948,
+   "passed": 949,
    "refused-libc": 34,
    "refused-ub": 98,
-   "refused-unsupported": 506,
+   "refused-unsupported": 505,
    "timeout": 64
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1128,
+  "passed": 1129,
   "refused-libc": 38,
   "refused-ub": 107,
-  "refused-unsupported": 580,
+  "refused-unsupported": 579,
   "timeout": 66
  },
  "dynamic_wall_ranking": [
@@ -1690,14 +1690,6 @@
   },
   {
    "files": [
-    "20071029-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'T'"
-  },
-  {
-   "files": [
     "pr109040.c"
    ],
    "present": 1,
@@ -3138,8 +3130,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-14T17:24:17Z",
- "measured_commit": "f0920b001b75afada50ffc7cddfdfff0e0e3e4be",
+ "measured_at_utc": "2026-11-14T23:59:31Z",
+ "measured_commit": "6ab3d3faf",
  "pin": {
   "corpora": [
    "C1",
@@ -10158,15 +10150,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'T'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'T'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20071029-1.c",
    "sha256": "6df42c05c4f4dfb53a0d5601f798a9924743f08eb5c4083e1d56a3be01a75ab7",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
