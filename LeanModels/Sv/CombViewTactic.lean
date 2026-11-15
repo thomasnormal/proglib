@@ -400,6 +400,25 @@ theorem pow_le_sq_of_two_pow_le {b : Int} (hb0 : 0 ≤ b) (hb : b ≤ 4) (t X c 
     rw [fuelSq, Int.natCast_mul]; grind
   exact Int.le_trans (pow_le_two_pow_sq hb0 hb t) (e ▸ hsq)
 
+/-- **The tangents of the fuel square** (tac7, W4): `2·a·X ≤ X² + a²`, i.e. `(X - a)² ≥ 0`, as a linear fact of the
+`Nat` atom `fuelSq X` for a literal `a`. A loop count linear in the parameter with a larger slope than the fuel's linear
+part (`P = 4·2^$clog2(N+1) ≤ 8N + 4` against `N² + 4N + 67`) is within the fuel by the tangent at `a = 2`. -/
+theorem fuelSq_tangent (X a : Nat) : 2 * a * X ≤ fuelSq X + a * a := by
+  unfold fuelSq
+  rcases Nat.le_total a X with h | h
+  · obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
+    have e1 : (a + d) * (a + d) = a * a + 2 * (a * d) + d * d := by
+      rw [Nat.add_mul, Nat.mul_add, Nat.mul_add, Nat.mul_comm d a]; omega
+    have e2 : 2 * a * (a + d) = 2 * (a * a) + 2 * (a * d) := by
+      rw [Nat.mul_add, Nat.mul_assoc, Nat.mul_assoc]
+    rw [e1, e2]; omega
+  · obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
+    have e1 : (X + d) * (X + d) = X * X + 2 * (X * d) + d * d := by
+      rw [Nat.add_mul, Nat.mul_add, Nat.mul_add, Nat.mul_comm d X]; omega
+    have e2 : 2 * (X + d) * X = 2 * (X * X) + 2 * (X * d) := by
+      rw [Nat.mul_add, Nat.add_mul, Nat.mul_assoc, Nat.mul_assoc, Nat.mul_comm d X]
+    rw [e1, e2]; omega
+
 /-- Two right shifts by powers of two of equal operands are equal (a disjunction `omega` reads). -/
 theorem div_pow_congr_or (x1 x2 : Int) (t1 t2 : Nat) :
     x1 < x2 ∨ x2 < x1 ∨ t1 < t2 ∨ t2 < t1 ∨ x1 / 2 ^ t1 = x2 / 2 ^ t2 := by
@@ -1333,6 +1352,10 @@ def addSquareFacts (es : Array Lean.Expr) : TacticM Unit := do
       if let some k ← getIntValue? b then
         if k == 2 && !twos.contains t then twos := twos.push t
         if 2 ≤ k && k ≤ 4 && !pows.any (fun (b', _, t') => b' == b && t' == t) then pows := pows.push (b, k, t)
+  -- the tangents of each square (tac7, W4): `2·a·X ≤ fuelSq X + a²` for `a` in 1, 2, 4, 8, 16 (`fuelSq_tangent`)
+  for x in sqs do
+    for a in [1, 2, 4, 8, 16] do
+      assertMainM `hsq_tan (mkAppM ``LeanModels.Sv.CombView.fuelSq_tangent #[x, toExpr (a : Nat)])
   if sqs.isEmpty || pows.isEmpty then return
   let two := toExpr (2 : Int)
   for (b, _, t) in pows do
