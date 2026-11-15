@@ -732,3 +732,7 @@ with the explicit `RFlow.brk` body result and produces the faithful
 `Monadic.callInMono_succ_body_continue` completes the public successor-fuel
 flow mappings for explicit body results by producing the faithful
 `"'continue' outside loop"` refusal from `RFlow.cont`.
+
+`Monadic.callInMono_succ_body_exn` adds the corresponding public successor-fuel
+composition for a Python exception, preserving the post-body world and the
+original error at normalized top depth.
