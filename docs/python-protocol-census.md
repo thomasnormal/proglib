@@ -668,3 +668,8 @@ preserving the returned value.
 `Monadic.leaveCallM_inWorld_of_exn` supplies the matching recursive exception
 transport, retaining the post-body world, decrementing its active call depth,
 and propagating the original Python error.
+
+`Monadic.leaveCallM_inWorld_of_timeout` and
+`Monadic.leaveCallM_inWorld_of_unsupported` complete the recursive
+timeout/refusal projections; those outcomes carry no world and therefore need
+no depth restoration.

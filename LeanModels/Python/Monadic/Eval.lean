@@ -4871,6 +4871,41 @@ theorem leaveCallM_inWorld_of_exn {α : Type}
     (s'' := { st'.world with callDepth := st'.world.callDepth.pred })
     (e := e) (e' := e) hbody hh
 
+theorem leaveCallM_inWorld_of_timeout {α : Type}
+    (locals : REnv) (action : SemF α) (w : World)
+    (h : action ⟨w, locals⟩ = .error .timeout) :
+    toRun (leaveCallM (inWorld locals action)) w = .timeout := by
+  have hi : (inWorld locals action) w = .error .timeout := by
+    unfold inWorld zoomOut
+    rw [h]
+  unfold leaveCallM
+  apply toRun_tryCatch_timeout
+  have hbody : (do
+      let value ← inWorld locals action
+      modify fun w : World => { w with callDepth := w.callDepth.pred }
+      pure value) w = .error .timeout := by
+    simp [bind_apply, hi]
+  exact hbody
+
+theorem leaveCallM_inWorld_of_unsupported {α : Type}
+    (locals : REnv) (action : SemF α) (w : World)
+    (cause : RefusalCause Unit) (msg : String) (snapshot : Option Unit)
+    (h : action ⟨w, locals⟩ = .error (.unsupported cause msg snapshot)) :
+    toRun (leaveCallM (inWorld locals action)) w = .unsupported msg := by
+  have hi : (inWorld locals action) w =
+      .error (.unsupported cause msg snapshot) := by
+    unfold inWorld zoomOut
+    rw [h]
+  unfold leaveCallM
+  apply toRun_tryCatch_unsupported (cause := cause) (msg := msg) (snapshot := snapshot)
+  have hbody : (do
+      let value ← inWorld locals action
+      modify fun w : World => { w with callDepth := w.callDepth.pred }
+      pure value) w =
+      .error (.unsupported cause msg snapshot) := by
+    simp [bind_apply, hi]
+  exact hbody
+
 theorem twinAgrees_callInM_top_body_exn
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (e : PyErr)
