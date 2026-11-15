@@ -3879,6 +3879,29 @@ theorem execOpenList_assignments_threaded (K : Kont) (m : Module) :
         exact hEach s' (by simp [hs']) st'
       exact ih st₁ hTailShape hTailEach
 
+theorem execOpenList_next_threaded (K : Kont) (m : Module) :
+    ∀ (ss : List Stmt) (st : FrameState),
+      (∀ s ∈ ss, ∀ st', ∃ st'',
+        execOpen K m s st' = .ok (.ok RFlow.next, st'')) →
+      ∃ st', execOpenList K m ss st = .ok (.ok RFlow.next, st') := by
+  intro ss
+  induction ss with
+  | nil =>
+      intro st hEach
+      exact ⟨st, rfl⟩
+  | cons s ss ih =>
+      intro st hEach
+      rcases hEach s (by simp) st with ⟨st₁, hs⟩
+      simp only [execOpenList]
+      rw [SemMWith.run_bind]
+      rw [hs]
+      have hTailEach : ∀ s' ∈ ss, ∀ st', ∃ st'',
+          execOpen K m s' st' = .ok (.ok RFlow.next, st'') := by
+        intro s' hs' st'
+        exact hEach s' (by simp [hs']) st'
+      rcases ih st₁ hTailEach with ⟨st₂, htail⟩
+      exact ⟨st₂, by simpa [htail]⟩
+
 theorem execOpenList_assignments_ret_run (K : Kont) (m : Module) (v : RVal) :
     ∀ (ss : List Stmt) (ret : Stmt) (st : FrameState),
       (∀ s ∈ ss, ∃ targets value sp, s = .assign targets value sp) →
@@ -4617,6 +4640,26 @@ theorem callInMono_succ_body_next
   exact twinAgrees_callInM_top_body_next (kont m fuel) m fname args f
     { w with callDepth := pythonTopCallDepth } st' hfind hgen hargs hlocal
     hnotgen harity hbody
+
+theorem callInMono_succ_body_next_of_each
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hEach : ∀ s ∈ f.body.toList, ∀ st', ∃ st'',
+      execOpen (kont m fuel) m s st' = .ok (.ok RFlow.next, st'')) :
+    ∃ st' : FrameState, callInMono m (fuel + 1) w fname args =
+      .ok { st'.world with callDepth := pythonTopCallDepth } .none := by
+  have hbody := execOpenList_next_threaded (kont m fuel) m f.body.toList
+    ⟨{ w with callDepth := 1 },
+      globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal⟩ hEach
+  rcases hbody with ⟨st', hbody⟩
+  exact ⟨st', callInMono_succ_body_next m fuel w fname args f st' hfind hgen
+    hargs hlocal hnotgen harity hbody⟩
 
 theorem twinAgrees_callInM_top_body_ret
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)

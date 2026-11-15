@@ -746,3 +746,9 @@ refusal-message observations.
 structural empty-body case. It is the first recursive refinement base case:
 the successor-fuel public call returns `none` after the top-depth restoration,
 with no per-count assignment bridge involved.
+
+`Monadic.execOpenList_next_threaded` is the general nonempty-list induction
+step: arbitrary statements with pointwise `.next` frame results compose while
+threading the resulting `FrameState`. `Monadic.callInMono_succ_body_next_of_each`
+then lifts that list induction through the public successor call, leaving only
+the pointwise statement theorem as its premise.
