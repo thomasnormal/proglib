@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 268,
    "oracle-tests-compiler": 1,
-   "passed": 956,
+   "passed": 957,
    "refused-libc": 33,
    "refused-ub": 98,
-   "refused-unsupported": 497,
+   "refused-unsupported": 496,
    "timeout": 65
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 295,
   "oracle-tests-compiler": 1,
-  "passed": 1137,
+  "passed": 1138,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 570,
+  "refused-unsupported": 569,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -984,17 +984,6 @@
   },
   {
    "files": [
-    "00189.c",
-    "fprintf-chk-1.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c"
-   ],
-   "present": 4,
-   "sole": 4,
-   "wall": "unsupported:unbound declaration 'id180' (name 'stdout')"
-  },
-  {
-   "files": [
     "pr108498-2.c",
     "pr88739.c",
     "pr97764.c"
@@ -1082,6 +1071,16 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:type trait '__alignof'"
+  },
+  {
+   "files": [
+    "00189.c",
+    "fprintf-chk-1.c",
+    "vfprintf-chk-1.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:unbound declaration 'id180' (name 'stdout')"
   },
   {
    "files": [
@@ -3086,8 +3085,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T09:15:40Z",
- "measured_commit": "ae805be43",
+ "measured_at_utc": "2026-11-15T09:29:51Z",
+ "measured_commit": "4c670a824",
  "pin": {
   "corpora": [
    "C1",
@@ -29364,8 +29363,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id180' (name 'stdout')",
-   "dynamic_wall": "unsupported:unbound declaration 'id180' (name 'stdout')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "vfprintf-1.c",
    "sha256": "7df1dbd5fd4f746a3bd234b8b05ea11d683aa60fbd934c58b194bf9a88c96a52",
@@ -29376,7 +29375,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

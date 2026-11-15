@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1137/2214 MATCH (passed 1137, failed 0, oracle 0)
+- verdicts: 1138/2214 MATCH (passed 1138, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `ae805be43`
-- measured at: `2026-11-15T09:15:40Z`
+- measured commit: `4c670a824`
+- measured at: `2026-11-15T09:29:51Z`
 
 ## Verdict counts
 
@@ -13,10 +13,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1137 |
+| `passed` | 1138 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 570 |
+| `refused-unsupported` | 569 |
 | `timeout` | 67 |
 
 ## Counts by corpus
@@ -30,10 +30,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 956 |
+| `gcc.c-torture/execute` | `passed` | 957 |
 | `gcc.c-torture/execute` | `refused-libc` | 33 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 497 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 496 |
 | `gcc.c-torture/execute` | `timeout` | 65 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -327,7 +327,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:floating literal lacks parser-native bits` | 4 | 4 | 920501-8.c, 960513-1.c, ieee/fp-cmp-1.c, ieee/fp-cmp-2.c |
 | `unsupported:indirect call through a non-FunctionDecl reference` | 4 | 4 | 20010122-1.c, pr28289.c, pr34768-1.c, pr34768-2.c |
 | `unsupported:no layout for declared type 'struct S'` | 4 | 4 | 20050107-1.c, pr52979-1.c, pr52979-2.c, pr79737-1.c |
-| `unsupported:unbound declaration 'id180' (name 'stdout')` | 4 | 4 | 00189.c, fprintf-chk-1.c, vfprintf-1.c, vfprintf-chk-1.c |
 | `unsupported:implicit value initialization in value position` | 3 | 3 | pr108498-2.c, pr88739.c, pr97764.c |
 | `unsupported:no layout for declared type 'A'` | 3 | 3 | 20010118-1.c, restrict-1.c, strct-pack-2.c |
 | `unsupported:no layout for declared type '_Complex float'` | 3 | 3 | complex-6.c, ieee/cdivchkf.c, pr38969.c |
@@ -337,6 +336,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for field 'd'` | 3 | 3 | builtins/pr22237-1.c, builtins/pr22237.c, pr43784.c |
 | `unsupported:printf` | 3 | 3 | 00195.c, 00213.c, 00215.c |
 | `unsupported:type trait '__alignof'` | 3 | 3 | 20000223-1.c, align-3.c, zerolen-2.c |
+| `unsupported:unbound declaration 'id180' (name 'stdout')` | 3 | 3 | 00189.c, fprintf-chk-1.c, vfprintf-chk-1.c |
 | `unsupported:union initializer has no member` | 3 | 3 | pr15296.c, pr19687.c, pr23324.c |
 | `libc-call: __builtin_inf` | 2 | 2 | ieee/fp-cmp-7.c, ieee/inf-2.c |
 | `libc-call: exit (an argument is not a literal 0 — which exit was reached is unknown)` | 2 | 2 | 970217-1.c, loop-8.c |
