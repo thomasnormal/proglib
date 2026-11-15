@@ -883,7 +883,7 @@ theorem repl_shape (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         selfWidth2 E elems (.repl c a) = some ((Part.reprd (repAff c) x).wid σ dw) ∧
         ∀ ctx, instExpr2 E elems ctx (.repl c a) = (Part.reprd (repAff c) x).expr σ) := by
   obtain ⟨k, hk, harg⟩ := repRd?_cases h
-  have hrc : repAff c = k := by simp [repAff, (affOfN?_some hk).1]
+  have hrc : repAff c = k := by simp [repAff, hk]
   rw [hrc]
   rcases repArgRd?_cases harg with ⟨v, rfl, rfl⟩ | ⟨e, rfl, hl, hnl, hnw⟩
   · left
@@ -917,7 +917,7 @@ theorem repl_shapeU (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       selfWidth2 E elems (.repl c a) = some (p.wid σ dw) ∧
       ∀ ctx, instExpr2 E elems ctx (.repl c a) = p.expr σ := by
   obtain ⟨k, hk, harg⟩ := repRd?_cases h
-  have hrc : repAff c = k := by simp [repAff, (affOfN?_some hk).1]
+  have hrc : repAff c = k := by simp [repAff, hk]
   rcases repArgRd?_cases harg with ⟨v, hv, rfl⟩ | ⟨e', hv, hl, hnl, hnw⟩
   · obtain ⟨e, rfl, he⟩ := unsign_eq_concat1 hv
     obtain rfl := unsign_eq_lit he
@@ -1623,7 +1623,7 @@ theorem repl_shapeDD (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         fitDivOperand2 s (some k) (some ((repPartD c a (rs ++ tl)).wid σ dw)) ((repPartD c a (rs ++ tl)).expr σ) := by
   obtain ⟨k, hk, harg⟩ := repRdD?_cases h
   obtain ⟨hev, h0⟩ := repl_facts C hk hco
-  have hrk : repAff c = k := by simp [repAff, (affOfN?_some hk).1]
+  have hrk : repAff c = k := by simp [repAff, hk]
   obtain ⟨x, rfl, hx⟩ := repArgRdD?_cases harg
   have hpx : partRdD? ds x = .ok rs := by
     unfold partRdD?

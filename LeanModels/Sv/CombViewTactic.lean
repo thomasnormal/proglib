@@ -1152,11 +1152,11 @@ def addPowFacts (es : Array Lean.Expr) : TacticM Unit := do
             let (m, hm) ← powLit c
             assertMainM `hdiv_pow_le
               (mkAppOptM ``LeanModels.Sv.CombView.ediv_two_pow_le_lit #[x, t, toExpr c, m, h, hc, hm])
-        -- where the exponent is pinned to one value (`c ≤ t ≤ c`), the quotient is the quotient by the literal power
-        -- from below too (tac7: the slot width `(2*N) >> (l + 1)` at `l = 0`); only there, so that the facts of a design
-        -- whose exponents range (the prefix adders' levels) are those it had
+        -- where the exponent ranges over at most three values (`c ≤ t ≤ d ≤ c + 2`), the quotient is bounded from below by
+        -- the quotient by the largest power (tac7: the slot width `(2*N) >> (l + 1)` at `l = 0` is `N`); only there, so
+        -- that the facts of a design whose exponents range widely (the prefix adders' levels) are those it had
         if let some (_, d, hd) := highs.find? (fun (t', _, _) => t' == t) then
-          if lows.any (fun (t', c, _) => t' == t && c == d) then
+          if lows.any (fun (t', c, _) => t' == t && d ≤ c + 2) then
             let (m, hm) ← powLit d
             assertMainM `hdiv_pow_ge
               (mkAppOptM ``LeanModels.Sv.CombView.ediv_two_pow_ge_lit #[x, t, toExpr d, m, h, hd, hm])
@@ -2356,6 +2356,12 @@ def replSimpLemmas {m : Type → Type} [Monad m] [MonadQuotation m] :
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.affBin),
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.affMul),
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.affDiv),
+    -- a count with a shift or power atom (tac7: `{(P >> l){c}}`)
+    ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.xatOf?),
+    ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.nameOf?),
+    ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.litAmt?),
+    ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.affAmt?),
+    ← `(Lean.Parser.Tactic.simpLemma| Option.map_some),
     ← `(Lean.Parser.Tactic.simpLemma| List.isEmpty_nil),
     ← `(Lean.Parser.Tactic.simpLemma| List.isEmpty_cons)]
 
@@ -2514,6 +2520,13 @@ set_option maxRecDepth 4096 in
     evalTactic (← `(tactic| (
       simp only [LeanModels.Sv.CombView.Summary.XObl]
       (try sv_norm_core)
+      -- the replication counts (tac7: a count with an atom, `{(P >> l){x}}`; the fourth conjunct)
+      (try simp only [LeanModels.Sv.PExpr.rcounts, LeanModels.Sv.PExpr.consts, LeanModels.Sv.CombView.repCount,
+        LeanModels.Sv.CombView.repAff, LeanModels.Sv.CombView.affOf?, LeanModels.Sv.CombView.affBin,
+        LeanModels.Sv.CombView.affMul, LeanModels.Sv.CombView.affDiv, LeanModels.Sv.CombView.xatOf?,
+        LeanModels.Sv.CombView.nameOf?, LeanModels.Sv.CombView.litAmt?, LeanModels.Sv.CombView.affAmt?,
+        Option.map_some, Option.getD_some, List.isEmpty_nil, List.isEmpty_cons, List.flatMap_cons, List.flatMap_nil,
+        List.append_nil, List.nil_append])
       (try simp only [LeanModels.Sv.CombView.Acc.affs, LeanModels.Sv.CombView.Aff.XOk,
         LeanModels.Sv.CombView.Aff.XOkL, LeanModels.Sv.CombView.XAt.Ok, and_true, true_and, implies_true,
         List.forall_mem_cons, List.forall_mem_nil, List.not_mem_nil, false_implies, forall_const])

@@ -276,12 +276,12 @@ theorem Summary.structOk_of_mapProcs {g : PProcess → PProcess} {s : Summary}
 
 theorem Summary.xObl_of_mapProcs {g : PProcess → PProcess} {s : Summary} {σ : String → Int}
     (h : (s.mapProcs g).XObl σ) : s.XObl σ := by
-  obtain ⟨h1, h2, h3⟩ := h
-  rw [Summary.lsites_mapProcs] at h1
+  obtain ⟨h1, h2, h3, h4⟩ := h
+  rw [Summary.lsites_mapProcs] at h1 h4
   rw [Summary.hdrSteps_mapProcs] at h2
   rw [Summary.condSteps_mapProcs] at h3
-  simp only [List.forall_mem_map] at h1
-  exact ⟨h1, h2, h3⟩
+  simp only [List.forall_mem_map] at h1 h4
+  exact ⟨h1, h2, h3, h4⟩
 
 theorem Summary.autoObl_of_mapProcs {g : PProcess → PProcess} {s : Summary} {σ : String → Int} {args : List Int}
     (h : (s.mapProcs g).AutoObl σ args) : s.AutoObl σ args := by
@@ -672,7 +672,7 @@ theorem instantiate2_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary =
     obtain ⟨C', hso, -⟩ := site_ok C hok hauto hin hls2 hr2 hb
     have hw := (Loops.all_iff _ _ _).mp (hwid _ hls2) σ' (ReachE_Reach hr2)
     have hf := (hfrag _ hls2).1
-    have hco := site_co hok hin hls2 (ReachE_Reach hr2)
+    have hco := site_co hok hin hauto.2.2.2 hls2 (ReachE_Reach hr2)
     have hdw : ∀ n, ((s'.mapProcs PProcess.unsign).DW σ n).isSome = true →
         (s'.mapProcs PProcess.unsign).DW σ n = some ((s'.mapProcs PProcess.unsign).dw σ n) :=
       fun n h => dw_some n h

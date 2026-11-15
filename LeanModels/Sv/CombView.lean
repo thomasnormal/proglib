@@ -1357,9 +1357,10 @@ theorem consts_eq : ∀ v : PExpr, v.consts = (v.cnames, v.rcounts)
   | .enumRef .. | .int _ | .sysCall .. | .cast .. | .signedResize .. | .squash2 .. | .unsupported .. => by
       simp [PExpr.consts, PExpr.cnames, PExpr.rcounts]
 
-/-- The constants of an expression are in scope and its replication counts are non-negative. -/
+/-- The constants of an expression are in scope and its replication counts are non-negative, their shift and power atoms
+in range (`Aff.XOk`, tac7: a count `P >> l`). -/
 def ConstOK (σ : String → Int) (ns : List String) (v : PExpr) : Prop :=
-  (∀ n ∈ v.cnames, n ∈ ns) ∧ ∀ c ∈ v.rcounts, 0 ≤ c.eval σ
+  (∀ n ∈ v.cnames, n ∈ ns) ∧ ∀ c ∈ v.rcounts, 0 ≤ c.eval σ ∧ c.XOk σ
 
 /-- One access to a declared signal: the shapes the summary can compute a window for.
 
@@ -1478,9 +1479,10 @@ must be parameters or enclosing loop variables (the structural obligation). -/
 def TSite.affNames (st : TSite) : List String :=
   ((st.tgt.affs.flatMap Aff.names) ++ ((st.more ++ st.rds).flatMap fun r => r.affs.flatMap Aff.names)) ++ st.cnames
 
-/-- `ConstOK` of a site: the constants its right-hand side mentions are in scope `ns`, its replication counts non-negative. -/
+/-- `ConstOK` of a site: the constants its right-hand side mentions are in scope `ns`, its replication counts non-negative
+and their atoms in range. -/
 def TSite.ConstOK (σ : String → Int) (ns : List String) (st : TSite) : Prop :=
-  (∀ n ∈ st.cnames, n ∈ ns) ∧ ∀ c ∈ st.rcounts, 0 ≤ c.eval σ
+  (∀ n ∈ st.cnames, n ∈ ns) ∧ ∀ c ∈ st.rcounts, 0 ≤ c.eval σ ∧ c.XOk σ
 
 /-- The accesses of a site: its target, its further targets, then its reads. -/
 theorem TSite.mem_accs {st : TSite} {a : Acc} (h : a ∈ st.tgt :: st.rds) :
@@ -1795,16 +1797,15 @@ def repArgRd? (ds : List DeclT) : PExpr → Except String (List Acc)
   | .concat [e] => notWhole (rdsLeaf? ds e)
   | _ => .error "replication of a concatenation of several parts (outside the v1 fragment: replicate a sized literal, a bit select or a part select)"
 
-/-- The refusal of a replication count `affOfN?` does not read. -/
-def repCountRefusal (c : PExpr) : String :=
-  if (affOf? c).isSome then "replication count holds a shift or a power of a genvar or parameter (outside the fragment)"
-  else "replication count is not affine (outside the v1 fragment: dynamic or nonlinear)"
+/-- The refusal of a replication count `affOf?` does not read. -/
+def repCountRefusal (_c : PExpr) : String :=
+  "replication count is not affine (outside the v1 fragment: dynamic or nonlinear)"
 
-/-- A replication `{c{a}}`: an affine count (parameters and genvars, no shift or power atom) over a literal or one
-access. -/
+/-- A replication `{c{a}}`: an affine count (parameters and genvars, quotient, shift and power atoms: `{(P >> l){c}}`,
+tac7; the atoms' ranges are owed by `Summary.XObl`) over a literal or one access. -/
 
 def repRd? (ds : List DeclT) (c a : PExpr) : Except String (List Acc) :=
-  match affOfN? c with
+  match affOf? c with
   | some _ => repArgRd? ds a
   | none => .error (repCountRefusal c)
 
@@ -2244,7 +2245,7 @@ def repArgRdD? (ds : List DeclT) : PExpr → Except String (List Acc)
   | _ => .error "replication of a concatenation of several parts (outside the v1 fragment: replicate a sized literal, a bit select or a part select)"
 
 def repRdD? (ds : List DeclT) (c a : PExpr) : Except String (List Acc) :=
-  match affOfN? c with
+  match affOf? c with
   | some _ => repArgRdD? ds a
   | none => .error (repCountRefusal c)
 
@@ -3787,7 +3788,8 @@ the atom obligation `Summary.XObl` of such a design (`xObl_of_atomFree`). -/
 def atomFree : Bool :=
   s.lsites.all (fun ls => (ls.site.tgt :: (ls.site.more ++ ls.site.rds)).all fun a => a.affs.all fun x => x.xs.isEmpty) &&
   s.hdrSteps.all (fun q => q.2.bound.xs.isEmpty) &&
-  s.condSteps.all (fun c => c.2.2.rngs.all fun a => a.xs.isEmpty)
+  s.condSteps.all (fun c => c.2.2.rngs.all fun a => a.xs.isEmpty) &&
+  s.lsites.all (fun ls => ls.site.rcounts.all fun c => c.xs.isEmpty)
 
 end Summary
 

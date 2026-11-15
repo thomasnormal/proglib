@@ -1520,7 +1520,7 @@ theorem site_lowL_single {s : Summary} {σ : String → Int} {envD : IEnv} {elem
     have hw' : (skRhs (rhsOf ls.site.proc) ls.site.rds).WidthOkC σ' (s.dw σ)
         (ls.site.tgt.win σ' (s.dw σ)).2.2 := by
       simpa [rhsSk_of_ne hne, PSk.WidthOk] using hw
-    have hshape := proc_shapeC C' hdw hp0 hso (site_co hok hin hls (ReachE_Reach hr)) hf hw'
+    have hshape := proc_shapeC C' hdw hp0 hso (site_co hok hin hauto.2.2.2 hls (ReachE_Reach hr)) hf hw'
     have hleaves := site_sk hp0 hf
     have hlv : ∀ a ∈ (skRhs (rhsOf ls.site.proc) ls.site.rds).leaves, LeafOk d' σ' (s.dw σ) a :=
       fun a ha => hleaf a (by rwa [hleaves] at ha)

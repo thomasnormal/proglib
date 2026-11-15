@@ -405,7 +405,7 @@ theorem eq_of_summaryV {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {arg
       have := CombView.Summary.PwObl.get s hpw ls hls n hn
       simp only [selfWidth2, paramNWidth, h1', h2', hEpw, hEnv] at this ⊢
       rw [this]
-    exact proc_shapeCV C' hdw hp hso (site_co hok hin hls (ReachE_Reach hr)) hf hpwE hw
+    exact proc_shapeCV C' hdw hp hso (site_co hok hin hauto.2.2.2 hls (ReachE_Reach hr)) hf hpwE hw
   -- index-level facts
   have hform : ∀ (i : Nat) (p : Process2), m.processes[i]? = some p →
       ∃ q ∈ s.pairs σ E elems, q.2 = p := by

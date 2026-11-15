@@ -998,10 +998,11 @@ theorem site_cn {s : Summary} (hok : s.StructOk) {ls : LSite} (hls : ls ∈ s.ls
 
 /-- … and, with the counts of its replications non-negative (the fourth conjunct of `InRangeObl`), `TSite.ConstOK` at every
 reached valuation. -/
-theorem site_co {s : Summary} {σ : String → Int} (hok : s.StructOk) (hin : s.InRangeObl σ) {ls : LSite}
-    (hls : ls ∈ s.lsites) {σ' : String → Int} (hr : Reach ls.hdrs σ σ') :
+theorem site_co {s : Summary} {σ : String → Int} (hok : s.StructOk) (hin : s.InRangeObl σ) (hx : s.XObl σ)
+    {ls : LSite} (hls : ls ∈ s.lsites) {σ' : String → Int} (hr : Reach ls.hdrs σ σ') :
     ls.site.ConstOK σ' (ls.hdrs.map (·.g) ++ s.params) :=
-  ⟨site_cn hok hls, (Loops.all_iff _ _ _).mp (hin.rc_all ls hls) σ' hr⟩
+  ⟨site_cn hok hls, fun c hc => ⟨(Loops.all_iff _ _ _).mp (hin.rc_all ls hls) σ' hr c hc,
+    (Loops.all_iff _ _ _).mp (hx.2.2.2 ls hls) σ' hr c hc⟩⟩
 
 /-- **The `SiteCtx` of a located site at a reached valuation**: everything the per-site proofs read. -/
 theorem siteCtx_of_reach {s : Summary} {args : List Int} {σ : String → Int} {envD : IEnv}
@@ -1047,7 +1048,7 @@ theorem siteCtx_of_reach {s : Summary} {args : List Int} {σ : String → Int} {
       · exact Or.inl (Or.inl ⟨x, hx, hn⟩)
       · exact Or.inl (Or.inr ⟨a, List.mem_append.mp hm, x, hx, hn⟩)
   exact ⟨C', hnm, hpar, ReachE_Reach hr, hin', hinM, hso,
-    site_co ⟨hnodup, hnames, hinput, haff, hpaths, hdecl, hacc, hkeys⟩ hin hls (ReachE_Reach hr)⟩
+    site_co ⟨hnodup, hnames, hinput, haff, hpaths, hdecl, hacc, hkeys⟩ hin hxobl hls (ReachE_Reach hr)⟩
 
 
 /-- **The shared preamble of the per-site description lemmas** (`pairs_desc`, `pairs_descL`): every pair of
@@ -1347,7 +1348,7 @@ def Summary.FuelOk (s : Summary) (σ : String → Int) (F : Nat) : Prop :=
 theorem Summary.fuelOk_of_auto {s : Summary} {σ : String → Int} {args : List Int} (h : s.AutoObl σ args) :
     s.FuelOk σ (PDesign.surfaceFuel args) :=
   ⟨fun q hq => Loops.all_imp q.1 σ (fun _ h' => surfaceFuel_gt args _ h') (h.2.2.1.1 q hq), h.2.2.1.2,
-    h.2.2.2.2.1, h.2.2.2.2.2⟩
+    h.2.2.2.2.1, h.2.2.2.2.2.1⟩
 
 /-- **A top-level generate loop expands to the closed form `TFam.enum`**, at any depth of nesting, with conditional
 generate constructs. An inner loop's bound may name the genvars of the loops around it: it is read under their binding,

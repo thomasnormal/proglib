@@ -1066,7 +1066,7 @@ theorem unsignL_of_partsRdW {ds : List DeclT} :
             | lit v => rfl
             | repl c x =>
                 simp only [partRdW?, repRd?] at hp
-                rcases hk : affOfN? c with _ | k
+                rcases hk : affOf? c with _ | k
                 · simp [hk] at hp
                 · simp only [hk] at hp
                   show PExpr.repl c x.unsign = _
@@ -1131,7 +1131,7 @@ theorem unsign_of_rdsOfW {ds : List DeclT} :
   | .repl c a, rs, h => by
       have h' : repRd? ds c a = .ok rs := by simpa [rdsOfW?] using h
       unfold repRd? at h'
-      rcases hk : affOfN? c with _ | k
+      rcases hk : affOf? c with _ | k
       · simp [hk] at h'
       · simp only [hk] at h'
         show PExpr.repl c a.unsign = _
@@ -1217,16 +1217,18 @@ def XObl (σ : String → Int) : Prop :=
   (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' =>
     ∀ a ∈ ls.site.tgt :: (ls.site.more ++ ls.site.rds), ∀ x ∈ a.affs, x.XOk σ') ∧
   (∀ q ∈ s.hdrSteps, Loops.all q.1 σ fun σ' => q.2.bound.XOk σ') ∧
-  (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' => ∀ a ∈ c.2.2.rngs, a.XOk σ')
+  (∀ c ∈ s.condSteps, Loops.all c.1 σ fun σ' => ∀ a ∈ c.2.2.rngs, a.XOk σ') ∧
+  (∀ ls ∈ s.lsites, Loops.all ls.hdrs σ fun σ' => ∀ c ∈ ls.site.rcounts, c.XOk σ')
 
 /-- **A design without atoms owes nothing of `XObl`.** -/
 theorem xObl_of_atomFree (h : s.atomFree = true) (σ : String → Int) : s.XObl σ := by
   simp only [atomFree, Bool.and_eq_true, List.all_eq_true, List.isEmpty_iff] at h
-  obtain ⟨⟨h1, h2⟩, h3⟩ := h
-  refine ⟨fun ls hls => ?_, fun q hq => ?_, fun c hc => ?_⟩
+  obtain ⟨⟨⟨h1, h2⟩, h3⟩, h4⟩ := h
+  refine ⟨fun ls hls => ?_, fun q hq => ?_, fun c hc => ?_, fun ls hls => ?_⟩
   · exact (Loops.all_iff _ _ _).mpr fun σ' _ a ha x hx => Aff.xOk_of_nil (h1 ls hls a ha x hx)
   · exact (Loops.all_iff _ _ _).mpr fun σ' _ => Aff.xOk_of_nil (h2 q hq)
   · exact (Loops.all_iff _ _ _).mpr fun σ' _ a ha => Aff.xOk_of_nil (h3 c hc a ha)
+  · exact (Loops.all_iff _ _ _).mpr fun σ' _ c hc => Aff.xOk_of_nil (h4 ls hls c hc)
 
 /-- The facts the tactic closes by `omega`: reads in range, dimensions nonnegative, loop bounds
 within the generate fuel. The fuel is `(Σ|args| + 2)² + 64` (`PDesign.surfaceFuel`: each generate loop of the
@@ -2662,11 +2664,11 @@ theorem cok_ternary_e {σ : String → Int} {ns : List String} {x t e : PExpr}
 
 /-- The constants of a list of concatenation parts. -/
 def PartsCO (σ : String → Int) (ns : List String) (ps : List PExpr) : Prop :=
-  (∀ n ∈ ps.flatMap repNames, n ∈ ns) ∧ ∀ c ∈ ps.flatMap repCount, 0 ≤ c.eval σ
+  (∀ n ∈ ps.flatMap repNames, n ∈ ns) ∧ ∀ c ∈ ps.flatMap repCount, 0 ≤ c.eval σ ∧ c.XOk σ
 
 theorem partsCO_cons {σ : String → Int} {ns : List String} {p : PExpr} {ps : List PExpr}
     (h : PartsCO σ ns (p :: ps)) :
-    PartsCO σ ns ps ∧ (∀ n ∈ repNames p, n ∈ ns) ∧ ∀ c ∈ repCount p, 0 ≤ c.eval σ := by
+    PartsCO σ ns ps ∧ (∀ n ∈ repNames p, n ∈ ns) ∧ ∀ c ∈ repCount p, 0 ≤ c.eval σ ∧ c.XOk σ := by
   obtain ⟨h1, h2⟩ := h
   exact ⟨⟨fun n hn => h1 n (by simp [hn]), fun c hc => h2 c (by simp [hc])⟩,
     fun n hn => h1 n (by simp [hn]), fun c hc => h2 c (by simp [hc])⟩
@@ -2717,30 +2719,29 @@ theorem rdsLeaf_ne_repl {ds : List DeclT} {p : PExpr} {rs : List Acc} (h : rdsLe
   simp [rdsLeaf?, leafRd?] at h
 
 theorem repRd?_cases {ds : List DeclT} {c a : PExpr} {rs : List Acc} (h : repRd? ds c a = .ok rs) :
-    ∃ k, affOfN? c = some k ∧ repArgRd? ds a = .ok rs := by
+    ∃ k, affOf? c = some k ∧ repArgRd? ds a = .ok rs := by
   unfold repRd? at h
-  rcases hk : affOfN? c with _ | k
+  rcases hk : affOf? c with _ | k
   · simp [hk] at h
   · simp only [hk] at h
     exact ⟨k, rfl, h⟩
 
 /-- The count of a replication evaluates to its affine form and is non-negative (the scope and range facts of
-`ConstOK`). -/
-theorem repl_facts (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOfN? c = some k)
+`ConstOK`; the count's shift and power atoms in range, tac7). -/
+theorem repl_facts (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOf? c = some k)
     (hco : ConstOK σ ns (.repl c a)) : evalInt E c = .ok (k.eval σ) ∧ 0 ≤ k.eval σ := by
-  have hk' : affOf? c = some k := (affOfN?_some hk).1
   have hn : ∀ n ∈ k.names, E.intVal? n = some (σ n) := by
     intro n hn
     apply C.agree n
     apply hco.1 n
-    simp [PExpr.cnames, repAff, hk', hn]
-  have hpos : 0 ≤ k.eval σ := by
+    simp [PExpr.cnames, repAff, hk, hn]
+  have hpx : 0 ≤ k.eval σ ∧ k.XOk σ := by
     apply hco.2 k
-    simp [PExpr.rcounts, repAff, hk']
-  exact ⟨(affOfN?_sound c k hk hn).2, hpos⟩
+    simp [PExpr.rcounts, repAff, hk]
+  exact ⟨(affOf?_sound c k hk ⟨hn, hpx.2⟩).2, hpx.1⟩
 
 /-- **A replication instantiates to the replication of its argument at its own width.** -/
-theorem inst_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOfN? c = some k)
+theorem inst_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOf? c = some k)
     (hco : ConstOK σ ns (.repl c a)) (ctx : Option Nat) :
     instExpr2 E elems ctx (.repl c a) =
       .repl (k.eval σ).toNat (instExpr2 E elems (selfWidth2 E elems a) a) := by
@@ -2749,7 +2750,7 @@ theorem inst_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk :
 
 /-- … and its self-determined width is the count times the argument's. -/
 theorem selfWidth_repl (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} {w : Nat}
-    (hk : affOfN? c = some k) (hco : ConstOK σ ns (.repl c a)) (hw : selfWidth2 E elems a = some w) :
+    (hk : affOf? c = some k) (hco : ConstOK σ ns (.repl c a)) (hw : selfWidth2 E elems a = some w) :
     selfWidth2 E elems (.repl c a) = some ((k.eval σ).toNat * w) := by
   obtain ⟨hev, hpos⟩ := repl_facts C hk hco
   simp [selfWidth2, hev, hpos, hw]
@@ -3156,9 +3157,9 @@ theorem repArgRdD?_cases {ds : List DeclT} {a : PExpr} {rs : List Acc} (h : repA
   · simp at h
 
 theorem repRdD?_cases {ds : List DeclT} {c a : PExpr} {rs : List Acc} (h : repRdD? ds c a = .ok rs) :
-    ∃ k, affOfN? c = some k ∧ repArgRdD? ds a = .ok rs := by
+    ∃ k, affOf? c = some k ∧ repArgRdD? ds a = .ok rs := by
   unfold repRdD? at h
-  rcases hk : affOfN? c with _ | k
+  rcases hk : affOf? c with _ | k
   · simp [hk] at h
   · simp only [hk] at h
     exact ⟨k, rfl, h⟩

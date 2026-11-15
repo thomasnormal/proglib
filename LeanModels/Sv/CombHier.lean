@@ -760,9 +760,9 @@ theorem site_acc {s : Summary} {args : List Int} (hok : s.StructOk) (hauto : s.A
     simpa [hh] using this
 
 /-- The constants of a site of a loop-free summary. -/
-theorem site_const {s : Summary} (hok : s.StructOk) (hin : s.InRangeObl σ) {ls : LSite} (hls : ls ∈ s.lsites)
-    (hh : ls.hdrs = []) : ls.site.ConstOK σ s.params := by
-  have := site_co hok hin hls (σ' := σ) (by rw [hh]; rfl)
+theorem site_const {s : Summary} (hok : s.StructOk) (hin : s.InRangeObl σ) (hx : s.XObl σ) {ls : LSite}
+    (hls : ls ∈ s.lsites) (hh : ls.hdrs = []) : ls.site.ConstOK σ s.params := by
+  have := site_co hok hin hx hls (σ' := σ) (by rw [hh]; rfl)
   simpa [hh] using this
 
 /-- A whole-signal or select-free right-hand side whose skeleton is as wide as its context (`Sk.exactW`) has that
@@ -1761,7 +1761,7 @@ theorem inst_step {d : PDesign} {lib : List PDesign} {sF : Summary} {dsP : List 
     have hcnC : stC.ConstOK (fun n => σF (hpfx i ++ n)) sc.params := by
       refine ⟨hcn, fun c hc => ?_⟩
       have := (TF.cn stF hFS).2 (c.hren (hpfx i)) (by rw [hrcs]; exact List.mem_map_of_mem hc)
-      simpa using this
+      simpa [Aff.xOk_hren] using this
     have hfF : fragOk (rhsOf (stC.proc.hren (hpfx i))) = true := by
       have := TF.frag stF hFS; rwa [hpr] at this
     have hwF := TF.wid stF hFS
@@ -2012,7 +2012,7 @@ theorem instantiateHD2_twin {d : PDesign} {lib : List PDesign} {args : List Int}
   -- the twin's facts at each site
   have TF : TwinFacts sF (sF.val args) := by
     refine ⟨fun st hst => site_acc hok hauto hin (hlsF st hst) rfl,
-      fun st hst => site_const hok hin (hlsF st hst) rfl, fun st hst => (hfrag _ (hlsF st hst)).1,
+      fun st hst => site_const hok hin hauto.2.2.2 (hlsF st hst) rfl, fun st hst => (hfrag _ (hlsF st hst)).1,
       fun st hst => hwid _ (hlsF st hst), fun st hst => ?_⟩
     obtain ⟨pos, p, h⟩ := hsitesF st hst
     exact ⟨pos, by rw [siteOf?_proc h]; exact h⟩
