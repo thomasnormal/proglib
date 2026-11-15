@@ -4793,6 +4793,27 @@ theorem twinAgrees_execStmt_expr_of_evalOpen (K : Kont) (m : Module)
   unfold execStmt
   simp only [execOpen, toRun_bind, Run.bind, toRun_pure, hEval]
 
+theorem twinAgrees_execStmt_expr_unaryInt (K : Kont) (m : Module)
+    (st : FrameState) (op : UnaryOp) (a : Int) (sp : Span) (fuel : Nat)
+    (hfuel : 2 < fuel) :
+    toRun (execOpen K m
+      (.exprStmt (.unaryOp op (.constant (.int a) sp) sp) sp)) st =
+      execStmt m fuel st
+        (.exprStmt (.unaryOp op (.constant (.int a) sp) sp) sp) := by
+  cases fuel with
+  | zero => omega
+  | succ fuel =>
+      cases fuel with
+      | zero => omega
+      | succ fuel =>
+          cases fuel with
+          | zero => omega
+          | succ fuel =>
+              rw [execStmt]
+              have hu := twinAgrees_evalOpen_unaryInt K m st op a sp
+                (fuel + 2) (by omega)
+              simp only [execOpen, toRun_bind, hu, Run.bind, toRun_pure]
+
 theorem twinAgrees_callInM_top_body_ret
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (v : RVal)

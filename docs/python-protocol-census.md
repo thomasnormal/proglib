@@ -775,3 +775,8 @@ needed by the legacy evaluator's child-expression step.
 `Monadic.twinAgrees_execStmt_expr_of_evalOpen` generalizes that control step:
 any expression whose `evalOpen`/`evalExpr` bridge is supplied at positive child
 fuel automatically gets the corresponding expression-statement bridge.
+
+`Monadic.twinAgrees_execStmt_expr_unaryInt` supplies the next concrete instance
+for a unary operator over an integer literal.  Its two-step threshold records
+both the unary child evaluation and the enclosing expression-statement step;
+the recursive continuation and richer expression cases remain open.
