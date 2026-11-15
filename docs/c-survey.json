@@ -8,12 +8,12 @@
    "timeout": 2
   },
   "gcc.c-torture/execute": {
-   "not-parsed": 267,
+   "not-parsed": 268,
    "oracle-tests-compiler": 1,
    "passed": 956,
    "refused-libc": 33,
    "refused-ub": 98,
-   "refused-unsupported": 498,
+   "refused-unsupported": 497,
    "timeout": 65
   },
   "gcc.c23-run": {
@@ -26,12 +26,12 @@
  },
  "corpus": "C1-C3 (gcc torture, c-testsuite, gcc c23-run)",
  "counts": {
-  "not-parsed": 294,
+  "not-parsed": 295,
   "oracle-tests-compiler": 1,
   "passed": 1137,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 571,
+  "refused-unsupported": 570,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -2310,14 +2310,6 @@
   },
   {
    "files": [
-    "ieee/920810-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:sprintf"
-  },
-  {
-   "files": [
     "20000412-5.c"
    ],
    "present": 1,
@@ -3094,8 +3086,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T09:06:31Z",
- "measured_commit": "f0d311239",
+ "measured_at_utc": "2026-11-15T09:15:40Z",
+ "measured_commit": "ae805be43",
  "pin": {
   "corpora": [
    "C1",
@@ -18493,8 +18485,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sprintf: unsupported format",
-   "dynamic_wall": "unsupported:sprintf",
+   "detail": "clang rejected old-style function definition under pinned C23",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/920810-1.c",
    "sha256": "e0b670c899b3364a884f07ef9f25c4f91da6ec0026cf5112ffd3f1d691fcfa6c",
@@ -18505,7 +18497,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "not-parsed"
   },
   {
    "corpus": "gcc.c-torture/execute",

@@ -4,19 +4,19 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 
 - verdicts: 1137/2214 MATCH (passed 1137, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `f0d311239`
-- measured at: `2026-11-15T09:06:31Z`
+- measured commit: `ae805be43`
+- measured at: `2026-11-15T09:15:40Z`
 
 ## Verdict counts
 
 | verdict | files |
 | --- | ---: |
-| `not-parsed` | 294 |
+| `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
 | `passed` | 1137 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 571 |
+| `refused-unsupported` | 570 |
 | `timeout` | 67 |
 
 ## Counts by corpus
@@ -28,12 +28,12 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `refused-ub` | 8 |
 | `c-testsuite/single-exec` | `refused-unsupported` | 31 |
 | `c-testsuite/single-exec` | `timeout` | 2 |
-| `gcc.c-torture/execute` | `not-parsed` | 267 |
+| `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
 | `gcc.c-torture/execute` | `passed` | 956 |
 | `gcc.c-torture/execute` | `refused-libc` | 33 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 498 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 497 |
 | `gcc.c-torture/execute` | `timeout` | 65 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -486,7 +486,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:sizeof: no layout for operand type 'int (*volatile[6])(void)'` | 1 | 1 | bcp-1.c |
 | `unsupported:sizeof: no layout for operand type 'struct tree_common'` | 1 | 1 | 20000914-1.c |
 | `unsupported:sizeof: no layout for operand type 'va_list'` | 1 | 1 | va-arg-21.c |
-| `unsupported:sprintf` | 1 | 1 | ieee/920810-1.c |
 | `unsupported:src/20000412-5.c` | 1 | 1 | 20000412-5.c |
 | `unsupported:src/20040307-1.c` | 1 | 1 | 20040307-1.c |
 | `unsupported:src/20040331-1.c` | 1 | 1 | 20040331-1.c |
