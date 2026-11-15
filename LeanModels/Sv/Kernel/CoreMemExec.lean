@@ -1104,6 +1104,32 @@ def CoreMemDesign.writeScalarBitAssign (E : CoreMemDesign) (env : IEnv)
       else .ok st
   | none => .ok st
 
+/-! A packed part-select target is the source-shaped port-connection form
+used by a parameterized child (`y[W/2-1:0]`).  Bounds are constants after
+the parent point is instantiated; preserve the target window with the same
+LSB-first `LVec.insertAt` primitive used by scalar bit writes. -/
+def CoreMemDesign.writeScalarPartAssign (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (name : String)
+    (msb lsb : PExpr) (value : LVec) : Res CoreMemState := do
+  let width ← match E.scalarWidth? name with
+    | some w => .ok w
+    | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+  let hi ← E.evalIndex env elems st msb
+  let lo ← E.evalIndex env elems st lsb
+  let some hi := hi.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+  let some lo := lo.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+  if hi < lo then
+    .unsupported "10.3: packed part-select has descending runtime bounds"
+  else if hi >= width then
+    .unsupported "10.3: packed part-select upper bound is outside the scalar target"
+  else
+    match E.scalar.resolve name with
+    | some x =>
+        let old := st.scalar x
+        let w := hi - lo + 1
+        .ok (E.setScalarState st name (old.bits.insertAt lo (value.resizeU w)))
+    | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+
 /-! A whole unpacked-array port connection remains a source-shaped array
 assignment.  Its runtime meaning is the ordinary continuous assignment of
 each element to the child declaration; `MemState.copyId` performs that copy
@@ -1639,6 +1665,38 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
           let st' ← E.writeScalarBitAssign env elems st name select value
           let view' := E.scalar.view st'.scalar
           E.settleAssignAt env elems st' view' (index + 1) rest
+      | .partSel name msb lsb =>
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+          let hi ← E.evalIndex env elems st msb
+          let lo ← E.evalIndex env elems st lsb
+          let some hi := hi.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          let some lo := lo.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          if hi < lo || hi >= width then
+            .unsupported "10.3: packed part-select bounds are outside the scalar target"
+          else
+            let w := hi - lo + 1
+            let v ← E.evalScalarAssignAtView env elems st view (some w) index value
+            let st' ← E.writeScalarPartAssign env elems st name msb lsb v
+            let view' := E.scalar.view st'.scalar
+            E.settleAssignAt env elems st' view' (index + 1) rest
+      | .arrayPart name [] .range msb lsb =>
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+          let hi ← E.evalIndex env elems st msb
+          let lo ← E.evalIndex env elems st lsb
+          let some hi := hi.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          let some lo := lo.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          if hi < lo || hi >= width then
+            .unsupported "10.3: packed part-select bounds are outside the scalar target"
+          else
+            let w := hi - lo + 1
+            let v ← E.evalScalarAssignAtView env elems st view (some w) index value
+            let st' ← E.writeScalarPartAssign env elems st name msb lsb v
+            let view' := E.scalar.view st'.scalar
+            E.settleAssignAt env elems st' view' (index + 1) rest
       | .arrayElem target [] =>
           (match value with
            | .arrayElem source [] =>
