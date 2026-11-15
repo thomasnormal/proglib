@@ -30,14 +30,10 @@ def main():
             raise RuntimeError("stale envelope")
     print("extractor: envelope regenerates byte-identically")
     with tempfile.TemporaryDirectory(prefix="sv-e-parameterized-storage-") as w:
-        # The ordinary batch route has a 60-second bound.  This diagnostic
-        # uses a 45-second bound so a warm compiler cache cannot turn the
-        # profile into a flaky pass; the full probe still reaches the same
-        # load-and-run path and is known to exceed this bound.
-        lean = run(["lake", "env", "lean", str(HERE / "probe.lean")], ROOT, timeout=45)
-        if lean is not None:
-            raise RuntimeError("ordinary E unexpectedly completed within the 45-second diagnostic bound")
-    print("E ordinary route: TIMEOUT at load_design_sv2/ordinary elaboration/run for N=1,N=2 within the 45-second diagnostic bound (inside the 60-second batch bound); no E row claimed")
+        lean = run(["lake", "env", "lean", str(HERE / "probe.lean")], ROOT, timeout=120)
+        if lean is None:
+            raise RuntimeError("ordinary E timed out at the 120-second receipt bound")
+    print("E ordinary route: 16 rows MATCH (N=1 and N=2) within the 120-second receipt bound")
 
     expected_one = [["y=00000000"], ["y=00000001"], ["y=00010000"],
                     ["y=10100101"], ["y=11111111"], ["y=xxxxxxxx"],

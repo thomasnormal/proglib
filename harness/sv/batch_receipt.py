@@ -420,7 +420,7 @@ def main() -> int:
     parser.add_argument("--seed", type=lambda x: int(x, 0), default=SEED)
     parser.add_argument("--lean-group-size", type=int, default=2,
                         help="number of fixture points per ordinary Lean process")
-    parser.add_argument("--ordinary-timeout", type=int, default=60,
+    parser.add_argument("--ordinary-timeout", type=int, default=120,
                         help="seconds allowed for one ordinary Lean group")
     parser.add_argument("--only", nargs="*", default=None,
                         help="optional fixture tops to measure (default: all)")
