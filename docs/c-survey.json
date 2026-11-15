@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 268,
    "oracle-tests-compiler": 1,
-   "passed": 963,
+   "passed": 966,
    "refused-libc": 33,
    "refused-ub": 98,
-   "refused-unsupported": 490,
+   "refused-unsupported": 487,
    "timeout": 65
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 295,
   "oracle-tests-compiler": 1,
-  "passed": 1149,
+  "passed": 1152,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 558,
+  "refused-unsupported": 555,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -1844,14 +1844,6 @@
   },
   {
    "files": [
-    "pr53084.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'const char *const[1]'"
-  },
-  {
-   "files": [
     "00219.c"
    ],
    "present": 1,
@@ -1937,14 +1929,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'int (*)[++i]'"
-  },
-  {
-   "files": [
-    "builtin-prefetch-3.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'int *volatile'"
   },
   {
    "files": [
@@ -2081,14 +2065,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'three_char_t'"
-  },
-  {
-   "files": [
-    "pr65369.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'uint32_t[16]'"
   },
   {
    "files": [
@@ -3012,8 +2988,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T11:45:22Z",
- "measured_commit": "bcda8034a",
+ "measured_at_utc": "2026-11-15T12:00:36Z",
+ "measured_commit": "088b82724",
  "pin": {
   "corpora": [
    "C1",
@@ -15044,8 +15020,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'int *volatile'",
-   "dynamic_wall": "unsupported:no layout for declared type 'int *volatile'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "builtin-prefetch-3.c",
    "sha256": "8697eb4614fac2f01ef1bd600c7898eaa47a1e44748f36b3aac6c59b20239f40",
@@ -15053,7 +15029,7 @@
     "libc-call: __builtin_prefetch",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24235,8 +24211,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'const char *const[1]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'const char *const[1]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr53084.c",
    "sha256": "4859f7937a03ccc0ef5d43c3229458ef7ec1b3c2f219e8a52a7dd000d0490779",
@@ -24244,7 +24220,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25514,8 +25490,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'uint32_t[16]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'uint32_t[16]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr65369.c",
    "sha256": "8078474ab452306b8f45be23c335852cdaaaa541a63268bf5639f3aa2a753735",
@@ -25527,7 +25503,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

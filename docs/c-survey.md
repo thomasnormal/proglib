@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1149/2214 MATCH (passed 1149, failed 0, oracle 0)
+- verdicts: 1152/2214 MATCH (passed 1152, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `bcda8034a`
-- measured at: `2026-11-15T11:45:22Z`
+- measured commit: `088b82724`
+- measured at: `2026-11-15T12:00:36Z`
 
 ## Verdict counts
 
@@ -13,10 +13,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1149 |
+| `passed` | 1152 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 558 |
+| `refused-unsupported` | 555 |
 | `timeout` | 67 |
 
 ## Counts by corpus
@@ -30,10 +30,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 963 |
+| `gcc.c-torture/execute` | `passed` | 966 |
 | `gcc.c-torture/execute` | `refused-libc` | 33 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 490 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 487 |
 | `gcc.c-torture/execute` | `timeout` | 65 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -428,7 +428,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'client_t'` | 1 | 1 | 20071030-1.c |
 | `unsupported:no layout for declared type 'const A3_28 *const'` | 1 | 1 | strlen-4.c |
 | `unsupported:no layout for declared type 'const char *const'` | 1 | 1 | string-opt-5.c |
-| `unsupported:no layout for declared type 'const char *const[1]'` | 1 | 1 | pr53084.c |
 | `unsupported:no layout for declared type 'const int *const'` | 1 | 1 | 00219.c |
 | `unsupported:no layout for declared type 'const struct try[6]'` | 1 | 1 | ieee/fp-cmp-4.c |
 | `unsupported:no layout for declared type 'double (*)()'` | 1 | 1 | 930608-1.c |
@@ -440,7 +439,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'info_t'` | 1 | 1 | 20100430-1.c |
 | `unsupported:no layout for declared type 'int (*)(int, int)'` | 1 | 1 | 991112-1.c |
 | `unsupported:no layout for declared type 'int (*)[++i]'` | 1 | 1 | gcc/testsuite/gcc.dg/c23-auto-2.c |
-| `unsupported:no layout for declared type 'int *volatile'` | 1 | 1 | builtin-prefetch-3.c |
 | `unsupported:no layout for declared type 'int[len][len]'` | 1 | 1 | 20221006-1.c |
 | `unsupported:no layout for declared type 'struc'` | 1 | 1 | 20001101.c |
 | `unsupported:no layout for declared type 'struct A'` | 1 | 1 | 20040709-2.c |
@@ -458,7 +456,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'struct_list'` | 1 | 1 | 921113-1.c |
 | `unsupported:no layout for declared type 'three_byte_t'` | 1 | 1 | struct-ret-2.c |
 | `unsupported:no layout for declared type 'three_char_t'` | 1 | 1 | strct-pack-4.c |
-| `unsupported:no layout for declared type 'uint32_t[16]'` | 1 | 1 | pr65369.c |
 | `unsupported:no layout for declared type 'v4qi'` | 1 | 1 | pr60960.c |
 | `unsupported:no layout for declared type 'v8qi'` | 1 | 1 | simd-6.c |
 | `unsupported:no layout for declared type 'void *volatile'` | 1 | 1 | pr84521.c |
