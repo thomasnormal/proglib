@@ -380,9 +380,24 @@ end
 
 /-! Install the statement-layer initializer callback used by compound
 literals in the expression evaluator. -/
+mutual
+def compoundInitContext : Nat → Ctx → Ctx
+  | 0, ctx => ctx
+  | depth + 1, ctx =>
+      { ctx with compoundInit := compoundInitCallback depth ctx }
+
+def compoundInitCallback : Nat → Ctx → Nat → Env → IdEnv → Layout → Ptr → CType → Expr → EvalM Unit
+  | depth, ctx, fuel, env, ids, layout, p, ty, e =>
+      let nested := compoundInitContext depth
+        { ctx with env := env, idEnv := ids, layout := layout }
+      initObject fuel nested p ty e
+end
+
 def Ctx.withCompoundInit (ctx : Ctx) : Ctx :=
-  { ctx with compoundInit := fun fuel env ids layout p ty e =>
-      initObject fuel { ctx with env := env, idEnv := ids, layout := layout } p ty e }
+  -- Compound literal nesting is bounded by the interpreter fuel.  Keeping a
+  -- structural callback depth makes nested parser nodes retain the same
+  -- initializer semantics without an unrestricted recursive definition.
+  compoundInitContext 512 ctx
 
 /-! ## §6.8.7.1 — `goto`, and why a label search is enough
 
