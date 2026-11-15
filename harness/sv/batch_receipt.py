@@ -170,6 +170,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("parameterized_storage_structure.sv", "parameterized_storage_structure",
             (Port("x", 8),), (Port("y", 8),),
             (Point("N1", (1,)), Point("N2", (2,)))),
+    Fixture("net_z_signal.sv", "net_z_signal",
+            (Port("x", 8),), (Port("y", 8),)),
     Fixture("assign_target.sv", "assign_target",
             (Port("x", 1),), (Port("y", 1),)),
     Fixture("typed_bit_localparam.sv", "typed_localparam",
