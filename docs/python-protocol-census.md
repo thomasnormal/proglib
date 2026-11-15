@@ -763,6 +763,11 @@ is the public successor composition using that inversion path.
 statement list.  This keeps the successful `.next` body result available to
 the raw `callInM` transport after a thresholded legacy-list comparison.
 
+`Monadic.callInMono_succ_body_next_of_threshold` composes that threshold and
+inversion with the public successor call.  It accepts an explicit legacy
+`execStmts` `.next` result and produces the corresponding `callInMono` result,
+leaving only the pointwise threshold premises to the caller.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply

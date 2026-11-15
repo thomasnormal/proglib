@@ -4752,6 +4752,45 @@ theorem callInMono_succ_body_next
     { w with callDepth := pythonTopCallDepth } st' hfind hgen hargs hlocal
     hnotgen harity hbody
 
+theorem callInMono_succ_body_next_of_threshold
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (base : Nat) (st' : FrameState)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hFuel : base + f.body.toList.length < fuel)
+    (hThreshold : ∀ s ∈ f.body.toList, ∀ st' g, base ≤ g → 0 < g →
+      toRun (execOpen (kont m fuel) m s) st' = execStmt m g st' s)
+    (hRun : execStmts m fuel
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ f.body.toList =
+      .ok st' RFlow.next) :
+    callInMono m (fuel + 1) w fname args =
+      .ok { st'.world with callDepth := pythonTopCallDepth } .none := by
+  have hBodyRun : toRun (execOpenList (kont m fuel) m f.body.toList)
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok st' RFlow.next := by
+    rw [twinAgrees_execOpenList_of_threshold (kont m fuel) m f.body.toList base fuel
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ hFuel hThreshold, hRun]
+  have hBodyRaw : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok RFlow.next, st') :=
+    execOpenList_raw_of_toRun_next (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ st' hBodyRun
+  exact callInMono_succ_body_next m fuel w fname args f st' hfind hgen hargs hlocal
+    hnotgen harity hBodyRaw
+
 theorem callInMono_succ_body_next_of_each
     (m : Module) (fuel : Nat) (w : World) (fname : String)
     (args : Array RVal) (f : FunctionDefn)
