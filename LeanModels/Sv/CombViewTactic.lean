@@ -1200,21 +1200,31 @@ partial def clog2Args (e : Lean.Expr) : Array Lean.Expr :=
   | _ => #[]
 
 /-- `a` and the forms the tactics' `simp` sets give it (`Int.ofNat n` as `↑n`, then `(↑n).toNat` as `n`): `omega` reads
-`clog2 a` as an atom up to syntax, so a fact is stated for each. -/
-def clog2Variants (a : Lean.Expr) : Array Lean.Expr :=
+`clog2 a` as an atom up to syntax, so a fact is stated for each. With `unwrapped`, also the forms of `x.toNat` for an
+argument `(x % 2^32).toNat` (`CE.eval`'s reading of `$clog2`, its argument's 32-bit pattern), which `Int.emod_eq_of_lt`
+leaves where `x` is in `[0, 2^32)`: the agreement's rewrites do that after its facts are stated (the facts hold for every
+argument). -/
+def clog2Variants (a : Lean.Expr) (unwrapped : Bool := false) : Array Lean.Expr :=
   let cast (x : Lean.Expr) : Lean.Expr :=
     mkApp3 (mkConst ``Nat.cast [Level.zero]) (mkConst ``Int) (mkConst ``instNatCastInt) x
-  let a1 := a.replace fun x => if x.isAppOfArity ``Int.ofNat 1 then some (cast x.appArg!) else none
-  let a2 := a1.replace fun x =>
-    if x.isAppOfArity ``Int.toNat 1 && x.appArg!.isAppOfArity ``Nat.cast 3 then some x.appArg!.appArg! else none
-  #[a, a1, a2]
+  let forms (a : Lean.Expr) : Array Lean.Expr :=
+    let a1 := a.replace fun x => if x.isAppOfArity ``Int.ofNat 1 then some (cast x.appArg!) else none
+    let a2 := a1.replace fun x =>
+      if x.isAppOfArity ``Int.toNat 1 && x.appArg!.isAppOfArity ``Nat.cast 3 then some x.appArg!.appArg! else none
+    #[a, a1, a2]
+  let a0 := a.replace fun x =>
+    if x.isAppOfArity ``Int.toNat 1 && x.appArg!.isAppOfArity ``HMod.hMod 6 &&
+        x.appArg!.appArg!.int? == some 4294967296 then
+      some (mkApp (mkConst ``Int.toNat) x.appArg!.appFn!.appArg!)
+    else none
+  if !unwrapped || a0 == a then forms a else forms a ++ forms a0
 
 /-- Put `clog2_le a` and `clog2_zero_or_lt a` in the context of the main goal for every `clog2 a` of the terms `es`, for
-`omega` (which reads `clog2 a` as an atom). -/
-def addClog2Facts (es : Array Lean.Expr) : TacticM Unit := do
+`omega` (which reads `clog2 a` as an atom); `unwrapped` as `clog2Variants`. -/
+def addClog2Facts (es : Array Lean.Expr) (unwrapped : Bool := false) : TacticM Unit := do
   let mut seen : Array Lean.Expr := #[]
   for e in es do
-    for a in (clog2Args (← instantiateMVars e)).flatMap clog2Variants do
+    for a in (clog2Args (← instantiateMVars e)).flatMap (clog2Variants (unwrapped := unwrapped)) do
       if seen.contains a then continue
       seen := seen.push a
       let g ← getMainGoal
@@ -1770,7 +1780,7 @@ unsafe def closeHagWith (tac : String) (g : MVarId) (names : List String) (val :
         continue
       let pg ← mkFreshExprSyntheticOpaqueMVar (← mkEq (← mkAppM ``Option.some #[v]) (← mkAppM ``Option.some #[r]))
       setGoals [pg.mvarId!]
-      addClog2Facts #[v, r]
+      addClog2Facts #[v, r] (unwrapped := true)
       addIteFacts #[v, r]
       -- a definition with a shift (`CE.shl`/`shr`/`ashr`, a power of two in its term) takes the route below only: the
       -- general one ends in `rfl`, which would unfold the instantiation's `Int.fdiv`/`Int.tdiv` and the summary's `%`
