@@ -167,6 +167,9 @@ FIXTURES: tuple[Fixture, ...] = (
             retain_proc_rewrites=True),
     Fixture("typed_unpacked_net.sv", "typed_unpacked_net",
             (Port("x", 8),), (Port("y", 8),)),
+    Fixture("parameterized_storage_structure.sv", "parameterized_storage_structure",
+            (Port("x", 8),), (Port("y", 8),),
+            (Point("N1", (1,)), Point("N2", (2,)))),
     Fixture("assign_target.sv", "assign_target",
             (Port("x", 1),), (Port("y", 1),)),
     Fixture("typed_bit_localparam.sv", "typed_localparam",
@@ -290,6 +293,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generate_if_unpacked_array": ("N",),
             "generated_array_nested": ("W",),
             "hierarchy_parameterized": ("W",),
+            "parameterized_storage_structure": ("N",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []
