@@ -1,0 +1,473 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "constant_function_module_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/constant_function_module_e/constant_function_module_e.sv",
+      "sha256": "86e2f21f2d12c651667bed8d40ff9de4eba9c779637a9f2f15a5859500b8935e"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 10,
+          "end_col": 10
+        },
+        "name": "constant_function_module_e",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 1,
+              "col": 55,
+              "end_line": 1,
+              "end_col": 60
+            },
+            "name": "N",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 55,
+                      "end_line": 1,
+                      "end_col": 60
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 55,
+                      "end_line": 1,
+                      "end_col": 60
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 1,
+                "col": 59,
+                "end_line": 1,
+                "end_col": 60
+              },
+              "value": 8,
+              "resolved_width": 32
+            },
+            "resolved": 8
+          },
+          {
+            "kind": "LocalParam",
+            "span": {
+              "line": 6,
+              "col": 22,
+              "end_line": 6,
+              "end_col": 35
+            },
+            "name": "W",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 22,
+                      "end_line": 6,
+                      "end_col": 35
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 22,
+                      "end_line": 6,
+                      "end_col": 35
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "expr": {
+              "kind": "FunctionCall",
+              "span": {
+                "line": 6,
+                "col": 26,
+                "end_line": 6,
+                "end_col": 35
+              },
+              "name": "DepthW",
+              "args": [
+                {
+                  "kind": "ParamRef",
+                  "span": {
+                    "line": 6,
+                    "col": 33,
+                    "end_line": 6,
+                    "end_col": 34
+                  },
+                  "name": "N"
+                }
+              ],
+              "width": 32,
+              "symbolic_user_function_retained": true
+            },
+            "resolved": 3
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 24,
+              "end_line": 2,
+              "end_col": 25
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 19,
+                      "end_line": 2,
+                      "end_col": 20
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 21,
+                      "end_line": 2,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 7,
+              "col": 17,
+              "end_line": 7,
+              "end_col": 18
+            },
+            "name": "z",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 7,
+                      "col": 10,
+                      "end_line": 7,
+                      "end_col": 13
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 7,
+                        "col": 10,
+                        "end_line": 7,
+                        "end_col": 11
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 7,
+                        "col": 12,
+                        "end_line": 7,
+                        "end_col": 13
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 14,
+                      "end_line": 7,
+                      "end_col": 15
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 3
+            },
+            "init": null
+          }
+        ],
+        "functions": [
+          {
+            "kind": "Function",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 5,
+              "end_col": 14
+            },
+            "name": "DepthW",
+            "automatic": true,
+            "return_type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "signed": true,
+            "formals": [
+              {
+                "kind": "Var",
+                "span": {
+                  "line": 3,
+                  "col": 51,
+                  "end_line": 3,
+                  "end_col": 56
+                },
+                "name": "depth",
+                "width": {
+                  "kind": "PackedType",
+                  "packed": [
+                    {
+                      "msb": {
+                        "kind": "Int",
+                        "span": null,
+                        "value": 31,
+                        "resolved_width": null
+                      },
+                      "lsb": {
+                        "kind": "Int",
+                        "span": null,
+                        "value": 0,
+                        "resolved_width": null
+                      }
+                    }
+                  ],
+                  "resolved": 32
+                },
+                "dir": "in",
+                "init": null,
+                "signed": true
+              }
+            ],
+            "body": {
+              "kind": "Ternary",
+              "span": {
+                "line": 4,
+                "col": 12,
+                "end_line": 4,
+                "end_col": 43
+              },
+              "width": 32,
+              "cond": {
+                "kind": "Binary",
+                "span": {
+                  "line": 4,
+                  "col": 13,
+                  "end_line": 4,
+                  "end_col": 22
+                },
+                "width": 1,
+                "op": "s>",
+                "left": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 3,
+                    "col": 51,
+                    "end_line": 3,
+                    "end_col": 56
+                  },
+                  "width": 32,
+                  "name": "depth"
+                },
+                "right": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 4,
+                    "col": 21,
+                    "end_line": 4,
+                    "end_col": 22
+                  },
+                  "value": 1,
+                  "resolved_width": 32
+                }
+              },
+              "then": {
+                "kind": "SysCall",
+                "span": {
+                  "line": 4,
+                  "col": 26,
+                  "end_line": 4,
+                  "end_col": 39
+                },
+                "name": "$clog2",
+                "args": [
+                  {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 3,
+                      "col": 51,
+                      "end_line": 3,
+                      "end_col": 56
+                    },
+                    "width": 32,
+                    "name": "depth"
+                  }
+                ],
+                "resolved": null
+              },
+              "else": {
+                "kind": "Int",
+                "span": {
+                  "line": 4,
+                  "col": 42,
+                  "end_line": 4,
+                  "end_col": 43
+                },
+                "value": 1,
+                "resolved_width": 32
+              }
+            }
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 8,
+              "col": 10,
+              "end_line": 8,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 8,
+                "col": 10,
+                "end_line": 8,
+                "end_col": 11
+              },
+              "width": 8,
+              "name": "y"
+            },
+            "value": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 8,
+                "col": 14,
+                "end_line": 8,
+                "end_col": 15
+              },
+              "name": "W"
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 9,
+              "col": 10,
+              "end_line": 9,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 9,
+                "col": 10,
+                "end_line": 9,
+                "end_col": 11
+              },
+              "width": 3,
+              "name": "z"
+            },
+            "value": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 9,
+                "col": 14,
+                "end_line": 9,
+                "end_col": 15
+              },
+              "name": "W"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

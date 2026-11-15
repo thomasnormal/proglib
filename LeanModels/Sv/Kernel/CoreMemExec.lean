@@ -569,6 +569,12 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
   if args.length != d.params.length then
     .unsupported s!"parameter arity: got {args.length}, want {d.params.length}"
   else
+    -- Constant functions are evaluated while binding parameter and localparam
+    -- defaults.  Carry the parser-retained declarations into that scope
+    -- before the first bind; attaching them only after `bindLocals` makes a
+    -- module-local call look like an unsupported `CallExpression` even though
+    -- its source-shaped pure function is admitted by the constant tier.
+    let envI := { envI with functions := d.functions }
     let envP ← bindPackageParams envI d.packageParams
     let envP ← bindPackageEnums envP d.enums
     let env0 ← bindParamsRes envP d.params args

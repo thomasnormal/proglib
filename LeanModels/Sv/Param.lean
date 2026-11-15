@@ -1696,6 +1696,13 @@ def evalAssign (env : IEnv) (w : Nat) (e : PExpr) : Except String Int :=
   | .functionCall n args => do
       let v ← evalConstFunctionCall env n args
       .ok (canonInt w true v)
+  | .squash2 targetWidth (.functionCall n args) => do
+      -- A source cast to the 2-state width can wrap a pure constant
+      -- function call (the extractor retains this node for an `int` return).
+      -- Evaluate the call at its declaration, then apply the explicit target
+      -- width; sending it through `evalAt` would hit the generic call refusal.
+      let v ← evalConstFunctionCall env n args
+      .ok (canonInt (if targetWidth == 0 then w else targetWidth) false v)
   | _ => do
       let (we, se) ← ctype env e
       evalAt env (max w we, se) e
@@ -3104,7 +3111,10 @@ def PDesign.defaultArgs (d : PDesign) : Res (List Int) :=
   -- Defaults are elaborated as the declared 32-bit `int` context.  The
   -- previous empty environment selected the unbounded proof evaluator, so a
   -- localparam could lose an overflowing intermediate before its final cast.
-  go { int32 := true } d.params
+  -- Carry source-shaped pure function declarations into parameter defaults;
+  -- otherwise a module/package constant function is reported as a generic
+  -- `CallExpression` during the loader's own differential cross-check.
+  go { int32 := true, functions := d.functions } d.params
 where
   go (env : IEnv) : List PParam → Res (List Int)
     | [] => .ok []
