@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1140/2214 MATCH (passed 1140, failed 0, oracle 0)
+- verdicts: 1141/2214 MATCH (passed 1141, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `ea6375e53`
-- measured at: `2026-11-15T10:03:07Z`
+- measured commit: `b03b5351d`
+- measured at: `2026-11-15T10:10:10Z`
 
 ## Verdict counts
 
@@ -13,20 +13,20 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1140 |
+| `passed` | 1141 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 567 |
+| `refused-unsupported` | 566 |
 | `timeout` | 67 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
-| `c-testsuite/single-exec` | `passed` | 179 |
+| `c-testsuite/single-exec` | `passed` | 180 |
 | `c-testsuite/single-exec` | `refused-libc` | 2 |
 | `c-testsuite/single-exec` | `refused-ub` | 8 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 29 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 28 |
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
@@ -539,7 +539,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:unbound declaration 'id28' (name 'arr')` | 1 | 1 | pr55750.c |
 | `unsupported:unbound declaration 'id28' (name 'cp')` | 1 | 1 | 20120808-1.c |
 | `unsupported:unbound declaration 'id28' (name 'terminate_me')` | 1 | 1 | pr54937.c |
-| `unsupported:unbound declaration 'id28' (name 'v')` | 1 | 1 | 00050.c |
 | `unsupported:unbound declaration 'id29' (name 't')` | 1 | 1 | 20051012-1.c |
 | `unsupported:unbound declaration 'id30' (name 'b')` | 1 | 1 | 20131127-1.c |
 | `unsupported:unbound declaration 'id30' (name 'f')` | 1 | 1 | pr98366.c |

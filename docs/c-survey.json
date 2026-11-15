@@ -1,10 +1,10 @@
 {
  "by_corpus": {
   "c-testsuite/single-exec": {
-   "passed": 179,
+   "passed": 180,
    "refused-libc": 2,
    "refused-ub": 8,
-   "refused-unsupported": 29,
+   "refused-unsupported": 28,
    "timeout": 2
   },
   "gcc.c-torture/execute": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 295,
   "oracle-tests-compiler": 1,
-  "passed": 1140,
+  "passed": 1141,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 567,
+  "refused-unsupported": 566,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -2733,14 +2733,6 @@
   },
   {
    "files": [
-    "00050.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id28' (name 'v')"
-  },
-  {
-   "files": [
     "20051012-1.c"
    ],
    "present": 1,
@@ -3069,8 +3061,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T10:03:07Z",
- "measured_commit": "ea6375e53",
+ "measured_at_utc": "2026-11-15T10:10:10Z",
+ "measured_commit": "b03b5351d",
  "pin": {
   "corpora": [
    "C1",
@@ -3612,8 +3604,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "unbound declaration 'id28' (name 'v')",
-   "dynamic_wall": "unsupported:unbound declaration 'id28' (name 'v')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00050.c",
    "sha256": "b79bcd69deb7ed7ef69bff378a72c724ef44de0ec83e6e9d4241d4d432fcd142",
@@ -3621,7 +3613,7 @@
     "type-layout",
     "unsupported:IndirectFieldDecl"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
