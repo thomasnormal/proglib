@@ -711,3 +711,7 @@ must state that mutual refinement or explicitly record the raw-run bridge.
 `Kont.call` field delegates definitionally to `callInM (kont m fuel)`. The
 remaining obligation is therefore the body-result relation at that continuation,
 not call dispatch.
+
+`Monadic.callInMono_succ` exposes the same seam at the public runner boundary:
+successor-fuel `callInMono` is definitionally the `toRun` projection of that
+`callInM` continuation at the normalized top depth.

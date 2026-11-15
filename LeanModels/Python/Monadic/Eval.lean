@@ -2874,6 +2874,13 @@ theorem kont_call_succ (m : Module) (fuel : Nat) (fname : String)
       callInM (kont m fuel) m fname args := by
   rfl
 
+theorem callInMono_succ (m : Module) (fuel : Nat) (w : World)
+    (fname : String) (args : Array RVal) :
+    callInMono m (fuel + 1) w fname args =
+      toRun (callInM (kont m fuel) m fname args)
+        { w with callDepth := pythonTopCallDepth } := by
+  rfl
+
 /-! ### §4.1 THE CLASS THE PUBLIC WRAPPER ERASES
 
 `Run.unsupported` has ONE field, a `String`. `Loud.unsupported` has THREE — the
