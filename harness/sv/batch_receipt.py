@@ -165,6 +165,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("generate_unbound_parameter.sv", "generate_unbound_parameter_top",
             (Port("x", 1),), (Port("y", 1),),
             retain_proc_rewrites=True),
+    Fixture("typed_unpacked_net.sv", "typed_unpacked_net",
+            (Port("x", 8),), (Port("y", 8),)),
     Fixture("assign_target.sv", "assign_target",
             (Port("x", 1),), (Port("y", 1),)),
     Fixture("typed_bit_localparam.sv", "typed_localparam",
