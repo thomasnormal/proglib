@@ -10,8 +10,8 @@
   "gcc.c-torture/execute": {
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 953,
-   "refused-libc": 34,
+   "passed": 954,
+   "refused-libc": 33,
    "refused-ub": 98,
    "refused-unsupported": 500,
    "timeout": 65
@@ -28,8 +28,8 @@
  "counts": {
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1134,
-  "refused-libc": 38,
+  "passed": 1135,
+  "refused-libc": 37,
   "refused-ub": 107,
   "refused-unsupported": 573,
   "timeout": 67
@@ -985,16 +985,6 @@
   },
   {
    "files": [
-    "printf-chk-1.c",
-    "vprintf-1.c",
-    "vprintf-chk-1.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "libc-call: vprintf"
-  },
-  {
-   "files": [
     "960513-1.c",
     "ieee/fp-cmp-1.c",
     "ieee/fp-cmp-2.c"
@@ -1139,6 +1129,15 @@
    "present": 2,
    "sole": 2,
    "wall": "libc-call: open"
+  },
+  {
+   "files": [
+    "printf-chk-1.c",
+    "vprintf-chk-1.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "libc-call: vprintf"
   },
   {
    "files": [
@@ -3097,8 +3096,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T07:21:18Z",
- "measured_commit": "570fb79f0",
+ "measured_at_utc": "2026-11-15T07:54:42Z",
+ "measured_commit": "e9f0ea8db",
  "pin": {
   "corpora": [
    "C1",
@@ -29419,8 +29418,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "vprintf",
-   "dynamic_wall": "libc-call: vprintf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "vprintf-1.c",
    "sha256": "b6598bdae9a2234785be0d52dbbbecf7825a5b9e549611f8faf0b5e7c0f30b86",
@@ -29431,7 +29430,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
