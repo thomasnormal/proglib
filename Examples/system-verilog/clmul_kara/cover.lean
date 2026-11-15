@@ -13,7 +13,8 @@ width. `sv_cover`'s slot-window rule (`LeanModels/Sv/CombCoverUnit.lean`) solves
 maps and states the facts of the slot widths (`P >> l = 4·2^L / 2^l`) itself; `sv_obligations` closes all 27.
 
 The theorem states a trivial specification: the point is the obligations `sv_equations` hands back (the carry-less
-product itself is not proved here). The structure (`CombDesign`, `Acyclic`, the shared obligations) is a hypothesis.
+product is proved in `clmul_proof.lean`, the full statement). The structure (`CombDesign`, `Acyclic`, the shared
+obligations) is a hypothesis.
 
 The range premise `N < 2^16` is the record's own: `T = 3^L` is a 32-bit `int`, and `4·T` must stay in range.
 
