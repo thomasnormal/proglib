@@ -686,3 +686,7 @@ and returning `v` directly.
 `Monadic.twinAgrees_callInM_recursive_body_break` composes the guarded
 recursive branch for `RFlow.brk`; after `leaveCallM` restores the caller depth,
 the call boundary yields the faithful `"'break' outside loop"` refusal.
+
+`Monadic.twinAgrees_callInM_recursive_body_continue` supplies the corresponding
+guarded recursive transport for `RFlow.cont`, yielding the faithful
+`"'continue' outside loop"` refusal.
