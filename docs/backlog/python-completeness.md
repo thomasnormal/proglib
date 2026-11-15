@@ -17202,3 +17202,24 @@ valid independently.
 
 DECIDED: direct call-plan integration remains blocked after the targeted getter
 normalization attempt; no fixed-count theorem or weakened call theorem was added.
+
+## 2026-11-15-pyfoundation-287 — recursive continuation after branch transport
+
+The generic `callInM` branch transport is now complete for both top-depth and
+non-top-depth calls: every `RFlow` result, Python exception, timeout, and
+classified refusal has an explicit `finishCallM` or `leaveCallM` composition.
+The remaining F9 adequacy gap is one level above those branch theorems. The raw
+body premises are stated for `execOpenList` at an arbitrary continuation `K`,
+but `kont` supplies that continuation through fuel-indexed mutual recursion;
+`callInMono_eq_ofHalt` only projects a completed raw run and does not prove the
+fuel-indexed relation that supplies the body premise at a recursive call.
+
+First differing evidence: no theorem currently relates the recursive
+`Kont.call`/`callInM` continuation at fuel `n + 1` to the `toRun` body result
+premises used by the new branch bridges. A direct theorem that assumes the body
+result is therefore branch transport, not recursive interpreter adequacy.
+
+DECIDED: the remaining blocker is a fuel-indexed mutual refinement theorem for
+`kont`/`callInM` (or an explicitly stated raw-run adequacy bridge), not another
+body-flow case. The branch matrix is closed; the next productive item is to
+state that refinement theorem and identify its induction invariant.

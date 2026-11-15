@@ -699,3 +699,10 @@ active depth, and propagating the original error.
 `Monadic.twinAgrees_callInM_recursive_body_unsupported` complete recursive
 timeout/refusal mapping; these outcomes carry no world and therefore bypass
 depth restoration while preserving timeout and refusal-message observations.
+
+The branch transport matrix is now complete. The remaining recursive adequacy
+debt is fuel-indexed: `kont` supplies the recursive continuation used by
+`callInM`, while the branch theorems assume a raw `execOpenList` result at an
+arbitrary `K`. `callInMono_eq_ofHalt` projects a completed run but does not yet
+relate the fuel-indexed continuation to those body premises. The next theorem
+must state that mutual refinement or explicitly record the raw-run bridge.
