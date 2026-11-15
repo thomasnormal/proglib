@@ -2941,6 +2941,22 @@ def portsDesign? (ty : Expr) : Option Expr :=
     (e.isAppOfArity `LeanModels.Sv.Design2.inputPorts 1 || e.isAppOfArity `LeanModels.Sv.Design2.outputPorts 1 ||
       e.isAppOfArity ``LeanModels.Sv.Design2.decls 1)).map (·.appArg!)
 
+/-- The port-list definitions a task statement may be written with, as the user's file names them (tac8): svGolf's
+`SvGolf.inputPorts`/`SvGolf.outputPorts` and ls-sv's `Design2.inputPorts`/`Design2.outputPorts` (`CombTask.lean`; neither
+is imported here). Each is resolved in the user's scope, so `open` applies (a statement restated over ls-sv in a
+namespace of its own names svGolf's definitions as `SvGolf.…` through `open`), and a name the file cannot resolve is
+left out. -/
+def portUnfoldNames : TacticM (List Name) := do
+  let cands : List Name :=
+    [`SvGolf.inputPorts, `SvGolf.outputPorts, `LeanModels.Sv.Design2.inputPorts, `LeanModels.Sv.Design2.outputPorts]
+  let mut out : List Name := []
+  for c in cands do
+    try
+      let n ← Lean.resolveGlobalConstNoOverload (mkIdent c)
+      unless out.contains n do out := out ++ [n]
+    catch _ => pure ()
+  return out
+
 /-- Run the interface stage. -/
 unsafe def runSvInterface : TacticM Unit := do
   let goal ← getMainGoal
@@ -3032,10 +3048,7 @@ unsafe def runSvInterface : TacticM Unit := do
       try
         -- the statement's head and the port lists that exist in the user's environment (`SvGolf` and `CombTask.lean`
         -- are not imported here: the names are built without macro scopes and resolved in the user's file)
-        let env ← getEnv
-        let unfoldNames : List Name := (if taskForm then [ty.getAppFn.constName!] else []) ++
-          ([`SvGolf.inputPorts, `SvGolf.outputPorts, `LeanModels.Sv.Design2.inputPorts,
-            `LeanModels.Sv.Design2.outputPorts].filter env.contains)
+        let unfoldNames : List Name := (if taskForm then [ty.getAppFn.constName!] else []) ++ (← portUnfoldNames)
         let unfoldLemmas ← (unfoldNames.map mkIdent).toArray.mapM fun i =>
           `(Lean.Parser.Tactic.simpLemma| $i:ident)
         unless unfoldLemmas.isEmpty do
