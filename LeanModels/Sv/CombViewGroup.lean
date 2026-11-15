@@ -125,6 +125,57 @@ theorem rankObl'_of_groups (s : Summary) (R : SiteId → SiteId → Prop) (σ : 
     (List.mem_map.2 ⟨a, ha, rfl⟩) (r, s.lsites.filter fun b => b.site.tgt.name == r.name)
     (List.mem_map.2 ⟨r, hr, rfl⟩) b hb'
 
+/-- **The rank obligation, grouped by signal, with the windows in range** (tac8, `set_option sv_comb.rank_ranged true`):
+`rankObl'_of_groups` whose every obligation also has the in-range facts of the read (`InR`, from `AutoObl`'s first
+conjunct) and of the writer's window (`InR` of its target, from `InRangeObl`'s first conjunct; of a further window, from
+its second) as premises. Those facts are owed and proved anyway (they are the `auto` and `inRange` obligations of the
+same theorem); stated next to the overlap, they put the columns of two row-major windows inside their rows, which is all
+the lexicographic reading of the overlap needs (`rmN_lt_iff`'s side conditions), so a rank goal no longer needs the
+facts that prove the windows in range (measured on the Karatsuba record: those facts, put in context per rank goal,
+exhausted the 8 GB memory cap). -/
+theorem rankObl'_of_groupsR (s : Summary) (R : SiteId → SiteId → Prop) (σ : String → Int) {args : List Int}
+    (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ)
+    (RW : List (LSite × List (Acc × List LSite))) (hRW : rdWriters s.lsites = RW)
+    (h : (∀ e ∈ RW, ∀ q ∈ e.2, ∀ b ∈ q.2,
+          Loops.all e.1.hdrs σ fun σ1 => Loops.all b.hdrs σ fun σ2 =>
+            s.InR σ σ1 q.1 → s.InR σ σ2 b.site.tgt →
+            ReadWin.overlaps (q.1.rd σ1) (b.site.tgt.win σ2 (s.dw σ)) = true → R (b.id σ2) (e.1.id σ1)) ∧
+      (if (∀ b ∈ s.lsites, b.site.more = []) then True else
+        ∀ b ∈ s.lsites, ∀ y ∈ b.site.more, ∀ a ∈ s.lsites, ∀ r ∈ a.site.rds, y.name = r.name →
+          Loops.all a.hdrs σ fun σ1 => Loops.all b.hdrs σ fun σ2 =>
+            s.InR σ σ1 r → s.InR σ σ2 y →
+            ReadWin.overlaps (r.rd σ1) (y.win σ2 (s.dw σ)) = true → R (b.id σ2) (a.id σ1))) :
+    s.RankObl' R σ := by
+  subst hRW
+  refine ⟨fun a ha r hr b hb => ?_, ?_⟩
+  · have hb' := hb
+    unfold Summary.writersOf at hb'
+    have hbl : b ∈ s.lsites := (List.mem_filter.mp hb').1
+    have H := h.1 (a, a.site.rds.map fun r => (r, s.lsites.filter fun b => b.site.tgt.name == r.name))
+      (List.mem_map.2 ⟨a, ha, rfl⟩) (r, s.lsites.filter fun b => b.site.tgt.name == r.name)
+      (List.mem_map.2 ⟨r, hr, rfl⟩) b hb'
+    rw [Loops.all_iff] at H ⊢
+    intro σ1 h1
+    have H1 := (Loops.all_iff _ _ _).mp (H σ1 h1)
+    rw [Loops.all_iff]
+    intro σ2 h2
+    exact H1 σ2 h2 ((Loops.all_iff _ _ _).mp (hauto.1 a ha) σ1 h1 r hr)
+      ((Loops.all_iff _ _ _).mp (hin.1 b hbl) σ2 h2).1
+  · have h2 := h.2
+    have hin2 := hin.2.1
+    by_cases hne : ∀ b ∈ s.lsites, b.site.more = []
+    · rw [if_pos hne]; trivial
+    · rw [if_neg hne] at h2 hin2 ⊢
+      intro b hb y hy a ha r hr hn
+      have H := h2 b hb y hy a ha r hr hn
+      rw [Loops.all_iff] at H ⊢
+      intro σ1 h1
+      have H1 := (Loops.all_iff _ _ _).mp (H σ1 h1)
+      rw [Loops.all_iff]
+      intro σ2 hσ2
+      exact H1 σ2 hσ2 ((Loops.all_iff _ _ _).mp (hauto.1 a ha) σ1 h1 r hr)
+        ((Loops.all_iff _ _ _).mp (hin2 b hb) σ2 hσ2 y hy).1
+
 end Summary
 
 end CombView
@@ -134,3 +185,4 @@ end LeanModels.Sv
   LeanModels.Sv.CombView.win_fst_eq_name LeanModels.Sv.CombView.overlaps_eq_false_of_ne
   LeanModels.Sv.CombView.Summary.disjOne_of_ne_name LeanModels.Sv.CombView.Summary.disjObl_of_groups
   LeanModels.Sv.CombView.rdWriters LeanModels.Sv.CombView.Summary.rankObl'_of_groups
+  LeanModels.Sv.CombView.Summary.rankObl'_of_groupsR

@@ -80,6 +80,15 @@ register_option sv_comb.profile : Bool := {
   defValue := false
   descr := "sv_comb tactics: log the heartbeats the normalization of each obligation costs" }
 
+/-- `set_option sv_comb.rank_ranged true` (tac8): `sv_structure` states each rank obligation of a design with a generate loop
+or a parameter with the in-range facts of the read and of the writer's window as premises
+(`Summary.rankObl'_of_groupsR`, CombViewGroup.lean): the columns of two row-major windows are then inside their rows by
+hypothesis, and a rank goal needs no fact about the index arithmetic (what proves the windows in range is proved once, in
+the `auto` and `inRange` obligations). Off by default: the rank goals of every existing proof keep their form. -/
+register_option sv_comb.rank_ranged : Bool := {
+  defValue := false
+  descr := "sv_structure: state the rank obligations with the in-range facts of both windows as premises" }
+
 /-- Run the normalization of the obligation `nm`; with `sv_comb.profile` set, log what it cost. -/
 def svObProfile (nm : String) (act : TacticM Unit) : TacticM Unit := do
   if sv_comb.profile.get (← getOptions) then
@@ -2322,7 +2331,8 @@ the pairs of sites that write the SAME signal, and the triples (site, read, writ
 trivially; the tactic lists them natively (from the target names, no `simp`), assigns the lemma of `CombViewGroup` whose
 `rfl` hypothesis the kernel checks once, and returns the new goal: the original obligation restricted to that list,
 which the usual normalization then handles in time linear in the number of listed pairs. -/
-def groupStructureGoal (sv : LeanModels.Sv.CombView.Summary) (g : MVarId) : MetaM MVarId := do
+def groupStructureGoal (sv : LeanModels.Sv.CombView.Summary) (g : MVarId)
+    (ranged? : Option (Expr × Expr) := none) : MetaM MVarId := do
   let ty ← instantiateMVars (← g.getType)
   let lsT := mkConst ``LeanModels.Sv.CombView.LSite
   let prodT (a b : Expr) := mkApp2 (mkConst ``Prod [Level.zero, Level.zero]) a b
@@ -2360,7 +2370,12 @@ def groupStructureGoal (sv : LeanModels.Sv.CombView.Summary) (g : MVarId) : Meta
     let σE := ty'.appArg!
     let (RW, hRW, nReads, nWriters) ← rdWritersExpr sv sE
     svGroupReport s!"sv_comb group: RankObl', {nReads} reads with {nWriters} writers of {n} sites"
-    let app := mkApp5 (mkConst ``LeanModels.Sv.CombView.Summary.rankObl'_of_groups) sE RE σE RW hRW
+    -- the ranged form (`sv_comb.rank_ranged`): the in-range facts of both windows are premises of each obligation,
+    -- from the `auto` and `inRange` obligations of the same theorem (`ranged? = some (hauto, hin)`)
+    let app ← match ranged? with
+      | some (ha, hi) =>
+          mkAppM ``LeanModels.Sv.CombView.Summary.rankObl'_of_groupsR #[sE, RE, σE, ha, hi, RW, hRW]
+      | none => pure (mkApp5 (mkConst ``LeanModels.Sv.CombView.Summary.rankObl'_of_groups) sE RE σE RW hRW)
     let hTy := (← whnf (← inferType app)).bindingDomain!
     let hNew ← mkFreshExprSyntheticOpaqueMVar hTy (← g.getTag)
     g.assign (mkApp app hNew)
@@ -2798,9 +2813,26 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       closeHag "sv_structure" (← find `hag) s args
       closeDecide `hok "the structural check failed"
       let mut out : Array MVarId := #[]
+      let ranged := sv_comb.rank_ranged.get (← getOptions)
       let runOb (n : Name) (nm : String) (tac : TSyntax ``Lean.Parser.Tactic.tacticSeq)
           (grouped : Bool := false) : TacticM (List MVarId) := do
         let g0 ← find n
+        -- tac8: the ranged rank form (`sv_comb.rank_ranged`) takes the grouped route at any number of sites, and a
+        -- failure of it is an error (the player asked for that form)
+        if ranged && n == `hrank then
+          let g ← try
+              groupStructureGoal s g0 (some (mkMVar (← find `hauto), mkMVar (← find `hin)))
+            catch e =>
+              throwError "sv_structure: the ranged rank form (`sv_comb.rank_ranged`) could not be stated: {e.toMessageData}"
+          setGoals [g]
+          svObProfile nm (evalTactic tac)
+          let rest ← getGoals
+          let k := rest.length
+          let mut i := 0
+          for g in rest do
+            i := i + 1
+            g.setTag (if k == 1 then Name.mkSimple nm else Name.mkSimple s!"{nm}_{i}")
+          return rest
         -- WP-LIN: the obligations that are quadratic in the number of sites are first restricted to the sites
         -- that write the same signal (`groupStructureGoal`); a failure of that step keeps the original goal
         let g ← if grouped && groupMinSites ≤ s.lsites.length then
