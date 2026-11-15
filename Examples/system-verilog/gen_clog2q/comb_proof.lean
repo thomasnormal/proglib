@@ -5,10 +5,11 @@ import LeanModels.Sv.CombViewTactic
 # `sv_structure` on `$clog2` of a quotient and a power of it (`Examples/system-verilog/gen_clog2q`)
 
 The parameter stage evaluates `NI = $clog2((N + 9) / 8) + 1`, `L = $clog2((N + 3) / 4)` and `T = 3 ** L` at a symbolic
-`N`: the instantiation's sign test of each `$clog2` argument is decided by `omega` from the range premise, each 32-bit
-wrap is removed where `omega` places its value in range (the facts of `$clog2` atoms bound `T` through `3 ^ L ≤ 3 ^ 14`
-below `N < 2^16`), and the environment it computes is the summary's valuation. Nothing is assumed: the range premises
-are the theorems' hypotheses.
+`N`: the instantiation's unsigned reading of each `$clog2` argument (IEEE 1800-2023 §20.8.1: modulo `2^32`) is the
+argument where `omega` places it in `[0, 2^32)` from the range premise, each 32-bit wrap is removed where `omega` places
+its value in range (the facts of `$clog2` atoms bound `T` through `3 ^ L ≤ 3 ^ 14` below `N < 2^16`), and the
+environment it computes is the summary's valuation. Nothing is assumed: the range premises are the theorems'
+hypotheses.
 
 Build: `lake build Examples.«system-verilog».gen_clog2q.comb_proof`.
 -/
