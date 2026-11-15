@@ -29,4 +29,19 @@ info: 'Examples.«system-verilog».gen_lpat.comb_proof.gen_lpat_struct' depends 
 #guard_msgs (whitespace := lax) in
 #print axioms gen_lpat_struct
 
+set_option sv_comb.lp_atoms true in
+set_option sv_comb.auto_close false in
+/-- The same with the automatic closers off (`sv_comb.auto_close false`): the in-range and atom goals come back to the
+player's closer unattempted. -/
+theorem gen_lpat_struct' (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) :
+    CombDesign (gen_lpat.sem N) ∧ Acyclic (gen_lpat.sem N) := by
+  sv_structure (lexRank := fun _ => (0, 0, 0))
+  all_goals (intros; sv_ite_omega)
+
+/--
+info: 'Examples.«system-verilog».gen_lpat.comb_proof.gen_lpat_struct'' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
+#print axioms gen_lpat_struct'
+
 end Examples.«system-verilog».gen_lpat.comb_proof
