@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 268,
    "oracle-tests-compiler": 1,
-   "passed": 959,
+   "passed": 961,
    "refused-libc": 33,
    "refused-ub": 98,
-   "refused-unsupported": 494,
+   "refused-unsupported": 492,
    "timeout": 65
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 295,
   "oracle-tests-compiler": 1,
-  "passed": 1145,
+  "passed": 1147,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 562,
+  "refused-unsupported": 560,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -2556,14 +2556,6 @@
   },
   {
    "files": [
-    "20051104-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id18' (name 's')"
-  },
-  {
-   "files": [
     "pr47337.c"
    ],
    "present": 1,
@@ -2713,14 +2705,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:unbound declaration 'id28' (name 'arr')"
-  },
-  {
-   "files": [
-    "20120808-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id28' (name 'cp')"
   },
   {
    "files": [
@@ -3044,8 +3028,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T11:14:00Z",
- "measured_commit": "0029b350b",
+ "measured_at_utc": "2026-11-15T11:29:14Z",
+ "measured_commit": "2a7e4d496",
  "pin": {
   "corpora": [
    "C1",
@@ -9686,8 +9670,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id18' (name 's')",
-   "dynamic_wall": "unsupported:unbound declaration 'id18' (name 's')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20051104-1.c",
    "sha256": "d9efc115cc51ef2950498cb18700277d0a310c1b12c7051c8c7cc776c71f05e0",
@@ -9695,7 +9679,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10781,15 +10765,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id28' (name 'cp')",
-   "dynamic_wall": "unsupported:unbound declaration 'id28' (name 'cp')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20120808-1.c",
    "sha256": "194ffb346c27ea614c2da75618f191b556eba9ec12a2b354ca45643246495bdb",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
