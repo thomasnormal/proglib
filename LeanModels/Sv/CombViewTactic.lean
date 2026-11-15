@@ -7,6 +7,7 @@ import LeanModels.Sv.CombShared
 import LeanModels.Sv.CombAliasInert
 import LeanModels.Sv.CombSigned
 import LeanModels.Sv.CombToExpr
+import LeanModels.Sv.CombParamComp
 
 /-!
 # `sv_structure` / `sv_structure?`: the structural stage of the `sv_comb` tactic (v0)
@@ -104,6 +105,12 @@ chooses the order (`sv_ite_omega`). On by default: every existing proof sees the
 register_option sv_comb.auto_close : Bool := {
   defValue := true
   descr := "sv_structure/sv_equations: try omega and sv_pow_omega on each in-range and atom goal before returning it" }
+
+/-- `set_option sv_comb.param_comp false` (tac10): the parameter stage at a symbolic parameter does not try the node by
+node evaluation of the localparams (`closeParamEnvComp`) and takes the general route only. On by default. -/
+register_option sv_comb.param_comp : Bool := {
+  defValue := true
+  descr := "the parameter stage at a symbolic parameter: evaluate the localparams node by node where they are in the fragment" }
 
 /-- Run the normalization of the obligation `nm`; with `sv_comb.profile` set, log what it cost. -/
 def svObProfile (nm : String) (act : TacticM Unit) : TacticM Unit := do
@@ -1742,6 +1749,16 @@ unsafe def closeHagWith (tac : String) (g : MVarId) (names : List String) (val :
       let r := val n
       unless ← isDefEq (mkApp gf nE).headBeta (← mkAppM ``Option.some #[r]) do
         throwError "{tac}: internal error: the valuation of `{n}` is not `{r}`"
+      -- tac10: a localparam the parameter stage evaluated node by node (`closeParamEnvComp`) is held at the summary's
+      -- own term; the agreement is then the definitional check alone
+      let fast ← if v == r then pure true
+        else if (v.find? (·.isConstOf ``LeanModels.Sv.canonInt)).isSome then pure false
+        else withTransparency .instances (isDefEq v r)
+      if fast then
+        let h ← mkExpectedTypeHint (← mkEqRefl (← mkAppM ``Option.some #[v])) (← mkEq (mkApp f nE) (mkApp gf nE))
+        acc := mkAppN (mkConst ``LeanModels.Sv.CombView.hag_cons) #[f, gf, nE, toExpr suffix, h, acc]
+        suffix := n :: suffix
+        continue
       let pg ← mkFreshExprSyntheticOpaqueMVar (← mkEq (← mkAppM ``Option.some #[v]) (← mkAppM ``Option.some #[r]))
       setGoals [pg.mvarId!]
       addClog2Facts #[v, r]
@@ -2200,6 +2217,347 @@ def liftCond (g : MVarId) (q : Lean.Expr) : TacticM (Lean.Expr × Lean.Expr) := 
     | none => mkEqRefl q1
   pure (res.expr, ← mkExpectedTypeHint pf (← mkEq q res.expr))
 
+/-! ### The parameter stage node by node (tac10, `CombParamComp.lean`)
+
+`closeParamEnvComp` closes `h1` (`pd.paramEnv2 args = .ok ?env`) at a symbolic parameter for a design whose localparams
+are all typed `int` localparams of the fragment of `CombParamComp.lean`: the packages, enums and parameters are bound
+by evaluation (`paramEnv2_of_locals`' first hypotheses, `rfl`), each localparam by `cf_bindLocal` from the lemmas of the
+nodes of its initializer composed bottom-up (`PC.node`: every sub-result built once, cost linear in the expression), the
+rest of the stage by evaluation. A parameter's value is bounded by `omega` from the hypotheses in context (`PC.paramBnd`);
+every other bound is interval arithmetic on the operands' bounds. The values the environment then holds are the summary's
+own terms (`ceTerm`'s), which `closeHagWith` checks definitionally. Anything outside the fragment (an operator, a value
+the bounds do not place in the 32-bit range, an untyped localparam, a stale parameter) makes it return `false` with
+nothing changed, and the general route below runs as before. `set_option sv_comb.param_comp false` turns it off. -/
+
+/-- A node of a localparam's initializer, evaluated: its value term, numeric bounds of it, their proof (`Bnd lo hi v`). -/
+structure PCNode where
+  v : Lean.Expr
+  lo : Int
+  hi : Int
+  bnd : Lean.Expr
+
+/-- A name a localparam may read (a parameter, an earlier localparam): its node, and that the environment binds it
+(`IntB`). -/
+structure PCLeaf where
+  node : PCNode
+  intB : Lean.Expr
+
+namespace PC
+
+def iE (v : Int) : Lean.Expr := toExpr v
+
+/-- `a ≤ b` for two literals, checked here, proved by `decide`. -/
+def le (a b : Int) : MetaM Lean.Expr := do
+  unless a ≤ b do throwError "param_comp: internal error: {a} ≤ {b} is false"
+  mkDecideProof (← mkAppM ``LE.le #[iE a, iE b])
+
+def lt (a b : Int) : MetaM Lean.Expr := do
+  unless a < b do throwError "param_comp: internal error: {a} < {b} is false"
+  mkDecideProof (← mkAppM ``LT.lt #[iE a, iE b])
+
+/-- `lhs = v` for a closed term of literals of value `v`, by `decide`. -/
+def eqv (lhs : Lean.Expr) (v : Int) : MetaM Lean.Expr := do
+  mkDecideProof (← mkEq lhs (iE v))
+
+/-- `a = b` by evaluation (checked here by `isDefEq`, which also assigns the metavariables of `b`). -/
+def rflEq (a b : Lean.Expr) : MetaM Lean.Expr := do
+  unless ← isDefEq a b do throwError "param_comp: `{a}` does not evaluate to `{b}`"
+  let b ← instantiateMVars b
+  mkExpectedTypeHint (← mkEqRefl b) (← mkEq a b)
+
+/-- The bound of a literal. -/
+def litNode (v : Int) : MetaM PCNode := do
+  pure ⟨iE v, v, v, mkAppN (mkConst ``bnd_eq) #[iE v, iE v, ← eqv (iE v) v]⟩
+
+/-- The node's value in the signed 32-bit range, from its bounds. -/
+def inR (n : PCNode) : MetaM Lean.Expr := do
+  unless -2147483648 ≤ n.lo && n.hi < 2147483648 do
+    throwError "param_comp: the value `{n.v}` lies in [{n.lo}, {n.hi}], which is not inside the signed 32-bit range"
+  return mkAppN (mkConst ``inR_of_bnd) #[iE n.lo, iE n.hi, n.v, n.bnd, ← le (-2147483648) n.lo, ← lt n.hi 2147483648]
+
+/-- The node's bounds widened to `[lo, hi]`. -/
+def widen (n : PCNode) (lo hi : Int) : MetaM Lean.Expr := do
+  if n.lo == lo && n.hi == hi then return n.bnd
+  return mkAppN (mkConst ``bnd_widen) #[iE n.lo, iE n.hi, iE lo, iE hi, n.v, n.bnd, ← le lo n.lo, ← le n.hi hi]
+
+/-- The kind of a binary operator of the fragment. -/
+def opKind (op : Lean.Expr) : MetaM (Option String) := do
+  let op ← whnfR op
+  if op.isAppOfArity ``SymBinOp.m0 1 then
+    let b ← whnfR op.appArg!
+    return if b.isConstOf ``BinOp.add then some "add" else if b.isConstOf ``BinOp.sub then some "sub"
+      else if b.isConstOf ``BinOp.mul then some "mul0" else if b.isConstOf ``BinOp.eq then some "eq"
+      else if b.isConstOf ``BinOp.ne then some "ne" else none
+  return if op.isConstOf ``SymBinOp.mul then some "mul" else if op.isConstOf ``SymBinOp.slt then some "slt"
+    else if op.isConstOf ``SymBinOp.sle then some "sle" else if op.isConstOf ``SymBinOp.sgt then some "sgt"
+    else if op.isConstOf ``SymBinOp.sge then some "sge" else none
+
+/-- **A node, evaluated** (`mode` 0: an `int` value at the 32-bit type, `EA`; 1: the condition of a `?:`, `EC`; 2: the
+exact evaluator of an `int` target, `EI`): its node and the proof. The value terms are `ceTerm`'s, operation for
+operation. -/
+partial def node (env : Lean.Expr) (leaves : List (String × PCLeaf)) (mode : Nat) (e0 : Lean.Expr) :
+    MetaM (PCNode × Lean.Expr) := do
+  let e ← whnfR e0
+  let args := e.getAppArgs
+  let ofEA (nd : PCNode) (pa : Lean.Expr) : Lean.Expr :=
+    if mode == 1 then mkAppN (mkConst ``EC.ofEA) #[env, e, nd.v, pa] else pa
+  match e.getAppFn.constName? with
+  | some ``PExpr.int =>
+      let vE := args[0]!
+      let some v := vE.int? | throwError "param_comp: the literal `{vE}` is not an integer numeral"
+      let nd : PCNode := ⟨vE, v, v, mkAppN (mkConst ``bnd_eq) #[vE, iE v, ← eqv vE v]⟩
+      let h ← inR nd
+      if mode == 2 then return (nd, mkAppN (mkConst ``EI.int) #[env, vE, h])
+      return (nd, ofEA nd (mkAppN (mkConst ``EA.int) #[env, vE, h]))
+  | some ``PExpr.paramRef =>
+      let nE := args[0]!
+      unless (← whnfR args[1]!).isAppOf ``Option.none do throwError "param_comp: a package-scoped parameter"
+      let .lit (.strVal n) := nE | throwError "param_comp: a parameter name that is not a literal"
+      let some lf := leaves.lookup n
+        | throwError "param_comp: `{n}` is not a parameter or an earlier localparam bound as a 32-bit `int`"
+      let nd := lf.node
+      let h ← inR nd
+      if mode == 2 then return (nd, mkAppN (mkConst ``EI.ref) #[env, nE, nd.v, lf.intB, h])
+      return (nd, ofEA nd (mkAppN (mkConst ``EA.ref) #[env, nE, nd.v, lf.intB, h]))
+  | some ``PExpr.binary =>
+      let lE := args[1]!
+      let rE := args[2]!
+      let some k ← opKind args[0]! | throwError "param_comp: an operator outside the fragment"
+      if ["slt", "sle", "sgt", "sge", "eq", "ne"].contains k then
+        unless mode == 1 do throwError "param_comp: a comparison used as a number"
+        let (L, pl) ← node env leaves 0 lE
+        let (R, pr) ← node env leaves 0 rE
+        let (p, one, zero, thm) ← match k with
+          | "slt" => do pure (← mkAppM ``LT.lt #[L.v, R.v], (1 : Int), (0 : Int), ``EC.slt)
+          | "sle" => do pure (← mkAppM ``LE.le #[L.v, R.v], (1 : Int), (0 : Int), ``EC.sle)
+          | "sgt" => do pure (← mkAppM ``LT.lt #[R.v, L.v], (1 : Int), (0 : Int), ``EC.sgt)
+          | "sge" => do pure (← mkAppM ``LE.le #[R.v, L.v], (1 : Int), (0 : Int), ``EC.sge)
+          | "eq" => do pure (← mkEq L.v R.v, (1 : Int), (0 : Int), ``EC.eq)
+          | _ => do pure (← mkEq L.v R.v, (0 : Int), (1 : Int), ``EC.ne)
+        let v ← mkAppM ``ite #[p, iE one, iE zero]
+        let bnd := mkAppN (mkConst ``bnd_ite) #[p, v.getArg! 2, iE 0, iE 1, iE one, iE zero,
+          ← widen (← litNode one) 0 1, ← widen (← litNode zero) 0 1]
+        return (⟨v, 0, 1, bnd⟩, mkAppN (mkConst thm) #[env, lE, rE, L.v, R.v, pl, pr])
+      let cm := if mode == 2 then 2 else 0
+      let (L, pl) ← node env leaves cm lE
+      let (R, pr) ← node env leaves cm rE
+      let (v, lo, hi, bnd, thm) ← match k with
+        | "add" => do
+            let lo := L.lo + R.lo
+            let hi := L.hi + R.hi
+            let bnd := mkAppN (mkConst ``bnd_add) #[iE L.lo, iE L.hi, iE R.lo, iE R.hi, iE lo, iE hi, L.v, R.v, L.bnd,
+              R.bnd, ← eqv (← mkAppM ``HAdd.hAdd #[iE L.lo, iE R.lo]) lo, ← eqv (← mkAppM ``HAdd.hAdd #[iE L.hi, iE R.hi]) hi]
+            pure (← mkAppM ``HAdd.hAdd #[L.v, R.v], lo, hi, bnd, if mode == 2 then ``EI.add else ``EA.add)
+        | "sub" => do
+            let lo := L.lo - R.hi
+            let hi := L.hi - R.lo
+            let bnd := mkAppN (mkConst ``bnd_sub) #[iE L.lo, iE L.hi, iE R.lo, iE R.hi, iE lo, iE hi, L.v, R.v, L.bnd,
+              R.bnd, ← eqv (← mkAppM ``HSub.hSub #[iE L.lo, iE R.hi]) lo, ← eqv (← mkAppM ``HSub.hSub #[iE L.hi, iE R.lo]) hi]
+            pure (← mkAppM ``HSub.hSub #[L.v, R.v], lo, hi, bnd, if mode == 2 then ``EI.sub else ``EA.sub)
+        | _ => do
+            -- a product: one factor an integer literal (the summary's `CE` admits no other, `ceMul`)
+            let litL := (← whnfR lE).isAppOf ``PExpr.int
+            let litR := (← whnfR rE).isAppOf ``PExpr.int
+            unless litL || litR do throwError "param_comp: a product of two non-literal factors"
+            let (K, O, left) := if litL then (L, R, true) else (R, L, false)
+            let kk := K.lo
+            let (lo, hi) := if 0 ≤ kk then (kk * O.lo, kk * O.hi) else (kk * O.hi, kk * O.lo)
+            let hlo ← eqv (← mkAppM ``HMul.hMul #[K.v, iE (if 0 ≤ kk then O.lo else O.hi)]) lo
+            let hhi ← eqv (← mkAppM ``HMul.hMul #[K.v, iE (if 0 ≤ kk then O.hi else O.lo)]) hi
+            let hk ← if 0 ≤ kk then mkDecideProof (← mkAppM ``LE.le #[iE 0, K.v])
+              else mkDecideProof (← mkAppM ``LT.lt #[K.v, iE 0])
+            let lem := match left, decide (0 ≤ kk) with
+              | true, true => ``bnd_mul_l
+              | true, false => ``bnd_mul_l_neg
+              | false, true => ``bnd_mul_r
+              | false, false => ``bnd_mul_r_neg
+            let bnd := mkAppN (mkConst lem) #[K.v, iE O.lo, iE O.hi, iE lo, iE hi, O.v, hk, O.bnd, hlo, hhi]
+            let thm := match k, mode with
+              | "mul0", 2 => ``EI.mul0
+              | "mul0", _ => ``EA.mul0
+              | _, 2 => ``EI.mul
+              | _, _ => ``EA.mul
+            pure (← mkAppM ``HMul.hMul #[L.v, R.v], lo, hi, bnd, thm)
+      let nd : PCNode := ⟨v, lo, hi, bnd⟩
+      let h ← inR nd
+      return (nd, ofEA nd (mkAppN (mkConst thm) #[env, lE, rE, L.v, R.v, pl, pr, h]))
+  | some ``PExpr.ternary =>
+      let cE := args[0]!
+      let tE := args[1]!
+      let eE := args[2]!
+      let (C, pc) ← node env leaves 1 cE
+      let (T, pt) ← node env leaves 0 tE
+      let (E, pe) ← node env leaves 0 eE
+      let v ← mkAppM ``ite #[← mkEq C.v (iE 0), E.v, T.v]
+      let lo := min T.lo E.lo
+      let hi := max T.hi E.hi
+      let bnd := mkAppN (mkConst ``bnd_ite) #[v.getArg! 1, v.getArg! 2, iE lo, iE hi, E.v, T.v, ← widen E lo hi,
+        ← widen T lo hi]
+      let nd : PCNode := ⟨v, lo, hi, bnd⟩
+      let pa := mkAppN (mkConst ``EA.tern) #[env, cE, tE, eE, C.v, T.v, E.v, pc, pt, pe]
+      if mode == 2 then return (nd, mkAppN (mkConst ``EI.tern) #[env, cE, tE, eE, v, pa])
+      return (nd, ofEA nd pa)
+  | _ => throwError "param_comp: `{e}` is outside the fragment"
+
+/-- The value the environment `env` holds for `n` in `nvals` (`none` where it holds none). -/
+def nvalOf (env : Lean.Expr) (n : String) : MetaM (Option Lean.Expr) := do
+  let r ← whnf (← mkAppM ``List.lookup #[toExpr n, ← mkAppM ``IEnv.nvals #[env]])
+  unless r.isAppOfArity ``Option.some 2 do return none
+  let p ← whnf r.appArg!
+  unless p.isAppOfArity ``Prod.mk 4 do return none
+  return some (p.getArg! 2)
+
+/-- `IntB env n v`: `n` in `nvals` at `x` (`(32, signed)`, no stale name), and `hx : x = v`. -/
+def intBAt (env : Lean.Expr) (n : String) (x v hx : Lean.Expr) : MetaM Lean.Expr := do
+  let nE := toExpr n
+  let hv ← rflEq (← mkAppM ``List.lookup #[nE, ← mkAppM ``IEnv.vals #[env]]) (← mkAppOptM ``Option.none #[mkConst ``Int])
+  let pr ← mkAppM ``Prod.mk #[x, ← mkAppM ``Prod.mk #[toExpr (32 : Nat), toExpr true]]
+  let hn ← rflEq (← mkAppM ``List.lookup #[nE, ← mkAppM ``IEnv.nvals #[env]]) (← mkAppM ``Option.some #[pr])
+  let hs ← rflEq (← mkAppM ``IEnv.stale #[env]) (← mkAppOptM ``List.nil #[mkConst ``String])
+  return mkAppN (mkConst ``IntB.of_nvals) #[env, nE, x, v, hv, hn, hs, hx]
+
+/-- **The bounds of a parameter's value** `x`, by `omega` from the hypotheses of the main goal: the least upper bound and
+the greatest lower bound inside the signed 32-bit range (binary searches). `none` where `x` is not placed in that range. -/
+def paramBnd (x : Lean.Expr) : TacticM (Option PCNode) := do
+  -- `omega` reads a natural number's cast `↑n`, not the constructor `Int.ofNat n` the arguments hold (definitionally the
+  -- same): the bounds are shown of the cast, and stated of `x`
+  let xo := x.replace fun t => if t.isAppOfArity ``Int.ofNat 1 then
+    some (mkApp3 (mkConst ``Nat.cast [Level.zero]) (mkConst ``Int) (mkConst ``instNatCastInt) t.appArg!) else none
+  let leP (a b : Lean.Expr) : TacticM (Option Lean.Expr) := do
+    let a' := if a == x then xo else a
+    let b' := if b == x then xo else b
+    match ← omegaProves (← mkAppM ``LE.le #[a', b']) with
+    | some p => return some (← mkExpectedTypeHint p (← mkAppM ``LE.le #[a, b]))
+    | none => return none
+  let some ph0 ← leP x (iE 2147483647) | return none
+  let some pl0 ← leP (iE (-2147483648)) x | return none
+  let mut a : Int := -2147483648
+  let mut b : Int := 2147483647
+  let mut ph := ph0
+  while a < b do
+    let m := (a + b) / 2
+    match ← leP x (iE m) with
+    | some p => b := m; ph := p
+    | none => a := m + 1
+  let mut c : Int := -2147483648
+  let mut d : Int := b
+  let mut pl := pl0
+  while c < d do
+    let m := (c + d + 1) / 2
+    match ← leP (iE m) x with
+    | some p => c := m; pl := p
+    | none => d := m - 1
+  return some ⟨x, c, b, mkAppN (mkConst ``bnd_of) #[iE c, iE b, x, pl, ph]⟩
+
+end PC
+
+/-- **Close `h1` node by node** (the description above). `true`: `g` is closed; `false`: nothing changed. -/
+unsafe def closeParamEnvComp (tac : String) (g : MVarId) : TacticM Bool := do
+  unless sv_comb.param_comp.get (← getOptions) do return false
+  let st ← saveState
+  let gs ← getGoals
+  try
+    setGoals [g]
+    let ok ← g.withContext do
+      let ty ← instantiateMVars (← g.getType)
+      let some (_, lhs, _) := ty.eq? | return false
+      unless lhs.isAppOfArity ``LeanModels.Sv.PDesign.paramEnv2 2 do return false
+      let pd := lhs.appFn!.appArg!
+      let args := lhs.appArg!
+      -- concrete arguments: the general route (`rfl`)
+      unless args.hasFVar do return false
+      -- the localparams, each with the tail of the list it heads
+      let mut cells : Array (Lean.Expr × Lean.Expr) := #[]
+      let mut cur ← whnf (mkApp (mkConst ``LeanModels.Sv.PDesign.localParams) pd)
+      repeat
+        match cur.getAppFnArgs with
+        | (``List.cons, #[_, x, xs]) =>
+            cells := cells.push (← whnf x, xs)
+            cur ← whnf xs
+        | (``List.nil, _) => break
+        | _ => throwError "param_comp: the localparams are not a list literal"
+      if cells.isEmpty then return false
+      -- the packages, enums and parameters, by evaluation
+      let thm := mkConst ``paramEnv2_of_locals
+      let (ms, _, concl) ← forallMetaTelescopeReducing (← inferType thm)
+      let some (_, cl, _) := concl.eq? | throwError "param_comp: internal error: `paramEnv2_of_locals`"
+      unless ← isDefEq cl lhs do throwError "param_comp: internal error: the stage is not `{lhs}`"
+      for i in [6, 7, 8] do
+        let t ← instantiateMVars (← inferType ms[i]!)
+        let some (_, a, b) := t.eq? | throwError "param_comp: internal error: a hypothesis of the stage"
+        ms[i]!.mvarId!.assign (← PC.rflEq a b)
+      let env0 ← instantiateMVars ms[4]!
+      -- the parameters bound as `canonInt 32 true x`: `x`, its bounds, and `canonInt 32 true x = x`
+      let mut pLeaves : Array (String × Lean.Expr × PCNode × Lean.Expr) := #[]
+      for p in ← listElemExprs (← whnf (mkApp (mkConst ``LeanModels.Sv.PDesign.params) pd)) do
+        let .lit (.strVal n) ← whnf (mkApp (mkConst ``LeanModels.Sv.PParam.name) p) | continue
+        let some x ← PC.nvalOf env0 n | continue
+        let x ← instantiateMVars x
+        unless x.isAppOfArity ``LeanModels.Sv.canonInt 3 do continue
+        let X := x.appArg!
+        let some nd ← PC.paramBnd X | continue
+        let hx := mkAppN (mkConst ``canon_of_inR) #[X, ← PC.inR nd]
+        pLeaves := pLeaves.push (n, x, nd, hx)
+      -- the localparams, one by one
+      let mut env := env0
+      let mut lpNodes : List (String × PCNode) := []
+      let mut steps : Array Lean.Expr := #[]
+      for (lp, tail) in cells do
+        let mut leaves : List (String × PCLeaf) := []
+        for (n, x, nd, hx) in pLeaves do
+          try leaves := leaves ++ [(n, ⟨nd, ← PC.intBAt env n x nd.v hx⟩)] catch _ => pure ()
+        for (n, nd) in lpNodes.reverse do
+          try leaves := (n, ⟨nd, ← PC.intBAt env n nd.v nd.v (← mkEqRefl nd.v)⟩) :: leaves catch _ => pure ()
+        let .lit (.strVal nm) ← whnf (mkApp (mkConst ``LeanModels.Sv.PLocalParam.name) lp)
+          | throwError "param_comp: a localparam name that is not a literal"
+        let exprE ← whnf (mkApp (mkConst ``LeanModels.Sv.PLocalParam.expr) lp)
+        let tyE ← whnf (mkApp (mkConst ``LeanModels.Sv.PLocalParam.type?) lp)
+        unless tyE.isAppOfArity ``Option.some 2 do throwError "param_comp: localparam `{nm}` has no declared type"
+        let pt ← whnf tyE.appArg!
+        unless pt.isAppOfArity ``LeanModels.Sv.PType.packed 2 do
+          throwError "param_comp: the type of localparam `{nm}` is not a packed type"
+        let (nd, pfEI) ← PC.node env leaves 2 exprE
+        let hr ← PC.inR nd
+        let cty ← instantiateForall (← inferType (mkConst ``cf_bindLocal)) #[env, lp, pt.getArg! 0, pt.getArg! 1, nd.v]
+        let (hs, _, _) ← forallMetaTelescopeReducing cty
+        for i in [0, 1, 2] do
+          let t ← instantiateMVars (← inferType hs[i]!)
+          let some (_, a, b) := t.eq? | throwError "param_comp: internal error: a hypothesis of `cf_bindLocal`"
+          hs[i]!.mvarId!.assign (← PC.rflEq a b)
+        hs[3]!.mvarId!.assign pfEI
+        hs[4]!.mvarId!.assign hr
+        let hk ← instantiateMVars (mkAppN (mkConst ``cf_bindLocal) (#[env, lp, pt.getArg! 0, pt.getArg! 1, nd.v] ++ hs))
+        let env' := mkAppN (mkConst ``LeanModels.Sv.IEnv.bindNVal)
+          #[env, mkApp (mkConst ``LeanModels.Sv.PLocalParam.name) lp, nd.v, toExpr (32 : Nat), toExpr true]
+        steps := steps.push (mkAppN (mkConst ``bindLocals_cons_ok) #[env, env', lp, tail, hk])
+        lpNodes := (nm, nd) :: lpNodes
+        env := env'
+      let mut hL := mkApp (mkConst ``bindLocals_nil) env
+      for s in steps.reverse do
+        hL ← mkEqTrans s hL
+      ms[5]!.mvarId!.assign env
+      ms[9]!.mvarId!.assign hL
+      let h1a ← instantiateMVars (mkAppN thm ms)
+      -- the rest of the stage, by evaluation
+      let envF ← mkFreshExprMVar (mkConst ``LeanModels.Sv.IEnv)
+      let h1b ← PC.rflEq (mkApp2 (mkConst ``paramTail) pd env)
+        (← mkAppOptM ``Res.ok #[mkConst ``LeanModels.Sv.IEnv, envF])
+      let h1 ← instantiateMVars (← mkEqTrans h1a h1b)
+      check h1
+      -- the environment `?env` of the goal is a named hole of the tactic's `refine` (synthetic opaque)
+      unless ← withAssignableSyntheticOpaque (isDefEq (← g.getType) (← inferType h1)) do
+        throwError "param_comp: internal error: `h1`"
+      g.assign h1
+      svParamReport m!"param_comp: the localparams {lpNodes.reverse.map (·.1)} evaluated node by node"
+      return true
+    setGoals gs
+    unless ok do st.restore
+    return ok
+  catch e =>
+    svParamReport m!"param_comp: {tac}: not taken: {e.toMessageData}"
+    st.restore
+    return false
+
 mutual
 
 /-- **A decision the hypotheses do not settle, lifted into the value** (`eq_ok_ite_of_cases`). `t` is a stuck decision
@@ -2305,8 +2663,11 @@ unsafe def liftAny (tac : String) (g : MVarId) (t? : Option Lean.Expr) : TacticM
 value, the rewrites described above, then `rfl`. A decision the hypotheses do not settle, on which a `?:` selects
 between two values, is lifted into the value (`liftIte`), for a design whose localparams have a `?:` (`lift`,
 `Summary.hasCond`): the environment then holds `if p then x else y`. -/
-unsafe def closeParamEnv (tac : String) (g : MVarId) (lift : Bool := false) : TacticM Unit := do
+unsafe def closeParamEnv (tac : String) (g : MVarId) (lift : Bool := false) (comp : Bool := false) : TacticM Unit := do
   let what := "the parameter stage (`paramEnv2`) of this design could not be evaluated at a symbolic parameter"
+  -- tac10: the localparams node by node, where they are in that fragment (`closeParamEnvComp`)
+  if comp then
+    if ← closeParamEnvComp tac g then return
   let tryRfl (g : MVarId) : TacticM Bool := do
     let st ← saveState
     setGoals [g]
@@ -2745,6 +3106,14 @@ def goalExprs : TacticM (Array Lean.Expr) := do
       unless d.isImplementationDetail do es := es.push (← instantiateMVars d.type)
     pure es
 
+/-- **`sv_ite_bounds`** (tac10): for every `if c then a else b` of the goal and its hypotheses whose arms are integer
+literals, the fact `min a b ≤ … ∧ … ≤ max a b` (`ite_mem_int`, `addIteFacts`) in the context, after `intros`. A
+localparam that sums such `?:` (`hlp_S` under `sv_comb.lp_atoms`) is then bounded for `omega` without a case split:
+`sv_ite_omega` after it splits only where a bound is not enough. -/
+elab "sv_ite_bounds" : tactic => do
+  evalTactic (← `(tactic| intros))
+  (← getMainGoal).withContext do LeanModels.Sv.CombView.addIteFacts (← goalExprs)
+
 /-- For every `clog2 a` of the terms `es`, the two facts relating it to the power it bounds: `a ≤ 2 ^ clog2 a`
 (`le_two_pow_clog2_int`) and, where `omega` shows `1 ≤ a`, `2 ^ clog2 a < 2 * a` (`two_pow_clog2_lt_int`). -/
 def addClog2PowFacts (es : Array Lean.Expr) : TacticM Unit := do
@@ -3064,7 +3433,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       unless ← closeSummaryLit (← find `hs) pdS s do
         closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
-      closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond)
+      closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_structure" (← find `hag) s args
       closeDecide `hok "the structural check failed"
       let mut out : Array MVarId := #[]
@@ -3325,7 +3694,7 @@ unsafe def runSvInterface : TacticM Unit := do
           closeWith n what (← `(tactic| decide +kernel))
       unless ← closeSummaryLit (← find `hs) pd s do
         closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
-      closeParamEnv "sv_interface" (← find `h1) (lift := s.hasCond)
+      closeParamEnv "sv_interface" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_interface" (← find `hag) s args
       closeDecide `hok "the structural check failed"
       setGoals [bodyGoal]

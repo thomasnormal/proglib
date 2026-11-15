@@ -771,7 +771,7 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
       unless ← closeSummaryLit (← find `hs) pd s ``LeanModels.Sv.PDesign.summaryP do
         closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
-      closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond)
+      closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_structure" (← find `hag) s args
       closeDecide `hok "the structural check failed"
       if aliasNames then closeDecide `halias "the alias name check (`Summary.aliasOk`) failed"
@@ -917,7 +917,7 @@ unsafe def runSvInterfaceL : TacticM Unit := do
           closeWith n what (← `(tactic| decide +kernel))
       unless ← closeSummaryLit (← find `hs) pd s ``LeanModels.Sv.PDesign.summaryP do
         closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
-      closeParamEnv "sv_interface" (← find `h1) (lift := s.hasCond)
+      closeParamEnv "sv_interface" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_interface" (← find `hag) s args
       closeDecide `hok "the structural check failed"
       setGoals [bodyGoal]
@@ -1179,7 +1179,7 @@ unsafe def runSvEquationsL (hintOnly : Bool) : TacticM Unit := do
       unless ← closeSummaryLit (← find `hs) pd s ``LeanModels.Sv.PDesign.summaryP do
         closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
-      closeParamEnv "sv_equations" (← find `h1) (lift := s.hasCond)
+      closeParamEnv "sv_equations" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_equations" (← find `hag) s args
       closeDecide `hok "the structural check failed"
       closeDecide `hfrag "a right-hand side is outside the fragment of `sv_equations` (an expression over accesses and known literals built from `& | ^`, `~ !`, the reductions, `&& ||`, `== !=` and `?:`, a concatenation of accesses and known literals, or a fill `'0`/`'1`; in an `always_comb`, the same at every leaf and a one-bit such expression as the condition)"

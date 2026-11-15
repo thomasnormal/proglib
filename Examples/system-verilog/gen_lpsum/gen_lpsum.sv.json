@@ -1,0 +1,2575 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "gen_lpsum",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/gen_lpsum/gen_lpsum.sv",
+      "sha256": "4fd95d08c7f3189328faf2e54c90e9c648ec8762c02675754b84dd23e7f164d9"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 6,
+          "col": 1,
+          "end_line": 27,
+          "end_col": 10
+        },
+        "name": "gen_lpsum",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 6,
+              "col": 34,
+              "end_line": 6,
+              "end_col": 39
+            },
+            "name": "N",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 34,
+                      "end_line": 6,
+                      "end_col": 39
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 34,
+                      "end_line": 6,
+                      "end_col": 39
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 6,
+                "col": 38,
+                "end_line": 6,
+                "end_col": 39
+              },
+              "value": 8,
+              "resolved_width": 32
+            },
+            "resolved": 8
+          },
+          {
+            "kind": "LocalParam",
+            "span": {
+              "line": 10,
+              "col": 18,
+              "end_line": 15,
+              "end_col": 113
+            },
+            "name": "S",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 10,
+                      "col": 18,
+                      "end_line": 15,
+                      "end_col": 113
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 10,
+                      "col": 18,
+                      "end_line": 15,
+                      "end_col": 113
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "expr": {
+              "kind": "Binary",
+              "span": {
+                "line": 10,
+                "col": 22,
+                "end_line": 15,
+                "end_col": 113
+              },
+              "width": 32,
+              "op": "+",
+              "left": {
+                "kind": "Binary",
+                "span": {
+                  "line": 10,
+                  "col": 22,
+                  "end_line": 15,
+                  "end_col": 89
+                },
+                "width": 32,
+                "op": "+",
+                "left": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 10,
+                    "col": 22,
+                    "end_line": 15,
+                    "end_col": 65
+                  },
+                  "width": 32,
+                  "op": "+",
+                  "left": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 10,
+                      "col": 22,
+                      "end_line": 15,
+                      "end_col": 42
+                    },
+                    "width": 32,
+                    "op": "+",
+                    "left": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 10,
+                        "col": 22,
+                        "end_line": 14,
+                        "end_col": 111
+                      },
+                      "width": 32,
+                      "op": "+",
+                      "left": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 10,
+                          "col": 22,
+                          "end_line": 14,
+                          "end_col": 88
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 10,
+                            "col": 22,
+                            "end_line": 14,
+                            "end_col": 65
+                          },
+                          "width": 32,
+                          "op": "+",
+                          "left": {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 10,
+                              "col": 22,
+                              "end_line": 14,
+                              "end_col": 42
+                            },
+                            "width": 32,
+                            "op": "+",
+                            "left": {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 10,
+                                "col": 22,
+                                "end_line": 13,
+                                "end_col": 107
+                              },
+                              "width": 32,
+                              "op": "+",
+                              "left": {
+                                "kind": "Binary",
+                                "span": {
+                                  "line": 10,
+                                  "col": 22,
+                                  "end_line": 13,
+                                  "end_col": 85
+                                },
+                                "width": 32,
+                                "op": "+",
+                                "left": {
+                                  "kind": "Binary",
+                                  "span": {
+                                    "line": 10,
+                                    "col": 22,
+                                    "end_line": 13,
+                                    "end_col": 63
+                                  },
+                                  "width": 32,
+                                  "op": "+",
+                                  "left": {
+                                    "kind": "Binary",
+                                    "span": {
+                                      "line": 10,
+                                      "col": 22,
+                                      "end_line": 13,
+                                      "end_col": 41
+                                    },
+                                    "width": 32,
+                                    "op": "+",
+                                    "left": {
+                                      "kind": "Binary",
+                                      "span": {
+                                        "line": 10,
+                                        "col": 22,
+                                        "end_line": 12,
+                                        "end_col": 104
+                                      },
+                                      "width": 32,
+                                      "op": "+",
+                                      "left": {
+                                        "kind": "Binary",
+                                        "span": {
+                                          "line": 10,
+                                          "col": 22,
+                                          "end_line": 12,
+                                          "end_col": 82
+                                        },
+                                        "width": 32,
+                                        "op": "+",
+                                        "left": {
+                                          "kind": "Binary",
+                                          "span": {
+                                            "line": 10,
+                                            "col": 22,
+                                            "end_line": 12,
+                                            "end_col": 61
+                                          },
+                                          "width": 32,
+                                          "op": "+",
+                                          "left": {
+                                            "kind": "Binary",
+                                            "span": {
+                                              "line": 10,
+                                              "col": 22,
+                                              "end_line": 12,
+                                              "end_col": 40
+                                            },
+                                            "width": 32,
+                                            "op": "+",
+                                            "left": {
+                                              "kind": "Binary",
+                                              "span": {
+                                                "line": 10,
+                                                "col": 22,
+                                                "end_line": 11,
+                                                "end_col": 102
+                                              },
+                                              "width": 32,
+                                              "op": "+",
+                                              "left": {
+                                                "kind": "Binary",
+                                                "span": {
+                                                  "line": 10,
+                                                  "col": 22,
+                                                  "end_line": 11,
+                                                  "end_col": 81
+                                                },
+                                                "width": 32,
+                                                "op": "+",
+                                                "left": {
+                                                  "kind": "Binary",
+                                                  "span": {
+                                                    "line": 10,
+                                                    "col": 22,
+                                                    "end_line": 11,
+                                                    "end_col": 60
+                                                  },
+                                                  "width": 32,
+                                                  "op": "+",
+                                                  "left": {
+                                                    "kind": "Binary",
+                                                    "span": {
+                                                      "line": 10,
+                                                      "col": 22,
+                                                      "end_line": 11,
+                                                      "end_col": 39
+                                                    },
+                                                    "width": 32,
+                                                    "op": "+",
+                                                    "left": {
+                                                      "kind": "Binary",
+                                                      "span": {
+                                                        "line": 10,
+                                                        "col": 22,
+                                                        "end_line": 10,
+                                                        "end_col": 99
+                                                      },
+                                                      "width": 32,
+                                                      "op": "+",
+                                                      "left": {
+                                                        "kind": "Binary",
+                                                        "span": {
+                                                          "line": 10,
+                                                          "col": 22,
+                                                          "end_line": 10,
+                                                          "end_col": 79
+                                                        },
+                                                        "width": 32,
+                                                        "op": "+",
+                                                        "left": {
+                                                          "kind": "Binary",
+                                                          "span": {
+                                                            "line": 10,
+                                                            "col": 22,
+                                                            "end_line": 10,
+                                                            "end_col": 59
+                                                          },
+                                                          "width": 32,
+                                                          "op": "+",
+                                                          "left": {
+                                                            "kind": "Ternary",
+                                                            "span": {
+                                                              "line": 10,
+                                                              "col": 23,
+                                                              "end_line": 10,
+                                                              "end_col": 38
+                                                            },
+                                                            "width": 32,
+                                                            "cond": {
+                                                              "kind": "Binary",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 24,
+                                                                "end_line": 10,
+                                                                "end_col": 29
+                                                              },
+                                                              "width": 1,
+                                                              "op": "s>",
+                                                              "left": {
+                                                                "kind": "ParamRef",
+                                                                "span": {
+                                                                  "line": 10,
+                                                                  "col": 24,
+                                                                  "end_line": 10,
+                                                                  "end_col": 25
+                                                                },
+                                                                "name": "N"
+                                                              },
+                                                              "right": {
+                                                                "kind": "Int",
+                                                                "span": {
+                                                                  "line": 10,
+                                                                  "col": 28,
+                                                                  "end_line": 10,
+                                                                  "end_col": 29
+                                                                },
+                                                                "value": 2,
+                                                                "resolved_width": 32
+                                                              }
+                                                            },
+                                                            "then": {
+                                                              "kind": "Int",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 33,
+                                                                "end_line": 10,
+                                                                "end_col": 34
+                                                              },
+                                                              "value": 1,
+                                                              "resolved_width": 32
+                                                            },
+                                                            "else": {
+                                                              "kind": "Int",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 37,
+                                                                "end_line": 10,
+                                                                "end_col": 38
+                                                              },
+                                                              "value": 0,
+                                                              "resolved_width": 32
+                                                            }
+                                                          },
+                                                          "right": {
+                                                            "kind": "Ternary",
+                                                            "span": {
+                                                              "line": 10,
+                                                              "col": 43,
+                                                              "end_line": 10,
+                                                              "end_col": 58
+                                                            },
+                                                            "width": 32,
+                                                            "cond": {
+                                                              "kind": "Binary",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 44,
+                                                                "end_line": 10,
+                                                                "end_col": 49
+                                                              },
+                                                              "width": 1,
+                                                              "op": "s>",
+                                                              "left": {
+                                                                "kind": "ParamRef",
+                                                                "span": {
+                                                                  "line": 10,
+                                                                  "col": 44,
+                                                                  "end_line": 10,
+                                                                  "end_col": 45
+                                                                },
+                                                                "name": "N"
+                                                              },
+                                                              "right": {
+                                                                "kind": "Int",
+                                                                "span": {
+                                                                  "line": 10,
+                                                                  "col": 48,
+                                                                  "end_line": 10,
+                                                                  "end_col": 49
+                                                                },
+                                                                "value": 3,
+                                                                "resolved_width": 32
+                                                              }
+                                                            },
+                                                            "then": {
+                                                              "kind": "Int",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 53,
+                                                                "end_line": 10,
+                                                                "end_col": 54
+                                                              },
+                                                              "value": 1,
+                                                              "resolved_width": 32
+                                                            },
+                                                            "else": {
+                                                              "kind": "Int",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 57,
+                                                                "end_line": 10,
+                                                                "end_col": 58
+                                                              },
+                                                              "value": 0,
+                                                              "resolved_width": 32
+                                                            }
+                                                          }
+                                                        },
+                                                        "right": {
+                                                          "kind": "Ternary",
+                                                          "span": {
+                                                            "line": 10,
+                                                            "col": 63,
+                                                            "end_line": 10,
+                                                            "end_col": 78
+                                                          },
+                                                          "width": 32,
+                                                          "cond": {
+                                                            "kind": "Binary",
+                                                            "span": {
+                                                              "line": 10,
+                                                              "col": 64,
+                                                              "end_line": 10,
+                                                              "end_col": 69
+                                                            },
+                                                            "width": 1,
+                                                            "op": "s>",
+                                                            "left": {
+                                                              "kind": "ParamRef",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 64,
+                                                                "end_line": 10,
+                                                                "end_col": 65
+                                                              },
+                                                              "name": "N"
+                                                            },
+                                                            "right": {
+                                                              "kind": "Int",
+                                                              "span": {
+                                                                "line": 10,
+                                                                "col": 68,
+                                                                "end_line": 10,
+                                                                "end_col": 69
+                                                              },
+                                                              "value": 4,
+                                                              "resolved_width": 32
+                                                            }
+                                                          },
+                                                          "then": {
+                                                            "kind": "Int",
+                                                            "span": {
+                                                              "line": 10,
+                                                              "col": 73,
+                                                              "end_line": 10,
+                                                              "end_col": 74
+                                                            },
+                                                            "value": 1,
+                                                            "resolved_width": 32
+                                                          },
+                                                          "else": {
+                                                            "kind": "Int",
+                                                            "span": {
+                                                              "line": 10,
+                                                              "col": 77,
+                                                              "end_line": 10,
+                                                              "end_col": 78
+                                                            },
+                                                            "value": 0,
+                                                            "resolved_width": 32
+                                                          }
+                                                        }
+                                                      },
+                                                      "right": {
+                                                        "kind": "Ternary",
+                                                        "span": {
+                                                          "line": 10,
+                                                          "col": 83,
+                                                          "end_line": 10,
+                                                          "end_col": 98
+                                                        },
+                                                        "width": 32,
+                                                        "cond": {
+                                                          "kind": "Binary",
+                                                          "span": {
+                                                            "line": 10,
+                                                            "col": 84,
+                                                            "end_line": 10,
+                                                            "end_col": 89
+                                                          },
+                                                          "width": 1,
+                                                          "op": "s>",
+                                                          "left": {
+                                                            "kind": "ParamRef",
+                                                            "span": {
+                                                              "line": 10,
+                                                              "col": 84,
+                                                              "end_line": 10,
+                                                              "end_col": 85
+                                                            },
+                                                            "name": "N"
+                                                          },
+                                                          "right": {
+                                                            "kind": "Int",
+                                                            "span": {
+                                                              "line": 10,
+                                                              "col": 88,
+                                                              "end_line": 10,
+                                                              "end_col": 89
+                                                            },
+                                                            "value": 6,
+                                                            "resolved_width": 32
+                                                          }
+                                                        },
+                                                        "then": {
+                                                          "kind": "Int",
+                                                          "span": {
+                                                            "line": 10,
+                                                            "col": 93,
+                                                            "end_line": 10,
+                                                            "end_col": 94
+                                                          },
+                                                          "value": 1,
+                                                          "resolved_width": 32
+                                                        },
+                                                        "else": {
+                                                          "kind": "Int",
+                                                          "span": {
+                                                            "line": 10,
+                                                            "col": 97,
+                                                            "end_line": 10,
+                                                            "end_col": 98
+                                                          },
+                                                          "value": 0,
+                                                          "resolved_width": 32
+                                                        }
+                                                      }
+                                                    },
+                                                    "right": {
+                                                      "kind": "Ternary",
+                                                      "span": {
+                                                        "line": 11,
+                                                        "col": 23,
+                                                        "end_line": 11,
+                                                        "end_col": 38
+                                                      },
+                                                      "width": 32,
+                                                      "cond": {
+                                                        "kind": "Binary",
+                                                        "span": {
+                                                          "line": 11,
+                                                          "col": 24,
+                                                          "end_line": 11,
+                                                          "end_col": 29
+                                                        },
+                                                        "width": 1,
+                                                        "op": "s>",
+                                                        "left": {
+                                                          "kind": "ParamRef",
+                                                          "span": {
+                                                            "line": 11,
+                                                            "col": 24,
+                                                            "end_line": 11,
+                                                            "end_col": 25
+                                                          },
+                                                          "name": "N"
+                                                        },
+                                                        "right": {
+                                                          "kind": "Int",
+                                                          "span": {
+                                                            "line": 11,
+                                                            "col": 28,
+                                                            "end_line": 11,
+                                                            "end_col": 29
+                                                          },
+                                                          "value": 9,
+                                                          "resolved_width": 32
+                                                        }
+                                                      },
+                                                      "then": {
+                                                        "kind": "Int",
+                                                        "span": {
+                                                          "line": 11,
+                                                          "col": 33,
+                                                          "end_line": 11,
+                                                          "end_col": 34
+                                                        },
+                                                        "value": 1,
+                                                        "resolved_width": 32
+                                                      },
+                                                      "else": {
+                                                        "kind": "Int",
+                                                        "span": {
+                                                          "line": 11,
+                                                          "col": 37,
+                                                          "end_line": 11,
+                                                          "end_col": 38
+                                                        },
+                                                        "value": 0,
+                                                        "resolved_width": 32
+                                                      }
+                                                    }
+                                                  },
+                                                  "right": {
+                                                    "kind": "Ternary",
+                                                    "span": {
+                                                      "line": 11,
+                                                      "col": 43,
+                                                      "end_line": 11,
+                                                      "end_col": 59
+                                                    },
+                                                    "width": 32,
+                                                    "cond": {
+                                                      "kind": "Binary",
+                                                      "span": {
+                                                        "line": 11,
+                                                        "col": 44,
+                                                        "end_line": 11,
+                                                        "end_col": 50
+                                                      },
+                                                      "width": 1,
+                                                      "op": "s>",
+                                                      "left": {
+                                                        "kind": "ParamRef",
+                                                        "span": {
+                                                          "line": 11,
+                                                          "col": 44,
+                                                          "end_line": 11,
+                                                          "end_col": 45
+                                                        },
+                                                        "name": "N"
+                                                      },
+                                                      "right": {
+                                                        "kind": "Int",
+                                                        "span": {
+                                                          "line": 11,
+                                                          "col": 48,
+                                                          "end_line": 11,
+                                                          "end_col": 50
+                                                        },
+                                                        "value": 13,
+                                                        "resolved_width": 32
+                                                      }
+                                                    },
+                                                    "then": {
+                                                      "kind": "Int",
+                                                      "span": {
+                                                        "line": 11,
+                                                        "col": 54,
+                                                        "end_line": 11,
+                                                        "end_col": 55
+                                                      },
+                                                      "value": 1,
+                                                      "resolved_width": 32
+                                                    },
+                                                    "else": {
+                                                      "kind": "Int",
+                                                      "span": {
+                                                        "line": 11,
+                                                        "col": 58,
+                                                        "end_line": 11,
+                                                        "end_col": 59
+                                                      },
+                                                      "value": 0,
+                                                      "resolved_width": 32
+                                                    }
+                                                  }
+                                                },
+                                                "right": {
+                                                  "kind": "Ternary",
+                                                  "span": {
+                                                    "line": 11,
+                                                    "col": 64,
+                                                    "end_line": 11,
+                                                    "end_col": 80
+                                                  },
+                                                  "width": 32,
+                                                  "cond": {
+                                                    "kind": "Binary",
+                                                    "span": {
+                                                      "line": 11,
+                                                      "col": 65,
+                                                      "end_line": 11,
+                                                      "end_col": 71
+                                                    },
+                                                    "width": 1,
+                                                    "op": "s>",
+                                                    "left": {
+                                                      "kind": "ParamRef",
+                                                      "span": {
+                                                        "line": 11,
+                                                        "col": 65,
+                                                        "end_line": 11,
+                                                        "end_col": 66
+                                                      },
+                                                      "name": "N"
+                                                    },
+                                                    "right": {
+                                                      "kind": "Int",
+                                                      "span": {
+                                                        "line": 11,
+                                                        "col": 69,
+                                                        "end_line": 11,
+                                                        "end_col": 71
+                                                      },
+                                                      "value": 19,
+                                                      "resolved_width": 32
+                                                    }
+                                                  },
+                                                  "then": {
+                                                    "kind": "Int",
+                                                    "span": {
+                                                      "line": 11,
+                                                      "col": 75,
+                                                      "end_line": 11,
+                                                      "end_col": 76
+                                                    },
+                                                    "value": 1,
+                                                    "resolved_width": 32
+                                                  },
+                                                  "else": {
+                                                    "kind": "Int",
+                                                    "span": {
+                                                      "line": 11,
+                                                      "col": 79,
+                                                      "end_line": 11,
+                                                      "end_col": 80
+                                                    },
+                                                    "value": 0,
+                                                    "resolved_width": 32
+                                                  }
+                                                }
+                                              },
+                                              "right": {
+                                                "kind": "Ternary",
+                                                "span": {
+                                                  "line": 11,
+                                                  "col": 85,
+                                                  "end_line": 11,
+                                                  "end_col": 101
+                                                },
+                                                "width": 32,
+                                                "cond": {
+                                                  "kind": "Binary",
+                                                  "span": {
+                                                    "line": 11,
+                                                    "col": 86,
+                                                    "end_line": 11,
+                                                    "end_col": 92
+                                                  },
+                                                  "width": 1,
+                                                  "op": "s>",
+                                                  "left": {
+                                                    "kind": "ParamRef",
+                                                    "span": {
+                                                      "line": 11,
+                                                      "col": 86,
+                                                      "end_line": 11,
+                                                      "end_col": 87
+                                                    },
+                                                    "name": "N"
+                                                  },
+                                                  "right": {
+                                                    "kind": "Int",
+                                                    "span": {
+                                                      "line": 11,
+                                                      "col": 90,
+                                                      "end_line": 11,
+                                                      "end_col": 92
+                                                    },
+                                                    "value": 28,
+                                                    "resolved_width": 32
+                                                  }
+                                                },
+                                                "then": {
+                                                  "kind": "Int",
+                                                  "span": {
+                                                    "line": 11,
+                                                    "col": 96,
+                                                    "end_line": 11,
+                                                    "end_col": 97
+                                                  },
+                                                  "value": 1,
+                                                  "resolved_width": 32
+                                                },
+                                                "else": {
+                                                  "kind": "Int",
+                                                  "span": {
+                                                    "line": 11,
+                                                    "col": 100,
+                                                    "end_line": 11,
+                                                    "end_col": 101
+                                                  },
+                                                  "value": 0,
+                                                  "resolved_width": 32
+                                                }
+                                              }
+                                            },
+                                            "right": {
+                                              "kind": "Ternary",
+                                              "span": {
+                                                "line": 12,
+                                                "col": 23,
+                                                "end_line": 12,
+                                                "end_col": 39
+                                              },
+                                              "width": 32,
+                                              "cond": {
+                                                "kind": "Binary",
+                                                "span": {
+                                                  "line": 12,
+                                                  "col": 24,
+                                                  "end_line": 12,
+                                                  "end_col": 30
+                                                },
+                                                "width": 1,
+                                                "op": "s>",
+                                                "left": {
+                                                  "kind": "ParamRef",
+                                                  "span": {
+                                                    "line": 12,
+                                                    "col": 24,
+                                                    "end_line": 12,
+                                                    "end_col": 25
+                                                  },
+                                                  "name": "N"
+                                                },
+                                                "right": {
+                                                  "kind": "Int",
+                                                  "span": {
+                                                    "line": 12,
+                                                    "col": 28,
+                                                    "end_line": 12,
+                                                    "end_col": 30
+                                                  },
+                                                  "value": 42,
+                                                  "resolved_width": 32
+                                                }
+                                              },
+                                              "then": {
+                                                "kind": "Int",
+                                                "span": {
+                                                  "line": 12,
+                                                  "col": 34,
+                                                  "end_line": 12,
+                                                  "end_col": 35
+                                                },
+                                                "value": 1,
+                                                "resolved_width": 32
+                                              },
+                                              "else": {
+                                                "kind": "Int",
+                                                "span": {
+                                                  "line": 12,
+                                                  "col": 38,
+                                                  "end_line": 12,
+                                                  "end_col": 39
+                                                },
+                                                "value": 0,
+                                                "resolved_width": 32
+                                              }
+                                            }
+                                          },
+                                          "right": {
+                                            "kind": "Ternary",
+                                            "span": {
+                                              "line": 12,
+                                              "col": 44,
+                                              "end_line": 12,
+                                              "end_col": 60
+                                            },
+                                            "width": 32,
+                                            "cond": {
+                                              "kind": "Binary",
+                                              "span": {
+                                                "line": 12,
+                                                "col": 45,
+                                                "end_line": 12,
+                                                "end_col": 51
+                                              },
+                                              "width": 1,
+                                              "op": "s>",
+                                              "left": {
+                                                "kind": "ParamRef",
+                                                "span": {
+                                                  "line": 12,
+                                                  "col": 45,
+                                                  "end_line": 12,
+                                                  "end_col": 46
+                                                },
+                                                "name": "N"
+                                              },
+                                              "right": {
+                                                "kind": "Int",
+                                                "span": {
+                                                  "line": 12,
+                                                  "col": 49,
+                                                  "end_line": 12,
+                                                  "end_col": 51
+                                                },
+                                                "value": 63,
+                                                "resolved_width": 32
+                                              }
+                                            },
+                                            "then": {
+                                              "kind": "Int",
+                                              "span": {
+                                                "line": 12,
+                                                "col": 55,
+                                                "end_line": 12,
+                                                "end_col": 56
+                                              },
+                                              "value": 1,
+                                              "resolved_width": 32
+                                            },
+                                            "else": {
+                                              "kind": "Int",
+                                              "span": {
+                                                "line": 12,
+                                                "col": 59,
+                                                "end_line": 12,
+                                                "end_col": 60
+                                              },
+                                              "value": 0,
+                                              "resolved_width": 32
+                                            }
+                                          }
+                                        },
+                                        "right": {
+                                          "kind": "Ternary",
+                                          "span": {
+                                            "line": 12,
+                                            "col": 65,
+                                            "end_line": 12,
+                                            "end_col": 81
+                                          },
+                                          "width": 32,
+                                          "cond": {
+                                            "kind": "Binary",
+                                            "span": {
+                                              "line": 12,
+                                              "col": 66,
+                                              "end_line": 12,
+                                              "end_col": 72
+                                            },
+                                            "width": 1,
+                                            "op": "s>",
+                                            "left": {
+                                              "kind": "ParamRef",
+                                              "span": {
+                                                "line": 12,
+                                                "col": 66,
+                                                "end_line": 12,
+                                                "end_col": 67
+                                              },
+                                              "name": "N"
+                                            },
+                                            "right": {
+                                              "kind": "Int",
+                                              "span": {
+                                                "line": 12,
+                                                "col": 70,
+                                                "end_line": 12,
+                                                "end_col": 72
+                                              },
+                                              "value": 94,
+                                              "resolved_width": 32
+                                            }
+                                          },
+                                          "then": {
+                                            "kind": "Int",
+                                            "span": {
+                                              "line": 12,
+                                              "col": 76,
+                                              "end_line": 12,
+                                              "end_col": 77
+                                            },
+                                            "value": 1,
+                                            "resolved_width": 32
+                                          },
+                                          "else": {
+                                            "kind": "Int",
+                                            "span": {
+                                              "line": 12,
+                                              "col": 80,
+                                              "end_line": 12,
+                                              "end_col": 81
+                                            },
+                                            "value": 0,
+                                            "resolved_width": 32
+                                          }
+                                        }
+                                      },
+                                      "right": {
+                                        "kind": "Ternary",
+                                        "span": {
+                                          "line": 12,
+                                          "col": 86,
+                                          "end_line": 12,
+                                          "end_col": 103
+                                        },
+                                        "width": 32,
+                                        "cond": {
+                                          "kind": "Binary",
+                                          "span": {
+                                            "line": 12,
+                                            "col": 87,
+                                            "end_line": 12,
+                                            "end_col": 94
+                                          },
+                                          "width": 1,
+                                          "op": "s>",
+                                          "left": {
+                                            "kind": "ParamRef",
+                                            "span": {
+                                              "line": 12,
+                                              "col": 87,
+                                              "end_line": 12,
+                                              "end_col": 88
+                                            },
+                                            "name": "N"
+                                          },
+                                          "right": {
+                                            "kind": "Int",
+                                            "span": {
+                                              "line": 12,
+                                              "col": 91,
+                                              "end_line": 12,
+                                              "end_col": 94
+                                            },
+                                            "value": 141,
+                                            "resolved_width": 32
+                                          }
+                                        },
+                                        "then": {
+                                          "kind": "Int",
+                                          "span": {
+                                            "line": 12,
+                                            "col": 98,
+                                            "end_line": 12,
+                                            "end_col": 99
+                                          },
+                                          "value": 1,
+                                          "resolved_width": 32
+                                        },
+                                        "else": {
+                                          "kind": "Int",
+                                          "span": {
+                                            "line": 12,
+                                            "col": 102,
+                                            "end_line": 12,
+                                            "end_col": 103
+                                          },
+                                          "value": 0,
+                                          "resolved_width": 32
+                                        }
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "Ternary",
+                                      "span": {
+                                        "line": 13,
+                                        "col": 23,
+                                        "end_line": 13,
+                                        "end_col": 40
+                                      },
+                                      "width": 32,
+                                      "cond": {
+                                        "kind": "Binary",
+                                        "span": {
+                                          "line": 13,
+                                          "col": 24,
+                                          "end_line": 13,
+                                          "end_col": 31
+                                        },
+                                        "width": 1,
+                                        "op": "s>",
+                                        "left": {
+                                          "kind": "ParamRef",
+                                          "span": {
+                                            "line": 13,
+                                            "col": 24,
+                                            "end_line": 13,
+                                            "end_col": 25
+                                          },
+                                          "name": "N"
+                                        },
+                                        "right": {
+                                          "kind": "Int",
+                                          "span": {
+                                            "line": 13,
+                                            "col": 28,
+                                            "end_line": 13,
+                                            "end_col": 31
+                                          },
+                                          "value": 211,
+                                          "resolved_width": 32
+                                        }
+                                      },
+                                      "then": {
+                                        "kind": "Int",
+                                        "span": {
+                                          "line": 13,
+                                          "col": 35,
+                                          "end_line": 13,
+                                          "end_col": 36
+                                        },
+                                        "value": 1,
+                                        "resolved_width": 32
+                                      },
+                                      "else": {
+                                        "kind": "Int",
+                                        "span": {
+                                          "line": 13,
+                                          "col": 39,
+                                          "end_line": 13,
+                                          "end_col": 40
+                                        },
+                                        "value": 0,
+                                        "resolved_width": 32
+                                      }
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "Ternary",
+                                    "span": {
+                                      "line": 13,
+                                      "col": 45,
+                                      "end_line": 13,
+                                      "end_col": 62
+                                    },
+                                    "width": 32,
+                                    "cond": {
+                                      "kind": "Binary",
+                                      "span": {
+                                        "line": 13,
+                                        "col": 46,
+                                        "end_line": 13,
+                                        "end_col": 53
+                                      },
+                                      "width": 1,
+                                      "op": "s>",
+                                      "left": {
+                                        "kind": "ParamRef",
+                                        "span": {
+                                          "line": 13,
+                                          "col": 46,
+                                          "end_line": 13,
+                                          "end_col": 47
+                                        },
+                                        "name": "N"
+                                      },
+                                      "right": {
+                                        "kind": "Int",
+                                        "span": {
+                                          "line": 13,
+                                          "col": 50,
+                                          "end_line": 13,
+                                          "end_col": 53
+                                        },
+                                        "value": 316,
+                                        "resolved_width": 32
+                                      }
+                                    },
+                                    "then": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 13,
+                                        "col": 57,
+                                        "end_line": 13,
+                                        "end_col": 58
+                                      },
+                                      "value": 1,
+                                      "resolved_width": 32
+                                    },
+                                    "else": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 13,
+                                        "col": 61,
+                                        "end_line": 13,
+                                        "end_col": 62
+                                      },
+                                      "value": 0,
+                                      "resolved_width": 32
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "Ternary",
+                                  "span": {
+                                    "line": 13,
+                                    "col": 67,
+                                    "end_line": 13,
+                                    "end_col": 84
+                                  },
+                                  "width": 32,
+                                  "cond": {
+                                    "kind": "Binary",
+                                    "span": {
+                                      "line": 13,
+                                      "col": 68,
+                                      "end_line": 13,
+                                      "end_col": 75
+                                    },
+                                    "width": 1,
+                                    "op": "s>",
+                                    "left": {
+                                      "kind": "ParamRef",
+                                      "span": {
+                                        "line": 13,
+                                        "col": 68,
+                                        "end_line": 13,
+                                        "end_col": 69
+                                      },
+                                      "name": "N"
+                                    },
+                                    "right": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 13,
+                                        "col": 72,
+                                        "end_line": 13,
+                                        "end_col": 75
+                                      },
+                                      "value": 474,
+                                      "resolved_width": 32
+                                    }
+                                  },
+                                  "then": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 13,
+                                      "col": 79,
+                                      "end_line": 13,
+                                      "end_col": 80
+                                    },
+                                    "value": 1,
+                                    "resolved_width": 32
+                                  },
+                                  "else": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 13,
+                                      "col": 83,
+                                      "end_line": 13,
+                                      "end_col": 84
+                                    },
+                                    "value": 0,
+                                    "resolved_width": 32
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "Ternary",
+                                "span": {
+                                  "line": 13,
+                                  "col": 89,
+                                  "end_line": 13,
+                                  "end_col": 106
+                                },
+                                "width": 32,
+                                "cond": {
+                                  "kind": "Binary",
+                                  "span": {
+                                    "line": 13,
+                                    "col": 90,
+                                    "end_line": 13,
+                                    "end_col": 97
+                                  },
+                                  "width": 1,
+                                  "op": "s>",
+                                  "left": {
+                                    "kind": "ParamRef",
+                                    "span": {
+                                      "line": 13,
+                                      "col": 90,
+                                      "end_line": 13,
+                                      "end_col": 91
+                                    },
+                                    "name": "N"
+                                  },
+                                  "right": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 13,
+                                      "col": 94,
+                                      "end_line": 13,
+                                      "end_col": 97
+                                    },
+                                    "value": 711,
+                                    "resolved_width": 32
+                                  }
+                                },
+                                "then": {
+                                  "kind": "Int",
+                                  "span": {
+                                    "line": 13,
+                                    "col": 101,
+                                    "end_line": 13,
+                                    "end_col": 102
+                                  },
+                                  "value": 1,
+                                  "resolved_width": 32
+                                },
+                                "else": {
+                                  "kind": "Int",
+                                  "span": {
+                                    "line": 13,
+                                    "col": 105,
+                                    "end_line": 13,
+                                    "end_col": 106
+                                  },
+                                  "value": 0,
+                                  "resolved_width": 32
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "Ternary",
+                              "span": {
+                                "line": 14,
+                                "col": 23,
+                                "end_line": 14,
+                                "end_col": 41
+                              },
+                              "width": 32,
+                              "cond": {
+                                "kind": "Binary",
+                                "span": {
+                                  "line": 14,
+                                  "col": 24,
+                                  "end_line": 14,
+                                  "end_col": 32
+                                },
+                                "width": 1,
+                                "op": "s>",
+                                "left": {
+                                  "kind": "ParamRef",
+                                  "span": {
+                                    "line": 14,
+                                    "col": 24,
+                                    "end_line": 14,
+                                    "end_col": 25
+                                  },
+                                  "name": "N"
+                                },
+                                "right": {
+                                  "kind": "Int",
+                                  "span": {
+                                    "line": 14,
+                                    "col": 28,
+                                    "end_line": 14,
+                                    "end_col": 32
+                                  },
+                                  "value": 1066,
+                                  "resolved_width": 32
+                                }
+                              },
+                              "then": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 14,
+                                  "col": 36,
+                                  "end_line": 14,
+                                  "end_col": 37
+                                },
+                                "value": 1,
+                                "resolved_width": 32
+                              },
+                              "else": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 14,
+                                  "col": 40,
+                                  "end_line": 14,
+                                  "end_col": 41
+                                },
+                                "value": 0,
+                                "resolved_width": 32
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "Ternary",
+                            "span": {
+                              "line": 14,
+                              "col": 46,
+                              "end_line": 14,
+                              "end_col": 64
+                            },
+                            "width": 32,
+                            "cond": {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 14,
+                                "col": 47,
+                                "end_line": 14,
+                                "end_col": 55
+                              },
+                              "width": 1,
+                              "op": "s>",
+                              "left": {
+                                "kind": "ParamRef",
+                                "span": {
+                                  "line": 14,
+                                  "col": 47,
+                                  "end_line": 14,
+                                  "end_col": 48
+                                },
+                                "name": "N"
+                              },
+                              "right": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 14,
+                                  "col": 51,
+                                  "end_line": 14,
+                                  "end_col": 55
+                                },
+                                "value": 1599,
+                                "resolved_width": 32
+                              }
+                            },
+                            "then": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 14,
+                                "col": 59,
+                                "end_line": 14,
+                                "end_col": 60
+                              },
+                              "value": 1,
+                              "resolved_width": 32
+                            },
+                            "else": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 14,
+                                "col": 63,
+                                "end_line": 14,
+                                "end_col": 64
+                              },
+                              "value": 0,
+                              "resolved_width": 32
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "Ternary",
+                          "span": {
+                            "line": 14,
+                            "col": 69,
+                            "end_line": 14,
+                            "end_col": 87
+                          },
+                          "width": 32,
+                          "cond": {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 14,
+                              "col": 70,
+                              "end_line": 14,
+                              "end_col": 78
+                            },
+                            "width": 1,
+                            "op": "s>",
+                            "left": {
+                              "kind": "ParamRef",
+                              "span": {
+                                "line": 14,
+                                "col": 70,
+                                "end_line": 14,
+                                "end_col": 71
+                              },
+                              "name": "N"
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 14,
+                                "col": 74,
+                                "end_line": 14,
+                                "end_col": 78
+                              },
+                              "value": 2398,
+                              "resolved_width": 32
+                            }
+                          },
+                          "then": {
+                            "kind": "Int",
+                            "span": {
+                              "line": 14,
+                              "col": 82,
+                              "end_line": 14,
+                              "end_col": 83
+                            },
+                            "value": 1,
+                            "resolved_width": 32
+                          },
+                          "else": {
+                            "kind": "Int",
+                            "span": {
+                              "line": 14,
+                              "col": 86,
+                              "end_line": 14,
+                              "end_col": 87
+                            },
+                            "value": 0,
+                            "resolved_width": 32
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "Ternary",
+                        "span": {
+                          "line": 14,
+                          "col": 92,
+                          "end_line": 14,
+                          "end_col": 110
+                        },
+                        "width": 32,
+                        "cond": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 14,
+                            "col": 93,
+                            "end_line": 14,
+                            "end_col": 101
+                          },
+                          "width": 1,
+                          "op": "s>",
+                          "left": {
+                            "kind": "ParamRef",
+                            "span": {
+                              "line": 14,
+                              "col": 93,
+                              "end_line": 14,
+                              "end_col": 94
+                            },
+                            "name": "N"
+                          },
+                          "right": {
+                            "kind": "Int",
+                            "span": {
+                              "line": 14,
+                              "col": 97,
+                              "end_line": 14,
+                              "end_col": 101
+                            },
+                            "value": 3597,
+                            "resolved_width": 32
+                          }
+                        },
+                        "then": {
+                          "kind": "Int",
+                          "span": {
+                            "line": 14,
+                            "col": 105,
+                            "end_line": 14,
+                            "end_col": 106
+                          },
+                          "value": 1,
+                          "resolved_width": 32
+                        },
+                        "else": {
+                          "kind": "Int",
+                          "span": {
+                            "line": 14,
+                            "col": 109,
+                            "end_line": 14,
+                            "end_col": 110
+                          },
+                          "value": 0,
+                          "resolved_width": 32
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "Ternary",
+                      "span": {
+                        "line": 15,
+                        "col": 23,
+                        "end_line": 15,
+                        "end_col": 41
+                      },
+                      "width": 32,
+                      "cond": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 15,
+                          "col": 24,
+                          "end_line": 15,
+                          "end_col": 32
+                        },
+                        "width": 1,
+                        "op": "s>",
+                        "left": {
+                          "kind": "ParamRef",
+                          "span": {
+                            "line": 15,
+                            "col": 24,
+                            "end_line": 15,
+                            "end_col": 25
+                          },
+                          "name": "N"
+                        },
+                        "right": {
+                          "kind": "Int",
+                          "span": {
+                            "line": 15,
+                            "col": 28,
+                            "end_line": 15,
+                            "end_col": 32
+                          },
+                          "value": 5395,
+                          "resolved_width": 32
+                        }
+                      },
+                      "then": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 15,
+                          "col": 36,
+                          "end_line": 15,
+                          "end_col": 37
+                        },
+                        "value": 1,
+                        "resolved_width": 32
+                      },
+                      "else": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 15,
+                          "col": 40,
+                          "end_line": 15,
+                          "end_col": 41
+                        },
+                        "value": 0,
+                        "resolved_width": 32
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "Ternary",
+                    "span": {
+                      "line": 15,
+                      "col": 46,
+                      "end_line": 15,
+                      "end_col": 64
+                    },
+                    "width": 32,
+                    "cond": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 15,
+                        "col": 47,
+                        "end_line": 15,
+                        "end_col": 55
+                      },
+                      "width": 1,
+                      "op": "s>",
+                      "left": {
+                        "kind": "ParamRef",
+                        "span": {
+                          "line": 15,
+                          "col": 47,
+                          "end_line": 15,
+                          "end_col": 48
+                        },
+                        "name": "N"
+                      },
+                      "right": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 15,
+                          "col": 51,
+                          "end_line": 15,
+                          "end_col": 55
+                        },
+                        "value": 8092,
+                        "resolved_width": 32
+                      }
+                    },
+                    "then": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 15,
+                        "col": 59,
+                        "end_line": 15,
+                        "end_col": 60
+                      },
+                      "value": 1,
+                      "resolved_width": 32
+                    },
+                    "else": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 15,
+                        "col": 63,
+                        "end_line": 15,
+                        "end_col": 64
+                      },
+                      "value": 0,
+                      "resolved_width": 32
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "Ternary",
+                  "span": {
+                    "line": 15,
+                    "col": 69,
+                    "end_line": 15,
+                    "end_col": 88
+                  },
+                  "width": 32,
+                  "cond": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 15,
+                      "col": 70,
+                      "end_line": 15,
+                      "end_col": 79
+                    },
+                    "width": 1,
+                    "op": "s>",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 15,
+                        "col": 70,
+                        "end_line": 15,
+                        "end_col": 71
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 15,
+                        "col": 74,
+                        "end_line": 15,
+                        "end_col": 79
+                      },
+                      "value": 12138,
+                      "resolved_width": 32
+                    }
+                  },
+                  "then": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 15,
+                      "col": 83,
+                      "end_line": 15,
+                      "end_col": 84
+                    },
+                    "value": 1,
+                    "resolved_width": 32
+                  },
+                  "else": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 15,
+                      "col": 87,
+                      "end_line": 15,
+                      "end_col": 88
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              },
+              "right": {
+                "kind": "Ternary",
+                "span": {
+                  "line": 15,
+                  "col": 93,
+                  "end_line": 15,
+                  "end_col": 112
+                },
+                "width": 32,
+                "cond": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 15,
+                    "col": 94,
+                    "end_line": 15,
+                    "end_col": 103
+                  },
+                  "width": 1,
+                  "op": "s>",
+                  "left": {
+                    "kind": "ParamRef",
+                    "span": {
+                      "line": 15,
+                      "col": 94,
+                      "end_line": 15,
+                      "end_col": 95
+                    },
+                    "name": "N"
+                  },
+                  "right": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 15,
+                      "col": 98,
+                      "end_line": 15,
+                      "end_col": 103
+                    },
+                    "value": 18207,
+                    "resolved_width": 32
+                  }
+                },
+                "then": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 15,
+                    "col": 107,
+                    "end_line": 15,
+                    "end_col": 108
+                  },
+                  "value": 1,
+                  "resolved_width": 32
+                },
+                "else": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 15,
+                    "col": 111,
+                    "end_line": 15,
+                    "end_col": 112
+                  },
+                  "value": 0,
+                  "resolved_width": 32
+                }
+              }
+            },
+            "resolved": 4
+          },
+          {
+            "kind": "LocalParam",
+            "span": {
+              "line": 16,
+              "col": 18,
+              "end_line": 16,
+              "end_col": 31
+            },
+            "name": "D",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 16,
+                      "col": 18,
+                      "end_line": 16,
+                      "end_col": 31
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 16,
+                      "col": 18,
+                      "end_line": 16,
+                      "end_col": 31
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "expr": {
+              "kind": "Binary",
+              "span": {
+                "line": 16,
+                "col": 22,
+                "end_line": 16,
+                "end_col": 31
+              },
+              "width": 32,
+              "op": "-",
+              "left": {
+                "kind": "Binary",
+                "span": {
+                  "line": 16,
+                  "col": 22,
+                  "end_line": 16,
+                  "end_col": 27
+                },
+                "width": 32,
+                "op": "*",
+                "left": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 16,
+                    "col": 22,
+                    "end_line": 16,
+                    "end_col": 23
+                  },
+                  "value": 2,
+                  "resolved_width": 32
+                },
+                "right": {
+                  "kind": "ParamRef",
+                  "span": {
+                    "line": 16,
+                    "col": 26,
+                    "end_line": 16,
+                    "end_col": 27
+                  },
+                  "name": "S"
+                }
+              },
+              "right": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 16,
+                  "col": 30,
+                  "end_line": 16,
+                  "end_col": 31
+                },
+                "name": "S"
+              }
+            },
+            "resolved": 4
+          },
+          {
+            "kind": "LocalParam",
+            "span": {
+              "line": 17,
+              "col": 18,
+              "end_line": 17,
+              "end_col": 38
+            },
+            "name": "NP",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 17,
+                      "col": 18,
+                      "end_line": 17,
+                      "end_col": 38
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 17,
+                      "col": 18,
+                      "end_line": 17,
+                      "end_col": 38
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "expr": {
+              "kind": "Ternary",
+              "span": {
+                "line": 17,
+                "col": 23,
+                "end_line": 17,
+                "end_col": 38
+              },
+              "width": 32,
+              "cond": {
+                "kind": "Binary",
+                "span": {
+                  "line": 17,
+                  "col": 24,
+                  "end_line": 17,
+                  "end_col": 29
+                },
+                "width": 1,
+                "op": "s<",
+                "left": {
+                  "kind": "ParamRef",
+                  "span": {
+                    "line": 17,
+                    "col": 24,
+                    "end_line": 17,
+                    "end_col": 25
+                  },
+                  "name": "N"
+                },
+                "right": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 17,
+                    "col": 28,
+                    "end_line": 17,
+                    "end_col": 29
+                  },
+                  "value": 2,
+                  "resolved_width": 32
+                }
+              },
+              "then": {
+                "kind": "Int",
+                "span": {
+                  "line": 17,
+                  "col": 33,
+                  "end_line": 17,
+                  "end_col": 34
+                },
+                "value": 2,
+                "resolved_width": 32
+              },
+              "else": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 17,
+                  "col": 37,
+                  "end_line": 17,
+                  "end_col": 38
+                },
+                "name": "N"
+              }
+            },
+            "resolved": 8
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 24,
+              "end_line": 7,
+              "end_col": 25
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 7,
+                      "col": 17,
+                      "end_line": 7,
+                      "end_col": 20
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 7,
+                        "col": 17,
+                        "end_line": 7,
+                        "end_col": 18
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 7,
+                        "col": 19,
+                        "end_line": 7,
+                        "end_col": 20
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 21,
+                      "end_line": 7,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 8,
+              "col": 25,
+              "end_line": 8,
+              "end_col": 26
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 8,
+                      "col": 17,
+                      "end_line": 8,
+                      "end_col": 21
+                    },
+                    "width": null,
+                    "op": "+",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 8,
+                        "col": 17,
+                        "end_line": 8,
+                        "end_col": 18
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 8,
+                        "col": 19,
+                        "end_line": 8,
+                        "end_col": 21
+                      },
+                      "value": 23,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 22,
+                      "end_line": 8,
+                      "end_col": 23
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "GenerateFor",
+            "span": {
+              "line": 20,
+              "col": 5,
+              "end_line": 22,
+              "end_col": 8
+            },
+            "label": "g_lo",
+            "genvar": "i",
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 20,
+                "col": 14,
+                "end_line": 20,
+                "end_col": 15
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "bound": {
+              "kind": "Binary",
+              "span": {
+                "line": 20,
+                "col": 17,
+                "end_line": 20,
+                "end_col": 22
+              },
+              "width": 1,
+              "op": "s<",
+              "left": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 20,
+                  "col": 17,
+                  "end_line": 20,
+                  "end_col": 18
+                },
+                "name": "i"
+              },
+              "right": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 20,
+                  "col": 21,
+                  "end_line": 20,
+                  "end_col": 22
+                },
+                "name": "D"
+              }
+            },
+            "step": {
+              "kind": "Unary",
+              "span": {
+                "line": 20,
+                "col": 24,
+                "end_line": 20,
+                "end_col": 27
+              },
+              "width": null,
+              "op": "++",
+              "operand": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 20,
+                  "col": 24,
+                  "end_line": 20,
+                  "end_col": 25
+                },
+                "name": "i"
+              }
+            },
+            "resolved_count": 4,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 21,
+                  "col": 14,
+                  "end_line": 21,
+                  "end_col": 25
+                },
+                "target": {
+                  "kind": "BitSel",
+                  "span": {
+                    "line": 21,
+                    "col": 14,
+                    "end_line": 21,
+                    "end_col": 18
+                  },
+                  "width": 1,
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 21,
+                      "col": 14,
+                      "end_line": 21,
+                      "end_col": 15
+                    },
+                    "width": 32,
+                    "name": "y"
+                  },
+                  "index": {
+                    "kind": "GenvarRef",
+                    "span": {
+                      "line": 21,
+                      "col": 16,
+                      "end_line": 21,
+                      "end_col": 17
+                    },
+                    "name": "i"
+                  }
+                },
+                "value": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 21,
+                    "col": 21,
+                    "end_line": 21,
+                    "end_col": 25
+                  },
+                  "width": 1,
+                  "name": "a",
+                  "indices": [
+                    {
+                      "kind": "Int",
+                      "span": {
+                        "line": 21,
+                        "col": 23,
+                        "end_line": 21,
+                        "end_col": 24
+                      },
+                      "value": 0,
+                      "resolved_width": 32
+                    }
+                  ],
+                  "part": null
+                }
+              }
+            ]
+          },
+          {
+            "kind": "GenerateFor",
+            "span": {
+              "line": 23,
+              "col": 5,
+              "end_line": 25,
+              "end_col": 8
+            },
+            "label": "g_hi",
+            "genvar": "i",
+            "init": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 23,
+                "col": 14,
+                "end_line": 23,
+                "end_col": 15
+              },
+              "name": "D"
+            },
+            "bound": {
+              "kind": "Binary",
+              "span": {
+                "line": 23,
+                "col": 17,
+                "end_line": 23,
+                "end_col": 27
+              },
+              "width": 1,
+              "op": "s<",
+              "left": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 23,
+                  "col": 17,
+                  "end_line": 23,
+                  "end_col": 18
+                },
+                "name": "i"
+              },
+              "right": {
+                "kind": "Binary",
+                "span": {
+                  "line": 23,
+                  "col": 21,
+                  "end_line": 23,
+                  "end_col": 27
+                },
+                "width": 32,
+                "op": "+",
+                "left": {
+                  "kind": "ParamRef",
+                  "span": {
+                    "line": 23,
+                    "col": 21,
+                    "end_line": 23,
+                    "end_col": 22
+                  },
+                  "name": "N"
+                },
+                "right": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 23,
+                    "col": 25,
+                    "end_line": 23,
+                    "end_col": 27
+                  },
+                  "value": 24,
+                  "resolved_width": 32
+                }
+              }
+            },
+            "step": {
+              "kind": "Unary",
+              "span": {
+                "line": 23,
+                "col": 29,
+                "end_line": 23,
+                "end_col": 32
+              },
+              "width": null,
+              "op": "++",
+              "operand": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 23,
+                  "col": 29,
+                  "end_line": 23,
+                  "end_col": 30
+                },
+                "name": "i"
+              }
+            },
+            "resolved_count": 28,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 24,
+                  "col": 14,
+                  "end_line": 24,
+                  "end_col": 29
+                },
+                "target": {
+                  "kind": "BitSel",
+                  "span": {
+                    "line": 24,
+                    "col": 14,
+                    "end_line": 24,
+                    "end_col": 18
+                  },
+                  "width": 1,
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 24,
+                      "col": 14,
+                      "end_line": 24,
+                      "end_col": 15
+                    },
+                    "width": 32,
+                    "name": "y"
+                  },
+                  "index": {
+                    "kind": "GenvarRef",
+                    "span": {
+                      "line": 24,
+                      "col": 16,
+                      "end_line": 24,
+                      "end_col": 17
+                    },
+                    "name": "i"
+                  }
+                },
+                "value": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 24,
+                    "col": 21,
+                    "end_line": 24,
+                    "end_col": 29
+                  },
+                  "width": 1,
+                  "name": "a",
+                  "indices": [
+                    {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 24,
+                        "col": 23,
+                        "end_line": 24,
+                        "end_col": 28
+                      },
+                      "width": 32,
+                      "op": "-",
+                      "left": {
+                        "kind": "ParamRef",
+                        "span": {
+                          "line": 24,
+                          "col": 23,
+                          "end_line": 24,
+                          "end_col": 24
+                        },
+                        "name": "N"
+                      },
+                      "right": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 24,
+                          "col": 27,
+                          "end_line": 24,
+                          "end_col": 28
+                        },
+                        "value": 1,
+                        "resolved_width": 32
+                      }
+                    }
+                  ],
+                  "part": null
+                }
+              }
+            ]
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
