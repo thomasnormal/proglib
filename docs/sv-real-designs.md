@@ -6,7 +6,7 @@ This table is generated from the pinned public-design census receipts. It measur
 
 | design | pinned source | unsupported nodes | loads into E | first E wall |
 | --- | --- | ---: | --- | --- |
-| `prim_fifo_sync` | OpenTitan 0a6ff685 | 36 | no | `PortSymbol:net-z (wready_o, line 30)` |
+| `prim_fifo_sync` | OpenTitan 0a6ff685 | 36 | no | `Constant: AssignmentPattern:default-point (prim_alert_pkg::ALERT_TX_DEFAULT)` |
 | `prim_arbiter_ppc` | OpenTitan 0a6ff685 | 11 | no | `T2:Initial (CheckNGreaterZero_A, line 57)` |
 | `prim_packer` | OpenTitan 0a6ff685 | 20 | no | `PortSymbol:net-z (ready_o, line 18)` |
 | `CV32E40P` | openhwgroup v1.0.1 / 6148cf5 | 574 | no | `AlwaysPosedge:edge` |
