@@ -720,3 +720,7 @@ successor-fuel `callInMono` is definitionally the `toRun` projection of that
 top-depth `.next` branch. Given the explicit raw `execOpenList` body result, it
 now yields a direct `callInMono` result at successor fuel; the recursive body
 relation itself remains a separate premise.
+
+`Monadic.callInMono_succ_body_ret` provides the corresponding public
+successor-fuel composition for an explicit `RFlow.ret v` body result and
+returns `v` after restoring the normalized top depth.
