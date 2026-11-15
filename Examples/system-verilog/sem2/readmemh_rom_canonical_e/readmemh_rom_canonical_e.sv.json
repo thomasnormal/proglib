@@ -1,0 +1,282 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "readmemh_rom_canonical_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/readmemh_rom_canonical_e/readmemh_rom_canonical_e.sv",
+      "sha256": "9ad3ad0e177901438db1c8e0db48c6cdbcf2af210578ea41a0cb51e5aa0bb9c6"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 10,
+          "end_col": 10
+        },
+        "name": "readmemh_rom_canonical_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 21,
+              "end_line": 2,
+              "end_col": 25
+            },
+            "name": "addr",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 16,
+                      "end_line": 2,
+                      "end_col": 17
+                    },
+                    "value": 1,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 18,
+                      "end_line": 2,
+                      "end_col": 19
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 2
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 22,
+              "end_line": 3,
+              "end_col": 23
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 17,
+                      "end_line": 3,
+                      "end_col": 18
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 19,
+                      "end_line": 3,
+                      "end_col": 20
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "UnpackedDecl",
+            "span": {
+              "line": 5,
+              "col": 15,
+              "end_line": 5,
+              "end_col": 24
+            },
+            "name": "rom",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 10,
+                      "end_line": 5,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 12,
+                      "end_line": 5,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "unpacked": [
+              {
+                "msb": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 5,
+                    "col": 20,
+                    "end_line": 5,
+                    "end_col": 21
+                  },
+                  "value": 0,
+                  "resolved_width": null
+                },
+                "lsb": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 5,
+                    "col": 22,
+                    "end_line": 5,
+                    "end_col": 23
+                  },
+                  "value": 3,
+                  "resolved_width": null
+                }
+              }
+            ]
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 6,
+              "col": 3,
+              "end_line": 8,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 7,
+                "col": 5,
+                "end_line": 7,
+                "end_col": 31
+              },
+              "stmts": [
+                {
+                  "kind": "Unsupported",
+                  "span": {
+                    "line": 7,
+                    "col": 5,
+                    "end_line": 7,
+                    "end_col": 31
+                  },
+                  "sv_kind": "SystemTask:readmemh",
+                  "text": "file=rom.hex;target=rom;data=00,11,22,33"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 9,
+              "col": 10,
+              "end_line": 9,
+              "end_col": 23
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 9,
+                "col": 10,
+                "end_line": 9,
+                "end_col": 11
+              },
+              "width": 8,
+              "name": "q"
+            },
+            "value": {
+              "kind": "ArraySel",
+              "span": {
+                "line": 9,
+                "col": 14,
+                "end_line": 9,
+                "end_col": 23
+              },
+              "width": 8,
+              "name": "rom",
+              "indices": [
+                {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 9,
+                    "col": 18,
+                    "end_line": 9,
+                    "end_col": 22
+                  },
+                  "width": 2,
+                  "name": "addr"
+                }
+              ],
+              "part": null,
+              "unpacked": true
+            }
+          }
+        ],
+        "generates": [],
+        "others": [],
+        "readmemh": [
+          {
+            "file": "rom.hex",
+            "target": "rom",
+            "words": [
+              "00",
+              "11",
+              "22",
+              "33"
+            ]
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

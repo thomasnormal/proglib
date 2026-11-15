@@ -65,6 +65,8 @@ structure CoreMemDesign where
   scalarEdge : Elab1
   memories : Array CoreMemDecl
   processes : Array CoreMemProc
+  /-- Parser-retained literal `$readmemh` metadata; no host file is read. -/
+  readmemh : List PReadmemh := []
   /--
   Instantiated scalar continuous-assignment expressions, aligned with
   `processes`.  These are a derived cache only: the source `PExpr` remains in
@@ -622,7 +624,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           (generated.map CoreMemProc.ofPProcess)
         let result : CoreMemDesign :=
           { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
-            memories := memories.toArray, processes := processes.toArray }
+            memories := memories.toArray, processes := processes.toArray,
+            readmemh := d.readmemh }
         .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
@@ -1735,12 +1738,67 @@ def CoreMemDesign.settleAssignWithView (E : CoreMemDesign) (env : IEnv)
     let (st', view') ← E.settleAssignAt env elems st view 0 procs
     .ok (E.compactScalar st' view', view')
 
+/-! Structured `$readmemh` initialization (§21.4).  The extractor has already
+read and validated the literal words into `PReadmemh`; this route consumes
+that typed metadata and never opens a host file. -/
+def coreMemHexDigit (c : Char) : Option Nat :=
+  if c >= '0' && c <= '9' then some (c.toNat - '0'.toNat)
+  else if c >= 'a' && c <= 'f' then some (10 + c.toNat - 'a'.toNat)
+  else if c >= 'A' && c <= 'F' then some (10 + c.toNat - 'A'.toNat)
+  else none
+
+def coreMemHexNat (s : String) : Option Nat :=
+  if s.isEmpty then none
+  else s.toList.foldlM (init := 0) fun n c => do
+    let digit ← coreMemHexDigit c
+    some (n * 16 + digit)
+
+def CoreMemDesign.writeReadmemhMem (E : CoreMemDesign) (st : CoreMemState) (task : PReadmemh)
+    (md : CoreMemDecl) (index step : Int) : List String → Res CoreMemState
+  | [] => .ok st
+  | word :: rest =>
+      match coreMemHexNat word with
+      | none => .unsupported "SystemTask:readmemh:xz-digit"
+      | some n =>
+          let target := PLhs.arrayElem md.source.name [.int index]
+          match MemState.writeTarget E.env md.source target
+              (LVec.ofNat md.shape.elemWidth n) st.memory with
+          | .error e => .unsupported e
+          | .ok none => .unsupported "SystemTask:readmemh target is outside the memory shape"
+          | .ok (some memory) =>
+              E.writeReadmemhMem { st with memory } task md (index + step) step rest
+
+def CoreMemDesign.writeReadmemh (E : CoreMemDesign) (st : CoreMemState)
+    (task : PReadmemh) : Res CoreMemState :=
+  match E.memDecl? task.target with
+  | none => .unsupported s!"SystemTask:readmemh target '{task.target}' is not a declared memory"
+  | some md =>
+      let shape := md.shape
+      let count := (Int.natAbs (shape.msb - shape.lsb)) + 1
+      if task.words.length != count then
+        .unsupported s!"SystemTask:readmemh:short-file: {task.words.length} words for {count} cells"
+      else
+        let step : Int := if shape.lsb >= shape.msb then 1 else -1
+        E.writeReadmemhMem st task md shape.msb step task.words
+
+def CoreMemDesign.writeReadmemhList (E : CoreMemDesign) (st : CoreMemState) :
+    List PReadmemh → Res CoreMemState
+  | [] => .ok st
+  | task :: rest => do
+      let st' ← E.writeReadmemh st task
+      E.writeReadmemhList st' rest
+
 def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
   let bodies := E.processes.toList.filterMap fun p =>
     match p with
     | .initial body => some body
     | _ => none
-  let base ← match bodies with
+  let base ← if !E.readmemh.isEmpty then
+    match bodies with
+    | [_] => E.writeReadmemhList E.initial E.readmemh
+    | [] => .unsupported "SystemTask:readmemh metadata has no initial process"
+    | _ => .unsupported "SystemTask:readmemh: multiple initial processes are outside this cycle entry"
+  else match bodies with
     | [] => .ok E.initial
     | [body] => E.execInitialStmt E.env E.elems E.initial 4096 body
     | _ => .unsupported "T2:Initial: multiple initial processes are outside this cycle entry"
