@@ -767,3 +767,7 @@ successor result for arbitrary statement-list length.
 `Monadic.twinAgrees_execStmt_pass` is the first concrete statement-node bridge;
 the empty-body/pass base case `Monadic.callInMono_succ_pass_body` confirms the
 public successor result without introducing a fixed-count assignment theorem.
+
+`Monadic.twinAgrees_execStmt_expr_constant` adds the analogous expression-
+statement bridge for a constant expression, with the explicit fuel threshold
+needed by the legacy evaluator's child-expression step.

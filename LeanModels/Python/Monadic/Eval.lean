@@ -4770,6 +4770,21 @@ theorem callInMono_succ_pass_body
         f.params args f.body f.hasGlobal⟩ hfind hgen hargs hlocal hnotgen
     harity hbody
 
+theorem twinAgrees_execStmt_expr_constant (K : Kont) (m : Module)
+    (st : FrameState) (c : Const) (sp : Span) (fuel : Nat)
+    (hfuel : 1 < fuel) :
+    toRun (execOpen K m (.exprStmt (.constant c sp) sp)) st =
+      execStmt m fuel st (.exprStmt (.constant c sp) sp) := by
+  cases fuel with
+  | zero => omega
+  | succ fuel =>
+      cases fuel with
+      | zero => omega
+      | succ fuel =>
+          rw [execStmt]
+          have hc := twinAgrees_evalOpen_constant K m st c sp (fuel + 1) (by omega)
+          simp only [execOpen, toRun_bind, hc, Run.bind, toRun_pure]
+
 theorem twinAgrees_callInM_top_body_ret
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (v : RVal)
