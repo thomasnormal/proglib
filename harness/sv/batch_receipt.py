@@ -157,6 +157,9 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("d", 1),), (Port("q", 1),)),
     Fixture("wire_output_port.sv", "wire_output_port",
             (Port("a", 1),), (Port("y", 1),)),
+    Fixture("unbound_child_parameter.sv", "unbound_child_parameter_top",
+            (Port("x", 8),), (Port("y", 8),),
+            retain_proc_rewrites=True),
 )
 
 

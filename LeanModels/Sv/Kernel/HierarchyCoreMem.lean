@@ -36,6 +36,115 @@ private def hExpr (pfx : String) : PExpr → PExpr
   | e@(.paramRef ..) | e@(.genvarRef ..) | e@(.enumRef ..)
   | e@(.int ..) | e@(.fill ..) | e@(.lit ..) | e@(.unsupported ..) => e
 
+/-! A child is elaborated at its own parameter point before the hierarchy
+merger hoists its source nodes into the parent's canonical memory design.
+The merged design has only the parent's environment, so retain the parser's
+nodes and replace the child's already-bound parameter/localparam references
+with their concrete values (IEEE 1800-2023 §§6.20.2, 23.3.3). This is
+elaboration substitution, not a semantic lowering: process and declaration
+constructors remain the same nodes. -/
+
+private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
+  | .paramRef n none =>
+      match vals.lookup n with
+      | some v => .int v
+      | none => .paramRef n none
+  | .unary op a => .unary op (hParamExpr vals a)
+  | .binary op a b => .binary op (hParamExpr vals a) (hParamExpr vals b)
+  | .ternary c a b => .ternary (hParamExpr vals c) (hParamExpr vals a) (hParamExpr vals b)
+  | .concat xs => .concat (xs.map (hParamExpr vals))
+  | .resize w a => .resize w (hParamExpr vals a)
+  | .signedResize w a => .signedResize w (hParamExpr vals a)
+  | .squash2 w a => .squash2 w (hParamExpr vals a)
+  | .sysCall f a => .sysCall f (hParamExpr vals a)
+  | .bitSel a b => .bitSel (hParamExpr vals a) (hParamExpr vals b)
+  | .partSel a b c => .partSel (hParamExpr vals a) (hParamExpr vals b) (hParamExpr vals c)
+  | .repl a b => .repl (hParamExpr vals a) (hParamExpr vals b)
+  | .reduce op a => .reduce op (hParamExpr vals a)
+  | .cast s a => .cast s (hParamExpr vals a)
+  | .arrayElem n xs => .arrayElem n (xs.map (hParamExpr vals))
+  | .arrayPart n xs mode a b =>
+      .arrayPart n (xs.map (hParamExpr vals)) mode (hParamExpr vals a) (hParamExpr vals b)
+  | .functionCall n xs => .functionCall n (xs.map (hParamExpr vals))
+  | e => e
+
+private def hParamDim (vals : List (String × Int)) (d : PDim) : PDim :=
+  { msb := hParamExpr vals d.msb, lsb := hParamExpr vals d.lsb }
+
+private def hParamType (vals : List (String × Int)) : PType → PType
+  | .packed dims resolved => .packed (dims.map (hParamDim vals)) resolved
+  | ty => ty
+
+private def hParamDecl (vals : List (String × Int)) (d : PDecl) : PDecl :=
+  { d with type := hParamType vals d.type, unpackedDims := d.unpackedDims.map (hParamDim vals), init := d.init.map (hParamExpr vals) }
+
+private def hParamLhs (vals : List (String × Int)) : PLhs → PLhs
+  | .bitSel n i => .bitSel n (hParamExpr vals i)
+  | .partSel n a b => .partSel n (hParamExpr vals a) (hParamExpr vals b)
+  | .concat xs => .concat (xs.map (hParamLhs vals))
+  | .arrayElem n xs => .arrayElem n (xs.map (hParamExpr vals))
+  | .arrayPart n xs mode a b =>
+      .arrayPart n (xs.map (hParamExpr vals)) mode (hParamExpr vals a) (hParamExpr vals b)
+  | l => l
+
+private partial def hParamStmt (vals : List (String × Int)) : PStmt → PStmt
+  | .blockingAssign n e => .blockingAssign n (hParamExpr vals e)
+  | .nbaAssign n e => .nbaAssign n (hParamExpr vals e)
+  | .ifStmt c a b => .ifStmt (hParamExpr vals c) (hParamStmt vals a) (b.map (hParamStmt vals))
+  | .block xs => .block (xs.map (hParamStmt vals))
+  | .forLoop i a c s b => .forLoop i (hParamExpr vals a) (hParamExpr vals c)
+      (hParamExpr vals s) (hParamStmt vals b)
+  | .blockingAssignL l e => .blockingAssignL (hParamLhs vals l) (hParamExpr vals e)
+  | .nbaAssignL l e => .nbaAssignL (hParamLhs vals l) (hParamExpr vals e)
+  | .caseStmt e xs d m c =>
+      .caseStmt (hParamExpr vals e)
+        (xs.map fun (ps, b) => (ps.map (hParamExpr vals), hParamStmt vals b))
+        (d.map (hParamStmt vals)) m c
+  | s@(.unsupported ..) => s
+
+private def hParamProcess (vals : List (String × Int)) : PProcess → PProcess
+  | .alwaysFF c b => .alwaysFF c (hParamStmt vals b)
+  | .alwaysPlain c b => .alwaysPlain c (hParamStmt vals b)
+  | .alwaysComb b => .alwaysComb (hParamStmt vals b)
+  | .alwaysImplicit b => .alwaysImplicit (hParamStmt vals b)
+  | .assign n e => .assign n (hParamExpr vals e)
+  | .assignL l e => .assignL (hParamLhs vals l) (hParamExpr vals e)
+  | .alwaysFFR c r b hi => .alwaysFFR c r (hParamStmt vals b) hi
+  | .initial b => .initial (hParamStmt vals b)
+  | p@(.unsupported ..) => p
+
+private def hParamConn (vals : List (String × Int)) : PConn → PConn
+  | .input p a net => .input p (a.map (hParamExpr vals)) net
+  | .output p a => .output p (a.map (hParamLhs vals))
+  | c@(.unsupported ..) => c
+
+private def hParamInst (vals : List (String × Int)) (i : PInst) : PInst :=
+  { i with params := i.params.map (fun (n, e) => (n, hParamExpr vals e)), conns := i.conns.map (hParamConn vals) }
+
+private partial def hParamGen (vals : List (String × Int)) : GenItem → GenItem
+  | .process p => .process (hParamProcess vals p)
+  | .decl d => .decl (hParamDecl vals d)
+  | .genFor label g init bound step count body =>
+      .genFor label g (hParamExpr vals init) (hParamExpr vals bound)
+        (hParamExpr vals step) count (body.map (hParamGen vals))
+  | .genIf cond yes no => .genIf (hParamExpr vals cond)
+      (yes.map (hParamGen vals)) (no.map (hParamGen vals))
+  | .unsupported k t => .unsupported k t
+  | .inst i => .inst (hParamInst vals i)
+
+private def hParamFunction (vals : List (String × Int)) (f : PFunction) : PFunction :=
+  { f with formals := f.formals.map (hParamDecl vals), returnType := hParamType vals f.returnType, body := hParamExpr vals f.body }
+
+private def hParamEnum (vals : List (String × Int)) (e : PEnumType) : PEnumType :=
+  { e with base := hParamType vals e.base }
+
+private def hParamDesign (vals : List (String × Int)) (d : PDesign) : PDesign :=
+  { d with params := [], localParams := [], enums := d.enums.map (hParamEnum vals), decls := d.decls.map (hParamDecl vals), functions := d.functions.map (hParamFunction vals), processes := d.processes.map (hParamProcess vals), generates := d.generates.map (hParamGen vals) }
+
+private def hParamVals (env : IEnv) : List (String × Int) :=
+  env.vals ++ env.nvals.filterMap fun (n, (v, _, _)) =>
+    if env.stale.contains n then none else some (n, v)
+
 private def hLhs (pfx : String) : PLhs → PLhs
   | .ident n => .ident (pfx ++ n)
   | .bitSel n i => .bitSel (pfx ++ n) (hExpr pfx i)
@@ -132,9 +241,10 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) :
               -- it here turns a driven output into an initial x (IEEE
               -- 1800-2023 §§27.4, 23.3.3).
               let cenv ← child'.paramEnvH { int32 := true } cargs
+              let child'' := hParamDesign (hParamVals cenv) child'
               let generated ← coreMemExpandList cenv
-                (PDesign.surfaceFuel cargs) [] child'.generates
-              .ok (child', cargs, i, pfx, generated)
+                (PDesign.surfaceFuel cargs) [] child''.generates
+              .ok (child'', cargs, i, pfx, generated)
           | .error e => .unsupported e
 
 /-- Build a one-child source-shaped memory design. The child may contain the
