@@ -255,7 +255,7 @@ def recordHasUnsupported (fields : List Decl) : Bool :=
    refusal, so no ABI rule is inferred when the observation is absent. -/
 def recordHasBlockingUnsupported (fields : List Decl) : Bool :=
   fields.any fun d => match d with
-    | .unsupported kind _ _ => kind != "AlignedAttr"
+    | .unsupported kind _ _ => kind != "AlignedAttr" && kind != "IndirectFieldDecl"
     | _ => false
 
 def fieldsOf (fields : List Decl) : Option (List (String × CType)) :=
@@ -397,9 +397,11 @@ def observedRecordFacts (envl : Envelope) :
     fields.flatMap fun child => match child with
       | .record _ none nested (some layout) childSpan =>
           match fields.find? (fun f => match f with
-            | .field _ ty _ fspan =>
-                fspan.line == childSpan.line &&
-                  (ty.startsWith "struct (unnamed" || ty.startsWith "union (unnamed")
+            | .field _ _ty _ fspan =>
+                -- The field and its anonymous child are parser siblings.
+                -- Join them by Clang's source span, including the column;
+                -- the type text is not a grammar and must not be parsed.
+                fspan.line == childSpan.line && fspan.col == childSpan.col
             | _ => false) with
           | some (.field _ ty _ _) =>
               match checkedRecordLayout? nested layout with
@@ -616,6 +618,16 @@ def layoutFor (envl : Envelope) : Layout :=
     match observedPointeeFor t with
     | some (_, _, layout) => recordFieldSize layout f
     | none => none
+  let observedFieldOffType := fun (t : CType) (memberTy : CType) =>
+    match observedPointeeFor t with
+    | some (_, members, layout) =>
+        let rec seek : List (String × CType) → List RecordLayoutField → Option Nat
+          | (_, ty) :: ms, field :: fs =>
+              if ty == memberTy then some (field.offsetBits / 8)
+              else seek ms fs
+          | _, _ => none
+        seek members layout.fields
+    | none => none
   let observedTypeSize := fun t : CType =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
   { size := fun t => match observedTypeSize t with
@@ -625,6 +637,7 @@ def layoutFor (envl : Envelope) : Layout :=
         | none => (sizeAlign tds recsWithObserved 16 t).map (·.1)
     typeSize := observedTypeSize
     fieldSize := observedFieldSizeFor
+    fieldOffType := observedFieldOffType
     fieldOffDecl := declFieldOff
     elem := fun t => arrayOf (resolve tds 8 t)
     fieldOff := fun t f => match observedPointeeFor t with

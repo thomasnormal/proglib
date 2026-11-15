@@ -426,6 +426,10 @@ structure Layout where
   /-- `offsetof`, keyed on the BASE expression's spelling, so `p->f` and
   `x.f` look up under `"const Pos *"` and `"Pos"` respectively. -/
   fieldOff : CType → String → Option Nat
+  /-- Offset of an anonymous member selected by its parser-provided type.
+  Anonymous records can have several empty field names; declaration order
+  and the child type keep those members distinct without parsing a spelling. -/
+  fieldOffType : CType → CType → Option Nat := fun _ _ => none
   /-- Frontend-observed byte extent of a member.  This is needed when the
   member type is a function pointer, whose spelling is intentionally not
   re-parsed by the layout fallback. -/
@@ -475,6 +479,7 @@ structure Layout where
 missing layout fact is a loud refusal rather than a guessed offset. -/
 def Layout.unknown : Layout :=
   { size := fun _ => none, fieldOff := fun _ _ => none
+    fieldOffType := fun _ _ => none
     typeSize := fun _ => none
     fieldSize := fun _ _ => none
     fieldOffDecl := fun _ _ => none
@@ -1700,8 +1705,11 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
     (fieldTy : CType) : EvalM Ptr := do
   let basePtr ← if arrow then (do let v ← evalExpr ctx base; asPtr v)
                 else evalLValue ctx base
-  let off? := (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
-    |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
+  let off? := if field.isEmpty then
+      ctx.layout.fieldOffType base.ty fieldTy
+    else
+      (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
+        |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
   match off? with
   | some off =>
       match (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
