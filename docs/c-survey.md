@@ -4,8 +4,8 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 
 - verdicts: 1131/2214 MATCH (passed 1131, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `e5d077d60`
-- measured at: `2026-11-15T06:24:46Z`
+- measured commit: `f5170c0cd`
+- measured at: `2026-11-15T06:34:55Z`
 
 ## Verdict counts
 
@@ -16,8 +16,8 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `passed` | 1131 |
 | `refused-libc` | 38 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 577 |
-| `timeout` | 66 |
+| `refused-unsupported` | 576 |
+| `timeout` | 67 |
 
 ## Counts by corpus
 
@@ -33,8 +33,8 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `gcc.c-torture/execute` | `passed` | 950 |
 | `gcc.c-torture/execute` | `refused-libc` | 34 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 504 |
-| `gcc.c-torture/execute` | `timeout` | 64 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 503 |
+| `gcc.c-torture/execute` | `timeout` | 65 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
 | `gcc.c23-run` | `refused-libc` | 2 |
@@ -304,7 +304,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `frontend` | 294 | 294 | 20000227-1.c, 20000412-3.c, 20000717-3.c, 20000822-1.c, 20001009-2.c |
 | `undefined-behavior` | 107 | 107 | 00032.c, 00115.c, 00141.c, 00144.c, 00200.c |
 | `missing-main` | 102 | 102 | 20040705-1.c, 20040705-2.c, 20040709-3.c, builtins/20010124-1.c, builtins/abs-1.c |
-| `timeout` | 66 | 66 | 00041.c, 00128.c, 20000412-2.c, 20020108-1.c, 20030916-1.c |
+| `timeout` | 67 | 67 | 00041.c, 00128.c, 20000412-2.c, 20011008-3.c, 20020108-1.c |
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 40 | 40 | builtins/20010124-1-lib.c, builtins/complex-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 21 | 21 | 00103.c, 20001017-2.c, 20050316-1.c, 20050607-1.c, 20060412-1.c |
 | `cast:FloatingCast` | 12 | 12 | 00174.c, 00175.c, 20000605-1.c, 20020413-1.c, 990413-2.c |
@@ -409,7 +409,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:function instrumentation is outside the tier` | 1 | 1 | eeprof-1.c |
 | `unsupported:no layout for compound literal type 'V'` | 1 | 1 | pr109040.c |
 | `unsupported:no layout for declared type 'A0'` | 1 | 1 | va-arg-22.c |
-| `unsupported:no layout for declared type 'DB_TXNLIST'` | 1 | 1 | 20011008-3.c |
 | `unsupported:no layout for declared type 'PgHdr[5]'` | 1 | 1 | pr33870-1.c |
 | `unsupported:no layout for declared type 'Q'` | 1 | 1 | simd-5.c |
 | `unsupported:no layout for declared type 'ScanfState'` | 1 | 1 | va-arg-13.c |

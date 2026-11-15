@@ -13,8 +13,8 @@
    "passed": 950,
    "refused-libc": 34,
    "refused-ub": 98,
-   "refused-unsupported": 504,
-   "timeout": 64
+   "refused-unsupported": 503,
+   "timeout": 65
   },
   "gcc.c23-run": {
    "not-parsed": 27,
@@ -31,8 +31,8 @@
   "passed": 1131,
   "refused-libc": 38,
   "refused-ub": 107,
-  "refused-unsupported": 577,
-  "timeout": 66
+  "refused-unsupported": 576,
+  "timeout": 67
  },
  "dynamic_wall_ranking": [
   {
@@ -564,6 +564,7 @@
     "00041.c",
     "00128.c",
     "20000412-2.c",
+    "20011008-3.c",
     "20020108-1.c",
     "20030916-1.c",
     "20040313-1.c",
@@ -628,8 +629,8 @@
     "subcmp-1.c",
     "usad-run.c"
    ],
-   "present": 66,
-   "sole": 66,
+   "present": 67,
+   "sole": 67,
    "wall": "timeout"
   },
   {
@@ -1695,14 +1696,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'A0'"
-  },
-  {
-   "files": [
-    "20011008-3.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'DB_TXNLIST'"
   },
   {
    "files": [
@@ -3114,8 +3107,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T06:24:46Z",
- "measured_commit": "e5d077d60",
+ "measured_at_utc": "2026-11-15T06:34:55Z",
+ "measured_commit": "f5170c0cd",
  "pin": {
   "corpora": [
    "C1",
@@ -7179,15 +7172,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'DB_TXNLIST'",
-   "dynamic_wall": "unsupported:no layout for declared type 'DB_TXNLIST'",
+   "detail": "timeout",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "20011008-3.c",
    "sha256": "9d02813ffe75d0e68f1ceda255e57a77991269745f1e39c940111be2200b85c5",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
