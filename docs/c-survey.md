@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1141/2214 MATCH (passed 1141, failed 0, oracle 0)
+- verdicts: 1142/2214 MATCH (passed 1142, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `b03b5351d`
-- measured at: `2026-11-15T10:10:10Z`
+- measured commit: `d612b1128`
+- measured at: `2026-11-15T10:16:15Z`
 
 ## Verdict counts
 
@@ -13,20 +13,20 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1141 |
+| `passed` | 1142 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 566 |
+| `refused-unsupported` | 565 |
 | `timeout` | 67 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
-| `c-testsuite/single-exec` | `passed` | 180 |
+| `c-testsuite/single-exec` | `passed` | 181 |
 | `c-testsuite/single-exec` | `refused-libc` | 2 |
 | `c-testsuite/single-exec` | `refused-ub` | 8 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 28 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 27 |
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
@@ -364,7 +364,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:sizeof: no layout for operand type 'struct S'` | 2 | 2 | 20120105-1.c, pr86492.c |
 | `unsupported:strlen` | 2 | 2 | 20030221-1.c, strlen-3.c |
 | `unsupported:unbound declaration 'id15' (name 'a')` | 2 | 2 | gcc/testsuite/gcc.dg/c23-imaginary-constants-1.c, gcc/testsuite/gcc.dg/c23-imaginary-constants-7.c |
-| `unsupported:unbound declaration 'id21' (name 'a')` | 2 | 2 | 00091.c, pr56837.c |
 | `unsupported:unbound declaration 'id29' (name 'gap')` | 2 | 2 | stdarg-1.c, stdarg-2.c |
 | `unsupported:unbound declaration 'id30' (name 'u')` | 2 | 2 | 20050604-1.c, 991228-1.c |
 | `unsupported:unbound declaration 'id39' (name 'X')` | 2 | 2 | 960215-1.c, regstack-1.c |
@@ -524,6 +523,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:unbound declaration 'id19' (name 'c')` | 1 | 1 | pr97421-1.c |
 | `unsupported:unbound declaration 'id19' (name 'f')` | 1 | 1 | signed1bitfield-1.c |
 | `unsupported:unbound declaration 'id20' (name 'a')` | 1 | 1 | pr70127.c |
+| `unsupported:unbound declaration 'id21' (name 'a')` | 1 | 1 | pr56837.c |
 | `unsupported:unbound declaration 'id21' (name 'g1s')` | 1 | 1 | pr42248.c |
 | `unsupported:unbound declaration 'id21' (name 's')` | 1 | 1 | 20041201-1.c |
 | `unsupported:unbound declaration 'id22' (name 'b')` | 1 | 1 | pr58726.c |
