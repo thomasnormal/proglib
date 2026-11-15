@@ -518,7 +518,11 @@ def execSwitch : Nat → Ctx → Expr → Stmt → ExecM Flow
       match selected with
       | none => pure .normal
       | some statements => do
-          let f ← execBlock fuel ctx statements
+          -- A goto from a case body targets the enclosing function's label
+          -- set.  The temporary case block must not resolve `functionBody`
+          -- itself, or the outer block would resume after the switch and run
+          -- the label tail a second time (C23 §6.8.4p3, §6.8.7.1).
+          let f ← execBlock fuel { ctx with functionBody := none } statements
           match f with
           | .brk => pure .normal
           | other => pure other
