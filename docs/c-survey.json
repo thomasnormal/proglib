@@ -10,10 +10,10 @@
   "gcc.c-torture/execute": {
    "not-parsed": 268,
    "oracle-tests-compiler": 1,
-   "passed": 961,
+   "passed": 962,
    "refused-libc": 33,
    "refused-ub": 98,
-   "refused-unsupported": 492,
+   "refused-unsupported": 491,
    "timeout": 65
   },
   "gcc.c23-run": {
@@ -28,10 +28,10 @@
  "counts": {
   "not-parsed": 295,
   "oracle-tests-compiler": 1,
-  "passed": 1147,
+  "passed": 1148,
   "refused-libc": 37,
   "refused-ub": 107,
-  "refused-unsupported": 560,
+  "refused-unsupported": 559,
   "timeout": 67
  },
  "dynamic_wall_ranking": [
@@ -2636,14 +2636,6 @@
   },
   {
    "files": [
-    "pr67781.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id22' (name 's')"
-  },
-  {
-   "files": [
     "packed-2.c"
    ],
    "present": 1,
@@ -3028,8 +3020,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T11:29:14Z",
- "measured_commit": "2a7e4d496",
+ "measured_at_utc": "2026-11-15T11:35:15Z",
+ "measured_commit": "2e7f1337f",
  "pin": {
   "corpora": [
    "C1",
@@ -25719,8 +25711,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id22' (name 's')",
-   "dynamic_wall": "unsupported:unbound declaration 'id22' (name 's')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr67781.c",
    "sha256": "f921c13fd6871fa3847097a672b1b112385a34e147fed6fb0c786501872622d8",
@@ -25728,7 +25720,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
