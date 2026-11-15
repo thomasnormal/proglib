@@ -5101,6 +5101,80 @@ theorem twinAgrees_callInM_recursive_body_exn
   rw [hfinish]
   rfl
 
+theorem twinAgrees_callInM_recursive_body_timeout
+    (K : Kont) (m : Module) (fname : String) (args : Array RVal)
+    (f : FunctionDefn) (w : World)
+    (hdepth : w.callDepth ≠ pythonTopCallDepth)
+    (hfull : pythonFrameFull w.callDepth = false)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList K m f.body.toList
+      ⟨{ w with callDepth := w.callDepth + 1 },
+        globalCallEnv w f.params args f.body f.hasGlobal⟩ = .error .timeout) :
+    toRun (callInM K m fname args) w = .timeout := by
+  unfold callInM
+  rw [hfind]
+  simp only [hgen, hargs, hlocal, hnotgen, harity,
+    Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+  rw [toRun_get_bind]
+  rw [if_neg (by simp [hdepth])]
+  rw [if_neg (by simp [hfull])]
+  rw [toRun_bind]
+  rw [toRun_set]
+  simp only [Run.bind]
+  rw [toRun_bind]
+  have hfinish : toRun (leaveCallM
+      (inWorld (globalCallEnv w f.params args f.body f.hasGlobal)
+        (execOpenList K m f.body.toList)))
+      { w with callDepth := w.callDepth + 1 } = .timeout := by
+    exact leaveCallM_inWorld_of_timeout
+      (globalCallEnv w f.params args f.body f.hasGlobal)
+      (execOpenList K m f.body.toList)
+      { w with callDepth := w.callDepth + 1 } hbody
+  rw [hfinish]
+  rfl
+
+theorem twinAgrees_callInM_recursive_body_unsupported
+    (K : Kont) (m : Module) (fname : String) (args : Array RVal)
+    (f : FunctionDefn) (w : World) (cause : RefusalCause Unit)
+    (msg : String) (snapshot : Option Unit)
+    (hdepth : w.callDepth ≠ pythonTopCallDepth)
+    (hfull : pythonFrameFull w.callDepth = false)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbody : execOpenList K m f.body.toList
+      ⟨{ w with callDepth := w.callDepth + 1 },
+        globalCallEnv w f.params args f.body f.hasGlobal⟩ =
+      .error (.unsupported cause msg snapshot)) :
+    toRun (callInM K m fname args) w = .unsupported msg := by
+  unfold callInM
+  rw [hfind]
+  simp only [hgen, hargs, hlocal, hnotgen, harity,
+    Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+  rw [toRun_get_bind]
+  rw [if_neg (by simp [hdepth])]
+  rw [if_neg (by simp [hfull])]
+  rw [toRun_bind]
+  rw [toRun_set]
+  simp only [Run.bind]
+  rw [toRun_bind]
+  have hfinish : toRun (leaveCallM
+      (inWorld (globalCallEnv w f.params args f.body f.hasGlobal)
+        (execOpenList K m f.body.toList)))
+      { w with callDepth := w.callDepth + 1 } = .unsupported msg := by
+    exact leaveCallM_inWorld_of_unsupported
+      (globalCallEnv w f.params args f.body f.hasGlobal)
+      (execOpenList K m f.body.toList)
+      { w with callDepth := w.callDepth + 1 } cause msg snapshot hbody
+  rw [hfinish]
+  rfl
+
 theorem twinAgrees_callInM_top_body_exn
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState) (e : PyErr)

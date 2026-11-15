@@ -694,3 +694,8 @@ guarded recursive transport for `RFlow.cont`, yielding the faithful
 `Monadic.twinAgrees_callInM_recursive_body_exn` composes the guarded recursive
 branch for a Python exception, retaining the post-body world, decrementing its
 active depth, and propagating the original error.
+
+`Monadic.twinAgrees_callInM_recursive_body_timeout` and
+`Monadic.twinAgrees_callInM_recursive_body_unsupported` complete recursive
+timeout/refusal mapping; these outcomes carry no world and therefore bypass
+depth restoration while preserving timeout and refusal-message observations.
