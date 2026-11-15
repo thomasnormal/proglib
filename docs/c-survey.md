@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1136/2214 MATCH (passed 1136, failed 0, oracle 0)
+- verdicts: 1137/2214 MATCH (passed 1137, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `d10879b8e`
-- measured at: `2026-11-15T08:39:17Z`
+- measured commit: `f0d311239`
+- measured at: `2026-11-15T09:06:31Z`
 
 ## Verdict counts
 
@@ -13,10 +13,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1136 |
+| `passed` | 1137 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 572 |
+| `refused-unsupported` | 571 |
 | `timeout` | 67 |
 
 ## Counts by corpus
@@ -30,10 +30,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 955 |
+| `gcc.c-torture/execute` | `passed` | 956 |
 | `gcc.c-torture/execute` | `refused-libc` | 33 |
 | `gcc.c-torture/execute` | `refused-ub` | 98 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 499 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 498 |
 | `gcc.c-torture/execute` | `timeout` | 65 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 4 |
@@ -324,10 +324,10 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: __builtin_malloc` | 4 | 4 | 20071120-1.c, pr43008.c, pr84339.c, strlen-7.c |
 | `unsupported:break, continue or goto escaped a function body` | 4 | 4 | 00010.c, 00199.c, 20040704-1.c, pr119291.c |
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
+| `unsupported:floating literal lacks parser-native bits` | 4 | 4 | 920501-8.c, 960513-1.c, ieee/fp-cmp-1.c, ieee/fp-cmp-2.c |
 | `unsupported:indirect call through a non-FunctionDecl reference` | 4 | 4 | 20010122-1.c, pr28289.c, pr34768-1.c, pr34768-2.c |
 | `unsupported:no layout for declared type 'struct S'` | 4 | 4 | 20050107-1.c, pr52979-1.c, pr52979-2.c, pr79737-1.c |
 | `unsupported:unbound declaration 'id180' (name 'stdout')` | 4 | 4 | 00189.c, fprintf-chk-1.c, vfprintf-1.c, vfprintf-chk-1.c |
-| `unsupported:floating literal lacks parser-native bits` | 3 | 3 | 960513-1.c, ieee/fp-cmp-1.c, ieee/fp-cmp-2.c |
 | `unsupported:implicit value initialization in value position` | 3 | 3 | pr108498-2.c, pr88739.c, pr97764.c |
 | `unsupported:no layout for declared type 'A'` | 3 | 3 | 20010118-1.c, restrict-1.c, strct-pack-2.c |
 | `unsupported:no layout for declared type '_Complex float'` | 3 | 3 | complex-6.c, ieee/cdivchkf.c, pr38969.c |
@@ -336,7 +336,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'long double'` | 3 | 3 | 20040208-1.c, ieee/20011123-1.c, ieee/pr29302-1.c |
 | `unsupported:no layout for field 'd'` | 3 | 3 | builtins/pr22237-1.c, builtins/pr22237.c, pr43784.c |
 | `unsupported:printf` | 3 | 3 | 00195.c, 00213.c, 00215.c |
-| `unsupported:sprintf` | 3 | 3 | 920501-8.c, ieee/920810-1.c, pr79327.c |
 | `unsupported:type trait '__alignof'` | 3 | 3 | 20000223-1.c, align-3.c, zerolen-2.c |
 | `unsupported:union initializer has no member` | 3 | 3 | pr15296.c, pr19687.c, pr23324.c |
 | `libc-call: __builtin_inf` | 2 | 2 | ieee/fp-cmp-7.c, ieee/inf-2.c |
@@ -487,6 +486,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:sizeof: no layout for operand type 'int (*volatile[6])(void)'` | 1 | 1 | bcp-1.c |
 | `unsupported:sizeof: no layout for operand type 'struct tree_common'` | 1 | 1 | 20000914-1.c |
 | `unsupported:sizeof: no layout for operand type 'va_list'` | 1 | 1 | va-arg-21.c |
+| `unsupported:sprintf` | 1 | 1 | ieee/920810-1.c |
 | `unsupported:src/20000412-5.c` | 1 | 1 | 20000412-5.c |
 | `unsupported:src/20040307-1.c` | 1 | 1 | 20040307-1.c |
 | `unsupported:src/20040331-1.c` | 1 | 1 | 20040331-1.c |
