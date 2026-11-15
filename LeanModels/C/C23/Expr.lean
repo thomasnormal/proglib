@@ -514,9 +514,15 @@ structure Ctx where
   already-ingested list lets statement execution resume at that label
   without rebuilding a control-flow graph or parsing source text. -/
   functionBody : Option (List Stmt) := none
+  /-- Parser-owned identity for the hosted `stdout` stream object. -/
+  stdoutObj : Option ObjId := none
   /-- Statement-layer aggregate initialization for compound literals. -/
   compoundInit : Nat → Env → IdEnv → Layout → Ptr → CType → Expr → EvalM Unit :=
     fun _ _ _ _ _ _ _ => refuseUnsupported "compound literal initializer callback unavailable"
+
+def isStdoutRef : Expr → Bool
+  | .declRef _ "stdout" _ _ _ => true
+  | _ => false
 
 /-! ## §6.5.14p3 — scalar truth
 
@@ -1150,14 +1156,22 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
       -- this placeholder keeps the shared lvalue recursion well-founded.
       pure Ptr.null
   | .declRef (some id) name _ ty _ =>
-      match ctx.idEnv.lookup? id with
+      if name == "stdout" then
+        match ctx.stdoutObj with
+        | some o => pure (Ptr.toObject o)
+        | none => pure (Ptr.toObject 0)
+      else match ctx.idEnv.lookup? id with
       | some o =>
           pure (match ctx.layout.size (ctx.layout.normalizeTy ty) with
             | some sz => Ptr.toObjectBound o sz
             | none => Ptr.toObject o)
       | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
   | .declRef none name _ ty _ =>
-      match ctx.env.lookup? name with
+      if name == "stdout" then
+        match ctx.stdoutObj with
+        | some o => pure (Ptr.toObject o)
+        | none => pure (Ptr.toObject 0)
+      else match ctx.env.lookup? name with
       | some o =>
           pure (match ctx.layout.size (ctx.layout.normalizeTy ty) with
             | some sz => Ptr.toObjectBound o sz
@@ -1211,20 +1225,25 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .implicitCast ck sub ty _
   | .cast ck sub ty _ =>
       if ck == "LValueToRValue" then do
+        if isStdoutRef sub then
+          match ctx.stdoutObj with
+          | some o => pure (.ptr (Ptr.toObject o))
+          | none => pure (.ptr (Ptr.toObject 0))
+        else
         -- §6.3.2.1p2 — 1837 sites, the load-bearing implicit of the corpus.
-        let p ← evalLValue ctx sub
-        let functionValue ← readMem (fun m => Mem.loadFunction m p)
-        match functionValue with
-        | some id => pure (.funPtr id)
-        | none =>
-            match sub with
-            | .member base field arrow fieldTy _ =>
-                if ctx.layout.fieldBits base.ty field |>.isSome then
-                  loadBitFieldAt ctx base.ty field fieldTy p
-                else
+          let p ← evalLValue ctx sub
+          let functionValue ← readMem (fun m => Mem.loadFunction m p)
+          match functionValue with
+          | some id => pure (.funPtr id)
+          | none =>
+              match sub with
+              | .member base field arrow fieldTy _ =>
+                  if ctx.layout.fieldBits base.ty field |>.isSome then
+                    loadBitFieldAt ctx base.ty field fieldTy p
+                  else
+                    loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+              | _ =>
                   loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
-            | _ =>
-                loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
       else if ck == "ArrayToPointerDecay" then do
         -- §6.3.2.1p3 — 405 sites, the LARGEST pointer producer there is.
         let p ← evalLValue ctx sub

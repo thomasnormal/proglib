@@ -876,9 +876,13 @@ def runEnvelope (fuel : Nat) (envl : Envelope) : ExecM CVal :=
     if envl.unit.functionDefns.any fun f =>
         f.name == "__cyg_profile_func_enter" || f.name == "__cyg_profile_func_exit" then
       refuseUnsupported "function instrumentation is outside the tier"
+    let m ← get
+    let (m', stdoutObj) := m.allocZeroed .static_ 1 (some "stdout-stream")
+    set m'
     let genv ← setupGlobalsWithIds fuel lay envl.unit.fileScopeObjects [] []
     let senv ← setupStaticsWithIds fuel lay (staticDecls envl) genv.1 genv.2
-    callByName fuel { prog with globals := senv.1, globalIds := senv.2 } "main" []
+    let prog := { prog with globals := senv.1, globalIds := senv.2 }
+    callByName fuel { prog with stdoutObj := some stdoutObj } "main" []
 
 /-- Run one ingested test: call its `main` with no arguments, from an
 empty memory, and read the outcome.

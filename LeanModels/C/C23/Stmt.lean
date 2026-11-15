@@ -789,6 +789,7 @@ structure Program where
   locals and no typos (`docs/backlog/c.md` 2026-08-24-c-22). -/
   globals : Env := []
   globalIds : IdEnv := []
+  stdoutObj : Option ObjId := none
 
 def Program.find? (p : Program) (name : String) : Option LeanModels.C.FunctionDefn :=
   p.fns.find? (·.name == name)
@@ -1107,6 +1108,15 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 | .error r => throw r
               runPrintf (fmt :: args)
           | _ => refuseUnsupported "vprintf: wrong argument count"
+        let runFprintf : List CVal → ExecM CVal := fun vs =>
+          match vs with
+          | stream :: fmt :: args =>
+              match stream, prog.stdoutObj with
+              | .ptr p, some o =>
+                  if p.obj == some o then runPrintf (fmt :: args)
+                  else refuseUnsupported "fprintf: non-stdout stream"
+              | _, _ => refuseUnsupported "fprintf: non-stdout stream"
+          | _ => refuseUnsupported "fprintf: wrong argument count"
         let runBuiltinStrcpy : List CVal → ExecM CVal := fun vs =>
           match vs with
           | [dst, src] => do
@@ -1716,6 +1726,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 runStrrchr vs
               else if nm == "printf" || nm == "__builtin_printf" then
                 runPrintf vs
+              else if nm == "fprintf" || nm == "__builtin_fprintf" then
+                runFprintf vs
               else if nm == "vprintf" || nm == "__builtin_vprintf" then
                 runVprintf vs
               else if nm == "abort" || nm == "exit" then
@@ -1725,6 +1737,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                     if nm == "memset" || nm == "__builtin_memset" then runMemset vs
                     else if nm == "memcpy" || nm == "__builtin_memcpy" then runMemcpy vs
                     else if nm == "mempcpy" || nm == "__builtin_mempcpy" then runMempcpy vs
+                    else if nm == "fprintf" || nm == "__builtin_fprintf" then runFprintf vs
                     else if nm == "memmove" || nm == "__builtin_memmove" then runMemmove vs
                     else if nm == "__builtin_strcmp" then runStrcmp vs
                     else if nm == "__builtin_memcmp" || nm == "memcmp" then runMemcmp vs
@@ -1820,7 +1833,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                | none => false,
              functionBody := some (match body with
                | .compound statements _ => statements
-               | statement => [statement]) } : Ctx).withCompoundInit
+               | statement => [statement]),
+             stdoutObj := prog.stdoutObj } : Ctx).withCompoundInit
         let ctx ← bindParams prog.layout ctx0 f.params fixedArgs
         let flow ← execStmt fuel ctx body
         let m₁ ← get
