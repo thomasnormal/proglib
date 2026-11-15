@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1121/2214 MATCH (passed 1121, failed 3, oracle 0)
+- verdicts: 1126/2214 MATCH (passed 1126, failed 3, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `6af6c9c5a`
-- measured at: `2026-11-15T18:50:32Z`
+- measured commit: `11b3198dd`
+- measured at: `2026-11-15T19:10:48Z`
 
 ## Verdict counts
 
@@ -14,10 +14,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `failed` | 3 |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1121 |
+| `passed` | 1126 |
 | `refused-libc` | 21 |
 | `refused-ub` | 97 |
-| `refused-unsupported` | 594 |
+| `refused-unsupported` | 589 |
 | `timeout` | 83 |
 
 ## Counts by corpus
@@ -32,10 +32,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 982 |
+| `gcc.c-torture/execute` | `passed` | 987 |
 | `gcc.c-torture/execute` | `refused-libc` | 18 |
 | `gcc.c-torture/execute` | `refused-ub` | 89 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 478 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 473 |
 | `gcc.c-torture/execute` | `timeout` | 80 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 3 |
@@ -318,7 +318,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsequenced-effects` | 9 | 9 | 20001228-1.c, 20020406-1.c, 20051021-1.c, 20230510-1.c, 920501-6.c |
 | `unsupported:AddrLabelExpr` | 9 | 9 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920302-1.c, 920501-4.c |
 | `unsupported:no layout for declared type 'V'` | 9 | 9 | pr105613.c, pr110817-1.c, pr110817-2.c, pr110817-3.c, pr71626-1.c |
-| `unsupported:strcmp` | 8 | 8 | 20010915-1.c, 20030715-1.c, 20050502-1.c, 921006-1.c, 921007-1.c |
 | `unsupported:StmtExpr` | 7 | 7 | 20000703-1.c, 20000917-1.c, 20020206-1.c, 20020320-1.c, 930406-1.c |
 | `unsupported:DesignatedInitUpdateExpr` | 6 | 6 | gcc/testsuite/gcc.dg/c23-empty-init-5.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-1.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-17.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-2.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-4.c |
 | `unsupported:sprintf` | 6 | 6 | 00186.c, 920501-8.c, 920726-1.c, 980605-1.c, ieee/920810-1.c |
@@ -336,6 +335,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:floating literal lacks parser-native bits` | 3 | 3 | 960513-1.c, ieee/fp-cmp-1.c, ieee/fp-cmp-2.c |
 | `unsupported:no layout for declared type '_Complex float'` | 3 | 3 | complex-6.c, ieee/cdivchkf.c, pr38969.c |
 | `unsupported:no layout for declared type 'int[n % 1000 + 1]'` | 3 | 3 | 20040811-1.c, pr43220.c, vla-dealloc-1.c |
+| `unsupported:strcmp` | 3 | 3 | 20050502-1.c, 921007-1.c, p18298.c |
 | `unsupported:type trait '__alignof'` | 3 | 3 | 20000223-1.c, align-3.c, zerolen-2.c |
 | `cast:FloatingRealToComplex` | 2 | 2 | complex-4.c, pr42248.c |
 | `cast:IntegralComplexCast` | 2 | 2 | 20041124-1.c, 20041201-1.c |

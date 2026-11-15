@@ -11,10 +11,10 @@
    "failed": 3,
    "not-parsed": 267,
    "oracle-tests-compiler": 1,
-   "passed": 982,
+   "passed": 987,
    "refused-libc": 18,
    "refused-ub": 89,
-   "refused-unsupported": 478,
+   "refused-unsupported": 473,
    "timeout": 80
   },
   "gcc.c23-run": {
@@ -30,10 +30,10 @@
   "failed": 3,
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1121,
+  "passed": 1126,
   "refused-libc": 21,
   "refused-ub": 97,
-  "refused-unsupported": 594,
+  "refused-unsupported": 589,
   "timeout": 83
  },
  "dynamic_wall_ranking": [
@@ -928,21 +928,6 @@
   },
   {
    "files": [
-    "20010915-1.c",
-    "20030715-1.c",
-    "20050502-1.c",
-    "921006-1.c",
-    "921007-1.c",
-    "930725-1.c",
-    "p18298.c",
-    "pr60062.c"
-   ],
-   "present": 8,
-   "sole": 8,
-   "wall": "unsupported:strcmp"
-  },
-  {
-   "files": [
     "20000703-1.c",
     "20000917-1.c",
     "20020206-1.c",
@@ -1130,6 +1115,16 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:no layout for declared type 'int[n % 1000 + 1]'"
+  },
+  {
+   "files": [
+    "20050502-1.c",
+    "921007-1.c",
+    "p18298.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:strcmp"
   },
   {
    "files": [
@@ -2738,8 +2733,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T18:50:32Z",
- "measured_commit": "6af6c9c5a",
+ "measured_at_utc": "2026-11-15T19:10:48Z",
+ "measured_commit": "11b3198dd",
  "pin": {
   "corpora": [
    "C1",
@@ -6763,8 +6758,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20010915-1.c",
    "sha256": "079287a9978b9ab65d73a966feb4a5b2962386f23619512e92c469b094e380bc",
@@ -6773,7 +6768,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8112,8 +8107,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030715-1.c",
    "sha256": "5237fc956973f647d62fdb0c09d77800107ac8ac95576a60aae21f519802610d",
@@ -8122,7 +8117,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11471,8 +11466,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921006-1.c",
    "sha256": "21d2c53547fd5d18d2019b248118063b6a5b16112fbe5a258ff5e0dd42d5849f",
@@ -11481,7 +11476,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12087,8 +12082,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "930725-1.c",
    "sha256": "2921be94d182e4af56d4452f63c551624e91c53e3bdf5ee8c9326f2e4217e012",
@@ -12097,7 +12092,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24780,8 +24775,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "strcmp: non-concrete or unterminated string",
-   "dynamic_wall": "unsupported:strcmp",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr60062.c",
    "sha256": "76562729f3ce8b46ec7c4028fa6ce382b197f683272c71a1bb68cd3028e86409",
@@ -24791,7 +24786,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
