@@ -67,6 +67,26 @@ class ImmediateActions(unittest.TestCase):
         design = symbolic("module divider; logic gate; always_comb assert(gate) else; endmodule")
         self.assertIn("ImmediateAssertion:symbolic", [n.get("sv_kind") for n in nodes(design)])
 
+    def test_initial_parameter_assertion_is_retained_for_elaboration_check(self):
+        design = symbolic(
+            "module divider #(parameter int N = 1); logic y; "
+            "initial begin assert (N > 0) else $error(\"N must be positive\"); end "
+            "assign y = (N > 0); endmodule")
+        checks = [n for n in nodes(design) if n.get("assertion_lowered")]
+        self.assertEqual(len(checks), 1)
+        self.assertEqual(checks[0]["immediate_assertion"], "assert")
+        self.assertEqual(checks[0]["else"], {
+            "kind": "SysCall",
+            "span": checks[0]["else"]["span"],
+            "name": "$error",
+            "format": None,
+            "args": [],
+            "arg_signed": [],
+            "initial_check_diagnostic": True,
+        })
+        self.assertFalse(any(n.get("sv_kind") == "ImmediateAssertion:symbolic"
+                             for n in nodes(design)))
+
     def test_authored_acceptance_sources(self):
         root = Path(__file__).resolve().parents[2] / "Examples/system-verilog/immediate_assertions"
         for name in ("table", "actions", "timers"):

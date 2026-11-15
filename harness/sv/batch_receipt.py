@@ -49,6 +49,10 @@ class Port:
 class Point:
     label: str
     args: tuple[int, ...]
+    # Some source-level checks deliberately terminate Xcelium with a
+    # diagnostic after producing the requested rows.  Keep that diagnostic
+    # explicit and accept it only when every marker is present.
+    expected_simulator_diagnostics: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -136,6 +140,9 @@ FIXTURES: tuple[Fixture, ...] = (
             (Point("W8", (8,)), Point("W3", (3,)))),
     Fixture("initial_syscall.sv", "initial_syscall",
             (Port("x", 1),), (Port("y", 1),)),
+    Fixture("initial_parameter_check.sv", "initial_parameter_check",
+            (), (Port("y", 1),),
+            (Point("N1", (1,)), Point("N0", (0,), ("ASRTST",)))),
     Fixture("multi_clock_domain.sv", "multi_clock_domain",
             (Port("aclk", 1, clock=True), Port("bclk", 1, clock=True), Port("d", 1)),
             (Port("x", 1), Port("y", 1))),
@@ -296,6 +303,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generated_array_nested": ("W",),
             "hierarchy_parameterized": ("W",),
             "parameterized_storage_structure": ("N",),
+            "initial_parameter_check": ("N",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []
@@ -419,8 +427,21 @@ def run_simulator(sim: str, fixture: Fixture, point: Point,
                     work)
         out = run_checked(["vvp", str(exe)], work)
     else:
-        out = run_checked(["xrun", "-sv", "-q", "-timescale", "1ns/1ps",
-                           "-top", "batch_tb"] + sources, work)
+        try:
+            out = run_checked(["xrun", "-sv", "-q", "-timescale", "1ns/1ps",
+                               "-top", "batch_tb"] + sources, work)
+        except RuntimeError as exc:
+            # Xcelium returns status 1 for an assertion `$error` even after
+            # the testbench reaches `$finish`.  This is an expected source
+            # diagnostic only for points that declare its exact marker; all
+            # other simulator failures remain hard receipt failures.
+            detail = str(exc)
+            if (point.expected_simulator_diagnostics and
+                    all(marker in detail for marker in point.expected_simulator_diagnostics) and
+                    "Simulation complete via $finish" in detail):
+                out = detail
+            else:
+                raise
     return out, simulator_rows(out, fixture)
 
 
@@ -542,6 +563,10 @@ def main() -> int:
                         all_match = False
                         continue
                 print(f"  {sim}: {len(actual)} source cycles")
+                if (point.expected_simulator_diagnostics and
+                        all(marker in sim_out for marker in point.expected_simulator_diagnostics)):
+                    print(f"  {sim}: accepted expected diagnostic "
+                          f"{', '.join(point.expected_simulator_diagnostics)}")
                 for i, (e_row, s_row) in enumerate(zip(expected, actual)):
                     verdict = "MATCH" if e_row == s_row else "DIVERGE"
                     print(f"  CYCLE {i} {sim} {verdict} E={' '.join(e_row)} S={' '.join(s_row)}")

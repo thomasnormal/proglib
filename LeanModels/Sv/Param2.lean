@@ -1605,33 +1605,36 @@ private def initialCheckTask : PStmt → Option String
       else none
   | _ => none
 
-private def initialCheckStmt (env : IEnv) : PStmt → Except String Unit
-  | .block body => initialCheckList body
-  | .ifStmt cond yes no => do
+private inductive InitialCheckWork where
+  | stmt (body : PStmt)
+  | list (bodies : List PStmt)
+
+private def initialCheckWork (env : IEnv) : InitialCheckWork → Except String Unit
+  | .stmt (.block body) => initialCheckWork env (.list body)
+  | .stmt (.ifStmt cond yes no) => do
       let v ← evalInt env cond
-      let selected := if v != 0 then some yes else no
-      match selected with
-      | none => pure ()
-      | some branch =>
-          match initialCheckTask branch with
-          | some "$fatal" => throw "elaboration check executes $fatal"
-          | some "$error" => pure ()
-          | _ => throw "initial process is not an elaboration check"
-  | .unsupported k _ =>
+      if v != 0 then
+        initialCheckWork env (.stmt yes)
+      else
+        match no with
+        | none => pure ()
+        | some branch => initialCheckWork env (.stmt branch)
+  | .stmt (.unsupported k _) =>
       match initialCheckTask (.unsupported k "") with
       | some "$error" => pure ()
       | some "$fatal" => throw "elaboration check executes $fatal"
       | _ => throw "initial process is not an elaboration check"
-  | _ => throw "initial process is not an elaboration check"
-where
-  initialCheckList : List PStmt → Except String Unit
-    | [] => pure ()
-    | s :: rest => do
-        initialCheckStmt env s
-        initialCheckList rest
+  | .stmt _ => throw "initial process is not an elaboration check"
+  | .list [] => pure ()
+  | .list (s :: rest) => do
+      initialCheckWork env (.stmt s)
+      initialCheckWork env (.list rest)
+termination_by work => sizeOf work
+decreasing_by
+  all_goals (simp_wf <;> (try simp [InitialCheckWork]) <;> omega)
 
-private def initialCheckAdmits (env : IEnv) (body : PStmt) : Except String Unit :=
-  initialCheckStmt env body
+def initialCheckAdmits (env : IEnv) (body : PStmt) : Except String Unit :=
+  initialCheckWork env (.stmt body)
 
 def instEProcess2 (env : IEnv) (elems : List (String × Nat)) : PProcess → EProcess2
   | .alwaysImplicit b => .alwaysImplicit (instStmt2 env elems b)

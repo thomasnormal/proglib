@@ -314,6 +314,14 @@ def _sv_code_source(source):
 # Every symbolic-mode behavior change in the shared converters is guarded
 # by `_SYM is not None`, keeping single-file output byte-identical.
 _SYM = None
+# Immediate assertions normally remain loud in the symbolic envelope: the
+# runnable cycle tier has no assertion-observation semantics.  An assertion in
+# an ``initial`` block is a narrower elaboration-time check, however; keep the
+# parser-shaped conditional action so the E initial-check adapter can evaluate
+# its parameter predicate at the selected point.  This flag is scoped around
+# conversion of that one initial body and is never enabled for ordinary
+# procedural assertions.
+_INITIAL_CHECK = False
 # Literal counted loops stay in the same `For` vocabulary as parameter-bound
 # loops. Retention is the source-preserving default; the CLI flag remains as a
 # compatibility spelling for callers that already pass it explicitly.
@@ -23904,15 +23912,22 @@ def _convert_immediate_assertion(sm, statement):
     error diagnostic. Keep that branch loud rather than erasing the effect.
     Deferred checks require observation-region semantics, not an ordinary If.
     """
+    assertion = str(statement.assertionKind).split(".")[-1]
+    names = {"Assert": "assert", "Assume": "assume", "CoverProperty": "cover"}
     if _SYM is not None:
-        return unsupported(sm, statement, "ImmediateAssertion:symbolic")
+        if not _INITIAL_CHECK:
+            return unsupported(sm, statement, "ImmediateAssertion:symbolic")
+        # ASSERT_INIT is an elaboration-time assertion.  Assume/cover actions
+        # have different diagnostic and coverage meanings, so keep them on
+        # the ordinary symbolic refusal boundary until an initial-observation
+        # rule models those meanings explicitly.
+        if assertion != "Assert":
+            return unsupported(sm, statement, "ImmediateAssertion:initial-kind")
     if statement.isDeferred:
         return unsupported(sm, statement, "ImmediateAssertion:deferred")
     if (statement.ifFalse is not None
             and type(statement.ifFalse).__name__ == "EmptyStatement"):
         return unsupported(sm, statement, "ImmediateAssertion:null-failure")
-    assertion = str(statement.assertionKind).split(".")[-1]
-    names = {"Assert": "assert", "Assume": "assume", "CoverProperty": "cover"}
     if assertion not in names:
         return unsupported(sm, statement, "ImmediateAssertion:kind")
     condition = convert_expr(sm, statement.cond)
@@ -26398,6 +26413,17 @@ def _convert_syscall(sm, s, e):
                         "args": converted, "arg_signed": signed,
                         "fatal_task": True}
         if is_sys and name in SYSCALL_QUIET:
+            if _SYM is not None and _INITIAL_CHECK and name == "$error":
+                # ASSERT_INIT's failure action is a diagnostic, not a state
+                # update. Keep the task name as a source-shaped marker while
+                # omitting simulator-specific formatting arguments (`$time`,
+                # `%m`, and file/line text). The E initial-check adapter
+                # recognizes this exact task and leaves the diagnostic inert;
+                # ordinary symbolic `$error` statements stay on the existing
+                # syscall/argument boundary.
+                return {"kind": "SysCall", "span": node_span(sm, s),
+                        "name": "$error", "format": None, "args": [],
+                        "arg_signed": [], "initial_check_diagnostic": True}
             try:
                 args = list(e.arguments)
             except Exception:
@@ -27190,11 +27216,14 @@ def convert_procedural_block(sm, m, module_level=False):
         # Self-check tier §f: initial blocks are real nodes now (the
         # self-check runner executes them once at time 0). The M0 cycle
         # semantics never sees them — its harness only loads M0 envelopes.
-        return {
-            "kind": "Initial",
-            "span": span,
-            "body": convert_stmt(sm, m.body),
-        }
+        global _INITIAL_CHECK
+        saved_initial_check = _INITIAL_CHECK
+        _INITIAL_CHECK = True
+        try:
+            body = convert_stmt(sm, m.body)
+        finally:
+            _INITIAL_CHECK = saved_initial_check
+        return {"kind": "Initial", "span": span, "body": body}
     if pk not in (
         ProceduralBlockKind.Always,
         ProceduralBlockKind.AlwaysComb,

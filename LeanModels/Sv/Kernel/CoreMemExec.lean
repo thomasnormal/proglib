@@ -303,6 +303,19 @@ def CoreMemProc.ofPProcess : PProcess → CoreMemProc
   | .initial body => .initial body
   | .unsupported kind text => .unsupported kind text
 
+/-! Initial elaboration checks are source-shaped `initial` parser nodes, but
+their only observable effect is the diagnostic on a failed parameter point.
+Reuse Param2's exact constant-check admission in canonical E and turn a
+passing check into the same inert empty process used by the scalar E view.
+Other initial bodies retain a named `Initial:check` refusal rather than being
+executed as ordinary cycle-time statements. -/
+def CoreMemProc.ofPProcessAt (env : IEnv) : PProcess → CoreMemProc
+  | .initial body =>
+      match initialCheckAdmits env body with
+      | .ok () => .comb (.block [])
+      | .error msg => .unsupported "Initial:check" msg
+  | p => CoreMemProc.ofPProcess p
+
 /-! Module-level metadata that is already represented by retained source nodes.
 An empty input-only task has no runtime effect, and the two x/z markers carry
 the literal as a source `PExpr.lit`; admitting these markers therefore does not
@@ -624,8 +637,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           { name := d.name, decls := decls.toArray, procs := #[] }
         let scalarEdge : Elab1 :=
           { decls := decls.toArray, procs := #[], name := d.name }
-        let processes := (d.processes.map CoreMemProc.ofPProcess) ++
-          (generated.map CoreMemProc.ofPProcess)
+        let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
+          (generated.map (CoreMemProc.ofPProcessAt envP))
         let result : CoreMemDesign :=
           { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
             memories := memories.toArray, processes := processes.toArray,
