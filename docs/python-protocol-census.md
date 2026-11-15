@@ -654,3 +654,8 @@ arbitrary raw body transport for `RFlow.cont`, yielding the faithful
 `Monadic.twinAgrees_callInM_top_body_exn` composes an arbitrary raw body
 exception through the top-depth call boundary. The post-body world is retained,
 the call depth is restored, and the original `PyErr` is propagated unchanged.
+
+`Monadic.twinAgrees_callInM_top_body_timeout` and
+`Monadic.twinAgrees_callInM_top_body_unsupported` complete the corresponding
+timeout and classified-refusal body outcomes, preserving the exact refusal
+message while keeping the top-depth boundary explicit.
