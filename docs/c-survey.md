@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1139/2214 MATCH (passed 1139, failed 0, oracle 0)
+- verdicts: 1140/2214 MATCH (passed 1140, failed 0, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `b924cf6a5`
-- measured at: `2026-11-15T09:55:05Z`
+- measured commit: `ea6375e53`
+- measured at: `2026-11-15T10:03:07Z`
 
 ## Verdict counts
 
@@ -13,20 +13,20 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | --- | ---: |
 | `not-parsed` | 295 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1139 |
+| `passed` | 1140 |
 | `refused-libc` | 37 |
 | `refused-ub` | 107 |
-| `refused-unsupported` | 568 |
+| `refused-unsupported` | 567 |
 | `timeout` | 67 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
-| `c-testsuite/single-exec` | `passed` | 178 |
+| `c-testsuite/single-exec` | `passed` | 179 |
 | `c-testsuite/single-exec` | `refused-libc` | 2 |
 | `c-testsuite/single-exec` | `refused-ub` | 8 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 30 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 29 |
 | `c-testsuite/single-exec` | `timeout` | 2 |
 | `gcc.c-torture/execute` | `not-parsed` | 268 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
@@ -523,7 +523,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:unbound declaration 'id19' (name 'b')` | 1 | 1 | bitfld-signed1-1.c |
 | `unsupported:unbound declaration 'id19' (name 'c')` | 1 | 1 | pr97421-1.c |
 | `unsupported:unbound declaration 'id19' (name 'f')` | 1 | 1 | signed1bitfield-1.c |
-| `unsupported:unbound declaration 'id19' (name 's')` | 1 | 1 | 00047.c |
 | `unsupported:unbound declaration 'id20' (name 'a')` | 1 | 1 | pr70127.c |
 | `unsupported:unbound declaration 'id21' (name 'g1s')` | 1 | 1 | pr42248.c |
 | `unsupported:unbound declaration 'id21' (name 's')` | 1 | 1 | 20041201-1.c |
