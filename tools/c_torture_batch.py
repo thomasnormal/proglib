@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+"""Run the C torture manifest with a wall bound for every entry.
+
+The Lean runner is deliberately deterministic but a CPU-bound reduction
+cannot be pre-empted by Lean's cooperative tasks.  This controller therefore
+keeps one already-built runner binary (no ``lake`` startup per row), invokes
+its ``--only`` mode for each manifest entry, and uses a subprocess wall around
+that child.  A killed child becomes a ``timeout`` row; malformed or missing
+output becomes ``runner-error``.  Rows are emitted in manifest order.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+
+def _why(entry: dict) -> str:
+    return str(entry.get("why") or "")
+
+
+def _static_row(entry: dict) -> tuple[str, str, str]:
+    status = entry.get("status", "")
+    if status == "absent":
+        return entry.get("name", ""), "not-fetched", ""
+    if status == "rejected":
+        return entry.get("name", ""), "not-parsed", _why(entry)
+    if not entry.get("envelope"):
+        return entry.get("name", ""), "runner-error", "manifest says parsed but names no envelope"
+    return "", "", ""
+
+
+def _parse_child(name: str, stdout: str) -> tuple[str, str, str] | None:
+    for line in stdout.splitlines():
+        parts = line.split("\t", 2)
+        if len(parts) == 3 and parts[0] == name:
+            return parts[0], parts[1], parts[2]
+    return None
+
+
+def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
+    try:
+        data = json.loads(manifest.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"c_torture_batch: cannot read manifest: {exc}", file=sys.stderr)
+        return 2
+
+    tests = data.get("tests")
+    if not isinstance(tests, list):
+        print("c_torture_batch: manifest has no tests array", file=sys.stderr)
+        return 2
+
+    for entry in tests:
+        if not isinstance(entry, dict):
+            print("\t".join(("", "runner-error", "manifest test is not an object")))
+            continue
+        static = _static_row(entry)
+        if static[0]:
+            print("\t".join(static), flush=True)
+            continue
+        name = str(entry.get("name") or "")
+        try:
+            proc = subprocess.run(
+                [runner, "--only", name, str(manifest), str(fuel)],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            print(f"{name}\ttimeout\tper-file wall timeout ({timeout:g}s)", flush=True)
+            continue
+        except OSError as exc:
+            print(f"{name}\trunner-error\t{exc}", flush=True)
+            continue
+
+        row = _parse_child(name, proc.stdout)
+        if row is None:
+            detail = proc.stderr.strip() or "runner produced no row"
+            print(f"{name}\trunner-error\t{detail}", flush=True)
+        else:
+            print("\t".join(row), flush=True)
+    return 0
+
+
+def self_test() -> int:
+    import tempfile
+
+    with tempfile.TemporaryDirectory(prefix="c-torture-batch-") as tmp:
+        root = Path(tmp)
+        manifest = root / "manifest.json"
+        fake = root / "runner.py"
+        fake.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys, time\n"
+            "name = sys.argv[2]\n"
+            "if name == 'slow.c': time.sleep(2)\n"
+            "elif name == 'bad.c': print('not-a-row')\n"
+            "else: print(name + '\\tpassed\\tok')\n"
+        )
+        fake.chmod(0o755)
+        manifest.write_text(json.dumps({"tests": [
+            {"name": "ok.c", "status": "parsed", "envelope": "ok"},
+            {"name": "slow.c", "status": "parsed", "envelope": "slow"},
+            {"name": "bad.c", "status": "parsed", "envelope": "bad"},
+            {"name": "reject.c", "status": "rejected", "why": "clang rejected"},
+        ]}))
+        proc = subprocess.run(
+            [sys.executable, __file__, str(manifest), "--runner", str(fake),
+             "--timeout", "0.1"],
+            capture_output=True, text=True, check=False,
+        )
+        expected = [
+            "ok.c\tpassed\tok",
+            "slow.c\ttimeout\tper-file wall timeout (0.1s)",
+            "bad.c\trunner-error\trunner produced no row",
+            "reject.c\tnot-parsed\tclang rejected",
+        ]
+        if proc.returncode or proc.stdout.splitlines() != expected:
+            print("c_torture_batch --self-test: failed", file=sys.stderr)
+            print(proc.stdout, file=sys.stderr)
+            print(proc.stderr, file=sys.stderr)
+            return 1
+    print("c_torture_batch --self-test: ok")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("manifest", nargs="?")
+    ap.add_argument("fuel", nargs="?", type=int, default=64)
+    ap.add_argument("--runner", default=".lake/build/bin/c-torture-run")
+    ap.add_argument("--timeout", type=float, default=30.0)
+    ap.add_argument("--self-test", action="store_true")
+    args = ap.parse_args(argv)
+    if args.self_test:
+        return self_test()
+    if not args.manifest:
+        ap.error("manifest is required unless --self-test is used")
+    if args.fuel < 0 or args.timeout <= 0:
+        ap.error("fuel must be nonnegative and timeout must be positive")
+    return run(Path(args.manifest), args.runner, args.fuel, args.timeout)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
