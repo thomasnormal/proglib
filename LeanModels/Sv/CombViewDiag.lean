@@ -17,6 +17,18 @@ namespace CombView
 
 /-! ## Printing -/
 
+/-- A conditional expression, with its names renamed (tac8). -/
+def CL.showR (rn : String → String) : CL → String
+  | .lin ts c =>
+      let parts := ts.map (fun p => s!"{p.2}*{rn p.1}") ++ (if c == 0 && !ts.isEmpty then [] else [toString c])
+      "(" ++ " + ".intercalate parts ++ ")"
+  | .shrK m k => s!"({rn m} >> {k})"
+  | .add a b => s!"({a.showR rn} + {b.showR rn})"
+  | .scale k a => s!"{k}*{a.showR rn}"
+  | .ite op l r a b =>
+      let o := match op with | .lt => "<" | .le => "<=" | .gt => ">" | .ge => ">=" | .eq => "==" | .ne => "!="
+      s!"({l.showR rn} {o} {r.showR rn} ? {a.showR rn} : {b.showR rn})"
+
 /-- Print a shift or power atom in the source's spelling, renaming variables. -/
 def XAt.showR (x : XAt) (rn : String → String) : String :=
   match x with
@@ -28,6 +40,7 @@ def XAt.showR (x : XAt) (rn : String → String) : String :=
   | .shlK m k => s!"(({rn m} >> {k}) << {k})"
   | .shrA m n c => if c < 0 then s!"({rn m} >> ({rn n} - {-c}))" else s!"({rn m} >> ({rn n} + {c}))"
   | .mul g x => s!"{rn g}*{x.showR rn}"
+  | .cond e => e.showR rn
 
 /-- Print an affine form, renaming variables (the second loop index is shown as `i'`). -/
 def Aff.showR (a : Aff) (rn : String → String) : String :=

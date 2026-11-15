@@ -56,6 +56,137 @@ namespace CombView
 
 /-! ## Affine terms -/
 
+/-! ## Conditional integer expressions (tac8)
+
+A `?:` of the parameters and genvars (IEEE 1800-2023 §11.4.11 over `int` operands), read where an affine form is read
+(an index, a bound, a loop's count, a replication count): `CL`, a small language of its own, and the atom `XAt.cond`
+that carries one inside an affine form. The instantiation evaluates such an expression exactly: `evalInt` is the
+unbounded `Int` arithmetic of the constant contexts, a comparison is exact, and only the chosen arm of `?:` is evaluated
+(`if evalInt c != 0 then evalInt t else evalInt e`). Its value is `CL.eval` wherever the shifts it contains are in range
+(`CL.Ok`, the `>>` of a non-negative 32-bit value by an amount below 32). -/
+
+/-- The comparison of a `?:` condition (the envelope's spellings for `int` operands: `s< s<= s> s>=`, `==`, `!=`). -/
+inductive CCmp where
+  | lt | le | gt | ge | eq | ne
+deriving Repr, BEq, DecidableEq, Inhabited
+
+/-- Whether the comparison holds of two values. -/
+@[simp] def CCmp.holds : CCmp → Int → Int → Bool
+  | .lt, a, b => decide (a < b)
+  | .le, a, b => decide (a ≤ b)
+  | .gt, a, b => decide (b < a)
+  | .ge, a, b => decide (b ≤ a)
+  | .eq, a, b => decide (a = b)
+  | .ne, a, b => !decide (a = b)
+
+/-! The comparisons as propositions: the normal form of a conditional atom's `if-then-else` in the obligations (each
+condition a linear comparison `omega` reads, `sv_ite_cases`). -/
+theorem CCmp.holds_lt_eq (a b : Int) : (CCmp.lt.holds a b = true) = (a < b) := by simp [CCmp.holds]
+theorem CCmp.holds_le_eq (a b : Int) : (CCmp.le.holds a b = true) = (a ≤ b) := by simp [CCmp.holds]
+theorem CCmp.holds_gt_eq (a b : Int) : (CCmp.gt.holds a b = true) = (b < a) := by simp [CCmp.holds]
+theorem CCmp.holds_ge_eq (a b : Int) : (CCmp.ge.holds a b = true) = (b ≤ a) := by simp [CCmp.holds]
+theorem CCmp.holds_eq_eq (a b : Int) : (CCmp.eq.holds a b = true) = (a = b) := by simp [CCmp.holds]
+theorem CCmp.holds_ne_eq (a b : Int) : (CCmp.ne.holds a b = true) = ¬(a = b) := by simp [CCmp.holds]
+
+/-- A conditional integer expression of the parameters and genvars: a linear form (`∑ k · n + c`), a name shifted right
+by a literal (`m >> k`), a sum, a literal multiple, and `l op r ? a : b`. -/
+inductive CL where
+  | lin (ts : List (String × Int)) (c : Int)
+  | shrK (m : String) (k : Nat)
+  | add (a b : CL)
+  | scale (k : Int) (a : CL)
+  | ite (op : CCmp) (l r a b : CL)
+deriving Repr, BEq, DecidableEq, Inhabited
+
+/-- The value of a linear form's terms. -/
+@[simp] def CL.linEval (σ : String → Int) : List (String × Int) → Int
+  | [] => 0
+  | (n, k) :: ts => k * σ n + CL.linEval σ ts
+
+namespace CL
+
+/-- The value of the expression (only the chosen arm of `?:` matters). -/
+@[simp] def eval (σ : String → Int) : CL → Int
+  | .lin ts c => CL.linEval σ ts + c
+  | .shrK m k => σ m / 2 ^ k
+  | .add a b => a.eval σ + b.eval σ
+  | .scale k a => k * a.eval σ
+  | .ite op l r a b => if op.holds (l.eval σ) (r.eval σ) then a.eval σ else b.eval σ
+
+/-- The names the expression reads. -/
+def names : CL → List String
+  | .lin ts _ => ts.map Prod.fst
+  | .shrK m _ => [m]
+  | .add a b => a.names ++ b.names
+  | .scale _ a => a.names
+  | .ite _ l r a b => l.names ++ r.names ++ a.names ++ b.names
+
+/-- Every shift of the expression in range (where `evalInt`'s `>>` is defined and is the quotient). -/
+@[simp] def Ok (σ : String → Int) : CL → Prop
+  | .lin _ _ => True
+  | .shrK m k => 0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32
+  | .add a b => a.Ok σ ∧ b.Ok σ
+  | .scale _ a => a.Ok σ
+  | .ite _ l r a b => l.Ok σ ∧ r.Ok σ ∧ a.Ok σ ∧ b.Ok σ
+
+/-- The decision of `CL.Ok`. -/
+def decOk (σ : String → Int) : (x : CL) → Decidable (x.Ok σ)
+  | .lin _ _ => isTrue trivial
+  | .shrK m k => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32))
+  | .add a b =>
+      match decOk σ a, decOk σ b with
+      | isTrue ha, isTrue hb => isTrue ⟨ha, hb⟩
+      | isFalse ha, _ => isFalse fun h => ha h.1
+      | _, isFalse hb => isFalse fun h => hb h.2
+  | .scale _ a =>
+      match decOk σ a with
+      | isTrue ha => isTrue ha
+      | isFalse ha => isFalse ha
+  | .ite _ l r a b =>
+      match decOk σ l, decOk σ r, decOk σ a, decOk σ b with
+      | isTrue hl, isTrue hr, isTrue ha, isTrue hb => isTrue ⟨hl, hr, ha, hb⟩
+      | isFalse hl, _, _, _ => isFalse fun h => hl h.1
+      | _, isFalse hr, _, _ => isFalse fun h => hr h.2.1
+      | _, _, isFalse ha, _ => isFalse fun h => ha h.2.2.1
+      | _, _, _, isFalse hb => isFalse fun h => hb h.2.2.2
+
+instance (σ : String → Int) (x : CL) : Decidable (x.Ok σ) := decOk σ x
+
+theorem linEval_congr (σ σ' : String → Int) :
+    ∀ ts : List (String × Int), (∀ n ∈ ts.map Prod.fst, σ n = σ' n) → CL.linEval σ ts = CL.linEval σ' ts
+  | [], _ => rfl
+  | (n, k) :: ts, h => by
+      simp only [List.map_cons, List.mem_cons, forall_eq_or_imp] at h
+      simp only [CL.linEval, h.1, linEval_congr σ σ' ts h.2]
+
+theorem eval_congr (σ σ' : String → Int) : ∀ (x : CL), (∀ n ∈ x.names, σ n = σ' n) → x.eval σ = x.eval σ'
+  | .lin ts c, h => by simp only [eval, linEval_congr σ σ' ts h]
+  | .shrK m k, h => by simp only [names, List.mem_singleton, forall_eq] at h; simp only [eval, h]
+  | .add a b, h => by
+      simp only [names, List.mem_append] at h
+      simp only [eval, eval_congr σ σ' a fun n hn => h n (Or.inl hn), eval_congr σ σ' b fun n hn => h n (Or.inr hn)]
+  | .scale k a, h => by simp only [names] at h; simp only [eval, eval_congr σ σ' a h]
+  | .ite op l r a b, h => by
+      simp only [names, List.mem_append] at h
+      simp only [eval, eval_congr σ σ' l fun n hn => h n (Or.inl (Or.inl (Or.inl hn))),
+        eval_congr σ σ' r fun n hn => h n (Or.inl (Or.inl (Or.inr hn))),
+        eval_congr σ σ' a fun n hn => h n (Or.inl (Or.inr hn)), eval_congr σ σ' b fun n hn => h n (Or.inr hn)]
+
+theorem ok_congr (σ σ' : String → Int) : ∀ (x : CL), (∀ n ∈ x.names, σ n = σ' n) → (x.Ok σ ↔ x.Ok σ')
+  | .lin _ _, _ => Iff.rfl
+  | .shrK m k, h => by simp only [names, List.mem_singleton, forall_eq] at h; simp only [Ok, h]
+  | .add a b, h => by
+      simp only [names, List.mem_append] at h
+      simp only [Ok, ok_congr σ σ' a fun n hn => h n (Or.inl hn), ok_congr σ σ' b fun n hn => h n (Or.inr hn)]
+  | .scale k a, h => by simp only [names] at h; simp only [Ok, ok_congr σ σ' a h]
+  | .ite op l r a b, h => by
+      simp only [names, List.mem_append] at h
+      simp only [Ok, ok_congr σ σ' l fun n hn => h n (Or.inl (Or.inl (Or.inl hn))),
+        ok_congr σ σ' r fun n hn => h n (Or.inl (Or.inl (Or.inr hn))),
+        ok_congr σ σ' a fun n hn => h n (Or.inl (Or.inr hn)), ok_congr σ σ' b fun n hn => h n (Or.inr hn)]
+
+end CL
+
 /-- **A shift or power atom** of a generate-time integer expression (item 4 of the comb widening): a power of a named
 constant and the shifts of one named constant by another (`m`, `n`: genvars, parameters or localparams).
 
@@ -71,7 +202,8 @@ constant and the shifts of one named constant by another (`m`, `n`: genvars, par
 
 `/` and `%` are the floor ones (`Int.ediv`, `Int.emod`), the instantiation's `tdiv` on the non-negative numerator the
 range `XAt.Ok` demands. IEEE 1800-2023 §11.4.10 (shifts: the amount is unsigned, a logical `>>` fills with zeros),
-§11.4.3 (`**`), §11.4.8 (`&`), §11.4.2 (`*`), all of 32-bit `int` operands (§27.4: a genvar is an integer). -/
+§11.4.3 (`**`), §11.4.8 (`&`), §11.4.2 (`*`), all of 32-bit `int` operands (§27.4: a genvar is an integer).
+* `cond e`   `e`                 a `?:` of the parameters and genvars (tac8; `CL`, read by `clOf?`). -/
 inductive XAt where
   | pow (b : Int) (n : String)
   | shr (m n : String)
@@ -81,6 +213,7 @@ inductive XAt where
   | shlK (m : String) (k : Nat)
   | shrA (m n : String) (c : Int)
   | mul (g : String) (x : XAt)
+  | cond (e : CL)
 deriving Repr, BEq, DecidableEq, Inhabited
 
 namespace XAt
@@ -95,6 +228,7 @@ def eval (σ : String → Int) : XAt → Int
   | .shlK m k => σ m / 2 ^ k * 2 ^ k
   | .shrA m n c => σ m / 2 ^ (σ n + c).toNat
   | .mul g x => σ g * x.eval σ
+  | .cond e => e.eval σ
 
 /-- The names the atom reads. -/
 def names : XAt → List String
@@ -106,6 +240,7 @@ def names : XAt → List String
   | .shlK m _ => [m]
   | .shrA m n _ => [m, n]
   | .mul g x => g :: x.names
+  | .cond e => e.names
 
 /-- **The atom's range**: where the instantiation's two evaluators (`evalInt`, unbounded, for indices and loop bounds;
 `evalAt` at the signed 32-bit type for generate conditions) are defined and give the atom's value, and that value is
@@ -121,6 +256,7 @@ def Ok (σ : String → Int) : XAt → Prop
   | .shlK m k => 0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32
   | .shrA m n c => 0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n + c ∧ σ n + c < 32
   | .mul _ x => x.Ok σ
+  | .cond e => e.Ok σ
 
 /-- The decision of `XAt.Ok` (structural: a product's is its atom's). -/
 def decOk (σ : String → Int) : (x : XAt) → Decidable (x.Ok σ)
@@ -132,6 +268,7 @@ def decOk (σ : String → Int) : (x : XAt) → Decidable (x.Ok σ)
   | .shlK m k => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ k < 32))
   | .shrA m n c => inferInstanceAs (Decidable (0 ≤ σ m ∧ σ m < 2147483648 ∧ 0 ≤ σ n + c ∧ σ n + c < 32))
   | .mul _ x => decOk σ x
+  | .cond e => CL.decOk σ e
 
 instance (σ : String → Int) (x : XAt) : Decidable (x.Ok σ) := decOk σ x
 
@@ -140,6 +277,7 @@ theorem eval_congr (σ σ' : String → Int) (x : XAt) (h : ∀ n ∈ x.names, �
   | mul g x ih =>
       simp only [names, List.mem_cons, forall_eq_or_imp] at h
       simp only [eval, h.1, ih h.2]
+  | cond e => exact CL.eval_congr σ σ' e h
   | _ =>
       simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
         forall_eq] at h <;> simp only [eval, h]
@@ -149,6 +287,7 @@ theorem ok_congr (σ σ' : String → Int) (x : XAt) (h : ∀ n ∈ x.names, σ 
   | mul g x ih =>
       simp only [names, List.mem_cons, forall_eq_or_imp] at h
       simp only [Ok, ih h.2]
+  | cond e => exact CL.ok_congr σ σ' e h
   | _ =>
       simp only [names, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false, forall_eq_or_imp,
         forall_eq] at h <;> simp only [Ok, h]
@@ -704,8 +843,105 @@ def xatOf? (op : SymBinOp) (l r : PExpr) : Option XAt :=
       | _, _, _ => none
   | _, _ => none
 
+/-- The comparison of a `?:` condition (tac8; `gcmpOf?`'s spellings). -/
+def ccmpOf? : SymBinOp → Option CCmp
+  | .slt => some .lt
+  | .sle => some .le
+  | .sgt => some .gt
+  | .sge => some .ge
+  | .m0 .eq => some .eq
+  | .m0 .ne => some .ne
+  | _ => none
+
+theorem ccmpOf?_cases {op : SymBinOp} {c : CCmp} (h : ccmpOf? op = some c) :
+    (op = .slt ∧ c = .lt) ∨ (op = .sle ∧ c = .le) ∨ (op = .sgt ∧ c = .gt) ∨ (op = .sge ∧ c = .ge) ∨
+      (op = .m0 .eq ∧ c = .eq) ∨ (op = .m0 .ne ∧ c = .ne) := by
+  unfold ccmpOf? at h
+  split at h <;> simp_all
+
+/-- The value of a literal (`some k` for the form `k`). -/
+def CL.litVal? : CL → Option Int
+  | .lin [] k => some k
+  | _ => none
+
+theorem CL.litVal?_eq {x : CL} {k : Int} (h : x.litVal? = some k) : x = .lin [] k := by
+  unfold CL.litVal? at h
+  split at h <;> simp_all
+
+/-- A product with a literal factor. -/
+def clMul (a b : CL) : Option CL :=
+  match a.litVal? with
+  | some k => some (.scale k b)
+  | none => b.litVal?.map fun k => .scale k a
+
+theorem clMul_cases {a b c : CL} (h : clMul a b = some c) :
+    (∃ k, a = .lin [] k ∧ c = .scale k b) ∨ (∃ k, b = .lin [] k ∧ c = .scale k a) := by
+  unfold clMul at h
+  rcases ha : a.litVal? with _ | k
+  · simp only [ha] at h
+    rcases hb : b.litVal? with _ | k
+    · simp [hb] at h
+    · simp only [hb, Option.map_some, Option.some.injEq] at h
+      exact Or.inr ⟨k, CL.litVal?_eq hb, h.symm⟩
+  · simp only [ha, Option.some.injEq] at h
+    exact Or.inl ⟨k, CL.litVal?_eq ha, h.symm⟩
+
+/-- `+`, `-`, and `*` with a literal factor, of two conditional expressions. -/
+def clBin (op : SymBinOp) (a b : CL) : Option CL :=
+  match op with
+  | .m0 .add => some (.add a b)
+  | .m0 .sub => some (.add a (.scale (-1) b))
+  | .mul => clMul a b
+  | .m0 .mul => clMul a b
+  | _ => none
+
+theorem clBin_cases {op : SymBinOp} {a b c : CL} (h : clBin op a b = some c) :
+    (op = .m0 .add ∧ c = .add a b) ∨ (op = .m0 .sub ∧ c = .add a (.scale (-1) b)) ∨
+      ((op = .mul ∨ op = .m0 .mul) ∧ ((∃ k, a = .lin [] k ∧ c = .scale k b) ∨ (∃ k, b = .lin [] k ∧ c = .scale k a))) := by
+  unfold clBin at h
+  split at h
+  · simp only [Option.some.injEq] at h; exact Or.inl ⟨rfl, h.symm⟩
+  · simp only [Option.some.injEq] at h; exact Or.inr (Or.inl ⟨rfl, h.symm⟩)
+  · exact Or.inr (Or.inr ⟨Or.inl rfl, clMul_cases h⟩)
+  · exact Or.inr (Or.inr ⟨Or.inr rfl, clMul_cases h⟩)
+  · simp at h
+
+def clShr (op : SymBinOp) (l r : PExpr) : Option CL :=
+  match xatOf? op l r with
+  | some (.shrK m k) => some (.shrK m k)
+  | _ => none
+
+theorem clShr_cases {op : SymBinOp} {l r : PExpr} {c : CL} (h : clShr op l r = some c) :
+    ∃ m k, xatOf? op l r = some (.shrK m k) ∧ c = .shrK m k := by
+  unfold clShr at h
+  split at h
+  · rename_i m k hx
+    exact ⟨m, k, hx, (Option.some.inj h).symm⟩
+  · simp at h
+
+/-- **The conditional reading** (tac8): a `?:` of the parameters and genvars, its condition a comparison and its arms,
+and every operand of those, built of linear forms (`+`, `-`, `*` by a literal), the shifts of a name by a literal
+(`m >> k`, `xatOf?`'s `shrK`) and further `?:`. -/
+def clOf? : PExpr → Option CL
+  | .int v => some (.lin [] v)
+  | .genvarRef n => some (.lin [(n, 1)] 0)
+  | .paramRef n none => some (.lin [(n, 1)] 0)
+  | .binary op l r =>
+      match clOf? l, clOf? r with
+      | some a, some b =>
+          match clBin op a b with
+          | some c => some c
+          | none => clShr op l r
+      | _, _ => none
+  | .ternary (.binary cop l r) t e =>
+      match ccmpOf? cop, clOf? l, clOf? r, clOf? t, clOf? e with
+      | some c, some a, some b, some x, some y => some (.ite c a b x y)
+      | _, _, _, _, _ => none
+  | _ => none
+
 /-- The affine reading of a constant expression of the parameters and genvars: linear forms, quotient atoms and shift
-and power atoms (`xatOf?`, read where the linear operators do not apply). -/
+and power atoms (`xatOf?`, read where the linear operators do not apply), and a `?:` as one conditional atom (`clOf?`,
+tac8). -/
 def affOf? : PExpr → Option Aff
   | .int v => some (Aff.const v)
   | .genvarRef n => some (Aff.var n)
@@ -717,6 +953,7 @@ def affOf? : PExpr → Option Aff
           | some c => some c
           | none => (xatOf? op l r).map Aff.atom
       | _, _ => none
+  | .ternary c t e => (clOf? (.ternary c t e)).map fun x => Aff.atom (.cond x)
   | _ => none
 
 /-! Exact semantic folds need a premise that every recognized affine result
@@ -1133,6 +1370,123 @@ theorem xatOf?_sound {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
     · simp at h
   · simp at h
 
+/-- **The conditional reading is the instantiation's value** (tac8): where the names it reads agree with the valuation
+and its shifts are in range, a `?:` read by `clOf?` is in the INT class and `evalInt` gives `CL.eval` (the condition
+exact, the chosen arm's value). -/
+theorem clOf?_sound {E : IEnv} {σ : String → Int} :
+    ∀ (e : PExpr) (c : CL), clOf? e = some c → (∀ n ∈ c.names, E.intVal? n = some (σ n)) → c.Ok σ →
+      e.isInt E = true ∧ evalInt E e = .ok (c.eval σ)
+  | .int v, c, h, _, _ => by
+      simp only [clOf?, Option.some.injEq] at h
+      subst h
+      simp [PExpr.isInt, CL.eval, CL.linEval]
+  | .genvarRef n, c, h, hn, _ => by
+      simp only [clOf?, Option.some.injEq] at h
+      subst h
+      have hl : E.intVal? n = some (σ n) := hn n (by simp [CL.names])
+      refine ⟨by simp [PExpr.isInt], ?_⟩
+      rw [evalInt_genvarRef_of_intVal hl]
+      simp [CL.eval, CL.linEval]
+  | .paramRef n none, c, h, hn, _ => by
+      simp only [clOf?, Option.some.injEq] at h
+      subst h
+      have hl : E.intVal? n = some (σ n) := hn n (by simp [CL.names])
+      refine ⟨isInt_paramRef_of_intVal hl, ?_⟩
+      rw [evalInt_paramRef_of_intVal hl]
+      simp [CL.eval, CL.linEval]
+  | .binary op l r, c, h, hn, hok => by
+      simp only [clOf?] at h
+      rcases h1 : clOf? l with _ | a <;> rcases h2 : clOf? r with _ | b <;>
+        simp only [h1, h2] at h <;> try exact absurd h (by simp)
+      rcases hab : clBin op a b with _ | c'
+      · -- the shift of a name by a literal
+        simp only [hab] at h
+        obtain ⟨m, k, hx, rfl⟩ := clShr_cases h
+        have hxs := xatOf?_sound (x := .shrK m k) hx (fun n hn' => hn n (by simpa [CL.names, XAt.names] using hn'))
+          (by simpa [CL.Ok, XAt.Ok] using hok)
+        exact ⟨hxs.1, by rw [hxs.2]; rfl⟩
+      simp only [hab, Option.some.injEq] at h
+      subst h
+      rcases clBin_cases hab with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨hop, ⟨k, rfl, rfl⟩ | ⟨k, rfl, rfl⟩⟩
+      · simp only [CL.names, List.mem_append] at hn
+        obtain ⟨hi1, he1⟩ := clOf?_sound l a h1 (fun n hn' => hn n (Or.inl hn')) hok.1
+        obtain ⟨hi2, he2⟩ := clOf?_sound r b h2 (fun n hn' => hn n (Or.inr hn')) hok.2
+        exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_add_of hi1 hi2 he1 he2]; rfl⟩
+      · simp only [CL.names, List.mem_append] at hn
+        obtain ⟨hi1, he1⟩ := clOf?_sound l a h1 (fun n hn' => hn n (Or.inl hn')) hok.1
+        obtain ⟨hi2, he2⟩ := clOf?_sound r b h2 (fun n hn' => hn n (Or.inr hn')) hok.2
+        refine ⟨isInt_binary_of (by simp) hi1 hi2, ?_⟩
+        rw [evalInt_sub_of hi1 hi2 he1 he2]
+        simp only [CL.eval]
+        congr 1
+        omega
+      · simp only [CL.names] at hn
+        obtain ⟨hi1, he1⟩ := clOf?_sound (σ := σ) l (.lin [] k) h1 (by simp [CL.names]) trivial
+        obtain ⟨hi2, he2⟩ := clOf?_sound r b h2 hn hok
+        simp only [CL.eval, CL.linEval, Int.zero_add] at he1
+        rcases hop with rfl | rfl
+        · exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_mul_of hi1 hi2 he1 he2]; rfl⟩
+        · exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_m0_mul_of hi1 hi2 he1 he2]; rfl⟩
+      · simp only [CL.names] at hn
+        obtain ⟨hi1, he1⟩ := clOf?_sound l a h1 hn hok
+        obtain ⟨hi2, he2⟩ := clOf?_sound (σ := σ) r (.lin [] k) h2 (by simp [CL.names]) trivial
+        simp only [CL.eval, CL.linEval, Int.zero_add] at he2
+        rcases hop with rfl | rfl
+        · exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_mul_of hi1 hi2 he1 he2, Int.mul_comm]; rfl⟩
+        · exact ⟨isInt_binary_of (by simp) hi1 hi2, by rw [evalInt_m0_mul_of hi1 hi2 he1 he2, Int.mul_comm]; rfl⟩
+  | .ternary (.binary cop l r) t e, c, h, hn, hok => by
+      simp only [clOf?] at h
+      rcases hc : ccmpOf? cop with _ | cc <;> rcases h1 : clOf? l with _ | a <;> rcases h2 : clOf? r with _ | b <;>
+        rcases h3 : clOf? t with _ | x <;> rcases h4 : clOf? e with _ | y <;>
+        simp only [hc, h1, h2, h3, h4, reduceCtorEq, Option.some.injEq] at h
+      subst h
+      simp only [CL.names, List.mem_append] at hn
+      obtain ⟨hol, hor, hox, hoy⟩ := hok
+      obtain ⟨hil, hel⟩ := clOf?_sound l a h1 (fun n hn' => hn n (Or.inl (Or.inl (Or.inl hn')))) hol
+      obtain ⟨hir, her⟩ := clOf?_sound r b h2 (fun n hn' => hn n (Or.inl (Or.inl (Or.inr hn')))) hor
+      obtain ⟨hit, het⟩ := clOf?_sound t x h3 (fun n hn' => hn n (Or.inl (Or.inr hn'))) hox
+      obtain ⟨hie, hee⟩ := clOf?_sound e y h4 (fun n hn' => hn n (Or.inr hn')) hoy
+      refine ⟨by simp [PExpr.isInt, hit, hie], ?_⟩
+      -- the condition is a comparison `evalInt` decides exactly (its value `1` or `0`, `Param.b2i`)
+      rcases ccmpOf?_cases hc with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;>
+        simp only [evalInt, hit, hie, hil, hir, Bool.and_self, ↓reduceIte, hel, her, Gen2.except_ok_bind, CL.eval,
+          CCmp.holds]
+      · by_cases hh : a.eval σ < b.eval σ <;> simp only [hh, decide_true, decide_false, ↓reduceIte, het, hee] <;> rfl
+      · by_cases hh : a.eval σ ≤ b.eval σ <;> simp only [hh, decide_true, decide_false, ↓reduceIte, het, hee] <;> rfl
+      · by_cases hh : b.eval σ < a.eval σ <;>
+          simp only [hh, gt_iff_lt, decide_true, decide_false, ↓reduceIte, het, hee] <;> rfl
+      · by_cases hh : b.eval σ ≤ a.eval σ <;>
+          simp only [hh, ge_iff_le, decide_true, decide_false, ↓reduceIte, het, hee] <;> rfl
+      · by_cases hh : CL.eval σ a = CL.eval σ b
+        · rw [show (CL.eval σ a == CL.eval σ b) = true by simp [hh]]
+          simp only [het, hee, decide_eq_true hh] <;> rfl
+        · rw [show (CL.eval σ a == CL.eval σ b) = false by simp [hh]]
+          simp only [het, hee, decide_eq_false hh] <;> rfl
+      · by_cases hh : CL.eval σ a = CL.eval σ b
+        · rw [show (CL.eval σ a != CL.eval σ b) = false by simp [hh]]
+          simp only [het, hee, decide_eq_true hh, Bool.not_true] <;> rfl
+        · rw [show (CL.eval σ a != CL.eval σ b) = true by simp [hh]]
+          simp only [het, hee, decide_eq_false hh, Bool.not_false] <;> rfl
+  | .ternary (.int _) _ _, c, h, _, _ | .ternary (.lit _) _ _, c, h, _, _ | .ternary (.ident _) _ _, c, h, _, _
+  | .ternary (.genvarRef _) _ _, c, h, _, _ | .ternary (.paramRef _ _) _ _, c, h, _, _
+  | .ternary (.enumRef _ _ _) _ _, c, h, _, _ | .ternary (.fill _) _ _, c, h, _, _
+  | .ternary (.unary _ _) _ _, c, h, _, _ | .ternary (.ternary _ _ _) _ _, c, h, _, _
+  | .ternary (.concat _) _ _, c, h, _, _ | .ternary (.resize _ _) _ _, c, h, _, _
+  | .ternary (.signedResize _ _) _ _, c, h, _, _ | .ternary (.squash2 _ _) _ _, c, h, _, _
+  | .ternary (.sysCall _ _) _ _, c, h, _, _ | .ternary (.bitSel _ _) _ _, c, h, _, _
+  | .ternary (.partSel _ _ _) _ _, c, h, _, _ | .ternary (.repl _ _) _ _, c, h, _, _
+  | .ternary (.reduce _ _) _ _, c, h, _, _ | .ternary (.cast _ _) _ _, c, h, _, _
+  | .ternary (.arrayElem _ _) _ _, c, h, _, _ | .ternary (.arrayPart _ _ _ _ _) _ _, c, h, _, _
+  | .ternary (.unsupported _ _) _ _, c, h, _, _ | .ternary (.functionCall _ _) _ _, c, h, _, _ => by
+      simp [clOf?] at h
+  | .paramRef _ (some _), c, h, _, _ => by simp [clOf?] at h
+  | .lit _, c, h, _, _ | .ident _, c, h, _, _ | .enumRef _ _ _, c, h, _, _ | .fill _, c, h, _, _
+  | .unary _ _, c, h, _, _ | .concat _, c, h, _, _ | .resize _ _, c, h, _, _
+  | .signedResize _ _, c, h, _, _ | .squash2 _ _, c, h, _, _ | .sysCall _ _, c, h, _, _
+  | .bitSel _ _, c, h, _, _ | .partSel _ _ _, c, h, _, _ | .repl _ _, c, h, _, _ | .reduce _ _, c, h, _, _
+  | .cast _ _, c, h, _, _ | .arrayElem _ _, c, h, _, _ | .arrayPart _ _ _ _ _, c, h, _, _
+  | .unsupported _ _, c, h, _, _ | .functionCall _ _, c, h, _, _ => by simp [clOf?] at h
+
 /-- **Affine recognition is sound**: an `Aff`-recognized expression is INT-class and evaluates to its affine value, in
 every environment that binds the names it mentions, where its shift and power atoms are in their range (`Aff.Ok`). -/
 theorem affOf?_sound {E : IEnv} {σ : String → Int} :
@@ -1215,9 +1569,23 @@ theorem affOf?_sound {E : IEnv} {σ : String → Int} :
         refine ⟨isInt_binary_of (by simp) hi1 hi2, ?_⟩
         rw [evalInt_div_of hi1 hi2 he1 he2 (by omega)]
         simp [Aff.eval, Aff.evalTerms]
+  | .ternary c t e, a, h, hb => by
+      -- a `?:`: one conditional atom (tac8)
+      simp only [affOf?] at h
+      rcases hx : clOf? (.ternary c t e) with _ | x <;> simp only [hx, Option.map_none, Option.map_some,
+        reduceCtorEq, Option.some.injEq] at h
+      subst h
+      have hn : ∀ n ∈ x.names, E.intVal? n = some (σ n) :=
+        fun n hn => hb.1 n (by simp [Aff.names_eq, Aff.atom, Aff.xsNames, XAt.names, hn])
+      have hxo : x.Ok σ := by
+        have := hb.2
+        simp only [Aff.XOk, Aff.atom, Aff.XOkL, and_true, XAt.Ok] at this
+        exact this
+      obtain ⟨hi, he⟩ := clOf?_sound _ x hx hn hxo
+      exact ⟨hi, by rw [he, Aff.eval_atom]; rfl⟩
   | .paramRef _ (some _), a, h, _ => by simp [affOf?] at h
   | .lit _, a, h, _ | .ident _, a, h, _ | .enumRef _ _ _, a, h, _ | .fill _, a, h, _
-  | .unary _ _, a, h, _ | .ternary _ _ _, a, h, _ | .concat _, a, h, _ | .resize _ _, a, h, _
+  | .unary _ _, a, h, _ | .concat _, a, h, _ | .resize _ _, a, h, _
   | .signedResize _ _, a, h, _ | .squash2 _ _, a, h, _ | .sysCall _ _, a, h, _
   | .bitSel _ _, a, h, _ | .partSel _ _ _, a, h, _ | .repl _ _, a, h, _ | .reduce _ _, a, h, _
   | .cast _ _, a, h, _ | .arrayElem _ _, a, h, _ | .arrayPart _ _ _ _ _, a, h, _

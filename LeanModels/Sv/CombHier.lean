@@ -149,6 +149,14 @@ def PLocalParam.hren (pfx : String) (lp : PLocalParam) : PLocalParam :=
 
 namespace CombView
 
+/-- A conditional expression over the child's names, under the prefix (tac8). -/
+def CL.hren (pfx : String) : CL → CL
+  | .lin ts c => .lin (ts.map fun p => (pfx ++ p.1, p.2)) c
+  | .shrK m k => .shrK (pfx ++ m) k
+  | .add a b => .add (a.hren pfx) (b.hren pfx)
+  | .scale k a => .scale k (a.hren pfx)
+  | .ite op l r a b => .ite op (l.hren pfx) (r.hren pfx) (a.hren pfx) (b.hren pfx)
+
 /-- A shift or power atom over the child's names, under the prefix. -/
 def XAt.hren (pfx : String) : XAt → XAt
   | .pow b n => .pow b (pfx ++ n)
@@ -159,6 +167,7 @@ def XAt.hren (pfx : String) : XAt → XAt
   | .shlK m k => .shlK (pfx ++ m) k
   | .shrA m n c => .shrA (pfx ++ m) (pfx ++ n) c
   | .mul g x => .mul (pfx ++ g) (x.hren pfx)
+  | .cond e => .cond (e.hren pfx)
 
 /-- An affine form over the child's names, under the prefix. -/
 def Aff.hren (pfx : String) (a : Aff) : Aff :=
@@ -296,10 +305,35 @@ theorem Aff.evalQs_hren (σ : String → Int) (pfx : String) : ∀ qs : List (St
   | [] => rfl
   | (n, k, d) :: qs => by simp [Aff.evalQs, Aff.evalQs_hren σ pfx qs]
 
+theorem CL.linEval_hren (σ : String → Int) (pfx : String) : ∀ ts : List (String × Int),
+    CL.linEval σ (ts.map fun p => (pfx ++ p.1, p.2)) = CL.linEval (fun n => σ (pfx ++ n)) ts
+  | [] => rfl
+  | (n, k) :: ts => by simp [CL.linEval, CL.linEval_hren σ pfx ts]
+
+theorem CL.eval_hren (σ : String → Int) (pfx : String) :
+    ∀ x : CL, (x.hren pfx).eval σ = x.eval (fun n => σ (pfx ++ n))
+  | .lin ts c => by simp only [CL.hren, CL.eval, CL.linEval_hren]
+  | .shrK m k => rfl
+  | .add a b => by simp only [CL.hren, CL.eval, CL.eval_hren σ pfx a, CL.eval_hren σ pfx b]
+  | .scale k a => by simp only [CL.hren, CL.eval, CL.eval_hren σ pfx a]
+  | .ite op l r a b => by
+      simp only [CL.hren, CL.eval, CL.eval_hren σ pfx l, CL.eval_hren σ pfx r, CL.eval_hren σ pfx a,
+        CL.eval_hren σ pfx b]
+
+theorem CL.ok_hren (σ : String → Int) (pfx : String) :
+    ∀ x : CL, (x.hren pfx).Ok σ ↔ x.Ok (fun n => σ (pfx ++ n))
+  | .lin _ _ => Iff.rfl
+  | .shrK m k => Iff.rfl
+  | .add a b => by simp only [CL.hren, CL.Ok, CL.ok_hren σ pfx a, CL.ok_hren σ pfx b]
+  | .scale k a => by simp only [CL.hren, CL.Ok, CL.ok_hren σ pfx a]
+  | .ite op l r a b => by
+      simp only [CL.hren, CL.Ok, CL.ok_hren σ pfx l, CL.ok_hren σ pfx r, CL.ok_hren σ pfx a, CL.ok_hren σ pfx b]
+
 theorem XAt.eval_hren (σ : String → Int) (pfx : String) (x : XAt) :
     (x.hren pfx).eval σ = x.eval (fun n => σ (pfx ++ n)) := by
   induction x with
   | mul g x ih => simp only [XAt.hren, XAt.eval, ih]
+  | cond e => exact CL.eval_hren σ pfx e
   | _ => rfl
 
 theorem Aff.evalXs_hren (σ : String → Int) (pfx : String) : ∀ xs : List (Int × XAt),
@@ -567,6 +601,77 @@ theorem xatOf?_hren (pfx : String) {op : SymBinOp} {l r : PExpr} {x : XAt} (h : 
     have e1 := affAmt?_nameOf e
     simp only [xatOf?, nameOf?_hren pfx hm, e1.1, e1.2, e, Option.map_some, XAt.hren]
 
+theorem CL.litVal?_hren (pfx : String) (x : CL) : (x.hren pfx).litVal? = x.litVal? := by
+  cases x with
+  | lin ts c => cases ts <;> rfl
+  | _ => rfl
+
+theorem clMul_hren (pfx : String) (a b : CL) :
+    clMul (a.hren pfx) (b.hren pfx) = (clMul a b).map (CL.hren pfx) := by
+  unfold clMul
+  rw [CL.litVal?_hren, CL.litVal?_hren]
+  rcases a.litVal? with _ | k
+  · rcases b.litVal? with _ | k <;> rfl
+  · rfl
+
+theorem clBin_hren (pfx : String) (op : SymBinOp) (a b : CL) :
+    clBin op (a.hren pfx) (b.hren pfx) = (clBin op a b).map (CL.hren pfx) := by
+  unfold clBin
+  split
+  · rfl
+  · rfl
+  · exact clMul_hren pfx a b
+  · exact clMul_hren pfx a b
+  · rfl
+
+theorem clShr_hren (pfx : String) {op : SymBinOp} {l r : PExpr} {c : CL} (h : clShr op l r = some c) :
+    clShr op (l.hren pfx) (r.hren pfx) = some (c.hren pfx) := by
+  obtain ⟨m, k, hx, rfl⟩ := clShr_cases h
+  simp only [clShr, xatOf?_hren pfx hx, XAt.hren, CL.hren]
+
+theorem clOf?_hren (pfx : String) : ∀ {e : PExpr} {c : CL}, clOf? e = some c →
+    clOf? (e.hren pfx) = some (c.hren pfx)
+  | .int v, c, h => by
+      simp only [clOf?, Option.some.injEq] at h; subst h; simp [PExpr.hren, clOf?, CL.hren]
+  | .genvarRef n, c, h => by
+      simp only [clOf?, Option.some.injEq] at h; subst h; simp [PExpr.hren, clOf?, CL.hren]
+  | .paramRef n none, c, h => by
+      simp only [clOf?, Option.some.injEq] at h; subst h; simp [PExpr.hren, clOf?, CL.hren]
+  | .binary op l r, c, h => by
+      simp only [clOf?] at h
+      rcases hl : clOf? l with _ | a <;> rcases hr : clOf? r with _ | b <;>
+        simp only [hl, hr, reduceCtorEq] at h
+      simp only [PExpr.hren, clOf?, clOf?_hren pfx hl, clOf?_hren pfx hr, clBin_hren]
+      rcases hab : clBin op a b with _ | c'
+      · rw [hab] at h
+        simp only [Option.map_none]
+        exact clShr_hren pfx h
+      · rw [hab] at h
+        simp only [Option.some.injEq] at h
+        subst h
+        rfl
+  | .ternary (.binary cop l r) t e, c, h => by
+      simp only [clOf?] at h
+      rcases hc : ccmpOf? cop with _ | cc <;> rcases h1 : clOf? l with _ | a <;> rcases h2 : clOf? r with _ | b <;>
+        rcases h3 : clOf? t with _ | x <;> rcases h4 : clOf? e with _ | y <;>
+        simp only [hc, h1, h2, h3, h4, reduceCtorEq, Option.some.injEq] at h
+      subst h
+      simp only [PExpr.hren, clOf?, hc, clOf?_hren pfx h1, clOf?_hren pfx h2, clOf?_hren pfx h3, clOf?_hren pfx h4,
+        CL.hren]
+  | .ternary (.int _) _ _, _, h | .ternary (.lit _) _ _, _, h | .ternary (.ident _) _ _, _, h
+  | .ternary (.genvarRef _) _ _, _, h | .ternary (.paramRef _ _) _ _, _, h | .ternary (.enumRef ..) _ _, _, h
+  | .ternary (.fill _) _ _, _, h | .ternary (.unary ..) _ _, _, h | .ternary (.ternary ..) _ _, _, h
+  | .ternary (.concat _) _ _, _, h | .ternary (.resize ..) _ _, _, h | .ternary (.signedResize ..) _ _, _, h
+  | .ternary (.squash2 ..) _ _, _, h | .ternary (.sysCall ..) _ _, _, h | .ternary (.bitSel ..) _ _, _, h
+  | .ternary (.partSel ..) _ _, _, h | .ternary (.repl ..) _ _, _, h | .ternary (.reduce ..) _ _, _, h
+  | .ternary (.cast ..) _ _, _, h | .ternary (.arrayElem ..) _ _, _, h | .ternary (.arrayPart ..) _ _, _, h
+  | .ternary (.unsupported ..) _ _, _, h | .ternary (.functionCall ..) _ _, _, h => by simp [clOf?] at h
+  | .lit _, _, h | .ident _, _, h | .paramRef _ (some _), _, h | .enumRef .., _, h | .fill _, _, h
+  | .unary .., _, h | .concat _, _, h | .resize .., _, h | .signedResize .., _, h
+  | .squash2 .., _, h | .sysCall .., _, h | .bitSel .., _, h | .partSel .., _, h | .repl .., _, h
+  | .reduce .., _, h | .cast .., _, h | .arrayElem .., _, h | .arrayPart .., _, h
+  | .unsupported .., _, h | .functionCall .., _, h => by simp [clOf?] at h
+
 theorem affOf?_hren (pfx : String) : ∀ {e : PExpr} {a : Aff}, affOf? e = some a →
     affOf? (e.hren pfx) = some (a.hren pfx)
   | .int v, a, h => by
@@ -590,8 +695,17 @@ theorem affOf?_hren (pfx : String) : ∀ {e : PExpr} {a : Aff}, affOf? e = some 
         simp only [Option.some.injEq] at h
         subst h
         rfl
+  | .ternary c t e, a, h => by
+      simp only [affOf?] at h
+      rcases hx : clOf? (.ternary c t e) with _ | x <;> simp only [hx, Option.map_none, Option.map_some,
+        reduceCtorEq, Option.some.injEq] at h
+      subst h
+      have := clOf?_hren pfx hx
+      simp only [PExpr.hren] at this
+      simp only [PExpr.hren, affOf?, this, Option.map_some, Aff.atom, Aff.hren, XAt.hren]
+      rfl
   | .lit _, _, h | .ident _, _, h | .paramRef _ (some _), _, h | .enumRef .., _, h | .fill _, _, h
-  | .unary .., _, h | .ternary .., _, h | .concat _, _, h | .resize .., _, h | .signedResize .., _, h
+  | .unary .., _, h | .concat _, _, h | .resize .., _, h | .signedResize .., _, h
   | .squash2 .., _, h | .sysCall .., _, h | .bitSel .., _, h | .partSel .., _, h | .repl .., _, h
   | .reduce .., _, h | .cast .., _, h | .arrayElem .., _, h | .arrayPart .., _, h
   | .unsupported .., _, h | .functionCall .., _, h => by simp [affOf?] at h
@@ -938,6 +1052,7 @@ theorem XAt.ok_hren (σ : String → Int) (pfx : String) (x : XAt) :
     (x.hren pfx).Ok σ ↔ x.Ok (fun n => σ (pfx ++ n)) := by
   induction x with
   | mul g x ih => exact ih
+  | cond e => exact CL.ok_hren σ pfx e
   | _ => rfl
 
 theorem Aff.xOk_hren (σ : String → Int) (pfx : String) (a : Aff) :

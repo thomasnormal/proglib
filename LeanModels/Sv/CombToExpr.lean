@@ -35,6 +35,8 @@ deriving instance ToExpr for CaseCheck
 deriving instance ToExpr for PStmt
 deriving instance ToExpr for PProcess
 deriving instance ToExpr for PDim
+deriving instance ToExpr for CCmp
+deriving instance ToExpr for LeanModels.Sv.CombView.CL
 deriving instance ToExpr for XAt
 deriving instance ToExpr for Aff
 deriving instance ToExpr for LeanModels.Sv.CombView.Acc

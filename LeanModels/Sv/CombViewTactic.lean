@@ -766,6 +766,11 @@ macro "sv_norm_core" : tactic =>
       LeanModels.Sv.CombView.svDm, LeanModels.Sv.CombView.Summary.find, LeanModels.Sv.CombView.findDecl,
       forall_eq_or_imp, LeanModels.Sv.CombView.Loops.all, forall_eq,
       LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.CL.eval, LeanModels.Sv.CombView.CL.linEval, LeanModels.Sv.CombView.CL.Ok,
+      LeanModels.Sv.CombView.CCmp.holds_lt_eq,
+      LeanModels.Sv.CombView.CCmp.holds_le_eq, LeanModels.Sv.CombView.CCmp.holds_gt_eq,
+      LeanModels.Sv.CombView.CCmp.holds_ge_eq, LeanModels.Sv.CombView.CCmp.holds_eq_eq,
+      LeanModels.Sv.CombView.CCmp.holds_ne_eq,
       LeanModels.Sv.CombView.XAt.eval, Int.add_zero, Std.le_refl,
       String.reduceBEq, Bool.false_eq_true, not_false_eq_true,
       List.find?_cons_of_neg, BEq.rfl, List.find?_cons_of_pos,
@@ -847,6 +852,52 @@ macro "sv_rowmajor" : tactic =>
       ↓LeanModels.Sv.CombView.rmN3_plane_end_k,
       -- a column comparison of two literals decides to `True` inside a conjunction (`0 = 0` of two rows' columns)
       and_true, true_and] at *))
+
+/-- The conditions of the closed `if-then-else` terms of `e`, outermost first (tac8, `sv_ite_cases`). -/
+partial def iteConds (e : Expr) (acc : Array Expr) : Array Expr :=
+  let acc := if e.isAppOfArity ``ite 5 && !(e.getArg! 1).hasLooseBVars && !acc.contains (e.getArg! 1) then
+      acc.push (e.getArg! 1) else acc
+  match e with
+  | .app f a => iteConds a (iteConds f acc)
+  | .lam _ t b _ | .forallE _ t b _ => iteConds b (iteConds t acc)
+  | .letE _ t v b _ => iteConds b (iteConds v (iteConds t acc))
+  | .mdata _ b => iteConds b acc
+  | _ => acc
+
+/-- One round of `sv_ite_cases` on the main goal: split on the first condition and simplify both branches with it. -/
+partial def svIteCasesGo (fuel : Nat) : TacticM Unit := do
+  if fuel = 0 then return
+  let g ← getMainGoal
+  let c? ← g.withContext do
+    let mut es := #[← instantiateMVars (← g.getType)]
+    for d in ← getLCtx do
+      unless d.isImplementationDetail do es := es.push (← instantiateMVars d.type)
+    return (es.foldl (fun acc e => iteConds e acc) #[])[0]?
+  let some c := c? | return
+  let cStx ← g.withContext (Term.exprToSyntax c)
+  evalTactic (← `(tactic| by_cases hsv_ite : $cStx))
+  let gs ← getGoals
+  let mut out : List MVarId := []
+  for g' in gs do
+    setGoals [g']
+    try evalTactic (← `(tactic| simp only [hsv_ite, if_true, if_false, ↓reduceIte, not_false_eq_true] at *))
+    catch _ => pure ()
+    unless (← getGoals).isEmpty do
+      svIteCasesGo (fuel - 1)
+    out := out ++ (← getGoals)
+  setGoals out
+
+/-- **`sv_ite_cases`** (tac8): case split on the condition of each `if-then-else` in the goal and the hypotheses (a `?:`
+read as a conditional atom, `XAt.cond`, normalizes to one), each branch simplified with its case, so that what is left is
+linear for `omega` (`intros; sv_ite_cases <;> omega`). At most 32 nested splits per goal. -/
+elab "sv_ite_cases" : tactic => do
+  let gs ← getGoals
+  let mut out : List MVarId := []
+  for g in gs do
+    setGoals [g]
+    svIteCasesGo 32
+    out := out ++ (← getGoals)
+  setGoals out
 
 /-- **Close a decidable structural fact without an auxiliary lemma** (WP-P). `decide +kernel` turns the
 fact into an auxiliary theorem and adds it to the environment synchronously, and in the asynchronous
@@ -3135,6 +3186,11 @@ unsafe def runSvInterface : TacticM Unit := do
           sv_simp [LeanModels.Sv.CombView.DeclT.toDecl, LeanModels.Sv.CombView.DeclT.width,
             LeanModels.Sv.CombView.dimsW, LeanModels.Sv.CombView.Aff.eval,
             LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+      LeanModels.Sv.CombView.CL.eval, LeanModels.Sv.CombView.CL.linEval, LeanModels.Sv.CombView.CL.Ok,
+      LeanModels.Sv.CombView.CCmp.holds_lt_eq,
+      LeanModels.Sv.CombView.CCmp.holds_le_eq, LeanModels.Sv.CombView.CCmp.holds_gt_eq,
+      LeanModels.Sv.CombView.CCmp.holds_ge_eq, LeanModels.Sv.CombView.CCmp.holds_eq_eq,
+      LeanModels.Sv.CombView.CCmp.holds_ne_eq,
       LeanModels.Sv.CombView.XAt.eval, LeanModels.Sv.CombView.Aff.sub,
             LeanModels.Sv.CombView.Aff.neg, LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs, LeanModels.Sv.CombView.Aff.negXs,
             LeanModels.Sv.CombView.Aff.add, LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom,
