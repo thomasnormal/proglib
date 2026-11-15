@@ -2643,10 +2643,10 @@ def leaveCallM {α : Type} (action : SemW α) : SemW α :=
   tryCatch
     (do
       let value ← action
-      modify fun w => { w with callDepth := w.callDepth.pred }
+      modify fun w : World => { w with callDepth := w.callDepth.pred }
       pure value)
     (fun e => do
-      modify fun w => { w with callDepth := w.callDepth.pred }
+      modify fun w : World => { w with callDepth := w.callDepth.pred }
       raisePy e)
 
 def finishCallM {α : Type} (depth : Nat) (action : SemW α) : SemW α :=
@@ -4837,6 +4837,39 @@ theorem leaveCallM_inWorld_of_ok {α : Type}
   apply toRun_tryCatch_ok
   rw [bind_apply, hi]
   rfl
+
+theorem leaveCallM_inWorld_of_exn {α : Type}
+    (locals : REnv) (action : SemF α) (w : World)
+    (st' : FrameState) (e : PyErr)
+    (h : action ⟨w, locals⟩ = .ok (.error e, st')) :
+    toRun (leaveCallM (inWorld locals action)) w =
+      .exn { st'.world with callDepth := st'.world.callDepth.pred } e := by
+  have hi : (inWorld locals action) w =
+      .ok (.error e, st'.world) := by
+    unfold inWorld zoomOut
+    rw [h]
+  unfold leaveCallM
+  have hbody : (do
+      let value ← inWorld locals action
+      modify fun w : World => { w with callDepth := w.callDepth.pred }
+      pure value) w =
+      .ok (.error e, st'.world) := by
+    rw [bind_apply, hi]
+  have hh : ((do
+      modify fun w => { w with callDepth := w.callDepth.pred }
+      raisePy e : SemW α) st'.world) =
+      .ok (.error e, { st'.world with callDepth := st'.world.callDepth.pred }) := by
+    rfl
+  apply toRun_tryCatch_exn
+    (x := (do
+      let value ← inWorld locals action
+      modify fun w => { w with callDepth := w.callDepth.pred }
+      pure value))
+    (handler := fun e => do
+      modify fun w => { w with callDepth := w.callDepth.pred }
+      raisePy e) (s := w) (s' := st'.world)
+    (s'' := { st'.world with callDepth := st'.world.callDepth.pred })
+    (e := e) (e' := e) hbody hh
 
 theorem twinAgrees_callInM_top_body_exn
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)

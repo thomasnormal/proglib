@@ -664,3 +664,7 @@ message while keeping the top-depth boundary explicit.
 transport: an arbitrary successful frame action is projected through
 `inWorld`, then `leaveCallM` decrements the resulting frame depth while
 preserving the returned value.
+
+`Monadic.leaveCallM_inWorld_of_exn` supplies the matching recursive exception
+transport, retaining the post-body world, decrementing its active call depth,
+and propagating the original Python error.
