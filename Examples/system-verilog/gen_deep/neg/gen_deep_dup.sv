@@ -1,5 +1,5 @@
-// Two blocks with the same label at the same depth (`g_b` under `g_x` and under `g_y`, each holding one site): their
-// sites would share an identity (label, position, depth), which the structural check refuses.
+// Two blocks with the same label at the same depth (`g_b` under `g_x` and under `g_y`, each holding one site): distinct
+// scopes (IEEE 1800-2023 §27.6), named by their label paths `g_x.g_b` and `g_y.g_b` (tac7; refused before).
 module gen_deep_dup #(parameter int N = 4) (
   input  logic [N-1:0]        a,
   output logic [1:0][N-1:0]   z
