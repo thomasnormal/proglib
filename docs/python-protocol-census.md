@@ -876,6 +876,12 @@ projection (`SemF` retains an internal cause and snapshot while `Run` exposes
 the message), so no message-only theorem is claimed without a raw refusal
 premise.
 
+The late Python-builtin fallback is shared through `isPyBuiltinName`; both
+paths return `.callable id` for that predicate.  The adjacent lowered-builtin
+refusal uses the common `unmodelledBuiltinMsg`, so its text is shared as well;
+as with other refusals, only the internal-cause projection remains outside a
+message-only theorem.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
