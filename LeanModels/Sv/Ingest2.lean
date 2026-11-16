@@ -828,6 +828,15 @@ def parsePDecl (j : Json) : Except String PDecl := do
           return { name := name, type := ty, unpackedDims := unpacked, isSigned := isSigned, twoState := twoState, isInput := dir? == some "in", isOutput := dir? == some "out", isNet := kind == "Net", init := init, flatBase := flatBase, flatIndex := flatIndex }
       | other => throw s!"unknown declaration kind {other.quote}"
 
+/-! The optional `signed` field of a `ParameterDecl`/`LocalParam` (the
+declared type's signedness when it departs from the envelope default —
+`PParam.signed?`). -/
+private def parseOptSigned (j : Json) : Except String (Option Bool) :=
+  match getOptField j "signed" with
+  | none => .ok none
+  | some (Json.bool b) => .ok (some b)
+  | some _ => .error "field 'signed' is not a bool"
+
 /-! ## Generate items -/
 
 /-- Parse a generate-region member. Process shapes become `GenItem.process`;
@@ -871,11 +880,19 @@ partial def parseGenItem (j : Json) : Except String GenItem := do
         -- separate admission check in that route.
         return .decl (← parsePDecl j)
     | "LocalParam" | "ParameterDecl" =>
-        -- Generate-local constant declarations still need their own lexical
-        -- constant scope; retain a loud node rather than inventing a module
-        -- parameter or recovering one from source text.
-        return .unsupported s!"GenerateDecl:{kind}"
-          s!"generate-local declaration '{(getOptStr j "name").getD "?"}'"
+        -- Generate-local constants are source-shaped lexical declarations,
+        -- not module parameters.  Retain the declaration node so canonical E
+        -- can bind it at the active generate instance (§27.4) without
+        -- recovering a value from source text.
+        let name ← getStrField j "name"
+        let expr ← withCtx s!"generate-local parameter '{name}'"
+          (parsePExpr (← getField j "expr"))
+        let type? ← match getOptField j "type" with
+          | none => pure none
+          | some tj => pure (some (← withCtx s!"generate-local parameter '{name}' type"
+              (parsePType tj)))
+        let signed? ← parseOptSigned j
+        return .localParam { name, expr, resolved? := getOptInt j "resolved", type?, signed? }
     | "Unsupported" =>
         match ← parseNetMetadata? j with
         | some md =>
@@ -917,15 +934,6 @@ partial def parseGenerateNetMetadata (j : Json) : Except String (List PNetMetada
   let nested ← children.mapM parseGenerateNetMetadata
   pure ((here ++ nested.flatten).map (fun md => { md with generated := true }))
 
-
-/-- The optional `signed` field of a `ParameterDecl`/`LocalParam` (the
-declared type's signedness when it departs from the envelope default —
-`PParam.signed?`). -/
-private def parseOptSigned (j : Json) : Except String (Option Bool) :=
-  match getOptField j "signed" with
-  | none => .ok none
-  | some (Json.bool b) => .ok (some b)
-  | some _ => .error "field 'signed' is not a bool"
 
 /-- Parse the sv-0.2 `Module` payload into a `PDesign`. `Unsupported`
 members of any list are routed to `PDesign.others` — instantiation turns
@@ -1840,11 +1848,12 @@ private def unsupMemberText : String := r#"{
   "areset_n":"rst_n","body":{"kind":"Empty"}}"# >>= parsePProcess) with
   | .ok (.alwaysFFR "clk" "rst_n" _ false) => true
   | _ => false
--- A `localparam` inside a generate block is a loud item, not a parse failure.
+-- A `localparam` inside a generate block is retained as a source-shaped
+-- lexical declaration for canonical E (§27.4).
 #guard (Json.parse r#"{"kind": "LocalParam", "span": null, "name": "LL", "type": null,
     "expr": {"kind": "Int", "span": null, "value": 1, "resolved_width": 32}, "resolved": 1}"#
     >>= parseGenItem).toOption
-        == some (.unsupported "GenerateDecl:LocalParam" "generate-local declaration 'LL'")
+        == some (.localParam { name := "LL", expr := .int 1, resolved? := some 1 })
 #guard match (Json.parse r#"{"kind":"AlwaysEvent","event_kind":"ImplicitEventControl",
     "body":{"kind":"Empty"}}"# >>= parseGenItem).toOption with
   | some (.process (.alwaysImplicit (.block []))) => true

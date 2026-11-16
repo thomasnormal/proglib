@@ -1673,6 +1673,8 @@ def GenItem.expandE2 (env : IEnv) (elems : List (String × Nat)) (iterFuel : Nat
   | .process p => .ok [instEProcess2 env elems p]
   | .decl d => .ok [.ordinary (.unsupported "GenerateDecl:UnpackedDecl"
       s!"generate-local declaration '{d.name}' outside the scalar E route")]
+  | .localParam p => .ok [.ordinary (.unsupported "GenerateDecl:LocalParam"
+      s!"generate-local parameter '{p.name}' outside the scalar E route")]
   | .unsupported k t => .ok [.ordinary (.unsupported k t)]
   | .inst i => .ok [.ordinary (.unsupported "Instance"
       s!"module instance '{i.name}' of '{i.module}': flat instantiation (hierarchical designs instantiate through `PDesign.instantiateH`, Hier2.lean)")]
@@ -1757,6 +1759,8 @@ def GenItem.expand2 (env : IEnv) (elems : List (String × Nat)) (iterFuel : Nat)
   | .process p => .ok [instProcess2 env elems p]
   | .decl d => .ok [.unsupported "GenerateDecl:UnpackedDecl"
       s!"generate-local declaration '{d.name}' outside the scalar route"]
+  | .localParam p => .ok [.unsupported "GenerateDecl:LocalParam"
+      s!"generate-local parameter '{p.name}' outside the scalar route"]
   | .unsupported k t => .ok [.unsupported k t]
   | .inst i => .ok [.unsupported "Instance"
       s!"module instance '{i.name}' of '{i.module}': flat instantiation (hierarchical designs instantiate through `PDesign.instantiateH`, Hier2.lean)"]
@@ -1808,6 +1812,8 @@ def GenItem.expandFunctions2 (env : IEnv) (elems : List (String × Nat)) (iterFu
   | .process p => .ok [instProcess2Functions env elems p]
   | .decl d => .ok [.unsupported "GenerateDecl:UnpackedDecl"
       s!"generate-local declaration '{d.name}' outside the function route"]
+  | .localParam p => .ok [.unsupported "GenerateDecl:LocalParam"
+      s!"generate-local parameter '{p.name}' outside the function route"]
   | .unsupported k t => .ok [.unsupported k t]
   | .inst i => .ok [.unsupported "Instance"
       s!"module instance '{i.name}' of '{i.module}': flat instantiation (hierarchical designs instantiate through `PDesign.instantiateH`, Hier2.lean)"]

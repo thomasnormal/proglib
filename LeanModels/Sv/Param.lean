@@ -587,6 +587,11 @@ inductive GenItem where
   the canonical memory route collects it alongside the enclosing module
   declarations (IEEE 1800-2023 §27. generate blocks). -/
   | decl (d : PDecl)
+  /-- A generate-local `localparam` retained in its lexical generate scope.
+  It is evaluated at the active concrete generate instance and remains a
+  constant binding for the source-shaped items that follow it (IEEE
+  1800-2023 §27.4). -/
+  | localParam (p : PLocalParam)
   | genFor (label : Option String) (genvar : String) (init bound step : PExpr)
       (resolvedCount? : Option Nat) (body : List GenItem)
   | genIf (cond : PExpr) (thenB elseB : List GenItem)
@@ -3044,6 +3049,8 @@ def GenItem.expand (env : IEnv) (iterFuel : Nat) : GenItem → Res (List Process
   | .process p => .ok [instProcess env p]
   | .decl d => .ok [.unsupported "GenerateDecl:UnpackedDecl"
       s!"generate-local declaration '{d.name}' outside the flat process tier"]
+  | .localParam p => .ok [.unsupported "GenerateDecl:LocalParam"
+      s!"generate-local parameter '{p.name}' outside the flat process tier"]
   | .unsupported k t => .ok [.unsupported k t]
   | .inst i => .ok [.unsupported "Instance"
       s!"module instance '{i.name}' of '{i.module}' outside the M0 tier"]

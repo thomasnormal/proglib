@@ -130,6 +130,7 @@ private def hParamInst (vals : List (String × Int)) (i : PInst) : PInst :=
 private partial def hParamGen (vals : List (String × Int)) : GenItem → GenItem
   | .process p => .process (hParamProcess vals p)
   | .decl d => .decl (hParamDecl vals d)
+  | .localParam p => .localParam { p with expr := hParamExpr vals p.expr }
   | .genFor label g init bound step count body =>
       .genFor label g (hParamExpr vals init) (hParamExpr vals bound)
         (hParamExpr vals step) count (body.map (hParamGen vals))
@@ -190,7 +191,8 @@ private def hProcess (pfx : String) (clockMap : List (String × String)) : PProc
 private def hItems : List GenItem → Option PInst
   | [] => none
   | .inst i :: _ => some i
-  | .process _ :: rest | .decl _ :: rest | .unsupported .. :: rest => hItems rest
+  | .process _ :: rest | .decl _ :: rest | .localParam _ :: rest
+  | .unsupported .. :: rest => hItems rest
   | _ :: rest => hItems rest
 termination_by structural xs => xs
 
@@ -215,7 +217,8 @@ private partial def generatedInstances (env : IEnv) (fuel : Nat) :
   | .inst i :: rest => do
       let tail ← generatedInstances env fuel rest
       .ok ((hParamInst (hParamVals env) i, env) :: tail)
-  | .process _ :: rest | .decl _ :: rest => generatedInstances env fuel rest
+  | .process _ :: rest | .decl _ :: rest | .localParam _ :: rest =>
+      generatedInstances env fuel rest
   | .unsupported k t :: _ => .unsupported s!"{k}: {t}"
   | .genIf cond yes no :: rest => do
       let chosen := if (evalInt env cond).toOption.getD 0 != 0 then yes else no
@@ -243,16 +246,16 @@ design (IEEE 1800-2023 §§23.3.3, 27). -/
 mutual
 private def generatedParentItem (env : IEnv) (fuel : Nat) (vals : List (String × Int)) :
     GenItem → Res (List PProcess)
-  | .process p => .ok [coreMemSubstProcess vals p]
-  | .decl _ | .inst _ => .ok []
+  | .process p => .ok [coreMemSubstProcess { genvars := vals } p]
+  | .decl _ | .localParam _ | .inst _ => .ok []
   | .unsupported k t => .ok [.unsupported k t]
   | .genIf cond thenB elseB =>
-      match evalGenGuard (coreMemBindVals env vals) cond with
+      match evalGenGuard (coreMemBindVals env { genvars := vals }) cond with
       | .error e => .unsupported s!"generate if: {e}"
       | .ok v => if v != 0 then generatedParentList env fuel vals thenB
                  else generatedParentList env fuel vals elseB
   | .genFor _label g initE bound step _rc body =>
-      let env' := coreMemBindVals env vals
+      let env' := coreMemBindVals env { genvars := vals }
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ fuel i0
@@ -336,8 +339,8 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
     | .ok e => .ok e
     | .timeout => .timeout
     | .unsupported e => .unsupported e
-  let generatedDecls ← coreMemGeneratedDeclsList env
-    (PDesign.surfaceFuel args) [] top.generates
+  let (generatedDecls, _) ← coreMemGeneratedDeclsList env
+    (PDesign.surfaceFuel args) {} top.generates
   let generatedPs ← generatedParentList env
     (PDesign.surfaceFuel args) [] top.generates
   let insts ← generatedInstances env (PDesign.surfaceFuel args) top.generates

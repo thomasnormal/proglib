@@ -590,112 +590,144 @@ source node, so the canonical executor still sees the original `PProcess` /
 `PStmt` shape and the native `MemState` route.
 -/
 
-def coreMemSubstExpr (vals : List (String × Int)) : PExpr → PExpr
+/-! The lexical constants active while walking one generate instance.  Genvars
+and generate-local parameters are kept separately so a genvar has the
+shadowing priority required by IEEE 1800 section 27.4. -/
+structure CoreMemScope where
+  genvars : List (String × Int) := []
+  localParams : List (String × Int) := []
+deriving Repr, Inhabited
+
+def coreMemScopeEnv (env : IEnv) (scope : CoreMemScope) : IEnv :=
+  let env := scope.localParams.reverse.foldl
+    (fun e (n, v) => e.bindVal n v) env
+  scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env
+
+/-! Evaluate a generate-local parameter in the active lexical scope.  The
+canonical memory executor carries integer constants across generated
+source-shaped nodes; non-INT constants remain loud rather than being replaced
+by an untyped integer with different width or signedness. -/
+def coreMemBindLocalParam (env : IEnv) (scope : CoreMemScope) (p : PLocalParam) :
+    Res CoreMemScope :=
+  match bindLocal (coreMemScopeEnv env scope) p with
+  | .error e => .unsupported
+      s!"GenerateDecl:LocalParam: generate-local parameter '{p.name}': {e}"
+  | .ok env' =>
+      match env'.intVal? p.name with
+      | some v => .ok { scope with localParams := (p.name, v) :: scope.localParams }
+      | none => .unsupported
+          s!"GenerateDecl:LocalParam: generate-local parameter '{p.name}': non-INT type is outside the canonical E scope"
+
+def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
   | .genvarRef n =>
-      match vals.lookup n with
+      match scope.genvars.lookup n with
       | some v => .int v
       | none => .genvarRef n
-  | .unary op a => .unary op (coreMemSubstExpr vals a)
-  | .binary op a b => .binary op (coreMemSubstExpr vals a) (coreMemSubstExpr vals b)
-  | .ternary c a b => .ternary (coreMemSubstExpr vals c) (coreMemSubstExpr vals a)
-      (coreMemSubstExpr vals b)
-  | .concat xs => .concat (xs.map (coreMemSubstExpr vals))
-  | .resize w a => .resize w (coreMemSubstExpr vals a)
-  | .signedResize w a => .signedResize w (coreMemSubstExpr vals a)
-  | .squash2 w a => .squash2 w (coreMemSubstExpr vals a)
-  | .sysCall fn a => .sysCall fn (coreMemSubstExpr vals a)
-  | .bitSel a b => .bitSel (coreMemSubstExpr vals a) (coreMemSubstExpr vals b)
-  | .partSel a b c => .partSel (coreMemSubstExpr vals a) (coreMemSubstExpr vals b)
-      (coreMemSubstExpr vals c)
-  | .repl a b => .repl (coreMemSubstExpr vals a) (coreMemSubstExpr vals b)
-  | .reduce op a => .reduce op (coreMemSubstExpr vals a)
-  | .cast s a => .cast s (coreMemSubstExpr vals a)
-  | .arrayElem n xs => .arrayElem n (xs.map (coreMemSubstExpr vals))
-  | .arrayPart n xs mode a b => .arrayPart n (xs.map (coreMemSubstExpr vals)) mode
-      (coreMemSubstExpr vals a) (coreMemSubstExpr vals b)
-  | .functionCall n xs => .functionCall n (xs.map (coreMemSubstExpr vals))
+  | .paramRef n none =>
+      match scope.localParams.lookup n with
+      | some v => .int v
+      | none => .paramRef n none
+  | .unary op a => .unary op (coreMemSubstExpr scope a)
+  | .binary op a b => .binary op (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .ternary c a b => .ternary (coreMemSubstExpr scope c) (coreMemSubstExpr scope a)
+      (coreMemSubstExpr scope b)
+  | .concat xs => .concat (xs.map (coreMemSubstExpr scope))
+  | .resize w a => .resize w (coreMemSubstExpr scope a)
+  | .signedResize w a => .signedResize w (coreMemSubstExpr scope a)
+  | .squash2 w a => .squash2 w (coreMemSubstExpr scope a)
+  | .sysCall fn a => .sysCall fn (coreMemSubstExpr scope a)
+  | .bitSel a b => .bitSel (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .partSel a b c => .partSel (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+      (coreMemSubstExpr scope c)
+  | .repl a b => .repl (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .reduce op a => .reduce op (coreMemSubstExpr scope a)
+  | .cast s a => .cast s (coreMemSubstExpr scope a)
+  | .arrayElem n xs => .arrayElem n (xs.map (coreMemSubstExpr scope))
+  | .arrayPart n xs mode a b => .arrayPart n (xs.map (coreMemSubstExpr scope)) mode
+      (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .functionCall n xs => .functionCall n (xs.map (coreMemSubstExpr scope))
   | e => e
 
-def coreMemSubstLhs (vals : List (String × Int)) : PLhs → PLhs
-  | .bitSel n i => .bitSel n (coreMemSubstExpr vals i)
-  | .partSel n a b => .partSel n (coreMemSubstExpr vals a) (coreMemSubstExpr vals b)
-  | .concat xs => .concat (xs.map (coreMemSubstLhs vals))
-  | .arrayElem n xs => .arrayElem n (xs.map (coreMemSubstExpr vals))
-  | .arrayPart n xs mode a b => .arrayPart n (xs.map (coreMemSubstExpr vals)) mode
-      (coreMemSubstExpr vals a) (coreMemSubstExpr vals b)
+def coreMemSubstLhs (scope : CoreMemScope) : PLhs → PLhs
+  | .bitSel n i => .bitSel n (coreMemSubstExpr scope i)
+  | .partSel n a b => .partSel n (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .concat xs => .concat (xs.map (coreMemSubstLhs scope))
+  | .arrayElem n xs => .arrayElem n (xs.map (coreMemSubstExpr scope))
+  | .arrayPart n xs mode a b => .arrayPart n (xs.map (coreMemSubstExpr scope)) mode
+      (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | l => l
 
-def coreMemSubstDim (vals : List (String × Int)) (d : PDim) : PDim :=
-  { msb := coreMemSubstExpr vals d.msb, lsb := coreMemSubstExpr vals d.lsb }
+def coreMemSubstDim (scope : CoreMemScope) (d : PDim) : PDim :=
+  { msb := coreMemSubstExpr scope d.msb, lsb := coreMemSubstExpr scope d.lsb }
 
-def coreMemSubstType (vals : List (String × Int)) : PType → PType
-  | .packed dims resolved => .packed (dims.map (coreMemSubstDim vals)) resolved
+def coreMemSubstType (scope : CoreMemScope) : PType → PType
+  | .packed dims resolved => .packed (dims.map (coreMemSubstDim scope)) resolved
   | .typeRef n pkg resolved => .typeRef n pkg resolved
   | .unrecoverable resolved => .unrecoverable resolved
 
-def coreMemSubstDecl (vals : List (String × Int)) (d : PDecl) : PDecl :=
-  { name := d.name, type := coreMemSubstType vals d.type,
-    unpackedDims := d.unpackedDims.map (coreMemSubstDim vals),
+def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
+  { name := d.name, type := coreMemSubstType scope d.type,
+    unpackedDims := d.unpackedDims.map (coreMemSubstDim scope),
     isSigned := d.isSigned, twoState := d.twoState, isInput := d.isInput,
     isOutput := d.isOutput, isNet := d.isNet,
-    init := d.init.map (coreMemSubstExpr vals), flatBase := d.flatBase,
+    init := d.init.map (coreMemSubstExpr scope), flatBase := d.flatBase,
     flatIndex := d.flatIndex }
 
 mutual
-def coreMemSubstStmt (vals : List (String × Int)) : PStmt → PStmt
-  | .blockingAssign n e => .blockingAssign n (coreMemSubstExpr vals e)
-  | .nbaAssign n e => .nbaAssign n (coreMemSubstExpr vals e)
-  | .ifStmt c t e => .ifStmt (coreMemSubstExpr vals c) (coreMemSubstStmt vals t)
-      (coreMemSubstStmtOpt vals e)
-  | .block xs => .block (coreMemSubstStmtList vals xs)
-  | .forLoop n i c s b => .forLoop n (coreMemSubstExpr vals i)
-      (coreMemSubstExpr vals c) (coreMemSubstExpr vals s) (coreMemSubstStmt vals b)
-  | .blockingAssignL l e => .blockingAssignL (coreMemSubstLhs vals l)
-      (coreMemSubstExpr vals e)
-  | .nbaAssignL l e => .nbaAssignL (coreMemSubstLhs vals l)
-      (coreMemSubstExpr vals e)
+def coreMemSubstStmt (scope : CoreMemScope) : PStmt → PStmt
+  | .blockingAssign n e => .blockingAssign n (coreMemSubstExpr scope e)
+  | .nbaAssign n e => .nbaAssign n (coreMemSubstExpr scope e)
+  | .ifStmt c t e => .ifStmt (coreMemSubstExpr scope c) (coreMemSubstStmt scope t)
+      (coreMemSubstStmtOpt scope e)
+  | .block xs => .block (coreMemSubstStmtList scope xs)
+  | .forLoop n i c s b => .forLoop n (coreMemSubstExpr scope i)
+      (coreMemSubstExpr scope c) (coreMemSubstExpr scope s) (coreMemSubstStmt scope b)
+  | .blockingAssignL l e => .blockingAssignL (coreMemSubstLhs scope l)
+      (coreMemSubstExpr scope e)
+  | .nbaAssignL l e => .nbaAssignL (coreMemSubstLhs scope l)
+      (coreMemSubstExpr scope e)
   | .caseStmt s items d mode check =>
-      .caseStmt (coreMemSubstExpr vals s)
-        (coreMemSubstCaseItems vals items) (coreMemSubstStmtOpt vals d) mode check
+      .caseStmt (coreMemSubstExpr scope s)
+        (coreMemSubstCaseItems scope items) (coreMemSubstStmtOpt scope d) mode check
   | s => s
 termination_by structural s => s
 
-def coreMemSubstStmtOpt (vals : List (String × Int)) : Option PStmt → Option PStmt
+def coreMemSubstStmtOpt (scope : CoreMemScope) : Option PStmt → Option PStmt
   | none => none
-  | some s => some (coreMemSubstStmt vals s)
+  | some s => some (coreMemSubstStmt scope s)
 termination_by structural o => o
 
-def coreMemSubstStmtList (vals : List (String × Int)) : List PStmt → List PStmt
+def coreMemSubstStmtList (scope : CoreMemScope) : List PStmt → List PStmt
   | [] => []
-  | s :: ss => coreMemSubstStmt vals s :: coreMemSubstStmtList vals ss
+  | s :: ss => coreMemSubstStmt scope s :: coreMemSubstStmtList scope ss
 termination_by structural xs => xs
 
-def coreMemSubstCaseItems (vals : List (String × Int)) :
+def coreMemSubstCaseItems (scope : CoreMemScope) :
     List (List PExpr × PStmt) → List (List PExpr × PStmt)
   | [] => []
   | (ps, b) :: rest =>
-      (ps.map (coreMemSubstExpr vals), coreMemSubstStmt vals b) ::
-        coreMemSubstCaseItems vals rest
+      (ps.map (coreMemSubstExpr scope), coreMemSubstStmt scope b) ::
+        coreMemSubstCaseItems scope rest
 termination_by structural xs => xs
 
-def coreMemSubstProcess (vals : List (String × Int)) : PProcess → PProcess
-  | .alwaysFF c b => .alwaysFF c (coreMemSubstStmt vals b)
-  | .alwaysFFNegedge c b => .alwaysFFNegedge c (coreMemSubstStmt vals b)
-  | .alwaysPlain c b => .alwaysPlain c (coreMemSubstStmt vals b)
-  | .alwaysComb b => .alwaysComb (coreMemSubstStmt vals b)
-  | .alwaysLatch b => .alwaysLatch (coreMemSubstStmt vals b)
-  | .alwaysImplicit b => .alwaysImplicit (coreMemSubstStmt vals b)
-  | .assign n e => .assign n (coreMemSubstExpr vals e)
-  | .assignL l e => .assignL (coreMemSubstLhs vals l) (coreMemSubstExpr vals e)
-  | .alwaysFFR c r b h => .alwaysFFR c r (coreMemSubstStmt vals b) h
-  | .initial b => .initial (coreMemSubstStmt vals b)
+def coreMemSubstProcess (scope : CoreMemScope) : PProcess → PProcess
+  | .alwaysFF c b => .alwaysFF c (coreMemSubstStmt scope b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge c (coreMemSubstStmt scope b)
+  | .alwaysPlain c b => .alwaysPlain c (coreMemSubstStmt scope b)
+  | .alwaysComb b => .alwaysComb (coreMemSubstStmt scope b)
+  | .alwaysLatch b => .alwaysLatch (coreMemSubstStmt scope b)
+  | .alwaysImplicit b => .alwaysImplicit (coreMemSubstStmt scope b)
+  | .assign n e => .assign n (coreMemSubstExpr scope e)
+  | .assignL l e => .assignL (coreMemSubstLhs scope l) (coreMemSubstExpr scope e)
+  | .alwaysFFR c r b h => .alwaysFFR c r (coreMemSubstStmt scope b) h
+  | .initial b => .initial (coreMemSubstStmt scope b)
   | p => p
 end
 
-def coreMemBindVals (env : IEnv) (vals : List (String × Int)) : IEnv :=
-  -- `vals` is ordered from the innermost generate scope outward. Binding the
-  -- reverse list preserves the head-first shadowing used by `lookup`.
-  vals.reverse.foldl (fun e (n, v) => e.bindVal n v) env
+def coreMemBindVals (env : IEnv) (scope : CoreMemScope) : IEnv :=
+  let env := scope.localParams.reverse.foldl
+    (fun e (n, v) => e.bindVal n v) env
+  scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env
 
 /-! Active generated declarations are collected from the same source-shaped
 walk as generated processes.  A declaration is copied once for each active
@@ -706,41 +738,53 @@ inactive branches are never visited.  This is the declaration half of IEEE
 
 mutual
 def coreMemGeneratedDeclsItem (env : IEnv) (iterFuel : Nat)
-    (vals : List (String × Int)) : GenItem → Res (List PDecl)
+    (scope : CoreMemScope) : GenItem → Res (List PDecl)
   | .process _ | .unsupported _ _ | .inst _ => .ok []
-  | .decl d => .ok [coreMemSubstDecl vals d]
+  | .decl d => .ok [coreMemSubstDecl scope d]
+  | .localParam _ => .ok []
   | .genIf cond thenB elseB =>
-      match evalGenGuard (coreMemBindVals env vals) cond with
+      match evalGenGuard (coreMemBindVals env scope) cond with
       | .error e => .unsupported s!"generate if: {e}"
-      | .ok v => if v != 0 then coreMemGeneratedDeclsList env iterFuel vals thenB
-                 else coreMemGeneratedDeclsList env iterFuel vals elseB
+      | .ok v =>
+          if v != 0 then
+            do
+              let (ds, _) ← coreMemGeneratedDeclsList env iterFuel scope thenB
+              pure ds
+          else
+            do
+              let (ds, _) ← coreMemGeneratedDeclsList env iterFuel scope elseB
+              pure ds
   | .genFor _label g initE bound step _rc body =>
-      let env' := coreMemBindVals env vals
+      let env' := coreMemBindVals env scope
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ iterFuel i0
-          coreMemGeneratedDeclsIters env iterFuel vals g vs body
+          coreMemGeneratedDeclsIters env iterFuel scope g vs body
       | .error e, _ => .unsupported s!"generate for: {e}"
       | _, .error e => .unsupported s!"generate for: {e}"
   termination_by it => (sizeOf it, 0)
   decreasing_by all_goals (simp_wf; omega)
 
 def coreMemGeneratedDeclsList (env : IEnv) (iterFuel : Nat)
-    (vals : List (String × Int)) : List GenItem → Res (List PDecl)
-  | [] => .ok []
+    (scope : CoreMemScope) : List GenItem → Res (List PDecl × CoreMemScope)
+  | [] => .ok ([], scope)
+  | .localParam p :: rest => do
+      let scope' ← coreMemBindLocalParam env scope p
+      coreMemGeneratedDeclsList env iterFuel scope' rest
   | it :: rest => do
-      let ds ← coreMemGeneratedDeclsItem env iterFuel vals it
-      let tail ← coreMemGeneratedDeclsList env iterFuel vals rest
-      .ok (ds ++ tail)
+      let ds ← coreMemGeneratedDeclsItem env iterFuel scope it
+      let (tail, scope') ← coreMemGeneratedDeclsList env iterFuel scope rest
+      .ok (ds ++ tail, scope')
   termination_by xs => (sizeOf xs, 0)
   decreasing_by all_goals (simp_wf; omega)
 
 def coreMemGeneratedDeclsIters (env : IEnv) (iterFuel : Nat)
-    (vals : List (String × Int)) (g : String) : List Int → List GenItem → Res (List PDecl)
+    (scope : CoreMemScope) (g : String) : List Int → List GenItem → Res (List PDecl)
   | [], _ => .ok []
   | v :: vs, body => do
-      let ds ← coreMemGeneratedDeclsList env iterFuel ((g, v) :: vals) body
-      let tail ← coreMemGeneratedDeclsIters env iterFuel vals g vs body
+      let scope' := { scope with genvars := (g, v) :: scope.genvars }
+      let (ds, _) ← coreMemGeneratedDeclsList env iterFuel scope' body
+      let tail ← coreMemGeneratedDeclsIters env iterFuel scope g vs body
       .ok (ds ++ tail)
   termination_by vs body => (sizeOf body, vs.length + 1)
   decreasing_by all_goals (simp_wf; omega)
@@ -751,45 +795,57 @@ def coreMemDeclNamesUnique (decls : List PDecl) : Bool :=
   names.eraseDups.length == names.length
 
 mutual
-def coreMemExpandItem (env : IEnv) (iterFuel : Nat) (vals : List (String × Int)) :
+def coreMemExpandItem (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope) :
     GenItem → Res (List PProcess)
-  | .process p => .ok [coreMemSubstProcess vals p]
+  | .process p => .ok [coreMemSubstProcess scope p]
   | .decl _ => .ok []
+  | .localParam _ => .ok []
   | .unsupported k t => .ok [.unsupported k t]
   | .inst i => .ok [.unsupported "Instance"
       s!"module instance '{i.name}' of '{i.module}' outside the canonical E memory route"]
   | .genIf cond thenB elseB =>
-      match evalGenGuard (coreMemBindVals env vals) cond with
+      match evalGenGuard (coreMemBindVals env scope) cond with
       | .error e => .unsupported s!"generate if: {e}"
-      | .ok v => if v != 0 then coreMemExpandList env iterFuel vals thenB
-                 else coreMemExpandList env iterFuel vals elseB
+      | .ok v =>
+          if v != 0 then
+            do
+              let (ps, _) ← coreMemExpandList env iterFuel scope thenB
+              pure ps
+          else
+            do
+              let (ps, _) ← coreMemExpandList env iterFuel scope elseB
+              pure ps
   | .genFor _label g initE bound step _rc body =>
-      let env' := coreMemBindVals env vals
+      let env' := coreMemBindVals env scope
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ iterFuel i0
-          coreMemExpandIters env iterFuel vals g vs body
+          coreMemExpandIters env iterFuel scope g vs body
       | .error e, _ => .unsupported s!"generate for: {e}"
       | _, .error e => .unsupported s!"generate for: {e}"
   termination_by it => (sizeOf it, 0)
   decreasing_by all_goals (simp_wf; omega)
 
-def coreMemExpandList (env : IEnv) (iterFuel : Nat) (vals : List (String × Int)) :
-    List GenItem → Res (List PProcess)
-  | [] => .ok []
+def coreMemExpandList (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope) :
+    List GenItem → Res (List PProcess × CoreMemScope)
+  | [] => .ok ([], scope)
+  | .localParam p :: rest => do
+      let scope' ← coreMemBindLocalParam env scope p
+      coreMemExpandList env iterFuel scope' rest
   | it :: rest => do
-      let ps ← coreMemExpandItem env iterFuel vals it
-      let qs ← coreMemExpandList env iterFuel vals rest
-      .ok (ps ++ qs)
+      let ps ← coreMemExpandItem env iterFuel scope it
+      let (qs, scope') ← coreMemExpandList env iterFuel scope rest
+      .ok (ps ++ qs, scope')
   termination_by xs => (sizeOf xs, 0)
   decreasing_by all_goals (simp_wf; omega)
 
-def coreMemExpandIters (env : IEnv) (iterFuel : Nat) (vals : List (String × Int))
+def coreMemExpandIters (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope)
     (g : String) : List Int → List GenItem → Res (List PProcess)
   | [], _ => .ok []
   | v :: vs, body => do
-      let ps ← coreMemExpandList env iterFuel ((g, v) :: vals) body
-      let qs ← coreMemExpandIters env iterFuel vals g vs body
+      let scope' := { scope with genvars := (g, v) :: scope.genvars }
+      let (ps, _) ← coreMemExpandList env iterFuel scope' body
+      let qs ← coreMemExpandIters env iterFuel scope g vs body
       .ok (ps ++ qs)
   termination_by vs body => (sizeOf body, vs.length + 1)
   decreasing_by all_goals (simp_wf; omega)
@@ -1061,7 +1117,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     let env2 := { env2 with pwidths := pws }
     let env2 := { env2 with dims := dimTable env2 d.decls }
     let env2 := { env2 with functions := d.functions }
-    let generatedDecls ← coreMemGeneratedDeclsList env2 iterFuel [] d.generates
+    let (generatedDecls, _) ← coreMemGeneratedDeclsList env2 iterFuel {} d.generates
     let sourceNames := (d.decls ++ generatedDecls).map (·.name)
     let metadataForSource := d.netMetadata.filter (fun md => !md.generated)
     let sourceDecls := d.decls ++ generatedDecls ++ coreMemMetadataDecls metadataForSource
@@ -1069,7 +1125,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
       .unsupported "UnpackedDecl:generate-scope: active generate declarations contain duplicate names"
     else
       let env2 := { env2 with dims := dimTable env2 (d.decls ++ generatedDecls) }
-      let generatedRaw ← coreMemExpandList env2 iterFuel [] d.generates
+      let (generatedRaw, _) ← coreMemExpandList env2 iterFuel {} d.generates
       let generated := coreMemDropGeneratedNetMarkers d generatedRaw
       let generatedMetadataOk := d.netMetadata.all (fun md =>
         !md.generated || !sourceNames.contains md.name ||
