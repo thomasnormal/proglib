@@ -7,7 +7,7 @@ This table is generated from the pinned public-design census receipts. It measur
 | design | pinned source | unsupported nodes | loads into E | first E wall |
 | --- | --- | ---: | --- | --- |
 | `prim_fifo_sync` | OpenTitan 0a6ff685 | 36 | no | `Constant: $bits argument outside the declared-signal tier (prim_pad_wrapper_pkg::AttrDw)` |
-| `prim_arbiter_ppc` | OpenTitan 0a6ff685 | 6 | no | `Constant: localparam 'IdxW': function 'vbits' in a constant context` |
+| `prim_arbiter_ppc` | OpenTitan 0a6ff685 | 6 | no | `GenerateDecl:Var: generate-local declaration 'masked_req'` |
 | `prim_packer` | OpenTitan 0a6ff685 | 20 | no | `PortSymbol:net-z (ready_o, line 18)` |
 | `CV32E40P` | openhwgroup v1.0.1 / 6148cf5 | 574 | no | `AlwaysPosedge:edge` |
 | `Ibex` | lowRISC d513671d | 396 | no | `AlwaysLatch:unknown process kind` |

@@ -240,7 +240,7 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) :
               -- point before hoisting the process into the parent; dropping
               -- it here turns a driven output into an initial x (IEEE
               -- 1800-2023 §§27.4, 23.3.3).
-              let cenv ← child'.paramEnvH { int32 := true } cargs
+              let cenv ← child'.paramEnvH { int32 := true, functions := child'.functions } cargs
               let child'' := hParamDesign (hParamVals cenv) child'
               let generated ← coreMemExpandList cenv
                 (PDesign.surfaceFuel cargs) [] child''.generates
@@ -253,7 +253,7 @@ source-shaped, so `PDesign.instantiateCoreMem` binds dimensions at the top point
 def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List Int) :
     Res CoreMemDesign :=
   do
-  let env ← match top.paramEnvH { int32 := true } args with
+  let env ← match top.paramEnvH { int32 := true, functions := top.functions } args with
     | .ok e => .ok e
     | .timeout => .timeout
     | .unsupported e => .unsupported e
@@ -282,7 +282,12 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
       decls := top.decls ++ childDecls
       processes := top.processes ++ inputPs ++ childPs ++ outputPs
       generates := []
-      others := top.others ++ children.flatMap fun (child, _, _, _, _) => child.others }
+      others := top.others ++ children.flatMap fun (child, _, _, _, _) => child.others
+      -- A child function remains a source-shaped declaration after the
+      -- §23.3.3 port-connection merge.  Carry it into the merged constant
+      -- scope so a child localparam such as `vbits(N)` is evaluated by the
+      -- same canonical constant-function tier as the top declaration.
+      functions := top.functions ++ children.flatMap fun (child, _, _, _, _) => child.functions }
   match PDesign.instantiateCoreMem merged args with
   | .ok d => .ok d
   | .timeout => .timeout

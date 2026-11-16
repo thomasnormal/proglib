@@ -132,6 +132,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("package_function_case.sv", "package_function_case",
             (Port("a", 5),), (Port("y", 5),),
             retain_proc_rewrites=True),
+    Fixture("constant_function_child.sv", "constant_function_top",
+            (Port("x", 4),), (Port("y", 2),),
+            (Point("N1", (1,)), Point("N4", (4,))),
+            retain_proc_rewrites=True),
     Fixture("packed_enum_dimension.sv", "packed_enum_dimension",
             (Port("mode", 2),), (Port("y", 1),),
             retain_proc_rewrites=True),
@@ -232,6 +236,11 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
     if fixture.top == "generated_array_nested" and point.args \
             and port.name in ("x", "taps"):
         return point.args[0]
+    if fixture.top == "constant_function_top" and point.args:
+        if port.name == "x":
+            return point.args[0]
+        if port.name == "y":
+            return 1 if point.args[0] == 1 else 2
     return port.width
 
 
@@ -304,6 +313,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "hierarchy_parameterized": ("W",),
             "parameterized_storage_structure": ("N",),
             "initial_parameter_check": ("N",),
+            "constant_function_top": ("N",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []
