@@ -20,6 +20,7 @@ import LeanModels.Sv.Ingest2
 
 open Lean (Json)
 open LeanModels.Sv
+open LeanModels.Sv.Kernel
 
 namespace SvRefusalCensus
 
@@ -100,6 +101,18 @@ def guardRows (pd : PDesign) (lib : List PDesign) : List Row :=
         (if i32 then [] else [{ construct := "Constant:int32", function := "PDesign.int32Agrees", message := "default point leaves the exact 32-bit int tier" }])
   cross ++ libs ++ point
 
+def eRows (envl : Envelope2) : List Row :=
+  let pd := envl.design
+  let args := pd.defaultArgs.toOption.getD []
+  let r := if envl.lib.isEmpty then
+      LeanModels.Sv.Kernel.PDesign.instantiateE2 pd args (PDesign.surfaceFuel args)
+    else
+      LeanModels.Sv.Kernel.PDesign.instantiateE2H pd envl.lib args
+  match r with
+  | .ok _ => []
+  | .timeout => [{ construct := "Instantiation:E:timeout", function := "PDesign.instantiateE2", message := "generate expansion fuel exhausted" }]
+  | .unsupported m => [{ construct := "Instantiation:E:unsupported", function := "PDesign.instantiateE2", message := m }]
+
 def collect (envl : Envelope2) : List Row :=
   let pd := envl.design
   let lib := envl.lib
@@ -109,7 +122,7 @@ def collect (envl : Envelope2) : List Row :=
         | _ => []
     | .timeout => [{ construct := "Instantiation:timeout", function := "PDesign.instantiate", message := "generate expansion fuel exhausted" }]
     | .unsupported m => [{ construct := "Instantiation:unsupported", function := "PDesign.instantiate", message := m }]
-  (designRows pd ++ guardRows pd lib ++ instantiated).eraseDups
+  (designRows pd ++ guardRows pd lib ++ instantiated ++ eRows envl).eraseDups
 
 def main (args : List String) : IO UInt32 := do
   match args with

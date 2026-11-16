@@ -592,6 +592,51 @@ def coreMemExpandIters (env : IEnv) (iterFuel : Nat) (vals : List (String × Int
   decreasing_by all_goals (simp_wf; omega)
 end
 
+/-! A continuous-assignment pass is source ordered.  IEEE 1800-2023
+§4.5/§10.3 requires the slot to remain active until every driver is current;
+the present E route uses one pass, so it admits only the sufficient
+topological-source-order shape.  Keep this check on the retained `PExpr` /
+`PLhs` nodes: it is an admission guard, not a lowering of the source. -/
+mutual
+def coreMemSignalNames : PExpr → List String
+  | .ident n => [n]
+  | .arrayElem n is => n :: coreMemSignalNamesList is
+  | .arrayPart n is _ a b => n :: (coreMemSignalNamesList is ++ coreMemSignalNames a ++ coreMemSignalNames b)
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
+  | .sysCall _ a | .reduce _ a | .cast _ a => coreMemSignalNames a
+  | .binary _ a b | .bitSel a b | .repl a b => coreMemSignalNames a ++ coreMemSignalNames b
+  | .ternary c a b | .partSel c a b =>
+      coreMemSignalNames c ++ coreMemSignalNames a ++ coreMemSignalNames b
+  | .concat xs | .functionCall _ xs => coreMemSignalNamesList xs
+  | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _
+  | .unsupported _ _ => []
+
+def coreMemSignalNamesList : List PExpr → List String
+  | [] => []
+  | x :: xs => coreMemSignalNames x ++ coreMemSignalNamesList xs
+end
+
+def coreMemLhsTargets : PLhs → List String
+  | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n .. => [n]
+  | .concat xs => xs.flatMap coreMemLhsTargets
+
+def coreMemAssignTargets : List CoreMemProc → List String
+  | [] => []
+  | .assign target _ :: rest => coreMemLhsTargets target ++ coreMemAssignTargets rest
+  | _ :: rest => coreMemAssignTargets rest
+
+def coreMemAssignTopoB : List CoreMemProc → Bool
+  | [] => true
+  | p :: rest =>
+      (match p with
+       | .assign _ value =>
+           (coreMemSignalNames value).all fun name =>
+             !(coreMemAssignTargets (p :: rest)).contains name
+       | _ => true) && coreMemAssignTopoB rest
+
+def CoreMemDesign.assignTopoB (E : CoreMemDesign) : Bool :=
+  coreMemAssignTopoB E.processes.toList
+
 def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     (iterFuel : Nat := 4096) : Res CoreMemDesign := do
   if args.length != d.params.length then
@@ -643,7 +688,11 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
             memories := memories.toArray, processes := processes.toArray,
             readmemh := d.readmemh }
-        .ok { result with compiledAssigns := result.compileAssigns }
+        if !result.assignTopoB then
+          .unsupported
+            "10.3: continuous assignment target is read from itself or a later assignment; canonical E requires topological source order"
+        else
+          .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
 
