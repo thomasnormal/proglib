@@ -335,6 +335,81 @@ their signal is a top-level input port. -/
 def coreMemInputPortB (d : PDesign) (name : String) : Bool :=
   d.decls.any (fun pd => pd.name == name && pd.isInput)
 
+/-! A single source-shaped process activation may issue several updates to the
+same signal.  In the NBA region each assignment is a distinct update event
+(IEEE 1800-2023 §4.6), and blocking assignments expose each intermediate
+value immediately (§10.4.1).  The canonical E pass currently commits an
+activation as one retained state transition, so it cannot preserve an edge
+that occurs between two writes.  Refuse the syntactic sufficient shape: an
+edge source (clock or asynchronous-reset signal) is written at least twice
+in any one retained process body.  This is deliberately conservative across
+branches; proving that two writes are mutually exclusive belongs to the
+event-queue scheduler, not this admission check.
+-/
+
+mutual
+
+def coreMemStmtWrites : PStmt → List String
+  | .blockingAssign name _ | .nbaAssign name _ => [name]
+  | .ifStmt _ yes none => coreMemStmtWrites yes
+  | .ifStmt _ yes (some no) => coreMemStmtWrites yes ++ coreMemStmtWrites no
+  | .block body => coreMemStmtWritesList body
+  | .forLoop _ _ _ _ body => coreMemStmtWrites body
+  | .blockingAssignL target _ | .nbaAssignL target _ => [target.name]
+  | .caseStmt _ items none _ _ => coreMemCaseWrites items
+  | .caseStmt _ items (some defaultBody) _ _ =>
+      coreMemCaseWrites items ++ coreMemStmtWrites defaultBody
+  | .unsupported _ _ => []
+
+def coreMemStmtWritesList : List PStmt → List String
+  | [] => []
+  | stmt :: rest => coreMemStmtWrites stmt ++ coreMemStmtWritesList rest
+
+def coreMemCaseWrites : List (List PExpr × PStmt) → List String
+  | [] => []
+  | item :: rest => coreMemStmtWrites item.2 ++ coreMemCaseWrites rest
+
+end
+
+def coreMemProcWrites : PProcess → List String
+  | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysFFR _ _ body _ | .initial body => coreMemStmtWrites body
+  | .assign _ _ | .assignL _ _ | .unsupported _ _ => []
+
+def coreMemEventSources : List PProcess → List String
+  | [] => []
+  | .alwaysFF clock _ :: rest => clock :: coreMemEventSources rest
+  | .alwaysFFNegedge clock _ :: rest => clock :: coreMemEventSources rest
+  | .alwaysPlain clock _ :: rest => clock :: coreMemEventSources rest
+  | .alwaysFFR clock reset _ _ :: rest =>
+      clock :: reset :: coreMemEventSources rest
+  | _ :: rest => coreMemEventSources rest
+
+def coreMemWritesNameTwice (name : String) (writes : List String) : Bool :=
+  (writes.filter (· == name)).length > 1
+
+def coreMemSourceWrittenTwiceInBody (name : String) : List PProcess → Bool
+  | [] => false
+  | p :: rest =>
+      coreMemWritesNameTwice name (coreMemProcWrites p) ||
+        coreMemSourceWrittenTwiceInBody name rest
+
+def coreMemFirstRepeatedEventSource : List String → List PProcess → Option String
+  | [], _ => none
+  | source :: rest, processes =>
+      if coreMemSourceWrittenTwiceInBody source processes then some source
+      else coreMemFirstRepeatedEventSource rest processes
+
+def coreMemEventSourceMultiWriteViol (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  let processes := d.processes ++ generated
+  match coreMemFirstRepeatedEventSource (coreMemEventSources processes) processes with
+  | none => none
+  | some source =>
+      some ("Event:multiple-write",
+        s!"4.6: event source '{source}' is written more than once in one process activation; intermediate update events are not modeled")
+
 def coreMemClockResetViol (_d : PDesign) (_generated : List PProcess) :
     Option (String × String) :=
   -- Canonical E now iterates NBA-caused clock/reset events in the same slot
@@ -719,9 +794,12 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generatedRaw)
       if !generatedMetadataOk then
         .unsupported "NetSymbol:net-z:generate: generated net metadata does not prove a supported §6.6 net shape"
-      else match coreMemClockResetViol d generated with
+      else match coreMemEventSourceMultiWriteViol d generated with
       | some (kind, msg) => .unsupported s!"{kind}: {msg}"
       | none =>
+        match coreMemClockResetViol d generated with
+        | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+        | none =>
           match coreMemFirstUnsupportedOther d generated d.others with
           | some (kind, text) =>
               .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
@@ -742,9 +820,9 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
                 let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
                   (generated.map (CoreMemProc.ofPProcessAt envP))
                 let result : CoreMemDesign :=
-                  { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
-                    memories := memories.toArray, processes := processes.toArray,
-                    readmemh := d.readmemh }
+                    { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
+                      memories := memories.toArray, processes := processes.toArray,
+                      readmemh := d.readmemh }
                 .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
@@ -2245,6 +2323,20 @@ private def smokeDecl : PDecl :=
 
 #guard (smokeDecl.memShapeWithId? { vals := [("W", 4), ("P", 3)] } { decl := 0 }).toOption ==
   some smokeShape
+
+/-! The audit's W1 refusal fixture (mclock-audit/audit_tb/t01_nba_glitch):
+`p <= 1; if (c) p <= 0;` is followed by an edge process clocked by `p`.
+The helper must identify `p` before elaboration can retain a canonical E
+design. -/
+private def auditW1Processes : List PProcess :=
+  [.alwaysFF "clk"
+      (.block [
+        .nbaAssign "p" (.lit (.ofNat 1 1)),
+        .ifStmt (.ident "c") (.nbaAssign "p" (.lit (.ofNat 1 0))) none]),
+   .alwaysFF "p" (.nbaAssign "seen" (.lit (.ofNat 1 1)))]
+
+#guard coreMemFirstRepeatedEventSource
+    (coreMemEventSources auditW1Processes) auditW1Processes == some "p"
 
 end LeanModels.Sv.Kernel
 
