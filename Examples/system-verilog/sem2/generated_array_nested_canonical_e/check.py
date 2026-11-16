@@ -86,10 +86,18 @@ def main():
 
     run(["lake", "build",
          "Examples.«system-verilog».sem2.generated_array_nested_canonical_e.agree"])
-    expected = rows(run(["lake", "env", "lean", "--run", str(HERE / "oracle.lean")]))
-    if expected != EXPECTED:
-        raise RuntimeError(f"unexpected E rows: {expected}")
-    print("E: 16 ordinary-route rows (W=4 and W=8, initial/known/x/z)")
+    refusal = run(["lake", "env", "lean", "--run", str(HERE / "oracle.lean")])
+    topology = ("10.3: continuous assignment target is read from itself or a later "
+                "assignment; canonical E requires topological source order")
+    expected_refusals = [
+        f"E REFUSAL W=4: {topology}",
+        f"E REFUSAL W=8: {topology}",
+    ]
+    actual_refusals = [line for line in refusal.splitlines()
+                       if line.startswith("E REFUSAL ")]
+    if actual_refusals != expected_refusals:
+        raise RuntimeError(f"unexpected E refusals: {actual_refusals}")
+    print("E: exact §10.3 topology refusal at W=4 and W=8")
 
     simulators = ["iverilog"]
     if shutil.which("xrun"):
@@ -116,7 +124,7 @@ def main():
             raise RuntimeError(f"{simulator}: {actual} != {EXPECTED}")
         version = run(["iverilog", "-V"] if simulator == "iverilog"
                       else ["xrun", "-version"]).splitlines()[0]
-        print(f"{version}: {len(actual)} source rows MATCH E")
+        print(f"{version}: {len(actual)} source rows MATCH the refusal receipt")
 
 
 if __name__ == "__main__":
