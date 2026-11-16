@@ -85,10 +85,10 @@ theorem blk_cycle {E : CoreMemDesign} (hE : blk.e = .ok E) (v dt : SvState) (hv 
   refine ⟨?_, ⟨_, _, _, rfl, rfl, add_one4_width (by simp [lk, view, SvState.lookup, hx]),
     add_one4_width (by simp [lk, view, SvState.lookup, hx])⟩⟩
   rw [CoreMemDesign.cycleV_applied hP hshape dt, CoreMemDesign.appliedEntry, hdi]
-  simp only [List.map_nil]
-  sv_seq_cycle hcyc : E.cycleV "clk" (view c q x) [] using hE0 [view, hc, hq, hx, seqE_width_add]
-  rw [hcyc]
-  simp [blkF, view, lk, SvState.lookup, one4, seqE_width_add, hx]
+  simp only [List.map_nil, blkF, view, lk, SvState.lookup, String.reduceBEq, Bool.false_eq_true, ↓reduceIte,
+    beq_self_eq_true, Option.getD_some, one4]
+  -- the cycle equations, computed by the clocked `sv_equations` and checked against the statement
+  sv_equations
 
 /-! ## 3. The claim, over every run -/
 

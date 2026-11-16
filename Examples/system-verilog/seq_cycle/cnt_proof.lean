@@ -115,12 +115,12 @@ theorem cnt_cycle (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign}
   by_cases hr1 : r'.condTrue = true
   · sv_seq_cycle hcyc : E.cycleV "clk" [("clk", c), ("rst", r), ("en", e), ("q", qq)]
         [("rst", r'), ("en", e')] using hE [hr1, hrw, hew, hq, hr, he]
-    rw [hcyc, seqE_insertAt_zero (by simp [hq])]
+    rw [hcyc]
     simp [cntNext, hr1]
   · by_cases he1 : e'.condTrue = true
     · sv_seq_cycle hcyc : E.cycleV "clk" [("clk", c), ("rst", r), ("en", e), ("q", qq)]
           [("rst", r'), ("en", e')] using hE [hr1, he1, hrw, hew, hq, hr, he]
-      rw [hcyc, seqE_insertAt_zero (by simp [seqE_width_add, hq])]
+      rw [hcyc]
       simp [cntNext, hr1, he1]
     · sv_seq_cycle hcyc : E.cycleV "clk" [("clk", c), ("rst", r), ("en", e), ("q", qq)]
           [("rst", r'), ("en", e')] using hE [hr1, he1, hrw, hew, hq, hr, he]

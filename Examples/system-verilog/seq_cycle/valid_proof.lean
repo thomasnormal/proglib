@@ -143,8 +143,7 @@ theorem vc_cycle (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) {E : CoreMemDesign} 
         ("valid_o", vo), ("data_o", dout), ("valid_q", vq), ("data_q", dq)]
         [("rst", r'), ("valid_i", vi'), ("ready_i", ry'), ("data_i", di')] using hE
         [hr1, hrw, hviw, hryw, hdiw, hr, hvi, hry, hdi, hdout, hvq, hdq]
-    rw [hcyc, seqE_insertAt_zero (show (⟨#[.l0]⟩ : LVec).width = vq.width by rw [hvq]; rfl),
-      seqE_insertAt_zero (show (LVec.ofBitVec 0#W).width = dq.width by simp [hdq])]
+    rw [hcyc]
     simp [vcNext, hr1]
   · by_cases hy1 : ry'.condTrue = true
     · sv_seq_cycle hcyc : E.cycleV "clk" [("clk", c), ("rst", r), ("valid_i", vi), ("ready_i", ry),

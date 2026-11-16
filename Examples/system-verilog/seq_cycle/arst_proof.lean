@@ -155,6 +155,42 @@ theorem arst_cycle (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign
   repeat' split
   all_goals simp_all
 
+/-! ## The cycle on known values: a `BitVec` equation (the knownness bridge) -/
+
+/-- On known values one activation of the body is a `BitVec` function. -/
+theorem arstStep_known (N : Nat) (r e : BitVec 1) (d q : BitVec N) :
+    arstStep N (LVec.ofBitVec r) (LVec.ofBitVec e) (LVec.ofBitVec d) (LVec.ofBitVec q) =
+      LVec.ofBitVec (if r = 0#1 then 0#N else if e = 0#1 then q else d) := by
+  unfold arstStep
+  rw [seqK_lnot_condTrue, LVec.condTrue_ofBitVec]
+  by_cases hr : r = 0#1 <;> by_cases he : e = 0#1 <;> simp [hr, he]
+
+/-- On known bits the reset falls exactly from 1 to 0. -/
+theorem fell_known (r0 r : BitVec 1) :
+    fell (LVec.ofBitVec r0) (LVec.ofBitVec r) = (r0.getLsbD 0 && !r.getLsbD 0) := by
+  unfold fell
+  rw [seqK_bit0 r0 (by decide), seqK_bit0 r (by decide), seqK_isNegedge]
+
+/-- **The cycle on known state and inputs is a `BitVec` equation**: the pre sample's `q` is an activation when the
+reset fell from 1 to 0, else the held `q`; the post sample's `q` an activation on it. -/
+theorem arstF_known (N : Nat) (v dt : SvState) (r0 r e : BitVec 1) (d q : BitVec N)
+    (hr0 : lk v "rst_n" = LVec.ofBitVec r0) (hq : lk v "q" = LVec.ofBitVec q)
+    (hr : appliedIn dt v "rst_n" = LVec.ofBitVec r) (he : appliedIn dt v "en" = LVec.ofBitVec e)
+    (hd : appliedIn dt v "d" = LVec.ofBitVec d) :
+    let p : BitVec N :=
+      if r0.getLsbD 0 && !r.getLsbD 0 then (if r = 0#1 then 0#N else if e = 0#1 then q else d) else q
+    SvState.lookup (arstF N v dt).1 "q" = some (LVec.ofBitVec p) ∧
+      SvState.lookup (arstF N v dt).2 "q" = some (LVec.ofBitVec (if r = 0#1 then 0#N else if e = 0#1 then p else d)) := by
+  intro p
+  simp only [arstF, view, SvState.lookup, String.reduceBEq, Bool.false_eq_true, ↓reduceIte, beq_self_eq_true,
+    hr0, hq, hr, he, hd, fell_known]
+  have hp : (if (r0.getLsbD 0 && !r.getLsbD 0) = true then
+      arstStep N (LVec.ofBitVec r) (LVec.ofBitVec e) (LVec.ofBitVec d) (LVec.ofBitVec q) else LVec.ofBitVec q) =
+      LVec.ofBitVec p := by
+    simp only [p, arstStep_known, LVec.ite_ofBitVec]
+  rw [hp, arstStep_known]
+  exact ⟨rfl, rfl⟩
+
 /-! ## 3. The claim, over every run -/
 
 /-- **The register's claim** about the samples of a run (pre and post of each cycle). -/
@@ -259,6 +295,7 @@ theorem arst_runs (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (arst.e N
 #print axioms arst_structure
 #print axioms arst_ports
 #print axioms arst_cycle
+#print axioms arstF_known
 #print axioms arst_runs
 
 end Examples.«system-verilog».seq_cycle.arst_proof
