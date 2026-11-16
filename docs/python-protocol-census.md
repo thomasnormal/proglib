@@ -973,6 +973,12 @@ consumes a value list and a mapping flag.  The missing relation must preserve
 key lookup, conversion order, accumulator text, and timeout/refusal outcomes;
 replacing it with a value-only equality would erase the heap observation.
 
+`Monadic.strFormatDictFind_eq_dictFind_string` closes the reusable key-lookup
+leaf: for a string format key, the mapping walker’s string-key search is
+exactly the ordinary `dictFind` search with `.str key`, including insertion
+order and `keyEq` behavior.  The remaining mapping theorem is therefore the
+fuel-bounded walk and conversion sequencing around this shared lookup.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the

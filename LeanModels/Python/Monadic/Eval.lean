@@ -6228,6 +6228,15 @@ theorem listRepeatH_eq_heapListRepeat
     listRepeatH h xs count = heapListRepeat h xs count := by
   rfl
 
+theorem strFormatDictFind_eq_dictFind_string
+    (entries : List (RVal × RVal)) (key : String) :
+    strFormatDictFind entries key = dictFind entries (.str key) := by
+  induction entries with
+  | nil => rfl
+  | cons entry rest ih =>
+      rcases entry with ⟨stored, value⟩
+      cases stored <;> simp [strFormatDictFind, dictFind, keyEq, ih]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
