@@ -1527,6 +1527,13 @@ private partial def svCoverMain (prep : Option Syntax := none) : TacticM Unit :=
     -- the 2-D rule first (`CombCover.lean`); where it fails, the rule with slot windows (`CombCoverUnit.lean`); a shape
     -- neither reads takes the search below, a goal the 2-D rule reads and neither proves is reported
     let st ← saveState
+    -- with the player's facts (`sv_cover using tac`), the rule with slot windows alone: it is the rule that reads them,
+    -- and its failure (or the facts tactic's) is the report; the search below does not read the facts, and on the
+    -- Dadda record it ran the 8 GB scope out after a facts tactic had failed
+    if prep.isSome then
+      LeanModels.Sv.CombCoverUnit.coverUnits prep
+      setGoals ((← getGoals) ++ rest)
+      return
     -- a read through a product of two non-numeral factors (a slot width times a variable): the 2-D rule cannot read it,
     -- so the rule with slot windows goes first there
     let ty ← instantiateMVars (← (← getMainGoal).getType)
@@ -1562,7 +1569,7 @@ info trees, 2.09 GB throughout without). -/
       prove from the context (a fact it needs is missing, such as the value of a wrapped constant or a bound of a \
       `$clog2`: `sv_pow_facts` puts those in context first)"
 
-/-- `sv_cover using tac`: `sv_cover`, where the rule with slot windows (`CombCoverUnit.lean`) runs `tac` once the
+/-- `sv_cover using tac`: the rule with slot windows (`CombCoverUnit.lean`) alone, where it runs `tac` once the
 writers' witnesses are solved, with every writer's condition in context as `L → L` (no claim): the player's facts about
 the design's own functions at the witnesses (a table of the schedule at a stage index the solution names), which the
 rule cannot know. `tac` must leave one goal, with the goal unchanged (checked). It may add hypotheses, and it may clear
