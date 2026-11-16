@@ -900,6 +900,14 @@ resulting frame state.  This is the reusable control skeleton; the missing
 work is supplying the generic expression-node bridge, not another fixed-size
 literal matrix.
 
+The first nonliteral case remains a genuine gap.  `Monadic.twinAgrees_evalOpen_unaryInt`
+handles a unary operator only when its child is an integer literal; it cannot
+feed the list-composition theorem for an arbitrary operand because the
+`evalUnaryOpH` result must be related after the child has threaded an arbitrary
+frame state.  Generalizing it requires a child bridge at `fuel - 1` plus the
+heap-aware unary worker relation; extending the literal theorem with more
+operator cases would recreate the fixed-shape matrix.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
