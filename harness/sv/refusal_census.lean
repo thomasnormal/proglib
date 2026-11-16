@@ -111,10 +111,10 @@ def canonicalERows (d : CoreMemDesign) : List Row :=
 def eRows (envl : Envelope2) : List Row :=
   let pd := envl.design
   let args := pd.defaultArgs.toOption.getD []
-  let clock := pd.multiClockReport envl.lib args
+  let clock := pd.clockReport envl.lib args
   let clockRows := match clock with
     | none => []
-    | some (kind, message) => [{ construct := kind, function := "PDesign.multiClockReport", message }]
+    | some (kind, message) => [{ construct := kind, function := "PDesign.clockReport", message }]
   let r := if envl.lib.isEmpty then
       LeanModels.Sv.Kernel.PDesign.instantiateE2 pd args (PDesign.surfaceFuel args)
     else

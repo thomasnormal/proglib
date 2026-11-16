@@ -81,7 +81,6 @@
 2	LeanModels/Sv/MemCycle.lean
 1	LeanModels/Sv/MemProc.lean
 161	LeanModels/Sv/Mono2.lean
-5	LeanModels/Sv/MultiClock.lean
 85	LeanModels/Sv/Observe.lean
 21	LeanModels/Sv/ObserveFrame.lean
 4	LeanModels/Sv/ObserveRedrive.lean

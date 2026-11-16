@@ -46,7 +46,6 @@ model at this very point (`diff_test2.py`).
 
 import Lean
 import LeanModels.Sv.Ingest2
-import LeanModels.Sv.MultiClock
 import LeanModels.Sv.PreemptGuard2
 
 open Lean (Json)
@@ -125,18 +124,6 @@ def parseEntry (d : Design2) (j : Json) : Except String SvState := do
       return st
   | _ => .error "stimulus entry is not an object"
 
-def parseInstant (d : Design2) (j : Json) : Except String ClockInstant := do
-  let rises ← (← getArrF j "rises").toList.mapM (fun v =>
-    match v.getStr? with
-    | .ok s => .ok s
-    | .error _ => .error "instant rise is not a string")
-  let inputs ← parseEntry d (← getF j "inputs")
-  pure { rises := rises, inputs := inputs }
-
-inductive HarnessStimulus where
-  | cycles (entries : List SvState)
-  | instants (entries : List ClockInstant)
-
 def sigmaOf : String → Except String ScheduleOracle
   | "src" => .ok σ_src
   | "rev" => .ok σ_rev
@@ -207,7 +194,7 @@ def main (argv : List String) : IO UInt32 := do
       for ln in xcheckLines envText prText casesText caseName do
         o.putStrLn ln
       o.flush
-    let r : Except String (Design2 × HarnessStimulus × List String × Nat × Bool) := do
+    let r : Except String (Design2 × List SvState × List String × Nat × Bool) := do
       let (pd, lib) ← loadHierString envText
       match pd.crossCheck with
       | [] => pure ()
@@ -278,21 +265,11 @@ def main (argv : List String) : IO UInt32 := do
       -- is named here (`Clock:source`, `Clock:data-read`, `Clock:multiple`,
       -- `Clock:reset`) before `run2` would run the design on cycles where no
       -- simulator sees an edge.
-      -- The ordinary runner still has one stimulus entry per clock period;
-      -- retain its loud `Clock:multiple` boundary until a row supplies the
-      -- instant-list transport used by `runMulti`.  The exact multi-clock
-      -- E API is exercised by the source-shaped proof fixture.
-      let multi := (case.getObjVal? "instants").isOk
-      if let some (k, msg) := (if multi then d.multiClockReport else d.clockReport) then
+      if let some (k, msg) := d.clockReport then
         .error s!"{k}: {msg}"
-      let stim ← match case.getObjVal? "instants" with
-        | .ok j =>
-            let arr ← j.getArr?
-            let entries ← arr.toList.mapM (parseInstant d)
-            pure (HarnessStimulus.instants entries)
-        | .error _ =>
-            let entries ← (← stimulusArray case).toList.mapM (parseEntry d)
-            pure (HarnessStimulus.cycles entries)
+      if (case.getObjVal? "instants").isOk then
+        .error "Clock:multiple: instant-list stimulus is unavailable until canonical E event slots land"
+      let stim ← (← stimulusArray case).toList.mapM (parseEntry d)
       let signals ← (← getArrF case "signals").toList.mapM (fun s => s.getStr?)
       pure (d, stim, signals, fuel, (case.getObjVal? "execution_checks").isOk)
     match r with
@@ -306,12 +283,9 @@ def main (argv : List String) : IO UInt32 := do
         let sign := if dc.isSigned then "signed" else "unsigned"
         if dc.isInput then out.putStrLn s!"PORT {dc.name} in {dc.width} {sign}"
         else if dc.isOutput then out.putStrLn s!"PORT {dc.name} out {dc.width} {sign}"
-      let result := match stim with
-        | .cycles entries =>
-            if executionChecks
-            then run2ExecChecks d σ fuel entries
-            else run2 d σ fuel entries
-        | .instants entries => runMulti d σ fuel entries
+      let result := if executionChecks
+        then run2ExecChecks d σ fuel stim
+        else run2 d σ fuel stim
       match result with
       | .timeout => err "run2: timeout (fuel exhausted / comb loop)"
       | .unsupported m =>

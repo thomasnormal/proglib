@@ -382,11 +382,10 @@ def edgePass2 (d : Design2) (fuel : Nat) (st : SvState) (nba : NbaQueue2) :
 /-! ## Admission guard for the one-clock `run2` profile
 
 `cycleStep2` is deliberately the one-clock transport: one stimulus entry is
-one rising edge.  The exact instant-list route in `MultiClock.lean` carries
-independent and coincident clocks; letting a multi-clock design reach
-`edgePass2` here would tick every domain on every entry and give a wrong
-answer.  Retained data-driven event controls are likewise outside this
-transport and remain a named clock boundary. -/
+one rising edge.  Independent or coincident clocks are outside this transport;
+letting a multi-clock design reach `edgePass2` here would tick every domain on
+every entry and give a wrong answer.  Retained data-driven event controls are
+likewise outside this transport and remain a named clock boundary. -/
 
 def run2Clock? : Process2 → Option String
   | .alwaysFF c _ | .alwaysPlain c _ | .alwaysFFR c _ _ _ => some c
@@ -397,7 +396,7 @@ def run2ClockNames (d : Design2) : List String :=
 
 def run2ClockGuard (d : Design2) : Res Unit :=
   if (run2ClockNames d).length > 1 then
-    .unsupported s!"Clock:multiple: module {d.name} has multiple edge clocks; run2 requires one clock per stimulus entry; use the exact MultiClock instant route"
+    .unsupported s!"Clock:multiple: module {d.name} has multiple edge clocks; run2 requires one clock per stimulus entry; several clocks are refused on run2, which has one implicit clock per stimulus entry"
   else if d.processes.toList.any (fun p =>
       match p with
       | .unsupported svKind _ => svKind.startsWith "SignalEventControl:"

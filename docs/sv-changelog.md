@@ -381,17 +381,12 @@ validation could inspect the wrong state for an edge process. The
 `qualified_case_timing` rows cover a pre-edge violation and a violation
 created by one edge and observed on the next.
 
-## Exact multi-clock E instants
+## Removed name-keyed multi-clock instant route — 2026-11-16
 
-The E semantics now has a source-shaped `ClockInstant`/`runMulti` route for
-designs with several input clocks. Each instant names the rising clocks and
-its settled inputs; selected edge processes evaluate against the common
-pre-instant state and commit NBAs together, so coincident edges sample old
-values. Clock ratios, drift, stopped clocks, and coincident edges are supplied
-by the instant list, while the schedule oracle still covers active-process
-order. No metastability or resolution approximation is part of E. The legacy
-one-clock `runner2` transport remains loud for `Clock:multiple` until it gains
-an instant-list stimulus encoding.
+The temporary `ClockInstant`/`runMulti` route has been removed. It duplicated the
+canonical E meaning, keyed event sources by signal names, and had no refinement
+theorem. Multi-clock designs remain a loud `Clock:multiple` boundary on `run2`
+and the ordinary loader until canonical E's event-slot work lands.
 
 ## Guarded generate and non-affine genvar obligations
 
@@ -489,11 +484,10 @@ execute as the existing empty statement. The `task_memory` wall proves the
 source-shaped no-op; stateful, timed, output, defaulted, and nonempty tasks
 remain loud.
 
-The Sem2 `run2`, `run2ExecChecks`, and observation runner now apply a
+The Sem2 `run2`, `run2ExecChecks`, and observation runner apply a
 `Clock:multiple`/`Clock:implicit` guard before the one-clock edge pass. The
-ordinary `clk_two` route therefore refuses, while the exact `runMulti` instant
-route remains available; `clk_implicit` records the data-driven event-control
-refusal.
+ordinary `clk_two` route therefore refuses; `clk_implicit` records the
+data-driven event-control refusal.
 
 The x-resolution ruling is now recorded as an active proof boundary: until E
 quantifies correlated 0/1 concretizations, decisions and dynamic selects must

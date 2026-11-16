@@ -1203,7 +1203,7 @@ def Envelope2.clockAtPoints (e : Envelope2) (pr : Probes2) : Option (String × S
   pr.points.findSome? fun p =>
     match e.design.atPoint (e.design.params.map fun prm => p.overrides.lookup prm.name) with
     | .ok (d', args) =>
-        (d'.multiClockReport e.lib args).map fun (k, msg) => (renderOverrides p.overrides, k, msg)
+        (d'.clockReport e.lib args).map fun (k, msg) => (renderOverrides p.overrides, k, msg)
     | .error _ => none
 
 /-- `probeReportString` collapsed to pass/fail: `.ok n` = all `n` entries
@@ -1373,7 +1373,7 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
           -- port of the top, is read as data, is a second clock or an
           -- internal reset would run in the model on cycles where no
           -- simulator sees an edge.
-          if let some (k, msg) := dD.multiClockReport then
+          if let some (k, msg) := dD.clockReport then
             throwErrorAt path
               "load_design_sv2: '{pathStr}' REFUSED — at the defaults, {msg} (`{k}`, `Design2.clockViolation`)"
       | _ => pure ()

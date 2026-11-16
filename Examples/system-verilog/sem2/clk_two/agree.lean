@@ -19,6 +19,6 @@ private def twoClock : Design2 where
     .alwaysFF "clk2" (.nbaAssign (.ident "b") (.ident "a"))]
 
 #guard twoClock.clockNames.length == 2
-#guard twoClock.multiClockReport.isSome
+#guard twoClock.clockReport.isSome
 
 end Examples.«system-verilog».sem2.clk_two.agree

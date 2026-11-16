@@ -398,11 +398,7 @@ this order:
 | 6 | `assign n = d` beside an async-reset `always_ff` | **Resolved in this packet:** `ffResetProfileB` admits comb processes before/after the retained reset process, while `ffMixedProfileB` covers the corresponding no-reset profile. `cycleStep2_mixedProfile` settles comb logic before reset, edge/NBA, and final settle under an explicit acyclic-comb settle contract. The `async_reset_comb_profile` witness matches Icarus over five cycles. |
 | 7 | `initial $readmemh(...)` ROM initialization | `sv_structure` refuses `ProceduralBlockSymbol:Initial`; initial-process semantics remain a named boundary. |
 
-The F4 clock rung now has an exact E instant route. `ClockInstant.rises` is a
-set of simultaneous input-clock edges and `runMulti` commits all selected
-edge-process NBAs together, so a coincident edge observes old values. The
-legacy one-clock harness transport still records `Clock:multiple` until its
-stimulus schema carries instant lists.
+The F4 clock rung remains a named `Clock:multiple` boundary on the ordinary one-clock transport; canonical E event-slot work is pending.
 
 The same audit exercises the F1 property forms. Finite concurrent assertions,
 bounded ranges, and assumptions with `disable iff` load with their retained
@@ -542,8 +538,7 @@ plain procedural statements.
 The Sem2 one-clock transport refuses multi-clock designs and retained
 data-driven event controls before `edgePass2`; these shapes cannot be assigned
 one rising edge per stimulus entry. `clk_two` remains a `Clock:multiple`
-refusal, while `clk_two_instants` uses the exact `runMulti` instant route, and
-`clk_implicit` pins the `Clock:implicit` refusal.
+refusal, and `clk_implicit` pins the `Clock:implicit` refusal.
 
 ### E-core-0 differential transport
 
