@@ -773,6 +773,11 @@ an arbitrary body list whose nodes are passes or constant expression
 statements.  Its list proof is length-parametric and uses the exact two-step
 constant threshold; it does not enumerate body sizes.
 
+`Monadic.twinAgrees_callIn_pass_body` is the first direct call-boundary
+comparison.  For a normalized top-depth call whose body is one `pass`, it
+relates the monadic successor runner to the legacy `callIn` result once the
+legacy body has enough fuel for its statement step.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply

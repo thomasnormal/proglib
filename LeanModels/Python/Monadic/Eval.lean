@@ -4974,6 +4974,33 @@ theorem callInMono_succ_pass_body
         f.params args f.body f.hasGlobal⟩ hfind hgen hargs hlocal hnotgen
     harity hbody
 
+theorem twinAgrees_callIn_pass_body
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (sp : Span)
+    (hbodyEq : f.body.toList = [.pass sp])
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hfuel : 1 < fuel) :
+    callInMono m (fuel + 1) w fname args =
+      callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth } fname args := by
+  have hmono := callInMono_succ_pass_body m fuel w fname args f sp hbodyEq
+    hfind hgen hargs hlocal hnotgen harity
+  have hlegacy : callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth } fname args =
+      .ok { w with callDepth := pythonTopCallDepth } .none := by
+    cases fuel with
+    | zero => omega
+    | succ fuel =>
+        cases fuel with
+        | zero => omega
+        | succ fuel =>
+            simp [callIn, hfind, hargs, hlocal, hnotgen, harity, hbodyEq,
+              pythonTopCallDepth, execStmts, execStmt, Run.finishCallAt,
+              Run.toWorld, Run.bind]
+  rw [hmono, hlegacy]
+
 theorem twinAgrees_execStmt_expr_constant (K : Kont) (m : Module)
     (st : FrameState) (c : Const) (sp : Span) (fuel : Nat)
     (hfuel : 1 < fuel) :
