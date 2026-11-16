@@ -4791,6 +4791,100 @@ theorem callInMono_succ_body_next_of_threshold
   exact callInMono_succ_body_next m fuel w fname args f st' hfind hgen hargs hlocal
     hnotgen harity hBodyRaw
 
+inductive PassOrConstantStmt : Stmt → Prop where
+  | pass (sp : Span) : PassOrConstantStmt (.pass sp)
+  | exprConstant (c : Const) (csp sp : Span) :
+      PassOrConstantStmt (.exprStmt (.constant c csp) sp)
+
+theorem twinAgrees_execStmt_pass_or_constant (K : Kont) (m : Module)
+    {s : Stmt} (hshape : PassOrConstantStmt s) :
+    ∀ (st : FrameState) (fuel : Nat), 1 < fuel →
+      toRun (execOpen K m s) st = execStmt m fuel st s := by
+  cases hshape with
+  | pass sp =>
+      intro st fuel hfuel
+      exact twinAgrees_execStmt_pass K m st sp fuel (by omega)
+  | exprConstant c csp sp =>
+      intro st fuel hfuel
+      cases fuel with
+      | zero => omega
+      | succ fuel =>
+          cases fuel with
+          | zero => omega
+          | succ fuel =>
+              rw [execStmt]
+              have hc := twinAgrees_evalOpen_constant K m st c csp
+                (fuel + 1) (by omega)
+              simp only [execOpen, toRun_bind, hc, Run.bind, toRun_pure]
+
+theorem execStmts_pass_or_constants_next (m : Module) :
+    ∀ (ss : List Stmt) (st : FrameState) (fuel : Nat),
+      2 + ss.length < fuel →
+      (∀ s ∈ ss, PassOrConstantStmt s) →
+      execStmts m fuel st ss = .ok st RFlow.next := by
+  intro ss
+  induction ss with
+  | nil =>
+      intro st fuel hlen hshape
+      cases fuel with
+      | zero => omega
+      | succ fuel => rfl
+  | cons s ss ih =>
+      intro st fuel hlen hshape
+      cases fuel with
+      | zero => omega
+      | succ fuel =>
+          have htailLen : 2 + ss.length < fuel := by
+            simp only [List.length_cons] at hlen
+            omega
+          have hstmt : execStmt m fuel st s = .ok st RFlow.next := by
+            have hs := hshape s (by simp)
+            cases hs with
+            | pass sp =>
+                cases fuel with
+                | zero => omega
+                | succ fuel => rfl
+            | exprConstant c csp sp =>
+                cases fuel with
+                | zero => omega
+                | succ fuel =>
+                    cases fuel with
+                    | zero => omega
+                    | succ fuel => rfl
+          have htailShape : ∀ s' ∈ ss, PassOrConstantStmt s' := by
+            intro s' hs'
+            exact hshape s' (by simp [hs'])
+          have htail := ih st fuel htailLen htailShape
+          simp only [execStmts, hstmt, Run.bind]
+          exact htail
+
+theorem callInMono_succ_body_pass_or_constants
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hFuel : 2 + f.body.toList.length < fuel)
+    (hshape : ∀ s ∈ f.body.toList, PassOrConstantStmt s) :
+    callInMono m (fuel + 1) w fname args =
+      .ok { w with callDepth := pythonTopCallDepth } .none := by
+  let st0 : FrameState :=
+    ⟨{ w with callDepth := 1 },
+      globalCallEnv { w with callDepth := pythonTopCallDepth }
+        f.params args f.body f.hasGlobal⟩
+  have hThreshold : ∀ s ∈ f.body.toList, ∀ st' g, 2 ≤ g → 0 < g →
+      toRun (execOpen (kont m fuel) m s) st' = execStmt m g st' s := by
+    intro s hs st' g hbase hpos
+    exact twinAgrees_execStmt_pass_or_constant (kont m fuel) m
+      (hshape s hs) st' g (by omega)
+  have hRun : execStmts m fuel st0 f.body.toList = .ok st0 RFlow.next := by
+    exact execStmts_pass_or_constants_next m f.body.toList st0 fuel hFuel hshape
+  have hcall := callInMono_succ_body_next_of_threshold m fuel w fname args f 2 st0
+    hfind hgen hargs hlocal hnotgen harity hFuel hThreshold hRun
+  simpa [st0] using hcall
+
 theorem callInMono_succ_body_next_of_each
     (m : Module) (fuel : Nat) (w : World) (fname : String)
     (args : Array RVal) (f : FunctionDefn)

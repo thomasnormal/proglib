@@ -768,6 +768,11 @@ inversion with the public successor call.  It accepts an explicit legacy
 `execStmts` `.next` result and produces the corresponding `callInMono` result,
 leaving only the pointwise threshold premises to the caller.
 
+`Monadic.callInMono_succ_body_pass_or_constants` discharges those premises for
+an arbitrary body list whose nodes are passes or constant expression
+statements.  Its list proof is length-parametric and uses the exact two-step
+constant threshold; it does not enumerate body sizes.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply
