@@ -1089,6 +1089,11 @@ arbitrary chain with the mapping-token branch.  The chain is consumed first,
 then the token lookup and conversion outcomes are preserved exactly, giving a
 single parametric bridge for all admitted structural prefixes before a token.
 
+`Monadic.strFormatMappingWalk_token_then_segment_chain` supplies the reverse
+bridge: a token followed by an arbitrary segment chain.  Its successful
+conversion arm invokes the chain theorem, while every other token outcome is
+preserved directly, completing the general chain/token composition boundary.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
