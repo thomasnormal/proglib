@@ -882,6 +882,16 @@ refusal uses the common `unmodelledBuiltinMsg`, so its text is shared as well;
 as with other refusals, only the internal-cause projection remains outside a
 message-only theorem.
 
+The smallest continuation relation needed for the remaining resolver proof is
+an expression-level relation of the form
+`toRun (evalOpen (kont m fuel) m e) st = evalExpr m fuel st e`, with the
+`Kont`'s fuel field and every world/heap update threaded through the result.
+The existing leaf bridges establish this for selected constants and operators,
+but no generic expression induction currently packages the relation.  This is
+the precise fuel/state mismatch preventing the resolver branch from advancing
+the mutual theorem; adding a weaker value-only relation would lose state
+correlations.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
