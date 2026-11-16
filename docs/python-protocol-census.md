@@ -936,6 +936,14 @@ updated frame state.  These equations are sufficient worker premises for a
 generic two-child binary-node theorem; the remaining step is sequencing the
 child bridges around them.
 
+The literal binary proofs already abstract the right-child premise over every
+threaded state, so their control skeleton can be generalized.  The remaining
+restriction is the worker conclusion: replacing integer literals with arbitrary
+child results requires a theorem relating `binOpHM op a b` to the legacy
+heap-aware `evalBinOpH` result for all admitted operators and heap shapes.  The
+existing worker equations cover only selected integer cases; adding more
+literal proofs would not establish that parametric relation.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
