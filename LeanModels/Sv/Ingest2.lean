@@ -641,8 +641,15 @@ def parsePProcess (j : Json) : Except String PProcess := do
         -- semantic AST currently has only the positive-edge clock and the
         -- active-low reset form, so never discard a frontend field and
         -- silently turn a different process into plain `alwaysFF`.
-        if (getOptField j "edge").isSome then
-          throw "AlwaysPosedge:edge — edge-qualified clock requires its retained event semantics"
+        match getOptStr j "edge" with
+        | some "neg" | some "negedge" =>
+            let body ← parsePStmt (← getField j "body")
+            if (getOptField j "areset_n").isSome || (getOptField j "areset").isSome then
+              throw "AlwaysPosedge:edge-reset — negative-edge clock with asynchronous reset is outside the first E edge packet"
+            return .alwaysFFNegedge clock body
+        | some _ =>
+            throw "AlwaysPosedge:edge — edge-qualified clock requires its retained event semantics"
+        | none => pure ()
         if (getOptField j "iff").isSome then
           throw "AlwaysPosedge:iff — event-control iff guard requires its retained event semantics"
         -- The guard on the *reset* event is independent of the clock guard.

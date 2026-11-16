@@ -509,6 +509,8 @@ deriving Repr, BEq, Inhabited
 async active-low reset event list (`@(posedge clock or negedge rstn)`). -/
 inductive PProcess where
   | alwaysFF (clock : String) (body : PStmt)
+  /-- Negative-edge `always_ff`; retained for canonical E (§9.4.2). -/
+  | alwaysFFNegedge (clock : String) (body : PStmt)
   | alwaysPlain (clock : String) (body : PStmt)
   | alwaysComb (body : PStmt)
   /-- Plain `always @*`: the parser's implicit event control and original
@@ -2481,6 +2483,8 @@ end
 /-- Instantiate a process. -/
 def instProcess (env : IEnv) : PProcess → Process
   | .alwaysFF c b => .alwaysFF c (instStmt env b)
+  | .alwaysFFNegedge _ _ => .unsupported "AlwaysPosedge:edge"
+      "edge-qualified clock requires its retained event semantics"
   | .alwaysPlain c b => .alwaysPlain c (instStmt env b)
   | .alwaysComb b => .alwaysComb (instStmt env b)
   | .alwaysImplicit _ => .unsupported "ProceduralBlockSymbol:Always"

@@ -31958,6 +31958,24 @@
       "clock": "clk1"
     },
     {
+      "name": "negedge_e",
+      "example": "sem2/negedge_e",
+      "top": "negedge_e",
+      "signals": ["clk", "d", "q"],
+      "stimulus": [
+        {"clk": "1", "d": "0"},
+        {"clk": "0", "d": "1"},
+        {"clk": "1", "d": "0"},
+        {"clk": "x", "d": "1"},
+        {"clk": "0", "d": "1"},
+        {"clk": "z", "d": "0"},
+        {"clk": "1", "d": "0"},
+        {"clk": "0", "d": "1"}
+      ],
+      "refusal": "Clock:edge",
+      "measured": "B1 canonical-E negative-edge source rows are retained by the parser but ordinary run2 continues to refuse the edge until its bridge is extended."
+    },
+    {
       "name": "clk_implicit",
       "example": "sem2/clk_implicit",
       "top": "clk_implicit",

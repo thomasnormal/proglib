@@ -882,6 +882,7 @@ partial def expandFunctionStmt (env : IEnv) : PStmt → PStmt
 
 def expandFunctionProcess (env : IEnv) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF c (expandFunctionStmt env b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge c (expandFunctionStmt env b)
   | .alwaysPlain c b => .alwaysPlain c (expandFunctionStmt env b)
   | .alwaysComb b => .alwaysComb (expandFunctionStmt env b)
   | .alwaysImplicit b => .alwaysImplicit (expandFunctionStmt env b)
@@ -1550,6 +1551,8 @@ end
 /-- Lower a process to `Process2`. -/
 def instProcess2 (env : IEnv) (elems : List (String × Nat)) : PProcess → Process2
   | .alwaysFF c b => .alwaysFF c (instStmt2 env elems b)
+  | .alwaysFFNegedge _ _ => .unsupported "AlwaysPosedge:edge"
+      "edge-qualified clock requires its retained event semantics"
   | .alwaysPlain c b => .alwaysPlain c (instStmt2 env elems b)
   -- WP4 (2026-10-28): a body that reads a bit before writing it and writes
   -- it later on the same path is refused, loudly (`CombGuard2.lean`).

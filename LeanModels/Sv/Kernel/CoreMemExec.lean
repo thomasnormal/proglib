@@ -34,6 +34,7 @@ deriving Repr, Inhabited
 
 structure CoreMemEdge where
   clock : String
+  edge : ClockEdge := .posedge
   reset : Option String := none
   /-- Polarity of the asynchronous reset event (§9.4.2).  `false` is the
       active-low form (`negedge`); `true` is the active-high form
@@ -296,6 +297,7 @@ def buildMemDecls1 (env : IEnv) : List PDecl → Nat → Res (List CoreMemDecl)
 
 def CoreMemProc.ofPProcess : PProcess → CoreMemProc
   | .alwaysFF clock body => .edge { clock, body, style := .alwaysFF }
+  | .alwaysFFNegedge clock body => .edge { clock, edge := .negedge, body, style := .alwaysFF }
   | .alwaysPlain clock body => .edge { clock, body, style := .alwaysPlain }
   | .alwaysFFR clock reset body high =>
       .edge { clock, reset := some reset, resetHigh := high, body, style := .alwaysFF }
@@ -509,6 +511,7 @@ termination_by structural xs => xs
 
 def coreMemSubstProcess (vals : List (String × Int)) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF c (coreMemSubstStmt vals b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge c (coreMemSubstStmt vals b)
   | .alwaysPlain c b => .alwaysPlain c (coreMemSubstStmt vals b)
   | .alwaysComb b => .alwaysComb (coreMemSubstStmt vals b)
   | .alwaysImplicit b => .alwaysImplicit (coreMemSubstStmt vals b)
@@ -1818,7 +1821,9 @@ def CoreMemDesign.execLoopValues (E : CoreMemDesign) (env : IEnv) (elems : List 
 /-! ## Slots, scalar E commit, and memory commit -/
 
 def CoreMemEdge.fires (p : CoreMemEdge) (before after : SvState) : Bool :=
-  isPosedge (before.bit0 p.clock) (after.bit0 p.clock) ||
+  (match p.edge with
+   | .posedge => isPosedge (before.bit0 p.clock) (after.bit0 p.clock)
+   | .negedge => isNegedge (before.bit0 p.clock) (after.bit0 p.clock)) ||
     match p.reset with
     | none => false
     | some r => if p.resetHigh then

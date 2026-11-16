@@ -104,6 +104,7 @@ private partial def hParamStmt (vals : List (String × Int)) : PStmt → PStmt
 
 private def hParamProcess (vals : List (String × Int)) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF c (hParamStmt vals b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge c (hParamStmt vals b)
   | .alwaysPlain c b => .alwaysPlain c (hParamStmt vals b)
   | .alwaysComb b => .alwaysComb (hParamStmt vals b)
   | .alwaysImplicit b => .alwaysImplicit (hParamStmt vals b)
@@ -169,6 +170,7 @@ private partial def hStmt (pfx : String) : PStmt → PStmt
 
 private def hProcess (pfx : String) (clockMap : List (String × String)) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
   | .alwaysPlain c b => .alwaysPlain (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
   | .alwaysComb b => .alwaysComb (hStmt pfx b)
   | .alwaysImplicit b => .alwaysImplicit (hStmt pfx b)

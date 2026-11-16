@@ -1,0 +1,135 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "negedge_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/negedge_e/negedge_e.sv",
+      "sha256": "f5de5f68b60d71cc42f94c5a011a567eb7630461f8137bdc1fb36efa1c43fb36"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 8,
+          "end_col": 10
+        },
+        "name": "negedge_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 15,
+              "end_line": 3,
+              "end_col": 18
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 15,
+              "end_line": 4,
+              "end_col": 16
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 16,
+              "end_line": 5,
+              "end_col": 17
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 7,
+              "col": 3,
+              "end_line": 7,
+              "end_col": 35
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 7,
+                "col": 28,
+                "end_line": 7,
+                "end_col": 35
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 28,
+                  "end_line": 7,
+                  "end_col": 29
+                },
+                "width": 1,
+                "name": "q"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 33,
+                  "end_line": 7,
+                  "end_col": 34
+                },
+                "width": 1,
+                "name": "d"
+              }
+            },
+            "edge": "neg"
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

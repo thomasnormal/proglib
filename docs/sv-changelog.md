@@ -381,6 +381,13 @@ validation could inspect the wrong state for an edge process. The
 `qualified_case_timing` rows cover a pre-edge violation and a violation
 created by one edge and observed on the next.
 
+## Canonical E negative-edge events — 2026-11-16
+
+Canonical E now retains a negative-edge `always_ff` clock as source-shaped
+metadata and `CoreMemEdge.fires` applies the IEEE 1800-2023 §9.4.2 negative-edge
+table, including x/z transitions. The ordinary run2 bridge remains a loud
+`Clock:edge` boundary until its single-clock view is extended.
+
 ## Removed name-keyed multi-clock instant route — 2026-11-16
 
 The temporary `ClockInstant`/`runMulti` route has been removed. It duplicated the
