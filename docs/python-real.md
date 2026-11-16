@@ -1,5 +1,36 @@
 # PY-REAL baseline
 
+## 2026-11-16 refresh
+
+The verified runner survey covered the current 183-module manifest and 1,542
+public functions. It drove 8,677 calls: 138 were MATCH, one module was
+INCOMPLETE (`fib`, with 1 of 8 calls completed and matching), and 44 modules
+had no drivable call result. No DIVERGE was observed. The standard-library
+wild sweep covered 166 files: 7 MATCH, 159 REFUSE, and 0 DIVERGE, TIMEOUT,
+ORACLE, HUNG, or RUNNER failures.
+
+The current sole-wall price from the standard-library sweep is:
+
+| Wall | Sole | Present | Static nodes | Files |
+|---|---:|---:|---:|---:|
+| `import` | 20 | 150 | 807 | 139 |
+| no static wall | 4 | 4 | — | — |
+| `ImportFrom:accelerator-outside-domain` | 3 | 3 | 3 | 3 |
+| `Starred:call` | 1 | 68 | 188 | 69 |
+| `DictComp` | 1 | 18 | 22 | 18 |
+| `class-creation` | 0 | 102 | — | — |
+| `Set:display` | 0 | 27 | 63 | 27 |
+| `Lambda` | 0 | 23 | 80 | 23 |
+| `ImportFrom:accelerator-unmeasured` | 0 | 21 | 35 | 21 |
+| `Delete` | 0 | 14 | 21 | 14 |
+| `YieldFrom:delegation` | 0 | 12 | 32 | 13 |
+| `ListComp` | 0 | 7 | 10 | 7 |
+
+The next item is therefore the `import` wall: it is the only wall with twenty
+sole blockers, while the survey does not yet claim function flips for those
+stdlib files. The exact artifacts are `/tmp/ls-python-library-survey.json`
+and `/tmp/ls-python-stdlib-survey.json`.
+
 Generated from `harness/library_corpus.json` (CPython 3.9.25, 183 modules) and the refreshed disjoint baseline chunks run on 2026-11-12. The manifest records SHA-256 hashes for all 141 pure-Python stdlib files available to the pinned interpreter.
 
 The full post-stall survey (141 pinned CPython 3.9.25 library rows, run 2026-11-12) has **13 VERIFIED public-function modules**, with 4,091 of 8,677 driven calls matching, **0 call DIVERGEs**, 8 calls that did not finish, and 41 canonical-value gaps. The targeted import refresh flipped `email.charset` from body REFUSED to VERIFIED with 24/24 matching calls; the call denominator is unchanged because those calls were already driven through the closed-function surface. The 13 VERIFIED modules are `email.charset`, `fstring_shadow`, `g1_lab`, `gcd`, `init_lab`, `midpoint`, `my_abs`, `nested_flow`, `sum_to`, `tut_01`, `tut_02`, `tut_03`, and `fnprint`.
