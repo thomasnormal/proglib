@@ -838,6 +838,12 @@ that branch: the monadic lift of the pinned recursion check is exactly the
 legacy `Run.liftRes` worker.  The surrounding name-error branch still needs
 the combined resolver relation described above.
 
+`Monadic.nameError_after_recursion_check` composes that leaf with the final
+exception arm: a full Python frame raises `RecursionError`, while a non-full
+frame raises the requested `NameError`, with the frame state retained.  It is
+independent of module lookup and is therefore reusable once the resolver
+branch supplies its missing-value case.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the

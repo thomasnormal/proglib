@@ -6228,6 +6228,21 @@ theorem nameErrorRecursionCheck_run (st : FrameState) :
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
   exact twinAgrees_liftRes (nameErrorRecursionCheck st.world.callDepth) st
 
+theorem nameError_after_recursion_check
+    (st : FrameState) (id : String) :
+    toRun (do
+      let _ ← liftRes (nameErrorRecursionCheck st.world.callDepth)
+      raisePy (.nameError id) : SemF Unit) st =
+      if pythonFrameFull st.world.callDepth then
+        .exn st .recursionError
+      else
+        .exn st (.nameError id) := by
+  by_cases hfull : pythonFrameFull st.world.callDepth
+  · simp only [nameErrorRecursionCheck, hfull, ↓reduceIte, liftRes]
+    rfl
+  · simp only [nameErrorRecursionCheck, hfull, ↓reduceIte, liftRes]
+    rfl
+
 /-- Lift a statement-level bridge across an arbitrary returning function body.
 The fuel threshold accounts for the legacy list walker; the frame equality
 uses the no-global embedding rather than assuming equal post-body worlds. -/
