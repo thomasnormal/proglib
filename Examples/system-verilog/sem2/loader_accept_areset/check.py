@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Differential receipt for the active-high asynchronous-reset boundary."""
+"""Differential receipt for the active-high asynchronous-reset loader."""
 from pathlib import Path
 import shutil
 import subprocess
@@ -47,13 +47,15 @@ def main():
             raise RuntimeError("stale envelope")
     with tempfile.NamedTemporaryFile("w", suffix=".lean") as f:
         f.write("import LeanModels.Sv.Ingest2\n")
+        f.write("import LeanModels.Sv.Kernel.CoreMemExec\n")
         f.write(f'load_design_sv2 activeHighCheck from "{envelope}"\n')
+        f.write('#guard match activeHighCheck.e with | .ok d => d.processes.size == 1 | _ => false\n')
         f.flush()
         p = run(["lake", "env", "lean", f.name], check=False)
-    if p.returncode == 0 or "Clock:async-reset" not in p.stdout:
-        raise RuntimeError("ordinary loader did not refuse active-high reset:\n" + p.stdout)
+    if p.returncode:
+        raise RuntimeError("ordinary loader refused active-high reset:\n" + p.stdout)
     print("extractor: envelope regenerates byte-identically")
-    print("ordinary loader: REFUSED Clock:async-reset")
+    print("ordinary loader: admitted active-high reset")
     for sim in ["iverilog"] + (["xrun"] if shutil.which("xrun") else []):
         with tempfile.TemporaryDirectory(prefix="sv-areset-high-") as work:
             tb_path = Path(work) / "tb.sv"; tb_path.write_text(tb(HERE.name))

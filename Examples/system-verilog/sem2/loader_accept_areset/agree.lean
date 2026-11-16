@@ -1,14 +1,15 @@
 import LeanModels.Sv.ClockGuard2
+import LeanModels.Sv.Ingest2
+import LeanModels.Sv.Kernel.CoreMemExec
 namespace Examples.«system-verilog».sem2.loader_accept_areset.agree
 open LeanModels.Sv
-private def activeHigh : Design2 where
-  name := "loader_accept_areset"
-  decls := #[
-    { name := "clk", width := 1, isInput := true },
-    { name := "rst", width := 1, isInput := true },
-    { name := "d", width := 1, isInput := true },
-    { name := "q", width := 1, isOutput := true }]
-  processes := #[.alwaysFFR "clk" "rst" (.nbaAssign (.ident "q") (.ident "d")) true]
-#guard activeHigh.clockResetViol.isSome
-#guard activeHigh.clockViolation.isSome
+open LeanModels.Sv.Kernel
+load_design_sv2 activeHigh from
+  "Examples/system-verilog/sem2/loader_accept_areset/loader_accept_areset.sv.json"
+#guard match activeHigh.e with | .ok _ => true | _ => false
+#guard match activeHigh.e with
+  | .ok d => d.processes.toList.any fun p => match p with
+    | .edge e => e.resetHigh
+    | _ => false
+  | _ => false
 end Examples.«system-verilog».sem2.loader_accept_areset.agree

@@ -35,6 +35,10 @@ deriving Repr, Inhabited
 structure CoreMemEdge where
   clock : String
   reset : Option String := none
+  /-- Polarity of the asynchronous reset event (§9.4.2).  `false` is the
+      active-low form (`negedge`); `true` is the active-high form
+      (`posedge`). -/
+  resetHigh : Bool := false
   body : PStmt
   style : EdgeStyle := .alwaysFF
 deriving Repr, Inhabited
@@ -294,8 +298,7 @@ def CoreMemProc.ofPProcess : PProcess → CoreMemProc
   | .alwaysFF clock body => .edge { clock, body, style := .alwaysFF }
   | .alwaysPlain clock body => .edge { clock, body, style := .alwaysPlain }
   | .alwaysFFR clock reset body high =>
-      if high then .unsupported "9.4.2" "active-high asynchronous reset is outside canonical E"
-      else .edge { clock, reset := some reset, body, style := .alwaysFF }
+      .edge { clock, reset := some reset, resetHigh := high, body, style := .alwaysFF }
   | .assign target value => .assign (.ident target) value
   | .assignL target value => .assign target value
   | .alwaysComb body => .comb body
@@ -1788,7 +1791,10 @@ def CoreMemEdge.fires (p : CoreMemEdge) (before after : SvState) : Bool :=
   isPosedge (before.bit0 p.clock) (after.bit0 p.clock) ||
     match p.reset with
     | none => false
-    | some r => isNegedge (before.bit0 r) (after.bit0 r)
+    | some r => if p.resetHigh then
+        isPosedge (before.bit0 r) (after.bit0 r)
+      else
+        isNegedge (before.bit0 r) (after.bit0 r)
 
 def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (view : SvState) (index : Nat) : List CoreMemProc →
