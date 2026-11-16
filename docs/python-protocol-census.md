@@ -1046,6 +1046,13 @@ suffix.  It uses the escaped continuation first and the literal continuation
 second, preserving the same exact fuel and accumulator accounting in either
 segment order.
 
+`Monadic.strFormatMappingWalk_token_then_plain` composes a mapping token with
+an arbitrary safe literal continuation.  After the token branch resolves its
+heap lookup and conversion, the literal continuation theorem is applied only
+to the successful conversion arm; key errors, exceptions, timeouts, and
+refusals remain unchanged.  This keeps the token parser and walk semantics
+single-source while exposing the next mixed recursion boundary.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain

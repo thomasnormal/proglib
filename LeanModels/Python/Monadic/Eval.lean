@@ -6491,6 +6491,49 @@ theorem strFormatMappingWalk_escaped_then_plain
   rw [strFormatMappingWalk_plain_prefix_append h a fuel chars rest
     (acc := acc ++ escapedPercentOutput n) hsafe]
 
+theorem strFormatMappingWalk_token_then_plain
+    (h : Heap) (a : Addr) (fuel : Nat) (suffix chars rest : List Char)
+    (conv : Char) (key acc : String)
+    (hsafe : ∀ c ∈ chars, c ≠ '%')
+    (hparse : strFormatMapToken (suffix ++ ')' :: conv :: chars ++ rest) =
+      some (key, conv, chars ++ rest)) :
+    strFormatMappingWalk h a (fuel + chars.length + 1)
+      ('%' :: '(' :: suffix ++ ')' :: conv :: chars ++ rest) acc =
+      match Heap.get? h a with
+      | some (.dict entries _) =>
+          match strFormatDictFind entries.toList key with
+          | some value =>
+              match strFormatConv conv value with
+              | .ok piece => strFormatMappingWalk h a fuel rest
+                  (acc ++ piece ++ String.ofList chars)
+              | .exn e => .exn e
+              | .timeout => .timeout
+              | .unsupported msg => .unsupported msg
+          | Option.none => .exn .keyError
+      | _ => .unsupported "dangling heap reference" := by
+  have hparse' : strFormatMapToken (suffix ++ ')' :: conv ::
+      (chars ++ rest)) = some (key, conv, chars ++ rest) := by
+    simpa [List.append_assoc] using hparse
+  rw [show fuel + chars.length + 1 = (fuel + chars.length) + 1 by omega]
+  rw [show ('%' :: '(' :: suffix ++ ')' :: conv :: chars ++ rest) =
+    ('%' :: '(' :: suffix ++ ')' :: conv :: (chars ++ rest)) by
+      simp [List.append_assoc]]
+  change strFormatMappingWalk h a (fuel + chars.length + 1)
+    ('%' :: '(' :: suffix ++ ')' :: conv :: (chars ++ rest)) acc = _
+  rw [strFormatMappingWalk_token_branch h a (fuel + chars.length) suffix conv
+    (chars ++ rest) key acc hparse']
+  split <;> rename_i hdict
+  · split <;> rename_i hfind
+    · split <;> rename_i hconv piece
+      · have hplain := strFormatMappingWalk_plain_prefix_append h a fuel chars rest
+          (acc := acc ++ hconv) hsafe
+        simpa [String.append_assoc] using hplain
+      · rfl
+      · rfl
+      · rfl
+    · rfl
+  · rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
