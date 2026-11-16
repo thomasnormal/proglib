@@ -712,11 +712,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
                   { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
                     memories := memories.toArray, processes := processes.toArray,
                     readmemh := d.readmemh }
-                if !result.assignTopoB then
-                  .unsupported
-                    "10.3: continuous assignment target is read from itself or a later assignment; canonical E requires topological source order"
-                else
-                  .ok { result with compiledAssigns := result.compileAssigns }
+                .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
 
@@ -1925,6 +1921,29 @@ def CoreMemDesign.settleAssign (E : CoreMemDesign) (env : IEnv) (elems : List (S
     let (st', view') ← E.settleAssignAt env elems st (E.scalar.view st.scalar) 0 procs
     .ok (E.compactScalar st' view')
 
+/-- Re-run the continuous-assignment region until its settled view stops changing.
+IEEE 1800-2023 §§4.5 and 10.3 permit source orders that are not topological;
+the active region remains live while a driver update causes another driver to
+become current.  A bounded run is a loud refusal on a combinational loop, never
+a truncated answer. -/
+def CoreMemDesign.settleAssignQuiesce (E : CoreMemDesign) (limit : Nat)
+    (env : IEnv) (elems : List (String × Nat))
+    (st : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
+  match limit with
+  | 0 => .unsupported "4.5: continuous-assignment region did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let before := E.scalar.view st.scalar
+      let next ← E.settleAssign env elems st procs
+      let after := E.scalar.view next.scalar
+      if before == after then
+        .ok next
+      else
+        E.settleAssignQuiesce n env elems next procs
+
+def CoreMemDesign.settleCanonical (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
+    (st : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
+  E.settleAssignQuiesce 4096 env elems st procs
+
 def CoreMemDesign.settleAssignWithView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (procs : List CoreMemProc) :
@@ -2047,14 +2066,14 @@ def CoreMemDesign.edgeQuiesce (E : CoreMemDesign) (limit : Nat)
         | some m => .ok m
         | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
       let committed := E.normalizeScalar edge.state committedStore
-      let settled ← E.settleAssign E.env E.elems { committed with memory } E.processes.toList
+      let settled ← E.settleCanonical E.env E.elems { committed with memory } E.processes.toList
       let activated ← if E.hasImplicit then
           E.runImplicit st settled E.processes.toList
         else .ok settled
       let combed ← if E.hasComb then
           E.runComb combBefore activated E.processes.toList
         else .ok activated
-      let next ← E.settleAssign E.env E.elems combed E.processes.toList
+      let next ← E.settleCanonical E.env E.elems combed E.processes.toList
       let nextView := E.scalar.view next.scalar
       let caused := E.processes.toList.any fun p =>
         match p with
@@ -2067,14 +2086,14 @@ def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState)
   let inputStore := E.scalar.applyInputs st.scalar entry
   let memoryInput := E.applyMemoryInputs entry st.memory
   let inputState := E.normalizeScalar { st with memory := memoryInput } inputStore
-  let pre0 ← E.settleAssign E.env E.elems inputState E.processes.toList
+  let pre0 ← E.settleCanonical E.env E.elems inputState E.processes.toList
   let pre ← if E.hasComb then
       E.runComb st pre0 E.processes.toList
     else .ok pre0
   let pre ← if E.hasImplicit then
       E.runImplicit st pre E.processes.toList
     else .ok pre
-  let pre ← E.settleAssign E.env E.elems pre E.processes.toList
+  let pre ← E.settleCanonical E.env E.elems pre E.processes.toList
   let before := E.scalar.view st.scalar
   let after := E.scalar.view pre.scalar
   E.edgeQuiesce 4096 pre before after pre

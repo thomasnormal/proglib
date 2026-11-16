@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Receipt for the canonical-E topological continuous-assignment refusal."""
+"""Receipt for canonical-E quiescence of a non-topological assign chain."""
 from pathlib import Path
 import json
 import subprocess
@@ -25,9 +25,8 @@ def main():
                           cwd=ROOT, check=True, text=True, stdout=subprocess.PIPE).stdout
     rows = [json.loads(x) for x in text.splitlines()]
     refusal = [r for r in rows if r.get("construct") == "Instantiation:E:unsupported"]
-    expected = "10.3: continuous assignment target is read from itself or a later assignment; canonical E requires topological source order"
-    if len(refusal) != 1 or refusal[0]["function"] != "PDesign.instantiateE2" or refusal[0]["message"] != expected:
-        raise RuntimeError(f"unexpected census: {rows}")
+    if refusal:
+        raise RuntimeError(f"canonical E still refuses the non-topological chain: {rows}")
     with tempfile.TemporaryDirectory(prefix="sv-topology-") as work:
         tb = Path(work) / "tb.sv"; tb.write_text(TB)
         outputs = []
@@ -46,7 +45,11 @@ def main():
             if actual != EXPECTED:
                 raise RuntimeError(f"{sim}: {actual} != {EXPECTED}")
             print(f"{sim}: 4 x/z rows MATCH")
-    print("ordinary census: exact Instantiation:E:unsupported topology refusal")
+    lean = subprocess.run(["lake", "env", "lean", str(HERE / "agree.lean")],
+                          cwd=ROOT, check=True, text=True,
+                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(lean.stdout, end="")
+    print("ordinary census: no Instantiation:E:unsupported topology refusal")
 
 
 if __name__ == "__main__":
