@@ -49,6 +49,10 @@ private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
       match vals.lookup n with
       | some v => .int v
       | none => .paramRef n none
+  | .genvarRef n =>
+      match vals.lookup n with
+      | some v => .int v
+      | none => .genvarRef n
   | .unary op a => .unary op (hParamExpr vals a)
   | .binary op a b => .binary op (hParamExpr vals a) (hParamExpr vals b)
   | .ternary c a b => .ternary (hParamExpr vals c) (hParamExpr vals a) (hParamExpr vals b)
@@ -210,7 +214,7 @@ private partial def generatedInstances (env : IEnv) (fuel : Nat) :
   | [] => .ok []
   | .inst i :: rest => do
       let tail ← generatedInstances env fuel rest
-      .ok ((i, env) :: tail)
+      .ok ((hParamInst (hParamVals env) i, env) :: tail)
   | .process _ :: rest | .decl _ :: rest => generatedInstances env fuel rest
   | .unsupported k t :: _ => .unsupported s!"{k}: {t}"
   | .genIf cond yes no :: rest => do
@@ -279,8 +283,16 @@ private def generatedParentIters (env : IEnv) (fuel : Nat) (vals : List (String 
   decreasing_by all_goals (simp_wf; omega)
 end
 
-private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) :
-    Res (PDesign × List Int × PInst × String × List PProcess) :=
+private structure HChild where
+  child : PDesign
+  args : List Int
+  inst : PInst
+  pfx : String
+  parentPfx : String
+  generated : List PProcess
+
+private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) (parentPfx : String := "") :
+    Res HChild :=
   match lib.find? (·.name == i.module) with
   | none => .unsupported s!"module '{i.module}' is not in the envelope library"
   | some child =>
@@ -297,9 +309,10 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) :
               -- 1800-2023 §§27.4, 23.3.3).
               let cenv ← child'.paramEnvH { int32 := true, functions := child'.functions } cargs
               let child'' := hParamDesign (hParamVals cenv) child'
-              let generated ← coreMemExpandList cenv
+              let generated ← generatedParentList cenv
                 (PDesign.surfaceFuel cargs) [] child''.generates
-              .ok (child'', cargs, i, pfx, generated)
+              .ok { child := child'', args := cargs, inst := i,
+                    pfx := parentPfx ++ pfx, parentPfx, generated }
           | .error e => .unsupported e
 
 /-- Build a one-child source-shaped memory design. The child may contain the
@@ -317,25 +330,41 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
   let generatedPs ← generatedParentList env
     (PDesign.surfaceFuel args) [] top.generates
   let insts ← generatedInstances env (PDesign.surfaceFuel args) top.generates
-  let children ← insts.mapM fun (i, ie) => childFor ie lib i
-  let childDecls := children.flatMap fun (child, _cargs, inst, pfx, _generated) => child.decls.map fun pd => { pd with
-      name := pfx ++ pd.name
+  let direct ← insts.mapM fun (i, ie) => childFor ie lib i
+  let rec nested (fuel : Nat) (parent : HChild) : Res (List HChild) := do
+    match fuel with
+    | 0 => .unsupported "23.3: hierarchy expansion fuel exhausted"
+    | fuel + 1 =>
+    let cenv ← match parent.child.paramEnvH { int32 := true, functions := parent.child.functions } parent.args with
+      | .ok e => .ok e
+      | .timeout => .timeout
+      | .unsupported e => .unsupported e
+    let insts ← generatedInstances cenv (PDesign.surfaceFuel parent.args) parent.child.generates
+    let here ← insts.mapM fun (i, ie) => childFor ie lib i parent.pfx
+    let tails ← here.mapM (nested fuel)
+    .ok (here ++ tails.flatten)
+  let tails ← direct.mapM (nested (PDesign.surfaceFuel args))
+  let children := direct ++ tails.flatten
+  let childDecls := children.flatMap fun c => c.child.decls.map fun pd => { pd with
+      name := c.pfx ++ pd.name
       isInput := false
       isOutput := false }
-  let childPs := children.flatMap fun (child, _cargs, inst, pfx, generated) =>
-    let clockMap := inst.conns.filterMap fun c =>
-      match c with | .input port (some (.ident actual)) _ => some (port, actual) | _ => none
-    (child.processes ++ generated).map (hProcess pfx clockMap)
-  let inputPs := children.flatMap fun (_child, _cargs, inst, pfx, _generated) => inst.conns.filterMap fun c =>
-      match c with
+  let childPs := children.flatMap fun c =>
+    let clockMap := c.inst.conns.filterMap fun conn =>
+      match conn with
+      | .input port (some (.ident actual)) _ => some (port, c.parentPfx ++ actual)
+      | _ => none
+    (c.child.processes ++ c.generated).map (hProcess c.pfx clockMap)
+  let inputPs := children.flatMap fun c => c.inst.conns.filterMap fun conn =>
+      match conn with
       | .input port (some actual) _ =>
           match actual with
-          | .arrayElem _ [] => some (.assignL (.arrayElem (pfx ++ port) []) actual)
-          | _ => some (.assign (pfx ++ port) actual)
+          | .arrayElem _ [] => some (.assignL (.arrayElem (c.pfx ++ port) []) (hExpr c.parentPfx actual))
+          | _ => some (.assign (c.pfx ++ port) (hExpr c.parentPfx actual))
       | _ => none
-  let outputPs := children.flatMap fun (_child, _cargs, inst, pfx, _generated) => inst.conns.filterMap fun c =>
-      match c with
-      | .output port (some target) => some (.assignL target (.ident (pfx ++ port)))
+  let outputPs := children.flatMap fun c => c.inst.conns.filterMap fun conn =>
+      match conn with
+      | .output port (some target) => some (.assignL (hLhs c.parentPfx target) (.ident (c.pfx ++ port)))
       | _ => none
   let merged := { top with
       decls := top.decls ++ generatedDecls ++ childDecls
@@ -347,12 +376,12 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
       -- choice, not a source rewrite.
       processes := inputPs ++ childPs ++ outputPs ++ top.processes ++ generatedPs
       generates := []
-      others := top.others ++ children.flatMap fun (child, _, _, _, _) => child.others
+      others := top.others ++ children.flatMap fun c => c.child.others
       -- A child function remains a source-shaped declaration after the
       -- §23.3.3 port-connection merge.  Carry it into the merged constant
       -- scope so a child localparam such as `vbits(N)` is evaluated by the
       -- same canonical constant-function tier as the top declaration.
-      functions := top.functions ++ children.flatMap fun (child, _, _, _, _) => child.functions }
+      functions := top.functions ++ children.flatMap fun c => c.child.functions }
   match PDesign.instantiateCoreMem merged args with
   | .ok d => .ok d
   | .timeout => .timeout
