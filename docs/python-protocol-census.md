@@ -958,6 +958,14 @@ the same bounded `heapListRepeat` worker used by `evalBinOpH`.  The remaining
 operator relation is dispatch and error-ordering around this shared worker,
 not a second repetition algorithm.
 
+The pinned differential row for `str_lab.fmt_mapping` (`%(k)s` over a heap
+dict) agrees under CPython 3.9.25 and the monadic runner, but the worker paths
+remain distinct: `strFormatH` adds heap-dict mapping traversal around the pure
+`strFormat` worker.  A direct refinement theorem must therefore relate the
+mapping walk and pure conversion results on the admitted dictionary domain;
+the existing match is evidence for that domain, not a proof of the worker
+equality.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
