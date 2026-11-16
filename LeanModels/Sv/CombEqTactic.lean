@@ -1546,7 +1546,12 @@ info trees, 2.09 GB throughout without). -/
 /-- `sv_cover using tac`: `sv_cover`, where the rule with slot windows (`CombCoverUnit.lean`) runs `tac` once the
 writers' witnesses are solved, with every writer's condition in context as `L → L` (no claim): the player's facts about
 the design's own functions at the witnesses (a table of the schedule at a stage index the solution names), which the
-rule cannot know. `tac` must leave one goal; it may add hypotheses only. -/
+rule cannot know. `tac` must leave one goal, with the goal unchanged (checked). It may add hypotheses, and it may clear
+hypotheses the goal does not mention: every `omega` call of the rule reads the whole context, and a large one makes
+each call dearer (on the Dadda record one failing call cost 330 000 heartbeats with the localparams' definitions in
+context, the stage count `hlp_S` a sum of 51 `?:`, and 6 900 without them). Clearing is safe: the goal and the
+writers' conditions mention only locals a clear cannot remove, so it changes what the rule's `omega` calls see, never
+what is proved. -/
 syntax (name := svCoverUsingStx) "sv_cover" " using " tactic : tactic
 
 @[tactic svCoverUsingStx] def evalSvCoverUsing : Tactic := fun stx => withDeepRec do

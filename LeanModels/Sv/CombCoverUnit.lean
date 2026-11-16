@@ -43,12 +43,25 @@ writer's condition but the last one's, the negation keeping only the components 
 writer's condition is proved component by component, the equations first, each with the earlier ones as hypotheses.
 Each writer the context does not refute is tried as the last one.
 
+**If/else chains.** The writers of a generate `if`/`else if`/`else` under one loop share every component of their
+conditions but the arms, and the arms are exhaustive: arm `k` is `¬c₁ ∧ … ∧ ¬cₖ₋₁ ∧ cₖ`, the last `¬c₁ ∧ … ∧ ¬cₘ₋₁`.
+Such a FAMILY (`findFams`: conditions of one length differing at a common set of positions, whose literals there cover
+every assignment of their atoms, decided by enumeration) is one case of the walk: `Classical.em` of its shared
+components the context does not prove; in that branch a member by `Classical.em` on the arms' atoms (`chainProof`, no
+`omega`), in the other only the negated shared part as a hypothesis. A family may be the last case too (its shared part
+proved component by component). Where no choice of the last writer or family succeeds, the walk runs again with every
+writer a case of its own, as without families (`sv_comb.cover_chains false` turns families off).
+
 Kernel-checked: the proof term is built from the lemmas below, `omega`'s proofs and the decided facts; nothing is
 assumed. -/
 
 register_option sv_comb.cover_units : Bool := {
   defValue := true
   descr := "sv_cover: after the 2-D rule fails, the rule with slot windows, forced witnesses and nested rows" }
+
+register_option sv_comb.cover_chains : Bool := {
+  defValue := true
+  descr := "sv_cover (slot windows): writers that differ only in an exhaustive if/else chain are one case" }
 
 namespace LeanModels.Sv
 namespace CombCoverUnit
@@ -815,32 +828,54 @@ def candidates (g : MVarId) (es hyps : Array Lean.Expr) : MetaM (Array Cand) := 
                       orFact := mkAppM ``mul_zero_or #[gE, yE] }
   return out
 
+/-- The negation of a guard for the refutation test: `a` for `¬ a` (`omega` proves `¬¬a` exactly when it proves `a`),
+`¬ p` otherwise. -/
+def negGuard (p : Lean.Expr) : Lean.Expr := if p.isAppOfArity ``Not 1 then p.appArg! else mkNot p
+
 /-- Add the facts of the candidates to `g`, each decided against the context as it grows; the undecided ones are
-returned (`orAll`: added as disjunctions instead). -/
+returned (`orAll`: added as disjunctions instead). Each proposition is tried once per context (`tried`: the two
+candidates of an `if-then-else` atom ask `c` and `¬c`, and their refutation tests ask the same two again); the record is
+dropped whenever a fact is added, since a guard may follow from it. -/
 def addFacts (g : MVarId) (cands : Array Cand) (orAll : Bool := false) : TacticM (MVarId × Array Cand) := do
   let mut g := g
   let mut pend : Array Cand := #[]
+  let mut tried : Array (Lean.Expr × Option Lean.Expr) := #[]
   for c in cands do
     let gw := g
     let mut pfs : Array Lean.Expr := #[]
     let mut allOk := true
     for gd in c.guards do
-      match ← proveBy gw gd with
+      let r ← match tried.find? (·.1 == gd) with
+        | some (_, r) => pure r
+        | none => do
+          let r ← proveBy gw gd
+          tried := tried.push (gd, r)
+          pure r
+      match r with
       | some p => pfs := pfs.push p
       | none => allOk := false; break
     if allOk then
       let p ← gw.withContext (c.mkp pfs)
       g ← assertIntro gw c.concl p
+      tried := #[]
     else
       let mut vac := false
       for gd in c.guards do
-        if (← proveBy gw (mkNot gd)).isSome then
+        let ng := negGuard gd
+        let r ← match tried.find? (·.1 == ng) with
+          | some (_, r) => pure r
+          | none => do
+            let r ← proveBy gw ng
+            tried := tried.push (ng, r)
+            pure r
+        if r.isSome then
           vac := true
           break
       unless vac do
         if orAll then
           let p ← gw.withContext c.orFact
           g ← assertIntro gw (← gw.withContext (inferType p)) p
+          tried := #[]
         else pend := pend.push c
   return (g, pend)
 
@@ -1277,9 +1312,133 @@ def inj (ds : Array Lean.Expr) (i : Nat) (pf : Lean.Expr) : Lean.Expr := Id.run 
 partial def orParts (T : Lean.Expr) : Array Lean.Expr :=
   if T.isAppOfArity ``Or 2 then #[T.appFn!.appArg!] ++ orParts T.appArg! else #[T]
 
+/-! ## Families of writers: an if/else chain is one case
+
+The writers of a generate `if`/`else if`/`else` (or any exhaustive tree of them) under one loop share every component
+of their conditions but the arms: arm `k` is `¬c₁ ∧ … ∧ ¬cₖ₋₁ ∧ cₖ`, the last `¬c₁ ∧ … ∧ ¬cₘ₋₁`. Their disjunction is
+the shared part. The walk takes such a FAMILY as one case: `Classical.em` of its shared components the context does not
+prove; in that branch a member is found by `Classical.em` on the arms' atoms (no `omega`); in the other only the
+negated shared part is a hypothesis, where one negated condition per member would leave `omega` a combination it cannot
+reach in budget (the Dadda record's output column: carries, sums, kept bits, zeros below the target, the zero slice
+above it). -/
+
+/-- The literals of a component: the parts of a conjunction, `¬ a` as `(a, false)`, any other part `(c, true)`. -/
+partial def litsOf (c : Lean.Expr) : Array (Lean.Expr × Bool) :=
+  if c.isAppOfArity ``And 2 then litsOf c.appFn!.appArg! ++ litsOf c.appArg!
+  else if c.isAppOfArity ``Not 1 then #[(c.appArg!, false)]
+  else #[(c, true)]
+
+/-- A family of writers (`mem`, indices of the disjuncts): their conditions agree at every position but `diff`, where
+each member's components are literals over `atoms` (`lits`, per member: atom index and polarity), and every assignment
+of the atoms satisfies some member's literals (the chain is exhaustive). -/
+structure Fam where
+  mem : Array Nat
+  diff : Array Nat
+  atoms : Array Lean.Expr
+  lits : Array (Array (Nat × Bool))
+deriving Inhabited
+
+/-- The families among the plans, each plan in at most one: plans with conditions of one length that differ from the
+first member at a common set of positions, whose literals there are exhaustive (decided by enumeration, at most 8
+atoms). -/
+def findFams (plans : Array Plan) : MetaM (Array Fam) := do
+  let n := plans.size
+  let mut used := Array.replicate n false
+  let mut out : Array Fam := #[]
+  for i in [0:n] do
+    if used[i]! then continue
+    let Li := plans[i]!.inL
+    if Li.isEmpty then continue
+    let mut mem : Array Nat := #[i]
+    let mut D : Array Nat := #[]
+    for j in [i+1:n] do
+      if used[j]! then continue
+      let Lj := plans[j]!.inL
+      if Lj.size != Li.size then continue
+      let dj := (Array.range Li.size).filter fun k => Lj[k]! != Li[k]!
+      if dj.isEmpty then continue
+      if D.isEmpty then
+        D := dj
+        mem := mem.push j
+      else if dj.all D.contains then mem := mem.push j
+    if mem.size < 2 then continue
+    let mut atoms : Array Lean.Expr := #[]
+    let mut lits : Array (Array (Nat × Bool)) := #[]
+    for m in mem do
+      let mut ls : Array (Nat × Bool) := #[]
+      for k in D do
+        for (a, pol) in litsOf plans[m]!.inL[k]! do
+          let ai ← match atoms.findIdx? (· == a) with
+            | some x => pure x
+            | none => do atoms := atoms.push a; pure (atoms.size - 1)
+          ls := ls.push (ai, pol)
+      lits := lits.push ls
+    if atoms.size > 8 then continue
+    let mut ok := true
+    for v in [0:2 ^ atoms.size] do
+      let val (a : Nat) : Bool := (v >>> a) % 2 == 1
+      unless lits.any (fun ls => ls.all fun (a, pol) => val a == pol) do
+        ok := false
+        break
+    unless ok do continue
+    for m in mem do used := used.set! m true
+    out := out.push { mem := mem, diff := D, atoms := atoms, lits := lits }
+  return out
+
+/-- The proof of a component (a conjunction of literals) from the literals' proofs
+(`asg[a] = some (proof, polarity)`). -/
+partial def litProof (asg : Array (Option (Lean.Expr × Bool))) (atoms : Array Lean.Expr) (c : Lean.Expr) :
+    MetaM Lean.Expr := do
+  if c.isAppOfArity ``And 2 then
+    return mkApp4 (mkConst ``And.intro) c.appFn!.appArg! c.appArg!
+      (← litProof asg atoms c.appFn!.appArg!) (← litProof asg atoms c.appArg!)
+  let (a, pol) := if c.isAppOfArity ``Not 1 then (c.appArg!, false) else (c, true)
+  let some ai := atoms.findIdx? (· == a) | throwError "sv_cover (chain): internal error (atom)"
+  let some (p, pol') := asg[ai]! | throwError "sv_cover (chain): internal error (unassigned atom)"
+  unless pol == pol' do throwError "sv_cover (chain): internal error (polarity)"
+  return p
+
+/-- **The chain**: a proof of `T` (the disjunction `ds`) from the proofs of the family's shared components (`shared k`
+for position `k`), by `Classical.em` on the atoms until some member's literals all hold. -/
+partial def chainProof (ds : Array Lean.Expr) (plans : Array Plan) (F : Fam) (T : Lean.Expr)
+    (shared : Nat → Lean.Expr) (asg : Array (Option (Lean.Expr × Bool))) : MetaM Lean.Expr := do
+  for r in [0:F.mem.size] do
+    if F.lits[r]!.all (fun (a, pol) => match asg[a]! with | some (_, p) => p == pol | none => false) then
+      let m := F.mem[r]!
+      let plan := plans[m]!
+      let mut prs : Array Lean.Expr := #[]
+      for k in [0:plan.inL.size] do
+        if F.diff.contains k then prs := prs.push (← litProof asg F.atoms plan.inL[k]!)
+        else prs := prs.push (shared k)
+      let (pf, _, _) ← build ds[m]! plan.ws.toList plan.wins.toList (plan.fullHs prs).toList
+      return inj ds m pf
+  let some a := (Array.range F.atoms.size).find? fun a => asg[a]!.isNone
+    | throwError "sv_cover (chain): internal error (no member)"
+  let A := F.atoms[a]!
+  let l1 ← withLocalDeclD `hca A fun h => do
+    mkLambdaFVars #[h] (← chainProof ds plans F T shared (asg.set! a (some (h, true))))
+  let l2 ← withLocalDeclD `hcn (mkNot A) fun h => do
+    mkLambdaFVars #[h] (← chainProof ds plans F T shared (asg.set! a (some (h, false))))
+  mkAppOptM ``Or.elim #[some A, some (mkNot A), some T, some (← mkAppM ``Classical.em #[A]), some l1, some l2]
+
+/-- `Classical.em L` on `g`: the left goal closed by `left` (given the hypothesis), the right goal returned with the
+hypothesis `¬ L`. -/
+def emSplit (g : MVarId) (L : Lean.Expr) (left : Lean.Expr → MetaM Lean.Expr) : MetaM (MVarId × FVarId) :=
+  g.withContext do
+    let T ← g.getType
+    let emL ← mkAppM ``Classical.em #[L]
+    let gs ← g.apply (← mkAppOptM ``Or.elim #[some L, some (mkNot L), some T, some emL])
+    let [gl, gr] := gs | throwError "sv_cover: internal error (Or.elim)"
+    let (hl, gl') ← gl.intro1
+    gl'.withContext do gl'.assign (← left (mkFVar hl))
+    let (hn, gr') ← gr.intro1
+    return (gr', hn)
+
 /-- Prove `T` (a disjunction of writers or one writer): the facts of the atoms of the plans first; then
 `Classical.em` of each writer's condition but the one chosen LAST, which is proved component by component from the
-context and the others' failures; each choice of the last writer is tried, the given last one first. -/
+context and the others' failures; each choice of the last writer is tried, the given last one first. A family of
+writers (an if/else chain, `findFams`) is one case of the walk; where no choice of the last writer succeeds that way,
+the walk runs again with every writer a case of its own. -/
 partial def coverGoal (store : IO.Ref (Array (Lean.Expr × Lean.Expr))) (g : MVarId) (depth : Nat := 0)
     (done : Array Lean.Expr := #[]) (inherited : Option (Array Cand) := none) (prep : Option Syntax := none) :
     TacticM Unit := do
@@ -1309,6 +1468,9 @@ partial def coverGoal (store : IO.Ref (Array (Lean.Expr × Lean.Expr))) (g : MVa
           setGoals [g']
           evalTactic tac
           let [g''] ← getGoals | throwError "sv_cover: the facts tactic left other goals"
+          -- it may add hypotheses and clear ones the goal does not mention, never change the goal
+          unless (← instantiateMVars (← g''.getType)) == T do
+            throwError "sv_cover: the facts tactic changed the goal"
           g''.tryClearMany (← g''.withContext do
             pure ((← getLCtx).foldl (init := #[]) fun acc d => if d.userName == `hplan then acc.push d.fvarId else acc))
         | _, _ => pure g
@@ -1384,8 +1546,24 @@ partial def coverGoal (store : IO.Ref (Array (Lean.Expr × Lean.Expr))) (g : MVa
             g.assign (inj ds i pf)
             return
       let n := ds.size
-      let order := ((Array.range n).reverse).filter (fun j => !refW[j]!)
       let mut firstErr : Option Exception := none
+      -- the families (if/else chains) among the writers that the context does not all refute: each one case; the last
+      -- writer a writer of no family, or a family
+      let fams ← if sv_comb.cover_chains.get (← getOptions) then
+          (do pure ((← g.withContext (findFams plans)).filter fun F => F.mem.any (!refW[·]!)))
+        else pure #[]
+      unless fams.isEmpty do
+        let lastW := ((Array.range n).reverse).filter fun j => !refW[j]! && !fams.any (·.mem.contains j)
+        let lasts : Array (Sum Nat Nat) := lastW.map Sum.inl ++ (Array.range fams.size).reverse.map Sum.inr
+        for lst in lasts do
+          let saved ← saveState
+          try
+            walkF ds plans pend refW provs fams lst g
+            return
+          catch ex =>
+            saved.restore
+            if firstErr.isNone then firstErr := some ex
+      let order := ((Array.range n).reverse).filter (fun j => !refW[j]!)
       for j in order do
         let saved ← saveState
         try
@@ -1408,52 +1586,104 @@ partial def coverGoal (store : IO.Ref (Array (Lean.Expr × Lean.Expr))) (g : MVa
       evalTactic (← `(tactic| omega))
       unless (← getGoals).isEmpty do throwError "sv_cover: a linear fact is not provable"
 where
+  /-- `Classical.em` of writer `i`'s condition: its disjunct in the left branch, `¬ D` right (`D` the components the
+  context does not prove). -/
+  emWriter (ds : Array Lean.Expr) (plans : Array Plan) (provs : Array (Array (Option Lean.Expr))) (i : Nat)
+      (g : MVarId) : MetaM MVarId := do
+    let plan := plans[i]!
+    let L := mkAndAll plan.inL
+    -- the components the context does not prove: the negation keeps only those
+    let opn := (Array.range plan.inL.size).filter fun k => provs[i]![k]!.isNone
+    let D := mkAndAll (opn.map fun k => plan.inL[k]!)
+    let (gr', hn) ← emSplit g L fun hl => do
+      let hs := plan.fullHs (← projs hl plan.inL.size)
+      let (pf, _, _) ← build ds[i]! plan.ws.toList plan.wins.toList hs.toList
+      unless (← isDefEq (← inferType pf) ds[i]!) do throwError "sv_cover: internal error (ill-typed proof)"
+      pure (inj ds i pf)
+    -- `¬ D` from `¬ L` and the proved components
+    gr'.withContext do
+      let pf ← withLocalDeclD `hd D fun hd => do
+        let ps ← projs hd opn.size
+        let mut comps : Array Lean.Expr := #[]
+        let mut q := 0
+        for k in [0:plan.inL.size] do
+          match provs[i]![k]! with
+          | some p => comps := comps.push p
+          | none => comps := comps.push ps[q]!; q := q + 1
+        -- `c₁ ∧ (c₂ ∧ …)`
+        let n := comps.size
+        let mut acc := comps[n - 1]!
+        for k' in [0:n - 1] do
+          let k := n - 2 - k'
+          acc ← mkAppM ``And.intro #[comps[k]!, acc]
+        mkLambdaFVars #[hd] (mkApp (mkFVar hn) acc)
+      let (_, g2) ← (← gr'.assert `hneg (mkNot D) pf).intro1P
+      g2.tryClear hn
+  /-- A family's representative (a member the context does not refute) and its shared components the context does not
+  prove (positions). -/
+  famOpen (plans : Array Plan) (refW : Array Bool) (provs : Array (Array (Option Lean.Expr))) (F : Fam) :
+      Nat × Array Nat :=
+    let rep := (F.mem.find? (!refW[·]!)).getD F.mem[0]!
+    (rep, (Array.range plans[rep]!.inL.size).filter fun k => !F.diff.contains k && provs[rep]![k]!.isNone)
+  /-- The walk with families: each family one case (`Classical.em` of its open shared part, the chain inside), every
+  other writer as in `walk`, then the last writer or the last family proved from the context. -/
+  walkF (ds : Array Lean.Expr) (plans : Array Plan) (pend : Array Cand) (refW : Array Bool)
+      (provs : Array (Array (Option Lean.Expr))) (fams : Array Fam) (last : Sum Nat Nat) (g : MVarId) :
+      TacticM Unit := do
+    let mut g := g
+    let T ← g.withContext do instantiateMVars (← g.getType)
+    let none0 (F : Fam) : Array (Option (Lean.Expr × Bool)) := F.atoms.map fun _ => none
+    for fi in [0:fams.size] do
+      if last == .inr fi then continue
+      let F := fams[fi]!
+      let (rep, opn) := famOpen plans refW provs F
+      let L := plans[rep]!.inL
+      if opn.isEmpty then
+        -- the context proves the shared part: the family covers the read
+        g.assign (← g.withContext (chainProof ds plans F T (fun k => provs[rep]![k]!.get!) (none0 F)))
+        return
+      let (g', _) ← emSplit g (mkAndAll (opn.map (L[·]!))) fun hl => do
+        let ps ← projs hl opn.size
+        chainProof ds plans F T (fun k => match opn.findIdx? (· == k) with
+          | some q => ps[q]!
+          | none => provs[rep]![k]!.get!) (none0 F)
+      g := g'
+    for i in [0:ds.size] do
+      if refW[i]! || fams.any (·.mem.contains i) || last == .inl i then continue
+      g ← emWriter ds plans provs i g
+    match last with
+    | .inl j =>
+      let plan := plans[j]!
+      let L := mkAndAll plan.inL
+      g.withContext do
+        let gL ← mkFreshExprSyntheticOpaqueMVar L
+        if let some c ← proveAll pend gL.mvarId! plan.inL (if refW[j]! then #[] else provs[j]!) then
+          let rd := (readOf? ds[j]!).getD ds[j]!
+          throwError "{diagPrefix}{indentExpr rd}\nlast writer {j} of {ds.size} (the families {fams.map (·.mem)} one case each): the component that does not follow:{indentExpr (← tidy c)}\nin{indentExpr (← tidy L)}"
+        let hs := plan.fullHs (← (← projs gL plan.inL.size).mapM instantiateMVars)
+        let (pf, _, _) ← build ds[j]! plan.ws.toList plan.wins.toList hs.toList
+        unless (← isDefEq (← inferType pf) ds[j]!) do throwError "sv_cover: internal error (ill-typed proof)"
+        g.assign (inj ds j pf)
+    | .inr fi =>
+      let F := fams[fi]!
+      let (rep, opn) := famOpen plans refW provs F
+      let L := plans[rep]!.inL
+      let cs := opn.map (L[·]!)
+      g.withContext do
+        let gL ← mkFreshExprSyntheticOpaqueMVar (mkAndAll cs)
+        if let some c ← proveAll pend gL.mvarId! cs #[] then
+          let rd := (readOf? ds[rep]!).getD ds[rep]!
+          throwError "{diagPrefix}{indentExpr rd}\nlast family {F.mem} of {ds.size}: the shared component that does not follow:{indentExpr (← tidy c)}"
+        let ps ← (← projs gL cs.size).mapM instantiateMVars
+        g.assign (← chainProof ds plans F T (fun k => match opn.findIdx? (· == k) with
+          | some q => ps[q]!
+          | none => provs[rep]![k]!.get!) (none0 F))
   walk (ds : Array Lean.Expr) (plans : Array Plan) (pend : Array Cand) (refW : Array Bool)
       (provs : Array (Array (Option Lean.Expr))) (j : Nat) (g : MVarId) : TacticM Unit := do
     let mut g := g
-    let mut negs : List (FVarId × Lean.Expr) := []
     for i in [0:ds.size] do
       if i == j || refW[i]! then continue
-      let plan := plans[i]!
-      let L := mkAndAll plan.inL
-      -- the components the context does not prove: the negation keeps only those
-      let opn := (Array.range plan.inL.size).filter fun k => provs[i]![k]!.isNone
-      let D := mkAndAll (opn.map fun k => plan.inL[k]!)
-      let gi := g
-      let (g', hn) ← gi.withContext do
-        let T ← gi.getType
-        let emL ← mkAppM ``Classical.em #[L]
-        let gs ← gi.apply (← mkAppOptM ``Or.elim #[some L, some (mkNot L), some T, some emL])
-        let [gl, gr] := gs | throwError "sv_cover: internal error (Or.elim)"
-        let (hl, gl') ← gl.intro1
-        gl'.withContext do
-          let hs := plan.fullHs (← projs (mkFVar hl) plan.inL.size)
-          let (pf, _, _) ← build ds[i]! plan.ws.toList plan.wins.toList hs.toList
-          unless (← isDefEq (← inferType pf) ds[i]!) do throwError "sv_cover: internal error (ill-typed proof)"
-          gl'.assign (inj ds i pf)
-        let (hn, gr') ← gr.intro1
-        -- `¬ D` from `¬ L` and the proved components
-        gr'.withContext do
-          let pf ← withLocalDeclD `hd D fun hd => do
-            let ps ← projs hd opn.size
-            let mut comps : Array Lean.Expr := #[]
-            let mut q := 0
-            for k in [0:plan.inL.size] do
-              match provs[i]![k]! with
-              | some p => comps := comps.push p
-              | none => comps := comps.push ps[q]!; q := q + 1
-            -- `c₁ ∧ (c₂ ∧ …)`
-            let n := comps.size
-            let mut acc := comps[n - 1]!
-            for k' in [0:n - 1] do
-              let k := n - 2 - k'
-              acc ← mkAppM ``And.intro #[comps[k]!, acc]
-            mkLambdaFVars #[hd] (mkApp (mkFVar hn) acc)
-          let (hn', g2) ← (← gr'.assert `hneg (mkNot D) pf).intro1P
-          let g3 ← g2.tryClear hn
-          pure (g3, hn')
-      negs := negs ++ [(hn, D)]
-      g := g'
+      g ← emWriter ds plans provs i g
     let plan := plans[j]!
     let L := mkAndAll plan.inL
     g.withContext do
