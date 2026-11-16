@@ -725,8 +725,9 @@ end
 
 /-- A process of the clocked profile, at index `i` of the design: a continuous assign to a whole declared scalar
 (function-free; a memory read is evaluated by the route's evaluator, anything else by its compiled expression, which
-must be present), or an edge process on `clk` (with or without an asynchronous reset) whose body the view-level
-executor mirrors, within the route's statement fuel. -/
+must be present), or an edge process on the rising edge of `clk` (with or without an asynchronous reset of either
+polarity) whose body the view-level executor mirrors, within the route's statement fuel. A falling-edge process, an
+`always_comb`, `always_latch`, `always @*` or `initial` process is outside (refused by name by the structure stage). -/
 def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemProc → Prop
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
