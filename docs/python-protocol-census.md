@@ -915,6 +915,13 @@ children to integer constants and one operator, but the proof structure points
 directly to the generic relation: two child bridges plus a worker refinement,
 with no new list-length matrix required.
 
+`Monadic.twinAgrees_binOp` is the first worker refinement needed by that
+generalization: `binOpM` lifts the shared `evalBinOp` result through exactly
+the legacy `Run.liftRes`, with no extra arithmetic semantics.  Heap-aware
+operators use the corresponding `twinAgrees_unaryOp`/`binOpH` equations, so a
+generic binary expression theorem can factor worker behavior from child
+evaluation instead of duplicating operator cases.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
