@@ -793,6 +793,10 @@ length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
 statement-node bridge as its only premise.
 
+`Monadic.twinAgrees_callIn_top_next_of_statement_bridge` supplies the matching
+normal-flow bridge.  It uses the same threshold and frame embedding while
+preserving the legacy body's threaded post-state through `RFlow.next`.
+
 `Monadic.twinAgrees_callIn_top_body_ret` provides the generic return-flow
 counterpart.  It accepts raw monadic and legacy body results and an explicit
 world equality, then transports both through the normalized top-depth call

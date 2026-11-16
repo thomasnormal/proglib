@@ -6220,6 +6220,55 @@ theorem twinAgrees_callIn_top_ret_of_statement_bridge
   · exact hbody
   · rfl
 
+theorem twinAgrees_callIn_top_next_of_statement_bridge
+    (m : Module) (fuel base : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (st' : FrameState)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false) (hglobal : f.hasGlobal = false)
+    (harity : arityOk f.params args.size = true)
+    (hfuel : base + f.body.toList.length < fuel)
+    (hbridge : ∀ s ∈ f.body.toList, ∀ st g, base ≤ g → 0 < g →
+      toRun (execOpen (kont m fuel) m s) st = execStmt m g st s)
+    (hbody : execStmts m fuel
+      ⟨{ w with callDepth := 1 },
+        markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩ f.body.toList =
+      .ok st' RFlow.next) :
+    callInMono m (fuel + 1) w fname args =
+      callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth } fname args := by
+  let st : FrameState := ⟨{ w with callDepth := 1 },
+    markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩
+  have hproject : toRun (execOpenList (kont m fuel) m f.body.toList) st =
+      .ok st' RFlow.next := by
+    rw [twinAgrees_execOpenList_of_threshold (kont m fuel) m f.body.toList
+      base fuel st hfuel hbridge]
+    exact hbody
+  have hraw : execOpenList (kont m fuel) m f.body.toList st =
+      .ok (.ok RFlow.next, st') := by
+    unfold toRun at hproject
+    generalize heq : execOpenList (kont m fuel) m f.body.toList st = q at hproject
+    cases q with
+    | error e => cases e <;> simp at hproject
+    | ok p =>
+        cases p with
+        | mk r st'' =>
+            cases r with
+            | error e => simp at hproject
+            | ok flow => cases hproject; rfl
+  have hmono := callInMono_succ_body_next m fuel w fname args f st'
+    hfind hgen hargs hlocal hnotgen harity (by
+      simpa [st, hglobal, globalCallEnv_eq_legacy_of_noGlobal] using hraw)
+  have hlegacy : callIn m (fuel + 1)
+      { w with callDepth := pythonTopCallDepth } fname args =
+      .ok { st'.world with callDepth := pythonTopCallDepth } .none := by
+    rw [callIn]
+    simp only [hfind, hargs, hlocal, hnotgen, harity,
+      Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+    rw [hbody]
+    simp [pythonTopCallDepth, Run.finishCallAt, Run.toWorld, Run.bind]
+  rw [hmono, hlegacy]
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by
