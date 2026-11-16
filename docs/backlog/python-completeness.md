@@ -17281,3 +17281,11 @@ smaller-fuel call predicate must therefore be mutual with the expression and
 statement relations and quantify the continuation/frame embedding itself;
 using `callInMono` as that predicate would be circular and lose the nested
 state needed by the tail.
+
+The existing `KontLe`/`fuelMono` relation does not remove this obstruction.
+`KontLe` compares two fuel-free monadic continuations field by field, and
+`kontMono` proves `KontLe (kont m n) (kont m (n + 1))`; neither side mentions
+the legacy `callIn`/`execStmts` evaluator.  Applying it to a smaller monadic
+continuation can establish monotonicity of a monadic call, but cannot identify
+that call with the legacy head step or supply the legacy frame state for the
+tail.  A cross-interpreter mutual relation remains necessary.
