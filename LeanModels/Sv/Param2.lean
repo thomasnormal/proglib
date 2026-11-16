@@ -915,7 +915,9 @@ def instExpr2 (env : IEnv) (elems : List (String × Nat)) (ctx : Option Nat) :
               -- A stale constant (`IEnv.stale`): its type here is not the one
               -- the envelope's tree around this read was elaborated at.
               if env.stale.contains n then .unsupported "ParamRef:override-type" (staleMsg2 n)
-              else intLit2 ctx v
+              else
+                let w := (env.pwidths.lookup n).getD (paramNWidth env n)
+                intLit2 (ctx.orElse (fun _ => some w)) v
           | none => .unsupported "ParamRef:unbound" n
   | .paramRef n (some p) =>
       match env.packageVal p n with
@@ -1971,6 +1973,15 @@ family), a case FSM, and an async-reset register — all three semantic-tier
 mechanisms end-to-end under `run2`. -/
 
 private def wm1' : PDim := ⟨.binary (.m0 .sub) (.paramRef "W" none) (.int 1), .int 0⟩
+
+/-! A localparam keeps the width of its sized initializer when it is read at
+its own (self-determined) value width.  This is the case-item shape used by
+PicoRV32's 8-bit `cpu_state` constants (§11.8, §12.5). -/
+private def localParamWidthEnv : IEnv :=
+  { nvals := [("cpu_state_fetch", (64, 8, false))] }
+
+#guard instExpr2 localParamWidthEnv [] none (.paramRef "cpu_state_fetch" none) ==
+  .lit (LVec.ofNat 8 64)
 
 /-- `gen_or(W)`: `assign y[j] = a[j] | a[j+1]` for j < W-1 — select reads
 AND select writes with genvar-constant indices, expanded structurally. -/
