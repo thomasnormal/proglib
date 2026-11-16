@@ -1094,6 +1094,12 @@ bridge: a token followed by an arbitrary segment chain.  Its successful
 conversion arm invokes the chain theorem, while every other token outcome is
 preserved directly, completing the general chain/token composition boundary.
 
+`Monadic.strFormatMappingWalk_segment_chain_token_segment_chain` composes
+arbitrary segment chains on both sides of one mapping token.  It preserves the
+token's heap and conversion outcomes while carrying independent no-`%`
+invariants and parametric costs for the two chains, closing the general
+token-position composition without a finite matrix.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain

@@ -6826,6 +6826,63 @@ theorem strFormatMappingWalk_token_then_segment_chain
     · rfl
   · rfl
 
+theorem strFormatMappingWalk_segment_chain_token_segment_chain
+    (h : Heap) (a : Addr) (fuel : Nat)
+    (before after : List (List Char × Nat))
+    (suffix rest : List Char) (conv : Char) (key acc : String)
+    (hsafeBefore : ∀ seg ∈ before, ∀ c ∈ seg.1, c ≠ '%')
+    (hsafeAfter : ∀ seg ∈ after, ∀ c ∈ seg.1, c ≠ '%')
+    (hparse : strFormatMapToken (suffix ++ ')' :: conv ::
+      mappingPrefixInput after ++ rest) =
+      some (key, conv, mappingPrefixInput after ++ rest)) :
+    strFormatMappingWalk h a
+        (fuel + mappingPrefixCost before + 1 + mappingPrefixCost after)
+      (mappingPrefixInput before ++
+        ('%' :: '(' :: suffix ++ ')' :: conv :: mappingPrefixInput after ++ rest)) acc =
+      match Heap.get? h a with
+      | some (.dict entries _) =>
+          match strFormatDictFind entries.toList key with
+          | some value =>
+              match strFormatConv conv value with
+              | .ok piece => strFormatMappingWalk h a fuel rest
+                  (acc ++ mappingPrefixOutput before ++ piece ++
+                    mappingPrefixOutput after)
+              | .exn e => .exn e
+              | .timeout => .timeout
+              | .unsupported msg => .unsupported msg
+          | Option.none => .exn .keyError
+      | _ => .unsupported "dangling heap reference" := by
+  let htail : List Char := mappingPrefixInput after ++ rest
+  have hparse' : strFormatMapToken (suffix ++ ')' :: conv :: htail) =
+      some (key, conv, htail) := by
+    simpa [htail] using hparse
+  rw [show fuel + mappingPrefixCost before + 1 + mappingPrefixCost after =
+      (fuel + 1 + mappingPrefixCost after) + mappingPrefixCost before by omega]
+  rw [show mappingPrefixInput before ++
+      ('%' :: '(' :: suffix ++ ')' :: conv :: mappingPrefixInput after ++ rest) =
+      mappingPrefixInput before ++
+        ('%' :: '(' :: suffix ++ ')' :: conv :: htail) by
+        simp [htail]]
+  rw [strFormatMappingWalk_segment_chain h a
+    (fuel + 1 + mappingPrefixCost after) before
+    ('%' :: '(' :: suffix ++ ')' :: conv :: htail) acc hsafeBefore]
+  rw [show fuel + 1 + mappingPrefixCost after =
+      (fuel + mappingPrefixCost after) + 1 by omega]
+  rw [strFormatMappingWalk_token_branch h a (fuel + mappingPrefixCost after)
+    suffix conv htail key
+    (acc ++ mappingPrefixOutput before) hparse']
+  split <;> rename_i hdict
+  · split <;> rename_i hfind
+    · split <;> rename_i hconv piece
+      · have hafter := strFormatMappingWalk_segment_chain h a fuel after rest
+          (acc := acc ++ mappingPrefixOutput before ++ hconv) hsafeAfter
+        simpa [htail, String.append_assoc] using hafter
+      · rfl
+      · rfl
+      · rfl
+    · rfl
+  · rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
