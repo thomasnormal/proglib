@@ -23,6 +23,16 @@ an abstraction.
 | Two interpreter surfaces observe the same structured domain | Every differential row is run by the runner and, where the proof tier admits it, by `Semantics.lean` | the runner currently observes 4,968 rows and the proof interpreter 4,845; a refusal in the narrower proof tier is evidence of its declared boundary, never a disagreement | `harness/interpreter_ledger.py`, `harness/diff_test.py --proof-interpreter` |
 | Measured opaque imported modules | import binding, attribute read, call, truthiness, comparison, iteration, identity, rendering and argument passing | the sixteen entries in `docs/python-opaque-imports.json` are admitted only as opaque names after a fresh CPython 3.9.25 import is silent, non-raising and leaves the builtins dictionary unchanged; every observation refuses with the module/attribute named, and an unlisted module stays loud. Definition-time annotations that traverse an opaque binding are measured separately; `rsa_inverse` records its `typing.Tuple[...]` observation. | `tools/python_opaque_imports.py`, `docs/python-opaque-imports.json`, `Examples/python/opaque_import_lab`; annotation behavior remains outside the envelope |
 
+The two-interpreter ledger row is parked at the fragment proved by the current
+monadic refinement work.  The one-token branch, arbitrary safe literal and
+escaped-percent segment chains, and the all-success token-chain relation are
+kernel-checked over the shared heap and parser equations.  A named refusal
+remains for multi-token chains whose later token can terminate with a missing
+key, exception, timeout, or refusal: the list-indexed terminal-outcome
+correlation is not claimed.  No further equivalence induction is scheduled;
+the owner must choose whether to retain or retire one interpreter after the
+deletion-cost measurement.
+
 ## Platform and oracle assumptions
 
 | Input or platform choice | Pinned value or treatment | What would observe it | Evidence / consequence |
