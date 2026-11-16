@@ -6534,6 +6534,48 @@ theorem strFormatMappingWalk_token_then_plain
     · rfl
   · rfl
 
+theorem strFormatMappingWalk_token_then_escaped
+    (h : Heap) (a : Addr) (fuel n : Nat) (suffix rest : List Char)
+    (conv : Char) (key acc : String)
+    (hparse : strFormatMapToken (suffix ++ ')' :: conv ::
+      escapedPercentPrefix n ++ rest) =
+      some (key, conv, escapedPercentPrefix n ++ rest)) :
+    strFormatMappingWalk h a (fuel + n + 1)
+      ('%' :: '(' :: suffix ++ ')' :: conv :: escapedPercentPrefix n ++ rest) acc =
+      match Heap.get? h a with
+      | some (.dict entries _) =>
+          match strFormatDictFind entries.toList key with
+          | some value =>
+              match strFormatConv conv value with
+              | .ok piece => strFormatMappingWalk h a fuel rest
+                  (acc ++ piece ++ escapedPercentOutput n)
+              | .exn e => .exn e
+              | .timeout => .timeout
+              | .unsupported msg => .unsupported msg
+          | Option.none => .exn .keyError
+      | _ => .unsupported "dangling heap reference" := by
+  have hparse' : strFormatMapToken (suffix ++ ')' :: conv ::
+      (escapedPercentPrefix n ++ rest)) =
+      some (key, conv, escapedPercentPrefix n ++ rest) := by
+    simpa [List.append_assoc] using hparse
+  rw [show fuel + n + 1 = (fuel + n) + 1 by omega]
+  rw [show ('%' :: '(' :: suffix ++ ')' :: conv :: escapedPercentPrefix n ++ rest) =
+    ('%' :: '(' :: suffix ++ ')' :: conv :: (escapedPercentPrefix n ++ rest)) by
+      simp [List.append_assoc]]
+  rw [strFormatMappingWalk_token_branch h a (fuel + n) suffix conv
+    (escapedPercentPrefix n ++ rest) key acc hparse']
+  split <;> rename_i hdict
+  · split <;> rename_i hfind
+    · split <;> rename_i hconv piece
+      · have hesc := strFormatMappingWalk_escaped_percent_prefix_append h a fuel n
+          rest (acc := acc ++ hconv)
+        simpa [String.append_assoc] using hesc
+      · rfl
+      · rfl
+      · rfl
+    · rfl
+  · rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

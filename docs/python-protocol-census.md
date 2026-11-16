@@ -1053,6 +1053,12 @@ to the successful conversion arm; key errors, exceptions, timeouts, and
 refusals remain unchanged.  This keeps the token parser and walk semantics
 single-source while exposing the next mixed recursion boundary.
 
+`Monadic.strFormatMappingWalk_token_then_escaped` supplies the corresponding
+continuation for arbitrary escaped-percent pairs.  The successful conversion
+arm threads the converted text into the escaped continuation, while all other
+token outcomes are preserved directly.  The theorem remains parametric in the
+pair count and reuses the existing parser and walk equations.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
