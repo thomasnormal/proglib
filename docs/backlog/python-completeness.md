@@ -17258,3 +17258,14 @@ fuel decrement in one `callIn` equation.  The missing mutual theorem must
 relate these normalized states and the nested `finishCallM`/`leaveCallM`
 result, including exceptions and refusals.  This is the first call-plan
 equation still outside the proved threshold fragment.
+
+The first nonempty-body induction obligation is now stated explicitly.  For a
+body `s :: ss`, the monadic walker executes `execOpen (kont m n) m s`; its call
+arm may enter `inFrame ((kont m n).call qname args)` before the tail.  The
+legacy walker executes `execStmt m n st s`; its call arm enters `callIn m n`
+after the same argument fuel has been consumed.  When the head returns
+`.next`, the induction hypothesis must relate the resulting frame state and
+prove `execOpenList (kont m n) m ss` against `execStmts m n … ss`.  Thus the
+needed mutual invariant is a call theorem at the smaller continuation fuel
+plus a state-threaded list theorem; the empty-body base does not discharge
+this head-call equation.
