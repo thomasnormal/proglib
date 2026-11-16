@@ -30,7 +30,8 @@ deciding x/z exactly as the route does (`MemShape.index?`: an x/z or out-of-rang
 * `CoreMemDesign.edgesV`: the route's edge pass on views, each process firing by `CoreMemEdge.fires` (the clock's rise or
   the asynchronous reset's fall, x/z rows included); `runEdges_V`.
 * `CoreMemDesign.commitNba_V`: the route's commit of memory records is `commitMemV` on the memory view.
-* `SeqProfile E clk`: the clocked profile: one clock, edge processes whose bodies `execV` mirrors, continuous assigns (a memory read evaluated by the route's evaluator, the rest compiled), one-rank 4-state memories
+* `SeqProfile E clk`: the clocked profile: one clock, edge processes on its rising edge whose bodies `execV` mirrors,
+  continuous assigns (a memory read evaluated by the route's evaluator, the rest compiled), one-rank 4-state memories
   of distinct names that are not ports, no always_comb, always_latch, always @* or initial process, 4-state declarations
   with distinct names.
 * `CoreMemDesign.Coherent`, `MemCoherent`: a state whose store is its cache's, one typed value per declaration; a memory
@@ -730,7 +731,7 @@ def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemP
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
       (E.scalarWidth? n).isSome = true
-  | .edge f => f.clock = clk ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
   | _ => False
 
 /-- The memories of the clocked profile: distinct names, distinct identities, 4-state elements, none a port of the
@@ -755,7 +756,7 @@ def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMem
       (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome
-  | .edge f => f.clock == clk && f.body.edgeOkB && decide (f.body.need ≤ 4096)
+  | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need ≤ 4096)
   | _ => false
 
 theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
@@ -775,7 +776,7 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
       | _ => simp [CoreMemDesign.procOkB] at h
   | edge f =>
       simp only [CoreMemDesign.procOkB, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
-      exact ⟨h.1.1, h.1.2, h.2⟩
+      exact ⟨h.1.1.1, h.1.1.2, h.1.2, h.2⟩
   | initial _ => simp [CoreMemDesign.procOkB] at h
   | comb _ => simp [CoreMemDesign.procOkB] at h
   | implicit _ => simp [CoreMemDesign.procOkB] at h
@@ -1875,7 +1876,7 @@ def CoreMemDesign.edgesV (E : CoreMemDesign) (before after : SvState) (v : SvSta
 /-- The shape of a process of the clocked profile, without its index. -/
 def CoreMemDesign.ProcShape (clk : String) : CoreMemProc → Prop
   | .assign _ _ => True
-  | .edge f => f.clock = clk ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
   | _ => False
 
 theorem CoreMemDesign.ProcOk.shape {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
@@ -1930,7 +1931,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       have hp := h p (by simp)
       cases p with
       | edge f =>
-          obtain ⟨-, hb, hn⟩ := hp
+          obtain ⟨-, -, hb, hn⟩ := hp
           simp only [CoreMemDesign.edgesV] at hv
           by_cases hf : f.fires before after = true
           · simp only [hf, ↓reduceIte, Res.bind_eq_ok, Res.ok.injEq] at hv

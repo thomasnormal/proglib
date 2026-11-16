@@ -304,6 +304,7 @@ macro "sv_seq_obligations" : tactic =>
       LeanModels.Sv.Kernel.CoreMemDesign.oblDrivers, LeanModels.Sv.Kernel.CoreMemDesign.oblNoInputWrite,
       LeanModels.Sv.Kernel.CoreMemDesign.oblNoClockRead, LeanModels.Sv.Kernel.CoreMemDesign.oblReset,
       LeanModels.Sv.Kernel.CoreMemDesign.oblEdgeOrder, LeanModels.Sv.Kernel.CoreMemDesign.oblConverted,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblClockInput,
       LeanModels.Sv.Kernel.CoreMemProc.targets, LeanModels.Sv.Kernel.CoreMemProc.reads,
       LeanModels.Sv.Kernel.CoreMemProc.reset?, LeanModels.Sv.Kernel.CoreMemProc.blocking,
       LeanModels.Sv.Kernel.CoreMemProc.isEdge, LeanModels.Sv.Kernel.CoreMemProc.nbaWholeP,

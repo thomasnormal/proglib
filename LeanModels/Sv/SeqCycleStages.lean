@@ -79,6 +79,9 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
       let clock := strLit? (← whnf (← mkProjection f `clock))
       if clock.isSome && clock != some clk then
         return s!"{at_} (an edge process) is clocked by `{clock.get!}`, not `{clk}`: two clocks are outside the clocked profile (the owner's to decide)"
+      let edge ← whnf (← mkProjection f `edge)
+      if edge.isConstOf ``ClockEdge.negedge then
+        return s!"{at_} (an edge process) is sensitive to the falling edge of `{clk}`: the clocked profile is the one event `posedge {clk}` (the instant view, next), refused"
       let body ← whnf (← mkProjection f `body)
       if (body.find? (·.isConstOf ``PStmt.forLoop)).isSome then
         return s!"{at_} (an edge process) has a procedural `for` loop: the memories slice (next), refused"
@@ -168,7 +171,8 @@ def obligations : List (Name × Bool × String) :=
    (``CoreMemDesign.oblEdgeOrder, false,
      "the design has several edge processes and one of them writes with a blocking assignment or to a select or concatenation: the edge order is not proved irrelevant for it (rule 4), refused"),
    (``CoreMemDesign.oblConverted, false,
-     "an expression ingestion kept unconverted (a user function call, U5), refused")]
+     "an expression ingestion kept unconverted (a user function call, U5), refused"),
+   (``CoreMemDesign.oblClockInput, true, "the clock is not an input port of the design, refused")]
 
 /-- The obligations stage on `E.seqOblB clk = true`, with a named refusal. -/
 def runObligations (g : MVarId) : TacticM Unit := do
