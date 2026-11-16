@@ -299,6 +299,25 @@ class SymbolicArraySelects(unittest.TestCase):
         self.assertEqual(value["index"]["kind"], "Int")
         self.assertEqual(value["index"]["value"], 0)
 
+    def test_retained_nested_unpacked_target_keeps_all_indices(self):
+        module = self.extract(
+            "module top #(parameter int W = 8, R = 2, C = 2) "
+            "(input logic clk, input logic [W-1:0] d); "
+            "logic [W-1:0] weights [0:R-1][0:C-1]; "
+            "genvar row, col; generate for (row = 0; row < R; row++) begin "
+            ":rows for (col = 0; col < C; col++) begin : cols "
+            "always_ff @(posedge clk) weights[row][col] <= d; "
+            "end end endgenerate endmodule",
+            retain_proc_rewrites=True)
+        target = module["generates"][0]["body"][0]["body"][0]["body"]
+        self.assertEqual(target["kind"], "NonblockingAssign")
+        self.assertEqual(target["target"]["kind"], "ArraySel")
+        self.assertTrue(target["target"]["unpacked"])
+        self.assertEqual([index["kind"] for index in target["target"]["indices"]],
+                         ["GenvarRef", "GenvarRef"])
+        self.assertEqual([index["name"] for index in target["target"]["indices"]],
+                         ["row", "col"])
+
     def test_unexpected_failure_on_3d_chain_is_loud(self):
         # A failure inside the ArraySel builder must not fall back to the
         # legacy nested encoding (exact for two dimensions only).

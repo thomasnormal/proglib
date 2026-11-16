@@ -13710,6 +13710,44 @@ def _convert_sym_select_expr(sm, e, cname):
         if _SYM is not None and _RETAIN_PROC_REWRITES:
             try:
                 root = e.value
+                # A chain of unpacked element selections remains one
+                # source-shaped memory expression. Slang represents
+                # ``weights[row][col]`` as an outer ElementSelect whose
+                # value is another ElementSelect; treating the outer node
+                # as a packed BitSel over the inner ArraySel makes a
+                # procedural target fail at the generic §10.4 check before
+                # E can report its separate nested-rank boundary.
+                # Preserve the parser chain as one ArraySel. The canonical
+                # memory route still refuses ranks it does not model; this
+                # branch only retains the source shape and does not lower it.
+                indices = []
+                current = e
+                while type(current).__name__ == "ElementSelectExpression":
+                    base_type = getattr(getattr(current, "value", None),
+                                        "type", None)
+                    base_type = getattr(base_type, "canonicalType", base_type)
+                    if type(base_type).__name__ != "FixedSizeUnpackedArrayType":
+                        break
+                    indices.append(current.selector)
+                    current = current.value
+                if (indices and type(current).__name__ ==
+                        "NamedValueExpression"):
+                    shape = _fixed_array_dimensions(
+                        current.type.canonicalType, max_cells=None)
+                    if shape is not None and len(indices) <= len(shape[0]):
+                        with _SymPos():
+                            converted = [_convert_expr(sm, index)
+                                         for index in reversed(indices)]
+                        if all(item is not None for item in converted):
+                            return {
+                                "kind": "ArraySel",
+                                "span": node_span(sm, e),
+                                "width": _safe_width(e),
+                                "name": current.symbol.name,
+                                "indices": converted,
+                                "part": None,
+                                "unpacked": True,
+                            }
                 # A packed bit select of a selected unpacked element (for
                 # example ``state[i][0]``) remains two parser nodes: the
                 # inner unpacked ElementSelect is retained as ArraySel and
@@ -20873,7 +20911,11 @@ def _target_shape_ok(t):
         return base is not None and base.get("kind") == "Ident"
     if k == "ArraySel":
         if t.get("unpacked"):
-            return (not t.get("part") and len(t.get("indices") or []) == 1)
+            # Nested unpacked ranks are retained source-shaped so the
+            # ordinary loader can report the rank boundary it owns. E's
+            # one-rank memory evaluator remains the later refusal; rejecting
+            # the target here would misclassify the source as a §10.4 wall.
+            return (not t.get("part") and bool(t.get("indices")))
         if not _sym_array_select_static(t):
             return False  # a run-time part-select base is a read-only form
     return k == "ArraySel"
