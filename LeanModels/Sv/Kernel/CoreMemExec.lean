@@ -374,6 +374,24 @@ def coreMemNetAllowed (d : PDesign) (generated : List PProcess) (kind name : Str
     d.netMetadata.any (fun md => md.name == name &&
       (coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generated))
 
+/-! A generated net marker lives in `GenItem`, rather than `PDesign.others`.
+The parser-native metadata is retained on the design above, and the marker is
+admitted only when that metadata proves either an undriven four-state net or a
+single generated continuous driver.  The latter check is against the fully
+expanded source-shaped process list, so a marker cannot silently erase a net
+whose driver was not retained.  IEEE 1800-2023 §§6.6 and 27.4. -/
+def coreMemGeneratedNetAllowed (d : PDesign) (generated : List PProcess)
+    (kind name : String) : Bool :=
+  (kind == "NetSymbol:net-z" || kind == "PortSymbol:net-z") &&
+    d.netMetadata.any (fun md => md.name == name &&
+      (coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generated))
+
+def coreMemDropGeneratedNetMarkers (d : PDesign) (generated : List PProcess) : List PProcess :=
+  generated.filter fun p =>
+    match p with
+    | .unsupported kind name => !coreMemGeneratedNetAllowed d generated kind name
+    | _ => true
+
 def coreMemMetadataIsOutput (d : PDesign) (name : String) : Bool :=
   d.others.any fun entry => entry.1 == "PortSymbol:net-z" && entry.2 == name
 
@@ -387,7 +405,7 @@ def coreMemFirstUnsupportedOther (d : PDesign) (generated : List PProcess) : Lis
       else some entry
 
 def coreMemNetDecls (d : PDesign) (generated : List PProcess) : List Decl :=
-  d.netMetadata.filterMap fun md =>
+  d.netMetadata.filter (fun md => !md.generated) |>.filterMap fun md =>
     if coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generated then
       let dc : Decl := { name := md.name, width := md.width, isOutput := coreMemMetadataIsOutput d md.name, isNet := true, init := some (LVec.replicate md.width .lz) }
       some dc
@@ -687,13 +705,21 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     let env2 := { env2 with dims := dimTable env2 d.decls }
     let env2 := { env2 with functions := d.functions }
     let generatedDecls ← coreMemGeneratedDeclsList env2 iterFuel [] d.generates
-    let sourceDecls := d.decls ++ generatedDecls ++ coreMemMetadataDecls d.netMetadata
+    let sourceNames := (d.decls ++ generatedDecls).map (·.name)
+    let metadataForSource := d.netMetadata.filter (fun md => !md.generated)
+    let sourceDecls := d.decls ++ generatedDecls ++ coreMemMetadataDecls metadataForSource
     if !coreMemDeclNamesUnique sourceDecls then
       .unsupported "UnpackedDecl:generate-scope: active generate declarations contain duplicate names"
     else
       let env2 := { env2 with dims := dimTable env2 (d.decls ++ generatedDecls) }
-      let generated ← coreMemExpandList env2 iterFuel [] d.generates
-      match coreMemClockResetViol d generated with
+      let generatedRaw ← coreMemExpandList env2 iterFuel [] d.generates
+      let generated := coreMemDropGeneratedNetMarkers d generatedRaw
+      let generatedMetadataOk := d.netMetadata.all (fun md =>
+        !md.generated || !sourceNames.contains md.name ||
+          coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generatedRaw)
+      if !generatedMetadataOk then
+        .unsupported "NetSymbol:net-z:generate: generated net metadata does not prove a supported §6.6 net shape"
+      else match coreMemClockResetViol d generated with
       | some (kind, msg) => .unsupported s!"{kind}: {msg}"
       | none =>
           match coreMemFirstUnsupportedOther d generated d.others with
@@ -701,7 +727,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
               .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
           | none =>
               let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls)
-              let decls := decls0 ++ coreMemNetDecls d generated
+              let decls := decls0 ++ (coreMemNetDecls d generated).filter
+                (fun dc => !sourceNames.contains dc.name)
               let elems ← buildElems env2 sourceDecls
               let envP := { env2 with widths := decls.map (fun dc => (dc.name, dc.width)) }
               let memories ← buildMemDecls1 envP (d.decls ++ generatedDecls) 0

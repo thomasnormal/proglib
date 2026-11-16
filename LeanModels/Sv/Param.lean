@@ -686,6 +686,9 @@ structure PNetMetadata where
   signed : Bool
   fourState : Bool
   isNet : Bool
+  /-- True when this marker came from a declaration scoped by a generate
+  block (IEEE 1800-2023 §27.4), rather than a module member. -/
+  generated : Bool := false
   driverReason : Option String := none
   driverRecords : List PNetDriver := []
 deriving Repr, BEq, Inhabited

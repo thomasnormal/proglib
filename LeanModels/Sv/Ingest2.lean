@@ -187,7 +187,11 @@ private def parseNetMetadata? (j : Json) : Except String (Option PNetMetadata) :
               let generated := (getOptField r "generated").bind (·.getBool?.toOption) |>.getD false
               let source ← getStrField r "source"
               pure { bounds := (lo, hi), ownerKind, ownerName, generated, source }
-        pure (some { name := name, width := width, netKind := netKind, signed := signed, fourState := fourState, isNet := isNet, driverReason := driverReason, driverRecords := driverRecords })
+        let result : PNetMetadata :=
+          { name := name, width := width, netKind := netKind, signed := signed,
+            fourState := fourState, isNet := isNet, generated := false,
+            driverReason := driverReason, driverRecords := driverRecords }
+        pure (some result)
 
 /-! ## Operator tables -/
 
@@ -867,9 +871,45 @@ partial def parseGenItem (j : Json) : Except String GenItem := do
         return .unsupported s!"GenerateDecl:{kind}"
           s!"generate-local declaration '{(getOptStr j "name").getD "?"}'"
     | "Unsupported" =>
-        let (svKind, text) ← parseUnsupportedFields j
-        return .unsupported svKind text
+        match ← parseNetMetadata? j with
+        | some md =>
+            let metadata ← getField j "metadata"
+            let ty ← withCtx s!"generated net '{md.name}' width"
+              (parsePType (← getField metadata "width"))
+            let decl : PDecl :=
+              { name := md.name, type := ty, isSigned := md.signed,
+                twoState := !md.fourState, isNet := md.isNet }
+            return .decl decl
+        | none =>
+            let (svKind, text) ← parseUnsupportedFields j
+            return .unsupported svKind text
     | other => throw s!"unknown generate member kind {other.quote}"
+
+/-! Collect structured net metadata from the parser's generate tree.  Slang
+reports a generated net as an `Unsupported` envelope node because the
+declaration is scoped by the active generate instance; `parseGenItem` retains
+the declaration shape and this walker retains the parser metadata as well.
+Nothing is recovered from source text.  Keep that evidence on the `PDesign` so
+canonical E can make the §6.6 admission decision after source-shaped generate
+expansion. -/
+partial def parseGenerateNetMetadata (j : Json) : Except String (List PNetMetadata) := do
+  let kind ← getKind j
+  let here ← if kind == "Unsupported" then
+      match ← parseNetMetadata? j with
+      | some md => pure [md]
+      | none => pure []
+    else pure []
+  let children ← match kind with
+    | "GenerateFor" => pure ((← (← getField j "body").getArr?).toList)
+    | "GenerateIf" =>
+        let thenB ← pure ((← (← getField j "then").getArr?).toList)
+        let elseB ← match getOptField j "else" with
+          | none => pure []
+          | some je => pure ((← je.getArr?).toList)
+        pure (thenB ++ elseB)
+    | _ => pure []
+  let nested ← children.mapM parseGenerateNetMetadata
+  pure ((here ++ nested.flatten).map (fun md => { md with generated := true }))
 
 
 /-- The optional `signed` field of a `ParameterDecl`/`LocalParam` (the
@@ -981,6 +1021,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
       processes := processes ++ [← parsePProcess pj]
     for gj in (← (← getField j "generates").getArr?) do
       generates := generates ++ [← parseGenItem gj]
+      netMetadata := netMetadata ++ (← parseGenerateNetMetadata gj)
     let propertiesJson ← match getOptField j "properties" with
       | none => pure #[]
       | some qj => qj.getArr? |>.mapError (fun _ => "field 'properties' is not an array")
