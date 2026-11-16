@@ -1110,6 +1110,16 @@ cover one token and its arbitrary tail, but do not provide that list-indexed
 correlation.  Adding a fixed two-token theorem would hide the missing relation
 behind a finite case, so no such matrix or duplicate parser was added.
 
+The admissible next relation is a predicate over a token list and its remaining
+source tail.  At each list position it records the existing
+`strFormatMapToken` result for that token and tail, then records either the
+successful `strFormatConv` piece used to advance or the exact terminal
+exception, timeout, or refusal.  The induction may recurse only through the
+tail returned by that parser result; it must preserve the shared heap lookup
+and accumulator, rather than assigning a fresh value to each repeated key
+read.  This is the precise shape needed to lift the one-token branch theorem
+to a list without introducing another parser semantics.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
