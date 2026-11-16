@@ -922,6 +922,13 @@ operators use the corresponding `twinAgrees_unaryOp`/`binOpH` equations, so a
 generic binary expression theorem can factor worker behavior from child
 evaluation instead of duplicating operator cases.
 
+The existing list theorem cannot specialize directly to a binary node: it
+relates `evalOpenList`/`evalExprs`, while a binary expression has two child
+evaluations followed by `binOpHM` and possibly a heap update.  The correct
+generic theorem must expose that two-child sequencing explicitly; treating a
+binary node as a synthetic expression list would be a deep rewrite and would
+lose the node's own semantics.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
