@@ -13559,6 +13559,67 @@ def _sym_member_select_window(sm, e, cname):
         if element <= 0 or (high - low + 1) * element != window_width:
             return unsupported(sm, e, kind + ":window-mismatch")
 
+        # A generated range over a one-dimensional member is still a
+        # source-shaped range select (§11.5.1).  Slang exposes the generate
+        # iterator as a Parameter in the elaborated body, while `_SYM.genvars`
+        # records that it is a genvar.  Keep the raw arithmetic bounds and the
+        # member window as nested PartSel nodes so canonical E can evaluate the
+        # bounds at each generated instance.  Do not admit ordinary signals,
+        # parameters, noncanonical dimensions, indexed ranges, or chains here;
+        # those remain loud below rather than being frozen at the default point.
+        def genvar_only(expression):
+            name = type(expression).__name__
+            if name in _ARRAY_SELECT_LITERALS:
+                return True, False
+            if name == "NamedValueExpression":
+                symbol = getattr(expression, "symbol", None)
+                symbol_name = getattr(symbol, "name", None)
+                symbol_kind = str(getattr(symbol, "kind", "")).split(".")[-1]
+                is_genvar = (symbol_kind == "Genvar"
+                             or symbol_name in getattr(_SYM, "genvars", ()))
+                return is_genvar, is_genvar
+            if name == "ConversionExpression":
+                return genvar_only(getattr(expression, "operand", None))
+            if name == "UnaryExpression":
+                op = str(getattr(expression, "op", "")).split(".")[-1]
+                if op not in ("Plus", "Minus", "BitwiseNot", "LogicalNot"):
+                    return False, False
+                return genvar_only(getattr(expression, "operand", None))
+            if name == "BinaryExpression":
+                if getattr(expression, "op", None) not in BINARY_OPS:
+                    return False, False
+                left_ok, left_genvar = genvar_only(getattr(expression, "left", None))
+                right_ok, right_genvar = genvar_only(getattr(expression, "right", None))
+                return (left_ok and right_ok, left_genvar or right_genvar)
+            return False, False
+
+        if (kind == "RangeSelectExpression"
+                and len(steps) == 1
+                and str(step.selectionKind).split(".")[-1] == "Simple"
+                and element == 1
+                and left_bound == int(source.bitWidth) - 1
+                and right_bound == 0):
+            left_ok, left_genvar = genvar_only(step.left)
+            right_ok, right_genvar = genvar_only(step.right)
+            if left_ok and right_ok and (left_genvar or right_genvar):
+                with _SymPos():
+                    msb = _convert_expr(sm, step.left)
+                    lsb = _convert_expr(sm, step.right)
+                value = _convert_expr(sm, step.value)
+                if (isinstance(msb, dict) and isinstance(lsb, dict)
+                        and isinstance(value, dict)
+                        and _sym_tree_supported(msb)
+                        and _sym_tree_supported(lsb)
+                        and _sym_tree_supported(value)):
+                    return {
+                        "kind": "PartSel",
+                        "span": node_span(sm, e),
+                        "width": _safe_width(e),
+                        "value": value,
+                        "msb": msb,
+                        "lsb": lsb,
+                    }
+
         def local(label):
             # Element position counted from the least significant element.
             return (label - right_bound if left_bound > right_bound

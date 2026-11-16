@@ -206,6 +206,37 @@ class SymbolicMemberSelects(unittest.TestCase):
         self.assertEqual(value["index"]["kind"], "GenvarRef")
         self.assertEqual(value["index"]["name"], "i")
 
+    def test_generate_member_range_keeps_genvar_bounds(self):
+        module = self.extract(
+            "typedef struct packed { logic [7:0] value; } word_t;"
+            "module top(output logic [1:0] result); word_t state;"
+            "generate for (genvar i = 0; i < 1; i++) begin : g "
+            "always_comb result = state.value[i+1:i]; end endgenerate endmodule")
+        self.assertEqual(sv_kinds(module), [])
+        value = module["generates"][0]["body"][0]["body"]["value"]
+        self.assertEqual(value["kind"], "PartSel")
+        self.assertEqual(value["value"]["kind"], "PartSel")
+        self.assertEqual(value["value"]["value"]["kind"], "Ident")
+        self.assertEqual(value["msb"]["kind"], "Binary")
+        self.assertEqual(value["msb"]["op"], "+")
+        self.assertEqual(value["msb"]["left"]["kind"], "GenvarRef")
+        self.assertEqual(value["msb"]["left"]["name"], "i")
+        self.assertEqual(value["lsb"]["kind"], "GenvarRef")
+        self.assertEqual(value["lsb"]["name"], "i")
+
+    def test_member_range_signal_and_parameter_bounds_stay_loud(self):
+        module = self.extract(
+            "module top #(parameter int K = 1) (input logic [7:0] i, "
+            "output logic [1:0] dynamic, parameterized);"
+            "typedef struct packed { logic [7:0] value; } word_t; word_t state;"
+            "assign dynamic = state.value[i +: 2];"
+            "assign parameterized = state.value[K+1:K]; endmodule")
+        values = assigns(module)
+        self.assertEqual(sv_kinds(values["dynamic"]),
+                         ["RangeSelectExpression:member-indexed"])
+        self.assertEqual(sv_kinds(values["parameterized"]),
+                         ["RangeSelectExpression:member-range"])
+
 
 class SelectGuard(unittest.TestCase):
     """`_sym_select_checked`: any select whose emitted window disagrees with
