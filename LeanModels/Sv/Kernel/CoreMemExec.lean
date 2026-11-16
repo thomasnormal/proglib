@@ -2136,7 +2136,8 @@ theorem CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup
 
 #print axioms CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup
 
-def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) : Res CoreMemState := do
+def CoreMemDesign.prepareStep (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) :
+    Res (CoreMemState × SvState × SvState) := do
   let inputStore := E.scalar.applyInputs st.scalar entry
   let memoryInput := E.applyMemoryInputs entry st.memory
   let inputState := E.normalizeScalar { st with memory := memoryInput } inputStore
@@ -2148,9 +2149,46 @@ def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState)
       E.runImplicit st pre E.processes.toList
     else .ok pre
   let pre ← E.settleCanonical E.env E.elems pre E.processes.toList
-  let before := E.scalar.view st.scalar
-  let after := E.scalar.view pre.scalar
+  .ok (pre, E.scalar.view st.scalar, E.scalar.view pre.scalar)
+
+def CoreMemDesign.stepOnePassTrace (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) :
+    Res (CoreMemState × Bool) := do
+  let (pre, before, after) ← E.prepareStep st entry
+  let next ← E.edgePass pre before after pre
+  let nextView := E.scalar.view next.scalar
+  let caused := E.processes.toList.any fun p =>
+    match p with
+    | .edge q => q.fires after nextView
+    | _ => false
+  .ok (next, caused)
+
+def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) : Res CoreMemState := do
+  let (pre, before, after) ← E.prepareStep st entry
   E.edgeQuiesce 4096 pre before after pre
+
+theorem CoreMemDesign.step_eq_stepOnePass_of_no_followup
+    {E : CoreMemDesign} {st : CoreMemState} {entry : SvState} {next : CoreMemState}
+    (h : E.stepOnePassTrace st entry = .ok (next, false)) :
+    E.step st entry = .ok next := by
+  unfold CoreMemDesign.stepOnePassTrace at h
+  cases hp : E.prepareStep st entry with
+  | timeout => simp [hp] at h
+  | unsupported msg => simp [hp] at h
+  | ok triple =>
+      obtain ⟨pre, before, after⟩ := triple
+      simp only [hp, Res.ok_bind] at h
+      cases he : E.edgePass pre before after pre with
+      | timeout => simp [he] at h
+      | unsupported msg => simp [he] at h
+      | ok pair =>
+          obtain ⟨next', caused⟩ := pair
+          simp only [he, Res.ok_bind, Res.ok.injEq, Prod.mk.injEq] at h
+          obtain ⟨rfl, hcause⟩ := h
+          simp only [CoreMemDesign.step, hp, Res.ok_bind]
+          exact CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup he hcause
+
+#print axioms CoreMemDesign.step_eq_stepOnePass_of_no_followup
+
 
 def runCoreMemRepeat (st : CoreMemState) : List SvState → Res (List CoreMemState)
   | [] => .ok []
