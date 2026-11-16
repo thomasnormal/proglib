@@ -13,7 +13,7 @@ name gets a further elaborator, tried first, that recognizes ONLY its clocked go
 |---|---|---|
 | `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the clocked profile, the obligations |
 | `sv_interface` | `SeqPorts (X.e P…) ins outs` | the instantiation, the ports |
-| `sv_equations` | `E.cycleV clk v d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed, then `rhs` checked against them |
+| `sv_equations` | `E.cycleV clk v d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed (with the context's width facts `x.width = n`), then `rhs` checked against them |
 
 A clocked stage that fails names its reason: the route's own refusal message, a process outside the clocked profile
 (with its index, its kind and what puts it outside), or the obligation that does not hold. The macros of
@@ -162,7 +162,7 @@ def obligations : List (Name × Bool × String) :=
    (``CoreMemDesign.oblReset, true,
      "an asynchronous reset is not an input port other than the clock (F7: the route sees a reset the design drives only in a later slot), refused"),
    (``CoreMemDesign.oblEdgeOrder, false,
-     "an edge body has a blocking write and the design has several edge processes: the edge order would matter (rule 4), refused"),
+     "the design has several edge processes and one of them writes with a blocking assignment or to a select or concatenation: the edge order is not proved irrelevant for it (rule 4), refused"),
    (``CoreMemDesign.oblConverted, false,
      "an expression ingestion kept unconverted (a user function call, U5), refused")]
 
@@ -214,7 +214,7 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
 /-- `sv_structure` on `SeqDesign (X.e P…) clk`. -/
 def runStructure (stx : Syntax) : TacticM Unit := do
   let goal ← getMainGoal
-  let ty ← instantiateMVars (← goal.getType)
+  let ty := (← instantiateMVars (← goal.getType)).consumeMData
   unless ty.isAppOfArity ``SeqDesign 2 do throwUnsupportedSyntax
   guardSeq do
     unless stx[1].isNone && stx[2].isNone do
@@ -228,7 +228,7 @@ def runStructure (stx : Syntax) : TacticM Unit := do
 /-- `sv_interface` on `SeqPorts (X.e P…) ins outs`. -/
 def runInterface : TacticM Unit := do
   let goal ← getMainGoal
-  let ty ← instantiateMVars (← goal.getType)
+  let ty := (← instantiateMVars (← goal.getType)).consumeMData
   unless ty.isAppOfArity ``SeqPorts 3 do throwUnsupportedSyntax
   guardSeq do
     runInst "sv_interface" (ty.getArg! 0)
@@ -244,17 +244,17 @@ def runInterface : TacticM Unit := do
 checked against it. -/
 def runEquations : TacticM Unit := do
   let goal ← getMainGoal
-  let ty ← instantiateMVars (← goal.getType)
-  unless ty.isAppOfArity ``Eq 3 && (ty.getArg! 1).isAppOfArity ``CoreMemDesign.cycleV 4 do throwUnsupportedSyntax
+  let ty := (← instantiateMVars (← goal.getType)).consumeMData
+  unless ty.isAppOfArity ``Eq 3 && (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.cycleV 4 do
+    throwUnsupportedSyntax
   guardSeq do
-    let lhs := ty.getArg! 1
+    let lhs := (ty.getArg! 1).consumeMData
     let E := lhs.getArg! 0
     let mut hE? : Option (Name × Lean.Expr) := none
-    for d in ← getLCtx do
+    for d in ← (← getMainGoal).getDecl <&> (·.lctx) do
       if d.isImplementationDetail then continue
       let t ← instantiateMVars d.type
-      let rhs := t.getArg! 2
-      if t.isAppOfArity ``Eq 3 && rhs.isAppOfArity ``Res.ok 2 && rhs.appArg! == E then
+      if t.isAppOfArity ``Eq 3 && (t.getArg! 2).isAppOfArity ``Res.ok 2 && (t.getArg! 2).appArg! == E then
         hE? := some (d.userName, t.getArg! 1)
     let some (hN, r) := hE?
       | throwError "sv_equations: no hypothesis `hE : X.e P… = .ok E` for the design of the cycle in the context"
@@ -265,14 +265,30 @@ def runEquations : TacticM Unit := do
     let hC := mkIdent `hSeqCopy
     let cyc := mkIdent `hSeqCycle
     let lhsS ← Term.exprToSyntax lhs
+    -- the width facts in the context (`x.width = n`) feed the evaluation pass
+    let mut facts : Array (TSyntax `Lean.Parser.Tactic.simpLemma) := #[← `(Lean.Parser.Tactic.simpLemma| List.length_nil)]
+    let mut factNames : Array Name := #[]
+    for d in ← (← getMainGoal).getDecl <&> (·.lctx) do
+      if d.isImplementationDetail then continue
+      let t := (← instantiateMVars d.type).consumeMData
+      let isWidth : Bool :=
+        t.isAppOfArity ``Eq 3 && (match (t.getArg! 1).consumeMData.getAppFn with
+          | .const n _ => n == ``LeanModels.Sv.LVec.width
+          | _ => false)
+      if isWidth then
+        facts := facts.push (← `(Lean.Parser.Tactic.simpLemma| $(mkIdent d.userName):ident))
+        factNames := factNames.push d.userName
     evalTactic (← `(tactic| have $hC:ident := $hI:ident))
     evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hC:ident))
-    evalTactic (← `(tactic| sv_seq_cycle $cyc : $lhsS using $hC [List.length_nil]))
+    evalTactic (← `(tactic| sv_seq_cycle $cyc : $lhsS using $hC [$facts,*]))
+    let g0 ← getMainGoal
+    let h ← g0.withContext do getLocalDeclFromUserName `hSeqCycle
+    let computed := h.type
     try
-      evalTactic (← `(tactic| (rw [$cyc:ident]; first | rfl | simp)))
+      evalTactic (← `(tactic|
+        (rw [$cyc:ident] <;> first | rfl | (simp [LeanModels.Sv.LVec.resizeU_of_width, $facts,*]; done))))
     catch _ =>
-      let h ← (← getMainGoal).withContext do getLocalDeclFromUserName `hSeqCycle
-      throwError "sv_equations: the stated cycle differs from the computed one; computed:\n{h.type}"
+      throwError "sv_equations: the stated cycle differs from the computed one (width facts used: {factNames}); computed:\n{computed}"
 
 end LeanModels.Sv.Kernel.SeqStage
 

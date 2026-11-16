@@ -117,6 +117,35 @@ theorem seqE_ite_fst {α β : Type} (p : Prop) [Decidable p] (a b : α × β) :
 theorem seqE_ite_snd {α β : Type} (p : Prop) [Decidable p] (a b : α × β) :
     (if p then a else b).2 = if p then a.2 else b.2 := by split <;> rfl
 
+/-! ## The knownness bridge: the route's own decision forms on known values
+
+Known2's simp set turns the evaluator's operators on known values (`LVec.ofBitVec`) into `BitVec` terms. The cycle
+equations carry, beside them, the route's decision forms: `condTrue` of a logical not, an edge-table test on bit 0, a
+case equality. On known values each is a `Bool` of the `BitVec`s, so a per-signal equation on known state and inputs
+becomes a `BitVec` equation (`ite_ofBitVec` folds the `if`s). -/
+
+/-- `!x` reads true exactly when `x` is zero. -/
+theorem seqK_lnot_condTrue {w : Nat} (x : BitVec w) :
+    (evalUnaryOp .lnot (LVec.ofBitVec x)).condTrue = decide (x = 0#w) := by
+  by_cases hx : x = 0#w <;> simp [evalUnaryOp, LVec.lnot, hx]
+
+/-- Bit 0 of a known vector. -/
+theorem seqK_bit0 {w : Nat} (x : BitVec w) (hw : 0 < w) :
+    (LVec.ofBitVec x).bits[0]?.getD Logic.lx = Logic.ofBool (x.getLsbD 0) := by
+  simp [LVec.getElem?_ofBitVec, hw]
+
+/-- The edge table (§9.4.2) on known bits: a fall is 1 → 0. -/
+theorem seqK_isNegedge (a b : Bool) : isNegedge (Logic.ofBool a) (Logic.ofBool b) = (a && !b) := by
+  cases a <;> cases b <;> rfl
+
+/-- The edge table on known bits: a rise is 0 → 1. -/
+theorem seqK_isPosedge (a b : Bool) : isPosedge (Logic.ofBool a) (Logic.ofBool b) = (!a && b) := by
+  cases a <;> cases b <;> rfl
+
+/-- Case equality of known vectors is `BitVec` equality. -/
+theorem seqK_beq {w : Nat} (x y : BitVec w) : (LVec.ofBitVec x == LVec.ofBitVec y) = decide (x = y) := by
+  rw [Bool.eq_iff_iff, beq_iff_eq, decide_eq_true_iff, LVec.ofBitVec_inj]
+
 end LeanModels.Sv.Kernel
 
 open LeanModels.Sv LeanModels.Sv.Kernel in
@@ -177,7 +206,9 @@ macro "sv_seq_obligations" : tactic =>
       LeanModels.Sv.Kernel.CoreMemDesign.oblEdgeOrder, LeanModels.Sv.Kernel.CoreMemDesign.oblConverted,
       LeanModels.Sv.Kernel.CoreMemProc.targets, LeanModels.Sv.Kernel.CoreMemProc.reads,
       LeanModels.Sv.Kernel.CoreMemProc.reset?, LeanModels.Sv.Kernel.CoreMemProc.blocking,
-      LeanModels.Sv.Kernel.CoreMemProc.isEdge, LeanModels.Sv.Kernel.CoreMemDesign.topoC,
+      LeanModels.Sv.Kernel.CoreMemProc.isEdge, LeanModels.Sv.Kernel.CoreMemProc.nbaWholeP,
+      LeanModels.Sv.PStmt.nbaWhole, LeanModels.Sv.PStmt.optNbaWhole, LeanModels.Sv.PStmt.listNbaWhole,
+      LeanModels.Sv.PStmt.itemsNbaWhole, LeanModels.Sv.Kernel.CoreMemDesign.topoC,
       LeanModels.Sv.Kernel.CoreMemDesign.topoFrom, LeanModels.Sv.Kernel.assignTargets,
       LeanModels.Sv.Kernel.CoreMemDesign.compileAssigns, LeanModels.Sv.Expr2.idents, LeanModels.Sv.Expr2.listIdents,
       LeanModels.Sv.PExpr.sigNames, LeanModels.Sv.PExpr.sigNamesList, LeanModels.Sv.PLhs.baseNames,
@@ -242,7 +273,8 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.seqE_ite_cons, LeanModels.Sv.Kernel.seqE_commit_ite, LeanModels.Sv.Kernel.seqE_append_ite,
       LeanModels.Sv.Kernel.seqE_ite_append, LeanModels.Sv.Kernel.seqE_ite_fst, LeanModels.Sv.Kernel.seqE_ite_snd,
       LeanModels.Sv.Kernel.seqE_resizeU_ite, LeanModels.Sv.Kernel.seqE_width_ite,
-      LeanModels.Sv.Kernel.seqE_insertAt_zero, LeanModels.Sv.Kernel.seqE_width_lit, $ls,*])
+      LeanModels.Sv.Kernel.seqE_insertAt_zero, LeanModels.Sv.Kernel.seqE_width_lit,
+      LeanModels.Sv.Kernel.seqE_width_add, $ls,*])
 
 /-- The arithmetic pass of a cycle: conditions and bounds on the parameters, by `omega`. -/
 macro "sv_seq_eval_arith" : conv =>
