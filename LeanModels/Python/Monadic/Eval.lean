@@ -6287,6 +6287,14 @@ theorem strFormatMapToken_go_append
       rw [String.ofList_append, String.ofList_cons]
       simp only [String.ofList_cons, String.ofList_nil, String.append_empty, String.append_assoc]
 
+theorem strFormatMapToken_append_of_safe
+    (suffix : List Char) (conv : Char) (rest : List Char)
+    (hsafe : ∀ c ∈ suffix, c ≠ ')') :
+    strFormatMapToken (suffix ++ ')' :: conv :: rest) =
+      some (String.ofList suffix, conv, rest) := by
+  rw [strFormatMapToken.eq_1]
+  simpa using strFormatMapToken_go_append [] suffix conv rest hsafe
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

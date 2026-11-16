@@ -1036,6 +1036,12 @@ suffix lists to the parsed `(key, conversion, rest)` result while preserving
 `String.ofList` concatenation.  This exposes the parser's own equation without
 introducing a second parser.
 
+`Monadic.strFormatMapToken_append_of_safe` connects that equation directly to
+the parser node consumed by `strFormatMappingWalk`: a safe suffix ending in
+`)` and a conversion character parses to the expected key and tail.  The walk
+can now consume this parser result without re-parsing or changing its own
+token semantics.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
