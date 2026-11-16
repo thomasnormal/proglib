@@ -6237,6 +6237,11 @@ theorem strFormatDictFind_eq_dictFind_string
       rcases entry with ⟨stored, value⟩
       cases stored <;> simp [strFormatDictFind, dictFind, keyEq, ih]
 
+theorem strFormatMappingWalk_empty
+    (h : Heap) (a : Addr) (fuel : Nat) (acc : String) :
+    strFormatMappingWalk h a fuel [] acc = .ok acc := by
+  cases fuel <;> rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

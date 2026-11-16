@@ -984,6 +984,12 @@ mapping walk and pure formatting paths.  Its scalar, `%c`, integer, and refusal
 arms therefore need no duplicate refinement; the remaining relation is the
 recursive walk's control and heap lookup around that worker.
 
+`Monadic.strFormatMappingWalk_empty` closes the base case of that recursive
+walk: an exhausted format-character list returns the accumulator for any heap,
+address, and fuel.  The remaining prefix theorem must account for one token,
+one fuel decrement, and the recursive continuation while preserving the
+mapping lookup and conversion results.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
