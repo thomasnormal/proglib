@@ -15,6 +15,8 @@ import LeanModels.Sv.SeqCycleObl
   cycle equations, with no trace induction of the prover's own (`runF`, `stF`, `runF_getElem?`, `stF_succ`).
 * `cycleV_applied`, `cycleMV_applied`, `appliedIn_width`: a cycle reads its data entry only through the values it
   applies.
+* `runS`, `stS`, `RunSatS`: the same plumbing for any sample shape (one sample per entry, a next-state projection);
+  the cycle forms are their pair instances (`runF_eq_runS`, `stF_eq_stS`, `RunSat_iff_RunSatS`), for the instant view.
 
 The refinement theorems and the judgment's intro forms take the obligations (`hO : E.seqOblB clk = true`): they are
 what make the route's in-slot iteration stop after one round (`SeqCycleObl.lean`).
@@ -467,6 +469,123 @@ theorem SeqRuns.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : S
       exact ⟨pp', rest, rfl, h3, ih pp'.2 rest h2 (fun d' h' => hd d' (by simp [h'])) hrest⟩
 
 #print axioms SeqRuns.of_cycleEqs
+
+/-! ## Runs of a sample function, for any sample shape (preparation for the instant view)
+
+`runF`/`stF`/`RunSat` fix the CYCLE shape: one entry gives two samples `(pre, post)` and the next state is the post
+sample. The forms below take any sample type `β` with a next-state projection `nx : β → α`: one sample per entry, the
+next entry from `nx` of the sample (an instant or a data row gives one sample; a cycle gives a pair, `nx = Prod.snd`).
+The cycle forms are their `Prod.snd` instances (`runF_eq_runS`, `stF_eq_stS`, `RunSat_iff_RunSatS`), so a judgment over
+instants can reuse them unchanged. -/
+
+/-- The samples of the run of a sample function `F` (next state `nx`) from `σ` on the entry list. -/
+def runS {α β : Type} (F : α → SvState → β) (nx : β → α) : α → List SvState → List β
+  | _, [] => []
+  | σ, d :: ds => F σ d :: runS F nx (nx (F σ d)) ds
+
+/-- The state before entry `c` of such a run. -/
+def stS {α β : Type} (F : α → SvState → β) (nx : β → α) : α → List SvState → Nat → α
+  | σ, _, 0 => σ
+  | σ, [], _ + 1 => σ
+  | σ, d :: ds, c + 1 => stS F nx (nx (F σ d)) ds c
+
+/-- Entry `c`'s sample is `F` applied to the state before it and the entry. -/
+theorem runS_getElem? {α β : Type} (F : α → SvState → β) (nx : β → α) :
+    ∀ (σ : α) (ins : List SvState) (c : Nat),
+      (runS F nx σ ins)[c]? = (ins[c]?).map fun d => F (stS F nx σ ins c) d
+  | σ, [], c => by simp [runS]
+  | σ, d :: ds, 0 => by simp [runS, stS]
+  | σ, d :: ds, c + 1 => by simp [runS, stS, runS_getElem? F nx (nx (F σ d)) ds c]
+
+/-- The state before entry `c + 1` is the next state of entry `c`'s sample. -/
+theorem stS_succ {α β : Type} (F : α → SvState → β) (nx : β → α) :
+    ∀ (σ : α) (ins : List SvState) (c : Nat) (d : SvState), ins[c]? = some d →
+      stS F nx σ ins (c + 1) = nx (F (stS F nx σ ins c) d)
+  | σ, [], c, d, h => by simp at h
+  | σ, d' :: ds, 0, d, h => by
+      simp only [List.getElem?_cons_zero, Option.some.injEq] at h
+      subst h
+      simp [stS]
+  | σ, d' :: ds, c + 1, d, h => by
+      simp only [List.getElem?_cons_succ] at h
+      simp only [stS]
+      exact stS_succ F nx (nx (F σ d')) ds c d h
+
+/-- An invariant the sample function keeps holds before every entry of a run. -/
+theorem stS_inv {α β : Type} (F : α → SvState → β) (nx : β → α) (Inv : α → Prop) (D : SvState → Prop)
+    (hstep : ∀ σ d, Inv σ → D d → Inv (nx (F σ d))) :
+    ∀ (σ : α) (ins : List SvState) (c : Nat), Inv σ → (∀ d ∈ ins, D d) → Inv (stS F nx σ ins c)
+  | σ, [], c, hv, _ => by cases c <;> simpa [stS] using hv
+  | σ, d :: ds, 0, hv, _ => by simpa [stS] using hv
+  | σ, d :: ds, c + 1, hv, hd => by
+      simp only [stS]
+      exact stS_inv F nx Inv D hstep (nx (F σ d)) ds c (hstep σ d hv (hd d (by simp)))
+        (fun d' h' => hd d' (by simp [h']))
+
+/-- The samples `tr` of a run from `σ` satisfy `Step` entry by entry, each entry from the previous sample's next
+state. -/
+def RunSatS {α β : Type} (Step : α → SvState → β → Prop) (nx : β → α) : α → List SvState → List β → Prop
+  | _, [], tr => tr = []
+  | σ, d :: ds, tr => ∃ s rest, tr = s :: rest ∧ Step σ d s ∧ RunSatS Step nx (nx s) ds rest
+
+/-- **Entry `c` of a run satisfying `Step`**: the state before it is the start (entry 0) or the previous sample's next
+state, and the entry satisfies `Step` from it. -/
+theorem RunSatS.get {α β : Type} {Step : α → SvState → β → Prop} {nx : β → α} :
+    ∀ {σ : α} {ins : List SvState} {tr : List β}, RunSatS Step nx σ ins tr → ∀ {c : Nat} {s : β},
+      tr[c]? = some s → ∃ σc d, ins[c]? = some d ∧ Step σc d s ∧ (c = 0 → σc = σ) ∧
+        ∀ s', tr[c - 1]? = some s' → 1 ≤ c → σc = nx s'
+  | _, [], tr, h, c, s, hc => by
+      simp only [RunSatS] at h
+      subst h
+      simp at hc
+  | σ, d :: ds, tr, h, c, s, hc => by
+      obtain ⟨s0, rest, rfl, hs, hr⟩ := h
+      cases c with
+      | zero =>
+          simp only [List.getElem?_cons_zero, Option.some.injEq] at hc
+          subst hc
+          exact ⟨σ, d, rfl, hs, fun _ => rfl, fun _ _ h => absurd h (by omega)⟩
+      | succ c =>
+          simp only [List.getElem?_cons_succ] at hc
+          obtain ⟨σc, d', hd', hs', h0, hprev⟩ := RunSatS.get hr hc
+          refine ⟨σc, d', by simpa using hd', hs', fun h => absurd h (by omega), fun s' hs'' _ => ?_⟩
+          cases c with
+          | zero =>
+              simp only [Nat.add_sub_cancel, List.getElem?_cons_zero, Option.some.injEq] at hs''
+              subst hs''
+              exact h0 rfl
+          | succ c =>
+              simp only [Nat.add_sub_cancel, List.getElem?_cons_succ] at hs''
+              exact hprev s' (by simpa using hs'') (by omega)
+
+/-- The cycle run is the sample run with pair samples, next state the post sample. -/
+theorem runF_eq_runS {α : Type} (F : α → SvState → α × α) :
+    ∀ (σ : α) (ins : List SvState), runF F σ ins = runS F Prod.snd σ ins
+  | _, [] => rfl
+  | σ, d :: ds => by simp [runF, runS, runF_eq_runS F (F σ d).2 ds]
+
+/-- The state before a cycle is the state before the sample-run entry. -/
+theorem stF_eq_stS {α : Type} (F : α → SvState → α × α) :
+    ∀ (σ : α) (ins : List SvState) (c : Nat), stF F σ ins c = stS F Prod.snd σ ins c
+  | _, ins, 0 => by cases ins <;> rfl
+  | _, [], _ + 1 => rfl
+  | σ, d :: ds, c + 1 => by simp [stF, stS, stF_eq_stS F (F σ d).2 ds c]
+
+/-- The cycle relation on a run is the sample relation with pair samples, next state the post sample. -/
+theorem RunSat_iff_RunSatS {α : Type} (Step : α → SvState → α × α → Prop) :
+    ∀ (σ : α) (ins : List SvState) (tr : List (α × α)), RunSat Step σ ins tr ↔ RunSatS Step Prod.snd σ ins tr
+  | _, [], tr => Iff.rfl
+  | σ, d :: ds, tr => by
+      simp only [RunSat, RunSatS]
+      constructor
+      · rintro ⟨pp, rest, h1, h2, h3⟩
+        exact ⟨pp, rest, h1, h2, (RunSat_iff_RunSatS Step pp.2 ds rest).mp h3⟩
+      · rintro ⟨pp, rest, h1, h2, h3⟩
+        exact ⟨pp, rest, h1, h2, (RunSat_iff_RunSatS Step pp.2 ds rest).mpr h3⟩
+
+#print axioms RunSatS.get
+#print axioms runF_eq_runS
+#print axioms RunSat_iff_RunSatS
 
 /-- A typed data entry binds an input at its declared width. -/
 theorem CoreMemDesign.DataTyped.width {E : CoreMemDesign} {clk : String} {d : SvState} (hd : E.DataTyped clk d)
