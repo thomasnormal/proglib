@@ -1,0 +1,125 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "event_always_repro",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/delay_control_wall/delay_control_wall.sv",
+      "sha256": "b75acd9d79eab4509588b4c321a0d17c7f303bd0225585b78643dbcf8c431df7"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 5,
+          "end_col": 10
+        },
+        "name": "event_always_repro",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 39,
+              "end_line": 1,
+              "end_col": 42
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 56,
+              "end_line": 1,
+              "end_col": 57
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 72,
+              "end_line": 1,
+              "end_col": 73
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 2,
+              "col": 3,
+              "end_line": 4,
+              "end_col": 6
+            },
+            "style": "always",
+            "clock": "clk",
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 3,
+                "col": 5,
+                "end_line": 3,
+                "end_col": 15
+              },
+              "stmts": [
+                {
+                  "kind": "Unsupported",
+                  "span": {
+                    "line": 3,
+                    "col": 5,
+                    "end_line": 3,
+                    "end_col": 15
+                  },
+                  "sv_kind": "TimedStatement:DelayControl",
+                  "text": "#1 q <= d;"
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
