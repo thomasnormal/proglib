@@ -60,19 +60,20 @@ theorem instExpr2_genvarRef_of_intVal {E : IEnv} {elems : List (String × Nat)} 
       · rw [hx] at hv; cases hv
       · simp [instExpr2, hx, hn, intLit2_eq]
 
+/-- At a context width `w` (without a context a localparam read keeps its own width, Param2, §11.8). -/
 theorem instExpr2_paramRef_of_intVal {E : IEnv} {elems : List (String × Nat)} {n : String} {v : Int}
-    (h : E.intVal? n = some v) (ctx : Option Nat) :
-    instExpr2 E elems ctx (.paramRef n none) = .lit (LVec.ofInt (ctx.getD 32) v) := by
+    (h : E.intVal? n = some v) (w : Nat) :
+    instExpr2 E elems (some w) (.paramRef n none) = .lit (LVec.ofInt w v) := by
   cases hx : E.vals.lookup n with
   | some x =>
       have hxv : x = v := by simpa [IEnv.intVal?, hx] using h
       subst hxv
-      exact instExpr2_paramRef_of ctx hx
+      exact instExpr2_paramRef_of (some w) hx
   | none =>
       have hs : n ∉ E.stale := fun hs => by simp [IEnv.intVal?, hx, hs] at h
-      rcases IEnv.intVal?_cases h with hv | ⟨w, s, hn, rfl, rfl⟩
+      rcases IEnv.intVal?_cases h with hv | ⟨w', s, hn, rfl, rfl⟩
       · rw [hx] at hv; cases hv
-      · simp [instExpr2, hx, hn, hs, intLit2_eq]
+      · simp [instExpr2, hx, hn, hs, intLit2_eq, Option.orElse]
 
 /-! ## One access leaf -/
 
@@ -2007,7 +2008,6 @@ theorem ie_resize_param_zc {n : String} {v : Int} (hv : E.intVal? n = some v)
       conv => lhs; unfold instExpr2
       simp [hw, h, PExpr.constLeaf]
   rw [h1, ie_paramRef_intVal hv, ie_paramRef_intVal hv]
-  rfl
 
 /-! ## The word-level shape theorem -/
 

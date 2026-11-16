@@ -2140,20 +2140,40 @@ theorem ie_resize_cases {e : PExpr} (hcp : e.ctxPropagates = false) (hcl : e.con
         · exact ⟨cw, some sw, by simp [instExpr2, hs, h, hcp, hng]⟩
         · exact ⟨cw, some sw, by simp [instExpr2, hs, h, hcl]⟩
 
-/-- **A parameter or localparam bound as an `int`** instantiates, at every context, to the literal of its value there
-(`intLit2`: at the context width, 32 bits without one). -/
-theorem ie_paramRef_intVal {n : String} {v : Int} (h : env.intVal? n = some v) (ctx : Option Nat) :
-    instExpr2 env elems ctx (.paramRef n none) = .lit (LVec.ofInt (ctx.getD 32) v) := by
+/-- **A parameter or localparam bound as an `int`** instantiates, at a context width `w`, to the literal of its value
+there (`intLit2`). Without a context the literal has the constant's own width (`ie_paramRef_intVal_lit`; Param2 keeps a
+localparam's self-determined width, §11.8). -/
+theorem ie_paramRef_intVal {n : String} {v : Int} (h : env.intVal? n = some v) (w : Nat) :
+    instExpr2 env elems (some w) (.paramRef n none) = .lit (LVec.ofInt w v) := by
   cases hx : env.vals.lookup n with
   | some x =>
       have hxv : x = v := by simpa [IEnv.intVal?, hx] using h
       subst hxv
-      exact instExpr2_paramRef_of ctx hx
+      exact instExpr2_paramRef_of (some w) hx
   | none =>
       have hs : n ∉ env.stale := fun hs => by simp [IEnv.intVal?, hx, hs] at h
-      rcases IEnv.intVal?_cases h with hv | ⟨w, s, hn, rfl, rfl⟩
+      rcases IEnv.intVal?_cases h with hv | ⟨w', s, hn, rfl, rfl⟩
       · rw [hx] at hv; cases hv
-      · simp [instExpr2, hx, hn, hs, intLit2_eq]
+      · simp [instExpr2, hx, hn, hs, intLit2_eq, Option.orElse]
+
+/-- **A parameter or localparam bound as an `int`** instantiates, at every context, to a literal of its value (at the
+context width; without a context, at the constant's own width). -/
+theorem ie_paramRef_intVal_lit {n : String} {v : Int} (h : env.intVal? n = some v) (ctx : Option Nat) :
+    ∃ w, instExpr2 env elems ctx (.paramRef n none) = .lit (LVec.ofInt w v) := by
+  cases ctx with
+  | some w => exact ⟨w, ie_paramRef_intVal h w⟩
+  | none =>
+      cases hx : env.vals.lookup n with
+      | some x =>
+          have hxv : x = v := by simpa [IEnv.intVal?, hx] using h
+          subst hxv
+          exact ⟨32, instExpr2_paramRef_of none hx⟩
+      | none =>
+          have hs : n ∉ env.stale := fun hs => by simp [IEnv.intVal?, hx, hs] at h
+          rcases IEnv.intVal?_cases h with hv | ⟨w', s, hn, rfl, rfl⟩
+          · rw [hx] at hv; cases hv
+          · exact ⟨(env.pwidths.lookup n).getD (paramNWidth env n),
+              by simp [instExpr2, hx, hn, hs, intLit2_eq, Option.orElse]⟩
 
 /-- **A parameter under the conversion marker** (`Resize`, a signed simple operand in an unsigned context, IEEE 1800-2023
 §11.8.2) is, at every context, a `resize` of its instantiation at some width, or its instantiation at the context
@@ -3861,7 +3881,8 @@ theorem inst_rdW (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} :
         -- agreement places it in the summary's constants (`ConstOK`: `PExpr.cnames` names it)
         have hv : E.intVal? n = some (σ n) := C.agree n (hcn.1 n (by simp [PExpr.cnames]))
         have hK : ∀ c, RdOK σ [] (instExpr2 E elems c (.paramRef n none)) := fun c => by
-          rw [ie_paramRef_intVal hv c]
+          obtain ⟨w, hw⟩ := ie_paramRef_intVal_lit (elems := elems) hv c
+          rw [hw]
           simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.idents]
         rcases ie_resize_param (env := E) (elems := elems) (n := n) ctx m with ⟨x, c, hx⟩ | ⟨c, hx⟩
         · rw [hx]; exact RdOK.resize x (hK c)
