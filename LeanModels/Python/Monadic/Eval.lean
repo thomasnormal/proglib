@@ -6295,6 +6295,28 @@ theorem strFormatMapToken_append_of_safe
   rw [strFormatMapToken.eq_1]
   simpa using strFormatMapToken_go_append [] suffix conv rest hsafe
 
+theorem strFormatMappingWalk_token_branch
+    (h : Heap) (a : Addr) (fuel : Nat) (suffix : List Char)
+    (conv : Char) (rest : List Char) (key : String) (acc : String)
+    (hparse : strFormatMapToken (suffix ++ ')' :: conv :: rest) =
+      some (key, conv, rest)) :
+    strFormatMappingWalk h a (fuel + 1)
+      ('%' :: '(' :: suffix ++ ')' :: conv :: rest) acc =
+      match Heap.get? h a with
+      | some (.dict entries _) =>
+          match strFormatDictFind entries.toList key with
+          | some value =>
+              match strFormatConv conv value with
+              | .ok piece => strFormatMappingWalk h a fuel rest (acc ++ piece)
+              | .exn e => .exn e
+              | .timeout => .timeout
+              | .unsupported msg => .unsupported msg
+          | Option.none => .exn .keyError
+      | _ => .unsupported "dangling heap reference" := by
+  simp [strFormatMappingWalk, hparse, Nat.add_comm, Nat.add_left_comm,
+    Nat.add_assoc]
+  rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
