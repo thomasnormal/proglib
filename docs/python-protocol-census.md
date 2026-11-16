@@ -869,6 +869,13 @@ names are checked before that later fallback in both paths.  These predicates
 are pure and already identical; only their placement inside the full resolver
 awaits a cross-interpreter theorem.
 
+The module-dunder refusal leaf uses the same message text in both interpreters:
+`module attribute '<id>' is bound by the import machinery, not by a statement
+— outside the G1 tier`.  Its only remaining mismatch is the standard refusal
+projection (`SemF` retains an internal cause and snapshot while `Run` exposes
+the message), so no message-only theorem is claimed without a raw refusal
+premise.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
