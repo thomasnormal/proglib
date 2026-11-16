@@ -13566,7 +13566,37 @@ def _sym_member_select_window(sm, e, cname):
 
         if kind == "ElementSelectExpression":
             label = _constant_dimension_selector(step.selector)
-            if (label is None or type(step.selector).__name__ not in _ARRAY_SELECT_LITERALS
+            # A generate-for body retains its iterator as a GenvarRef (Slang
+            # exposes the iterator as a Parameter at its default point).  For
+            # a canonical one-bit member range, that is a constant of each
+            # generated instance, and canonical E already evaluates a BitSel
+            # with the bound genvar (§11.5.1).  Preserve that source-shaped
+            # index instead of treating it as a run-time member label.
+            selector_kind = type(step.selector).__name__
+            selector_symbol = getattr(step.selector, "symbol", None)
+            selector_name = getattr(selector_symbol, "name", None)
+            selector_class = str(getattr(selector_symbol, "kind", "")).split(".")[-1]
+            is_genvar = (selector_kind == "NamedValueExpression"
+                         and (selector_class == "Genvar"
+                              or selector_name in getattr(_SYM, "genvars", ())))
+            canonical_bit_range = (element == 1 and left_bound >= 0
+                                   and right_bound == 0)
+            if is_genvar and canonical_bit_range and len(steps) == 1:
+                with _SymPos():
+                    index = _convert_expr(sm, step.selector)
+                    value = _convert_expr(sm, step.value)
+                if (isinstance(index, dict) and index.get("kind") != "Unsupported"
+                        and isinstance(value, dict) and value.get("kind") != "Unsupported"):
+                    return {
+                        "kind": "BitSel",
+                        "span": node_span(sm, e),
+                        "width": _safe_width(e),
+                        "value": value,
+                        "index": index,
+                    }
+            if label is None:
+                return unsupported(sm, e, "ElementSelectExpression:member-index")
+            if (type(step.selector).__name__ not in _ARRAY_SELECT_LITERALS
                     or label < low or label > high):
                 return unsupported(sm, e, "ElementSelectExpression:member-index")
             lsb_local, step_width = local(label) * element, element

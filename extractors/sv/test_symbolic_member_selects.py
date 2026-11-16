@@ -194,6 +194,18 @@ class SymbolicMemberSelects(unittest.TestCase):
                          ["RangeSelectExpression:member-indexed"])
         self.assertEqual(sv_kinds(values["dn"]), ["ElementSelectExpression:member-index"])
 
+    def test_generate_member_element_index_keeps_genvar(self):
+        module = self.extract(
+            "typedef struct packed { logic [3:0] out_dis; } ctrl_t;"
+            "module top(output logic result); ctrl_t state;"
+            "generate for (genvar i = 0; i < 1; i++) begin : g "
+            "always_comb result = state.out_dis[i]; end endgenerate endmodule")
+        self.assertEqual(sv_kinds(module), [])
+        value = module["generates"][0]["body"][0]["body"]["value"]
+        self.assertEqual(value["kind"], "BitSel")
+        self.assertEqual(value["index"]["kind"], "GenvarRef")
+        self.assertEqual(value["index"]["name"], "i")
+
 
 class SelectGuard(unittest.TestCase):
     """`_sym_select_checked`: any select whose emitted window disagrees with
