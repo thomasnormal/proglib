@@ -6198,6 +6198,18 @@ theorem globalCallEnv_eq_worldFrame
         (globalMarkedEnv body ++ globalValuesEnv w body ++ mkCallEnv params args) := by
   rfl
 
+theorem globalAssignM_global_update
+    (w : World) (locals : Env) (id : String) (v : RVal)
+    (hglobal : globalDeclared locals id = true) :
+    toRun (globalAssignM id v) ⟨w, locals⟩ =
+      .ok ⟨{ w with globals := Env.set w.globals id v }, Env.set locals id v⟩ () := by
+  have hlookup : (Env.lookup locals (globalMarker id)).isSome = true := by
+    simpa [globalDeclared] using hglobal
+  unfold globalAssignM
+  rw [toRun_get_bind]
+  rw [if_pos hglobal]
+  rw [toRun_modify]
+
 /-- Lift a statement-level bridge across an arbitrary returning function body.
 The fuel threshold accounts for the legacy list walker; the frame equality
 uses the no-global embedding rather than assuming equal post-body worlds. -/
