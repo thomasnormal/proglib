@@ -806,6 +806,10 @@ global and the frame's marker-visible local binding.  Compound targets and
 the legacy evaluator's corresponding global-write operation remain the next
 world-state obligation.
 
+`Monadic.frameGlobals_lookup_world` is the matching scalar-read equation: a
+lookup through the frame's global view returns exactly the current
+`World.globals` binding while leaving the frame state unchanged.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the

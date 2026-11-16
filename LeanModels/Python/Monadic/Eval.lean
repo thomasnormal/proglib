@@ -6210,6 +6210,19 @@ theorem globalAssignM_global_update
   rw [if_pos hglobal]
   rw [toRun_modify]
 
+theorem frameGlobals_lookup_world
+    (w : World) (locals : Env) (id : String) :
+    toRun (do
+      let globals ← frameGlobals
+      pure (Env.lookup globals id) : SemF (Option RVal)) ⟨w, locals⟩ =
+      .ok ⟨w, locals⟩ (Env.lookup w.globals id) := by
+  change toRun (get >>= fun (st : FrameState) =>
+      pure (Env.lookup st.world.globals id))
+      (⟨w, locals⟩ : FrameState) =
+      .ok ⟨w, locals⟩ (Env.lookup w.globals id)
+  rw [toRun_get_bind]
+  rfl
+
 /-- Lift a statement-level bridge across an arbitrary returning function body.
 The fuel threshold accounts for the legacy list walker; the frame equality
 uses the no-global embedding rather than assuming equal post-body worlds. -/
