@@ -13925,6 +13925,49 @@ def _convert_sym_select_expr(sm, e, cname):
         nested_dynamic_array = _fixed_array_nested_dynamic_read(sm, e)
         if nested_dynamic_array is not None:
             return nested_dynamic_array
+    # A packed slice of a selected one-rank unpacked element (for example
+    # ``mem[index][7:0]``) is still one source-shaped assignment target.
+    # Slang exposes the packed range as an outer RangeSelectExpression whose
+    # value is the unpacked ElementSelectExpression. Keeping the two parser
+    # nodes as an ArraySel with an attached part lets ingestion preserve the
+    # source target; canonical E may then issue its own explicit refusal for
+    # a memory part target. Do not flatten this into a PartSel over ArraySel:
+    # PLhs has no such node and that would misclassify §10.4.
+    if (_SYM is not None and _RETAIN_PROC_REWRITES
+            and cname == "RangeSelectExpression"):
+        try:
+            selected = e.value
+            array = selected.value
+            array_type = array.type.canonicalType
+            selection = str(e.selectionKind).split(".")[-1]
+            shape = _fixed_array_dimensions(array_type, max_cells=None)
+            if (type(selected).__name__ == "ElementSelectExpression"
+                    and type(array).__name__ == "NamedValueExpression"
+                    and type(array_type).__name__ == "FixedSizeUnpackedArrayType"
+                    and shape is not None and len(shape[0]) == 1
+                    and selection in ("Simple", "IndexedUp", "IndexedDown")):
+                mode = {"Simple": "range", "IndexedUp": "up",
+                        "IndexedDown": "down"}[selection]
+                with _SymPos():
+                    index = _convert_expr(sm, selected.selector)
+                    left = _convert_expr(sm, e.left)
+                    right = _convert_expr(sm, e.right)
+                nodes = (index, left, right)
+                if all(isinstance(node, dict)
+                       and node.get("kind") != "Unsupported" for node in nodes):
+                    return {
+                        "kind": "ArraySel",
+                        "span": node_span(sm, e),
+                        "width": _safe_width(e),
+                        "name": array.symbol.name,
+                        "indices": [index],
+                        "part": {"mode": mode, "left": left, "right": right},
+                        "unpacked": True,
+                    }
+        except Exception:
+            # A failed source-shaped conversion must remain loud through the
+            # normal select path; never fabricate a packed slice.
+            pass
     if cname != "ReplicationExpression":
         window = _sym_member_select_window(sm, e, cname)
         if window is not None:
@@ -21002,11 +21045,23 @@ def _target_shape_ok(t):
         return base is not None and base.get("kind") == "Ident"
     if k == "ArraySel":
         if t.get("unpacked"):
-            # Nested unpacked ranks are retained source-shaped so the
-            # ordinary loader can report the rank boundary it owns. E's
-            # one-rank memory evaluator remains the later refusal; rejecting
-            # the target here would misclassify the source as a §10.4 wall.
-            return (not t.get("part") and bool(t.get("indices")))
+            # Unpacked selections, including a packed slice of a selected
+            # element, are retained source-shaped so the ordinary loader can
+            # report the memory boundary it owns. E's one-rank memory
+            # evaluator remains the later refusal for nested ranks and
+            # memory-part targets; rejecting either here would misclassify the
+            # source as a §10.4 wall. A target part must still have static
+            # bounds because a run-time part base has no represented write
+            # window.
+            part = t.get("part")
+            if part is not None:
+                if not isinstance(part, dict):
+                    return False
+                labels = (part.get("left"), part.get("right"))
+                if not all(isinstance(label, dict)
+                           and _sym_tree_static(label) for label in labels):
+                    return False
+            return bool(t.get("indices"))
         if not _sym_array_select_static(t):
             return False  # a run-time part-select base is a read-only form
     return k == "ArraySel"

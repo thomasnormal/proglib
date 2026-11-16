@@ -318,6 +318,24 @@ class SymbolicArraySelects(unittest.TestCase):
         self.assertEqual([index["name"] for index in target["target"]["indices"]],
                          ["row", "col"])
 
+    def test_retained_memory_element_part_target_keeps_source_shape(self):
+        module = self.extract(
+            "module top(input logic clk, input logic [31:0] d,"
+            " input logic [31:0] addr);"
+            " logic [31:0] mem [0:255];"
+            " always_ff @(posedge clk) mem[addr >> 2][7:0] <= d[7:0];"
+            " endmodule", retain_proc_rewrites=True)
+        target = module["processes"][0]["body"]["target"]
+        self.assertEqual(strip(target), {
+            "kind": "ArraySel", "name": "mem",
+            "indices": [{"kind": "Binary", "op": ">>",
+                         "left": {"kind": "Ident", "name": "addr"},
+                         "right": {"kind": "Int", "value": 2}}],
+            "part": {"mode": "range", "left": {"kind": "Int", "value": 7},
+                     "right": {"kind": "Int", "value": 0}},
+            "unpacked": True,
+        })
+
     def test_unexpected_failure_on_3d_chain_is_loud(self):
         # A failure inside the ArraySel builder must not fall back to the
         # legacy nested encoding (exact for two dimensions only).
