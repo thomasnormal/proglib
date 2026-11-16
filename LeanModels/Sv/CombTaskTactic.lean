@@ -376,7 +376,10 @@ elab "sv_known_inputs" : tactic => withMainContext do
 closer is tried on an obligation of another kind, where it fails at a cost: `sv_pow_omega` on a coverage goal runs its
 whole bisection before failing). `inputsKnown_k` by `sv_known_inputs`; `cover_k` by `sv_cover`, then
 `sv_pow_facts <;> sv_cover` (the other order where the goal holds a wrapped constant, a `$clog2` or a power, unless it also
-holds a product of two non-numeral factors: `sv_cover`'s slot-window rule states its own facts); `auto_k`, `inRange_k`, `width_k`, `bitRead_k` by `intros; omega`, then `sv_pow_omega`. A goal
+holds a product of two non-numeral factors: `sv_cover`'s slot-window rule states its own facts); `auto_k`, `inRange_k`,
+`width_k`, `bitRead_k`, and the structural tags a design read through a twin brings along (`driverDisjoint_k`,
+`rankDecreases_k`, `noSelfRead_k`: the flat twin's one-driver goals, which `sv_equations` states for a design with module
+instances) by `intros; omega`, then `sv_pow_omega`. A goal
 of another tag (the main goal) is left untouched, and so is an obligation none of its closers proves. The closers run
 without info trees: a failed attempt's trees would otherwise stay alive after its state is restored. -/
 elab "sv_obligations" : tactic => do
@@ -400,7 +403,8 @@ elab "sv_obligations" : tactic => do
           !(LeanModels.Sv.CombCoverUnit.isNumeral (x.getArg! 4)) && !(LeanModels.Sv.CombCoverUnit.isNumeral (x.getArg! 5))).isSome
         if atoms && !prods then pure (some (← `(tactic| first | (sv_pow_facts <;> sv_cover) | sv_cover)))
         else pure (some (← `(tactic| first | sv_cover | (sv_pow_facts <;> sv_cover))))
-      else if isTag "auto" || isTag "inRange" || isTag "width" || isTag "bitRead" then
+      else if isTag "auto" || isTag "inRange" || isTag "width" || isTag "bitRead" || isTag "driverDisjoint" ||
+          isTag "rankDecreases" || isTag "noSelfRead" then
         pure (some (← `(tactic| first | (intros; omega) | sv_pow_omega)))
       else pure none
     let some tac := tac? | rest := rest.push g; continue
