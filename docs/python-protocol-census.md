@@ -862,6 +862,13 @@ global misses, both evaluators test `findFunction`, `findClass`,
 `.callable id` marker.  These are pure table predicates rather than a separate
 worker; the remaining adequacy debt is still the enclosing branch relation.
 
+The builtin-name leaf is shared through the authoritative `Ast.lean`
+predicates: `isBuiltinName` yields the callable marker, while
+`isPyBuiltinName` handles the later Python-builtin fallback.  Module-dunder
+names are checked before that later fallback in both paths.  These predicates
+are pure and already identical; only their placement inside the full resolver
+awaits a cross-interpreter theorem.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
