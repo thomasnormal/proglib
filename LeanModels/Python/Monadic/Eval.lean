@@ -6175,6 +6175,15 @@ theorem globalCallEnv_eq_legacy_of_noGlobal
       markUnboundLocals body.toList (mkCallEnv params args) := by
   simp [globalCallEnv]
 
+theorem globalCallEnv_eq_legacy_of_empty_globalNames
+    (w : World) (params : Array Param) (args : Array RVal)
+    (body : Array Stmt) (hnames : globalNamesBody body = []) :
+    globalCallEnv w params args body true =
+      markUnboundLocals body.toList (mkCallEnv params args) := by
+  have hmark : globalMarkedEnv body = [] := by
+    simp [globalMarkedEnv, hnames]
+  simp [globalCallEnv, hnames, hmark]
+
 /-- Lift a statement-level bridge across an arbitrary returning function body.
 The fuel threshold accounts for the legacy list walker; the frame equality
 uses the no-global embedding rather than assuming equal post-body worlds. -/

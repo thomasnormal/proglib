@@ -788,6 +788,12 @@ on the ordinary no-global fragment: when `hasGlobal` is false, the monadic
 frame environment is definitionally the legacy `mkCallEnv` followed by
 `markUnboundLocals`, with no extra global bindings.
 
+`Monadic.globalCallEnv_eq_legacy_of_empty_globalNames` records the strongest
+available extension for a `hasGlobal` frame without global names: if the
+structured declaration census is empty, the global frame still reduces to the
+same legacy environment.  Nonempty global bindings require a world-aware
+legacy correspondence and are intentionally left explicit.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
