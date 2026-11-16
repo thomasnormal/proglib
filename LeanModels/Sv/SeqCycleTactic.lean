@@ -51,6 +51,19 @@ theorem seqE_resizeU_resizeU (v : LVec) (w : Nat) : (v.resizeU w).resizeU w = v.
   LVec.resizeU_of_width (LVec.width_resizeU v w)
 
 theorem seqE_resizeU_l0 : (⟨#[.l0]⟩ : LVec).resizeU 1 = ⟨#[.l0]⟩ := by decide
+
+theorem seqE_width_bit (b : Logic) : (⟨#[b]⟩ : LVec).width = 1 := rfl
+
+/-- Vector `+` has the wider operand's width. -/
+theorem seqE_width_add (a b : LVec) : (a.add b).width = max a.width b.width := by
+  unfold LVec.add
+  split
+  · exact LVec.width_ofNat _ _
+  · simp [LVec.arithWidth]
+
+/-- A whole-signal write at offset 0 of a value of the signal's width is that value. -/
+theorem seqE_insertAt_zero {v p : LVec} (h : p.width = v.width) : v.insertAt 0 p = p :=
+  LVec.insertAt_zero_of_width_eq h
 theorem seqE_resizeU_l1 : (⟨#[.l1]⟩ : LVec).resizeU 1 = ⟨#[.l1]⟩ := by decide
 
 end LeanModels.Sv.Kernel
@@ -130,11 +143,16 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList, LeanModels.Sv.Kernel.seqE_isPosedge_l0,
       LeanModels.Sv.Kernel.seqE_bit0_zero, LeanModels.Sv.Kernel.seqE_bit0_one,
       LeanModels.Sv.Kernel.seqE_resizeU_resizeU, LeanModels.Sv.Kernel.seqE_resizeU_l0,
-      LeanModels.Sv.Kernel.seqE_resizeU_l1, LeanModels.Sv.LVec.resizeU_of_width, $ls,*])
+      LeanModels.Sv.Kernel.seqE_resizeU_l1, LeanModels.Sv.LVec.resizeU_of_width,
+      LeanModels.Sv.Kernel.seqE_width_bit, LeanModels.Sv.ctxOpWidth2, LeanModels.Sv.rigidMax2,
+      LeanModels.Sv.selfWidth2, LeanModels.Sv.fitExpr2, LeanModels.Sv.rigidExpr,
+      LeanModels.Sv.PExpr.ctxPropagates, LeanModels.Sv.PExpr.constLeaf, LeanModels.Sv.PExpr.negGenvarWidened,
+      LeanModels.Sv.PExpr.signedCast, $ls,*])
 
 /-- The arithmetic pass of a cycle: conditions and bounds on the parameters, by `omega`. -/
 macro "sv_seq_eval_arith" : conv =>
-  `(conv| simp (disch := omega) only [if_pos, if_neg, Int.min_eq_left, Int.min_eq_right, Int.max_eq_left,
+  `(conv| simp (disch := omega) only [if_pos, if_neg, Nat.max_eq_left, Nat.max_eq_right, Int.min_eq_left,
+      Int.min_eq_right, Int.max_eq_left,
       Int.max_eq_right, LeanModels.Sv.CombView.canonInt32_of_bounds,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
       Nat.sub_add_cancel])

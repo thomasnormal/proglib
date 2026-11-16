@@ -1083,6 +1083,14 @@ theorem CoreMemDesign.runRows_seq {E : CoreMemDesign} {clk : String} (hP : E.Seq
 
 #print axioms CoreMemDesign.runRows_seq
 
+
+/-- A cycle reads its data entry only through the inputs it applies: two entries applying the same inputs give the same
+cycle. (How a cycle equation is computed once for every entry that binds an input or leaves it.) -/
+theorem CoreMemDesign.cycleV_congr_data (E : CoreMemDesign) (clk : String) (v d d' : SvState)
+    (h : applyInputs2 E.scalar.toDesign2 (lowEntry clk d) v = applyInputs2 E.scalar.toDesign2 (lowEntry clk d') v) :
+    E.cycleV clk v d = E.cycleV clk v d' := by
+  simp only [CoreMemDesign.cycleV, CoreMemDesign.slotV, h]
+
 /-! ## The prover's judgment: every run of a family member -/
 
 /-- **Every clocked run of a canonical-E family member**: the instantiation succeeds and, from every coherent state
