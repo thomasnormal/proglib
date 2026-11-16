@@ -188,6 +188,7 @@ theorem famOfG_spec (so : List DeclT → Nat → PProcess → Except String TSit
   | genIf c t e => simp [famOfG] at h
   | inst i => simp [famOfG] at h
   | decl d => simp [famOfG] at h
+  | localParam p => simp [famOfG] at h
   | unsupported k t => simp [famOfG] at h
 
 /-- The generate tree of a recognized design: every loop is the envelope's, with recognized

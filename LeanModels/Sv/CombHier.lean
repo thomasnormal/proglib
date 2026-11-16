@@ -1143,6 +1143,7 @@ def itemRefusal : GenItem → String
       else "the module has a generate `if` besides its instances: v1 of the hierarchy summary reads a parent whose generate items are all module-level instances"
   | .process _ => "the module has a generate-level process besides its instances (v1 of the hierarchy summary)"
   | .decl d => s!"the module has a declaration `{d.name}` in a generate block besides its instances (v1 of the hierarchy summary)"
+  | .localParam p => s!"the module has a generate-local parameter declaration `{p.name}` in a generate block besides its instances (outside the v1 fragment; IEEE 1800-2023 §27.4)"
   | .unsupported k t => s!"{t} ({k})"
   | .inst i => s!"instance `{i.name}` has a generate path (v1 of the hierarchy summary reads module-level instances only)"
 
@@ -2466,6 +2467,10 @@ theorem expandH_noPortFlags (cb : ChildInst) (elems : List (String × Nat)) (F :
         cases h
         exact noPortFlags_nil
     | decl d =>
+        rw [GenItem.expandH] at h
+        cases h
+        exact noPortFlags_nil
+    | localParam p =>
         rw [GenItem.expandH] at h
         cases h
         exact noPortFlags_nil

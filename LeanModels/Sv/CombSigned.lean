@@ -353,11 +353,13 @@ theorem procsOf?_unsignL : ∀ {l : List GenItem} {ps : List PProcess},
   | .unsupported .. :: _, _, h => by simp [GenItem.unsignL, GenItem.unsign, procsOf?] at h
   | .inst _ :: _, _, h => by simp [GenItem.unsignL, GenItem.unsign, procsOf?] at h
   | .decl _ :: _, _, h => by simp [GenItem.unsignL, GenItem.unsign, procsOf?] at h
+  | .localParam _ :: _, _, h => by simp [GenItem.unsignL, GenItem.unsign, procsOf?] at h
 
 mutual
 theorem _root_.LeanModels.Sv.GenItem.slots_unsign : ∀ it : GenItem, it.unsign.slots = it.slots
   | .process _ => rfl
   | .decl _ => rfl
+  | .localParam _ => rfl
   | .genFor .. => rfl
   | .genIf _ thn els => by
       simp only [GenItem.unsign, GenItem.slots]
@@ -417,6 +419,7 @@ theorem itemOfG_unsign {ds : List DeclT} :
   | _, _, .unsupported k t, x, h => by simp [GenItem.unsign, itemOfG] at h
   | _, _, .inst i, x, h => by simp [GenItem.unsign, itemOfG] at h
   | _, _, .decl d, x, h => by simp [GenItem.unsign, itemOfG] at h
+  | _, _, .localParam p, x, h => by simp [GenItem.unsign, itemOfG] at h
 
 theorem itemsOfG_unsign {ds : List DeclT} :
     ∀ {tag : String} {pos : Nat} {its : List GenItem} {xs : List TItem},
@@ -460,6 +463,7 @@ theorem famOfG_unsign {ds : List DeclT} {it : GenItem} {f : TFam}
   | unsupported k t => simp [GenItem.unsign, famOfG] at h
   | inst i => simp [GenItem.unsign, famOfG] at h
   | decl d => simp [GenItem.unsign, famOfG] at h
+  | localParam p => simp [GenItem.unsign, famOfG] at h
 
 theorem famsOfG_unsign {ds : List DeclT} :
     ∀ {gens : List GenItem} {fs : List TFam},

@@ -96,6 +96,9 @@ theorem genAll_expand {P : Process2 → Prop} {f : PProcess → Bool} (hU : ∀ 
   | .decl _, _, ps, _, he => by
       rw [GenItem.expand2] at he; cases he
       intro q hq; rw [List.mem_singleton] at hq; subst hq; exact hU _ _
+  | .localParam _, _, ps, _, he => by
+      rw [GenItem.expand2] at he; cases he
+      intro q hq; rw [List.mem_singleton] at hq; subst hq; exact hU _ _
   | .genIf c t e, env, ps, h, he => by
       simp only [genAll, Bool.and_eq_true] at h
       rw [GenItem.expand2] at he

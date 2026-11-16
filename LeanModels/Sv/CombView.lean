@@ -3693,6 +3693,7 @@ sites of the two arms keep distinct identities). -/
 def _root_.LeanModels.Sv.GenItem.slots : GenItem → Nat
   | .process _ => 1
   | .decl _ => 1
+  | .localParam _ => 1
   | .genFor .. => 1
   | .genIf _ thn els => GenItem.slotsL thn + GenItem.slotsL els
   | .unsupported .. => 1
@@ -3737,6 +3738,7 @@ def itemOfG (so : List DeclT → Nat → PProcess → Except String TSite) (ds :
               | .error e => .error e
               | .ok es => .ok (.cond c g ts es)
   | .decl d => .error s!"declaration `{d.name}` inside a generate loop (outside the v1 fragment)"
+  | .localParam p => .error s!"generate-local parameter declaration `{p.name}` inside a generate loop (outside the v1 fragment; IEEE 1800-2023 §27.4)"
   | .inst _ => .error "module instance inside a generate loop (outside the v1 fragment)"
   | .unsupported k _ => .error s!"unsupported generate item `{k}`"
 
@@ -3768,6 +3770,7 @@ def famOfG (so : List DeclT → Nat → PProcess → Except String TSite) (ds : 
           | .ok its => .ok ⟨h, rc, its⟩
   | .genIf .. => .error "conditional generate (outside the v1 fragment)"
   | .decl d => .error s!"declaration `{d.name}` in a generate block (outside the v1 fragment)"
+  | .localParam p => .error s!"generate-local parameter declaration `{p.name}` in a generate block (outside the v1 fragment; IEEE 1800-2023 §27.4)"
   | .inst _ => .error "module instance (outside the v1 fragment)"
   | .process _ => .error "process item in the generate list"
   | .unsupported k _ => .error s!"unsupported generate item `{k}`"
