@@ -18,3 +18,7 @@ functions and output/ref/inout formals remain named refusals.  Icarus Verilog
 13.0 and Xcelium 24.03-s004 both execute the eight source rows, including the
 first uninitialized sample and `0`, `1`, `x`, and `z` function operands:
 `q=x,1,1,x,x,x,x,0`.
+
+The current wall-table `automatic_function_subroutine` row is the same
+parser-shaped function and edge-call family; its eight seeded ordinary E rows
+also match both pinned simulators.
