@@ -1040,6 +1040,12 @@ escaped-percent pairs and then an arbitrary suffix.  The proof composes the
 two continuation theorems, so mixed-prefix fuel and accumulator accounting is
 parametric in both lengths and introduces no finite bridge matrix.
 
+`Monadic.strFormatMappingWalk_escaped_then_plain` closes the reverse ordering:
+escaped-percent pairs followed by an arbitrary safe literal segment and
+suffix.  It uses the escaped continuation first and the literal continuation
+second, preserving the same exact fuel and accumulator accounting in either
+segment order.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain

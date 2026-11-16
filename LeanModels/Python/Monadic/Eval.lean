@@ -6476,6 +6476,21 @@ theorem strFormatMappingWalk_plain_then_escaped
   rw [strFormatMappingWalk_escaped_percent_prefix_append h a fuel n rest
     (acc ++ String.ofList chars)]
 
+theorem strFormatMappingWalk_escaped_then_plain
+    (h : Heap) (a : Addr) (fuel n : Nat) (chars rest : List Char)
+    (acc : String) (hsafe : ∀ c ∈ chars, c ≠ '%') :
+    strFormatMappingWalk h a (fuel + n + chars.length)
+      (escapedPercentPrefix n ++ chars ++ rest) acc =
+      strFormatMappingWalk h a fuel rest
+        (acc ++ escapedPercentOutput n ++ String.ofList chars) := by
+  rw [show fuel + n + chars.length = (fuel + chars.length) + n by omega]
+  rw [show escapedPercentPrefix n ++ chars ++ rest =
+    escapedPercentPrefix n ++ (chars ++ rest) by simp [List.append_assoc]]
+  rw [strFormatMappingWalk_escaped_percent_prefix_append h a (fuel + chars.length) n
+    (chars ++ rest) acc]
+  rw [strFormatMappingWalk_plain_prefix_append h a fuel chars rest
+    (acc := acc ++ escapedPercentOutput n) hsafe]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
