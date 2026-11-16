@@ -77,6 +77,7 @@ def processRows : PProcess → List Row
 def genRows : GenItem → List Row
   | .process p => processRows p
   | .decl _ => []
+  | .localParam _ => []
   | .genFor _ _ a b c _ body => exprRows a ++ exprRows b ++ exprRows c ++ body.flatMap genRows
   | .genIf c t e => exprRows c ++ t.flatMap genRows ++ e.flatMap genRows
   | .unsupported k t => [{ construct := k, function := "GenItem.expand", message := t }]
