@@ -1059,6 +1059,68 @@ abbrev CoreMemQueue := NbaQueue2 × MemNbaQueue
 def CoreMemDesign.scalarTarget (E : CoreMemDesign) (name : String) : Option Nat :=
   E.scalarWidth? name
 
+/-! A parser-native select target can name either a retained unpacked memory or
+ a packed scalar declaration.  The former stays on `MemState`; the latter is
+ lowered to the existing `Lhs2` window resolver used by E's scalar semantics.
+This distinction is required for source-shaped edge bodies such as
+`decoded_rs1[regindex_bits-1] <= 1` beside `cpuregs[latched_rd] <= ...`.
+The source `PLhs` node remains the authority; `instLhs2` is only the existing
+window interpretation of that node (IEEE 1800-2023 §11.5.1). -/
+def CoreMemDesign.scalarLhs2 (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (target : PLhs) : Res (Lhs2 × Nat) :=
+  match instLhs2 env elems target with
+  | .ok result => .ok result
+  | .error msg => .unsupported s!"11.5.1: scalar select target: {msg}"
+
+def scalarNbaWindows (value : LVec) : List (String × Nat × Nat) → NbaQueue2
+  | windows =>
+      let total := windows.foldl (fun n (_, _, width) => n + width) 0
+      let replacement := value.resizeU total
+      let rec go (remaining : List (String × Nat × Nat))
+          (remainingWidth : Nat) : NbaQueue2 :=
+        match remaining with
+        | [] => []
+        | (name, lo, width) :: rest =>
+            let nextWidth := remainingWidth - width
+            (name, lo, replacement.extract nextWidth width) ::
+              go rest nextWidth
+      go windows total
+
+def CoreMemDesign.writeScalarLhs2 (E : CoreMemDesign) (st : CoreMemState)
+    (lhs : Lhs2) (value : LVec) : Res CoreMemState :=
+  let view := E.scalar.view st.scalar
+  match lhs with
+  | .concat _ => do
+      let windows ← resolveConcatLhs2 4096 view lhs
+      let view' ← writeConcatLhs2 view value windows
+      .ok (E.compactScalar st view')
+  | _ => do
+      let (name, window) ← resolveLhs2 4096 view lhs
+      match window with
+      | none => .ok st
+      | some (lo, width) =>
+          match E.scalar.resolve name with
+          | none => .unsupported s!"11.5.1: scalar select target '{name}' is undeclared"
+          | some x =>
+              let old := st.scalar x
+              .ok (E.setScalarState st name
+                (old.bits.insertAt lo (value.resizeU width)))
+
+def CoreMemDesign.execScalarTarget (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (target : PLhs)
+    (value : PExpr) : Res CoreMemState := do
+  let (lhs, width) ← E.scalarLhs2 env elems target
+  let v ← E.evalExpr env elems st (some width) value
+  E.writeScalarLhs2 st lhs v
+
+def CoreMemDesign.issueScalarTarget (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (target : PLhs)
+    (value : LVec) : Res CoreMemQueue := do
+  let (lhs, _) ← E.scalarLhs2 env elems target
+  let view := E.scalar.view st.scalar
+  let windows ← resolveConcatLhs2 4096 view lhs
+  .ok (scalarNbaWindows value windows, [])
+
 def CoreMemDesign.issueTarget (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (target : PLhs) (value : LVec) : Res CoreMemQueue :=
   match target with
@@ -1066,22 +1128,23 @@ def CoreMemDesign.issueTarget (E : CoreMemDesign) (env : IEnv) (elems : List (St
       match E.scalarTarget name with
       | some _ => .ok ([(name, 0, value)], [])
       | none => .unsupported s!"11.5.1: scalar NBA target '{name}' is undeclared"
-  | .arrayElem name [index] =>
+  | .arrayElem name indices =>
       match E.memDecl? name with
-      | none => .unsupported s!"11.5.1: memory NBA target '{name}' is undeclared"
+      | none => E.issueScalarTarget env elems st (.arrayElem name indices) value
       | some md =>
-          let idx := E.evalIndex env elems st index
-          match idx with
-          | .timeout => .timeout
-          | .unsupported m => .unsupported m
-          | .ok iv =>
-              match st.memory.issueNba md.shape.id index.signedCast iv value with
-              | .missing => .unsupported s!"11.5.1: memory identity for '{name}' is not present"
-              | .noOp => .ok ([], [])
-              | .queued u => .ok ([], [u])
-  | .arrayElem name _ =>
-      .unsupported s!"11.5.1: memory NBA target '{name}' is not one-rank"
-  | _ => .unsupported "11.5.1: packed or concatenated memory NBA target is outside this E slice"
+          match indices with
+          | [index] =>
+              let idx := E.evalIndex env elems st index
+              match idx with
+              | .timeout => .timeout
+              | .unsupported m => .unsupported m
+              | .ok iv =>
+                  match st.memory.issueNba md.shape.id index.signedCast iv value with
+                  | .missing => .unsupported s!"11.5.1: memory identity for '{name}' is not present"
+                  | .noOp => .ok ([], [])
+                  | .queued u => .ok ([], [u])
+          | _ => .unsupported s!"11.5.1: memory NBA target '{name}' is not one-rank"
+  | target => E.issueScalarTarget env elems st target value
 
 def CoreMemDesign.writeMemoryAssign (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (target : PLhs)
@@ -1555,15 +1618,16 @@ def CoreMemDesign.execBlockingTarget (E : CoreMemDesign) (env : IEnv)
       | some width => do
           let v ← E.evalExpr env elems st (some width) value
           .ok (E.setScalarState st name v)
-  | .arrayElem name [_] =>
+  | .arrayElem name indices =>
       match E.memDecl? name with
-      | none => .unsupported s!"9.2.2.1: memory edge target '{name}' is undeclared"
-      | some md => do
-          let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
-          E.writeInitialCell env elems st target name md v
-  | .arrayElem name _ =>
-      .unsupported s!"9.2.2.1: memory edge target '{name}' is not one-rank"
-  | _ => .unsupported "9.2.2.1: packed or concatenated edge target is outside this E slice"
+      | none => E.execScalarTarget env elems st (.arrayElem name indices) value
+      | some md =>
+          match indices with
+          | [_] => do
+              let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
+              E.writeInitialCell env elems st target name md v
+          | _ => .unsupported s!"9.2.2.1: memory edge target '{name}' is not one-rank"
+  | target => E.execScalarTarget env elems st target value
 
 mutual
 
@@ -1584,13 +1648,22 @@ def CoreMemDesign.execStmtFuel (E : CoreMemDesign) (env : IEnv) (elems : List (S
           | some width => do
               let v ← E.evalExpr env elems st (some width) value
               CoreMemExec.fromQueue st (E.issueTarget env elems st target v)
-      | .arrayElem name [index] =>
+      | .arrayElem name indices =>
           match E.memDecl? name with
-          | none => .unsupported s!"11.5.1: memory NBA target '{name}' is undeclared"
-          | some md => do
-              let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
-              CoreMemExec.fromQueue st (E.issueTarget env elems st target v)
-      | _ => .unsupported "11.5.1: memory target is outside the one-rank element tier"
+          | none => do
+              let (_, width) ← E.scalarLhs2 env elems target
+              let v ← E.evalExpr env elems st (some width) value
+              CoreMemExec.fromQueue st (E.issueScalarTarget env elems st target v)
+          | some md =>
+              match indices with
+              | [_] => do
+                  let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
+                  CoreMemExec.fromQueue st (E.issueTarget env elems st target v)
+              | _ => .unsupported s!"11.5.1: memory target '{name}' is not one-rank"
+      | target => do
+          let (_, width) ← E.scalarLhs2 env elems target
+          let v ← E.evalExpr env elems st (some width) value
+          CoreMemExec.fromQueue st (E.issueScalarTarget env elems st target v)
   | fuel + 1, .blockingAssign name value => do
       let st' ← E.execBlockingTarget env elems st (.ident name) value
       .ok { state := st', scalarQ := [], memoryQ := [] }
