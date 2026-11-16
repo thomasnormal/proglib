@@ -9,7 +9,7 @@
   "top": "child_instance_wall",
   "source_files": [
     {
-      "path": "/scratch/thomas-ahle/wt/ls-sv/Examples/system-verilog/sem2/child_instance_wall/child_instance_wall.sv",
+      "path": "Examples/system-verilog/sem2/child_instance_wall/child_instance_wall.sv",
       "sha256": "e4a8aafab777d61bbd43596b250ba05b5e391c91e155a22ff9feb5800d539637"
     }
   ],

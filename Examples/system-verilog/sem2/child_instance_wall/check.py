@@ -10,9 +10,11 @@ ENV = HERE / "child_instance_wall.sv.json"
 
 
 def main():
+    source = "Examples/system-verilog/sem2/child_instance_wall/child_instance_wall.sv"
+    envelope = "Examples/system-verilog/sem2/child_instance_wall/child_instance_wall.sv.json"
     subprocess.run([
         "python3", "extractors/sv/extract.py", "--top", "child_instance_wall",
-        "-o", str(ENV), str(HERE / "child_instance_wall.sv")],
+        "-o", envelope, source],
         cwd=ROOT, check=True)
     out = subprocess.run([
         "python3", "harness/sv/refusal_census.py", "ordinary", str(ENV)],
