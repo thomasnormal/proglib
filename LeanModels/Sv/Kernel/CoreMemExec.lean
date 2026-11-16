@@ -2071,6 +2071,25 @@ def CoreMemDesign.applyMemoryInputs (E : CoreMemDesign) (entry : SvState)
         | none => m
         | some v => (m.writeId md.shape.id i (md.shape.convert v)).getD m) mem) memory
 
+/-- One edge/NBA/settle pass.  `edgeQuiesce` iterates this source-shaped pass
+when its committed view causes another event in the same slot. -/
+def CoreMemDesign.edgePass (E : CoreMemDesign)
+    (st : CoreMemState) (before after : SvState) (combBefore : CoreMemState) : Res CoreMemState := do
+  let edge ← E.runEdges E.env E.elems st before after E.processes.toList
+  let committedStore := E.scalarEdge.commit edge.state.scalar edge.scalarQ
+  let memory ← match edge.state.memory.commitNba edge.memoryQ with
+    | some m => .ok m
+    | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
+  let committed := E.normalizeScalar edge.state committedStore
+  let settled ← E.settleCanonical E.env E.elems { committed with memory } E.processes.toList
+  let activated ← if E.hasImplicit then
+      E.runImplicit st settled E.processes.toList
+    else .ok settled
+  let combed ← if E.hasComb then
+      E.runComb combBefore activated E.processes.toList
+    else .ok activated
+  E.settleCanonical E.env E.elems combed E.processes.toList
+
 /-- Run edge/NBA/settle passes until the commit causes no further edge event.
 IEEE 1800-2023 §§4.4 and 4.5 schedule NBA-caused events in the same time slot.
 The bound is an executor guard: exhaustion is a loud refusal, never a truncated
@@ -2080,20 +2099,7 @@ def CoreMemDesign.edgeQuiesce (E : CoreMemDesign) (limit : Nat)
   match limit with
   | 0 => .unsupported "4.5: event slot did not quiesce within the canonical E bound"
   | n + 1 => do
-      let edge ← E.runEdges E.env E.elems st before after E.processes.toList
-      let committedStore := E.scalarEdge.commit edge.state.scalar edge.scalarQ
-      let memory ← match edge.state.memory.commitNba edge.memoryQ with
-        | some m => .ok m
-        | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
-      let committed := E.normalizeScalar edge.state committedStore
-      let settled ← E.settleCanonical E.env E.elems { committed with memory } E.processes.toList
-      let activated ← if E.hasImplicit then
-          E.runImplicit st settled E.processes.toList
-        else .ok settled
-      let combed ← if E.hasComb then
-          E.runComb combBefore activated E.processes.toList
-        else .ok activated
-      let next ← E.settleCanonical E.env E.elems combed E.processes.toList
+      let next ← E.edgePass st before after combBefore
       let nextView := E.scalar.view next.scalar
       let caused := E.processes.toList.any fun p =>
         match p with
@@ -2101,6 +2107,34 @@ def CoreMemDesign.edgeQuiesce (E : CoreMemDesign) (limit : Nat)
         | _ => false
       if caused then E.edgeQuiesce n next after nextView next
       else .ok next
+
+theorem CoreMemDesign.edgeQuiesce_succ_of_no_followup
+    {E : CoreMemDesign} {n : Nat} {st next combBefore : CoreMemState} {before after : SvState}
+    (hp : E.edgePass st before after combBefore = .ok next)
+    (hc : (E.processes.toList.any (fun p =>
+      match p with
+      | .edge q => q.fires after (E.scalar.view next.scalar)
+      | _ => false)) = false) :
+    E.edgeQuiesce (n + 1) st before after combBefore = .ok next := by
+  rw [CoreMemDesign.edgeQuiesce]
+  simp only [hp, Res.ok_bind, hc, Bool.false_eq_true, ↓reduceIte]
+
+
+/-- **B3 conservativity**: on a slot whose first edge/NBA/settle pass causes
+no further retained edge event, the in-slot iterator is the identity.  This is
+the exact pre-B3 admitted fragment; designs with a follow-up event take the
+new §4.4/§4.5 iteration path instead. -/
+theorem CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup
+    {E : CoreMemDesign} {st combBefore next : CoreMemState} {before after : SvState}
+    (hp : E.edgePass st before after combBefore = .ok next)
+    (hc : (E.processes.toList.any (fun p =>
+      match p with
+      | .edge q => q.fires after (E.scalar.view next.scalar)
+      | _ => false)) = false) :
+    E.edgeQuiesce 4096 st before after combBefore = .ok next := by
+  apply CoreMemDesign.edgeQuiesce_succ_of_no_followup (n := 4095) hp hc
+
+#print axioms CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup
 
 def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) : Res CoreMemState := do
   let inputStore := E.scalar.applyInputs st.scalar entry
