@@ -64,6 +64,21 @@ class SymbolicArraySelects(unittest.TestCase):
         # 1-D canonical reads keep the legacy node.
         self.assertEqual(cell["value"]["left"]["kind"], "BitSel")
 
+    def test_nested_generate_loop_skips_empty_first_outer_entry(self):
+        module = self.extract(
+            "module top #(parameter int N = 2); genvar i;"
+            " for (i = 0; i < N; i++) begin : g"
+            " for (genvar j = 0; j < i; j++) begin : h"
+            " logic x; end end endmodule", retain_loops=True)
+        outer = module["generates"][0]
+        self.assertEqual(outer["resolved_count"], 2)
+        inner = outer["body"][0]
+        self.assertEqual(inner["kind"], "GenerateFor")
+        self.assertEqual(inner["resolved_count"], 1)
+        self.assertEqual(inner["body"][0]["kind"], "Var")
+        self.assertNotEqual(inner["body"][0].get("sv_kind"),
+                            "GenerateFor:no-template")
+
     def test_row_part_select_is_symbolic(self):
         module = self.extract(
             "module top #(parameter int N = 4) (output logic [N-1:0] y);"

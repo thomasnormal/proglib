@@ -33687,6 +33687,35 @@ def _genstep(sm, e, genvar=None):
     return convert_sym_expr(sm, e)
 
 
+def _generate_entry_has_live_member(symbol):
+    """Whether an elaborated generate entry contains a live source member.
+
+    Slang keeps a nested ``GenerateBlockArraySymbol`` on every outer entry,
+    including entries whose inner loop has zero instances.  Looking only for
+    a direct ``Instance`` therefore picks the first (empty) outer entry and
+    manufactures ``GenerateFor:no-template`` for a later live one.  Walk the
+    structured symbol tree instead: nested generate arrays are live exactly
+    when one of their entries is live, while declarations and procedural
+    members are live leaves.  This preserves the symbolic loop and never
+    inspects source text.
+    """
+    kind = str(getattr(symbol, "kind", "")).split(".")[-1]
+    if kind in {
+        "Instance", "Variable", "Net", "ProceduralBlock", "ContinuousAssign",
+        "Subroutine", "Typedef", "GenerateBlock",
+    }:
+        if kind == "GenerateBlock":
+            return any(_generate_entry_has_live_member(child) for child in symbol)
+        return True
+    if kind == "GenerateBlockArray":
+        entries = list(getattr(symbol, "entries", []))
+        return any(_generate_entry_has_live_member(entry) for entry in entries)
+    try:
+        return any(_generate_entry_has_live_member(child) for child in symbol)
+    except Exception:
+        return False
+
+
 def convert_generate_for(sm, m, path=()):
     """GenerateBlockArraySymbol -> ONE GenerateFor node: genvar + symbolic
     header expressions + body template (never unrolled). The template is
@@ -33720,16 +33749,7 @@ def convert_generate_for(sm, m, path=()):
             # the default entry has only uninstantiated children.
             template = entries[0]
             for candidate in entries:
-                live = False
-                try:
-                    def inspect(node):
-                        nonlocal live
-                        if str(getattr(node, "kind", "")).split(".")[-1] == "Instance":
-                            live = True
-                    candidate.visit(inspect)
-                except Exception:
-                    live = False
-                if live:
+                if _generate_entry_has_live_member(candidate):
                     template = candidate
                     break
             label = m.name or None
