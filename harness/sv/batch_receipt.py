@@ -207,7 +207,7 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("typed_bit_localparam.sv", "typed_localparam",
             (Port("d", 1),), (Port("q", 1),)),
     Fixture("wire_output_port.sv", "wire_output_port",
-            (Port("a", 1),), (Port("y", 1),)),
+            (Port("a", 8),), (Port("y", 8),)),
     Fixture("typed_array.sv", "typed_array",
             (Port("x", 8),), (Port("y", 8),),
             retain_proc_rewrites=True),

@@ -319,8 +319,8 @@ def CoreMemProc.ofPProcessAt (env : IEnv) : PProcess → CoreMemProc
 /-! Module-level metadata that is already represented by retained source nodes.
 An empty input-only task has no runtime effect, and the two x/z markers carry
 the literal as a source `PExpr.lit`; admitting these markers therefore does not
-invent a process or a value.  A scalar undriven four-state wire is admitted
-only from the structured Slang metadata: IEEE 1800-2023 §6.6 gives it a z
+invent a process or a value.  An undriven four-state wire is admitted only
+from the structured Slang metadata: IEEE 1800-2023 §6.6 gives every bit its z
 startup value, while the absence of driver records means no resolution rule is
 being inferred.  Other net shapes remain loud. -/
 
@@ -331,7 +331,7 @@ def coreMemAllowedOther (entry : String × String) : Bool :=
 
 def coreMemNetMetadataAllowed (md : PNetMetadata) : Bool :=
   md.netKind == "Wire" && md.isNet && md.fourState && !md.signed &&
-    md.driverReason == some "no driver: the net reads z" && md.driverRecords.isEmpty && md.width == 1
+    md.driverReason == some "no driver: the net reads z" && md.driverRecords.isEmpty && md.width > 0
 
 def coreMemNetDriverAllowed (md : PNetMetadata) (generated : List PProcess) : Bool :=
   match md.driverRecords with

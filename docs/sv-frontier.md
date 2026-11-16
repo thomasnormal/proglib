@@ -166,10 +166,11 @@ memories, compound memory expressions, and hierarchy remain loud.
 The PicoRV32 R2 item is now started from the re-probe's generic walls. A
 source-shaped `always_comb` memory read is admitted after the sequential
 `MemState` commit; `sem2/unpacked_memory_comb` covers this exact form. The
-memory route admits the exact undriven `NetSymbol:net-z` member as a
-source-shaped one-bit z-initialized scalar net. Other unsupported module
-members remain loud. `sem2/unpacked_memory_netz` and the PicoRV32 wall probe
-guard this behavior.
+memory route admits the exact undriven `NetSymbol:net-z` and
+`PortSymbol:net-z` members as source-shaped four-state wires of any recovered
+positive packed width, initializing every bit to `z` under IEEE 1800-2023
+§6.6. Other unsupported module members remain loud. `sem2/unpacked_memory_netz`
+and the PicoRV32 wall probe guard this behavior.
 The item-2 clean-room PicoRV32 wall pair is pinned under
 `Examples/system-verilog/cores/picorv32/walls`: `unpacked_cpuregs` checks the
 ordinary unpacked-memory refusal, while `net_z_memory` checks the retained

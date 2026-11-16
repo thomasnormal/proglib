@@ -971,7 +971,13 @@ class NetsAsVariables(Base):
         self.assertEqual([d for d in m["decls"] if d.get("net_as_variable")], [], body)
 
     def test_undriven_and_partially_driven_nets(self):
-        self.refused_net("wire [3:0] w; assign y = w;")
+        module = self.top("wire [3:0] w; assign y = w;")
+        unsupported = [n for n in module.get("others", [])
+                       if isinstance(n, dict) and n.get("sv_kind") == "NetSymbol:net-z"]
+        self.assertEqual(len(unsupported), 1)
+        self.assertEqual(unsupported[0]["metadata"]["width"]["resolved"], 4)
+        self.assertEqual(unsupported[0]["metadata"]["driver_reason"],
+                         "no driver: the net reads z")
         self.refused_net("wire [3:0] w; assign w[2:0] = a[2:0]; assign y = w;")
         self.refused_net("wire [3:0] w; assign w[0] = a[0]; assign w[2] = a[2]; assign y = w;")
 
