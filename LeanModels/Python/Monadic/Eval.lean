@@ -6748,6 +6748,35 @@ theorem strFormatMappingWalk_segment_chain
         hsegments]
       simp [mappingPrefixOutput, String.append_assoc]
 
+theorem strFormatMappingWalk_segment_chain_then_token
+    (h : Heap) (a : Addr) (fuel : Nat)
+    (segments : List (List Char × Nat)) (suffix rest : List Char)
+    (conv : Char) (key acc : String)
+    (hsafe : ∀ seg ∈ segments, ∀ c ∈ seg.1, c ≠ '%')
+    (hparse : strFormatMapToken (suffix ++ ')' :: conv :: rest) =
+      some (key, conv, rest)) :
+    strFormatMappingWalk h a (fuel + mappingPrefixCost segments + 1)
+      (mappingPrefixInput segments ++
+        ('%' :: '(' :: suffix ++ ')' :: conv :: rest)) acc =
+      match Heap.get? h a with
+      | some (.dict entries _) =>
+          match strFormatDictFind entries.toList key with
+          | some value =>
+              match strFormatConv conv value with
+              | .ok piece => strFormatMappingWalk h a fuel rest
+                  (acc ++ mappingPrefixOutput segments ++ piece)
+              | .exn e => .exn e
+              | .timeout => .timeout
+              | .unsupported msg => .unsupported msg
+          | Option.none => .exn .keyError
+      | _ => .unsupported "dangling heap reference" := by
+  rw [show fuel + mappingPrefixCost segments + 1 =
+      (fuel + 1) + mappingPrefixCost segments by omega]
+  rw [strFormatMappingWalk_segment_chain h a (fuel + 1) segments
+    ('%' :: '(' :: suffix ++ ')' :: conv :: rest) acc hsafe]
+  rw [strFormatMappingWalk_token_branch h a fuel suffix conv rest key
+    (acc ++ mappingPrefixOutput segments) hparse]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

@@ -1084,6 +1084,11 @@ theorems and carries a single no-`%` invariant for every literal segment, so
 fuel and accumulator accounting are length-parametric without fixed-count
 matrices.
 
+`Monadic.strFormatMappingWalk_segment_chain_then_token` integrates that
+arbitrary chain with the mapping-token branch.  The chain is consumed first,
+then the token lookup and conversion outcomes are preserved exactly, giving a
+single parametric bridge for all admitted structural prefixes before a token.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
