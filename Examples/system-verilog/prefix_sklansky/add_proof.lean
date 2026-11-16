@@ -105,8 +105,10 @@ theorem skl_ports (N : Nat) (hN : 1 ≤ N) (hR : N < 2 ^ 20) (hc : CombDesign (p
 
 /-! ## 3. The statement -/
 
--- The theorem's elaboration is just over the default 200000 heartbeats since the summary reads `$clog2`'s argument as
--- unsigned (its 32-bit pattern, IEEE 1800-2023 §20.8.1): `sv_equations` 149k here, 127k before.
+-- The theorem's elaboration needs between 200000 and 230000 heartbeats, just over the default: the summary reads
+-- `$clog2`'s argument as unsigned (its 32-bit pattern, IEEE 1800-2023 §20.8.1), and `sv_cover` also tries its
+-- coverage goals with the writers' if/else chains as one case each before the plain walk closes them (with
+-- `sv_comb.cover_chains false` the theorem fits the default).
 set_option maxHeartbeats 400000 in
 /-- **The Sklansky adder meets the svGolf `add` statement**, at every `N` with `1 ≤ N < 2^20`. -/
 theorem prefix_sklansky_add : AddStatement prefix_sklansky.sem := by
