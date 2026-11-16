@@ -783,6 +783,11 @@ arbitrary pass/constant body list.  The legacy frame uses `mkCallEnv` and
 `markUnboundLocals`, while the monadic theorem uses `globalCallEnv`; the body
 state-preservation induction reduces both to the same normalized caller world.
 
+`Monadic.globalCallEnv_eq_legacy_of_noGlobal` gives the exact embedding needed
+on the ordinary no-global fragment: when `hasGlobal` is false, the monadic
+frame environment is definitionally the legacy `mkCallEnv` followed by
+`markUnboundLocals`, with no extra global bindings.
+
 `Monadic.twinAgrees_callIn_top_body_ret` provides the generic return-flow
 counterpart.  It accepts raw monadic and legacy body results and an explicit
 world equality, then transports both through the normalized top-depth call

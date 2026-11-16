@@ -6168,6 +6168,13 @@ theorem twinAgrees_callIn_empty_body
           Run.bind]
   rw [hmono, hlegacy]
 
+theorem globalCallEnv_eq_legacy_of_noGlobal
+    (w : World) (params : Array Param) (args : Array RVal)
+    (body : Array Stmt) :
+    globalCallEnv w params args body false =
+      markUnboundLocals body.toList (mkCallEnv params args) := by
+  simp [globalCallEnv]
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by
