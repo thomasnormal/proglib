@@ -118,6 +118,68 @@ theorem seqE_ite_fst {α β : Type} (p : Prop) [Decidable p] (a b : α × β) :
 theorem seqE_ite_snd {α β : Type} (p : Prop) [Decidable p] (a b : α × β) :
     (if p then a else b).2 = if p then a.2 else b.2 := by split <;> rfl
 
+/-! ## Run-time selects: the index decision kept as a value
+
+A run-time element read (`Expr2.index`) and a select target's window (`resolveLhs2` on `.index`) decide on the index
+value (x/z or out of range: all x, or no write window, §11.5.1). The evaluation pass keeps that decision as a value
+(`seqIndexRead`, `seqIndexWin`) instead of a `match` at the `Res` level, and evaluates the window resolver's fuel
+evaluator by its fuel-free twin (`evalExpr2_eq_evalPure2`). -/
+
+/-- `evalPure2`'s run-time element read, its decision a value. -/
+def seqIndexRead (bv : LVec) (i? : Option Int) (w : Nat) : LVec :=
+  match i? with
+  | some i => if 0 ≤ i && (i + 1) * w ≤ bv.width then bv.extract (i.toNat * w) w else LVec.xVec w
+  | none => LVec.xVec w
+
+theorem seqE_evalPure2_index (st : SvState) (base idx : Expr2) (w : Nat) :
+    evalPure2 st (.index base idx w) = (do
+      let bv ← evalPure2 st base
+      let iv ← evalPure2 st idx
+      .ok (seqIndexRead bv (indexInt? idx iv) w)) := by
+  rw [evalPure2_index]
+  cases evalPure2 st base with
+  | ok bv =>
+      cases evalPure2 st idx with
+      | ok iv =>
+          simp only [Res.ok_bind, seqIndexRead]
+          cases indexInt? idx iv with
+          | none => rfl
+          | some i =>
+              by_cases hc : (decide (0 ≤ i) && decide ((i + 1) * (w : Int) ≤ (bv.width : Int))) = true <;>
+                simp [hc]
+      | timeout => rfl
+      | unsupported m => rfl
+  | timeout => rfl
+  | unsupported m => rfl
+
+/-- `resolveLhs2`'s window of a run-time select target, its decision a value (`none`: no write). -/
+def seqIndexWin (old : LVec) (i? : Option Int) (w : Nat) : Option (Nat × Nat) :=
+  match i? with
+  | some i => if 0 ≤ i && (i + 1) * w ≤ old.width then some (i.toNat * w, w) else none
+  | none => none
+
+theorem seqE_resolveLhs2_index (fuel : Nat) (st : SvState) (n : String) (idx : Expr2) (w : Nat) :
+    resolveLhs2 fuel st (.index n idx w) = (do
+      let iv ← evalExpr2 fuel st idx
+      match SvState.lookup st n with
+      | none => .unsupported s!"unknown assignment target '{n}'"
+      | some old => .ok (n, seqIndexWin old (indexInt? idx iv) w)) := by
+  simp only [resolveLhs2]
+  cases evalExpr2 fuel st idx with
+  | ok iv =>
+      simp only [Res.ok_bind]
+      cases SvState.lookup st n with
+      | none => rfl
+      | some old =>
+          simp only [seqIndexWin]
+          cases indexInt? idx iv with
+          | none => rfl
+          | some i =>
+              by_cases hc : (decide (0 ≤ i) && decide ((i + 1) * (w : Int) ≤ (old.width : Int))) = true <;>
+                simp [hc]
+  | timeout => rfl
+  | unsupported m => rfl
+
 /-! ## Memories: the write equation and the read equation through the evaluation pass
 
 A memory's next contents come out of the evaluation pass as ONE write equation (`memWrite`) under the decisions that
@@ -324,7 +386,10 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.commitMemV_memIss, LeanModels.Sv.Kernel.seqE_commitMemV_memIss,
       LeanModels.Sv.Kernel.seqE_commitMemV_ite, LeanModels.Sv.Kernel.seqE_memRd_ite,
       LeanModels.Sv.Kernel.seqE_memIss_ite, LeanModels.Sv.Kernel.memRd_memWrite,
-      LeanModels.Sv.Kernel.MemShape.convert, LeanModels.Sv.Kernel.seqE_memRd_width, $ls,*])
+      LeanModels.Sv.Kernel.MemShape.convert, LeanModels.Sv.Kernel.seqE_memRd_width,
+      -LeanModels.Sv.evalPure2_index, LeanModels.Sv.Kernel.seqE_evalPure2_index,
+      LeanModels.Sv.Kernel.seqE_resolveLhs2_index, LeanModels.Sv.evalExpr2_eq_evalPure2, LeanModels.Sv.Expr2.size,
+      LeanModels.Sv.instIndex2, $ls,*])
 
 /-- The arithmetic pass of a cycle: conditions and bounds on the parameters, by `omega`. -/
 macro "sv_seq_eval_arith" : conv =>
