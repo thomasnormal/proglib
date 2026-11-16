@@ -28,3 +28,8 @@ python3 extractors/sv/extract.py --top generated_array_nested_canonical_e \
   -o Examples/system-verilog/sem2/generated_array_nested_canonical_e/generated_array_nested_canonical_e.sv.json \
   Examples/system-verilog/sem2/generated_array_nested_canonical_e/generated_array_nested_canonical_e.sv
 ```
+
+The corrected collect-all census now reports this E topology refusal without
+the obsolete scalar-memory refusal; the independent parameterized-storage
+control reports zero ordinary refusals, while the two-clock control retains
+`Clock:multiple`.
