@@ -1,0 +1,251 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "interface_repro",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/interface_wall/interface_wall.sv",
+      "sha256": "c44adba84c042984a2ee1d9d3e2ccd73fdd13802b76bede216f7f4b4f97e6357"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 7,
+          "col": 1,
+          "end_line": 11,
+          "end_col": 10
+        },
+        "name": "interface_repro",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 36,
+              "end_line": 7,
+              "end_col": 41
+            },
+            "name": "clock",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 55,
+              "end_line": 7,
+              "end_col": 60
+            },
+            "name": "value",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 75,
+              "end_line": 7,
+              "end_col": 81
+            },
+            "name": "result",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 10,
+              "col": 10,
+              "end_line": 10,
+              "end_col": 29
+            },
+            "sv_kind": "AssignmentExpression:target",
+            "text": "bus.request = value"
+          }
+        ],
+        "generates": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 8,
+              "col": 15,
+              "end_line": 8,
+              "end_col": 25
+            },
+            "sv_kind": "InstanceSymbol:interface",
+            "text": "bus(clock)"
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 9,
+              "col": 19,
+              "end_line": 9,
+              "end_col": 52
+            },
+            "name": "child",
+            "module": "interface_child",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "Unsupported",
+                "span": {
+                  "line": 9,
+                  "col": 19,
+                  "end_line": 9,
+                  "end_col": 52
+                },
+                "sv_kind": "PortConnection:InterfacePortSymbol",
+                "text": "bus"
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 9,
+                  "col": 44,
+                  "end_line": 9,
+                  "end_col": 50
+                },
+                "port": "result",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 9,
+                    "col": 44,
+                    "end_line": 9,
+                    "end_col": 50
+                  },
+                  "width": 1,
+                  "name": "result"
+                }
+              }
+            ]
+          }
+        ],
+        "others": []
+      },
+      {
+        "kind": "Module",
+        "span": {
+          "line": 13,
+          "col": 1,
+          "end_line": 15,
+          "end_col": 10
+        },
+        "name": "interface_child",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 13,
+              "col": 54,
+              "end_line": 13,
+              "end_col": 60
+            },
+            "name": "result",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 14,
+              "col": 3,
+              "end_line": 14,
+              "end_col": 36
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 14,
+                "col": 15,
+                "end_line": 14,
+                "end_col": 36
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 14,
+                  "col": 15,
+                  "end_line": 14,
+                  "end_col": 21
+                },
+                "width": 1,
+                "name": "result"
+              },
+              "value": {
+                "kind": "Unsupported",
+                "span": {
+                  "line": 14,
+                  "col": 24,
+                  "end_line": 14,
+                  "end_col": 35
+                },
+                "sv_kind": "HierarchicalValueExpression",
+                "text": "bus.request"
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 13,
+              "col": 36,
+              "end_line": 13,
+              "end_col": 39
+            },
+            "sv_kind": "InterfacePortSymbol:InterfacePort",
+            "text": "bus"
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
