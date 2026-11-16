@@ -818,6 +818,13 @@ name-error recursion check.  A sound expression adequacy theorem therefore
 needs that combined resolver extracted or related to the legacy evaluator; a
 local-only lemma would claim the wrong result for a declared global.
 
+The static part itself is shared: both paths call the same `lookupG` over
+`moduleGlobals m`.  The missing adequacy operation is the surrounding branch
+that combines this result with the live frame-global view and the static
+function/builtin/name-error cases.  Until that combined resolver relation is
+stated, a standalone `lookupG` equality would be true but insufficient to
+prove expression-level correspondence.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
