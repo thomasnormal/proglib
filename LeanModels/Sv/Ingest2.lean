@@ -845,9 +845,17 @@ partial def parseGenItem (j : Json) : Except String GenItem := do
         -- only when its generate branch is active; do not recover a
         -- declaration from an error string later.
         return .decl (← parsePDecl j)
-    | "Var" | "Net" | "LocalParam" | "ParameterDecl" =>
-        -- Other generate-local declarations still require their own lexical
-        -- constant/name scope and remain loud until that scope is modelled.
+    | "Var" | "Net" =>
+        -- A generate-local variable/net is a source-shaped declaration in
+        -- the active generate instance (IEEE 1800-2023 §27).  Keep the
+        -- declaration node so canonical E can collect it together with the
+        -- active branch's processes; lexical per-instance naming remains a
+        -- separate admission check in that route.
+        return .decl (← parsePDecl j)
+    | "LocalParam" | "ParameterDecl" =>
+        -- Generate-local constant declarations still need their own lexical
+        -- constant scope; retain a loud node rather than inventing a module
+        -- parameter or recovering one from source text.
         return .unsupported s!"GenerateDecl:{kind}"
           s!"generate-local declaration '{(getOptStr j "name").getD "?"}'"
     | "Unsupported" =>

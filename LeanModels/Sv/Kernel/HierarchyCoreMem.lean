@@ -214,6 +214,7 @@ private partial def generatedInstances (env : IEnv) (fuel : Nat) :
       let here ← generatedInstances env fuel chosen
       let tail ← generatedInstances env fuel rest
       .ok (here ++ tail)
+
   | .genFor _ g init bound step _ body :: rest => do
       let i ← match evalInt env init with | .ok x => .ok x | .error e => .unsupported e
       let delta ← match stepDelta g step with | .ok x => .ok x | .error e => .unsupported e
@@ -223,6 +224,56 @@ private partial def generatedInstances (env : IEnv) (fuel : Nat) :
         .ok (acc ++ xs)
       let tail ← generatedInstances env fuel rest
       .ok (here ++ tail)
+
+/-! The hierarchy adapter has two source-shaped walks over the active generate
+tree. `generatedInstances` above finds child module instances; this companion
+walk retains the other active nodes for the parent design.  A generate-local
+declaration is collected by `coreMemGeneratedDeclsList`, while this walk keeps
+the source process nodes.  Instance nodes are consumed by the hierarchy merge
+and therefore do not become a spurious `Instance` process in the merged E
+design (IEEE 1800-2023 §§23.3.3, 27). -/
+mutual
+private def generatedParentItem (env : IEnv) (fuel : Nat) (vals : List (String × Int)) :
+    GenItem → Res (List PProcess)
+  | .process p => .ok [coreMemSubstProcess vals p]
+  | .decl _ | .inst _ => .ok []
+  | .unsupported k t => .ok [.unsupported k t]
+  | .genIf cond thenB elseB =>
+      match evalGenGuard (coreMemBindVals env vals) cond with
+      | .error e => .unsupported s!"generate if: {e}"
+      | .ok v => if v != 0 then generatedParentList env fuel vals thenB
+                 else generatedParentList env fuel vals elseB
+  | .genFor _label g initE bound step _rc body =>
+      let env' := coreMemBindVals env vals
+      match evalInt env' initE, stepDelta g step with
+      | .ok i0, .ok δ => do
+          let vs ← genvarSeq env' g bound δ fuel i0
+          generatedParentIters env fuel vals g vs body
+      | .error e, _ => .unsupported s!"generate for: {e}"
+      | _, .error e => .unsupported s!"generate for: {e}"
+  termination_by it => (sizeOf it, 0)
+  decreasing_by all_goals (simp_wf; omega)
+
+private def generatedParentList (env : IEnv) (fuel : Nat) (vals : List (String × Int)) :
+    List GenItem → Res (List PProcess)
+  | [] => .ok []
+  | it :: rest => do
+      let ps ← generatedParentItem env fuel vals it
+      let qs ← generatedParentList env fuel vals rest
+      .ok (ps ++ qs)
+  termination_by xs => (sizeOf xs, 0)
+  decreasing_by all_goals (simp_wf; omega)
+
+private def generatedParentIters (env : IEnv) (fuel : Nat) (vals : List (String × Int))
+    (g : String) : List Int → List GenItem → Res (List PProcess)
+  | [], _ => .ok []
+  | v :: vs, body => do
+      let ps ← generatedParentList env fuel ((g, v) :: vals) body
+      let qs ← generatedParentIters env fuel vals g vs body
+      .ok (ps ++ qs)
+  termination_by vs body => (sizeOf body, vs.length + 1)
+  decreasing_by all_goals (simp_wf; omega)
+end
 
 private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) :
     Res (PDesign × List Int × PInst × String × List PProcess) :=
@@ -257,6 +308,10 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
     | .ok e => .ok e
     | .timeout => .timeout
     | .unsupported e => .unsupported e
+  let generatedDecls ← coreMemGeneratedDeclsList env
+    (PDesign.surfaceFuel args) [] top.generates
+  let generatedPs ← generatedParentList env
+    (PDesign.surfaceFuel args) [] top.generates
   let insts ← generatedInstances env (PDesign.surfaceFuel args) top.generates
   let children ← insts.mapM fun (i, ie) => childFor ie lib i
   let childDecls := children.flatMap fun (child, _cargs, inst, pfx, _generated) => child.decls.map fun pd => { pd with
@@ -279,8 +334,8 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
       | .output port (some target) => some (.assignL target (.ident (pfx ++ port)))
       | _ => none
   let merged := { top with
-      decls := top.decls ++ childDecls
-      processes := top.processes ++ inputPs ++ childPs ++ outputPs
+      decls := top.decls ++ generatedDecls ++ childDecls
+      processes := top.processes ++ generatedPs ++ inputPs ++ childPs ++ outputPs
       generates := []
       others := top.others ++ children.flatMap fun (child, _, _, _, _) => child.others
       -- A child function remains a source-shaped declaration after the
