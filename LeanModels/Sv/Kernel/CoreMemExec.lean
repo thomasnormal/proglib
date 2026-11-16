@@ -1962,6 +1962,9 @@ def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState)
   let pre ← if E.hasComb then
       E.runComb st pre0 E.processes.toList
     else .ok pre0
+  let pre ← if E.hasImplicit then
+      E.runImplicit st pre E.processes.toList
+    else .ok pre
   let pre ← E.settleAssign E.env E.elems pre E.processes.toList
   let combBefore := pre
   let before := E.scalar.view st.scalar
@@ -1974,7 +1977,7 @@ def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState)
   let committed := E.normalizeScalar edge.state committedStore
   let settled ← E.settleAssign E.env E.elems { committed with memory } E.processes.toList
   let activated ← if E.hasImplicit then
-      E.runImplicit st settled E.processes.toList
+      E.runImplicit pre settled E.processes.toList
     else .ok settled
   let combed ← if E.hasComb then
       E.runComb combBefore activated E.processes.toList
