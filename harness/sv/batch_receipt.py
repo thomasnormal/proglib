@@ -64,6 +64,10 @@ class Fixture:
     points: tuple[Point, ...] = (Point("default", ()),)
     retain_loops: bool = False
     retain_proc_rewrites: bool = False
+    # A legal source construct may be rejected by one pinned simulator's
+    # frontend.  A refusal receipt records that outcome explicitly; it is
+    # never treated as an oracle match.
+    expected_source_refusals: tuple[str, ...] = ()
 
 
 # This is the bounded runnable set from the ordinary-route census.  Widths are
@@ -140,6 +144,9 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("x", 4),), (Port("y", 4),),
             (Point("N1", (1,)), Point("N4", (4,))),
             retain_proc_rewrites=True),
+    Fixture("proc_local_automatic.sv", "proc_local_automatic",
+            (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),),
+            retain_proc_rewrites=True, expected_source_refusals=("iverilog",)),
     Fixture("packed_enum_dimension.sv", "packed_enum_dimension",
             (Port("mode", 2),), (Port("y", 1),),
             retain_proc_rewrites=True),
@@ -546,21 +553,35 @@ def main() -> int:
                   f"Icarus={iverilog_version} Xcelium={xrun_version}")
             if len(expected) != CYCLES:
                 print(f"  RUNS NO (ordinary route returned {len(expected)} cycles)")
-                all_match = False
+                expected_refusals = set(fixture.expected_source_refusals)
+                if not expected_refusals:
+                    all_match = False
                 # Still run both pinned source simulators.  There is no E
                 # comparison for this point, but the source rows make the
                 # refusal/timeout measurable rather than silently skipped.
                 source_rows: dict[str, list[list[str]]] = {}
+                source_refusals: set[str] = set()
                 for sim in simulators:
                     source = cleanroom / fixture.source
                     with tempfile.TemporaryDirectory(prefix="sv-batch-sim-") as sim_name:
                         try:
                             _, actual = run_simulator(sim, fixture, point, rows, source, Path(sim_name))
                         except RuntimeError as exc:
-                            print(f"  {sim}: ERROR {exc}")
+                            if sim in expected_refusals:
+                                source_refusals.add(sim)
+                                print(f"  {sim}: EXPECTED SOURCE REFUSAL {exc}")
+                            else:
+                                print(f"  {sim}: ERROR {exc}")
+                                all_match = False
                             continue
                     source_rows[sim] = actual
                     print(f"  {sim}: {len(actual)} source cycles (no E comparison)")
+                    for i, row in enumerate(actual):
+                        print(f"  SOURCE CYCLE {i} {sim} {' '.join(row)}")
+                if source_refusals != expected_refusals:
+                    print(f"  SOURCE REFUSAL SET DIVERGE expected={sorted(expected_refusals)} "
+                          f"actual={sorted(source_refusals)}")
+                    all_match = False
                 if len(source_rows) == 2:
                     left, right = (source_rows[s] for s in simulators)
                     for i, (lrow, rrow) in enumerate(zip(left, right)):
