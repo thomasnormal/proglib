@@ -19,10 +19,10 @@
   },
   "gcc.c23-run": {
    "not-parsed": 27,
-   "passed": 3,
+   "passed": 8,
    "refused-libc": 2,
    "refused-ub": 3,
-   "refused-unsupported": 41
+   "refused-unsupported": 36
   }
  },
  "corpus": "C1-C3 (gcc torture, c-testsuite, gcc c23-run)",
@@ -30,10 +30,10 @@
   "failed": 3,
   "not-parsed": 294,
   "oracle-tests-compiler": 1,
-  "passed": 1147,
+  "passed": 1152,
   "refused-libc": 19,
   "refused-ub": 75,
-  "refused-unsupported": 590,
+  "refused-unsupported": 585,
   "timeout": 85
  },
  "dynamic_wall_ranking": [
@@ -967,19 +967,6 @@
   },
   {
    "files": [
-    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-1.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-17.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-2.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-4.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-9.c"
-   ],
-   "present": 6,
-   "sole": 6,
-   "wall": "unsupported:DesignatedInitUpdateExpr"
-  },
-  {
-   "files": [
     "20030910-1.c",
     "960512-1.c",
     "complex-1.c",
@@ -1424,6 +1411,14 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:AlignedAttr"
+  },
+  {
+   "files": [
+    "gcc/testsuite/gcc.dg/c23-empty-init-5.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:DesignatedInitUpdateExpr"
   },
   {
    "files": [
@@ -2411,8 +2406,8 @@
   }
  ],
  "manifest_hash": "bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764",
- "measured_at_utc": "2026-11-15T21:39:45Z",
- "measured_commit": "11b3198dd",
+ "measured_at_utc": "2026-11-16T00:26:19Z",
+ "measured_commit": "f2eb1a884",
  "pin": {
   "corpora": [
    "C1",
@@ -16968,8 +16963,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "out of tier: DesignatedInitUpdateExpr",
-   "dynamic_wall": "unsupported:DesignatedInitUpdateExpr",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-1.c",
    "sha256": "2f5e00b32550b5889473ea79c566b7b209483a148dd7057a8c14a3c1f9b7dee1",
@@ -16977,7 +16972,7 @@
     "type-layout",
     "unsupported:DesignatedInitUpdateExpr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c23-run",
@@ -17051,8 +17046,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "out of tier: DesignatedInitUpdateExpr",
-   "dynamic_wall": "unsupported:DesignatedInitUpdateExpr",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-17.c",
    "sha256": "9b048bb51d4d9787ffff2aef43b97a6e9b23e9b84fd2bae7cebe2d9c3baa4fbe",
@@ -17060,12 +17055,12 @@
     "type-layout",
     "unsupported:DesignatedInitUpdateExpr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "out of tier: DesignatedInitUpdateExpr",
-   "dynamic_wall": "unsupported:DesignatedInitUpdateExpr",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-2.c",
    "sha256": "cae04a259d6519a23ba32e6b8a2662cd54137cde1f245608070d293947c6a167",
@@ -17073,7 +17068,7 @@
     "type-layout",
     "unsupported:DesignatedInitUpdateExpr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c23-run",
@@ -17087,8 +17082,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "out of tier: DesignatedInitUpdateExpr",
-   "dynamic_wall": "unsupported:DesignatedInitUpdateExpr",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-4.c",
    "sha256": "d86b2becae3718dc2d458398df10068a845137c1ecc1e567b0371f8855340b1a",
@@ -17096,7 +17091,7 @@
     "type-layout",
     "unsupported:DesignatedInitUpdateExpr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c23-run",
@@ -17140,8 +17135,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "out of tier: DesignatedInitUpdateExpr",
-   "dynamic_wall": "unsupported:DesignatedInitUpdateExpr",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-9.c",
    "sha256": "e10e6e1da41fe2fd04e6cd75ceea3df5768ed3c19860f047545c28ddb690e175",
@@ -17149,7 +17144,7 @@
     "type-layout",
     "unsupported:DesignatedInitUpdateExpr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c23-run",

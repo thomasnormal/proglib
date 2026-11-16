@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1147/2214 MATCH (passed 1147, failed 3, oracle 0)
+- verdicts: 1152/2214 MATCH (passed 1152, failed 3, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `11b3198dd`
-- measured at: `2026-11-15T21:39:45Z`
+- measured commit: `f2eb1a884`
+- measured at: `2026-11-16T00:26:19Z`
 
 ## Verdict counts
 
@@ -14,10 +14,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `failed` | 3 |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1147 |
+| `passed` | 1152 |
 | `refused-libc` | 19 |
 | `refused-ub` | 75 |
-| `refused-unsupported` | 590 |
+| `refused-unsupported` | 585 |
 | `timeout` | 85 |
 
 ## Counts by corpus
@@ -38,10 +38,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `gcc.c-torture/execute` | `refused-unsupported` | 521 |
 | `gcc.c-torture/execute` | `timeout` | 82 |
 | `gcc.c23-run` | `not-parsed` | 27 |
-| `gcc.c23-run` | `passed` | 3 |
+| `gcc.c23-run` | `passed` | 8 |
 | `gcc.c23-run` | `refused-libc` | 2 |
 | `gcc.c23-run` | `refused-ub` | 3 |
-| `gcc.c23-run` | `refused-unsupported` | 41 |
+| `gcc.c23-run` | `refused-unsupported` | 36 |
 
 ## Static wall ranking
 
@@ -317,7 +317,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:AddrLabelExpr` | 9 | 9 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920302-1.c, 920501-4.c |
 | `unsupported:no layout for declared type 'V'` | 9 | 9 | pr105613.c, pr110817-1.c, pr110817-2.c, pr110817-3.c, pr71626-1.c |
 | `unsupported:StmtExpr` | 7 | 7 | 20000703-1.c, 20000917-1.c, 20020206-1.c, 20020320-1.c, 930406-1.c |
-| `unsupported:DesignatedInitUpdateExpr` | 6 | 6 | gcc/testsuite/gcc.dg/c23-empty-init-5.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-1.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-17.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-2.c, gcc/testsuite/gcc.dg/c23-empty-init-warn-4.c |
 | `unsupported:no layout for declared type '_Complex double'` | 5 | 5 | 20030910-1.c, 960512-1.c, complex-1.c, complex-2.c, ieee/cdivchkd.c |
 | `unsupported:case label nested in a control statement` | 4 | 4 | 00051.c, 00143.c, 20111208-1.c, medce-1.c |
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
@@ -367,6 +366,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |
 | `libc-call: signal` | 1 | 1 | 20101011-1.c |
 | `unsupported:AlignedAttr` | 1 | 1 | pr108064.c |
+| `unsupported:DesignatedInitUpdateExpr` | 1 | 1 | gcc/testsuite/gcc.dg/c23-empty-init-5.c |
 | `unsupported:IndirectGotoStmt` | 1 | 1 | 920501-3.c |
 | `unsupported:TypeTraitExpr` | 1 | 1 | builtin-types-compatible-p.c |
 | `unsupported:aggregate load without a layout '__attribute__((__vector_size__(4 * sizeof(unsigned short)))) unsigned short'` | 1 | 1 | 20050604-1.c |

@@ -55,6 +55,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--c1-root", required=True)
     ap.add_argument("--c2-root", required=True)
+    ap.add_argument("--c3-root")
     ap.add_argument("--out-root", required=True)
     ap.add_argument("--string-plugin", required=True)
     ap.add_argument("--layout-plugin", required=True)
@@ -68,6 +69,8 @@ def main(argv: list[str] | None = None) -> int:
         "gcc.c-torture/execute": Path(args.c1_root),
         "c-testsuite/single-exec": Path(args.c2_root),
     }
+    if args.c3_root:
+        roots["gcc.c23-run"] = Path(args.c3_root)
     tasks = [(i, roots.get(item.get("corpus")))
              for i, item in enumerate(data.get("tests", []))
              if item.get("corpus") in roots]
