@@ -816,6 +816,13 @@ the nested timeout case.  Since timeout carries no post-body frame, the
 bridge preserves the timeout observation while retaining the same no-global
 and depth guards.
 
+There is no analogous statement-only bridge for classified refusal.  The
+legacy `Run.unsupported msg` projection erases the internal
+`RefusalCause`/snapshot, while `callInM` must retain those fields to enter its
+refusal transport.  A future refusal bridge therefore needs an explicit raw
+monadic body premise (or a refinement theorem for that projection); deriving
+it from `execStmts` alone would be unsound.
+
 `Monadic.twinAgrees_callIn_top_body_ret` provides the generic return-flow
 counterpart.  It accepts raw monadic and legacy body results and an explicit
 world equality, then transports both through the normalized top-depth call
