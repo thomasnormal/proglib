@@ -929,6 +929,13 @@ generic theorem must expose that two-child sequencing explicitly; treating a
 binary node as a synthetic expression list would be a deep rewrite and would
 lose the node's own semantics.
 
+The smallest state-threaded binary theorem is already represented by
+`Monadic.twinAgrees_binOpHM_intBitAnd` and `Monadic.twinAgrees_binOpHM_intMult`:
+they read the current heap, apply the shared heap-aware worker, and return the
+updated frame state.  These equations are sufficient worker premises for a
+generic two-child binary-node theorem; the remaining step is sequencing the
+child bridges around them.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
