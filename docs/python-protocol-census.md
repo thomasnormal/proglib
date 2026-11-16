@@ -805,6 +805,10 @@ decrementing the retained world depth on both sides.
 non-top-depth timeout transport.  A raw timeout carries no world, so both
 interpreters leave the caller state untouched and return the same timeout.
 
+`Monadic.twinAgrees_callIn_recursive_body_unsupported` closes the classified
+refusal transport as well.  The refusal cause and snapshot stay internal to
+the monadic layer; the public projection compares the shared refusal message.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply
