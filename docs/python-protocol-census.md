@@ -788,6 +788,10 @@ counterpart.  It accepts raw monadic and legacy body results and an explicit
 world equality, then transports both through the normalized top-depth call
 boundary without imposing a statement-shape enumeration.
 
+`Monadic.twinAgrees_callIn_top_body_exn` provides the matching top-depth
+exception-flow comparison, retaining the exception and requiring the same
+explicit post-body world equality.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply
