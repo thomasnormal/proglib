@@ -37,10 +37,10 @@ set_option autoImplicit false
 /-! ## The clocking discipline's slot entries -/
 
 /-- The low slot of a cycle: the cycle's data inputs, the clock at 0. -/
-def lowEntry (clk : String) (data : SvState) : SvState := (clk, LVec.ofNat 1 0) :: data
+def lowEntry (clk : String) (data : SvState) : SvState := (clk, ⟨#[.l0]⟩) :: data
 
 /-- The high slot of a cycle: the clock raised, nothing else changed. -/
-def highEntry (clk : String) : SvState := [(clk, LVec.ofNat 1 1)]
+def highEntry (clk : String) : SvState := [(clk, ⟨#[.l1]⟩)]
 
 /-- The slot entries of a run of cycles, two per cycle. -/
 def cycleRows (clk : String) : List SvState → List SvState
@@ -1025,7 +1025,7 @@ theorem CoreMemDesign.highEntry_typed {E : CoreMemDesign} {clk : String}
     subst hv
     have : clk = n := by simpa using h
     subst this
-    simpa using hclk
+    exact hclk
   · simp [SvState.lookup] at hv
 
 theorem CoreMemDesign.DataTyped.of_entry {E : CoreMemDesign} {clk : String}
@@ -1039,7 +1039,7 @@ theorem CoreMemDesign.DataTyped.of_entry {E : CoreMemDesign} {clk : String}
     subst hv
     have : clk = n := by simpa using h
     subst this
-    simpa using hclk
+    exact hclk
   · exact hd n v hn hv
 
 /-- The view-level run: each cycle's pre and post sample, the next cycle from the post sample. -/
@@ -1082,6 +1082,70 @@ theorem CoreMemDesign.runRows_seq {E : CoreMemDesign} {clk : String} (hP : E.Seq
       · simp [cyclePairs, hv1, hv2, hpairs]
 
 #print axioms CoreMemDesign.runRows_seq
+
+/-! ## The prover's judgment: every run of a family member -/
+
+/-- **Every clocked run of a canonical-E family member**: the instantiation succeeds and, from every coherent state
+(the x start included), on every typed data list, the route's own run of the cycles exists and its samples (pre, post;
+one pair per cycle) satisfy `P`. Never vacuous: the run's existence is part of the claim. -/
+def SeqRuns (r : Res CoreMemDesign) (clk : String) (P : List (SvState × SvState) → Prop) : Prop :=
+  ∃ E, r = .ok E ∧ ∀ (st : CoreMemState) (ins : List SvState), E.Coherent st → (∀ d ∈ ins, E.DataTyped clk d) →
+    ∃ rows, runCoreMemRows E st (cycleRows clk ins) = .ok rows ∧
+      P (cyclePairs (rows.map fun s => E.scalar.view s.scalar))
+
+/-- The shape of a view: one value per declaration, in declaration order, of its declared width. -/
+def CoreMemDesign.ShapeV (E : CoreMemDesign) (v : SvState) : Prop :=
+  v.map Prod.fst = E.scalar.decls.toList.map Decl.name ∧
+    v.map (fun p => p.2.width) = E.scalar.decls.toList.map Decl.width
+
+private theorem viewAux_widths {s : Store} {E : Elab} (hT : E.Typed s) :
+    ∀ (ds : List Decl) (i : Nat), (∀ k (hk : k < ds.length), E.decls[i + k]? = some ds[k]) →
+      (viewAux s ds i).map (fun p => p.2.width) = ds.map Decl.width
+  | [], _, _ => rfl
+  | d :: ds, i, h => by
+      have h0 := h 0 (by simp)
+      simp only [Nat.add_zero, List.getElem_cons_zero] at h0
+      have hdecl : E.declOf { decl := i } = some d := by simp [Elab.declOf, h0]
+      simp only [viewAux, List.map_cons]
+      congr 1
+      · rw [(s { decl := i }).width_eq, hT _ d hdecl]; rfl
+      · exact viewAux_widths hT ds (i + 1) fun k hk => by
+          have := h (k + 1) (by simp; omega)
+          simpa [Nat.add_assoc, Nat.add_comm 1 k] using this
+
+/-- A coherent state's view has the shape. -/
+theorem CoreMemDesign.Coherent.shape {E : CoreMemDesign} {st : CoreMemState} (hc : E.Coherent st) :
+    E.ShapeV (E.scalar.view st.scalar) :=
+  ⟨E.scalar.keys_view st.scalar, viewAux_widths hc.typed E.scalar.decls.toList 0 fun k hk => by simp⟩
+
+/-- **How a `SeqRuns` claim is proved**: from the profile, an invariant every shaped view has, the cycle's success from
+the invariant keeping it (the cycle equations), and the claim about every view-level run from the invariant (the
+prover's mathematics). -/
+theorem SeqRuns.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
+    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
+    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop)
+    (hinv : ∀ v, E.ShapeV v → Inv v)
+    (hstep : ∀ v d, Inv v → E.DataTyped clk d → ∃ pre post, E.cycleV clk v d = .ok (pre, post) ∧ Inv post)
+    (hrun : ∀ v ins tr, Inv v → (∀ d ∈ ins, E.DataTyped clk d) → E.runV clk v ins = .ok tr → P tr) :
+    SeqRuns r clk P := by
+  refine ⟨E, hr, fun st ins hc hd => ?_⟩
+  have hex : ∀ (ins : List SvState) (v : SvState), Inv v → (∀ d ∈ ins, E.DataTyped clk d) →
+      ∃ tr, E.runV clk v ins = .ok tr := by
+    intro ins
+    induction ins with
+    | nil => intro v _ _; exact ⟨[], rfl⟩
+    | cons d ds ih =>
+        intro v hv hd
+        obtain ⟨pre, post, hcyc, hpost⟩ := hstep v d hv (hd d (by simp))
+        obtain ⟨tr, htr⟩ := ih post hpost fun d' hd' => hd d' (by simp [hd'])
+        exact ⟨(pre, post) :: tr, by simp [CoreMemDesign.runV, hcyc, htr]⟩
+  have hv0 := hinv _ hc.shape
+  obtain ⟨tr, htr⟩ := hex ins _ hv0 hd
+  obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRows_seq hP hclk ins st tr hc hd htr
+  exact ⟨rows, hrows, hpairs ▸ hrun _ ins tr hv0 hd htr⟩
+
+#print axioms SeqRuns.intro
+
 
 
 
