@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1152/2214 MATCH (passed 1152, failed 3, oracle 0)
+- verdicts: 1222/2214 MATCH (passed 1222, failed 3, oracle 0)
 - manifest SHA-256: `bca94718b04e8394cdce992866637166f530978790bd1013cea4a00ae25ef764`
-- measured commit: `f2eb1a884`
-- measured at: `2026-11-16T00:26:19Z`
+- measured commit: `e3b8ceab1`
+- measured at: `2026-11-16T07:58:32Z`
 
 ## Verdict counts
 
@@ -14,28 +14,28 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `failed` | 3 |
 | `not-parsed` | 294 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1152 |
+| `passed` | 1222 |
 | `refused-libc` | 19 |
 | `refused-ub` | 75 |
-| `refused-unsupported` | 585 |
+| `refused-unsupported` | 515 |
 | `timeout` | 85 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
-| `c-testsuite/single-exec` | `passed` | 184 |
+| `c-testsuite/single-exec` | `passed` | 185 |
 | `c-testsuite/single-exec` | `refused-libc` | 1 |
 | `c-testsuite/single-exec` | `refused-ub` | 4 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 28 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 27 |
 | `c-testsuite/single-exec` | `timeout` | 3 |
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-parsed` | 267 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 960 |
+| `gcc.c-torture/execute` | `passed` | 1029 |
 | `gcc.c-torture/execute` | `refused-libc` | 16 |
 | `gcc.c-torture/execute` | `refused-ub` | 68 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 521 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 452 |
 | `gcc.c-torture/execute` | `timeout` | 82 |
 | `gcc.c23-run` | `not-parsed` | 27 |
 | `gcc.c23-run` | `passed` | 8 |
@@ -304,7 +304,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
 | `frontend` | 294 | 294 | 20000227-1.c, 20000412-3.c, 20000717-3.c, 20000822-1.c, 20001009-2.c |
-| `unsupported:floating literal lacks parser-native bits` | 128 | 128 | 00123.c, 00174.c, 00175.c, 00195.c, 00204.c |
+| `unsupported:floating literal lacks parser-native bits` | 58 | 58 | 00174.c, 00175.c, 00195.c, 00204.c, 20000605-1.c |
 | `missing-main` | 104 | 104 | 20040705-1.c, 20040705-2.c, 20040709-3.c, builtins/20010124-1.c, builtins/abs-1.c |
 | `timeout` | 85 | 85 | 00040.c, 00041.c, 00128.c, 20000412-2.c, 20011008-3.c |
 | `undefined-behavior` | 75 | 75 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
