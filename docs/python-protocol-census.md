@@ -990,6 +990,12 @@ address, and fuel.  The remaining prefix theorem must account for one token,
 one fuel decrement, and the recursive continuation while preserving the
 mapping lookup and conversion results.
 
+`Monadic.strFormatMappingWalk_char_step` supplies the first prefix step for a
+literal non-`%` character: one fuel unit is consumed and the accumulator gains
+that character.  Special `%` prefixes remain separate semantic cases, so this
+lemma is a safe structural induction seed rather than a rewrite of formatting
+syntax.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the

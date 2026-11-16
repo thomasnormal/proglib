@@ -6242,6 +6242,13 @@ theorem strFormatMappingWalk_empty
     strFormatMappingWalk h a fuel [] acc = .ok acc := by
   cases fuel <;> rfl
 
+theorem strFormatMappingWalk_char_step
+    (h : Heap) (a : Addr) (fuel : Nat) (c : Char) (cs : List Char)
+    (acc : String) (hc : c ≠ '%') :
+    strFormatMappingWalk h a (fuel + 1) (c :: cs) acc =
+      strFormatMappingWalk h a fuel cs (acc ++ String.ofList [c]) := by
+  simp [strFormatMappingWalk, hc]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
