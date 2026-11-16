@@ -1,4 +1,5 @@
-import LeanModels.Sv.SeqCycle
+import LeanModels.Sv.SeqCycleRuns
+import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.CombViewTactic
 
 /-!
@@ -117,6 +118,32 @@ theorem seqE_ite_fst {α β : Type} (p : Prop) [Decidable p] (a b : α × β) :
 theorem seqE_ite_snd {α β : Type} (p : Prop) [Decidable p] (a b : α × β) :
     (if p then a else b).2 = if p then a.2 else b.2 := by split <;> rfl
 
+/-! ## Memories: the write equation and the read equation through the evaluation pass
+
+A memory's next contents come out of the evaluation pass as ONE write equation (`memWrite`) under the decisions that
+issue it (pushed through `commitMemV`), its reads as ONE read equation (`memRd`) of the memory view the slot holds. -/
+
+theorem seqE_commitMemV_ite (p : Prop) [Decidable p] (mv : MemV) (q₁ q₂ : MemQV) :
+    commitMemV mv (if p then q₁ else q₂) = if p then commitMemV mv q₁ else commitMemV mv q₂ := by split <;> rfl
+
+/-- The commit of one issued element write is the write equation. -/
+theorem seqE_commitMemV_memIss (mv : MemV) (n : String) (k? : Option Int) (x : LVec) :
+    commitMemV mv (memIss n k? x) = memWrite mv n k? x := by
+  simpa using commitMemV_memIss mv n k? x []
+
+theorem seqE_memRd_ite (p : Prop) [Decidable p] (a b : MemV) (n : String) (k? : Option Int) (w : Nat) :
+    memRd (if p then a else b) n k? w = if p then memRd a n k? w else memRd b n k? w := by split <;> rfl
+
+theorem seqE_memIss_ite (p : Prop) [Decidable p] (n : String) (k? : Option Int) (x y : LVec) :
+    memIss n k? (if p then x else y) = if p then memIss n k? x else memIss n k? y := by split <;> rfl
+
+/-- A read of an element: of the element width, when every element of the memory view has it. -/
+theorem seqE_memRd_width {mv : MemV} {n : String} {w : Nat} (h : ∀ k, (mv n k).width = w) (k? : Option Int) :
+    (memRd mv n k? w).width = w := by
+  cases k? with
+  | none => simp [memRd, LVec.xVec, LVec.replicate, LVec.width]
+  | some k => exact h k
+
 /-! ## The knownness bridge: the route's own decision forms on known values
 
 Known2's simp set turns the evaluator's operators on known values (`LVec.ofBitVec`) into `BitVec` terms. The cycle
@@ -146,6 +173,11 @@ theorem seqK_isPosedge (a b : Bool) : isPosedge (Logic.ofBool a) (Logic.ofBool b
 theorem seqK_beq {w : Nat} (x y : BitVec w) : (LVec.ofBitVec x == LVec.ofBitVec y) = decide (x = y) := by
   rw [Bool.eq_iff_iff, beq_iff_eq, decide_eq_true_iff, LVec.ofBitVec_inj]
 
+/-- A known unsigned index resolves to its value when it is in the declared range, and to the no-op otherwise. -/
+theorem seqK_index? {w : Nat} (m : MemShape) (a : BitVec w) :
+    m.index? false (LVec.ofBitVec a) = if m.inRange (a.toNat : Int) then some (a.toNat : Int) else none := by
+  simp [MemShape.index?, LVec.toNat?_ofBitVec]
+
 end LeanModels.Sv.Kernel
 
 open LeanModels.Sv LeanModels.Sv.Kernel in
@@ -167,8 +199,10 @@ macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ide
       LeanModels.Sv.Kernel.CoreMemDesign.compileAssigns, LeanModels.Sv.Kernel.CoreMemDesign.compileCombReads,
       LeanModels.Sv.Kernel.CoreMemDesign.compileImplicitReads, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
       LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf,
-      LeanModels.Sv.Kernel.coreMemClockResetViol_none, LeanModels.Sv.Kernel.coreMemDropGeneratedNetMarkers,
-      LeanModels.Sv.Kernel.coreMemGeneratedNetAllowed,
+      LeanModels.Sv.Kernel.CoreMemDesign.assignTopoB, LeanModels.Sv.Kernel.coreMemAssignTopoB,
+      LeanModels.Sv.Kernel.coreMemAssignTargets, LeanModels.Sv.Kernel.coreMemLhsTargets,
+      LeanModels.Sv.Kernel.coreMemSignalNames, LeanModels.Sv.Kernel.coreMemSignalNamesList,
+      LeanModels.Sv.Kernel.coreMemClockResetViol, LeanModels.Sv.Kernel.coreMemInputPortB, List.findSome?,
       $ls,*] at $h:ident)
 
 /-- The arithmetic pass: side conditions on the parameters, by `omega` from the context. -/
@@ -187,10 +221,12 @@ macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : 
 
 /-- **`sv_seq_profile`**: the clocked profile of a normal form, decided by `simp` (any number of processes). -/
 macro "sv_seq_profile" : tactic =>
-  `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfile.of_B rfl rfl (by simp)
+  `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfile.of_B
+      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB]) rfl (by simp)
       (by simp [LeanModels.Sv.Kernel.AllFour])
       (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
         LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
+        LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
         LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
         LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
         LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
@@ -223,6 +259,12 @@ macro "sv_seq_obligations" : tactic =>
       LeanModels.Sv.Kernel.CoreMemProc.unconverted, LeanModels.Sv.PExpr.unconverted, LeanModels.Sv.PExpr.unconvertedList,
       LeanModels.Sv.PStmt.unconverted, LeanModels.Sv.PStmt.optUnconverted, LeanModels.Sv.PStmt.listUnconverted,
       LeanModels.Sv.PStmt.itemsUnconverted, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
+      LeanModels.Sv.Kernel.CoreMemDesign.readsV, LeanModels.Sv.Kernel.CoreMemDesign.readsIdxV,
+      LeanModels.Sv.Kernel.CoreMemDesign.readsListV, LeanModels.Sv.Kernel.CoreMemDesign.memDecl?,
+      LeanModels.Sv.Kernel.CoreMemDesign.widthsOf, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList,
       LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf,
       LeanModels.Sv.instExpr2, LeanModels.Sv.dynPartPlan, LeanModels.Sv.evalInt,
       LeanModels.Sv.arrayPartRead, LeanModels.Sv.arrayPartGeom, LeanModels.Sv.arrayDims,
@@ -276,7 +318,13 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.seqE_ite_append, LeanModels.Sv.Kernel.seqE_ite_fst, LeanModels.Sv.Kernel.seqE_ite_snd,
       LeanModels.Sv.Kernel.seqE_resizeU_ite, LeanModels.Sv.Kernel.seqE_width_ite,
       LeanModels.Sv.Kernel.seqE_insertAt_zero, LeanModels.Sv.Kernel.seqE_width_lit,
-      LeanModels.Sv.Kernel.seqE_width_add, $ls,*])
+      LeanModels.Sv.Kernel.seqE_width_add, LeanModels.Sv.Kernel.CoreMemDesign.cycleMV,
+      LeanModels.Sv.Kernel.CoreMemDesign.memDecl?, List.find?, LeanModels.Sv.Kernel.CoreMemDecl.readV,
+      LeanModels.Sv.Kernel.CoreMemDecl.issueV, LeanModels.Sv.Kernel.memNone, LeanModels.Sv.Kernel.commitMemV_nil,
+      LeanModels.Sv.Kernel.commitMemV_memIss, LeanModels.Sv.Kernel.seqE_commitMemV_memIss,
+      LeanModels.Sv.Kernel.seqE_commitMemV_ite, LeanModels.Sv.Kernel.seqE_memRd_ite,
+      LeanModels.Sv.Kernel.seqE_memIss_ite, LeanModels.Sv.Kernel.memRd_memWrite,
+      LeanModels.Sv.Kernel.MemShape.convert, LeanModels.Sv.Kernel.seqE_memRd_width, $ls,*])
 
 /-- The arithmetic pass of a cycle: conditions and bounds on the parameters, by `omega`. -/
 macro "sv_seq_eval_arith" : conv =>

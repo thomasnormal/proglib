@@ -13,7 +13,7 @@ name gets a further elaborator, tried first, that recognizes ONLY its clocked go
 |---|---|---|
 | `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the clocked profile, the obligations |
 | `sv_interface` | `SeqPorts (X.e P…) ins outs` | the instantiation, the ports |
-| `sv_equations` | `E.cycleV clk v d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed (with the context's width facts `x.width = n`), then `rhs` checked against them |
+| `sv_equations` | `E.cycleV clk v d = rhs` or `E.cycleMV clk σ d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed (with the context's width facts `x.width = n`), then `rhs` checked against them |
 
 A clocked stage that fails names its reason: the route's own refusal message, a process outside the clocked profile
 (with its index, its kind and what puts it outside), or the obligation that does not hold. The macros of
@@ -74,12 +74,11 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
   let at_ := s!"process {i}"
   if p.isAppOfArity ``CoreMemProc.edge 1 then
     let f ← whnf (p.getArg! 0)
-    if f.isAppOf ``CoreMemEdge.mk then
-      -- fields by projection, not by position: the record gains fields as the route grows
-      let clock := strLit? (← whnf (← mkProjection f `clock))
+    if f.isAppOfArity ``CoreMemEdge.mk 5 then
+      let clock := strLit? (f.getArg! 0)
       if clock.isSome && clock != some clk then
         return s!"{at_} (an edge process) is clocked by `{clock.get!}`, not `{clk}`: two clocks are outside the clocked profile (the owner's to decide)"
-      let body ← whnf (← mkProjection f `body)
+      let body := f.getArg! 3
       if (body.find? (·.isConstOf ``PStmt.forLoop)).isSome then
         return s!"{at_} (an edge process) has a procedural `for` loop: the memories slice (next), refused"
       if (body.find? (·.isConstOf ``PExpr.functionCall)).isSome then
@@ -90,8 +89,6 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
     return s!"{at_} (an edge process): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.comb 1 then
     return s!"{at_} is an always_comb process: always_comb beside flip-flops is the next slice (T7), refused"
-  if p.isAppOfArity ``CoreMemProc.latch 1 then
-    return s!"{at_} is an always_latch process: a level-sensitive process is outside the clocked profile, refused"
   if p.isAppOfArity ``CoreMemProc.implicit 1 then
     return s!"{at_} is an implicit-event process (`always @*` / `always @(a)`): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.initial 1 then
@@ -103,8 +100,6 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
     unless t.isAppOfArity ``PLhs.ident 1 do
       return s!"{at_} is a continuous assign to a select or concatenation target: outside the clocked profile"
     let v := p.getArg! 1
-    if (v.find? fun e => e.isConstOf ``PExpr.arrayElem || e.isConstOf ``PExpr.arrayPart).isSome then
-      return s!"{at_} (a continuous assign) reads a memory: the memories slice (next), refused"
     if (v.find? (·.isConstOf ``PExpr.functionCall)).isSome then
       return s!"{at_} (a continuous assign) calls a function: outside the clocked profile (U5)"
     return s!"{at_} (a continuous assign): its compiled expression is missing or its target is undeclared"
@@ -133,9 +128,10 @@ def runProfile (g : MVarId) : TacticM Unit := do
   let ty ← instantiateMVars (← g.getType)
   let E := ty.getArg! 0
   let clk := (strLit? (← whnf (ty.getArg! 1))).getD "?"
-  let mems ← arrayElems (← whnf (mkApp (mkConst ``CoreMemDesign.memories) E))
-  if let some (_ :: _) := mems then
-    throwError "sv_structure: the design has memories: the memories slice (next), refused"
+  let gm ← mkFreshExprMVar (← mkEq (mkApp (mkConst ``CoreMemDesign.memOkB) E) (toExpr true))
+  unless ← closes gm.mvarId! (← `(tactic| simp (config := {decide := true})
+      [LeanModels.Sv.Kernel.CoreMemDesign.memOkB])) do
+    throwError "sv_structure: a memory is outside the clocked profile (memories of distinct names and identities, 4-state elements, none a port), refused"
   let some ps ← arrayElems (← whnf (mkApp (mkConst ``CoreMemDesign.processes) E))
     | throwError "sv_structure: the clocked profile does not hold (the processes are not a literal list at these parameters)"
   let mut i := 0
@@ -144,6 +140,7 @@ def runProfile (g : MVarId) : TacticM Unit := do
     let gp ← mkFreshExprMVar (← mkEq t (toExpr true))
     unless ← closes gp.mvarId! (← `(tactic| simp (config := {decide := true}) [
         LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
+        LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
         LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
         LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
         LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead,
@@ -154,7 +151,7 @@ def runProfile (g : MVarId) : TacticM Unit := do
         LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])) do
       throwError "sv_structure: {← whyProc clk i p}"
     i := i + 1
-  throwError "sv_structure: the clocked profile does not hold: the declarations are not distinct and 4-state, or the scalar and edge views differ"
+  throwError "sv_structure: the clocked profile does not hold: the declarations are not distinct and 4-state, the scalar and edge views differ, or a memory is outside the profile (memories of distinct names, 4-state elements, none a port)"
 
 /-- The named obligations, in the order they are checked, with the reason each refuses. -/
 def obligations : List (Name × Bool × String) :=
@@ -249,7 +246,8 @@ checked against it. -/
 def runEquations : TacticM Unit := do
   let goal ← getMainGoal
   let ty := (← instantiateMVars (← goal.getType)).consumeMData
-  unless ty.isAppOfArity ``Eq 3 && (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.cycleV 4 do
+  unless ty.isAppOfArity ``Eq 3 && ((ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.cycleV 4 ||
+      (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.cycleMV 4) do
     throwUnsupportedSyntax
   guardSeq do
     let lhs := (ty.getArg! 1).consumeMData

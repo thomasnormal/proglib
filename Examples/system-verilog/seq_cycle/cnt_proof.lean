@@ -271,10 +271,10 @@ set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus, `n` enabled cycles
 after a reset cycle the count is `n mod 2^N`. -/
 theorem cnt_runs (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (cnt.e N) "clk" (CntClaim N) := by
-  obtain ⟨E, hE, hP, hO⟩ := cnt_structure N h1 h2
+  obtain ⟨E, hE, hP, -⟩ := cnt_structure N h1 h2
   have hE0 := hE
   sv_seq_inst [cnt.e, cnt.pdesign] at hE0
-  refine SeqRuns.intro hE hP hO (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
+  refine SeqRuns.intro hE hP (by subst hE0; rfl) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
     (fun v => ∃ c r e q, v = [("clk", c), ("rst", r), ("en", e), ("q", q)] ∧ r.width = 1 ∧ e.width = 1 ∧
       q.width = N) ?_ ?_ ?_
   · intro v hs
