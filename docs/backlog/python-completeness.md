@@ -17289,3 +17289,11 @@ the legacy `callIn`/`execStmts` evaluator.  Applying it to a smaller monadic
 continuation can establish monotonicity of a monadic call, but cannot identify
 that call with the legacy head step or supply the legacy frame state for the
 tail.  A cross-interpreter mutual relation remains necessary.
+
+The transport matrix is now closed in the source: top-depth and recursive
+`finishCallM`/`leaveCallM` rules cover `.next`, `.ret`, `.brk`, `.cont`, Python
+exceptions, timeout, and classified refusal.  The empty-body call base and
+the normalized pass/constant call subcases are also proved.  The first
+unproved equation is therefore the nonempty call head itself: its argument
+list and body continuation must be related across `K.call`/`callInM` and the
+legacy `callIn`/`execStmts` fuel descent before the tail induction can start.
