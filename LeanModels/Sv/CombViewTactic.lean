@@ -206,9 +206,9 @@ partial def isHD2Family (e : Lean.Expr) (fuel : Nat) : MetaM Bool := do
     | some e' => isHD2Family e' fuel
     | none => return false
 
-/-- The refusal of a design that instantiates modules, by a tactic that does not read one (`sv_structure` and
-`sv_equations` read a design whose instances are all at module level through its flat twin, `CombHier.lean`; the
-`always_comb` forms and `sv_interface` do not yet). -/
+/-- The refusal of a design that instantiates modules, by a tactic that does not read one (`sv_structure`,
+`sv_interface` and `sv_equations` read a design whose instances are all at module level through its flat twin,
+`CombHier.lean`; the `always_comb` forms do not yet). -/
 def hierarchyRefusal (tac : String) : String :=
   s!"{tac}: this design instantiates modules, and `{tac}` does not read module instances yet (`sv_structure`, " ++
   "`sv_interface` and `sv_equations` read a design whose instances are all at module level through its flat twin, " ++
