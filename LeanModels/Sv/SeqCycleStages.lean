@@ -107,13 +107,14 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
     return s!"{at_} (a continuous assign): its compiled expression is missing or its target is undeclared"
   return s!"{at_}: outside the clocked profile"
 
-/-- Run a tactic on a goal; `true` when it closes it. The state is restored either way. -/
+/-- Run a tactic on a goal; `true` when it closes it without an error (an error inside a nested `by`, which term
+elaboration would log and replace by `sorry`, counts as a failure). The state is restored either way. -/
 def closes (g : MVarId) (tac : TSyntax `tactic) : TacticM Bool := do
   let s ← saveState
   try
     setGoals [g]
-    evalTactic tac
-    let ok := (← getGoals).isEmpty
+    Term.withoutErrToSorry (evalTactic tac)
+    let ok := (← getGoals).isEmpty && !(← MonadLog.hasErrors)
     s.restore
     return ok
   catch _ =>
