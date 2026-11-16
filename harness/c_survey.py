@@ -196,8 +196,11 @@ def build(manifest_path, log_path, commit=None, measured_at=None):
             "dynamic_wall": dynamic_wall(token, detail),
         })
     counts = Counter(row["verdict"] for row in rows)
+    no_entry = [row for row in rows if row.get("dynamic_wall") == "missing-main"]
+    active_rows = [row for row in rows if row not in no_entry]
+    counts["no-entry-point"] = len(no_entry)
     by_corpus = {}
-    for row in rows:
+    for row in active_rows:
         by_corpus.setdefault(row["corpus"], Counter())[row["verdict"]] += 1
     walls = Counter()
     wall_files = {}
@@ -218,7 +221,7 @@ def build(manifest_path, log_path, commit=None, measured_at=None):
                             len(row["static_walls"]) == 1)
     ranking.sort(key=lambda x: (-x["sole"], -x["present"], x["wall"]))
     dynamic_files = {}
-    for row in rows:
+    for row in active_rows:
         wall = row.get("dynamic_wall")
         if wall:
             dynamic_files.setdefault(wall, []).append(row["name"])
@@ -236,7 +239,8 @@ def build(manifest_path, log_path, commit=None, measured_at=None):
         "corpus": manifest.get("corpus", "gcc.c-torture/execute"),
         "manifest_hash": manifest_hash,
         "pin": manifest.get("pin"),
-        "total": len(rows),
+        "total": len(active_rows),
+        "excluded": {"no-entry-point": len(no_entry)},
         "counts": dict(sorted(counts.items())),
         "by_corpus": {k: dict(sorted(v.items())) for k, v in sorted(by_corpus.items())},
         "rows": rows,
@@ -253,6 +257,7 @@ def build(manifest_path, log_path, commit=None, measured_at=None):
 def render(data):
     counts = data.get("counts", {})
     matched = counts.get("passed", 0)
+    excluded = data.get("excluded", {})
     lines = [
         "# C torture survey",
         "",
@@ -261,6 +266,8 @@ def render(data):
         "- verdicts: %d/%d MATCH (passed %d, failed %d, oracle %d)" %
         (matched, data.get("total", 0), counts.get("passed", 0),
          counts.get("failed", 0), counts.get("oracle", 0)),
+        "- excluded from denominator: no-entry-point %d" %
+        excluded.get("no-entry-point", counts.get("no-entry-point", 0)),
         "- manifest SHA-256: `%s`" % data.get("manifest_hash", ""),
     ]
     if data.get("measured_commit"):
@@ -340,6 +347,16 @@ def selftest():
         return 1
     if dynamic_wall("refused-unsupported", "no definition for 'main'") != "missing-main":
         print("c_survey --self-test: missing-main class was not separated", file=sys.stderr)
+        return 1
+    sample = {"rows": [{"verdict": "refused-unsupported",
+                         "detail": "no definition for 'main'",
+                         "static_walls": [], "dynamic_wall": "missing-main"}],
+              "counts": {"passed": 0}, "total": 0,
+              "excluded": {"no-entry-point": 1},
+              "wall_ranking": [], "dynamic_wall_ranking": [],
+              "manifest_hash": "x"}
+    if "no-entry-point 1" not in render(sample) or "0/0 MATCH" not in render(sample):
+        print("c_survey --self-test: no-entry-point denominator failed", file=sys.stderr)
         return 1
     print("c_survey --self-test: ok")
     return 0

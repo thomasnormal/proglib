@@ -15,7 +15,7 @@
    "passed": 1009,
    "refused-libc": 18,
    "refused-ub": 78,
-   "refused-unsupported": 403,
+   "refused-unsupported": 314,
    "timeout": 85
   },
   "gcc.c23-run": {
@@ -23,18 +23,19 @@
    "passed": 8,
    "refused-libc": 2,
    "refused-ub": 4,
-   "refused-unsupported": 34
+   "refused-unsupported": 21
   }
  },
  "corpus": "C1-C3 (gcc torture, c-testsuite, gcc c23-run)",
  "counts": {
   "failed": 3,
+  "no-entry-point": 102,
   "not-parsed": 350,
   "oracle-tests-compiler": 1,
   "passed": 1201,
   "refused-libc": 21,
   "refused-ub": 86,
-  "refused-unsupported": 464,
+  "refused-unsupported": 362,
   "timeout": 88
  },
  "dynamic_wall_ranking": [
@@ -394,115 +395,6 @@
    "present": 350,
    "sole": 350,
    "wall": "frontend"
-  },
-  {
-   "files": [
-    "20040705-1.c",
-    "20040705-2.c",
-    "20040709-3.c",
-    "builtins/20010124-1.c",
-    "builtins/abs-1.c",
-    "builtins/abs-2-lib.c",
-    "builtins/abs-2.c",
-    "builtins/abs-3-lib.c",
-    "builtins/complex-1.c",
-    "builtins/fprintf-lib.c",
-    "builtins/memchr-lib.c",
-    "builtins/memchr.c",
-    "builtins/memcmp-lib.c",
-    "builtins/memcmp.c",
-    "builtins/memcpy-chk-lib.c",
-    "builtins/memmove-2-lib.c",
-    "builtins/memmove-2.c",
-    "builtins/memmove-chk-lib.c",
-    "builtins/memmove-lib.c",
-    "builtins/memmove.c",
-    "builtins/mempcpy-2-lib.c",
-    "builtins/mempcpy-chk-lib.c",
-    "builtins/mempcpy-lib.c",
-    "builtins/memset-chk-lib.c",
-    "builtins/memset-lib.c",
-    "builtins/memset.c",
-    "builtins/pr22237-1-lib.c",
-    "builtins/pr22237-1.c",
-    "builtins/pr22237-lib.c",
-    "builtins/pr22237.c",
-    "builtins/pr23484-chk-lib.c",
-    "builtins/pr93262-chk-lib.c",
-    "builtins/printf-lib.c",
-    "builtins/snprintf-chk-lib.c",
-    "builtins/sprintf-chk-lib.c",
-    "builtins/sprintf-lib.c",
-    "builtins/sprintf.c",
-    "builtins/stpcpy-chk-lib.c",
-    "builtins/stpncpy-chk-lib.c",
-    "builtins/strcat-chk-lib.c",
-    "builtins/strcat-lib.c",
-    "builtins/strchr-lib.c",
-    "builtins/strchr.c",
-    "builtins/strcmp-lib.c",
-    "builtins/strcmp.c",
-    "builtins/strcpy-2-lib.c",
-    "builtins/strcpy-2.c",
-    "builtins/strcpy-chk-lib.c",
-    "builtins/strcpy-lib.c",
-    "builtins/strcpy.c",
-    "builtins/strcspn-lib.c",
-    "builtins/strcspn.c",
-    "builtins/strlen-2-lib.c",
-    "builtins/strlen-3-lib.c",
-    "builtins/strlen-lib.c",
-    "builtins/strlen.c",
-    "builtins/strncat-chk-lib.c",
-    "builtins/strncat-lib.c",
-    "builtins/strncat.c",
-    "builtins/strncmp-2-lib.c",
-    "builtins/strncmp-2.c",
-    "builtins/strncmp-lib.c",
-    "builtins/strncmp.c",
-    "builtins/strncpy-chk-lib.c",
-    "builtins/strncpy-lib.c",
-    "builtins/strncpy.c",
-    "builtins/strnlen-lib.c",
-    "builtins/strnlen.c",
-    "builtins/strpbrk-lib.c",
-    "builtins/strpbrk.c",
-    "builtins/strpcpy-2-lib.c",
-    "builtins/strpcpy-lib.c",
-    "builtins/strrchr-lib.c",
-    "builtins/strrchr.c",
-    "builtins/strspn-lib.c",
-    "builtins/strspn.c",
-    "builtins/strstr-asm.c",
-    "builtins/strstr-lib.c",
-    "builtins/strstr.c",
-    "builtins/uabs-1.c",
-    "builtins/uabs-2-lib.c",
-    "builtins/uabs-2.c",
-    "builtins/uabs-3-lib.c",
-    "builtins/vsnprintf-chk-lib.c",
-    "builtins/vsprintf-chk-lib.c",
-    "gcc/testsuite/gcc.dg/c23-align-6.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-10.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-11.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-12.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-13.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-14.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-15.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-16.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-3.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-5.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-6.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-7.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-warn-8.c",
-    "ieee/fp-cmp-8f.c",
-    "ieee/fp-cmp-8l.c",
-    "ieee/pr38016.c",
-    "pr71626-2.c"
-   ],
-   "present": 102,
-   "sole": 102,
-   "wall": "missing-main"
   },
   {
    "files": [
@@ -2294,6 +2186,9 @@
    "wall": "unsupported:unnamed pointer parameter (array-bound effects are not retained by clang)"
   }
  ],
+ "excluded": {
+  "no-entry-point": 102
+ },
  "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
  "measured_at_utc": "2026-11-16T18:40:00Z",
  "measured_commit": "ec10e4b3c",
@@ -28662,7 +28557,7 @@
   }
  ],
  "schema": "c-survey-0.1",
- "total": 2214,
+ "total": 2112,
  "wall_ranking": [
   {
    "files": [
@@ -29185,45 +29080,19 @@
     "builtin-prefetch-6.c",
     "builtin-types-compatible-p.c",
     "builtins/20010124-1-lib.c",
-    "builtins/20010124-1.c",
     "builtins/complex-1-lib.c",
-    "builtins/complex-1.c",
     "builtins/lib/chk.c",
     "builtins/lib/fprintf.c",
     "builtins/lib/printf.c",
     "builtins/lib/sprintf.c",
-    "builtins/memchr.c",
-    "builtins/memcmp.c",
-    "builtins/memmove-2.c",
-    "builtins/memmove.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
-    "builtins/memset.c",
-    "builtins/pr22237-1.c",
-    "builtins/pr22237.c",
-    "builtins/sprintf.c",
     "builtins/strcat.c",
-    "builtins/strchr.c",
-    "builtins/strcmp.c",
-    "builtins/strcpy-2.c",
-    "builtins/strcpy.c",
-    "builtins/strcspn.c",
     "builtins/strlen-2.c",
     "builtins/strlen-3.c",
-    "builtins/strlen.c",
-    "builtins/strncat.c",
-    "builtins/strncmp-2.c",
-    "builtins/strncmp.c",
-    "builtins/strncpy.c",
-    "builtins/strnlen.c",
-    "builtins/strpbrk.c",
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c",
-    "builtins/strrchr.c",
-    "builtins/strspn.c",
-    "builtins/strstr-asm.c",
-    "builtins/strstr.c",
     "cbrt.c",
     "complex-1.c",
     "complex-2.c",
@@ -29728,8 +29597,8 @@
     "zerolen-1.c",
     "zerolen-2.c"
    ],
-   "present": 1061,
-   "sole": 358,
+   "present": 1035,
+   "sole": 356,
    "wall": "type-layout"
   },
   {
@@ -30214,7 +30083,6 @@
     "960116-1.c",
     "980526-2.c",
     "alloca-1.c",
-    "builtins/strnlen.c",
     "loop-2c.c",
     "pr103255.c",
     "pr15296.c",
@@ -30231,7 +30099,7 @@
     "pr91597.c",
     "pr97421-3.c"
    ],
-   "present": 27,
+   "present": 26,
    "sole": 2,
    "wall": "cast:PointerToIntegral"
   },
@@ -30269,19 +30137,41 @@
   {
    "files": [
     "00179.c",
+    "20001203-2.c",
+    "20031012-1.c",
+    "20040823-1.c",
+    "20050826-1.c",
+    "20051113-1.c",
+    "20071030-1.c",
+    "20071219-1.c",
+    "920810-1.c",
+    "990513-1.c",
+    "builtins/strcat.c",
+    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
+    "memcpy-1.c",
+    "memcpy-bi.c",
+    "memset-1.c",
+    "memset-2.c",
+    "memset-3.c",
+    "pr27260.c",
+    "pr30778.c",
+    "pr35472.c",
+    "pr43236.c",
+    "string-opt-5.c"
+   ],
+   "present": 22,
+   "sole": 1,
+   "wall": "libc-call: memset"
+  },
+  {
+   "files": [
+    "00179.c",
     "20050502-2.c",
     "20050826-1.c",
-    "builtins/memcmp.c",
-    "builtins/memmove-2.c",
-    "builtins/memmove.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
-    "builtins/sprintf.c",
     "builtins/strcat.c",
-    "builtins/strcpy.c",
-    "builtins/strncat.c",
-    "builtins/strncpy.c",
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c",
     "ieee/builtin-nan-1.c",
@@ -30296,42 +30186,9 @@
     "string-opt-18.c",
     "string-opt-5.c"
    ],
-   "present": 27,
+   "present": 20,
    "sole": 1,
    "wall": "libc-call: memcmp"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20001203-2.c",
-    "20031012-1.c",
-    "20040823-1.c",
-    "20050826-1.c",
-    "20051113-1.c",
-    "20071030-1.c",
-    "20071219-1.c",
-    "920810-1.c",
-    "990513-1.c",
-    "builtins/memset.c",
-    "builtins/sprintf.c",
-    "builtins/strcat.c",
-    "builtins/strncat.c",
-    "builtins/strncpy.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
-    "memcpy-1.c",
-    "memcpy-bi.c",
-    "memset-1.c",
-    "memset-2.c",
-    "memset-3.c",
-    "pr27260.c",
-    "pr30778.c",
-    "pr35472.c",
-    "pr43236.c",
-    "string-opt-5.c"
-   ],
-   "present": 26,
-   "sole": 1,
-   "wall": "libc-call: memset"
   },
   {
    "files": [
@@ -30421,20 +30278,6 @@
   },
   {
    "files": [
-    "20030330-1.c",
-    "builtins/abs-2.c",
-    "builtins/complex-1.c",
-    "builtins/memcmp.c",
-    "builtins/uabs-2.c",
-    "ieee/fp-cmp-7.c",
-    "medce-1.c"
-   ],
-   "present": 7,
-   "sole": 1,
-   "wall": "libc-call: link_error"
-  },
-  {
-   "files": [
     "builtin-bitops-1.c",
     "ffs-1.c",
     "ffs-2.c",
@@ -30465,6 +30308,16 @@
    "present": 3,
    "sole": 1,
    "wall": "libc-call: calloc"
+  },
+  {
+   "files": [
+    "20030330-1.c",
+    "ieee/fp-cmp-7.c",
+    "medce-1.c"
+   ],
+   "present": 3,
+   "sole": 1,
+   "wall": "libc-call: link_error"
   },
   {
    "files": [
@@ -30655,35 +30508,14 @@
     "bcp-1.c",
     "built-in-setjmp.c",
     "builtin-constant.c",
-    "builtins/memchr.c",
-    "builtins/memcmp.c",
-    "builtins/memmove-2.c",
-    "builtins/memmove.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
-    "builtins/sprintf.c",
     "builtins/strcat.c",
-    "builtins/strchr.c",
-    "builtins/strcmp.c",
-    "builtins/strcpy-2.c",
-    "builtins/strcpy.c",
-    "builtins/strcspn.c",
     "builtins/strlen-2.c",
     "builtins/strlen-3.c",
-    "builtins/strlen.c",
-    "builtins/strncat.c",
-    "builtins/strncmp-2.c",
-    "builtins/strncmp.c",
-    "builtins/strncpy.c",
-    "builtins/strnlen.c",
-    "builtins/strpbrk.c",
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c",
-    "builtins/strrchr.c",
-    "builtins/strspn.c",
-    "builtins/strstr-asm.c",
-    "builtins/strstr.c",
     "complex-6.c",
     "const-addr-expr-1.c",
     "fprintf-1.c",
@@ -30772,7 +30604,7 @@
     "widechar-2.c",
     "widechar-3.c"
    ],
-   "present": 262,
+   "present": 241,
    "sole": 0,
    "wall": "string-literal"
   },
@@ -31161,7 +30993,6 @@
     "20141107-1.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
-    "builtins/strcpy.c",
     "builtins/strpcpy-2.c",
     "pr110914.c",
     "pr38051.c",
@@ -31179,7 +31010,7 @@
     "pr98853-1.c",
     "strlen-7.c"
    ],
-   "present": 28,
+   "present": 27,
    "sole": 0,
    "wall": "libc-call: __builtin_memcpy"
   },
@@ -31295,7 +31126,6 @@
     "builtins/lib/chk.c",
     "builtins/strlen-2.c",
     "builtins/strlen-3.c",
-    "builtins/strlen.c",
     "builtins/strstr-asm-lib.c",
     "pr36321.c",
     "string-opt-5.c",
@@ -31308,79 +31138,9 @@
     "va-arg-10.c",
     "va-arg-9.c"
    ],
-   "present": 22,
+   "present": 21,
    "sole": 0,
    "wall": "libc-call: strlen"
-  },
-  {
-   "files": [
-    "00179.c",
-    "00180.c",
-    "20031204-1.c",
-    "20041214-1.c",
-    "20120207-1.c",
-    "980707-1.c",
-    "built-in-setjmp.c",
-    "builtins/memcmp.c",
-    "builtins/strcat.c",
-    "builtins/strcpy-2.c",
-    "builtins/strcpy.c",
-    "builtins/strcspn.c",
-    "builtins/strncat.c",
-    "builtins/strspn.c",
-    "strcpy-1.c",
-    "string-opt-17.c",
-    "string-opt-18.c",
-    "struct-ret-1.c"
-   ],
-   "present": 18,
-   "sole": 0,
-   "wall": "libc-call: strcpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20001011-1.c",
-    "20011024-1.c",
-    "20030715-1.c",
-    "20041214-1.c",
-    "20050502-1.c",
-    "980707-1.c",
-    "built-in-setjmp.c",
-    "builtins/strcmp.c",
-    "builtins/strpbrk.c",
-    "gcc/testsuite/gcc.dg/c23-bool-1.c",
-    "p18298.c",
-    "strcmp-1.c",
-    "string-opt-18.c",
-    "string-opt-5.c",
-    "struct-ret-1.c"
-   ],
-   "present": 16,
-   "sole": 0,
-   "wall": "libc-call: strcmp"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20010925-1.c",
-    "20011024-1.c",
-    "20011113-1.c",
-    "20050826-1.c",
-    "20111208-1.c",
-    "920810-1.c",
-    "builtins/memops-asm.c",
-    "builtins/mempcpy.c",
-    "builtins/strcpy.c",
-    "ieee/pr30704.c",
-    "memcpy-1.c",
-    "memcpy-2.c",
-    "memcpy-bi.c",
-    "string-opt-18.c"
-   ],
-   "present": 15,
-   "sole": 0,
-   "wall": "libc-call: memcpy"
   },
   {
    "files": [
@@ -31406,10 +31166,51 @@
   },
   {
    "files": [
+    "00179.c",
+    "20010925-1.c",
+    "20011024-1.c",
+    "20011113-1.c",
+    "20050826-1.c",
+    "20111208-1.c",
+    "920810-1.c",
+    "builtins/memops-asm.c",
+    "builtins/mempcpy.c",
+    "ieee/pr30704.c",
+    "memcpy-1.c",
+    "memcpy-2.c",
+    "memcpy-bi.c",
+    "string-opt-18.c"
+   ],
+   "present": 14,
+   "sole": 0,
+   "wall": "libc-call: memcpy"
+  },
+  {
+   "files": [
+    "00179.c",
+    "20001011-1.c",
+    "20011024-1.c",
+    "20030715-1.c",
+    "20041214-1.c",
+    "20050502-1.c",
+    "980707-1.c",
+    "built-in-setjmp.c",
+    "gcc/testsuite/gcc.dg/c23-bool-1.c",
+    "p18298.c",
+    "strcmp-1.c",
+    "string-opt-18.c",
+    "string-opt-5.c",
+    "struct-ret-1.c"
+   ],
+   "present": 14,
+   "sole": 0,
+   "wall": "libc-call: strcmp"
+  },
+  {
+   "files": [
     "20020406-1.c",
     "20121108-1.c",
     "20141022-1.c",
-    "builtins/strnlen.c",
     "memchr-1.c",
     "pr111863-1.c",
     "pr71550.c",
@@ -31421,7 +31222,7 @@
     "strlen-5.c",
     "strlen-6.c"
    ],
-   "present": 14,
+   "present": 13,
    "sole": 0,
    "wall": "libc-call: __builtin_printf"
   },
@@ -31435,13 +31236,12 @@
     "921007-1.c",
     "921117-1.c",
     "930725-1.c",
-    "builtins/strcmp.c",
     "ieee/pr108540-1.c",
     "pr47337.c",
     "pr60062.c",
     "pr86528.c"
    ],
-   "present": 13,
+   "present": 12,
    "sole": 0,
    "wall": "libc-call: __builtin_strcmp"
   },
@@ -31450,7 +31250,6 @@
     "20030221-1.c",
     "20031012-1.c",
     "920726-1.c",
-    "builtins/strlen.c",
     "pr110914.c",
     "pr116799.c",
     "pr80153.c",
@@ -31461,16 +31260,34 @@
     "strlen-7.c",
     "widechar-3.c"
    ],
-   "present": 13,
+   "present": 12,
    "sole": 0,
    "wall": "libc-call: __builtin_strlen"
+  },
+  {
+   "files": [
+    "00179.c",
+    "00180.c",
+    "20031204-1.c",
+    "20041214-1.c",
+    "20120207-1.c",
+    "980707-1.c",
+    "built-in-setjmp.c",
+    "builtins/strcat.c",
+    "strcpy-1.c",
+    "string-opt-17.c",
+    "string-opt-18.c",
+    "struct-ret-1.c"
+   ],
+   "present": 12,
+   "sole": 0,
+   "wall": "libc-call: strcpy"
   },
   {
    "files": [
     "20041124-1.c",
     "20041201-1.c",
     "20070614-1.c",
-    "builtins/complex-1.c",
     "complex-1.c",
     "complex-2.c",
     "complex-5.c",
@@ -31481,26 +31298,9 @@
     "pr38151.c",
     "pr49644.c"
    ],
-   "present": 13,
+   "present": 12,
    "sole": 0,
    "wall": "unsupported:ImaginaryLiteral"
-  },
-  {
-   "files": [
-    "00186.c",
-    "20030626-1.c",
-    "20030626-2.c",
-    "20070201-1.c",
-    "920501-8.c",
-    "920726-1.c",
-    "960327-1.c",
-    "980605-1.c",
-    "builtins/sprintf.c",
-    "struct-ret-1.c"
-   ],
-   "present": 10,
-   "sole": 0,
-   "wall": "libc-call: sprintf"
   },
   {
    "files": [
@@ -31517,6 +31317,22 @@
    "present": 9,
    "sole": 0,
    "wall": "libc-call: __builtin_mul_overflow"
+  },
+  {
+   "files": [
+    "00186.c",
+    "20030626-1.c",
+    "20030626-2.c",
+    "20070201-1.c",
+    "920501-8.c",
+    "920726-1.c",
+    "960327-1.c",
+    "980605-1.c",
+    "struct-ret-1.c"
+   ],
+   "present": 9,
+   "sole": 0,
+   "wall": "libc-call: sprintf"
   },
   {
    "files": [
@@ -31546,34 +31362,6 @@
    "present": 7,
    "sole": 0,
    "wall": "libc-call: __builtin_inff"
-  },
-  {
-   "files": [
-    "20021011-1.c",
-    "921117-1.c",
-    "builtins/strcpy.c",
-    "pr84339.c",
-    "pr86528.c",
-    "strcpy-2.c",
-    "strlen-7.c"
-   ],
-   "present": 7,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strcpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20050218-1.c",
-    "builtins/strncmp-2.c",
-    "builtins/strncmp.c",
-    "builtins/strstr-asm-lib.c",
-    "string-opt-18.c",
-    "strncmp-1.c"
-   ],
-   "present": 7,
-   "sole": 0,
-   "wall": "libc-call: strncmp"
   },
   {
    "files": [
@@ -31630,16 +31418,16 @@
   },
   {
    "files": [
-    "20041126-1.c",
-    "builtins/abs-1.c",
-    "builtins/abs-2.c",
-    "pr33142.c",
-    "ssad-run.c",
-    "usad-run.c"
+    "20021011-1.c",
+    "921117-1.c",
+    "pr84339.c",
+    "pr86528.c",
+    "strcpy-2.c",
+    "strlen-7.c"
    ],
    "present": 6,
    "sole": 0,
-   "wall": "libc-call: abs"
+   "wall": "libc-call: __builtin_strcpy"
   },
   {
    "files": [
@@ -31743,14 +31531,14 @@
   {
    "files": [
     "00179.c",
-    "20000910-2.c",
-    "builtins/strchr.c",
+    "20050218-1.c",
     "builtins/strstr-asm-lib.c",
-    "string-opt-5.c"
+    "string-opt-18.c",
+    "strncmp-1.c"
    ],
    "present": 5,
    "sole": 0,
-   "wall": "libc-call: strchr"
+   "wall": "libc-call: strncmp"
   },
   {
    "files": [
@@ -31807,6 +31595,28 @@
    "present": 4,
    "sole": 0,
    "wall": "libc-call: __builtin_unreachable"
+  },
+  {
+   "files": [
+    "20041126-1.c",
+    "pr33142.c",
+    "ssad-run.c",
+    "usad-run.c"
+   ],
+   "present": 4,
+   "sole": 0,
+   "wall": "libc-call: abs"
+  },
+  {
+   "files": [
+    "00179.c",
+    "20000910-2.c",
+    "builtins/strstr-asm-lib.c",
+    "string-opt-5.c"
+   ],
+   "present": 4,
+   "sole": 0,
+   "wall": "libc-call: strchr"
   },
   {
    "files": [
@@ -31913,26 +31723,6 @@
   },
   {
    "files": [
-    "builtins/memmove-2.c",
-    "builtins/memmove.c",
-    "builtins/memops-asm.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: bcopy"
-  },
-  {
-   "files": [
-    "builtins/memmove-2.c",
-    "builtins/memmove.c",
-    "string-opt-18.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: memmove"
-  },
-  {
-   "files": [
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
     "string-opt-18.c"
@@ -31940,26 +31730,6 @@
    "present": 3,
    "sole": 0,
    "wall": "libc-call: mempcpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "builtins/strncpy.c",
-    "string-opt-5.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: strncpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "builtins/strrchr.c",
-    "string-opt-5.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: strrchr"
   },
   {
    "files": [
@@ -32017,15 +31787,6 @@
    "present": 2,
    "sole": 0,
    "wall": "libc-call: __builtin_clz"
-  },
-  {
-   "files": [
-    "20020411-1.c",
-    "builtins/complex-1.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_conjf"
   },
   {
    "files": [
@@ -32128,15 +31889,6 @@
   },
   {
    "files": [
-    "builtins/memmove.c",
-    "pr93213.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_memmove"
-  },
-  {
-   "files": [
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c"
    ],
@@ -32164,24 +31916,6 @@
   },
   {
    "files": [
-    "builtins/strncpy.c",
-    "pr93249.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strncpy"
-  },
-  {
-   "files": [
-    "builtins/strstr-asm.c",
-    "builtins/strstr.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strstr"
-  },
-  {
-   "files": [
     "20020418-1.c",
     "pr125291.c"
    ],
@@ -32206,15 +31940,6 @@
    "present": 2,
    "sole": 0,
    "wall": "libc-call: _setjmp"
-  },
-  {
-   "files": [
-    "builtins/20010124-1.c",
-    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: f"
   },
   {
    "files": [
@@ -32254,15 +31979,6 @@
   },
   {
    "files": [
-    "builtins/20010124-1.c",
-    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: g"
-  },
-  {
-   "files": [
     "ieee/cdivchkd.c",
     "ieee/cdivchkf.c"
    ],
@@ -32272,30 +31988,12 @@
   },
   {
    "files": [
-    "builtins/abs-1.c",
-    "builtins/abs-2.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: labs"
-  },
-  {
-   "files": [
     "20210505-1.c",
     "pr56982.c"
    ],
    "present": 2,
    "sole": 0,
    "wall": "libc-call: longjmp"
-  },
-  {
-   "files": [
-    "builtins/memchr.c",
-    "memchr-1.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: memchr"
   },
   {
    "files": [
@@ -32344,30 +32042,21 @@
   },
   {
    "files": [
-    "builtins/strstr-asm.c",
-    "builtins/strstr.c"
+    "00179.c",
+    "string-opt-5.c"
    ],
    "present": 2,
    "sole": 0,
-   "wall": "libc-call: strstr"
+   "wall": "libc-call: strncpy"
   },
   {
    "files": [
-    "builtins/uabs-1.c",
-    "builtins/uabs-2.c"
+    "00179.c",
+    "string-opt-5.c"
    ],
    "present": 2,
    "sole": 0,
-   "wall": "libc-call: uabs"
-  },
-  {
-   "files": [
-    "builtins/uabs-1.c",
-    "builtins/uabs-2.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: ulabs"
+   "wall": "libc-call: strrchr"
   },
   {
    "files": [
@@ -32406,14 +32095,6 @@
   },
   {
    "files": [
-    "builtins/memmove.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_bcopy"
-  },
-  {
-   "files": [
     "pr97386-1.c"
    ],
    "present": 1,
@@ -32435,30 +32116,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: __builtin_bzero"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_cimag"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_cimagf"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_cimagl"
   },
   {
    "files": [
@@ -32502,43 +32159,11 @@
   },
   {
    "files": [
-    "builtins/complex-1.c"
+    "20020411-1.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: __builtin_conj"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_conjl"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_creal"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_crealf"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_creall"
+   "wall": "libc-call: __builtin_conjf"
   },
   {
    "files": [
@@ -32606,14 +32231,6 @@
   },
   {
    "files": [
-    "builtins/strchr.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_index"
-  },
-  {
-   "files": [
     "ieee/inf-4.c"
    ],
    "present": 1,
@@ -32622,11 +32239,11 @@
   },
   {
    "files": [
-    "builtins/memchr.c"
+    "pr93213.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: __builtin_memchr"
+   "wall": "libc-call: __builtin_memmove"
   },
   {
    "files": [
@@ -32678,14 +32295,6 @@
   },
   {
    "files": [
-    "builtins/strrchr.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_rindex"
-  },
-  {
-   "files": [
     "pr78622.c"
    ],
    "present": 1,
@@ -32702,59 +32311,11 @@
   },
   {
    "files": [
-    "builtins/strchr.c"
+    "pr93249.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: __builtin_strchr"
-  },
-  {
-   "files": [
-    "builtins/strcspn.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strcspn"
-  },
-  {
-   "files": [
-    "builtins/strncat.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strncat"
-  },
-  {
-   "files": [
-    "builtins/strncmp.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strncmp"
-  },
-  {
-   "files": [
-    "builtins/strpbrk.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strpbrk"
-  },
-  {
-   "files": [
-    "builtins/strrchr.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strrchr"
-  },
-  {
-   "files": [
-    "builtins/strspn.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strspn"
+   "wall": "libc-call: __builtin_strncpy"
   },
   {
    "files": [
@@ -32798,27 +32359,11 @@
   },
   {
    "files": [
-    "builtins/complex-1.c"
+    "builtins/memops-asm.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: cimag"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: cimagf"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: cimagl"
+   "wall": "libc-call: bcopy"
   },
   {
    "files": [
@@ -32830,51 +32375,11 @@
   },
   {
    "files": [
-    "builtins/complex-1.c"
+    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: conj"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: conjf"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: conjl"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: creal"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: crealf"
-  },
-  {
-   "files": [
-    "builtins/complex-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: creall"
+   "wall": "libc-call: f"
   },
   {
    "files": [
@@ -32958,6 +32463,14 @@
   },
   {
    "files": [
+    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: g"
+  },
+  {
+   "files": [
     "00187.c"
    ],
    "present": 1,
@@ -33030,22 +32543,6 @@
   },
   {
    "files": [
-    "builtins/abs-2.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: imaxabs"
-  },
-  {
-   "files": [
-    "builtins/strchr.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: index"
-  },
-  {
-   "files": [
     "pr68390.c"
    ],
    "present": 1,
@@ -33062,11 +32559,19 @@
   },
   {
    "files": [
-    "builtins/abs-2.c"
+    "memchr-1.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: llabs"
+   "wall": "libc-call: memchr"
+  },
+  {
+   "files": [
+    "string-opt-18.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: memmove"
   },
   {
    "files": [
@@ -33110,14 +32615,6 @@
   },
   {
    "files": [
-    "builtins/strrchr.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: rindex"
-  },
-  {
-   "files": [
     "ieee/mzero4.c"
    ],
    "present": 1,
@@ -33131,46 +32628,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: sqrt"
-  },
-  {
-   "files": [
-    "builtins/strcspn.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: strcspn"
-  },
-  {
-   "files": [
-    "builtins/strncat.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: strncat"
-  },
-  {
-   "files": [
-    "builtins/strnlen.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: strnlen"
-  },
-  {
-   "files": [
-    "builtins/strpbrk.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: strpbrk"
-  },
-  {
-   "files": [
-    "builtins/strspn.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: strspn"
   },
   {
    "files": [
@@ -33195,22 +32652,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: terminate_me"
-  },
-  {
-   "files": [
-    "builtins/uabs-2.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: ullabs"
-  },
-  {
-   "files": [
-    "builtins/uabs-2.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: umaxabs"
   },
   {
    "files": [
