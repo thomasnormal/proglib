@@ -797,6 +797,11 @@ statement-node bridge as its only premise.
 normal-flow bridge.  It uses the same threshold and frame embedding while
 preserving the legacy body's threaded post-state through `RFlow.next`.
 
+`Monadic.twinAgrees_callIn_recursive_next_of_statement_bridge` extends that
+normal-flow result to nested calls.  The caller-depth and frame-full guards
+remain explicit, and the legacy result is compared after the same
+`leaveCallDepth` decrement used by `leaveCallM`.
+
 `Monadic.twinAgrees_callIn_top_body_ret` provides the generic return-flow
 counterpart.  It accepts raw monadic and legacy body results and an explicit
 world equality, then transports both through the normalized top-depth call
