@@ -1010,6 +1010,12 @@ fuel units per pair, and appends one literal percent per pair.  The theorem is
 separate from the literal-prefix result because `%` changes the walk's parser
 branch, while heap lookup and conversion tokens remain independent cases.
 
+`Monadic.strFormatMappingWalk_plain_prefix_append` is the continuation form of
+the literal-prefix theorem: it accepts an arbitrary suffix after the safe
+prefix and rewrites directly to the same walk on that suffix, with the prefix
+text appended to the accumulator.  This exposes the exact fuel and accumulator
+threading needed to compose mixed walks without enumerating prefix lengths.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
