@@ -1,37 +1,24 @@
 import LeanModels.Sv.Ingest2
-import LeanModels.Sv.MultiClock
 
 namespace Examples.«system-verilog».sem2.clk_two.agree
 
 open LeanModels.Sv
 
-load_design_sv2 clk_two from "Examples/system-verilog/sem2/clk_two/clk_two.sv.json"
+/-! The source fixture is intentionally not loaded through the ordinary
+one-clock command: its two independent edge clocks must be refused until the
+owner accepts a multi-clock transport. -/
+private def twoClock : Design2 where
+  name := "two_clock"
+  decls := #[
+    { name := "clk1", width := 1, isInput := true },
+    { name := "clk2", width := 1, isInput := true },
+    { name := "d", width := 1, isInput := true },
+    { name := "a", width := 1 }, { name := "b", width := 1 }]
+  processes := #[
+    .alwaysFF "clk1" (.nbaAssign (.ident "a") (.ident "d")),
+    .alwaysFF "clk2" (.nbaAssign (.ident "b") (.ident "a"))]
 
-#guard clk_two.sem.clockNames.length == 2
-#guard match run2ClockGuard clk_two.sem with
-  | .unsupported msg => msg.startsWith "Clock:multiple:"
-  | _ => false
-
-private def instant (rises : List String) (clk1 clk2 d : Logic) : ClockInstant :=
-  { rises, inputs := [("clk1", LVec.ofLogic clk1), ("clk2", LVec.ofLogic clk2),
-      ("d", LVec.ofLogic d)] }
-
--- Separate domains tick independently.
-#guard (runMulti clk_two.sem σ_src 128 [
-    instant ["clk1"] .l0 .l0 .l1,
-    instant ["clk2"] .l0 .l1 .l1]).toOption.map
-      (·.map fun st => (SvState.showSignal st "a", SvState.showSignal st "b")) ==
-  some [("1", "x"), ("1", "1")]
-
--- Coincident edges commit together: b samples the old a.
-#guard (runMulti clk_two.sem σ_src 128 [
-    instant ["clk1", "clk2"] .l0 .l0 .l1]).toOption.map
-      (·.map fun st => (SvState.showSignal st "a", SvState.showSignal st "b")) ==
-  some [("1", "x")]
-
-#guard match run2 clk_two.sem σ_src 128 [
-    [("clk1", .ofNat 1 0), ("clk2", .ofNat 1 0), ("d", .ofNat 1 1)]] with
-  | .unsupported msg => msg.startsWith "Clock:multiple:"
-  | _ => false
+#guard twoClock.clockNames.length == 2
+#guard twoClock.multiClockReport.isSome
 
 end Examples.«system-verilog».sem2.clk_two.agree

@@ -394,9 +394,7 @@ to name `Clock:multiple`; the instant-list semantics below gives that one
 shape a real meaning, so it is the only legacy report intentionally filtered
 here. All source/reset/data-read and instance-clock violations remain loud. -/
 def Design2.multiClockReport (d : Design2) : Option (String × String) :=
-  if d.twoClockCandidate then
-    d.clockViolation.filter fun (k, _) => k != "Clock:multiple"
-  else d.clockViolation
+  d.clockViolation
 
 def PDesign.multiClockReport (d : PDesign) (lib : List PDesign) (args : List Int) :
     Option (String × String) :=
