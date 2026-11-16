@@ -639,7 +639,7 @@ theorem ldg_zero (N : Nat) (hN : 1 ≤ N) (A B : Nat → Bool) :
     intro i hi
     show 2 ^ (j + i) * (if j ≤ j + i ∧ j + i - j < N then _ else 0) = _
     rw [ite_eq_left (show j ≤ j + i ∧ j + i - j < N by omega), show j + i - j = i by omega, Nat.pow_add]
-    cases A i <;> cases B j <;> simp [Nat.mul_assoc, Nat.mul_comm, Nat.mul_left_comm]
+    cases A i <;> cases B j <;> simp [Nat.mul_comm]
   rw [nsum_congr hrow, bfVal_eq_nsum B N, ← nsum_mul]
   exact nsum_congr (fun j _ => Nat.mul_comm _ _)
 
@@ -787,7 +787,7 @@ theorem cyB_congr {N s t u : Nat} {T T' : Nat → Nat → Bool} {k q : Nat}
 
 /-- The cells before every stage are the bit model `tv`. -/
 theorem DView.cells {N : Nat} {A B : Nat → Bool} {T SM CY : Nat → Nat → Nat → Bool} {K P : Nat → Bool}
-    (hN1 : 1 ≤ N) (h30 : N < 2 ^ 30) (hv : DView N A B T SM CY K P) :
+    (h30 : N < 2 ^ 30) (hv : DView N A B T SM CY K P) :
     ∀ s ≤ nst N, ∀ k < 2 * N, ∀ i < NPn N, T s k i = tv N A B s k i := by
   have hNP := NPn_ge N
   intro s
@@ -852,7 +852,7 @@ theorem DView.out {N : Nat} {A B : Nat → Bool} {T SM CY : Nat → Nat → Nat 
     (hN1 : 1 ≤ N) (h30 : N < 2 ^ 30) (hv : DView N A B T SM CY K P) :
     bfVal P (2 * N) = bfVal A N * bfVal B N := by
   have hP2 := NPn_two N
-  have hS := hv.cells hN1 h30 (nst N) (Nat.le_refl _)
+  have hS := hv.cells h30 (nst N) (Nat.le_refl _)
   have hK : ∀ k ≤ 2 * N, K k = kc N A B k := by
     intro k
     induction k with
