@@ -811,6 +811,11 @@ exceptional nested-flow bridge.  It transports the exception and retained
 frame state through the same recursive unwind, without enumerating body
 shapes.
 
+`Monadic.twinAgrees_callIn_recursive_timeout_of_statement_bridge` completes
+the nested timeout case.  Since timeout carries no post-body frame, the
+bridge preserves the timeout observation while retaining the same no-global
+and depth guards.
+
 `Monadic.twinAgrees_callIn_top_body_ret` provides the generic return-flow
 counterpart.  It accepts raw monadic and legacy body results and an explicit
 world equality, then transports both through the normalized top-depth call
