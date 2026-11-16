@@ -184,6 +184,13 @@ def runObligations (g : MVarId) : TacticM Unit := do
       throwError "sv_structure: obligation `{n.componentsRev.head!}`: {msg}"
   throwError "sv_structure: the obligations do not hold (no single obligation identified)"
 
+/-- The cached instantiation of a family `X.e`, when `seq_mirror` made one: `X.mirror` and `X.mirror_eq`. -/
+def mirrorOf (eN : Name) : MetaM (Option (Name × Name × Name)) := do
+  let mN := eN.getPrefix ++ `mirror
+  let mEq := eN.getPrefix ++ `mirror_eq
+  let mDef := eN.getPrefix ++ `mirror_def
+  if (← getEnv).contains mEq then return some (mN, mEq, mDef) else return none
+
 /-- The instantiation's three outcomes for `r = X.e P…`: the `ok` goal with `hSeq : <normal form> = E` substituted
 away, the refused outcomes closed (or named). Returns the `ok` goal. -/
 def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
@@ -192,6 +199,12 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
   let pI := mkIdent pN
   let hI := mkIdent `hSeqInst
   let rS ← Term.exprToSyntax r
+  -- a cached instantiation (`seq_mirror`): the family member IS its mirror, no instantiation pass
+  if let some (mN, mEq, mDef) ← mirrorOf eN then
+    let mS ← Term.exprToSyntax (mkAppN (mkConst mN) r.getAppArgs)
+    evalTactic (← `(tactic| have $hI:ident : $rS:term = .ok $mS:term := by apply $(mkIdent mEq) <;> omega))
+    evalTactic (← `(tactic| rw [$hI:ident, $(mkIdent mDef):ident]))
+    return
   evalTactic (← `(tactic| cases $hI:ident : $rS:term))
   let gs ← getGoals
   let [gOk, gTo, gUn] := gs | throwError "{stage}: internal error: the instantiation's three outcomes expected"
@@ -281,7 +294,15 @@ def runEquations : TacticM Unit := do
         facts := facts.push (← `(Lean.Parser.Tactic.simpLemma| $(mkIdent d.userName):ident))
         factNames := factNames.push d.userName
     evalTactic (← `(tactic| have $hC:ident := $hI:ident))
-    evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hC:ident))
+    if let some (mN, mEq, mDef) ← mirrorOf eN then
+      let rS ← Term.exprToSyntax r
+      let mS ← Term.exprToSyntax (mkAppN (mkConst mN) r.getAppArgs)
+      let hMI := mkIdent `hSeqMir
+      evalTactic (← `(tactic| have $hMI:ident : $rS:term = .ok $mS:term := by apply $(mkIdent mEq) <;> omega))
+      evalTactic (← `(tactic| rw [$hMI:ident, $(mkIdent mDef):ident] at $hC:ident))
+      evalTactic (← `(tactic| replace $hC:ident := Res.ok.inj $hC:ident))
+    else
+      evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hC:ident))
     evalTactic (← `(tactic| sv_seq_cycle $cyc : $lhsS using $hC [$facts,*]))
     let g0 ← getMainGoal
     let h ← g0.withContext do getLocalDeclFromUserName `hSeqCycle
@@ -293,6 +314,88 @@ def runEquations : TacticM Unit := do
       throwError "sv_equations: the stated cycle differs from the computed one (width facts used: {factNames}); computed:\n{computed}"
 
 end LeanModels.Sv.Kernel.SeqStage
+
+/-- **`seq_mirror (P : Nat) (h : …) … : X.e P…`**: the instantiation of a loaded family at its symbolic parameters,
+computed ONCE: defines `X.mirror P… : CoreMemDesign` (the normal form the instantiation pass computes) and proves
+`X.mirror_eq : ∀ P… h…, X.e P… = .ok (X.mirror P…)`. The clocked stages (`sv_structure`, `sv_interface`,
+`sv_equations`) read the mirror when it exists, so a file stops re-running the instantiation pass per theorem; a proof
+uses it as `rw [X.mirror_eq …]`. Nothing is trusted: the theorem is proved by the instantiation pass, kernel-checked. -/
+syntax (name := seqMirrorCmd) "seq_mirror" bracketedBinder* " : " term : command
+
+open Lean Elab Command Term Meta in
+@[command_elab seqMirrorCmd] def elabSeqMirror : CommandElab := fun stx => do
+  let bs := stx[1].getArgs
+  let fam := stx[3]
+  liftTermElabM do
+    Term.elabBinders bs fun xs => do
+      let famE ← Term.elabTerm fam (some (mkApp (Lean.mkConst ``LeanModels.Sv.Res)
+        (Lean.mkConst ``LeanModels.Sv.Kernel.CoreMemDesign)))
+      Term.synthesizeSyntheticMVarsNoPostponing
+      let famE ← instantiateMVars famE
+      let some eName := famE.getAppFn.constName?
+        | throwError "seq_mirror: the family is not a loaded `X.e P…`"
+      let pName := eName.getPrefix ++ `pdesign
+      let mName := eName.getPrefix ++ `mirror
+      let mEqName := eName.getPrefix ++ `mirror_eq
+      let eI := mkIdent eName
+      let pI := mkIdent pName
+      -- the normal form: the instantiation pass on `hE : X.e P… = .ok E`
+      let cmd := Lean.mkConst ``LeanModels.Sv.Kernel.CoreMemDesign
+      let goalTy ← withLocalDeclD `E cmd fun E => do
+        let eq ← mkEq famE (← mkAppM ``LeanModels.Sv.Res.ok #[E])
+        mkForallFVars #[E] (← mkArrow eq (Lean.mkConst ``True))
+      let g ← mkFreshExprMVar goalTy
+      let nfRef ← IO.mkRef (none : Option Lean.Expr)
+      let _ ← Tactic.run g.mvarId! do
+        let hEI := mkIdent `hSeqMirE
+        Tactic.evalTactic (← `(tactic| intro E $hEI:ident))
+        Tactic.evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hEI:ident))
+        let h ← (← Tactic.getMainGoal).withContext do getLocalDeclFromUserName `hSeqMirE
+        let t ← instantiateMVars h.type
+        unless t.isAppOfArity ``Eq 3 do throwError "seq_mirror: the instantiation did not normalize: {t}"
+        nfRef.set (some (t.getArg! 1))
+        Tactic.evalTactic (← `(tactic| trivial))
+      let some nf ← nfRef.get | throwError "seq_mirror: no normal form"
+      let natXs ← xs.filterM fun x => do return !(← isProp (← inferType x))
+      let propXs ← xs.filterM fun x => do return (← isProp (← inferType x))
+      if propXs.any (fun p => nf.containsFVar p.fvarId!) then
+        throwError "seq_mirror: the normal form depends on a hypothesis"
+      let val ← instantiateMVars (← mkLambdaFVars natXs nf)
+      let vty ← instantiateMVars (← inferType val)
+      let dv : DefinitionVal :=
+        { name := mName, levelParams := [], type := vty, value := val, hints := .regular 0, safety := .safe }
+      addDecl (Declaration.defnDecl dv)
+      -- its unfolding, by definition
+      let mDefName := eName.getPrefix ++ `mirror_def
+      let defTy ← instantiateMVars (← mkForallFVars natXs (← mkEq (mkAppN (Lean.mkConst mName) natXs) nf))
+      let defVal ← instantiateMVars (← mkLambdaFVars natXs (← mkEqRefl nf))
+      let dtv : TheoremVal := { name := mDefName, levelParams := [], type := defTy, value := defVal }
+      addDecl (Declaration.thmDecl dtv)
+      -- the theorem, proved by the instantiation pass once more
+      let stmt ← mkEq famE (← mkAppM ``LeanModels.Sv.Res.ok #[mkAppN (Lean.mkConst mName) natXs])
+      let pf ← mkFreshExprMVar stmt
+      let rS ← Term.exprToSyntax famE
+      let mDefI := mkIdent (eName.getPrefix ++ `mirror_def)
+      let rest ← Tactic.run pf.mvarId! do
+        Tactic.evalTactic (← `(tactic| cases hSeqM : $rS:term with
+          | ok E => (sv_seq_inst [$eI:ident, $pI:ident] at hSeqM; subst hSeqM; rw [$mDefI:ident])
+          | timeout => sv_seq_inst [$eI:ident, $pI:ident] at hSeqM
+          | unsupported m => sv_seq_inst [$eI:ident, $pI:ident] at hSeqM))
+      unless rest.isEmpty do throwError "seq_mirror: the instantiation's equation was not proved"
+      let pf ← instantiateMVars pf
+      if pf.hasMVar then throwError "seq_mirror: the instantiation's proof has metavariables"
+      Term.synthesizeSyntheticMVarsNoPostponing
+      let thmTy ← instantiateMVars (← mkForallFVars xs stmt)
+      let thmVal ← instantiateMVars (← mkLambdaFVars xs pf)
+      if thmTy.hasMVar || thmVal.hasMVar || thmTy.hasLevelMVar || thmVal.hasLevelMVar then
+        throwError "seq_mirror: the statement has unassigned metavariables (state the binders' types fully)"
+      let tv : TheoremVal := { name := mEqName, levelParams := [], type := thmTy, value := thmVal }
+      addDecl (Declaration.thmDecl tv)
+
+/-- **`sv_seq_use [X.mirror_eq P… h…, X.mirror_def] at hE`**: `hE : X.e P… = .ok E` becomes `hE : <normal form> = E`
+from the cached instantiation (`seq_mirror`), the form `sv_seq_inst` leaves, without an instantiation pass. -/
+macro "sv_seq_use " "[" rs:Lean.Parser.Tactic.rwRule,* "]" " at " h:ident : tactic =>
+  `(tactic| (rw [$rs,*] at $h:ident; replace $h:ident := LeanModels.Sv.Res.ok.inj $h:ident))
 
 open LeanModels.Sv.Kernel.SeqStage in
 @[tactic svStructure] def evalSvStructureSeq : Tactic := fun stx => runStructure stx

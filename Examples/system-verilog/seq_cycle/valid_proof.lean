@@ -1,5 +1,5 @@
 import LeanModels.Sv.Ingest2
-import LeanModels.Sv.SeqCycleTactic
+import LeanModels.Sv.SeqCycleStages
 
 /-!
 # A valid/ready register with synchronous reset and continuous outputs, on the ordinary E route, over every run
@@ -38,6 +38,10 @@ namespace Examples.«system-verilog».seq_cycle.valid_proof
 
 load_design_sv2 vc from "Examples/system-verilog/seq_valid_chain/valid_chain_profile.sv.json"
 
+-- The instantiation at every width, computed once (`vc.mirror`, `vc.mirror_eq`, `vc.mirror_def`).
+set_option maxHeartbeats 1000000 in
+seq_mirror (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : vc.e W
+
 -- A run on the route at `W = 8` (compiled): reset, load 0x5a, hold, load 0x3c.
 #guard (match vc.e 8 with
   | .ok E => match runCoreMemRows E E.initial (cycleRows "clk"
@@ -56,20 +60,15 @@ load_design_sv2 vc from "Examples/system-verilog/seq_valid_chain/valid_chain_pro
 set_option maxHeartbeats 1000000 in
 theorem vc_structure (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) :
     SeqDesign (vc.e W) "clk" := by
-  cases hE : vc.e W with
-  | ok E =>
-      sv_seq_inst [vc.e, vc.pdesign] at hE
-      subst hE
-      exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
-  | timeout => sv_seq_inst [vc.e, vc.pdesign] at hE
-  | unsupported m => sv_seq_inst [vc.e, vc.pdesign] at hE
+  rw [vc.mirror_eq W h1 h2, vc.mirror_def]
+  exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
 
 /-- **The interface**: the ports with their declared widths, in declaration order. -/
 theorem vc_ports (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) :
     SeqPorts (vc.e W) [("clk", 1), ("rst", 1), ("valid_i", 1), ("ready_i", 1), ("data_i", W)] [("valid_o", 1), ("data_o", W)] := by
   obtain ⟨E, hE, -, -⟩ := vc_structure W h1 h2
   refine ⟨E, hE, ?_⟩
-  sv_seq_inst [vc.e, vc.pdesign] at hE
+  sv_seq_use [vc.mirror_eq W h1 h2, vc.mirror_def] at hE
   subst hE
   constructor <;> sv_seq_ports
 
@@ -104,7 +103,7 @@ theorem vc_cycle (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) {E : CoreMemDesign} 
           vcView ⟨#[.l1]⟩ r' vi' ry' di' (vcNext r' ry' vi' vq ⟨#[.l0]⟩) (vcNext r' ry' di' dq (LVec.ofBitVec 0#W))
             (vcNext r' ry' vi' vq ⟨#[.l0]⟩) (vcNext r' ry' di' dq (LVec.ofBitVec 0#W))) := by
   intro r' vi' ry' di'
-  sv_seq_inst [vc.e, vc.pdesign] at hE
+  sv_seq_use [vc.mirror_eq W h1 h2, vc.mirror_def] at hE
   -- the widths of the applied inputs (the entry is typed)
   have hw : ∀ n old w, ((n = "rst" ∨ n = "valid_i" ∨ n = "ready_i") ∧ w = 1 ∨ n = "data_i" ∧ w = W) →
       old.width = w → (applied d n old).width = w := by
@@ -307,7 +306,7 @@ after a reset cycle, the inputs after a loading cycle, and the previous outputs 
 theorem vc_runs (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : SeqRuns (vc.e W) "clk" (VcClaim W) := by
   obtain ⟨E, hE, hP, -⟩ := vc_structure W h1 h2
   have hE0 := hE
-  sv_seq_inst [vc.e, vc.pdesign] at hE0
+  sv_seq_use [vc.mirror_eq W h1 h2, vc.mirror_def] at hE0
   refine SeqRuns.intro hE hP (by subst hE0; rfl) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
     (fun v => ∃ c r vi ry di vo dout vq dq, v = vcView c r vi ry di vo dout vq dq ∧ r.width = 1 ∧
       vi.width = 1 ∧ ry.width = 1 ∧ di.width = W ∧ dout.width = W ∧ vq.width = 1 ∧ dq.width = W) ?_ ?_ ?_

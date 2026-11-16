@@ -45,6 +45,10 @@ namespace Examples.«system-verilog».seq_cycle.rf_proof
 set_option maxRecDepth 100000 in
 load_design_sv2 rf from "Examples/system-verilog/sem2/unpacked_cpuregs_e/unpacked_cpuregs_e.sv.json"
 
+-- The instantiation at every depth, computed once (`rf.mirror`, `rf.mirror_eq`); the stages below read it.
+set_option maxHeartbeats 1000000 in
+seq_mirror (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) : rf.e N
+
 -- A run on the route at `N = 4` (compiled): write 5 at 1, read 1 (shows 5), write 9 at 7 (out of range: nothing),
 -- read 1 again, write with an x address (nothing), read 1.
 #guard (match rf.e 4 with
@@ -155,24 +159,23 @@ theorem rf_cycle (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign} 
   obtain ⟨c, ra, wa, wd, we, rd, hv, hc, hra, hwa, hwd, hwe, hrd, hmw⟩ := hσ
   dsimp only at hv hmw
   subst hv
-  have hE0 := hE
-  sv_seq_inst [rf.e, rf.pdesign] at hE0
+  have hE0 : rf.mirror N = E := Res.ok.inj ((rf.mirror_eq N h1 h2).symm.trans hE)
   -- the applied inputs and their widths
   have hshape : E.ShapeV (view c ra wa wd we rd) := by
-    subst hE0; simp [CoreMemDesign.ShapeV, view, hc, hra, hwa, hwd, hwe, hrd]
+    subst hE0; simp [rf.mirror_def, CoreMemDesign.ShapeV, view, hc, hra, hwa, hwd, hwe, hrd]
   have hdi : E.dataInputs "clk" = ["raddr", "waddr", "wdata", "we"] := by
-    subst hE0; simp [CoreMemDesign.dataInputs, Elab.toDesign2, Design2.inputNames]
+    subst hE0; simp [rf.mirror_def, CoreMemDesign.dataInputs, Elab.toDesign2, Design2.inputNames]
   have hwidth : ∀ n w x, n ∈ E.dataInputs "clk" → E.scalar.toDesign2.declWidth n = some w →
       SvState.lookup (view c ra wa wd we rd) n = some x → x.width = w →
       (appliedIn dt (view c ra wa wd we rd) n).width = w :=
     fun n w x hn hw hx hxw => CoreMemDesign.appliedIn_width hd hn hw hx hxw
-  have hra' := hwidth "raddr" 5 ra (by simp [hdi]) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
+  have hra' := hwidth "raddr" 5 ra (by simp [hdi]) (by subst hE0; simp [rf.mirror_def, Elab.toDesign2, Design2.declWidth])
     (by simp [view, SvState.lookup]) hra
-  have hwa' := hwidth "waddr" 5 wa (by simp [hdi]) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
+  have hwa' := hwidth "waddr" 5 wa (by simp [hdi]) (by subst hE0; simp [rf.mirror_def, Elab.toDesign2, Design2.declWidth])
     (by simp [view, SvState.lookup]) hwa
-  have hwd' := hwidth "wdata" 32 wd (by simp [hdi]) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
+  have hwd' := hwidth "wdata" 32 wd (by simp [hdi]) (by subst hE0; simp [rf.mirror_def, Elab.toDesign2, Design2.declWidth])
     (by simp [view, SvState.lookup]) hwd
-  have hwe' := hwidth "we" 1 we (by simp [hdi]) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
+  have hwe' := hwidth "we" 1 we (by simp [hdi]) (by subst hE0; simp [rf.mirror_def, Elab.toDesign2, Design2.declWidth])
     (by simp [view, SvState.lookup]) hwe
   refine ⟨?_, rfF_inv hmw hra' hwa' hwd' hwe'⟩
   rw [CoreMemDesign.cycleMV_applied hP mv hshape dt, CoreMemDesign.appliedEntry, hdi]
@@ -184,7 +187,7 @@ theorem rf_cycle (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign} 
   generalize appliedIn dt (view c ra wa wd we rd) "we" = we' at hwe' ⊢
   sv_seq_cycle hcyc : E.cycleMV "clk" (view c ra wa wd we rd, mv)
       [("raddr", ra'), ("waddr", wa'), ("wdata", wd'), ("we", we')] using hE0
-    [view, hc, hra, hwa, hwd, hwe, hrd, hra', hwa', hwd', hwe', hmw]
+    [rf.mirror_def, view, hc, hra, hwa, hwd, hwe, hrd, hra', hwa', hwd', hwe', hmw]
   rw [hcyc]
   simp only [rf_index h1, view]
   -- the post read is the read of the post memory (one decision, `we`)
@@ -293,9 +296,8 @@ set_option maxHeartbeats 1000000 in
 stimulus. -/
 theorem rf_runs (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) : SeqRunsM (rf.e N) "clk" (RfClaim N) := by
   obtain ⟨E, hE, hP, -⟩ := rf_structure N h1 h2
-  have hE0 := hE
-  sv_seq_inst [rf.e, rf.pdesign] at hE0
-  refine SeqRunsM.of_cycleFn hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) RfInv ?_
+  have hE0 : rf.mirror N = E := Res.ok.inj ((rf.mirror_eq N h1 h2).symm.trans hE)
+  refine SeqRunsM.of_cycleFn hE hP (by subst hE0; simp [rf.mirror_def, Elab.toDesign2, Design2.declWidth]) RfInv ?_
     (rfF N) (fun σ dt hσ hd => rf_cycle N h1 h2 hE σ dt hσ hd)
     (fun σ ins _ _ => rfClaim_of_runF N σ ins)
   intro st hc hmc
@@ -305,9 +307,9 @@ theorem rf_runs (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) : SeqRunsM (rf.e N) "
   generalize E.scalar.view st.scalar = v at hk hw ⊢
   generalize E.memOf st.memory = mv at hms ⊢
   subst hE0
-  simp [CoreMemDesign.MemShapeV] at hms
+  simp [rf.mirror_def, CoreMemDesign.MemShapeV] at hms
   rcases v with _ | ⟨⟨n1, x1⟩, _ | ⟨⟨n2, x2⟩, _ | ⟨⟨n3, x3⟩, _ | ⟨⟨n4, x4⟩, _ | ⟨⟨n5, x5⟩, _ | ⟨⟨n6, x6⟩,
-    _ | ⟨_, _⟩⟩⟩⟩⟩⟩⟩ <;> simp at hk hw
+    _ | ⟨_, _⟩⟩⟩⟩⟩⟩⟩ <;> simp [rf.mirror_def] at hk hw
   obtain ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩ := hk
   refine ⟨x1, x2, x3, x4, x5, x6, rfl, hw.1, hw.2.1, hw.2.2.1, hw.2.2.2.1, hw.2.2.2.2.1, hw.2.2.2.2.2, ?_⟩
   intro k

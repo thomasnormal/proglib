@@ -356,7 +356,114 @@ theorem SeqRuns.of_cycleFn {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : St
 
 #print axioms SeqRuns.of_cycleFn
 
-/-! ## A cycle reads its data entry only through the values it applies -/
+/-! ## Runs from per-signal equations: the prover never writes the cycle function
+
+A prover states only the equations a claim reads, as a relation `Step σ d (pre, post)` between the state before a cycle,
+its data and its samples (`lookup post "q" = some …`, one conjunct per signal; a memory view's write equation), with an
+invariant. `CycleEqs`/`CycleEqsM` say every cycle from the invariant exists, keeps it and satisfies `Step`;
+`RunSat Step σ ins tr` says the samples of a run satisfy `Step` cycle by cycle (each cycle from the previous post
+sample); `SeqRuns.of_cycleEqs`/`SeqRunsM.of_cycleEqs` close the run judgment from the two, and `RunSat.get` indexes a
+run. -/
+
+/-- The samples `tr` of a run from `σ` on the data list satisfy `Step` cycle by cycle, each cycle from the previous
+post sample. -/
+def RunSat {α : Type} (Step : α → SvState → α × α → Prop) : α → List SvState → List (α × α) → Prop
+  | _, [], tr => tr = []
+  | σ, d :: ds, tr => ∃ pp rest, tr = pp :: rest ∧ Step σ d pp ∧ RunSat Step pp.2 ds rest
+
+/-- **Cycle `c` of a run satisfying `Step`**: the state before it is the start (cycle 0) or the previous cycle's post
+sample, and the cycle satisfies `Step` from it on its data. -/
+theorem RunSat.get {α : Type} {Step : α → SvState → α × α → Prop} :
+    ∀ {σ : α} {ins : List SvState} {tr : List (α × α)}, RunSat Step σ ins tr → ∀ {c : Nat} {pp : α × α},
+      tr[c]? = some pp → ∃ σc d, ins[c]? = some d ∧ Step σc d pp ∧ (c = 0 → σc = σ) ∧
+        ∀ pp', tr[c - 1]? = some pp' → 1 ≤ c → σc = pp'.2
+  | _, [], tr, h, c, pp, hc => by
+      simp only [RunSat] at h
+      subst h
+      simp at hc
+  | σ, d :: ds, tr, h, c, pp, hc => by
+      obtain ⟨pp0, rest, rfl, hs, hr⟩ := h
+      cases c with
+      | zero =>
+          simp only [List.getElem?_cons_zero, Option.some.injEq] at hc
+          subst hc
+          exact ⟨σ, d, rfl, hs, fun _ => rfl, fun _ _ h => absurd h (by omega)⟩
+      | succ c =>
+          simp only [List.getElem?_cons_succ] at hc
+          obtain ⟨σc, d', hd', hs', h0, hprev⟩ := RunSat.get hr hc
+          refine ⟨σc, d', by simpa using hd', hs', fun h => absurd h (by omega), fun pp' hpp' _ => ?_⟩
+          cases c with
+          | zero =>
+              simp only [Nat.add_sub_cancel, List.getElem?_cons_zero, Option.some.injEq] at hpp'
+              subst hpp'
+              exact h0 rfl
+          | succ c =>
+              simp only [Nat.add_sub_cancel, List.getElem?_cons_succ] at hpp'
+              exact hprev pp' (by simpa using hpp') (by omega)
+
+/-- **The cycle equations of a design without memories, as a relation**: from every view keeping `Inv`, on every
+typed data entry, the cycle exists, keeps `Inv`, and satisfies `Step`. -/
+def CoreMemDesign.CycleEqs (E : CoreMemDesign) (clk : String) (Inv : SvState → Prop)
+    (Step : SvState → SvState → SvState × SvState → Prop) : Prop :=
+  ∀ v d, Inv v → E.DataTyped clk d → ∃ pp, E.cycleV clk v d = .ok pp ∧ Inv pp.2 ∧ Step v d pp
+
+/-- **The cycle equations as a relation**, with memories: from every state keeping `Inv`, on every typed data entry,
+the cycle exists, keeps `Inv`, and satisfies `Step`. -/
+def CoreMemDesign.CycleEqsM (E : CoreMemDesign) (clk : String) (Inv : SvState × MemV → Prop)
+    (Step : SvState × MemV → SvState → (SvState × MemV) × (SvState × MemV) → Prop) : Prop :=
+  ∀ σ d, Inv σ → E.DataTyped clk d → ∃ pp, E.cycleMV clk σ d = .ok pp ∧ Inv pp.2 ∧ Step σ d pp
+
+/-- **How a `SeqRunsM` claim is proved from per-signal equations**: the profile, an invariant every coherent state's
+views have, the cycle equations as a relation, and the claim about every run whose samples satisfy them. -/
+theorem SeqRunsM.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
+    {P : List ((SvState × MemV) × (SvState × MemV)) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
+    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState × MemV → Prop)
+    (hinv : ∀ st, E.Coherent st → E.MemCoherent st.memory → Inv (E.scalar.view st.scalar, E.memOf st.memory))
+    (Step : SvState × MemV → SvState → (SvState × MemV) × (SvState × MemV) → Prop) (heqs : E.CycleEqsM clk Inv Step)
+    (hrun : ∀ σ ins tr, Inv σ → (∀ d ∈ ins, E.DataTyped clk d) → RunSat Step σ ins tr → P tr) :
+    SeqRunsM r clk P := by
+  refine SeqRunsM.intro hr hP hclk Inv hinv
+    (fun σ d hσ hd => by obtain ⟨⟨pre, post⟩, h1, h2, -⟩ := heqs σ d hσ hd; exact ⟨pre, post, h1, h2⟩) ?_
+  intro σ ins tr hσ hd htr
+  refine hrun σ ins tr hσ hd ?_
+  induction ins generalizing σ tr with
+  | nil =>
+      simp only [CoreMemDesign.runMV, Res.ok.injEq] at htr
+      exact htr.symm
+  | cons d ds ih =>
+      simp only [CoreMemDesign.runMV, Res.bind_eq_ok, Res.ok.injEq] at htr
+      obtain ⟨pp, hcyc, rest, hrest, rfl⟩ := htr
+      obtain ⟨pp', h1, h2, h3⟩ := heqs σ d hσ (hd d (by simp))
+      rw [h1, Res.ok.injEq] at hcyc
+      subst hcyc
+      exact ⟨pp', rest, rfl, h3, ih pp'.2 rest h2 (fun d' h' => hd d' (by simp [h'])) hrest⟩
+
+#print axioms SeqRunsM.of_cycleEqs
+
+/-- **How a `SeqRuns` claim is proved from per-signal equations, for a design without memories.** -/
+theorem SeqRuns.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
+    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hm : E.memories.toList = [])
+    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop) (hinv : ∀ v, E.ShapeV v → Inv v)
+    (Step : SvState → SvState → SvState × SvState → Prop) (heqs : E.CycleEqs clk Inv Step)
+    (hrun : ∀ v ins tr, Inv v → (∀ d ∈ ins, E.DataTyped clk d) → RunSat Step v ins tr → P tr) :
+    SeqRuns r clk P := by
+  refine SeqRuns.intro hr hP hm hclk Inv hinv
+    (fun v d hv hd => by obtain ⟨⟨pre, post⟩, h1, h2, -⟩ := heqs v d hv hd; exact ⟨pre, post, h1, h2⟩) ?_
+  intro v ins tr hv hd htr
+  refine hrun v ins tr hv hd ?_
+  induction ins generalizing v tr with
+  | nil =>
+      simp only [CoreMemDesign.runV, Res.ok.injEq] at htr
+      exact htr.symm
+  | cons d ds ih =>
+      simp only [CoreMemDesign.runV, Res.bind_eq_ok, Res.ok.injEq] at htr
+      obtain ⟨pp, hcyc, rest, hrest, rfl⟩ := htr
+      obtain ⟨pp', h1, h2, h3⟩ := heqs v d hv (hd d (by simp))
+      rw [h1, Res.ok.injEq] at hcyc
+      subst hcyc
+      exact ⟨pp', rest, rfl, h3, ih pp'.2 rest h2 (fun d' h' => hd d' (by simp [h'])) hrest⟩
+
+#print axioms SeqRuns.of_cycleEqs
 
 /-- A typed data entry binds an input at its declared width. -/
 theorem CoreMemDesign.DataTyped.width {E : CoreMemDesign} {clk : String} {d : SvState} (hd : E.DataTyped clk d)
