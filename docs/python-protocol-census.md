@@ -908,6 +908,13 @@ frame state.  Generalizing it requires a child bridge at `fuel - 1` plus the
 heap-aware unary worker relation; extending the literal theorem with more
 operator cases would recreate the fixed-shape matrix.
 
+The binary literal bridge shows the reusable shape more clearly: it invokes a
+left-child bridge, quantifies the right-child bridge over the threaded frame
+state, then applies the shared `binOp` worker.  Its current theorem fixes both
+children to integer constants and one operator, but the proof structure points
+directly to the generic relation: two child bridges plus a worker refinement,
+with no new list-length matrix required.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
