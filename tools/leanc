@@ -140,6 +140,11 @@ def classify_sanitizer_mismatch(model, san):
     """
     if model.get("verdict") == "REFUSE":
         return "REFUSE"
+    # A timed-out model established no result.  Sanitizer evidence from the
+    # native run cannot turn an incomplete proof into a model disagreement;
+    # preserve the model's loud timeout classification.
+    if model.get("verdict") == "TIMEOUT":
+        return "TIMEOUT"
     stderr = san.get("stderr", "")
     if "LeakSanitizer" in stderr and "AddressSanitizer: heap-use-after" not in stderr:
         return "ORACLE"
@@ -192,6 +197,11 @@ def main(argv=None):
                                            {"returncode": 1,
                                             "stderr": "LeakSanitizer: detected memory leaks"}) != "ORACLE":
                 print("leanc --self-test: leak cleanup was misclassified", file=sys.stderr)
+                return 1
+            if classify_sanitizer_mismatch({"verdict": "TIMEOUT"},
+                                           {"returncode": 1,
+                                            "stderr": "runtime error: UB"}) != "TIMEOUT":
+                print("leanc --self-test: timeout with sanitizer UB was misclassified", file=sys.stderr)
                 return 1
             source = Path(d) / "ok.c"
             source.write_text("int main(void) { return 0; }\n")
