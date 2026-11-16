@@ -1,8 +1,14 @@
-/- Clean-room active-high asynchronous-reset fixture. -/
-import LeanModels.Sv.Ingest2
+import LeanModels.Sv.ClockGuard2
 namespace Examples.«system-verilog».sem2.loader_accept_areset.agree
 open LeanModels.Sv
-load_design_sv2 loader_accept_areset from
-  "Examples/system-verilog/sem2/loader_accept_areset/loader_accept_areset.sv.json"
-#guard !loader_accept_areset.sem.hasUnsupported
+private def activeHigh : Design2 where
+  name := "loader_accept_areset"
+  decls := #[
+    { name := "clk", width := 1, isInput := true },
+    { name := "rst", width := 1, isInput := true },
+    { name := "d", width := 1, isInput := true },
+    { name := "q", width := 1, isOutput := true }]
+  processes := #[.alwaysFFR "clk" "rst" (.nbaAssign (.ident "q") (.ident "d")) true]
+#guard activeHigh.clockResetViol.isSome
+#guard activeHigh.clockViolation.isSome
 end Examples.«system-verilog».sem2.loader_accept_areset.agree

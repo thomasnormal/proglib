@@ -287,8 +287,11 @@ def Design2.clockResetViol (d : Design2) : Option (String × String) :=
   let clks := d.clockNames
   d.processes.toList.findSome? fun p =>
     match p with
-    | .alwaysFFR c rn _ _ =>
-        if !d.isInputPort rn then
+    | .alwaysFFR c rn _ high =>
+        if high then
+          some ("Clock:async-reset",
+            s!"{p.clkDesc} uses an active-high asynchronous reset {clkQ rn}; the canonical clocked tier retains only the IEEE 1800-2023 active-low reset event form and refuses this §9.4 shape")
+        else if !d.isInputPort rn then
           some ("Clock:reset",
             s!"{p.clkDesc} uses {clkQ rn} as its asynchronous reset, which is not an input port of module {clkQ d.name} (it is {d.clockOrigin rn}): a reset the design generates itself is a real asynchronous event in hardware but only a value at a snapshot in the cycle semantics (the reset-event phase compares the settled inputs between snapshots); name an input port as the reset")
         else if rn == c then
