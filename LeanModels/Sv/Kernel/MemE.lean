@@ -757,7 +757,7 @@ def memEEdgeBodyListAdmission : List PStmt → Except String Unit
 end
 
 def memEProcessAdmission : PProcess → Except String Unit
-  | .alwaysFF _ body | .alwaysPlain _ body => memEEdgeBodyAdmission body
+  | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body => memEEdgeBodyAdmission body
   | .alwaysFFR _ _ body false => memEEdgeBodyAdmission body
   | .alwaysFFR _ _ _ true =>
       .error "E memory route does not yet admit active-high asynchronous reset events"

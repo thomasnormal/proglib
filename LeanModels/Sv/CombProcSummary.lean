@@ -103,6 +103,7 @@ theorem siteOfP?_cases {ds : List DeclT} {pos : Nat} {p : PProcess} {st : TSite}
   | assign t v => left; exact h
   | assignL l v => left; exact h
   | alwaysFF _ _ => left; exact h
+  | alwaysFFNegedge _ _ => left; exact h
   | alwaysPlain _ _ => left; exact h
   | alwaysImplicit _ => left; exact h
   | alwaysFFR _ _ _ _ => left; exact h
