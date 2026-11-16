@@ -101,8 +101,7 @@ macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : 
     simp only [LeanModels.Sv.Kernel.PDesign.instantiateE2, LeanModels.Sv.Kernel.PDesign.instantiateCoreMem,
       LeanModels.Sv.Kernel.PDesign.instantiateCoreMemFrom, $ls,*] at $h:ident
     sv_seq_inst_pass [$ls,*] at $h:ident
-    (try sv_seq_arith_pass at $h:ident)
-    (try sv_seq_inst_pass [$ls,*] at $h:ident)))
+    (try sv_seq_arith_pass at $h:ident)))
 
 /-- **`sv_seq_profile`**: the clocked profile of a normal form, decided by `simp`. -/
 macro "sv_seq_profile" : tactic =>
