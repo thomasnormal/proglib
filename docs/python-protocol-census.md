@@ -1022,6 +1022,12 @@ consumed by the existing `%%` branch and contributes one literal percent to the
 accumulator before the unchanged suffix walk; token lookup and conversion stay
 outside this structural theorem.
 
+`Monadic.strFormatMappingWalk_plain_then_token` composes a safe arbitrary
+literal prefix directly with the existing mapping-token branch.  It preserves
+the heap lookup, conversion, key-error, timeout, and refusal outcomes while
+threading the prefix accumulator and fuel exactly once; the token parser is
+still consumed through its own equation theorem.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
