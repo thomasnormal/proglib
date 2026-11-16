@@ -6261,6 +6261,32 @@ theorem strFormatMappingWalk_incomplete_percent
       .exn (.valueError "incomplete format") := by
   rfl
 
+theorem strFormatMapToken_go_append
+    (pre suffix : List Char) (conv : Char) (rest : List Char)
+    (hsafe : ∀ c ∈ suffix, c ≠ ')') :
+    strFormatMapToken.go pre (suffix ++ ')' :: conv :: rest) =
+      some (String.ofList pre ++ String.ofList suffix, conv, rest) := by
+  induction suffix generalizing pre with
+  | nil =>
+      rw [List.nil_append, strFormatMapToken.go.eq_2]
+      simp
+  | cons x xs ih =>
+      have hx : x ≠ ')' := hsafe x (by simp)
+      have hxs : ∀ c ∈ xs, c ≠ ')' := by
+        intro c hc
+        exact hsafe c (by simp [hc])
+      rw [List.cons_append]
+      rw [strFormatMapToken.go.eq_3 (x_1 := by
+        intro c rest hxc _
+        exact hx hxc)]
+      rw [ih (pre := pre ++ [x]) hxs]
+      congr 1
+      congr 1
+      change String.ofList (pre ++ [x]) ++ String.ofList xs =
+        String.ofList pre ++ String.ofList (x :: xs)
+      rw [String.ofList_append, String.ofList_cons]
+      simp only [String.ofList_cons, String.ofList_nil, String.append_empty, String.append_assoc]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

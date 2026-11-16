@@ -1029,6 +1029,13 @@ approved-parser rule.  The admissible route is an equation theorem generated
 from the existing definition (or a refactoring of the definition itself that
 preserves its parser semantics); no mirrored helper is introduced here.
 
+`Monadic.strFormatMapToken_go_append` is the admissible equation theorem from
+the generated local recursion.  Under the explicit invariant that the key
+prefix contains no closing parenthesis, it relates arbitrary accumulator and
+suffix lists to the parsed `(key, conversion, rest)` result while preserving
+`String.ofList` concatenation.  This exposes the parser's own equation without
+introducing a second parser.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
