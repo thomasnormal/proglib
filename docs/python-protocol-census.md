@@ -810,6 +810,14 @@ world-state obligation.
 lookup through the frame's global view returns exactly the current
 `World.globals` binding while leaving the frame state unchanged.
 
+The attempted scalar-name expression bridge is deliberately not stated as an
+`envGet` theorem: `envGet` is the local/cell lookup primitive and returns
+`none` for a global-only name.  The global fallback is inline in `evalOpen` and
+also depends on the module-global census, builtins, function tables, and the
+name-error recursion check.  A sound expression adequacy theorem therefore
+needs that combined resolver extracted or related to the legacy evaluator; a
+local-only lemma would claim the wrong result for a declared global.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
