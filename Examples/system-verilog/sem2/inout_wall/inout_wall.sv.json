@@ -1,0 +1,316 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "inout_repro",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/inout_wall/inout_wall.sv",
+      "sha256": "0148482c461570862e73558dfb71cd15d2cde25192def52faf8633df06e48536"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 5,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "inout_repro",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 31,
+              "end_line": 5,
+              "end_col": 36
+            },
+            "name": "drive",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 5,
+              "col": 49,
+              "end_line": 5,
+              "end_col": 52
+            },
+            "sv_kind": "PortSymbol:InOut",
+            "text": "pad"
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 66,
+              "end_line": 5,
+              "end_col": 70
+            },
+            "name": "seen",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "net_as_variable": true
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 6,
+              "col": 14,
+              "end_line": 6,
+              "end_col": 58
+            },
+            "name": "child",
+            "module": "inout_leaf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "Unsupported",
+                "span": {
+                  "line": 6,
+                  "col": 14,
+                  "end_line": 6,
+                  "end_col": 58
+                },
+                "sv_kind": "PortConnection:InOut",
+                "text": "pad"
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 6,
+                  "col": 38,
+                  "end_line": 6,
+                  "end_col": 43
+                },
+                "port": "drive",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 6,
+                    "col": 38,
+                    "end_line": 6,
+                    "end_col": 43
+                  },
+                  "width": 1,
+                  "name": "drive"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 6,
+                  "col": 52,
+                  "end_line": 6,
+                  "end_col": 56
+                },
+                "port": "seen",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 6,
+                    "col": 52,
+                    "end_line": 6,
+                    "end_col": 56
+                  },
+                  "width": 1,
+                  "name": "seen"
+                }
+              }
+            ]
+          }
+        ],
+        "others": []
+      },
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 4,
+          "end_col": 10
+        },
+        "name": "inout_leaf",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 1,
+              "col": 30,
+              "end_line": 1,
+              "end_col": 33
+            },
+            "sv_kind": "PortSymbol:InOut",
+            "text": "pad"
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 46,
+              "end_line": 1,
+              "end_col": 51
+            },
+            "name": "drive",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 65,
+              "end_line": 1,
+              "end_col": 69
+            },
+            "name": "seen",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "net_as_variable": true
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 2,
+              "col": 10,
+              "end_line": 2,
+              "end_col": 35
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 2,
+                "col": 10,
+                "end_line": 2,
+                "end_col": 13
+              },
+              "width": 1,
+              "name": "pad"
+            },
+            "value": {
+              "kind": "Ternary",
+              "span": {
+                "line": 2,
+                "col": 16,
+                "end_line": 2,
+                "end_col": 35
+              },
+              "width": 1,
+              "cond": {
+                "kind": "Ident",
+                "span": {
+                  "line": 2,
+                  "col": 16,
+                  "end_line": 2,
+                  "end_col": 21
+                },
+                "width": 1,
+                "name": "drive"
+              },
+              "then": {
+                "kind": "Literal",
+                "span": {
+                  "line": 2,
+                  "col": 24,
+                  "end_line": 2,
+                  "end_col": 28
+                },
+                "width": 1,
+                "bits": "1"
+              },
+              "else": {
+                "kind": "Literal",
+                "span": {
+                  "line": 2,
+                  "col": 31,
+                  "end_line": 2,
+                  "end_col": 35
+                },
+                "width": 1,
+                "bits": "z"
+              }
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 3,
+              "col": 10,
+              "end_line": 3,
+              "end_col": 20
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 10,
+                "end_line": 3,
+                "end_col": 14
+              },
+              "width": 1,
+              "name": "seen"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 17,
+                "end_line": 3,
+                "end_col": 20
+              },
+              "width": 1,
+              "name": "pad"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
