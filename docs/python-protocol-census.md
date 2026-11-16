@@ -1077,6 +1077,13 @@ segment.  It applies the token result to the reverse structural continuation,
 preserving all non-success outcomes and keeping both segment lengths
 parametric.
 
+`Monadic.strFormatMappingWalk_segment_chain` generalizes the structural prefix
+composition to an arbitrary list of `(literal characters, escaped-pair count)`
+segments.  Induction on the segment list composes the existing continuation
+theorems and carries a single no-`%` invariant for every literal segment, so
+fuel and accumulator accounting are length-parametric without fixed-count
+matrices.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain

@@ -6701,6 +6701,53 @@ theorem strFormatMappingWalk_token_then_escaped_then_plain
     · rfl
   · rfl
 
+private def mappingPrefixInput : List (List Char × Nat) → List Char
+  | [] => []
+  | (chars, n) :: rest => chars ++ escapedPercentPrefix n ++ mappingPrefixInput rest
+
+private def mappingPrefixCost : List (List Char × Nat) → Nat
+  | [] => 0
+  | (chars, n) :: rest => chars.length + n + mappingPrefixCost rest
+
+private def mappingPrefixOutput : List (List Char × Nat) → String
+  | [] => ""
+  | (chars, n) :: rest =>
+      String.ofList chars ++ escapedPercentOutput n ++ mappingPrefixOutput rest
+
+theorem strFormatMappingWalk_segment_chain
+    (h : Heap) (a : Addr) (fuel : Nat)
+    (segments : List (List Char × Nat)) (rest : List Char) (acc : String)
+    (hsafe : ∀ seg ∈ segments, ∀ c ∈ seg.1, c ≠ '%') :
+    strFormatMappingWalk h a (fuel + mappingPrefixCost segments)
+      (mappingPrefixInput segments ++ rest) acc =
+      strFormatMappingWalk h a fuel rest
+        (acc ++ mappingPrefixOutput segments) := by
+  induction segments generalizing fuel rest acc with
+  | nil => simp [mappingPrefixCost, mappingPrefixInput, mappingPrefixOutput]
+  | cons seg segments ih =>
+      rcases seg with ⟨chars, n⟩
+      have hchars : ∀ c ∈ chars, c ≠ '%' := by
+        intro c hc
+        exact hsafe (chars, n) (by simp) c hc
+      have hsegments : ∀ seg ∈ segments, ∀ c ∈ seg.1, c ≠ '%' := by
+        intro seg hseg c hc
+        exact hsafe seg (by simp [hseg]) c hc
+      rw [show fuel + mappingPrefixCost ((chars, n) :: segments) =
+        (fuel + mappingPrefixCost segments) + chars.length + n by
+        simp [mappingPrefixCost]
+        omega]
+      rw [show mappingPrefixInput ((chars, n) :: segments) ++ rest =
+        chars ++ escapedPercentPrefix n ++
+          (mappingPrefixInput segments ++ rest) by
+        simp [mappingPrefixInput, List.append_assoc]]
+      rw [strFormatMappingWalk_plain_then_escaped h a
+        (fuel := fuel + mappingPrefixCost segments) n chars
+        (mappingPrefixInput segments ++ rest) acc hchars]
+      rw [ih (fuel := fuel) (rest := rest)
+        (acc := acc ++ String.ofList chars ++ escapedPercentOutput n)
+        hsegments]
+      simp [mappingPrefixOutput, String.append_assoc]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
