@@ -210,8 +210,9 @@ partial def isHD2Family (e : Lean.Expr) (fuel : Nat) : MetaM Bool := do
 `sv_equations` read a design whose instances are all at module level through its flat twin, `CombHier.lean`; the
 `always_comb` forms and `sv_interface` do not yet). -/
 def hierarchyRefusal (tac : String) : String :=
-  s!"{tac}: this design instantiates modules, and `{tac}` does not read module instances yet (`sv_structure` and " ++
-  "`sv_equations` read a design whose instances are all at module level through its flat twin, `CombHier.lean`). " ++
+  s!"{tac}: this design instantiates modules, and `{tac}` does not read module instances yet (`sv_structure`, " ++
+  "`sv_interface` and `sv_equations` read a design whose instances are all at module level through its flat twin, " ++
+  "`CombHier.lean`). " ++
   "The loader, the scorer and the post-synthesis check accept such a design. The stage can be proved by hand " ++
   "(`Examples/system-verilog/ripple_fa` is a worked by-hand proof of a hierarchical adder)"
 
@@ -3612,7 +3613,14 @@ change: the valuation is `Summary.val`.
 
 The goal may also be any statement about the port lists of `CombTask.lean` (`(X.sem N).inputPorts = …`,
 `(X.sem N).outputPorts = …`, their conjunction) or about `(X.sem N).decls` itself: a statement written over
-ls-sv alone, without a task structure (`Examples/system-verilog/prefix_ks/add_proof.lean`). -/
+ls-sv alone, without a task structure (`Examples/system-verilog/prefix_ks/add_proof.lean`).
+
+**The twins.** A design with signed reads is read through its unsigned twin, as `sv_structure` and `sv_equations` read
+it (`PDesign.unsign` maps the processes only, so the twin's summary has the design's declarations:
+`CombEq.decls_view_unsign`). A design with module instances at module level is read by the elaborator of
+`CombEqTactic.lean`: its ports are the parent's (`CombHier.instantiateHDAlias2_decls`, the children's declarations are
+hoisted with their port flags cleared). Neither asks an obligation of the bridge to its twin
+(`Examples/system-verilog/iface_twins`). -/
 
 /-- The design a goal about ports names: the argument of the first `Design2.inputPorts`, `Design2.outputPorts` or
 `Design2.decls` in it (the second form of `sv_interface`'s goal). -/
@@ -3662,8 +3670,13 @@ unsafe def runSvInterface : TacticM Unit := do
         if ← isDefEq t.appArg! D then hc? := some d.toExpr
     let some hcE := hc?
       | throwError "sv_interface: no hypothesis `CombDesign (X.sem N)` in the context (prove it with `sv_structure`, or take it from the `CombDesign ∧ Acyclic` bundle)"
-    match ← evalSummary pd with
-    | .error msg => throwError "sv_interface: outside the supported fragment — {msg}"
+    -- a design with signed reads is read through its unsigned twin, as `sv_structure` and `sv_equations` read it: the
+    -- twin has the design's declarations (`PDesign.unsign` maps the processes only), so its summary gives the ports
+    -- (`CombEq.decls_view_unsign`, no obligation of the bridge needed)
+    let signed ← hasSignedReads pd
+    let pdS := if signed then mkApp (mkConst ``LeanModels.Sv.PDesign.unsign) pd else pd
+    match ← evalSummary pdS with
+    | .error msg => throwError "sv_interface: outside the supported fragment — {msg}{if signed then " (in the unsigned twin of this design with signed reads, `CombSigned.lean`)" else ""}"
     | .ok s =>
       let probs := s.structProblems
       unless probs.isEmpty do
@@ -3681,9 +3694,14 @@ unsafe def runSvInterface : TacticM Unit := do
           let ty' := ty.replace fun e => if e == D then some D' else none
           replaceMainGoal [← goal.replaceTargetDefEq ty']
           Term.exprToSyntax hcE
-      evalTactic (← `(tactic|
-        have $keyI:ident := LeanModels.Sv.CombView.decls_view (s := ?s) (env := ?env) (hs := ?hs)
-            (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hc := $hcI)))
+      if signed then
+        evalTactic (← `(tactic|
+          have $keyI:ident := LeanModels.Sv.CombEq.decls_view_unsign (s := ?s) (env := ?env) (hs := ?hs)
+              (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hc := $hcI)))
+      else
+        evalTactic (← `(tactic|
+          have $keyI:ident := LeanModels.Sv.CombView.decls_view (s := ?s) (env := ?env) (hs := ?hs)
+              (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hc := $hcI)))
       let goals ← getGoals
       let named : List Name := [`s, `env, `hs, `h1, `hag, `hok]
       let mut bodyGoal? : Option MVarId := none
@@ -3712,7 +3730,7 @@ unsafe def runSvInterface : TacticM Unit := do
         catch _ =>
           -- false (or not evaluable): the kernel decision, for its own report, as before WP-P
           closeWith n what (← `(tactic| decide +kernel))
-      unless ← closeSummaryLit (← find `hs) pd s do
+      unless ← closeSummaryLit (← find `hs) pdS s do
         closeWith `hs "the recognizer's summary could not be computed by `rfl`" (← `(tactic| rfl))
       closeParamEnv "sv_interface" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_interface" (← find `hag) s args

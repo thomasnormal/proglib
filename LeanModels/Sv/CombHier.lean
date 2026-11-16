@@ -2366,7 +2366,212 @@ theorem instantiateHDAlias2_twin {d : PDesign} {lib : List PDesign} {args : List
   rw [hpe] at hb
   cases hb
 
+/-! ## The ports of a design with module instances (`sv_interface`)
+
+The hierarchical instantiation declares the parent's own declarations first and then every child's, hoisted under its
+instance prefix with both port flags cleared (`Decl.hoist`): a child's port is an internal signal of the parent. So the
+ports of `X.sem N` are the parent's, whatever the children are, and reading them needs the parent's declarations
+(`declsOf?`) and the parent's parameter stage only: no obligation of the flat twin's bridge
+(`instantiateHDAlias2_twin`). `sv_interface` applies `instantiateHDAlias2_decls`. -/
+
+/-- Declarations with both port flags cleared (the hoisted declarations of the children, `Decl.hoist`). -/
+def NoPortFlags (ds : List Decl) : Prop := ∀ dc ∈ ds, dc.isInput = false ∧ dc.isOutput = false
+
+theorem noPortFlags_nil : NoPortFlags [] := by simp [NoPortFlags]
+
+theorem noPortFlags_append {a b : List Decl} (ha : NoPortFlags a) (hb : NoPortFlags b) : NoPortFlags (a ++ b) := by
+  intro dc h
+  rcases List.mem_append.mp h with h | h
+  · exact ha dc h
+  · exact hb dc h
+
+theorem noPortFlags_hoist (pfx : String) (l : List Decl) : NoPortFlags (l.map (Decl.hoist pfx)) := by
+  intro dc h
+  obtain ⟨x, -, rfl⟩ := List.mem_map.mp h
+  exact ⟨rfl, rfl⟩
+
+/-- A `Res` bind that succeeded: its first step succeeded. -/
+theorem res_bind_ok {α β : Type} {r : Res α} {f : α → Res β} {b : β} (h : (r >>= f) = .ok b) :
+    ∃ a, r = .ok a ∧ f a = .ok b := by
+  cases r with
+  | ok a => exact ⟨a, rfl, h⟩
+  | timeout => cases h
+  | unsupported m => cases h
+
+/-- **The hoisted declarations of the generate walk with instances have no port flag**: the declarations
+`GenItem.expandH`, `expandListH` and `expandItersH` return are the children's, each through `Decl.hoist` (by strong
+induction on the size of the items, in the order of the definitions' termination measure: a list before the iterations
+of a loop over the same body). -/
+theorem expandH_noPortFlags (cb : ChildInst) (elems : List (String × Nat)) (F : Nat) (m : Nat) :
+    (∀ (l : List GenItem) (env : IEnv) (ds : List Decl) (ps : List Process2), sizeOf l = m →
+      expandListH cb env elems F l = .ok (ds, ps) → NoPortFlags ds) ∧
+    (∀ (it : GenItem) (env : IEnv) (ds : List Decl) (ps : List Process2), sizeOf it = m →
+      it.expandH cb env elems F = .ok (ds, ps) → NoPortFlags ds) ∧
+    (∀ (body : List GenItem) (g : String) (vs : List Int) (env : IEnv) (ds : List Decl) (ps : List Process2),
+      sizeOf body = m → expandItersH cb env elems F g vs body = .ok (ds, ps) → NoPortFlags ds) := by
+  induction m using Nat.strongRecOn with
+  | _ m ih =>
+  have hI : ∀ (it : GenItem) (env : IEnv) (ds : List Decl) (ps : List Process2), sizeOf it < m →
+      it.expandH cb env elems F = .ok (ds, ps) → NoPortFlags ds :=
+    fun it env ds ps hlt h => (ih _ hlt).2.1 it env ds ps rfl h
+  have hL : ∀ (l : List GenItem) (env : IEnv) (ds : List Decl) (ps : List Process2), sizeOf l < m →
+      expandListH cb env elems F l = .ok (ds, ps) → NoPortFlags ds :=
+    fun l env ds ps hlt h => (ih _ hlt).1 l env ds ps rfl h
+  have hV : ∀ (body : List GenItem) (g : String) (vs : List Int) (env : IEnv) (ds : List Decl) (ps : List Process2),
+      sizeOf body < m → expandItersH cb env elems F g vs body = .ok (ds, ps) → NoPortFlags ds :=
+    fun body g vs env ds ps hlt h => (ih _ hlt).2.2 body g vs env ds ps rfl h
+  -- the lists of size `m`: items and tails are smaller
+  have hLm : ∀ (l : List GenItem) (env : IEnv) (ds : List Decl) (ps : List Process2), sizeOf l = m →
+      expandListH cb env elems F l = .ok (ds, ps) → NoPortFlags ds := by
+    intro l env ds ps hsz h
+    cases l with
+    | nil =>
+        rw [expandListH_nil] at h
+        cases h
+        exact noPortFlags_nil
+    | cons it rest =>
+        rw [expandListH] at h
+        split at h
+        · obtain ⟨_, -, h⟩ := res_bind_ok h
+          cases h
+          exact noPortFlags_nil
+        · obtain ⟨⟨ds1, ps1⟩, h1, h⟩ := res_bind_ok h
+          obtain ⟨⟨ds2, ps2⟩, h2, h⟩ := res_bind_ok h
+          cases h
+          have hs1 : sizeOf it < m := by subst hsz; simp only [List.cons.sizeOf_spec]; omega
+          have hs2 : sizeOf rest < m := by subst hsz; simp only [List.cons.sizeOf_spec]; omega
+          exact noPortFlags_append (hI it env ds1 ps1 hs1 h1) (hL rest env ds2 ps2 hs2 h2)
+  refine ⟨hLm, ?_, ?_⟩
+  · -- the items of size `m`: the branches and the loop body are smaller
+    intro it env ds ps hsz h
+    cases it with
+    | process p =>
+        rw [GenItem.expandH] at h
+        cases h
+        exact noPortFlags_nil
+    | decl d =>
+        rw [GenItem.expandH] at h
+        cases h
+        exact noPortFlags_nil
+    | unsupported k t =>
+        rw [GenItem.expandH] at h
+        cases h
+        exact noPortFlags_nil
+    | inst i =>
+        rw [GenItem.expandH] at h
+        unfold instExpandH at h
+        split at h
+        · cases h
+        · obtain ⟨c, -, h⟩ := res_bind_ok h
+          cases h
+          exact noPortFlags_hoist _ _
+    | genIf cond thenB elseB =>
+        rw [GenItem.expandH] at h
+        split at h
+        · cases h
+        · split at h
+          · exact hL thenB env ds ps (by subst hsz; simp only [GenItem.genIf.sizeOf_spec]; omega) h
+          · exact hL elseB env ds ps (by subst hsz; simp only [GenItem.genIf.sizeOf_spec]; omega) h
+    | genFor label g initE bound step rc body =>
+        rw [GenItem.expandH] at h
+        split at h
+        · obtain ⟨vs, -, h⟩ := res_bind_ok h
+          exact hV body g vs env ds ps (by subst hsz; simp only [GenItem.genFor.sizeOf_spec]; omega) h
+        · cases h
+        · cases h
+  · -- the iterations over a body of size `m`: the body's list (size `m`, done above), then the other values
+    intro body g vs
+    induction vs with
+    | nil =>
+        intro env ds ps _ h
+        rw [expandItersH_nil] at h
+        cases h
+        exact noPortFlags_nil
+    | cons v vs ihv =>
+        intro env ds ps hsz h
+        rw [expandItersH] at h
+        obtain ⟨⟨ds1, ps1⟩, h1, h⟩ := res_bind_ok h
+        obtain ⟨⟨ds2, ps2⟩, h2, h⟩ := res_bind_ok h
+        cases h
+        exact noPortFlags_append (hLm body _ ds1 ps1 hsz h1) (ihv env ds2 ps2 hsz h2)
+
+/-- **The declarations of a comb design with module instances**: the parent's own declarations (its summary
+declarations `dsP`, evaluated at any valuation `σ` that agrees with the parent's parameter stage on their atoms), then
+declarations with no port flag (the children's, hoisted). Only the parent's declarations and its parameter stage are
+needed: the profile `hc` says the instantiation succeeded. -/
+theorem instantiateHDAlias2_decls {d : PDesign} {lib : List PDesign} {args : List Int} {dsP : List DeclT}
+    {σ : String → Int} {envP : IEnv} (hdsP : declsOf? d.decls = .ok dsP) (h1P : d.paramEnv2 args = .ok envP)
+    (hagd : ∀ dt ∈ dsP, ∀ n ∈ dt.affNames, envP.intVal? n = some (σ n))
+    (hc : CombDesign (d.instantiateHDAlias2 lib args)) :
+    ∃ rest, (d.instantiateHDAlias2 lib args).decls.toList = dsP.map (DeclT.toDecl σ) ++ rest ∧ NoPortFlags rest := by
+  -- the instantiation succeeded (an error design guarded is no comb design)
+  have hok : ∃ m, d.instantiateH lib args (PDesign.surfaceFuel args) = .ok m := by
+    cases h : d.instantiateH lib args (PDesign.surfaceFuel args) with
+    | ok m => exact ⟨m, rfl⟩
+    | timeout =>
+        exfalso
+        simp only [PDesign.instantiateHDAlias2, PDesign.instantiateHD2, h] at hc
+        obtain ⟨t, e, ws, hp, -⟩ := hc.assign 0 _ (by simp [Design2.errorDesign, Design2.aliasGuard]; rfl)
+        simp [aliasGuardProc] at hp
+    | unsupported msg =>
+        exfalso
+        simp only [PDesign.instantiateHDAlias2, PDesign.instantiateHD2, h] at hc
+        obtain ⟨t, e, ws, hp, -⟩ := hc.assign 0 _ (by simp [Design2.errorDesign, Design2.aliasGuard]; rfl)
+        simp [aliasGuardProc] at hp
+  obtain ⟨m, hm⟩ := hok
+  have hdecl : (d.instantiateHDAlias2 lib args).decls = m.decls := by
+    simp only [PDesign.instantiateHDAlias2, PDesign.instantiateHD2, hm, Design2.aliasGuard_decls]
+  rw [hdecl]
+  unfold PDesign.instantiateH PDesign.instantiateHFrom at hm
+  obtain ⟨m0, hrec, hm0⟩ := res_bind_ok hm
+  have hmd : m.decls = m0.decls := by
+    cases hm0
+    unfold PDesign.topGuard PDesign.driverGuard Design2.driverGuard
+    split
+    · rfl
+    · split <;> rfl
+  rw [hmd]
+  rw [PDesign.instantiateRec] at hrec
+  split at hrec
+  · cases hrec
+  · obtain ⟨env, henv, hrec⟩ := res_bind_ok hrec
+    obtain ⟨decls, hdecls, hrec⟩ := res_bind_ok hrec
+    obtain ⟨elems, -, hrec⟩ := res_bind_ok hrec
+    obtain ⟨⟨idecls, gens⟩, hexp, hrec⟩ := res_bind_ok hrec
+    cases hrec
+    rw [paramEnvH_int32, h1P] at henv
+    obtain rfl := Res.ok.inj henv
+    have h2 := buildDecls_summary (σ := σ) d.decls dsP hdsP envP hagd
+    rw [hdecls] at h2
+    cases h2
+    refine ⟨idecls, by simp, ?_⟩
+    exact (expandH_noPortFlags _ _ _ _).1 d.generates _ idecls gens rfl hexp
+
+/-- The tactic's form of `instantiateHDAlias2_decls`: the agreement as an equation of two maps over the constants
+`names` (the parent's, `parentNames d`: closed as `hag`), and the declarations' atoms among them (`hnames`, decided). -/
+theorem instantiateHDAlias2_decls_view {d : PDesign} {lib : List PDesign} {args : List Int} {dsP : List DeclT}
+    {names : List String} {σ : String → Int} {envP : IEnv} (hdsP : declsOf? d.decls = .ok dsP)
+    (h1P : d.paramEnv2 args = .ok envP) (hnames : ∀ dt ∈ dsP, ∀ n ∈ dt.affNames, n ∈ names)
+    (hagP : names.map (fun n => envP.intVal? n) = names.map (fun n => some (σ n)))
+    (hc : CombDesign (d.instantiateHDAlias2 lib args)) :
+    ∃ rest, (d.instantiateHDAlias2 lib args).decls.toList = dsP.map (DeclT.toDecl σ) ++ rest ∧ NoPortFlags rest :=
+  instantiateHDAlias2_decls hdsP h1P (fun dt hdt n hn => Agrees_of_map hagP n (hnames dt hdt n hn)) hc
+
+/-- The input-port filter over declarations with no port flag is empty. -/
+theorem NoPortFlags.filterMap_in {rest : List Decl} (h : NoPortFlags rest) {β : Type} (g : Decl → β) :
+    rest.filterMap (fun dc => if dc.isInput then some (g dc) else none) = [] :=
+  List.filterMap_eq_nil_iff.mpr fun dc hdc => by simp [(h dc hdc).1]
+
+/-- The output-port filter over declarations with no port flag is empty. -/
+theorem NoPortFlags.filterMap_out {rest : List Decl} (h : NoPortFlags rest) {β : Type} (g : Decl → β) :
+    rest.filterMap (fun dc => if dc.isOutput then some (g dc) else none) = [] :=
+  List.filterMap_eq_nil_iff.mpr fun dc hdc => by simp [(h dc hdc).2]
+
 /-! ## Axiom pins -/
+
+/-- info: 'LeanModels.Sv.CombHier.instantiateHDAlias2_decls' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms instantiateHDAlias2_decls
 
 /-- info: 'LeanModels.Sv.CombHier.instantiateHD2_twin' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

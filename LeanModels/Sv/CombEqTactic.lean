@@ -1128,6 +1128,135 @@ the flat elaborator's generic one.) -/
   let some (pd, lib, args) ← hierStructureDesign? | throwUnsupportedSyntax
   withDeepRec (runSvStructure none none none true (← hierHook pd lib args))
 
+/-! ## `sv_interface` on a design with module instances
+
+The ports of `X.sem N` are the parent's: the hierarchical instantiation hoists every child declaration with both port
+flags cleared (`CombHier.instantiateHDAlias2_decls`). The tactic reads the parent's declarations (`declsOf?`), evaluates
+them at the flat twin's valuation (the parent's parameters and localparams: `Summary.val` of the twin's summary), and
+closes the parent's parameter stage (`h1P`, as `h1`), the agreement on the parent's constants (`hagP`, as `hag`) and the
+declarations' atoms among them (`hnames`, decided). No obligation of the flat twin's bridge is asked: the profile
+`CombDesign (X.sem N)` in the context says the instantiation succeeded. The goal forms are the flat elaborator's. -/
+
+/-- Run the interface stage on a design with module instances (`D = X.sem N`, `(pd, lib, args)` its family). -/
+unsafe def runSvInterfaceHier (ty D pd lib args : Lean.Expr) : TacticM Unit := do
+  let goal ← getMainGoal
+  goal.withContext do
+    let taskForm := ty.isApp && ty.getAppNumArgs ≥ 3 && ty.getAppFn.isConst && (portsDesign? ty).isNone
+    let mut hc? : Option Lean.Expr := none
+    for d in ← getLCtx do
+      if d.isImplementationDetail then continue
+      let t ← instantiateMVars d.type
+      if t.getAppFn.isConstOf ``LeanModels.Sv.CombDesign && hc?.isNone then
+        if ← isDefEq t.appArg! D then hc? := some d.toExpr
+    let some hcE := hc?
+      | throwError "sv_interface: no hypothesis `CombDesign (X.sem N)` in the context (prove it with `sv_structure`, or take it from the `CombDesign ∧ Acyclic` bundle)"
+    let (twinE, _, pnames, _) ← mkHierTwin "sv_interface" pd lib
+    let sF ← match ← evalSummary twinE with
+      | .ok s => pure s
+      | .error msg => throwError "sv_interface: outside the supported fragment — {msg} (in the flat twin of this design with module instances, `CombHier.lean`)"
+    let dsTy := mkApp2 (mkConst ``Except [Level.zero, Level.zero]) (mkConst ``String)
+      (mkApp (mkConst ``List [Level.zero]) (mkConst ``LeanModels.Sv.CombView.DeclT))
+    let dsP ← match ← evalExpr (Except String (List DeclT)) dsTy
+        (mkApp (mkConst ``LeanModels.Sv.CombView.declsOf?) (mkApp (mkConst ``LeanModels.Sv.PDesign.decls) pd)) with
+      | .ok ds => pure ds
+      | .error msg => throwError "sv_interface: the parent's declarations are outside the supported fragment — {msg}"
+    -- the goal over the unfolded hierarchical family, so that the declarations' equation rewrites it syntactically
+    let D' := mkApp3 (mkConst ``LeanModels.Sv.PDesign.instantiateHDAlias2) pd lib args
+    let ty' := ty.replace fun e => if e == D then some D' else none
+    replaceMainGoal [← goal.replaceTargetDefEq ty']
+    let keyI := mkIdent `key
+    let pdT ← Term.exprToSyntax pd
+    let libT ← Term.exprToSyntax lib
+    let argsT ← Term.exprToSyntax args
+    let dsPT ← Term.exprToSyntax (toExpr dsP)
+    let namesT ← Term.exprToSyntax (toExpr pnames)
+    let σT ← Term.exprToSyntax (mkApp2 (mkConst ``LeanModels.Sv.CombView.Summary.val) (toExpr sF) args)
+    let hcT ← Term.exprToSyntax hcE
+    evalTactic (← `(tactic|
+      have $keyI:ident := LeanModels.Sv.CombHier.instantiateHDAlias2_decls_view (d := $pdT) (lib := $libT)
+          (args := $argsT) (dsP := $dsPT) (names := $namesT) (σ := $σT) (envP := ?envP) (hdsP := ?hdsP)
+          (h1P := ?h1P) (hnames := ?hnames) (hagP := ?hagP) (hc := $hcT)))
+    let goals ← getGoals
+    let named : List Name := [`envP, `hdsP, `h1P, `hnames, `hagP]
+    let mut bodyGoal? : Option MVarId := none
+    for g in goals do
+      unless named.contains (← g.getTag).eraseMacroScopes do
+        if bodyGoal?.isNone then bodyGoal? := some g
+    let some bodyGoal := bodyGoal?
+      | throwError "sv_interface: internal error: no main goal after introducing the declarations"
+    let find (n : Name) : TacticM MVarId := do
+      for g in goals do
+        if (← g.getTag).eraseMacroScopes == n then return g
+      throwError "sv_interface: internal error: goal `{n}` not found"
+    setGoals [← find `hdsP]
+    try evalTactic (← `(tactic| rfl))
+    catch e => throwError "sv_interface: the parent's declarations could not be recognized by `rfl`\n{e.toMessageData}"
+    closeParamEnv "sv_interface" (← find `h1P)
+    try
+      closeByDecide (← find `hnames) "hnames"
+    catch _ =>
+      throwError "sv_interface: a declaration of the parent names a constant that is not the parent's"
+    let m ← valTerms sF args
+    closeHagWith "sv_interface" (← find `hagP) pnames (fun n => (m.lookup n).getD (toExpr (0 : Int)))
+    setGoals [bodyGoal]
+    let taskIds : Array Ident :=
+      if taskForm then
+        match ty.getArg! 0 with
+        | .const n _ => #[mkIdent n]
+        | _ => #[]
+      else #[]
+    let taskLemmas ← taskIds.mapM fun i => `(Lean.Parser.Tactic.simpLemma| $i:ident)
+    let restI := mkIdent `rest
+    let hrestI := mkIdent `hrest
+    let hflI := mkIdent `hflags
+    try
+      evalTactic (← `(tactic| obtain ⟨$restI:ident, $hrestI:ident, $hflI:ident⟩ := $keyI:ident))
+      let unfoldNames : List Name := (if taskForm then [ty.getAppFn.constName!] else []) ++ (← portUnfoldNames)
+      let unfoldLemmas ← (unfoldNames.map mkIdent).toArray.mapM fun i =>
+        `(Lean.Parser.Tactic.simpLemma| $i:ident)
+      unless unfoldLemmas.isEmpty do
+        evalTactic (← `(tactic| simp only [$unfoldLemmas,*]))
+      evalTactic (← `(tactic| rw [$hrestI:ident]))
+      evalTactic (← `(tactic| simp only [List.filterMap_append,
+        LeanModels.Sv.CombHier.NoPortFlags.filterMap_in $hflI:ident,
+        LeanModels.Sv.CombHier.NoPortFlags.filterMap_out $hflI:ident, List.append_nil]))
+      evalTactic (← `(tactic|
+        sv_simp [LeanModels.Sv.CombView.DeclT.toDecl, LeanModels.Sv.CombView.DeclT.width,
+          LeanModels.Sv.CombView.dimsW, LeanModels.Sv.CombView.Aff.eval,
+          LeanModels.Sv.CombView.Aff.evalTerms, LeanModels.Sv.CombView.Aff.evalQs, LeanModels.Sv.CombView.Aff.evalXs,
+          LeanModels.Sv.CombView.CL.eval, LeanModels.Sv.CombView.CL.linEval, LeanModels.Sv.CombView.CL.Ok,
+          LeanModels.Sv.CombView.CCmp.holds_lt_eq,
+          LeanModels.Sv.CombView.CCmp.holds_le_eq, LeanModels.Sv.CombView.CCmp.holds_gt_eq,
+          LeanModels.Sv.CombView.CCmp.holds_ge_eq, LeanModels.Sv.CombView.CCmp.holds_eq_eq,
+          LeanModels.Sv.CombView.CCmp.holds_ne_eq,
+          LeanModels.Sv.CombView.XAt.eval, LeanModels.Sv.CombView.Aff.sub,
+          LeanModels.Sv.CombView.Aff.neg, LeanModels.Sv.CombView.Aff.negTerms, LeanModels.Sv.CombView.Aff.negQs,
+          LeanModels.Sv.CombView.Aff.negXs,
+          LeanModels.Sv.CombView.Aff.add, LeanModels.Sv.CombView.Aff.var, LeanModels.Sv.CombView.Aff.atom,
+          LeanModels.Sv.CombView.Aff.const, LeanModels.Sv.CombView.Aff.scale,
+          LeanModels.Sv.CombView.Aff.scaleTerms, LeanModels.Sv.CombView.Aff.scaleQs,
+          LeanModels.Sv.CombView.Aff.scaleXs, LeanModels.Sv.CombView.σL,
+          LeanModels.Sv.CombView.Summary.val, LeanModels.Sv.CombView.lpEnv,
+          LeanModels.Sv.CombView.CE.eval, List.lookup_cons, List.lookup_nil,
+          List.zip_cons_cons, List.zip_nil_right, List.lookup_cons_self, Option.getD_some,
+          $taskLemmas,*] <;> omega))
+    catch e =>
+      throwError "sv_interface: the declared ports do not match the task's interface (or the width arithmetic is outside `omega`'s reach):\n{e.toMessageData}"
+
+/-- (`no_fallback`: a design this elaborator takes is one with module instances; its refusal is the one to report.) -/
+@[no_fallback, tactic svInterface] unsafe def evalSvInterfaceHier : Tactic := fun _ => do
+  cleanMainGoalMData
+  let goal ← getMainGoal
+  let some (ty, D, pd, lib, args) ← goal.withContext (do
+      let ty ← instantiateMVars (← goal.getType)
+      let taskForm := ty.isApp && ty.getAppNumArgs ≥ 3 && ty.getAppFn.isConst && (portsDesign? ty).isNone
+      let some D := (if taskForm then some ty.appArg! else portsDesign? ty) | return none
+      if (← findGD2A D 8).isSome then return none
+      let some (pd, lib, args) ← findHD2A D 8 | return none
+      return some (ty, D, pd, lib, args))
+    | throwUnsupportedSyntax
+  withDeepRec (runSvInterfaceHier ty D pd lib args)
+
 /-! ## `sv_cover`: the coverage helper
 
 A coverage goal says that a bit a read observes has a source: `A ∨ B ∨ ∃ j, …` with linear

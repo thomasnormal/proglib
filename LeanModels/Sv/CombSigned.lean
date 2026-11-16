@@ -703,10 +703,54 @@ theorem instantiateGD2_unsign_view {d : PDesign} {s : Summary} {args : List Int}
     d.instantiateGD2 args = d.unsign.instantiateGD2 args :=
   instantiateGD2_unsign hs harity h1 (Agrees_of_map hag) hok hauto hin hfrag hwid hbit
 
+/-! ## The declarations of a design with signed reads (`sv_interface`)
+
+`PDesign.unsign` maps the processes only: the twin has the design's declarations, parameters and localparams. So the
+declaration half of `decls_of_comb` holds with the TWIN's summary, from the parameter stage and the structural check
+alone: none of the bridge's obligations (`instantiateGD2_unsign`) is needed to read the ports. -/
+
+/-- **The declarations of a comb design with signed reads** are its unsigned twin's summary's, evaluated at the
+valuation (`decls_of_comb` with the twin's summary: the twin's declarations are the design's). -/
+theorem decls_of_comb_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary = .ok s) {args : List Int}
+    {σ : String → Int} {env : IEnv} (h1 : d.paramEnv2 args = .ok env)
+    (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (hc : CombDesign (d.instantiateGD2 args)) :
+    (d.instantiateGD2 args).decls.toList = s.decls.map (DeclT.toDecl σ) := by
+  obtain ⟨m, hm⟩ := instantiate2_ok_of_comb hc
+  rw [instantiateGD2_eq_of_comb hm hc]
+  obtain ⟨env', decls, elems, gens, h1', h2, -, -, -, hdecls, -⟩ :=
+    PDesign.instantiate2_processes hm
+  rw [hdecls]
+  rw [h1] at h1'
+  have henv : env = env' := Res.ok.inj h1'
+  subst henv
+  obtain ⟨-, -, -, -, hsd, -, -, -⟩ := summary_spec hs
+  have hde : d.unsign.decls = d.decls := rfl
+  rw [hde] at hsd
+  obtain ⟨-, -, -, -, -, hdecl, -, -⟩ := hok
+  have hagd : ∀ dt ∈ s.decls, ∀ n ∈ dt.affNames, env.intVal? n = some (σ n) :=
+    fun dt hdt n hn => hag n (hdecl dt hdt n hn)
+  have h2' := buildDecls_summary (σ := σ) d.decls s.decls hsd env hagd
+  rw [h2] at h2'
+  exact Res.ok.inj h2'
+
+/-- The tactic's form of `decls_of_comb_unsign` (valuation `s.val args`, the agreement as an equation of two maps), the
+form `sv_interface` applies to a design with signed reads. -/
+theorem decls_view_unsign {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
+    (hs : d.unsign.summary = .ok s) (h1 : d.paramEnv2 args = .ok env)
+    (hag : s.params.map (fun n => env.intVal? n) = s.params.map (fun n => some (s.val args n)))
+    (hok : s.StructOk) (hc : CombDesign (d.instantiateGD2 args)) :
+    (d.instantiateGD2 args).decls.toList = s.decls.map (DeclT.toDecl (s.val args)) :=
+  decls_of_comb_unsign hs h1 (Agrees_of_map hag) hok hc
+
 end CombEq
 end LeanModels.Sv
 
 /-! ## Axiom pins -/
+
+/-- info: 'LeanModels.Sv.CombEq.decls_view_unsign' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms LeanModels.Sv.CombEq.decls_view_unsign
 
 /-- info: 'LeanModels.Sv.CombEq.instantiateGD2_unsign' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
