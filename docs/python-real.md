@@ -31,6 +31,14 @@ sole blockers, while the survey does not yet claim function flips for those
 stdlib files. The exact artifacts are `/tmp/ls-python-library-survey.json`
 and `/tmp/ls-python-stdlib-survey.json`.
 
+The focused function-level price used the nine sole-import modules that are in
+the manifest (`_bootsubprocess`, `codeop`, `contextvars`, `fnmatch`, `linecache`,
+`reprlib`, `struct`, `tty`, and `uu`). It covered 18 public functions and 112
+calls: seven modules produced MATCH call results and two had no drivable calls;
+no DIVERGE was observed. The other sole-import stdlib files are outside the
+current manifest, so their function flips remain unmeasured rather than being
+treated as zero.
+
 Generated from `harness/library_corpus.json` (CPython 3.9.25, 183 modules) and the refreshed disjoint baseline chunks run on 2026-11-12. The manifest records SHA-256 hashes for all 141 pure-Python stdlib files available to the pinned interpreter.
 
 The full post-stall survey (141 pinned CPython 3.9.25 library rows, run 2026-11-12) has **13 VERIFIED public-function modules**, with 4,091 of 8,677 driven calls matching, **0 call DIVERGEs**, 8 calls that did not finish, and 41 canonical-value gaps. The targeted import refresh flipped `email.charset` from body REFUSED to VERIFIED with 24/24 matching calls; the call denominator is unchanged because those calls were already driven through the closed-function surface. The 13 VERIFIED modules are `email.charset`, `fstring_shadow`, `g1_lab`, `gcd`, `init_lab`, `midpoint`, `my_abs`, `nested_flow`, `sum_to`, `tut_01`, `tut_02`, `tut_03`, and `fnprint`.
