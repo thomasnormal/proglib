@@ -6369,6 +6369,59 @@ theorem twinAgrees_callIn_recursive_ret_of_statement_bridge
     simp [Run.leaveCallDepth, Run.toWorld, Run.bind]
   rw [hmono, hlegacy]
 
+theorem twinAgrees_callIn_recursive_exn_of_statement_bridge
+    (m : Module) (fuel base : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (st' : FrameState) (e : PyErr)
+    (hdepth : w.callDepth ≠ pythonTopCallDepth)
+    (hfull : pythonFrameFull w.callDepth = false)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false) (hglobal : f.hasGlobal = false)
+    (harity : arityOk f.params args.size = true)
+    (hfuel : base + f.body.toList.length < fuel)
+    (hbridge : ∀ s ∈ f.body.toList, ∀ st g, base ≤ g → 0 < g →
+      toRun (execOpen (kont m fuel) m s) st = execStmt m g st s)
+    (hbody : execStmts m fuel
+      ⟨{ w with callDepth := w.callDepth + 1 },
+        markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩ f.body.toList =
+      .exn st' e) :
+    toRun (callInM (kont m fuel) m fname args) w =
+      callIn m (fuel + 1) w fname args := by
+  let st : FrameState := ⟨{ w with callDepth := w.callDepth + 1 },
+    markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩
+  have hproject : toRun (execOpenList (kont m fuel) m f.body.toList) st =
+      .exn st' e := by
+    rw [twinAgrees_execOpenList_of_threshold (kont m fuel) m f.body.toList
+      base fuel st hfuel hbridge]
+    exact hbody
+  have hraw : execOpenList (kont m fuel) m f.body.toList st =
+      .ok (.error e, st') := by
+    unfold toRun at hproject
+    generalize heq : execOpenList (kont m fuel) m f.body.toList st = q at hproject
+    cases q with
+    | error err => cases err <;> simp at hproject
+    | ok p =>
+        cases p with
+        | mk r st'' =>
+            cases r with
+            | error err =>
+                have hEq : st'' = st' ∧ err = e := by simpa using hproject
+                rcases hEq with ⟨rfl, rfl⟩
+                rfl
+            | ok flow => simp at hproject
+  have hmono := twinAgrees_callInM_recursive_body_exn (kont m fuel) m fname args f
+    w st' e hdepth hfull hfind hgen hargs hlocal hnotgen harity (by
+      simpa [st, hglobal, globalCallEnv_eq_legacy_of_noGlobal] using hraw)
+  have hlegacy : callIn m (fuel + 1) w fname args =
+      .exn { st'.world with callDepth := st'.world.callDepth.pred } e := by
+    rw [callIn]
+    simp only [hfind, hargs, hlocal, hnotgen, harity,
+      Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+    rw [if_neg (by simp [hdepth]), if_neg (by simp [hfull]), hbody]
+    simp [Run.leaveCallDepth, Run.toWorld, Run.bind]
+  rw [hmono, hlegacy]
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by
