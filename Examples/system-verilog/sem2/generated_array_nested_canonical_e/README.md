@@ -12,14 +12,13 @@ The receipt drives `W=4` and `W=8`, including the initial/default value and
 known, x, and z values on both inputs.  Icarus Verilog 13.0 and Xcelium
 24.03-s004 are the pinned differential oracles.
 
-The receipt above was measured at `76bca9ce7`, before the generic §10.3
-topology guard landed.  On current master `61710d2ae`, the clean-room source
-reaches `continuous assignment target is read from itself or a later
-assignment; canonical E requires topological source order` for both W=4 and
-W=8, before this §7.4 admission can run.  Icarus Verilog 13.0 and Xcelium
-24.03-s004 still agree on all 16 source rows, including x/z.  The generated
-array wall is therefore parked behind the owning ls-sv topology wall; no new
-§7.4 admission is claimed here.
+The receipt was measured after the generic §10.3 topology guard landed.  The
+clean-room source reaches `continuous assignment target is read from itself or
+a later assignment; canonical E requires topological source order` for both
+W=4 and W=8, before this §7.4 admission can run.  Icarus Verilog 13.0 and
+Xcelium 24.03-s004 still agree on all 16 source rows, including x/z.  The
+generated-array wall is therefore parked behind the owning ls-sv topology
+wall; no new §7.4 admission is claimed here.
 
 Regenerate the checked-in envelope with:
 
