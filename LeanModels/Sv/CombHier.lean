@@ -1536,6 +1536,22 @@ def AllChildEnvOk (σ : String → Int) (env : IEnv) : List (PInst × PDesign) �
   | [] => True
   | x :: xs => ChildEnvOk σ env x ∧ AllChildEnvOk σ env xs
 
+/-- `AllChildEnvOk` of no instance. The tactics build an `AllChildEnvOk` goal from `AllChildEnvOk.nil`,
+`AllChildEnvOk.cons` and `ChildEnvOk.intro` instead of rewriting it open (`simp`, `unfold`): at a parent with two or
+more parameters the rewriting's proof terms over the parent's symbolic environment overflowed the kernel's stack
+("deep recursion detected"), while these applications are checked by instantiating their types. -/
+theorem AllChildEnvOk.nil {σ : String → Int} {env : IEnv} : AllChildEnvOk σ env [] := trivial
+
+/-- `AllChildEnvOk` of one more instance. -/
+theorem AllChildEnvOk.cons {σ : String → Int} {env : IEnv} {x : PInst × PDesign} {xs : List (PInst × PDesign)}
+    (h1 : ChildEnvOk σ env x) (h2 : AllChildEnvOk σ env xs) : AllChildEnvOk σ env (x :: xs) := ⟨h1, h2⟩
+
+/-- `ChildEnvOk` from its witness and its three facts. -/
+theorem ChildEnvOk.intro {σ : String → Int} {env : IEnv} {x : PInst × PDesign} (r : PDesign × List Int × IEnv)
+    (h1 : childEnv env x.1 x.2 = .ok r) (h2 : r.2.1.length = r.1.params.length)
+    (h3 : (childNames x.2).map (fun n => r.2.2.intVal? n) = (childNames x.2).map (fun n => some (σ (hpfx x.1 ++ n)))) :
+    ChildEnvOk σ env x := ⟨r, h1, h2, h3⟩
+
 theorem AllChildEnvOk.mem {σ : String → Int} {env : IEnv} :
     ∀ {pl : List (PInst × PDesign)}, AllChildEnvOk σ env pl → ∀ x ∈ pl, ChildEnvOk σ env x
   | [], _, x, hx => by simp at hx

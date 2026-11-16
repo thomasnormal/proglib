@@ -497,28 +497,39 @@ unsafe def closeHierGoals (tac : String) (find : Name → TacticM MVarId) (pname
     throwError "{tac}: the twin's summary does not match the hierarchy (`CombHier.HierOk`): a site of a connection or of a child is outside what the hierarchy summary reads (an input actual whose width is not its context's, an output target that is not a declared signal of the parent, or a child site that reads beyond the child's own scope)"
   closeParamEnv tac (← find `h1P)
   closeHagWith tac (← find `hagP) pnames val
-  -- the children, one conjunct per instance
-  setGoals [← find `hch]
-  evalTactic (← `(tactic| simp only [LeanModels.Sv.CombHier.AllChildEnvOk, and_true]))
-  evalTactic (← `(tactic| repeat' refine And.intro ?_ ?_))
-  let gs ← getGoals
-  unless gs.length == pl.length || (pl.isEmpty && gs.isEmpty) do
-    throwError "{tac}: internal error: {gs.length} child goals for {pl.length} instances"
-  for (g, (i, c)) in gs.zip pl do
-    setGoals [g]
-    evalTactic (← `(tactic| unfold LeanModels.Sv.CombHier.ChildEnvOk))
-    -- positional holes (a named hole would be shared with the previous instance's)
-    evalTactic (← `(tactic| refine ⟨?_, ?_, ?_, ?_⟩))
-    let cgs ← getGoals
-    unless cgs.length == 4 do throwError "{tac}: internal error: {cgs.length} goals for a child's environment"
-    let findC (n : Name) : TacticM MVarId :=
-      pure (if n == `henv then cgs[1]! else if n == `hlen then cgs[2]! else cgs[3]!)
-    closeParamEnv tac (← findC `henv)
-    setGoals [← findC `hlen]
+  -- the children, one conjunct per instance, built by lemma application (`AllChildEnvOk.cons`, `ChildEnvOk.intro`,
+  -- `AllChildEnvOk.nil`) and not rewritten open: at a parent with two or more parameters the rewriting's proof terms
+  -- over the parent's symbolic environment overflowed the kernel's stack
+  let mut gH ← find `hch
+  for (i, c) in pl do
+    setGoals [gH]
+    -- positional holes (a named hole would be shared with the previous instance's), told apart by their types
+    try
+      evalTactic (← `(tactic| refine LeanModels.Sv.CombHier.AllChildEnvOk.cons
+        (LeanModels.Sv.CombHier.ChildEnvOk.intro ?_ ?_ ?_ ?_) ?_))
+    catch e => throwError "{tac}: internal error: the children's goal at instance `{i.name}`\n{e.toMessageData}"
+    let mut henv? : Option MVarId := none
+    let mut hlen? : Option MVarId := none
+    let mut hagc? : Option MVarId := none
+    let mut rest? : Option MVarId := none
+    for m in ← getGoals do
+      let t ← instantiateMVars (← m.getType)
+      if t.isAppOfArity ``Eq 3 && (t.getArg! 1).isAppOfArity ``LeanModels.Sv.CombHier.childEnv 3 then henv? := some m
+      else if t.isAppOfArity ``Eq 3 && (t.getArg! 1).isAppOfArity ``List.length 2 then hlen? := some m
+      else if t.isAppOfArity ``Eq 3 && (t.getArg! 1).isAppOfArity ``List.map 4 then hagc? := some m
+      else if t.getAppFn.isConstOf ``LeanModels.Sv.CombHier.AllChildEnvOk then rest? := some m
+    let (some henv, some hlen, some hagc, some rest) := (henv?, hlen?, hagc?, rest?)
+      | throwError "{tac}: internal error: the goals of a child's environment (instance `{i.name}`)"
+    closeParamEnv tac henv
+    setGoals [hlen]
     try evalTactic (← `(tactic| rfl))
     catch e => throwError "{tac}: instance `{i.name}`: the child's parameter count could not be checked by `rfl`\n{e.toMessageData}"
     let pfx := LeanModels.Sv.CombHier.hpfx i
-    closeHagWith tac (← findC `hagc) (LeanModels.Sv.CombHier.childNames c) (fun n => val (pfx ++ n))
+    closeHagWith tac hagc (LeanModels.Sv.CombHier.childNames c) (fun n => val (pfx ++ n))
+    gH := rest
+  setGoals [gH]
+  try evalTactic (← `(tactic| exact LeanModels.Sv.CombHier.AllChildEnvOk.nil))
+  catch e => throwError "{tac}: internal error: the children's goal after the last instance\n{e.toMessageData}"
   setGoals []
 
 /-- Run the equations stage. (`unsafe`: it evaluates the recognizer with `evalExpr`.) -/
