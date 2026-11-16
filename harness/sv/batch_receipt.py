@@ -64,6 +64,9 @@ class Fixture:
     points: tuple[Point, ...] = (Point("default", ()),)
     retain_loops: bool = False
     retain_proc_rewrites: bool = False
+    # Expected ordinary-route refusal substring for a clean-room boundary.
+    # An empty value means the fixture must run eight E cycles.
+    expected_ordinary_refusal: str = ""
     # A legal source construct may be rejected by one pinned simulator's
     # frontend.  A refusal receipt records that outcome explicitly; it is
     # never treated as an oracle match.
@@ -146,7 +149,12 @@ FIXTURES: tuple[Fixture, ...] = (
             retain_proc_rewrites=True),
     Fixture("proc_local_automatic.sv", "proc_local_automatic",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),),
-            retain_proc_rewrites=True, expected_source_refusals=("iverilog",)),
+            retain_proc_rewrites=True,
+            expected_ordinary_refusal="LocalDecl",
+            expected_source_refusals=("iverilog",)),
+    Fixture("darkriscv_nonliteral_initializer.sv", "nonliteral_initializer",
+            (Port("a", 1),), (Port("q", 2),),
+            expected_ordinary_refusal="non-literal initializer"),
     Fixture("packed_enum_dimension.sv", "packed_enum_dimension",
             (Port("mode", 2),), (Port("y", 1),),
             retain_proc_rewrites=True),
@@ -523,6 +531,7 @@ def main() -> int:
         # command and one shared manifest.  The resulting ordinary rows are
         # still collected before either simulator is run.
         ordinary: dict[tuple[str, str], list[list[str]]] = {}
+        ordinary_errors: dict[tuple[str, str], str] = {}
         errors: list[str] = []
         group_size = max(1, args.lean_group_size)
         for group_no in range(0, len(entries), group_size):
@@ -539,8 +548,13 @@ def main() -> int:
                 continue
             for key, rows in parse_rows(lean_out, "E").items():
                 ordinary[key] = rows
-            errors.extend(line for line in lean_out.splitlines()
-                          if line.startswith("ERROR "))
+            for line in lean_out.splitlines():
+                if not line.startswith("ERROR "):
+                    continue
+                errors.append(line)
+                parts = line.split(" ", 3)
+                if len(parts) == 4 and parts[1] != "ordinary":
+                    ordinary_errors[(parts[1], parts[2])] = parts[3]
         if errors:
             print("ordinary-route errors:")
             print("\n".join(errors))
@@ -552,9 +566,15 @@ def main() -> int:
             print(f"FIXTURE {fixture.top} {point.label}: ordinary={len(expected)} "
                   f"Icarus={iverilog_version} Xcelium={xrun_version}")
             if len(expected) != CYCLES:
-                print(f"  RUNS NO (ordinary route returned {len(expected)} cycles)")
+                ordinary_error = ordinary_errors.get(key, "")
+                expected_e_refusal = (fixture.expected_ordinary_refusal != "" and
+                                      fixture.expected_ordinary_refusal in ordinary_error)
+                if expected_e_refusal:
+                    print(f"  RUNS NO (expected ordinary refusal: {ordinary_error})")
+                else:
+                    print(f"  RUNS NO (ordinary route returned {len(expected)} cycles)")
                 expected_refusals = set(fixture.expected_source_refusals)
-                if not expected_refusals:
+                if not expected_e_refusal:
                     all_match = False
                 # Still run both pinned source simulators.  There is no E
                 # comparison for this point, but the source rows make the
