@@ -6317,6 +6317,33 @@ theorem strFormatMappingWalk_token_branch
     Nat.add_assoc]
   rfl
 
+theorem strFormatMappingWalk_plain_prefix
+    (h : Heap) (a : Addr) (fuel : Nat) (chars : List Char) (acc : String)
+    (hsafe : ∀ c ∈ chars, c ≠ '%') :
+    strFormatMappingWalk h a (fuel + chars.length) chars acc =
+      .ok (acc ++ String.ofList chars) := by
+  induction chars generalizing fuel acc with
+  | nil =>
+      simpa using strFormatMappingWalk_empty h a fuel acc
+  | cons c cs ih =>
+      have hc : c ≠ '%' := hsafe c (by simp)
+      have hcs : ∀ x ∈ cs, x ≠ '%' := by
+        intro x hx
+        exact hsafe x (by simp [hx])
+      calc
+        strFormatMappingWalk h a (fuel + (c :: cs).length) (c :: cs) acc =
+            strFormatMappingWalk h a ((fuel + cs.length) + 1) (c :: cs) acc := by
+              congr 1 <;> omega
+        _ = strFormatMappingWalk h a (fuel + cs.length) cs
+            (acc ++ String.ofList [c]) :=
+              strFormatMappingWalk_char_step h a (fuel + cs.length) c cs acc hc
+        _ = .ok ((acc ++ String.ofList [c]) ++ String.ofList cs) :=
+              ih (fuel := fuel) (acc := acc ++ String.ofList [c]) hcs
+        _ = .ok (acc ++ String.ofList (c :: cs)) := by
+              congr 1
+              rw [show String.ofList [c] = String.singleton c by rfl,
+                String.ofList_cons, String.append_assoc]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

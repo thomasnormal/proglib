@@ -996,6 +996,13 @@ that character.  Special `%` prefixes remain separate semantic cases, so this
 lemma is a safe structural induction seed rather than a rewrite of formatting
 syntax.
 
+`Monadic.strFormatMappingWalk_plain_prefix` composes that step for an arbitrary
+list of literal characters.  Given a no-`%` invariant, induction on the list
+consumes exactly one fuel unit per character and returns the accumulator
+followed by `String.ofList` of the whole prefix.  This is the reusable
+length-parametric composition needed by the walk proof; escaped-percent,
+mapping-token, and conversion prefixes retain their own semantic branches.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
