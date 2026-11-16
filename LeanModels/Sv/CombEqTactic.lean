@@ -98,6 +98,15 @@ of the array multiplier exceed its (deliberately small) search budget and are cl
 `Examples/system-verilog/mul_array/comb_proof.lean`.
 -/
 
+/-- `set_option sv_comb.lp_atoms_view true`: `sv_equations` states the netlist view (the equations `eq_*` and knownness
+facts `known_*` of the main goal) with each localparam a variable named after it and its definition a hypothesis
+`hlp_<name>` (`lpAtoms`, applied to the view before it is normalized), as `sv_comb.lp_atoms` does for the obligations. A
+large definition (the Dadda record's stage count, a sum of 51 `?:`) is then one atom in every equation instead of a copy
+in each. Off by default: the equations of every existing proof keep their form. -/
+register_option sv_comb.lp_atoms_view : Bool := {
+  defValue := false
+  descr := "sv_equations: keep each localparam a variable of the netlist view, its definition a hypothesis" }
+
 open Lean Elab Tactic Meta
 open LeanModels.Sv.CombView
 
@@ -833,6 +842,16 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
         repeat' refine And.intro ?_ ?_))).toArray
       -- the netlist view, one named hypothesis per site
       setGoals [bodyGoal]
+      -- the localparams as variables of the netlist view too (`sv_comb.lp_atoms_view`): `lpAtoms` on the view before it
+      -- is normalized, so that the equations read each localparam as one atom, its definition `hlp_<name>` in context
+      if sv_comb.lp_atoms_view.get (← getOptions) && !s.lps.isEmpty then
+        let g0 ← getMainGoal
+        let some kd := (← g0.getDecl).lctx.findFromUserName? `key
+          | throwError "sv_equations: internal error: no `key`"
+        let (_, g1) ← g0.revert #[kd.fvarId]
+        let g2 ← lpAtoms s g1
+        let (_, g3) ← g2.intro `key
+        setGoals [g3]
       try evalTactic (← `(tactic| (try simp only [$preL,*] at $keyI:ident)))
       catch e => throwError "sv_equations: while unfolding the design in the netlist view: {e.toMessageData}"
       try evalTactic (← `(tactic| (repeat ($eqAtN:tactic))))
