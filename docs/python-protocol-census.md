@@ -966,6 +966,13 @@ mapping walk and pure conversion results on the admitted dictionary domain;
 the existing match is evidence for that domain, not a proof of the worker
 equality.
 
+No mapping-walk refinement theorem exists yet.  `strFormatMappingWalk` is a
+fuel-bounded recursive traversal over heap entries; it calls
+`strFormatDictFind` and `strFormatConv` at each token, while pure `strFormatWalk`
+consumes a value list and a mapping flag.  The missing relation must preserve
+key lookup, conversion order, accumulator text, and timeout/refusal outcomes;
+replacing it with a value-only equality would erase the heap observation.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
