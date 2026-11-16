@@ -802,6 +802,10 @@ normal-flow result to nested calls.  The caller-depth and frame-full guards
 remain explicit, and the legacy result is compared after the same
 `leaveCallDepth` decrement used by `leaveCallM`.
 
+`Monadic.twinAgrees_callIn_recursive_ret_of_statement_bridge` supplies the
+matching nested returning-flow bridge.  It preserves the returned value while
+threading the post-body world through the recursive depth decrement.
+
 `Monadic.twinAgrees_callIn_top_body_ret` provides the generic return-flow
 counterpart.  It accepts raw monadic and legacy body results and an explicit
 world equality, then transports both through the normalized top-depth call
