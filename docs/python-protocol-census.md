@@ -844,6 +844,12 @@ frame raises the requested `NameError`, with the frame state retained.  It is
 independent of module lookup and is therefore reusable once the resolver
 branch supplies its missing-value case.
 
+The statically absent-name guard is already a direct shared predicate: both
+interpreters test `lookupG (moduleGlobals m).1 id` for `none` before entering
+the live-global and builtin branches.  Wrapping that test in a new definition
+would add no correspondence information, so this item records no code change;
+the remaining proof obligation is the surrounding branch composition.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
