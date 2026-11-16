@@ -809,6 +809,10 @@ interpreters leave the caller state untouched and return the same timeout.
 refusal transport as well.  The refusal cause and snapshot stay internal to
 the monadic layer; the public projection compares the shared refusal message.
 
+`Monadic.twinAgrees_callIn_empty_body` supplies the call-plan base case for an
+empty function body.  Both evaluators perform argument binding and frame
+normalization, then fall through to `None` without consuming a body statement.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply

@@ -6144,6 +6144,30 @@ theorem callInMono_succ_empty_body
         f.params args f.body f.hasGlobal⟩ hfind hgen hargs hlocal hnotgen
     harity hbody
 
+theorem twinAgrees_callIn_empty_body
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hbodyEq : f.body.toList = [])
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hfuel : 0 < fuel) :
+    callInMono m (fuel + 1) w fname args =
+      callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth } fname args := by
+  have hmono := callInMono_succ_empty_body m fuel w fname args f hbodyEq
+    hfind hgen hargs hlocal hnotgen harity
+  have hlegacy : callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth }
+      fname args = .ok { w with callDepth := pythonTopCallDepth } .none := by
+    cases fuel with
+    | zero => omega
+    | succ fuel =>
+        simp [callIn, hfind, hargs, hlocal, hnotgen, harity, hbodyEq,
+          pythonTopCallDepth, execStmts, Run.finishCallAt, Run.toWorld,
+          Run.bind]
+  rw [hmono, hlegacy]
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by
