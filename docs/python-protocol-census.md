@@ -979,6 +979,11 @@ exactly the ordinary `dictFind` search with `.str key`, including insertion
 order and `keyEq` behavior.  The remaining mapping theorem is therefore the
 fuel-bounded walk and conversion sequencing around this shared lookup.
 
+`strFormatConv` is already the shared conversion worker called by both the
+mapping walk and pure formatting paths.  Its scalar, `%c`, integer, and refusal
+arms therefore need no duplicate refinement; the remaining relation is the
+recursive walk's control and heap lookup around that worker.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
