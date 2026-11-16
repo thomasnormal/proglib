@@ -12,6 +12,10 @@ The receipt drives `W=4` and `W=8`, including the initial/default value and
 known, x, and z values on both inputs.  Icarus Verilog 13.0 and Xcelium
 24.03-s004 are the pinned differential oracles.
 
+The current wall-table batch also runs both parameter points through ordinary
+E: all 16 seeded cycles match both simulators, including x/z rows.  The former
+`ElementSelect:default-point-index` wall is therefore cleared for this shape.
+
 Regenerate the checked-in envelope with:
 
 ```text
