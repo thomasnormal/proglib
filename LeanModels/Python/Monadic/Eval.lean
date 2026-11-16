@@ -5161,6 +5161,38 @@ theorem callInMono_succ_body_ret
     { w with callDepth := pythonTopCallDepth } st' v hfind hgen hargs hlocal
     hnotgen harity hbody
 
+theorem twinAgrees_callIn_top_body_ret
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (stMono' stLegacy' : FrameState) (v : RVal)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbodyMono : execOpenList (kont m fuel) m f.body.toList
+      ⟨{ w with callDepth := 1 },
+        globalCallEnv { w with callDepth := pythonTopCallDepth }
+          f.params args f.body f.hasGlobal⟩ =
+      .ok (.ok (.ret v), stMono'))
+    (hbodyLegacy : execStmts m fuel
+      ⟨{ w with callDepth := 1 },
+        markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩ f.body.toList =
+      .ok stLegacy' (.ret v))
+    (hworld : stLegacy'.world = stMono'.world) :
+    callInMono m (fuel + 1) w fname args =
+      callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth } fname args := by
+  have hmono := callInMono_succ_body_ret m fuel w fname args f stMono' v
+    hfind hgen hargs hlocal hnotgen harity hbodyMono
+  have hlegacy : callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth }
+      fname args = .ok { stMono'.world with callDepth := pythonTopCallDepth } v := by
+    rw [callIn]
+    simp only [hfind, hargs, hlocal, hnotgen, harity,
+      Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+    rw [hbodyLegacy]
+    simp [hworld, pythonTopCallDepth, Run.finishCallAt, Run.toWorld, Run.bind]
+  rw [hmono, hlegacy]
+
 theorem twinAgrees_callInM_top_body_break
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (st' : FrameState)

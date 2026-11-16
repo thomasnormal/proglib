@@ -783,6 +783,11 @@ arbitrary pass/constant body list.  The legacy frame uses `mkCallEnv` and
 `markUnboundLocals`, while the monadic theorem uses `globalCallEnv`; the body
 state-preservation induction reduces both to the same normalized caller world.
 
+`Monadic.twinAgrees_callIn_top_body_ret` provides the generic return-flow
+counterpart.  It accepts raw monadic and legacy body results and an explicit
+world equality, then transports both through the normalized top-depth call
+boundary without imposing a statement-shape enumeration.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply
