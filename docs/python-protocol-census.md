@@ -825,6 +825,14 @@ function/builtin/name-error cases.  Until that combined resolver relation is
 stated, a standalone `lookupG` equality would be true but insufficient to
 prove expression-level correspondence.
 
+The legacy `evalExpr` and monadic `evalOpen` cases confirm the same ordering
+for this fallback (static table, live globals, callable tables, builtins, then
+the recursion-checked name error).  Their remaining mismatch is structural:
+the legacy branch consumes explicit fuel and returns `Run`, while the monadic
+branch runs in `SemF` and may carry a heap/world update.  No reusable theorem
+currently packages that whole branch, so this item stops at the shared
+operation boundary rather than introducing a parallel resolver.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
