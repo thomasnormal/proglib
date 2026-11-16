@@ -316,7 +316,8 @@ def runEquations : TacticM Unit := do
 end LeanModels.Sv.Kernel.SeqStage
 
 /-- **`seq_mirror (P : Nat) (h : …) … : X.e P…`**: the instantiation of a loaded family at its symbolic parameters,
-computed ONCE: defines `X.mirror P… : CoreMemDesign` (the normal form the instantiation pass computes) and proves
+computed ONCE: defines `X.mirror P… : CoreMemDesign` (the normal form the instantiation pass computes), states its
+unfolding `X.mirror_def` (by definition; a declaration added this way has no equation lemma for `simp`) and proves
 `X.mirror_eq : ∀ P… h…, X.e P… = .ok (X.mirror P…)`. The clocked stages (`sv_structure`, `sv_interface`,
 `sv_equations`) read the mirror when it exists, so a file stops re-running the instantiation pass per theorem; a proof
 uses it as `rw [X.mirror_eq …]`. Nothing is trusted: the theorem is proved by the instantiation pass, kernel-checked. -/

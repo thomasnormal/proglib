@@ -14,9 +14,11 @@ design is computation at the design's symbolic parameters, and these macros do i
   equation lemmas; the side conditions on the parameters (the 32-bit range of an `int` parameter, a declared width
   `[P-1:0]`) are closed by `omega` from the hypotheses in context.
 * `sv_seq_profile` closes `E.SeqProfile clk` on the normal form (`hE` substituted).
-* `sv_seq_cycle h : E.cycleV clk v d using hE` adds `h : E.cycleV clk v d = <the computed result>`: THE CYCLE
-  EQUATIONS, the pre and post sample of one cycle evaluated from the route's own definitions on a symbolic view; a
-  condition on the parameters is decided by `omega` from the context.
+* `sv_seq_cycle h : E.cycleV clk v d using hE` (or `E.cycleMV clk (v, mv) d`) adds `h : … = <the computed result>`:
+  THE CYCLE EQUATIONS, the pre and post sample of one cycle evaluated from the route's own definitions on a symbolic
+  view (and memory view); a condition on the parameters is decided by `omega` from the context. A decision stays an
+  `if` on values (an `if`, a `case` arm, an edge that may fire, a run-time index: `seqIndexRead`/`seqIndexWin`); a
+  memory's next contents come out as one write equation (`memWrite`) and its reads as one read equation (`memRd`).
 
 Each macro takes extra simp lemmas in brackets for facts of the design the default sets do not know. Nothing here is
 trusted: every step is a `simp` or `omega` proof the kernel checks.
