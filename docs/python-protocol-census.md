@@ -944,6 +944,14 @@ heap-aware `evalBinOpH` result for all admitted operators and heap shapes.  The
 existing worker equations cover only selected integer cases; adding more
 literal proofs would not establish that parametric relation.
 
+The worker definitions show why the domain cannot be widened by a blind
+rewrite: `binOpHM` uses the monadic `listRepeatH` and `strFormatH` paths,
+whereas the legacy `evalBinOpH` dispatches through `evalBinOpMultH` and its
+heap-list helpers (and has a distinct string-modulo branch).  A generic worker
+theorem therefore needs explicit refinement lemmas equating those shared
+protocol workers on their admitted domains; outside those domains the theorem
+must remain a loud refusal.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
