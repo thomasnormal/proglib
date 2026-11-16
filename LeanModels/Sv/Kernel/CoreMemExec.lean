@@ -798,6 +798,136 @@ def coreMemAssignTopoB : List CoreMemProc → Bool
 def CoreMemDesign.assignTopoB (E : CoreMemDesign) : Bool :=
   coreMemAssignTopoB E.processes.toList
 
+/-! Comb/latch/implicit bodies are activated after the edge pass, but this
+executor does not yet run a dependency scheduler to a fixed point.  Therefore
+admit only a source-order topological fragment: a reactive process may not
+read a signal written by itself or by a later reactive process.  A later
+writer is the syntactic witness of a backward dependency (and a mutual pair
+is a cycle).  Continuous assignments are excluded from this guard because
+`settleCanonical` evaluates their scalar layer before reactive bodies; the
+memory-assignment boundary is handled separately. -/
+
+mutual
+
+def coreMemStmtReadNames : PStmt → List String
+  | .blockingAssign _ value | .nbaAssign _ value => coreMemSignalNames value
+  | .blockingAssignL target value | .nbaAssignL target value =>
+      coreMemLhsReadNames target ++ coreMemSignalNames value
+  | .ifStmt cond yes none => coreMemSignalNames cond ++ coreMemStmtReadNames yes
+  | .ifStmt cond yes (some no) =>
+      coreMemSignalNames cond ++ coreMemStmtReadNames yes ++ coreMemStmtReadNames no
+  | .block body => coreMemStmtReadNamesList body
+  | .forLoop _ initE condition step body =>
+      coreMemSignalNames initE ++ coreMemSignalNames condition ++
+        coreMemSignalNames step ++ coreMemStmtReadNames body
+  | .caseStmt subject items none _ _ =>
+      coreMemSignalNames subject ++ coreMemCaseReadNames items
+  | .caseStmt subject items (some defaultBody) _ _ =>
+      coreMemSignalNames subject ++ coreMemCaseReadNames items ++
+        coreMemStmtReadNames defaultBody
+  | .unsupported _ _ => []
+
+def coreMemStmtReadNamesList : List PStmt → List String
+  | [] => []
+  | stmt :: rest => coreMemStmtReadNames stmt ++ coreMemStmtReadNamesList rest
+
+def coreMemCaseReadNames : List (List PExpr × PStmt) → List String
+  | [] => []
+  | item :: rest =>
+      coreMemSignalNamesList item.1 ++ coreMemStmtReadNames item.2 ++
+        coreMemCaseReadNames rest
+
+def coreMemLhsReadNames : PLhs → List String
+  | .ident _ => []
+  | .bitSel _ index => coreMemSignalNames index
+  | .partSel _ msb lsb => coreMemSignalNames msb ++ coreMemSignalNames lsb
+  | .concat parts => coreMemLhsReadNamesList parts
+  | .arrayElem _ indices | .arrayPart _ indices .. => coreMemSignalNamesList indices
+
+def coreMemLhsReadNamesList : List PLhs → List String
+  | [] => []
+  | lhs :: rest => coreMemLhsReadNames lhs ++ coreMemLhsReadNamesList rest
+
+end
+
+def coreMemReactiveProc : PProcess → Bool
+  | .alwaysComb _ | .alwaysLatch _ | .alwaysImplicit _ => true
+  | _ => false
+
+def coreMemReactiveWrites : PProcess → List String
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body => coreMemStmtWrites body
+  | _ => []
+
+def coreMemReactiveReads : PProcess → List String
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body => coreMemStmtReadNames body
+  | _ => []
+
+def coreMemReactiveLaterWrites : List PProcess → List String
+  | [] => []
+  | p :: rest =>
+      (if coreMemReactiveProc p then coreMemReactiveWrites p else []) ++
+        coreMemReactiveLaterWrites rest
+
+def coreMemFirstReadIn : List String → List String → Option String
+  | [], _ => none
+  | name :: rest, targets =>
+      if targets.contains name then some name else coreMemFirstReadIn rest targets
+
+def coreMemReactiveDependencyViol : List PProcess → Option String
+  | [] => none
+  | p :: rest =>
+      if coreMemReactiveProc p then
+        let targets := coreMemReactiveWrites p ++ coreMemReactiveLaterWrites rest
+        match coreMemFirstReadIn (coreMemReactiveReads p) targets with
+        | some name => some name
+        | none => coreMemReactiveDependencyViol rest
+      else coreMemReactiveDependencyViol rest
+
+def coreMemAssignReactiveChainViolAt (all : List PProcess) : List PProcess → Option String
+  | [] => none
+  | p :: rest =>
+      match p with
+      | .assign target value =>
+          let reactiveWrites := all.flatMap fun q =>
+            if coreMemReactiveProc q then coreMemReactiveWrites q else []
+          let readNames := coreMemSignalNames value
+          if readNames.any (fun name => reactiveWrites.contains name) then
+            let downstream := all.any fun q =>
+              coreMemReactiveProc q &&
+                (coreMemReactiveReads q).any (fun name => name == target)
+            if downstream then some target else coreMemAssignReactiveChainViolAt all rest
+          else coreMemAssignReactiveChainViolAt all rest
+      | .assignL target value =>
+          let targetName := target.name
+          let reactiveWrites := all.flatMap fun q =>
+            if coreMemReactiveProc q then coreMemReactiveWrites q else []
+          let readNames := coreMemSignalNames value
+          if readNames.any (fun name => reactiveWrites.contains name) then
+            let downstream := all.any fun q =>
+              coreMemReactiveProc q &&
+                (coreMemReactiveReads q).any (fun name => name == targetName)
+            if downstream then some targetName else coreMemAssignReactiveChainViolAt all rest
+          else coreMemAssignReactiveChainViolAt all rest
+      | _ => coreMemAssignReactiveChainViolAt all rest
+
+def coreMemAssignReactiveChainViol (processes : List PProcess) : Option String :=
+  coreMemAssignReactiveChainViolAt processes processes
+
+def coreMemCombDependencyViol (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  let processes := d.processes ++ generated
+  match coreMemReactiveDependencyViol processes with
+  | none =>
+      match coreMemAssignReactiveChainViol processes with
+      | none => none
+      | some name =>
+          some ("Comb:dependency-order",
+            s!"9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler")
+  | some name =>
+      some ("Comb:dependency-order",
+        s!"9.2.2.2/9.4.2.2: reactive process reads '{name}' from itself or a later reactive process; canonical E has no fixed-point scheduler")
+
+
 def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     (iterFuel : Nat := 4096) : Res CoreMemDesign := do
   if args.length != d.params.length then
