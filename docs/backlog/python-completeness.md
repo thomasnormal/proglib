@@ -17269,3 +17269,15 @@ prove `execOpenList (kont m n) m ss` against `execStmts m n … ss`.  Thus the
 needed mutual invariant is a call theorem at the smaller continuation fuel
 plus a state-threaded list theorem; the empty-body base does not discharge
 this head-call equation.
+
+The attempted formal call-step predicate exposes a type-level mismatch.  The
+monadic step has type `callInM K m fname args` and is parameterized by an
+arbitrary continuation `K` plus a `FrameState`/`World` transformer.  The legacy
+step has type `callIn m fuel w fname args` and carries only a `World`; its
+continuation is encoded by the recursive `execStmts` call and is not an
+argument that can be related independently.  `callInMono` does not solve this
+gap because it fixes the top-depth world and projects away `K`.  A formal
+smaller-fuel call predicate must therefore be mutual with the expression and
+statement relations and quantify the continuation/frame embedding itself;
+using `callInMono` as that predicate would be circular and lose the nested
+state needed by the tail.
