@@ -316,13 +316,14 @@ def CoreMemProc.ofPProcess : PProcess → CoreMemProc
 their only observable effect is the diagnostic on a failed parameter point.
 Reuse Param2's exact constant-check admission in canonical E and turn a
 passing check into the same inert empty process used by the scalar E view.
-Other initial bodies retain a named `Initial:check` refusal rather than being
-executed as ordinary cycle-time statements. -/
+Runtime initial bodies are retained for the explicit time-zero executor;
+unsupported statements still refuse from `initialState` with their own clause
+message rather than being executed as ordinary cycle-time statements. -/
 def CoreMemProc.ofPProcessAt (env : IEnv) : PProcess → CoreMemProc
   | .initial body =>
       match initialCheckAdmits env body with
       | .ok () => .comb (.block [])
-      | .error msg => .unsupported "Initial:check" msg
+      | .error _ => .initial body
   | p => CoreMemProc.ofPProcess p
 
 /-! Canonical E's one-slot transition compares the slot's starting view with

@@ -1,0 +1,111 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "initial_storage_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/initial_storage_e/initial_storage_e.sv",
+      "sha256": "3f5848f11e499c5f4cb0664b2d7cd9e4828589bd2bcc6ef9f5639bc2b72fe392"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 6,
+          "end_col": 10
+        },
+        "name": "initial_storage_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 39,
+              "end_line": 2,
+              "end_col": 40
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 5,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 4,
+                "col": 5,
+                "end_line": 4,
+                "end_col": 14
+              },
+              "stmts": [
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 4,
+                    "col": 5,
+                    "end_line": 4,
+                    "end_col": 14
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 4,
+                      "col": 5,
+                      "end_line": 4,
+                      "end_col": 6
+                    },
+                    "width": 1,
+                    "name": "q"
+                  },
+                  "value": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 4,
+                      "col": 9,
+                      "end_line": 4,
+                      "end_col": 13
+                    },
+                    "width": 1,
+                    "bits": "0"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
