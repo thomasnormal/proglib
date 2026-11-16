@@ -1,0 +1,103 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "signal_event_control_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/signal_event_control_e/signal_event_control_e.sv",
+      "sha256": "7856ae59373d58c2c98078ae08a6a7a02b815a638d0e4f4c8cd146063ddd3e66"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 3,
+          "end_col": 10
+        },
+        "name": "signal_event_control_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 43,
+              "end_line": 1,
+              "end_col": 46
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 48,
+              "end_line": 1,
+              "end_col": 49
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 64,
+              "end_line": 1,
+              "end_col": 65
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 2,
+              "col": 3,
+              "end_line": 2,
+              "end_col": 27
+            },
+            "sv_kind": "SignalEventControl:None_",
+            "text": "always_ff @(clk) q <= d;"
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
