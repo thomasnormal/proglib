@@ -32,7 +32,8 @@ already shows the reset.
   state, the route's slots exist, stay coherent, and land exactly on the views `cycleV` computes.
 * `seqOblB`: the obligations, and the theorems that USE them: `settleV_idem` (one settle pass is the fixpoint: no
   continuous assignment is out of date when a slot closes), `slotV_eq_slot1V` (the slot is one pass before the edge and
-  one after), `edgesV_perm` (every order of the edge processes commits to the same view: rule 4).
+  one after), `edgesV_order` (every order of the edge processes commits to the same view: rule 4).
+* `runF`, `SeqRuns.of_cycleFn`, `cycleV_applied`: a claim over every run proved from a cycle function.
 -/
 
 
@@ -1834,6 +1835,44 @@ def CoreMemDesign.topoFrom (E : CoreMemDesign) (idx : Nat) : List CoreMemProc �
 /-- The continuous assigns are in topological source order (on their compiled expressions). -/
 def CoreMemDesign.topoC (E : CoreMemDesign) : Bool := E.topoFrom 0 E.processes.toList
 
+mutual
+
+/-- An edge body of nonblocking writes to whole signals only (under `if`, `case`, blocks): it reads one view and
+issues updates of whole declared signals. -/
+def _root_.LeanModels.Sv.PStmt.nbaWhole : PStmt → Bool
+  | .nbaAssign _ _ => true
+  | .nbaAssignL (.ident _) _ => true
+  | .ifStmt _ y n => PStmt.nbaWhole y && PStmt.optNbaWhole n
+  | .block body => PStmt.listNbaWhole body
+  | .caseStmt _ items d _ _ => PStmt.itemsNbaWhole items && PStmt.optNbaWhole d
+  | _ => false
+termination_by structural s => s
+
+/-- `nbaWhole` of an optional statement. -/
+def _root_.LeanModels.Sv.PStmt.optNbaWhole : Option PStmt → Bool
+  | none => true
+  | some s => PStmt.nbaWhole s
+termination_by structural o => o
+
+/-- `nbaWhole` of a list. -/
+def _root_.LeanModels.Sv.PStmt.listNbaWhole : List PStmt → Bool
+  | [] => true
+  | s :: ss => PStmt.nbaWhole s && PStmt.listNbaWhole ss
+termination_by structural xs => xs
+
+/-- `nbaWhole` of the arms of a `case`. -/
+def _root_.LeanModels.Sv.PStmt.itemsNbaWhole : List (List PExpr × PStmt) → Bool
+  | [] => true
+  | (_, b) :: rest => PStmt.nbaWhole b && PStmt.itemsNbaWhole rest
+termination_by structural xs => xs
+
+end
+
+/-- A process whose edge body (if it is an edge process) is `nbaWhole`. -/
+def CoreMemProc.nbaWholeP : CoreMemProc → Bool
+  | .edge f => f.body.nbaWhole
+  | _ => true
+
 /-- The names the processes drive, process by process. -/
 def CoreMemDesign.driven (E : CoreMemDesign) : List String := E.processes.toList.flatMap CoreMemProc.targets
 
@@ -1858,10 +1897,11 @@ def CoreMemDesign.oblReset (E : CoreMemDesign) (clk : String) : Bool :=
     | none => true
     | some r => E.inputNamesL.contains r && r != clk
 
-/-- The edge order is irrelevant: at most one edge process, or no edge body with a blocking write. -/
+/-- The edge order is irrelevant: at most one edge process, or every edge body nonblocking to whole signals
+(`edgesV_perm`). -/
 def CoreMemDesign.oblEdgeOrder (E : CoreMemDesign) : Bool :=
   let edges := E.processes.toList.filter CoreMemProc.isEdge
-  decide (edges.length ≤ 1) || edges.all fun p => !p.blocking
+  decide (edges.length ≤ 1) || E.processes.toList.all CoreMemProc.nbaWholeP
 
 /-- No expression of a process holds a node ingestion kept unconverted. -/
 def CoreMemDesign.oblConverted (E : CoreMemDesign) : Bool :=
@@ -1875,11 +1915,13 @@ def CoreMemDesign.oblConverted (E : CoreMemDesign) : Bool :=
 * no process writes an input or the clock, and no process reads the clock;
 * an asynchronous reset is an input port other than the clock (one the design drives would be seen by the route's
   edge detection only in a later slot: finding F7, a U-item);
-* the edge order is irrelevant: either no edge body has a blocking write (then each body reads the pre-edge view and
-  the queues commit to disjoint signals: `edgesV_perm`) or there is at most one edge process (no order to choose);
+* the edge order is irrelevant: either every edge body writes whole signals with nonblocking assignments only (then
+  each body reads the pre-edge view and the queues commit to disjoint signals: `edgesV_perm`) or there is at most one
+  edge process (no order to choose: `edgesV_single`);
 * no expression of a process holds a node ingestion kept unconverted (the route refuses it when evaluated).
-Under them the route's answer is the LRM's and independent of the order the route picks (rule 4's cheap sufficient
-conditions, proved below). -/
+Under them two choices of the route are proved harmless (rule 4's cheap sufficient conditions): its fixed number of
+settle passes reaches the fixpoint (`settleV_idem`), and its source order of the edge processes does not change the
+commit (`edgesV_order`). That `step` is every legal schedule of the scheduled E is the semantics lane's U3. -/
 def CoreMemDesign.seqOblB (E : CoreMemDesign) (clk : String) : Bool :=
   E.oblDrivers && E.topoC && E.oblNoInputWrite clk && E.oblNoClockRead clk && E.oblReset clk && E.oblEdgeOrder &&
     E.oblConverted
@@ -2091,6 +2133,367 @@ theorem CoreMemDesign.slotV_eq_slot1V {E : CoreMemDesign} {clk : String} (hP : E
       | unsupported m => rfl
   | timeout => rfl
   | unsupported m => rfl
+
+/-! ## What the obligations buy: the edge order does not matter (rule 4)
+
+The route runs the edge processes of a slot in source order; the LRM leaves the order open. Under `oblEdgeOrder` and
+one driver per signal, every order gives the same committed view: with at most one edge process there is nothing to
+order (`edgesV_single`); with nonblocking whole-signal bodies each body reads the same view and the queues write
+disjoint signals, so their commits commute (`edgesV_perm`, through `commitNba2_perm`). -/
+
+mutual
+
+/-- An `nbaWhole` body leaves the view alone and issues updates of the signals it writes. -/
+theorem CoreMemDesign.execV_nbaWhole {E : CoreMemDesign} (v : SvState) :
+    ∀ (b : PStmt) (v' : SvState) (q : NbaQueue2), b.nbaWhole = true → E.execV v b = .ok (v', q) →
+      v' = v ∧ ∀ u ∈ q, u.1 ∈ b.writes
+  | .nbaAssign t e, v', q, _, h => by
+      simp only [CoreMemDesign.execV] at h
+      split at h
+      · simp at h
+      · simp only [Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at h
+        obtain ⟨x, -, rfl, rfl⟩ := h
+        exact ⟨rfl, by simp [PStmt.writes]⟩
+  | .nbaAssignL lhs e, v', q, hb, h => by
+      cases lhs with
+      | ident t =>
+          simp only [CoreMemDesign.execV] at h
+          split at h
+          · simp at h
+          · simp only [Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at h
+            obtain ⟨x, -, rfl, rfl⟩ := h
+            exact ⟨rfl, by simp [PStmt.writes, PLhs.baseNames]⟩
+      | _ => simp [PStmt.nbaWhole] at hb
+  | .ifStmt c y n, v', q, hb, h => by
+      simp only [PStmt.nbaWhole, Bool.and_eq_true] at hb
+      simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+      obtain ⟨cv, -, h⟩ := h
+      split at h
+      · obtain ⟨h1, h2⟩ := CoreMemDesign.execV_nbaWhole v y v' q hb.1 h
+        exact ⟨h1, fun u hu => by simp only [PStmt.writes, List.mem_append]; exact Or.inl (h2 u hu)⟩
+      · cases n with
+        | none =>
+            simp only [CoreMemDesign.execOptV, Res.ok.injEq, Prod.mk.injEq] at h
+            obtain ⟨rfl, rfl⟩ := h
+            exact ⟨rfl, by simp⟩
+        | some s =>
+            simp only [CoreMemDesign.execOptV] at h
+            simp only [PStmt.optNbaWhole] at hb
+            obtain ⟨h1, h2⟩ := CoreMemDesign.execV_nbaWhole v s v' q hb.2 h
+            exact ⟨h1, fun u hu => by
+              simp only [PStmt.writes, PStmt.optWrites, List.mem_append]; exact Or.inr (h2 u hu)⟩
+  | .block body, v', q, hb, h => by
+      simp only [PStmt.nbaWhole] at hb
+      simp only [CoreMemDesign.execV] at h
+      obtain ⟨h1, h2⟩ := CoreMemDesign.execListV_nbaWhole v body v' q hb h
+      exact ⟨h1, fun u hu => by simp only [PStmt.writes]; exact h2 u hu⟩
+  | .caseStmt subject items d mode check, v', q, hb, h => by
+      simp only [PStmt.nbaWhole, Bool.and_eq_true] at hb
+      have hdflt : ∀ r, E.execOptV v d = .ok r → r.1 = v ∧ ∀ u ∈ r.2, u.1 ∈ PStmt.optWrites d := by
+        intro r hr
+        cases d with
+        | none =>
+            simp only [CoreMemDesign.execOptV, Res.ok.injEq] at hr
+            subst hr
+            exact ⟨rfl, by simp⟩
+        | some s =>
+            simp only [CoreMemDesign.execOptV] at hr
+            simp only [PStmt.optNbaWhole] at hb
+            exact CoreMemDesign.execV_nbaWhole v s r.1 r.2 hb.2 hr
+      have hitems : ∀ sv res, E.execItemsV v sv mode items (E.execOptV v d) = .ok res →
+          res.1 = v ∧ ∀ u ∈ res.2, u.1 ∈ (PStmt.caseStmt subject items d mode check).writes := by
+        intro sv res hres
+        obtain ⟨h1, h2⟩ := CoreMemDesign.execItemsV_nbaWhole v sv mode items _ res hb.1 hdflt hres
+        exact ⟨h1, fun u hu => by simp only [PStmt.writes]; exact h2 u hu⟩
+      simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+      obtain ⟨sv, -, h⟩ := h
+      cases check
+      case none => exact hitems sv (v', q) h
+      all_goals
+        simp only [Res.bind_eq_ok] at h
+        obtain ⟨n, -, h⟩ := h
+        split at h
+        · exact hitems sv (v', q) h
+        · simp at h
+  | .blockingAssign _ _, _, _, hb, _ => by simp [PStmt.nbaWhole] at hb
+  | .blockingAssignL _ _, _, _, hb, _ => by simp [PStmt.nbaWhole] at hb
+  | .forLoop .., _, _, hb, _ => by simp [PStmt.nbaWhole] at hb
+  | .unsupported .., _, _, hb, _ => by simp [PStmt.nbaWhole] at hb
+
+/-- The list form of `execV_nbaWhole`. -/
+theorem CoreMemDesign.execListV_nbaWhole {E : CoreMemDesign} (v : SvState) :
+    ∀ (bs : List PStmt) (v' : SvState) (q : NbaQueue2), PStmt.listNbaWhole bs = true →
+      E.execListV v bs = .ok (v', q) → v' = v ∧ ∀ u ∈ q, u.1 ∈ PStmt.listWrites bs
+  | [], v', q, _, h => by
+      simp only [CoreMemDesign.execListV, Res.ok.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl⟩ := h
+      exact ⟨rfl, by simp⟩
+  | s :: ss, v', q, hb, h => by
+      simp only [PStmt.listNbaWhole, Bool.and_eq_true] at hb
+      simp only [CoreMemDesign.execListV, Res.bind_eq_ok, Res.ok.injEq] at h
+      obtain ⟨⟨v1, a⟩, h1, ⟨v2, b⟩, h2, hq⟩ := h
+      simp only [Prod.mk.injEq] at hq
+      obtain ⟨rfl, rfl⟩ := hq
+      obtain ⟨hv1, ha⟩ := CoreMemDesign.execV_nbaWhole v s v1 a hb.1 h1
+      rw [hv1] at h2
+      obtain ⟨hv2, hb'⟩ := CoreMemDesign.execListV_nbaWhole v ss v2 b hb.2 h2
+      refine ⟨hv2, fun u hu => ?_⟩
+      simp only [PStmt.listWrites, List.mem_append]
+      rcases List.mem_append.mp hu with hu | hu
+      · exact Or.inl (ha u hu)
+      · exact Or.inr (hb' u hu)
+
+/-- The arms of a `case` in `nbaWhole` form: the view is left alone, the updates write the arms' or the default's
+signals. -/
+theorem CoreMemDesign.execItemsV_nbaWhole {E : CoreMemDesign} (v : SvState) (sv : LVec) (mode : CaseMode) :
+    ∀ (items : List (List PExpr × PStmt)) (dflt : Res (SvState × NbaQueue2)) (res : SvState × NbaQueue2)
+      {D : List String}, PStmt.itemsNbaWhole items = true →
+      (∀ r, dflt = .ok r → r.1 = v ∧ ∀ u ∈ r.2, u.1 ∈ D) →
+      E.execItemsV v sv mode items dflt = .ok res → res.1 = v ∧ ∀ u ∈ res.2, u.1 ∈ PStmt.itemsWrites items ++ D
+  | [], dflt, res, D, _, hd, h => by
+      simp only [CoreMemDesign.execItemsV] at h
+      obtain ⟨h1, h2⟩ := hd res h
+      exact ⟨h1, fun u hu => by simp [PStmt.itemsWrites, h2 u hu]⟩
+  | (ps, b) :: rest, dflt, res, D, hb, hd, h => by
+      simp only [PStmt.itemsNbaWhole, Bool.and_eq_true] at hb
+      simp only [CoreMemDesign.execItemsV, Res.bind_eq_ok] at h
+      obtain ⟨vals, -, h⟩ := h
+      split at h
+      · obtain ⟨h1, h2⟩ := CoreMemDesign.execV_nbaWhole v b res.1 res.2 hb.1 h
+        exact ⟨h1, fun u hu => by
+          simp only [PStmt.itemsWrites, List.mem_append]; exact Or.inl (Or.inl (h2 u hu))⟩
+      · obtain ⟨h1, h2⟩ := CoreMemDesign.execItemsV_nbaWhole v sv mode rest dflt res hb.2 hd h
+        refine ⟨h1, fun u hu => ?_⟩
+        have := h2 u hu
+        simp only [PStmt.itemsWrites, List.mem_append] at this ⊢
+        rcases this with h' | h'
+        · exact Or.inl (Or.inr h')
+        · exact Or.inr h'
+
+end
+
+/-- Two queues writing disjoint signals commit in either order. -/
+theorem commitNba2_swap {st : SvState} (hnd : (st.map Prod.fst).Nodup) {q₁ q₂ : NbaQueue2}
+    (h : ∀ u ∈ q₁, ∀ u' ∈ q₂, u.1 ≠ u'.1) : commitNba2 st (q₂ ++ q₁) = commitNba2 st (q₁ ++ q₂) := by
+  have := commitNba2_perm (B := fun i => if i = 0 then q₁ else if i = 1 then q₂ else [])
+    (by
+      intro p p' hpp u hu u' hu'
+      left
+      by_cases h0 : p = 0
+      · subst h0
+        by_cases h1 : p' = 1
+        · subst h1; simp at hu hu'; exact h u hu u' hu'
+        · simp [h1, show p' ≠ 0 from fun h' => hpp h'.symm] at hu'
+      · by_cases h1 : p = 1
+        · subst h1
+          by_cases h0' : p' = 0
+          · subst h0'; simp at hu hu'; exact fun he => h u' hu' u hu he.symm
+          · simp [h0', show p' ≠ 1 from fun h' => hpp h'.symm] at hu'
+        · simp [h0, h1] at hu)
+    (l := [1, 0]) (l' := [0, 1]) (List.Perm.swap 0 1 []) (by decide) hnd
+  simpa using this
+
+/-- The updates a process issues in the edge pass on the view `v` (none if it is not an edge process or does not
+fire). -/
+def CoreMemDesign.procQ (E : CoreMemDesign) (before after v : SvState) : CoreMemProc → Res NbaQueue2
+  | .edge p => if p.fires before after then do
+      let r ← E.execV v p.body
+      .ok r.2
+    else .ok []
+  | _ => .ok []
+
+/-- The edge pass over `p :: rest`, `p` in `nbaWhole` form: `p`'s updates (of signals `p` drives), then the pass over
+`rest` on the same view. -/
+theorem CoreMemDesign.edgesV_cons_inv {E : CoreMemDesign} {before after v : SvState} {p : CoreMemProc}
+    {rest : List CoreMemProc} (hp : p.nbaWholeP = true) {r : SvState × NbaQueue2}
+    (h : E.edgesV before after v (p :: rest) = .ok r) :
+    ∃ qp rr, E.procQ before after v p = .ok qp ∧ (∀ u ∈ qp, u.1 ∈ p.targets) ∧
+      E.edgesV before after v rest = .ok rr ∧ r = (rr.1, qp ++ rr.2) := by
+  cases p with
+  | edge f =>
+      simp only [CoreMemDesign.edgesV] at h
+      simp only [CoreMemDesign.procQ]
+      split at h
+      · rename_i hf
+        simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+        obtain ⟨⟨v1, a⟩, h1, rr, h2, rfl⟩ := h
+        obtain ⟨rfl, ha⟩ := CoreMemDesign.execV_nbaWhole v f.body v1 a
+          (by simpa [CoreMemProc.nbaWholeP] using hp) h1
+        exact ⟨a, rr, by simp [hf, h1], fun u hu => by simp [CoreMemProc.targets, List.mem_eraseDups, ha u hu],
+          h2, rfl⟩
+      · rename_i hf
+        exact ⟨[], r, by simp [hf], by simp, h, by simp⟩
+  | assign t e => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
+  | initial b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
+  | comb b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
+  | implicit b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
+  | unsupported k t => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
+
+/-- The converse of `edgesV_cons_inv`. -/
+theorem CoreMemDesign.edgesV_cons_mk {E : CoreMemDesign} {before after v : SvState} {p : CoreMemProc}
+    {rest : List CoreMemProc} (hp : p.nbaWholeP = true) {qp : NbaQueue2} {rr : SvState × NbaQueue2}
+    (h1 : E.procQ before after v p = .ok qp) (h2 : E.edgesV before after v rest = .ok rr) :
+    E.edgesV before after v (p :: rest) = .ok (rr.1, qp ++ rr.2) := by
+  cases p with
+  | edge f =>
+      simp only [CoreMemDesign.procQ] at h1
+      simp only [CoreMemDesign.edgesV]
+      split at h1
+      · rename_i hf
+        simp only [Res.bind_eq_ok, Res.ok.injEq] at h1
+        obtain ⟨⟨v1, a⟩, ha, rfl⟩ := h1
+        obtain ⟨rfl, -⟩ := CoreMemDesign.execV_nbaWhole v f.body v1 a
+          (by simpa [CoreMemProc.nbaWholeP] using hp) ha
+        simp [hf, ha, h2]
+      · rename_i hf
+        simp only [Res.ok.injEq] at h1
+        subst h1
+        simp [hf, h2]
+  | assign t e => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
+  | initial b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
+  | comb b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
+  | implicit b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
+  | unsupported k t =>
+      simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
+
+/-- An edge pass over `nbaWhole` processes leaves the view alone. -/
+theorem CoreMemDesign.edgesV_view {E : CoreMemDesign} {before after v : SvState} :
+    ∀ {ps : List CoreMemProc}, (∀ p ∈ ps, p.nbaWholeP = true) → ∀ {r : SvState × NbaQueue2},
+      E.edgesV before after v ps = .ok r → r.1 = v
+  | [], _, r, h => by
+      simp only [CoreMemDesign.edgesV, Res.ok.injEq] at h
+      subst h; rfl
+  | p :: rest, hw, r, h => by
+      obtain ⟨qp, rr, -, -, h2, rfl⟩ := CoreMemDesign.edgesV_cons_inv (hw p (by simp)) h
+      exact (CoreMemDesign.edgesV_view (fun q hq => hw q (List.mem_cons_of_mem _ hq)) h2 : rr.1 = v)
+
+/-- **THE EDGE ORDER DOES NOT MATTER** (nonblocking whole-signal bodies, one driver per signal): every permutation of
+the processes gives an edge pass that succeeds when the route's succeeds, leaves the view alone, and commits to the
+same view from every state with distinct names. -/
+theorem CoreMemDesign.edgesV_perm {E : CoreMemDesign} {before after v : SvState} :
+    ∀ {ps ps' : List CoreMemProc}, ps.Perm ps' → (∀ p ∈ ps, p.nbaWholeP = true) →
+      (ps.flatMap CoreMemProc.targets).Nodup → ∀ {r : SvState × NbaQueue2},
+      E.edgesV before after v ps = .ok r →
+      r.1 = v ∧ ∃ r', E.edgesV before after v ps' = .ok r' ∧ r'.1 = v ∧
+        ∀ st : SvState, (st.map Prod.fst).Nodup → commitNba2 st r'.2 = commitNba2 st r.2 := by
+  intro ps ps' hperm
+  induction hperm with
+  | nil =>
+      intro _ _ r h
+      simp only [CoreMemDesign.edgesV, Res.ok.injEq] at h
+      subst h
+      exact ⟨rfl, _, rfl, rfl, fun _ _ => rfl⟩
+  | cons x _ ih =>
+      intro hw hnd r h
+      have hnd' := (List.nodup_append.mp (by simpa [List.flatMap_cons] using hnd)).2.1
+      cases x with
+      | edge f =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          split at h
+          · rename_i hf
+            simp only [hf, ↓reduceIte]
+            simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+            obtain ⟨⟨v1, a⟩, h1, ⟨v2, b⟩, h2, rfl⟩ := h
+            obtain ⟨rfl, -⟩ := CoreMemDesign.execV_nbaWhole v f.body v1 a
+              (by simpa [CoreMemProc.nbaWholeP] using hw (.edge f) (by simp)) h1
+            obtain ⟨hv2, r', h2', hv2', hc⟩ := ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h2
+            refine ⟨hv2, (r'.1, a ++ r'.2), ?_, hv2', fun st hst => ?_⟩
+            · simp [h1, h2']
+            · rw [commitNba2_append, commitNba2_append]
+              exact hc _ (by rw [keys_commitNba2]; exact hst)
+          · rename_i hf
+            simp only [hf, Bool.false_eq_true, ↓reduceIte]
+            exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      | assign t e =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      | initial b =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      | comb b =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      | implicit b =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      | unsupported k t =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+  | swap x y l =>
+      intro hw hnd r h
+      have hy := hw y (by simp)
+      have hx := hw x (by simp)
+      have hl : ∀ p ∈ l, p.nbaWholeP = true := fun p hp => hw p (by simp [hp])
+      obtain ⟨qy, r1, hqy, hny, h1, rfl⟩ := CoreMemDesign.edgesV_cons_inv hy h
+      obtain ⟨qx, r2, hqx, hnx, h2, rfl⟩ := CoreMemDesign.edgesV_cons_inv hx h1
+      have hv2 := CoreMemDesign.edgesV_view hl h2
+      refine ⟨hv2, (r2.1, qx ++ (qy ++ r2.2)),
+        CoreMemDesign.edgesV_cons_mk hx hqx (CoreMemDesign.edgesV_cons_mk hy hqy h2), hv2, fun st hst => ?_⟩
+      have hdisj : ∀ u ∈ qx, ∀ u' ∈ qy, u.1 ≠ u'.1 := by
+        simp only [List.flatMap_cons] at hnd
+        have h3 := (List.nodup_append.mp hnd).2.2
+        intro u hu u' hu' he
+        exact h3 u'.1 (hny u' hu') u.1 (List.mem_append_left _ (hnx u hu)) he.symm
+      show commitNba2 st (qx ++ (qy ++ r2.2)) = commitNba2 st (qy ++ (qx ++ r2.2))
+      rw [← List.append_assoc, ← List.append_assoc, commitNba2_append st (qx ++ qy),
+        commitNba2_append st (qy ++ qx), commitNba2_swap hst hdisj]
+  | trans h₁₂ _ ih₁ ih₂ =>
+      intro hw hnd r h
+      obtain ⟨hv, r₁, h₁, hv₁, hc₁⟩ := ih₁ hw hnd h
+      obtain ⟨-, r₂, h₂, hv₂, hc₂⟩ := ih₂ (fun p hp => hw p (h₁₂.mem_iff.mpr hp))
+        ((List.Perm.flatMap_right _ h₁₂).nodup_iff.mp hnd) h₁
+      exact ⟨hv, r₂, h₂, hv₂, fun st hst => (hc₂ st hst).trans (hc₁ st hst)⟩
+
+/-- The edge pass reads only the edge processes. -/
+theorem CoreMemDesign.edgesV_filter {E : CoreMemDesign} {before after : SvState} :
+    ∀ (ps : List CoreMemProc) (v : SvState),
+      E.edgesV before after v ps = E.edgesV before after v (ps.filter CoreMemProc.isEdge)
+  | [], _ => rfl
+  | .edge f :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .assign t e :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .initial b :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .comb b :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .implicit b :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .unsupported k t :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+
+/-- **With at most one edge process there is no order to choose**: every permutation gives the same edge pass. -/
+theorem CoreMemDesign.edgesV_single {E : CoreMemDesign} {before after v : SvState} {ps ps' : List CoreMemProc}
+    (hp : ps.Perm ps') (h1 : (ps.filter CoreMemProc.isEdge).length ≤ 1) :
+    E.edgesV before after v ps' = E.edgesV before after v ps := by
+  rw [CoreMemDesign.edgesV_filter ps', CoreMemDesign.edgesV_filter ps]
+  have hp' := hp.filter CoreMemProc.isEdge
+  generalize ps.filter CoreMemProc.isEdge = a at hp' h1
+  generalize ps'.filter CoreMemProc.isEdge = b at hp'
+  rcases a with _ | ⟨x, _ | ⟨y, a⟩⟩
+  · obtain rfl := List.nil_perm.mp hp'
+    rfl
+  · obtain rfl := List.singleton_perm.mp hp'
+    rfl
+  · simp at h1
+
+/-- **THE EDGE ORDER DOES NOT MATTER, under the obligations** (rule 4): for every permutation of the processes, the
+edge pass succeeds when the route's (source order) succeeds and commits to the same view. -/
+theorem CoreMemDesign.edgesV_order {E : CoreMemDesign} {clk : String} (hO : E.seqOblB clk = true)
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList) {before after v : SvState}
+    (hv : (v.map Prod.fst).Nodup) {r : SvState × NbaQueue2}
+    (h : E.edgesV before after v E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after v ps = .ok r' ∧ commitNba2 r'.1 r'.2 = commitNba2 r.1 r.2 := by
+  simp only [CoreMemDesign.seqOblB, Bool.and_eq_true] at hO
+  obtain ⟨⟨⟨⟨⟨⟨hdr, -⟩, -⟩, -⟩, -⟩, hord⟩, -⟩ := hO
+  simp only [CoreMemDesign.oblDrivers, CoreMemDesign.driven, decide_eq_true_eq] at hdr
+  simp only [CoreMemDesign.oblEdgeOrder, Bool.or_eq_true, decide_eq_true_eq, List.all_eq_true] at hord
+  rcases hord with h1 | hw
+  · exact ⟨r, by rw [CoreMemDesign.edgesV_single hσ.symm h1]; exact h, rfl⟩
+  · obtain ⟨hv1, r', h', hv1', hc⟩ := CoreMemDesign.edgesV_perm hσ.symm hw (of_decide_eq_true hdr) h
+    exact ⟨r', h', by rw [hv1', hv1]; exact hc v hv⟩
+
+#print axioms CoreMemDesign.edgesV_order
 
 /-! ## The prover's judgment: every run of a family member -/
 
