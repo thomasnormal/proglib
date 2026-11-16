@@ -1018,6 +1018,12 @@ the `c :: rest` arm calls `go (key ++ [c]) rest`, and the closing arm returns
 `String.ofList key ++ String.ofList prefix`; that is ordinary parser induction,
 but it is not definitionally available through the generated `where` equation.
 
+An explicitly named helper attempt confirmed the remaining limitation: Lean's
+generated equation does not expose the recursive call in the rewritten
+`pre ++ [c]` shape, so the accumulator theorem needs a separately defined
+proof-side recursion or an equation lemma for the local `go`.  The failed
+attempt was reverted; the parser and semantics remain unchanged.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
