@@ -1024,6 +1024,11 @@ generated equation does not expose the recursive call in the rewritten
 proof-side recursion or an equation lemma for the local `go`.  The failed
 attempt was reverted; the parser and semantics remain unchanged.
 
+A proof-side copy of `go` would merely be a second parser and would violate the
+approved-parser rule.  The admissible route is an equation theorem generated
+from the existing definition (or a refactoring of the definition itself that
+preserves its parser semantics); no mirrored helper is introduced here.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
