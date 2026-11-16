@@ -1012,6 +1012,12 @@ the closing `)` and conversion character; its prefix relation must account for
 that accumulator and list-association explicitly.  No vacuous wrapper or
 fixed-length parser theorem was added while that relation is unproved.
 
+Its local equation is the exact relation needed: for any accumulator `key`,
+the `c :: rest` arm calls `go (key ++ [c]) rest`, and the closing arm returns
+`String.ofList key`.  A general theorem must connect this accumulator growth to
+`String.ofList key ++ String.ofList prefix`; that is ordinary parser induction,
+but it is not definitionally available through the generated `where` equation.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
