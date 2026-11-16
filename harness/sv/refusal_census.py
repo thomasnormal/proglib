@@ -57,6 +57,8 @@ def enrich(row, spans):
 def run_extract(args):
     cmd = [sys.executable, str(EXTRACT), "--census", "--top", args.top,
            *args.sources]
+    if args.retain_proc_rewrites:
+        cmd.insert(2, "--retain-proc-rewrites")
     if args.out:
         cmd += ["-o", args.out]
     result = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True)
@@ -96,6 +98,8 @@ def main(argv=None):
     extract = sub.add_parser("extract")
     extract.add_argument("--top", required=True)
     extract.add_argument("-o", "--out")
+    extract.add_argument("--retain-proc-rewrites", action="store_true",
+                         help="retain source-shaped procedural rewrites")
     extract.add_argument("sources", nargs="+")
     ordinary = sub.add_parser("ordinary")
     ordinary.add_argument("envelope")
