@@ -22,6 +22,22 @@ def eightRows : Res (List CoreMemState) := do
   | .ok rows => rows.length == 8
   | _ => false
 
+/-! The clean-room stimulus also pins the four-state observable on the
+selected output target: known values, then x and z, without changing the
+source-shaped assignment nodes. -/
+def stimulus : List SvState := [
+  [("x", LVec.ofNat 1 0)], [("x", LVec.ofNat 1 1)],
+  [("x", LVec.ofNat 1 1)], [("x", LVec.ofNat 1 0)],
+  [("x", LVec.lit "x")], [("x", LVec.lit "z")],
+  [("x", LVec.ofNat 1 0)], [("x", LVec.ofNat 1 0)]]
+
+def outputRows : Res (List String) := do
+  let d ← assignTargetE.e
+  let rows ← runCoreMemRows d d.initial stimulus
+  .ok (rows.map fun s => SvState.showSignal (CoreMemState.view d s) "y")
+
+#guard outputRows == .ok ["0", "1", "1", "0", "x", "z", "0", "0"]
+
 /-! The scalar projection is also executable by the direct flat-array
 instrument.  This is a bounded performance receipt, not a replacement for the
 canonical `CoreMemDesign` route: the latter remains authoritative for memory
