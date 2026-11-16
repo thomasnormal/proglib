@@ -797,6 +797,10 @@ depth rule.  It keeps the caller's `callDepth` inequalities explicit and
 checks the legacy `leaveCallDepth` decrement against the monadic
 `leaveCallM` result.
 
+`Monadic.twinAgrees_callIn_recursive_body_exn` supplies the same non-top-depth
+normalization for exceptional body results, preserving the exception while
+decrementing the retained world depth on both sides.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply

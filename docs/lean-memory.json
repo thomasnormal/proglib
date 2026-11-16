@@ -12,9 +12,9 @@
     "exit_code": 0,
     "module": "LeanModels/Python/Monadic/Eval.lean",
     "over_budget": false,
-    "peak_bytes": 1327128576,
-    "peak_gib": 1.236,
-    "seconds": 242.636,
+    "peak_bytes": 1219780608,
+    "peak_gib": 1.136,
+    "seconds": 204.782,
     "warning": false
   },
   "LeanModels/Python/Monadic/Substrate.lean": {
