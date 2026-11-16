@@ -10,9 +10,8 @@ def run(a,cwd=ROOT):
  return o
 def rows(o):return [x.split()[1:] for x in o.splitlines() if x.startswith('ROW ')]
 def main():
- e=run(['lake','env','lean','--run',str(HERE/'oracle.lean')])
- if rows(e) != [['i=0','y=x'],['i=1','y=0']]: raise RuntimeError(e)
- print('E: ordinary canonical hierarchy executes 2 source rows')
+ run(['lake','env','lean',str(HERE/'agree.lean')])
+ print('E: ordinary canonical hierarchy checks 2 source rows')
  src=str(HERE/'edge_child_instance_canonical_e.sv');tb=str(HERE/'edge_child_instance_canonical_e_tb.sv')
  with tempfile.TemporaryDirectory(prefix='sv-e-edge-child-') as w:
   exe=str(Path(w)/'sim');run(['iverilog','-g2012','-s','edge_child_instance_canonical_e_tb','-o',exe,src,tb],w);act=rows(run(['vvp',exe],w))

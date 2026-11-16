@@ -335,7 +335,13 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
       | _ => none
   let merged := { top with
       decls := top.decls ++ generatedDecls ++ childDecls
-      processes := top.processes ++ generatedPs ++ inputPs ++ childPs ++ outputPs
+      -- Port connections are continuous drivers.  Place child processes
+      -- before generated output drivers, and parent processes after those
+      -- drivers, so the canonical one-pass settle sees both combinational
+      -- child outputs and edge-child updates before parent assignments
+      -- (IEEE 1800-2023 §§4.5, 23.2.2).  This is an elaboration-order
+      -- choice, not a source rewrite.
+      processes := inputPs ++ childPs ++ outputPs ++ top.processes ++ generatedPs
       generates := []
       others := top.others ++ children.flatMap fun (child, _, _, _, _) => child.others
       -- A child function remains a source-shaped declaration after the
