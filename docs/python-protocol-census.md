@@ -1059,6 +1059,12 @@ arm threads the converted text into the escaped continuation, while all other
 token outcomes are preserved directly.  The theorem remains parametric in the
 pair count and reuses the existing parser and walk equations.
 
+`Monadic.strFormatMappingWalk_token_then_plain_then_escaped` combines both
+continuation forms after a token: an arbitrary safe literal segment followed by
+any number of escaped-percent pairs.  It is a single parametric bridge over
+the mixed suffix, preserving every token outcome and avoiding a matrix of
+specialized segment counts.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
