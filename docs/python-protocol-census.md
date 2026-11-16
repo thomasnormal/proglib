@@ -778,6 +778,11 @@ comparison.  For a normalized top-depth call whose body is one `pass`, it
 relates the monadic successor runner to the legacy `callIn` result once the
 legacy body has enough fuel for its statement step.
 
+`Monadic.twinAgrees_callIn_pass_or_constants_body` lifts that comparison to an
+arbitrary pass/constant body list.  The legacy frame uses `mkCallEnv` and
+`markUnboundLocals`, while the monadic theorem uses `globalCallEnv`; the body
+state-preservation induction reduces both to the same normalized caller world.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply

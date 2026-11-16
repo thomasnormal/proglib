@@ -5001,6 +5001,41 @@ theorem twinAgrees_callIn_pass_body
               Run.toWorld, Run.bind]
   rw [hmono, hlegacy]
 
+theorem twinAgrees_callIn_pass_or_constants_body
+    (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hFuel : 2 + f.body.toList.length < fuel)
+    (hshape : ∀ s ∈ f.body.toList, PassOrConstantStmt s) :
+    callInMono m (fuel + 1) w fname args =
+      callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth } fname args := by
+  have hmono := callInMono_succ_body_pass_or_constants m fuel w fname args f
+    hfind hgen hargs hlocal hnotgen harity hFuel hshape
+  let stLegacy : FrameState :=
+    ⟨{ w with callDepth := 1 },
+      markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩
+  have hRun : execStmts m fuel stLegacy f.body.toList =
+      .ok stLegacy RFlow.next := by
+    exact execStmts_pass_or_constants_next m f.body.toList stLegacy fuel hFuel hshape
+  have hlegacy : callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth }
+      fname args = .ok { w with callDepth := pythonTopCallDepth } .none := by
+    cases fuel with
+    | zero => omega
+    | succ fuel =>
+        have hfuel : 2 + f.body.toList.length < fuel + 1 := by omega
+        rw [callIn]
+        simp only [hfind, hargs, hlocal, hnotgen, harity,
+          Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+        rw [show execStmts m (fuel + 1) stLegacy f.body.toList =
+          .ok stLegacy RFlow.next from hRun]
+        simp [stLegacy, pythonTopCallDepth, Run.finishCallAt,
+          Run.toWorld, Run.bind]
+  rw [hmono, hlegacy]
+
 theorem twinAgrees_execStmt_expr_constant (K : Kont) (m : Module)
     (st : FrameState) (c : Const) (sp : Span) (fuel : Nat)
     (hfuel : 1 < fuel) :
