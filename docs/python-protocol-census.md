@@ -1016,6 +1016,12 @@ prefix and rewrites directly to the same walk on that suffix, with the prefix
 text appended to the accumulator.  This exposes the exact fuel and accumulator
 threading needed to compose mixed walks without enumerating prefix lengths.
 
+`Monadic.strFormatMappingWalk_escaped_percent_prefix_append` supplies the same
+continuation shape for an arbitrary run of escaped-percent pairs.  Each pair is
+consumed by the existing `%%` branch and contributes one literal percent to the
+accumulator before the unchanged suffix walk; token lookup and conversion stay
+outside this structural theorem.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain

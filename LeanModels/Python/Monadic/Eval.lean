@@ -6354,7 +6354,7 @@ private def escapedPercentOutput : Nat → String
 
 theorem strFormatMappingWalk_escaped_percent_prefix
     (h : Heap) (a : Addr) (fuel n : Nat) (acc : String) :
-    strFormatMappingWalk h a (fuel + 2 * n)
+    strFormatMappingWalk h a (fuel + n)
       (escapedPercentPrefix n) acc =
       .ok (acc ++ escapedPercentOutput n) := by
   induction n generalizing fuel acc with
@@ -6362,12 +6362,11 @@ theorem strFormatMappingWalk_escaped_percent_prefix
       simpa [escapedPercentPrefix, escapedPercentOutput] using
         strFormatMappingWalk_empty h a fuel acc
   | succ n ih =>
-      rw [show fuel + 2 * (n + 1) = (fuel + 2 * n) + 2 by omega]
+      rw [show fuel + (n + 1) = (fuel + n) + 1 by omega]
       rw [show escapedPercentPrefix (n + 1) = '%' :: '%' :: escapedPercentPrefix n by rfl]
-      rw [strFormatMappingWalk_escaped_percent_step h a (fuel + 2 * n + 1)
+      rw [strFormatMappingWalk_escaped_percent_step h a (fuel + n)
         (escapedPercentPrefix n) acc]
-      rw [show fuel + 2 * n + 1 = (fuel + 1) + 2 * n by omega]
-      rw [ih (fuel := fuel + 1) (acc := acc ++ "%")]
+      rw [ih (fuel := fuel) (acc := acc ++ "%")]
       simp [escapedPercentOutput, String.append_assoc]
 
 theorem strFormatMappingWalk_plain_prefix_append
@@ -6392,6 +6391,24 @@ theorem strFormatMappingWalk_plain_prefix_append
       congr 1
       rw [show String.ofList [c] = String.singleton c by rfl,
         String.ofList_cons, String.append_assoc]
+
+theorem strFormatMappingWalk_escaped_percent_prefix_append
+    (h : Heap) (a : Addr) (fuel n : Nat) (rest : List Char) (acc : String) :
+    strFormatMappingWalk h a (fuel + n)
+      (escapedPercentPrefix n ++ rest) acc =
+      strFormatMappingWalk h a fuel rest (acc ++ escapedPercentOutput n) := by
+  induction n generalizing fuel acc with
+  | zero => simp [escapedPercentPrefix, escapedPercentOutput]
+  | succ n ih =>
+      rw [show fuel + (n + 1) = (fuel + n) + 1 by omega]
+      rw [show escapedPercentPrefix (n + 1) = '%' :: '%' :: escapedPercentPrefix n by rfl]
+      rw [List.cons_append]
+      change strFormatMappingWalk h a (fuel + n + 1)
+        ('%' :: '%' :: (escapedPercentPrefix n ++ rest)) acc = _
+      rw [strFormatMappingWalk_escaped_percent_step h a (fuel + n)
+        (escapedPercentPrefix n ++ rest) acc]
+      rw [ih (fuel := fuel) (acc := acc ++ "%")]
+      simp [escapedPercentOutput, String.append_assoc]
 
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
