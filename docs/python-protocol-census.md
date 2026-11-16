@@ -1120,6 +1120,16 @@ and accumulator, rather than assigning a fresh value to each repeated key
 read.  This is the precise shape needed to lift the one-token branch theorem
 to a list without introducing another parser semantics.
 
+`Monadic.strFormatMappingWalk_token_chain_ok` implements the successful arm of
+that relation for an arbitrary list of tokens.  Each token carries its safe
+source suffix, conversion character, and expected converted piece; the proof
+derives the parser result from `strFormatMapToken_append_of_safe`, checks the
+shared heap lookup and conversion, and recurses on the parser-returned tail.
+The relation deliberately admits only the all-success path; terminal
+exception, timeout, refusal, and missing-key arms remain the separate outcomes
+of `strFormatMappingWalk_token_branch` until their list-indexed relation is
+proved.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain

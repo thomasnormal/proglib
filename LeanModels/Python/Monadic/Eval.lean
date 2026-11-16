@@ -6714,6 +6714,93 @@ private def mappingPrefixOutput : List (List Char × Nat) → String
   | (chars, n) :: rest =>
       String.ofList chars ++ escapedPercentOutput n ++ mappingPrefixOutput rest
 
+private def mappingTokenInput : List (List Char × Char × String) → List Char
+  | [] => []
+  | (suffix, conv, piece) :: rest =>
+      '%' :: '(' :: suffix ++ ')' :: conv :: mappingTokenInput rest
+
+private def mappingTokenOutput : List (List Char × Char × String) → String
+  | [] => ""
+  | (suffix, conv, piece) :: rest => piece ++ mappingTokenOutput rest
+
+theorem strFormatMappingWalk_token_chain_ok
+    (h : Heap) (a : Addr) (fuel : Nat)
+    (tokens : List (List Char × Char × String)) (rest : List Char)
+    (acc : String)
+    (hsafe : ∀ suffix conv piece, (suffix, conv, piece) ∈ tokens →
+      ∀ c ∈ suffix, c ≠ ')')
+    (hconv : ∀ suffix conv piece, (suffix, conv, piece) ∈ tokens →
+      match Heap.get? h a with
+      | some (.dict entries _) =>
+          match strFormatDictFind entries.toList (String.ofList suffix) with
+          | some value => strFormatConv conv value = .ok piece
+          | Option.none => False
+      | _ => False) :
+    strFormatMappingWalk h a (fuel + tokens.length)
+      (mappingTokenInput tokens ++ rest) acc =
+      strFormatMappingWalk h a fuel rest
+        (acc ++ mappingTokenOutput tokens) := by
+  induction tokens generalizing fuel rest acc with
+  | nil => simp [mappingTokenInput, mappingTokenOutput]
+  | cons token tokens ih =>
+      rcases token with ⟨suffix, conv, piece⟩
+      have hsafeHead : ∀ c ∈ suffix, c ≠ ')' := by
+        intro c hc
+        exact hsafe suffix conv piece (by simp) c hc
+      have hsafeTail : ∀ suffix conv piece,
+          (suffix, conv, piece) ∈ tokens → ∀ c ∈ suffix, c ≠ ')' := by
+        intro suffix' conv' piece' hmem c hc
+        exact hsafe suffix' conv' piece' (by simp [hmem]) c hc
+      have hconvHead := hconv suffix conv piece (by simp)
+      have hconvTail : ∀ suffix conv piece,
+          (suffix, conv, piece) ∈ tokens →
+          match Heap.get? h a with
+          | some (.dict entries _) =>
+              match strFormatDictFind entries.toList (String.ofList suffix) with
+              | some value => strFormatConv conv value = .ok piece
+              | Option.none => False
+          | _ => False := by
+        intro suffix' conv' piece' hmem
+        exact hconv suffix' conv' piece' (by simp [hmem])
+      rw [show fuel + ((suffix, conv, piece) :: tokens).length =
+        (fuel + tokens.length) + 1 by simp; omega]
+      rw [show mappingTokenInput ((suffix, conv, piece) :: tokens) ++ rest =
+        '%' :: '(' :: suffix ++ ')' :: conv ::
+          (mappingTokenInput tokens ++ rest) by
+        simp [mappingTokenInput, List.append_assoc]]
+      have hparse : strFormatMapToken
+          (suffix ++ ')' :: conv :: (mappingTokenInput tokens ++ rest)) =
+          some (String.ofList suffix, conv, mappingTokenInput tokens ++ rest) := by
+        exact strFormatMapToken_append_of_safe suffix conv
+          (mappingTokenInput tokens ++ rest) hsafeHead
+      rw [strFormatMappingWalk_token_branch h a (fuel + tokens.length)
+        suffix conv (mappingTokenInput tokens ++ rest) (String.ofList suffix)
+        acc hparse]
+      split <;> rename_i hdict
+      · split <;> rename_i hfind
+        · split <;> rename_i hpiece
+          · have hconvHead' := hconvHead
+            simp [hdict, hfind] at hconvHead'
+            rw [hconvHead'] at hpiece
+            cases hpiece
+            rw [ih (fuel := fuel) (rest := rest)
+              (acc := acc ++ piece) hsafeTail hconvTail]
+            simp [mappingTokenOutput, String.append_assoc]
+          · have hconvHead' := hconvHead
+            simp [hdict, hfind] at hconvHead'
+            rw [hconvHead'] at hpiece
+            cases hpiece
+          · have hconvHead' := hconvHead
+            simp [hdict, hfind] at hconvHead'
+            rw [hconvHead'] at hpiece
+            cases hpiece
+          · have hconvHead' := hconvHead
+            simp [hdict, hfind] at hconvHead'
+            rw [hconvHead'] at hpiece
+            cases hpiece
+        · exact False.elim (by simpa [hdict, hfind] using hconvHead)
+      · exact False.elim (by simpa [hdict] using hconvHead)
+
 theorem strFormatMappingWalk_segment_chain
     (h : Heap) (a : Addr) (fuel : Nat)
     (segments : List (List Char × Nat)) (rest : List Char) (acc : String)
