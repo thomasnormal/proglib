@@ -92,6 +92,9 @@ theorem seqE_resizeU_ite (p : Prop) [Decidable p] (a b : LVec) (w : Nat) :
 theorem seqE_width_ite (p : Prop) [Decidable p] (a b : LVec) :
     (if p then a else b).width = if p then a.width else b.width := by split <;> rfl
 
+/-- The width of a literal vector. -/
+theorem seqE_width_lit (bs : Array Logic) : (⟨bs⟩ : LVec).width = bs.size := rfl
+
 /-- The commit of an empty queue changes nothing. -/
 theorem seqE_commit_nil (v : SvState) : commitNba2 v [] = v := rfl
 
@@ -239,7 +242,7 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.seqE_ite_cons, LeanModels.Sv.Kernel.seqE_commit_ite, LeanModels.Sv.Kernel.seqE_append_ite,
       LeanModels.Sv.Kernel.seqE_ite_append, LeanModels.Sv.Kernel.seqE_ite_fst, LeanModels.Sv.Kernel.seqE_ite_snd,
       LeanModels.Sv.Kernel.seqE_resizeU_ite, LeanModels.Sv.Kernel.seqE_width_ite,
-      LeanModels.Sv.Kernel.seqE_insertAt_zero, $ls,*])
+      LeanModels.Sv.Kernel.seqE_insertAt_zero, LeanModels.Sv.Kernel.seqE_width_lit, $ls,*])
 
 /-- The arithmetic pass of a cycle: conditions and bounds on the parameters, by `omega`. -/
 macro "sv_seq_eval_arith" : conv =>
