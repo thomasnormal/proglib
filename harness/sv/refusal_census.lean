@@ -3,7 +3,7 @@
 
 This runner is deliberately a thin instrument over `load_design_sv2`'s
 existing parser and admission functions.  It does not implement a second
-SystemVerilog checker: `PDesign.instantiate`, `crossCheckFull`, and the
+SystemVerilog checker: `PDesign.instantiateE2`, `crossCheckFull`, and the
 existing semantic guard functions provide the decisions.  A source-shaped
 unsupported node is retained and reported so later nodes can still be seen.
 
@@ -101,6 +101,13 @@ def guardRows (pd : PDesign) (lib : List PDesign) : List Row :=
         (if i32 then [] else [{ construct := "Constant:int32", function := "PDesign.int32Agrees", message := "default point leaves the exact 32-bit int tier" }])
   cross ++ libs ++ point
 
+def canonicalERows (d : CoreMemDesign) : List Row :=
+  d.processes.toList.flatMap fun p =>
+    match p with
+    | .unsupported k t =>
+        [{ construct := k, function := "PDesign.instantiateE2", message := t }]
+    | _ => []
+
 def eRows (envl : Envelope2) : List Row :=
   let pd := envl.design
   let args := pd.defaultArgs.toOption.getD []
@@ -109,20 +116,14 @@ def eRows (envl : Envelope2) : List Row :=
     else
       LeanModels.Sv.Kernel.PDesign.instantiateE2H pd envl.lib args
   match r with
-  | .ok _ => []
+  | .ok d => canonicalERows d
   | .timeout => [{ construct := "Instantiation:E:timeout", function := "PDesign.instantiateE2", message := "generate expansion fuel exhausted" }]
   | .unsupported m => [{ construct := "Instantiation:E:unsupported", function := "PDesign.instantiateE2", message := m }]
 
 def collect (envl : Envelope2) : List Row :=
   let pd := envl.design
   let lib := envl.lib
-  let instantiated := match pd.instantiate (pd.defaultArgs.toOption.getD []) (PDesign.surfaceFuel (pd.defaultArgs.toOption.getD [])) with
-    | .ok d => d.processes.toList.flatMap fun p => match p with
-        | .unsupported k t => [{ construct := k, function := "PDesign.instantiate", message := t }]
-        | _ => []
-    | .timeout => [{ construct := "Instantiation:timeout", function := "PDesign.instantiate", message := "generate expansion fuel exhausted" }]
-    | .unsupported m => [{ construct := "Instantiation:unsupported", function := "PDesign.instantiate", message := m }]
-  (designRows pd ++ guardRows pd lib ++ instantiated ++ eRows envl).eraseDups
+  (designRows pd ++ guardRows pd lib ++ eRows envl).eraseDups
 
 def main (args : List String) : IO UInt32 := do
   match args with
