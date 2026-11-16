@@ -6184,6 +6184,20 @@ theorem globalCallEnv_eq_legacy_of_empty_globalNames
     simp [globalMarkedEnv, hnames]
   simp [globalCallEnv, hnames, hmark]
 
+def globalValuesEnv (w : World) (body : Array Stmt) : Env :=
+  (globalNamesBody body).filterMap fun id =>
+    match Env.lookup w.globals id with
+    | some v => some (id, v)
+    | none => none
+
+theorem globalCallEnv_eq_worldFrame
+    (w : World) (params : Array Param) (args : Array RVal)
+    (body : Array Stmt) :
+    globalCallEnv w params args body true =
+      markUnboundLocals body.toList
+        (globalMarkedEnv body ++ globalValuesEnv w body ++ mkCallEnv params args) := by
+  rfl
+
 /-- Lift a statement-level bridge across an arbitrary returning function body.
 The fuel threshold accounts for the legacy list walker; the frame equality
 uses the no-global embedding rather than assuming equal post-body worlds. -/

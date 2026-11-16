@@ -794,6 +794,12 @@ structured declaration census is empty, the global frame still reduces to the
 same legacy environment.  Nonempty global bindings require a world-aware
 legacy correspondence and are intentionally left explicit.
 
+`Monadic.globalCallEnv_eq_worldFrame` makes that world-aware shape explicit:
+the frame is `globalMarkedEnv` followed by the current world's values for each
+declared name, then the parameter/default environment.  This is the exact
+nonempty-global correspondence available to future body theorems; it does not
+claim equality with a legacy frame that lacks those bindings.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
