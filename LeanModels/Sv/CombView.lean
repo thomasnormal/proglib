@@ -3083,7 +3083,7 @@ def siteOf? (ds : List DeclT) (pos : Nat) : PProcess → Except String TSite
           match rhsRds? ds v with
           | .ok rds => forceSite pos tg rds (.assignL l v) v
           | .error e => .error e
-  | .alwaysFF .. | .alwaysFFNegedge .. | .alwaysPlain .. | .alwaysComb .. | .alwaysFFR .. =>
+  | .alwaysFF .. | .alwaysFFNegedge .. | .alwaysPlain .. | .alwaysComb .. | .alwaysLatch .. | .alwaysFFR .. =>
       .error "procedural process (`always`): outside the combinational-assign fragment"
   | .initial .. =>
       .error "procedural process (`initial`): outside the combinational-assign fragment"

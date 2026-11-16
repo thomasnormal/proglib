@@ -673,6 +673,7 @@ def parsePProcess (j : Json) : Except String PProcess := do
             | "always" => return .alwaysPlain clock body
             | s => throw s!"unknown AlwaysPosedge style {s.quote}"
     | "AlwaysComb" => return .alwaysComb (← parsePStmt (← getField j "body"))
+    | "AlwaysLatch" => return .alwaysLatch (← parsePStmt (← getField j "body"))
     | "AlwaysEvent" =>
         if getOptStr j "event_kind" == some "ImplicitEventControl" then
           -- Do not let an explicit event list or guard masquerade as @*.

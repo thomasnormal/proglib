@@ -513,6 +513,9 @@ inductive PProcess where
   | alwaysFFNegedge (clock : String) (body : PStmt)
   | alwaysPlain (clock : String) (body : PStmt)
   | alwaysComb (body : PStmt)
+  /-- Source-shaped `always_latch`; its implicit level sensitivity and
+      time-zero activation are retained for canonical E (§9.2.2.3). -/
+  | alwaysLatch (body : PStmt)
   /-- Plain `always @*`: the parser's implicit event control and original
   body, retained for E. It first waits, unlike `always_comb` (§9.4.2.2).
   The frozen cycle views have no corresponding process and stay loud. -/
@@ -2487,6 +2490,7 @@ def instProcess (env : IEnv) : PProcess → Process
       "edge-qualified clock requires its retained event semantics"
   | .alwaysPlain c b => .alwaysPlain c (instStmt env b)
   | .alwaysComb b => .alwaysComb (instStmt env b)
+  | .alwaysLatch b => .unsupported "AlwaysLatch" "level-sensitive latch process is outside the scalar M0 tier"
   | .alwaysImplicit _ => .unsupported "ProceduralBlockSymbol:Always"
       "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
   | .assign t v => .assign t (instExpr env (env.widths.lookup t) v)

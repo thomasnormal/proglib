@@ -441,6 +441,7 @@ theorem siteOf?_cases {ds : List DeclT} {pos : Nat} {p : PProcess} {st : TSite}
   | alwaysImplicit _ => simp [siteOf?] at h
   | alwaysFFR _ _ _ _ => simp [siteOf?] at h
   | alwaysFFNegedge _ _ => simp [siteOf?] at h
+  | alwaysLatch _ => simp [siteOf?] at h
   | initial _ => simp [siteOf?] at h
   | unsupported _ _ => simp [siteOf?] at h
 

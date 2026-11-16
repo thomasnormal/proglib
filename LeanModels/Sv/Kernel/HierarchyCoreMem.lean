@@ -107,6 +107,7 @@ private def hParamProcess (vals : List (String × Int)) : PProcess → PProcess
   | .alwaysFFNegedge c b => .alwaysFFNegedge c (hParamStmt vals b)
   | .alwaysPlain c b => .alwaysPlain c (hParamStmt vals b)
   | .alwaysComb b => .alwaysComb (hParamStmt vals b)
+  | .alwaysLatch b => .alwaysLatch (hParamStmt vals b)
   | .alwaysImplicit b => .alwaysImplicit (hParamStmt vals b)
   | .assign n e => .assign n (hParamExpr vals e)
   | .assignL l e => .assignL (hParamLhs vals l) (hParamExpr vals e)
@@ -173,6 +174,7 @@ private def hProcess (pfx : String) (clockMap : List (String × String)) : PProc
   | .alwaysFFNegedge c b => .alwaysFFNegedge (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
   | .alwaysPlain c b => .alwaysPlain (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
   | .alwaysComb b => .alwaysComb (hStmt pfx b)
+  | .alwaysLatch b => .alwaysLatch (hStmt pfx b)
   | .alwaysImplicit b => .alwaysImplicit (hStmt pfx b)
   | .alwaysFFR c r b hi => .alwaysFFR (clockMap.lookup c |>.getD (pfx ++ c))
       (clockMap.lookup r |>.getD (pfx ++ r)) (hStmt pfx b) hi

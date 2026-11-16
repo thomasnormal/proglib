@@ -885,6 +885,7 @@ def expandFunctionProcess (env : IEnv) : PProcess → PProcess
   | .alwaysFFNegedge c b => .alwaysFFNegedge c (expandFunctionStmt env b)
   | .alwaysPlain c b => .alwaysPlain c (expandFunctionStmt env b)
   | .alwaysComb b => .alwaysComb (expandFunctionStmt env b)
+  | .alwaysLatch b => .alwaysLatch (expandFunctionStmt env b)
   | .alwaysImplicit b => .alwaysImplicit (expandFunctionStmt env b)
   | .assign t v => .assign t (expandFunctionCalls env v)
   | .assignL t v => .assignL t (expandFunctionCalls env v)
@@ -1557,6 +1558,7 @@ def instProcess2 (env : IEnv) (elems : List (String × Nat)) : PProcess → Proc
   -- WP4 (2026-10-28): a body that reads a bit before writing it and writes
   -- it later on the same path is refused, loudly (`CombGuard2.lean`).
   | .alwaysComb b => combGuardProc (fun n => env.widths.lookup n) (instStmt2 env elems b)
+  | .alwaysLatch _ => .unsupported "AlwaysLatch" "level-sensitive latch process is outside the scalar cycle tier"
   | .alwaysImplicit _ => .unsupported "ProceduralBlockSymbol:Always"
       "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
   | .alwaysFFR c rn b resetHigh =>

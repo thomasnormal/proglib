@@ -56,6 +56,9 @@ inductive CoreMemProc where
       Its source body remains a `PStmt`; the memory route does not lower it
       into a clocked or combinational surrogate. -/
   | implicit (body : PStmt)
+  /-- A level-sensitive `always_latch`; its source node uses the exact
+      implicit-sensitivity executor while remaining distinct in the AST. -/
+  | latch (body : PStmt)
   | unsupported (kind text : String)
 deriving Repr, Inhabited
 
@@ -233,7 +236,7 @@ def CoreMemDesign.hasImplicit (E : CoreMemDesign) : Bool :=
 def CoreMemDesign.hasComb (E : CoreMemDesign) : Bool :=
   E.processes.toList.any fun p =>
     match p with
-    | .comb _ => true
+    | .comb _ | .latch _ => true
     | _ => false
 
 def CoreMemDesign.compileAssigns (E : CoreMemDesign) : Array (Option Expr2) :=
@@ -304,6 +307,7 @@ def CoreMemProc.ofPProcess : PProcess → CoreMemProc
   | .assign target value => .assign (.ident target) value
   | .assignL target value => .assign target value
   | .alwaysComb body => .comb body
+  | .alwaysLatch body => .latch body
   | .alwaysImplicit body => .implicit body
   | .initial body => .initial body
   | .unsupported kind text => .unsupported kind text
@@ -502,6 +506,7 @@ def coreMemSubstProcess (vals : List (String × Int)) : PProcess → PProcess
   | .alwaysFFNegedge c b => .alwaysFFNegedge c (coreMemSubstStmt vals b)
   | .alwaysPlain c b => .alwaysPlain c (coreMemSubstStmt vals b)
   | .alwaysComb b => .alwaysComb (coreMemSubstStmt vals b)
+  | .alwaysLatch b => .alwaysLatch (coreMemSubstStmt vals b)
   | .alwaysImplicit b => .alwaysImplicit (coreMemSubstStmt vals b)
   | .assign n e => .assign n (coreMemSubstExpr vals e)
   | .assignL l e => .assignL (coreMemSubstLhs vals l) (coreMemSubstExpr vals e)
@@ -1629,6 +1634,7 @@ def CoreMemDesign.runImplicitAt (E : CoreMemDesign) (before current : CoreMemSta
   | .edge _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .initial _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .comb _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
+  | .latch _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .unsupported kind text :: _ => .unsupported s!"{kind}: {text}"
 
 def CoreMemDesign.runImplicit (E : CoreMemDesign) (before current : CoreMemState) :
@@ -1640,6 +1646,9 @@ def CoreMemDesign.runCombInitialWithView (E : CoreMemDesign) (current : CoreMemS
     (view : SvState) : List CoreMemProc → Res (CoreMemState × SvState)
   | [] => .ok (current, view)
   | .comb body :: rest => do
+      let (after, view') ← E.execCombStmtAtView E.env E.elems current view body
+      E.runCombInitialWithView (E.compactScalar after view') view' rest
+  | .latch body :: rest => do
       let (after, view') ← E.execCombStmtAtView E.env E.elems current view body
       E.runCombInitialWithView (E.compactScalar after view') view' rest
   | _ :: rest => E.runCombInitialWithView current view rest
@@ -1667,6 +1676,15 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | .edge _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .initial _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .implicit _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
+  | .latch body :: rest => do
+      let reads := coreMemStmtReadExprs body
+      let ready ← E.readChangedAt before current beforeView currentView index reads
+      if !ready then
+        E.runCombAt before beforeView current currentView (index + 1) rest
+      else
+        let (after, afterView) ← E.execCombStmtAtView E.env E.elems current currentView body
+        let after := E.compactScalar after afterView
+        E.runCombAt before beforeView after afterView (index + 1) rest
   | .unsupported kind text :: _ => .unsupported s!"{kind}: {text}"
 
 def CoreMemDesign.runComb (E : CoreMemDesign) (before current : CoreMemState) :
@@ -1912,6 +1930,7 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
   | .initial _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .comb _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .implicit _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
+  | .latch _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .unsupported kind text :: _ =>
       .unsupported s!"{kind}: {text}"
 

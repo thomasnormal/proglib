@@ -1,0 +1,153 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "always_latch_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/always_latch_e/always_latch_e.sv",
+      "sha256": "e6479a9cdf48a3d03b389f94cfdbde0b4b6a8c498d0cfd4b476949922e6a444b"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 4,
+          "end_col": 10
+        },
+        "name": "always_latch_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 35,
+              "end_line": 2,
+              "end_col": 37
+            },
+            "name": "en",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 51,
+              "end_line": 2,
+              "end_col": 52
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 67,
+              "end_line": 2,
+              "end_col": 68
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysLatch",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 3,
+              "end_col": 30
+            },
+            "body": {
+              "kind": "If",
+              "span": {
+                "line": 3,
+                "col": 16,
+                "end_line": 3,
+                "end_col": 30
+              },
+              "cond": {
+                "kind": "Ident",
+                "span": {
+                  "line": 3,
+                  "col": 20,
+                  "end_line": 3,
+                  "end_col": 22
+                },
+                "width": 1,
+                "name": "en"
+              },
+              "then": {
+                "kind": "BlockingAssign",
+                "span": {
+                  "line": 3,
+                  "col": 24,
+                  "end_line": 3,
+                  "end_col": 30
+                },
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 3,
+                    "col": 24,
+                    "end_line": 3,
+                    "end_col": 25
+                  },
+                  "width": 1,
+                  "name": "q"
+                },
+                "value": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 3,
+                    "col": 28,
+                    "end_line": 3,
+                    "end_col": 29
+                  },
+                  "width": 1,
+                  "name": "d"
+                }
+              },
+              "else": null
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

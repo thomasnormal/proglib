@@ -767,6 +767,8 @@ def memEProcessAdmission : PProcess → Except String Unit
       .error "E memory route does not yet admit select-target continuous assignments"
   | .alwaysComb _ =>
       .error "E memory route does not yet admit always_comb processes"
+  | .alwaysLatch _ =>
+      .error "E memory route does not yet admit always_latch processes"
   | .initial _ => .ok ()
   | .unsupported k text => .error s!"unsupported process '{k}': {text}"
 
