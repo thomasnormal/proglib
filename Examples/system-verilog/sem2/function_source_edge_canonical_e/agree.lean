@@ -24,6 +24,11 @@ def outputs : Res (List String) := do
 #guard match functionSourceEdge.pdesign.functions.find? (fun f => f.name == "invert") with
   | some f => f.automatic && f.formals.all (fun formal => formal.isInput)
   | none => false
+#guard match functionSourceEdge.e with
+  | .ok d => match d.env.functions.find? (fun f => f.name == "invert") with
+      | some f => f.automatic && f.formals.all (fun formal => formal.isInput)
+      | none => false
+  | _ => false
 #guard match functionSourceEdge.pdesign.processes with
   | [.alwaysFF "clk" (.nbaAssign "q" (.functionCall "invert" [_]))] => true
   | _ => false
