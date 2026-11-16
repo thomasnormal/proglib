@@ -996,6 +996,11 @@ that character.  Special `%` prefixes remain separate semantic cases, so this
 lemma is a safe structural induction seed rather than a rewrite of formatting
 syntax.
 
+`Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
+escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
+percent before continuing.  Mapping-token and conversion prefixes remain
+separate because they observe the heap and may raise or refuse.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the

@@ -6249,6 +6249,12 @@ theorem strFormatMappingWalk_char_step
       strFormatMappingWalk h a fuel cs (acc ++ String.ofList [c]) := by
   simp [strFormatMappingWalk, hc]
 
+theorem strFormatMappingWalk_escaped_percent_step
+    (h : Heap) (a : Addr) (fuel : Nat) (cs : List Char) (acc : String) :
+    strFormatMappingWalk h a (fuel + 1) ('%' :: '%' :: cs) acc =
+      strFormatMappingWalk h a fuel cs (acc ++ "%") := by
+  rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
