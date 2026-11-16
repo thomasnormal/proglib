@@ -381,6 +381,14 @@ validation could inspect the wrong state for an edge process. The
 `qualified_case_timing` rows cover a pre-edge violation and a violation
 created by one edge and observed on the next.
 
+## Canonical E in-slot NBA event iteration — 2026-11-16
+
+Canonical E now repeats edge, NBA commit, combinational settle, and implicit
+activation passes while an NBA causes another retained edge event, bounded by a
+fixed quiescence budget. Exhaustion is a loud §4.5 refusal. The internal-reset
+receipt exercises a register-driven reset changed by the same slot's NBA; the
+ordinary loader remains its separate `Clock:reset` boundary.
+
 ## Canonical E multiple input clocks — 2026-11-16
 
 Canonical E's existing source-shaped `CoreMemDesign.step` now admits multiple

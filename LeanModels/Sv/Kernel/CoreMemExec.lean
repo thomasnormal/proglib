@@ -330,23 +330,11 @@ their signal is a top-level input port. -/
 def coreMemInputPortB (d : PDesign) (name : String) : Bool :=
   d.decls.any (fun pd => pd.name == name && pd.isInput)
 
-def coreMemClockResetViol (d : PDesign) (generated : List PProcess) :
+def coreMemClockResetViol (_d : PDesign) (_generated : List PProcess) :
     Option (String × String) :=
-  (d.processes ++ generated).findSome? fun p =>
-    match p with
-    | .alwaysFF clk _ | .alwaysPlain clk _ =>
-        if coreMemInputPortB d clk then none
-        else some ("Clock:source",
-          s!"clock '{clk}' is not a top-level input port; canonical E refuses NBA-caused internal clock events under IEEE 1800-2023 §§4.4 and 9.4.2")
-    | .alwaysFFR clk rst _ _ =>
-        if !coreMemInputPortB d clk then
-          some ("Clock:source",
-            s!"clock '{clk}' is not a top-level input port; canonical E refuses NBA-caused internal clock events under IEEE 1800-2023 §§4.4 and 9.4.2")
-        else if !coreMemInputPortB d rst then
-          some ("Clock:reset",
-            s!"asynchronous reset '{rst}' is not a top-level input port; canonical E refuses NBA-caused internal reset events under IEEE 1800-2023 §§4.4 and 9.4.2")
-        else none
-    | _ => none
+  -- Canonical E now iterates NBA-caused clock/reset events in the same slot
+  -- (§§4.4, 4.5); the ordinary run2 loader keeps its separate discipline guard.
+  none
 
 /-! Module-level metadata that is already represented by retained source nodes.
 An empty input-only task has no runtime effect, and the two x/z markers carry
@@ -2044,6 +2032,37 @@ def CoreMemDesign.applyMemoryInputs (E : CoreMemDesign) (entry : SvState)
         | none => m
         | some v => (m.writeId md.shape.id i (md.shape.convert v)).getD m) mem) memory
 
+/-- Run edge/NBA/settle passes until the commit causes no further edge event.
+IEEE 1800-2023 §§4.4 and 4.5 schedule NBA-caused events in the same time slot.
+The bound is an executor guard: exhaustion is a loud refusal, never a truncated
+trace. -/
+def CoreMemDesign.edgeQuiesce (E : CoreMemDesign) (limit : Nat)
+    (st : CoreMemState) (before after : SvState) (combBefore : CoreMemState) : Res CoreMemState :=
+  match limit with
+  | 0 => .unsupported "4.5: event slot did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let edge ← E.runEdges E.env E.elems st before after E.processes.toList
+      let committedStore := E.scalarEdge.commit edge.state.scalar edge.scalarQ
+      let memory ← match edge.state.memory.commitNba edge.memoryQ with
+        | some m => .ok m
+        | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
+      let committed := E.normalizeScalar edge.state committedStore
+      let settled ← E.settleAssign E.env E.elems { committed with memory } E.processes.toList
+      let activated ← if E.hasImplicit then
+          E.runImplicit st settled E.processes.toList
+        else .ok settled
+      let combed ← if E.hasComb then
+          E.runComb combBefore activated E.processes.toList
+        else .ok activated
+      let next ← E.settleAssign E.env E.elems combed E.processes.toList
+      let nextView := E.scalar.view next.scalar
+      let caused := E.processes.toList.any fun p =>
+        match p with
+        | .edge q => q.fires after nextView
+        | _ => false
+      if caused then E.edgeQuiesce n next after nextView next
+      else .ok next
+
 def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) : Res CoreMemState := do
   let inputStore := E.scalar.applyInputs st.scalar entry
   let memoryInput := E.applyMemoryInputs entry st.memory
@@ -2056,23 +2075,9 @@ def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState)
       E.runImplicit st pre E.processes.toList
     else .ok pre
   let pre ← E.settleAssign E.env E.elems pre E.processes.toList
-  let combBefore := pre
   let before := E.scalar.view st.scalar
   let after := E.scalar.view pre.scalar
-  let edge ← E.runEdges E.env E.elems pre before after E.processes.toList
-  let committedStore := E.scalarEdge.commit edge.state.scalar edge.scalarQ
-  let memory ← match edge.state.memory.commitNba edge.memoryQ with
-    | some m => .ok m
-    | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
-  let committed := E.normalizeScalar edge.state committedStore
-  let settled ← E.settleAssign E.env E.elems { committed with memory } E.processes.toList
-  let activated ← if E.hasImplicit then
-      E.runImplicit pre settled E.processes.toList
-    else .ok settled
-  let combed ← if E.hasComb then
-      E.runComb combBefore activated E.processes.toList
-    else .ok activated
-  E.settleAssign E.env E.elems combed E.processes.toList
+  E.edgeQuiesce 4096 pre before after pre
 
 def runCoreMemRepeat (st : CoreMemState) : List SvState → Res (List CoreMemState)
   | [] => .ok []
