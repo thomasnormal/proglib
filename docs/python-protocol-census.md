@@ -833,6 +833,11 @@ branch runs in `SemF` and may carry a heap/world update.  No reusable theorem
 currently packages that whole branch, so this item stops at the shared
 operation boundary rather than introducing a parallel resolver.
 
+`Monadic.nameErrorRecursionCheck_run` closes the reusable leaf at the end of
+that branch: the monadic lift of the pinned recursion check is exactly the
+legacy `Run.liftRes` worker.  The surrounding name-error branch still needs
+the combined resolver relation described above.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the

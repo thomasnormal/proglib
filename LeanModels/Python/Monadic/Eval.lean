@@ -6223,6 +6223,11 @@ theorem frameGlobals_lookup_world
   rw [toRun_get_bind]
   rfl
 
+theorem nameErrorRecursionCheck_run (st : FrameState) :
+    toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
+      Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by
+  exact twinAgrees_liftRes (nameErrorRecursionCheck st.world.callDepth) st
+
 /-- Lift a statement-level bridge across an arbitrary returning function body.
 The fuel threshold accounts for the legacy list walker; the frame equality
 uses the no-global embedding rather than assuming equal post-body worlds. -/
