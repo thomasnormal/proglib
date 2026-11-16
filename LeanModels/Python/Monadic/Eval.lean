@@ -6255,6 +6255,12 @@ theorem strFormatMappingWalk_escaped_percent_step
       strFormatMappingWalk h a fuel cs (acc ++ "%") := by
   rfl
 
+theorem strFormatMappingWalk_incomplete_percent
+    (h : Heap) (a : Addr) (fuel : Nat) (acc : String) :
+    strFormatMappingWalk h a (fuel + 1) ['%'] acc =
+      .exn (.valueError "incomplete format") := by
+  rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

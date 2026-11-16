@@ -1001,6 +1001,11 @@ escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
 separate because they observe the heap and may raise or refuse.
 
+`Monadic.strFormatMappingWalk_incomplete_percent` closes the terminal `"%"`
+case with the exact `ValueError "incomplete format"` outcome, independent of
+heap, address, fuel, and accumulator.  This preserves the formatter's error
+ordering as the prefix induction proceeds.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
