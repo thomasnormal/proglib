@@ -5816,6 +5816,35 @@ theorem twinAgrees_callInM_recursive_body_timeout
   rw [hfinish]
   rfl
 
+theorem twinAgrees_callIn_recursive_body_timeout
+    (K : Kont) (m : Module) (fuel : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn)
+    (hdepth : w.callDepth ≠ pythonTopCallDepth)
+    (hfull : pythonFrameFull w.callDepth = false)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (hbodyMono : execOpenList K m f.body.toList
+      ⟨{ w with callDepth := w.callDepth + 1 },
+        globalCallEnv w f.params args f.body f.hasGlobal⟩ = .error .timeout)
+    (hbodyLegacy : execStmts m fuel
+      ⟨{ w with callDepth := w.callDepth + 1 },
+        markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩ f.body.toList =
+      .timeout) :
+    toRun (callInM K m fname args) w = callIn m (fuel + 1) w fname args := by
+  have hmono := twinAgrees_callInM_recursive_body_timeout K m fname args f w
+    hdepth hfull hfind hgen hargs hlocal hnotgen harity hbodyMono
+  have hlegacy : callIn m (fuel + 1) w fname args = .timeout := by
+    rw [callIn]
+    simp only [hfind, hargs, hlocal, hnotgen, harity,
+      Bool.false_eq_true, Bool.not_true, Bool.not_eq_true, ↓reduceIte]
+    rw [if_neg (by simp [hdepth]), if_neg (by simp [hfull])]
+    rw [hbodyLegacy]
+    rfl
+  rw [hmono, hlegacy]
+
 theorem twinAgrees_callInM_recursive_body_unsupported
     (K : Kont) (m : Module) (fname : String) (args : Array RVal)
     (f : FunctionDefn) (w : World) (cause : RefusalCause Unit)

@@ -801,6 +801,10 @@ checks the legacy `leaveCallDepth` decrement against the monadic
 normalization for exceptional body results, preserving the exception while
 decrementing the retained world depth on both sides.
 
+`Monadic.twinAgrees_callIn_recursive_body_timeout` closes the remaining
+non-top-depth timeout transport.  A raw timeout carries no world, so both
+interpreters leave the caller state untouched and return the same timeout.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply
