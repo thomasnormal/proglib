@@ -6653,6 +6653,54 @@ theorem strFormatMappingWalk_plain_then_escaped_then_token
   rw [strFormatMappingWalk_token_branch h a fuel suffix conv rest key
     (acc ++ String.ofList chars ++ escapedPercentOutput n) hparse]
 
+theorem strFormatMappingWalk_token_then_escaped_then_plain
+    (h : Heap) (a : Addr) (fuel n : Nat) (suffix chars rest : List Char)
+    (conv : Char) (key acc : String)
+    (hsafe : ∀ c ∈ chars, c ≠ '%')
+    (hparse : strFormatMapToken (suffix ++ ')' :: conv ::
+      escapedPercentPrefix n ++ chars ++ rest) =
+      some (key, conv, escapedPercentPrefix n ++ chars ++ rest)) :
+    strFormatMappingWalk h a (fuel + n + chars.length + 1)
+      ('%' :: '(' :: suffix ++ ')' :: conv :: escapedPercentPrefix n ++
+        chars ++ rest) acc =
+      match Heap.get? h a with
+      | some (.dict entries _) =>
+          match strFormatDictFind entries.toList key with
+          | some value =>
+              match strFormatConv conv value with
+              | .ok piece => strFormatMappingWalk h a fuel rest
+                  (acc ++ piece ++ escapedPercentOutput n ++ String.ofList chars)
+              | .exn e => .exn e
+              | .timeout => .timeout
+              | .unsupported msg => .unsupported msg
+          | Option.none => .exn .keyError
+      | _ => .unsupported "dangling heap reference" := by
+  let htail : List Char := escapedPercentPrefix n ++ chars ++ rest
+  have hparse' : strFormatMapToken (suffix ++ ')' :: conv :: htail) =
+      some (key, conv, htail) := by
+    simpa [htail, List.append_assoc] using hparse
+  rw [show fuel + n + chars.length + 1 =
+      (fuel + n + chars.length) + 1 by omega]
+  rw [show ('%' :: '(' :: suffix ++ ')' :: conv :: escapedPercentPrefix n ++
+      chars ++ rest) =
+      ('%' :: '(' :: suffix ++ ')' :: conv :: htail) by
+        simp [htail, List.append_assoc]]
+  change strFormatMappingWalk h a ((fuel + n + chars.length) + 1)
+    ('%' :: '(' :: suffix ++ ')' :: conv :: htail) acc = _
+  rw [strFormatMappingWalk_token_branch h a (fuel + n + chars.length)
+    suffix conv htail key acc hparse']
+  split <;> rename_i hdict
+  · split <;> rename_i hfind
+    · split <;> rename_i hconv piece
+      · have hmix := strFormatMappingWalk_escaped_then_plain h a fuel n
+          chars rest (acc := acc ++ hconv) hsafe
+        simpa [htail, String.append_assoc] using hmix
+      · rfl
+      · rfl
+      · rfl
+    · rfl
+  · rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

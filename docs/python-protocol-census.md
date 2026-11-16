@@ -1071,6 +1071,12 @@ and then a mapping token.  It first consumes the two structural prefix
 continuations and applies the token branch at the remaining fuel, preserving
 all heap and conversion outcomes without re-parsing or fixed-count expansion.
 
+`Monadic.strFormatMappingWalk_token_then_escaped_then_plain` closes the reverse
+mixed suffix: a mapping token, escaped-percent pairs, and a safe literal
+segment.  It applies the token result to the reverse structural continuation,
+preserving all non-success outcomes and keeping both segment lengths
+parametric.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
