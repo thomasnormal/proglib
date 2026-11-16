@@ -117,6 +117,18 @@ macro "sv_seq_profile" : tactic =>
         LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
         LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf]))
 
+/-- **`sv_seq_obligations`**: the obligations of the clocked profile (`seqOblB`) on a normal form, decided by `simp`. -/
+macro "sv_seq_obligations" : tactic =>
+  `(tactic| simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.seqOblB,
+      LeanModels.Sv.Kernel.CoreMemProc.targets, LeanModels.Sv.Kernel.CoreMemProc.reads, LeanModels.Sv.Kernel.topoB,
+      LeanModels.Sv.Kernel.assignTargets, LeanModels.Sv.PExpr.sigNames, LeanModels.Sv.PExpr.sigNamesList,
+      LeanModels.Sv.PStmt.nbaTargets, LeanModels.Sv.PStmt.optNbaTargets, LeanModels.Sv.PStmt.listNbaTargets,
+      LeanModels.Sv.PStmt.readNames, LeanModels.Sv.PStmt.optReadNames, LeanModels.Sv.PStmt.listReadNames])
+
+/-- **`sv_seq_ports`**: the ports of a normal form. -/
+macro "sv_seq_ports" : tactic =>
+  `(tactic| simp [LeanModels.Sv.Kernel.CoreMemDesign.inputPorts, LeanModels.Sv.Kernel.CoreMemDesign.outputPorts])
+
 /-- The evaluation pass of a cycle: the view functions and the route's evaluator unfolded. -/
 macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
   `(conv| simp (config := {maxSteps := 4000000, decide := true}) [-LeanModels.Sv.Res.bind_eq_ok,

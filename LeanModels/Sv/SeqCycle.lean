@@ -1091,6 +1091,126 @@ theorem CoreMemDesign.cycleV_congr_data (E : CoreMemDesign) (clk : String) (v d 
     E.cycleV clk v d = E.cycleV clk v d' := by
   simp only [CoreMemDesign.cycleV, CoreMemDesign.slotV, h]
 
+
+/-! ## The interface and the obligations -/
+
+/-- The input ports of a canonical-E design with their declared widths, in declaration order. -/
+def CoreMemDesign.inputPorts (E : CoreMemDesign) : List (String × Nat) :=
+  E.scalar.decls.toList.filterMap fun dc => if dc.isInput then some (dc.name, dc.width) else none
+
+/-- The output ports of a canonical-E design with their declared widths, in declaration order. -/
+def CoreMemDesign.outputPorts (E : CoreMemDesign) : List (String × Nat) :=
+  E.scalar.decls.toList.filterMap fun dc => if dc.isOutput then some (dc.name, dc.width) else none
+
+/-- **The interface of a family member**: it instantiates, with these ports. -/
+def SeqPorts (r : Res CoreMemDesign) (ins outs : List (String × Nat)) : Prop :=
+  ∃ E, r = .ok E ∧ E.inputPorts = ins ∧ E.outputPorts = outs
+
+mutual
+
+/-- The signal names an expression reads (identifiers and select bases). -/
+def _root_.LeanModels.Sv.PExpr.sigNames : PExpr → List String
+  | .ident n => [n]
+  | .arrayElem n is => n :: PExpr.sigNamesList is
+  | .arrayPart n is _ a b => n :: (PExpr.sigNamesList is ++ PExpr.sigNames a ++ PExpr.sigNames b)
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a | .sysCall _ a | .reduce _ a | .cast _ a =>
+      PExpr.sigNames a
+  | .binary _ a b | .bitSel a b | .repl a b => PExpr.sigNames a ++ PExpr.sigNames b
+  | .ternary c a b | .partSel c a b => PExpr.sigNames c ++ PExpr.sigNames a ++ PExpr.sigNames b
+  | .concat xs | .functionCall _ xs => PExpr.sigNamesList xs
+  | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .unsupported _ _ => []
+
+/-- `sigNames` of a list. -/
+def _root_.LeanModels.Sv.PExpr.sigNamesList : List PExpr → List String
+  | [] => []
+  | x :: xs => PExpr.sigNames x ++ PExpr.sigNamesList xs
+
+end
+
+mutual
+
+/-- The names an NBA-only body writes. -/
+def _root_.LeanModels.Sv.PStmt.nbaTargets : PStmt → List String
+  | .nbaAssign t _ => [t]
+  | .nbaAssignL (.ident t) _ => [t]
+  | .ifStmt _ y n => PStmt.nbaTargets y ++ PStmt.optNbaTargets n
+  | .block body => PStmt.listNbaTargets body
+  | _ => []
+
+/-- `nbaTargets` of an optional statement. -/
+def _root_.LeanModels.Sv.PStmt.optNbaTargets : Option PStmt → List String
+  | none => []
+  | some s => PStmt.nbaTargets s
+
+/-- `nbaTargets` of a list. -/
+def _root_.LeanModels.Sv.PStmt.listNbaTargets : List PStmt → List String
+  | [] => []
+  | s :: ss => PStmt.nbaTargets s ++ PStmt.listNbaTargets ss
+
+end
+
+mutual
+
+/-- The names a body reads (conditions and right-hand sides). -/
+def _root_.LeanModels.Sv.PStmt.readNames : PStmt → List String
+  | .nbaAssign _ e | .blockingAssign _ e | .nbaAssignL _ e | .blockingAssignL _ e => PExpr.sigNames e
+  | .ifStmt c y n => PExpr.sigNames c ++ PStmt.readNames y ++ PStmt.optReadNames n
+  | .block body => PStmt.listReadNames body
+  | _ => []
+
+/-- `readNames` of an optional statement. -/
+def _root_.LeanModels.Sv.PStmt.optReadNames : Option PStmt → List String
+  | none => []
+  | some s => PStmt.readNames s
+
+/-- `readNames` of a list. -/
+def _root_.LeanModels.Sv.PStmt.listReadNames : List PStmt → List String
+  | [] => []
+  | s :: ss => PStmt.readNames s ++ PStmt.listReadNames ss
+
+end
+
+/-- The names a process drives. -/
+def CoreMemProc.targets : CoreMemProc → List String
+  | .assign (.ident n) _ => [n]
+  | .edge f => f.body.nbaTargets.eraseDups
+  | _ => []
+
+/-- The names a process reads. -/
+def CoreMemProc.reads : CoreMemProc → List String
+  | .assign _ v => PExpr.sigNames v
+  | .edge f => f.body.readNames
+  | _ => []
+
+/-- The targets of the continuous assigns of a list. -/
+def assignTargets (ps : List CoreMemProc) : List String :=
+  ps.flatMap fun p => match p with
+    | .assign (.ident n) _ => [n]
+    | _ => []
+
+/-- Each continuous assign reads no target of itself or of a LATER assign (topological source order). -/
+def topoB : List CoreMemProc → Bool
+  | [] => true
+  | p :: rest => (match p with
+      | .assign _ v => (PExpr.sigNames v).all fun x => !(assignTargets (p :: rest)).contains x
+      | _ => true) && topoB rest
+
+/-- **The obligations of the clocked profile**, decided: one driver per signal (the targets of distinct processes are
+disjoint, and an assign's target is driven by no other process), the continuous assigns in topological source order
+(each reads no target of itself or of a later assign), no process writes an input or the clock, and no process reads
+the clock. Under them the route's one-pass settle is the fixpoint of the assigns and the commit of the edge processes'
+updates does not depend on their order (the cheap sufficient conditions of rule 4 for this slice). -/
+def CoreMemDesign.seqOblB (E : CoreMemDesign) (clk : String) : Bool :=
+  let ps := E.processes.toList
+  let ts := ps.flatMap CoreMemProc.targets
+  let ins := E.scalar.decls.toList.filterMap fun dc => if dc.isInput then some dc.name else none
+  ts.Nodup && topoB ps && ts.all (fun t => !ins.contains t && t != clk) &&
+    ps.all (fun p => !p.reads.contains clk)
+
+/-- **The structure of a clocked family member**: it instantiates, in the clocked profile, with its obligations. -/
+def SeqDesign (r : Res CoreMemDesign) (clk : String) : Prop :=
+  ∃ E, r = .ok E ∧ E.SeqProfile clk ∧ E.seqOblB clk = true
+
 /-! ## The prover's judgment: every run of a family member -/
 
 /-- **Every clocked run of a canonical-E family member**: the instantiation succeeds and, from every coherent state
