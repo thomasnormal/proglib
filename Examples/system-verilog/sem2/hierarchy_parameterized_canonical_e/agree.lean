@@ -4,6 +4,7 @@ namespace Examples.«system-verilog».sem2.hierarchy_parameterized_canonical_e
 open LeanModels.Sv
 open LeanModels.Sv.Kernel
 load_design_sv2 hierarchyE from "Examples/system-verilog/sem2/hierarchy_parameterized_canonical_e/hierarchy_parameterized_canonical_e.sv.json"
+#guard hierarchyE.plib.length == 1
 def outputs : Res (List String) := do
   let d ← hierarchyE.e 8
   let rows ← runCoreMemRows d d.initial [
