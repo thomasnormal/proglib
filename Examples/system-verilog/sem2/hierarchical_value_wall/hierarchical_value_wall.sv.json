@@ -1,0 +1,186 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "hierarchical_value_repro",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/hierarchical_value_wall/hierarchical_value_wall.sv",
+      "sha256": "e78713cdc94bcbd5a144d1b39a048d0cb6032ef9d0cd50abc2f81b1581c8ded0"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 4,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "hierarchical_value_repro",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 46,
+              "end_line": 4,
+              "end_col": 52
+            },
+            "name": "result",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 6,
+              "col": 10,
+              "end_line": 6,
+              "end_col": 35
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 6,
+                "col": 10,
+                "end_line": 6,
+                "end_col": 16
+              },
+              "width": 1,
+              "name": "result"
+            },
+            "value": {
+              "kind": "Unsupported",
+              "span": {
+                "line": 6,
+                "col": 19,
+                "end_line": 6,
+                "end_col": 35
+              },
+              "sv_kind": "HierarchicalValueExpression",
+              "text": "u.internal_value"
+            }
+          }
+        ],
+        "generates": [
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 5,
+              "col": 18,
+              "end_line": 5,
+              "end_col": 21
+            },
+            "name": "u",
+            "module": "hierarchy_leaf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 5,
+                  "col": 18,
+                  "end_line": 5,
+                  "end_col": 21
+                },
+                "port": "internal_value",
+                "dir": "out",
+                "target": null
+              }
+            ]
+          }
+        ],
+        "others": []
+      },
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 3,
+          "end_col": 10
+        },
+        "name": "hierarchy_leaf",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 36,
+              "end_line": 1,
+              "end_col": 50
+            },
+            "name": "internal_value",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 2,
+              "col": 10,
+              "end_line": 2,
+              "end_col": 31
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 2,
+                "col": 10,
+                "end_line": 2,
+                "end_col": 24
+              },
+              "width": 1,
+              "name": "internal_value"
+            },
+            "value": {
+              "kind": "Literal",
+              "span": {
+                "line": 2,
+                "col": 27,
+                "end_line": 2,
+                "end_col": 31
+              },
+              "width": 1,
+              "bits": "1"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
