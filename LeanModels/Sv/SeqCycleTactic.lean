@@ -263,10 +263,8 @@ macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ide
       LeanModels.Sv.Kernel.CoreMemDesign.compileAssigns, LeanModels.Sv.Kernel.CoreMemDesign.compileCombReads,
       LeanModels.Sv.Kernel.CoreMemDesign.compileImplicitReads, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
       LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf,
-      LeanModels.Sv.Kernel.CoreMemDesign.assignTopoB, LeanModels.Sv.Kernel.coreMemAssignTopoB,
-      LeanModels.Sv.Kernel.coreMemAssignTargets, LeanModels.Sv.Kernel.coreMemLhsTargets,
-      LeanModels.Sv.Kernel.coreMemSignalNames, LeanModels.Sv.Kernel.coreMemSignalNamesList,
-      LeanModels.Sv.Kernel.coreMemClockResetViol, LeanModels.Sv.Kernel.coreMemInputPortB, List.findSome?,
+      LeanModels.Sv.Kernel.coreMemClockResetViol_none, LeanModels.Sv.Kernel.coreMemDropGeneratedNetMarkers,
+      LeanModels.Sv.Kernel.coreMemGeneratedNetAllowed,
       $ls,*] at $h:ident)
 
 /-- The arithmetic pass: side conditions on the parameters, by `omega` from the context. -/

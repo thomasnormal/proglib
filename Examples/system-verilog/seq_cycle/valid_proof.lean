@@ -304,10 +304,10 @@ set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus, the outputs show 0
 after a reset cycle, the inputs after a loading cycle, and the previous outputs after a holding cycle. -/
 theorem vc_runs (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : SeqRuns (vc.e W) "clk" (VcClaim W) := by
-  obtain ⟨E, hE, hP, -⟩ := vc_structure W h1 h2
+  obtain ⟨E, hE, hP, hO⟩ := vc_structure W h1 h2
   have hE0 := hE
   sv_seq_use [vc.mirror_eq W h1 h2, vc.mirror_def] at hE0
-  refine SeqRuns.intro hE hP (by subst hE0; rfl) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
+  refine SeqRuns.intro hE hP hO (by subst hE0; rfl) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
     (fun v => ∃ c r vi ry di vo dout vq dq, v = vcView c r vi ry di vo dout vq dq ∧ r.width = 1 ∧
       vi.width = 1 ∧ ry.width = 1 ∧ di.width = W ∧ dout.width = W ∧ vq.width = 1 ∧ dq.width = W) ?_ ?_ ?_
   · intro v hs

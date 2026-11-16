@@ -1,6 +1,7 @@
 import LeanModels.Sv.Kernel.CoreMemExec
 import LeanModels.Sv.Kernel.Core0Obs
 import LeanModels.Sv.Kernel.Core1Edge
+import LeanModels.Sv.SeqCycleStep
 
 /-!
 # The clock cycle of the ordinary E route, derived (`LeanModels.Sv.Kernel`, the clocked tactics' theory)
@@ -29,19 +30,20 @@ deciding x/z exactly as the route does (`MemShape.index?`: an x/z or out-of-rang
 * `CoreMemDesign.edgesV`: the route's edge pass on views, each process firing by `CoreMemEdge.fires` (the clock's rise or
   the asynchronous reset's fall, x/z rows included); `runEdges_V`.
 * `CoreMemDesign.commitNba_V`: the route's commit of memory records is `commitMemV` on the memory view.
-* `SeqProfile E clk`: the clocked profile: one clock, edge processes whose bodies `execV` mirrors, continuous assigns
-  (a memory read evaluated by the route's evaluator, the rest compiled), one-rank 4-state memories of distinct names that
-  are not ports, no always_comb, no initial, 4-state declarations with distinct names.
+* `SeqProfile E clk`: the clocked profile: one clock, edge processes whose bodies `execV` mirrors, continuous assigns (a memory read evaluated by the route's evaluator, the rest compiled), one-rank 4-state memories
+  of distinct names that are not ports, no always_comb, always_latch, always @* or initial process, 4-state declarations
+  with distinct names.
 * `CoreMemDesign.Coherent`, `MemCoherent`: a state whose store is its cache's, one typed value per declaration; a memory
   state holding every memory's block under its identity.
-* `CoreMemDesign.settleV`, `slotV`, `cycleMV`: the slot and the cycle on views, mirroring `CoreMemDesign.step` pass for
-  pass (four continuous-assign passes per slot, as the route makes them); `cycleV`: the cycle of a design without
+* `CoreMemDesign.settleV`, `slotV`, `cycleMV`: the slot and the cycle on views: two continuous-assign passes, the edge
+  round, the commit, two passes (the route's slot repeats its passes and its edge round until nothing changes; under the
+  obligations both loops stop after their first round, `SeqCycleObl.lean`); `cycleV`: the cycle of a design without
   memories (the scalar part of `cycleMV`).
-* **`CoreMemDesign.step_seq`, `cycleMV_refines`, `cycle_of_seqProfile`**: the refinement theorems: from every coherent
-  state, the route's slots exist, stay coherent, and land exactly on the views `cycleMV` computes.
 
-The obligations and the theorems that use them are in `SeqCycleObl.lean`, the runs and the run judgment in
-`SeqCycleRuns.lean`.
+The obligations, the theorems that use them and the refinement theorems (`CoreMemDesign.step_seq`, `cycleMV_refines`,
+`cycle_of_seqProfile`: from every coherent state, the route's slots exist, stay coherent, and land exactly on the views
+`cycleMV` computes) are in `SeqCycleObl.lean`, the runs and the run judgment in `SeqCycleRuns.lean`. The route's slot
+function is read only through the interface lemmas of `SeqCycleStep.lean`.
 -/
 
 
@@ -777,6 +779,7 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
   | initial _ => simp [CoreMemDesign.procOkB] at h
   | comb _ => simp [CoreMemDesign.procOkB] at h
   | implicit _ => simp [CoreMemDesign.procOkB] at h
+  | latch _ => simp [CoreMemDesign.procOkB] at h
   | unsupported _ _ => simp [CoreMemDesign.procOkB] at h
 
 /-- Every process from index `i` on is `ProcOk`, decided. -/
@@ -1179,6 +1182,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} {clk : String} (hP 
       | initial _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
       | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
       | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
+      | latch _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
       | unsupported _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
 
 /-- `compactScalar` after a settle pass: the materialized view, coherent. -/
@@ -1882,6 +1886,7 @@ theorem CoreMemDesign.ProcOk.shape {E : CoreMemDesign} {clk : String} {i : Nat} 
   | initial _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
   | comb _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
   | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
+  | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
   | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
 
 theorem CoreMemDesign.SeqProfile.shapes {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk) :
@@ -1953,6 +1958,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       | initial _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
       | comb _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
       | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
+      | latch _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
       | unsupported _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
 
 /-- **One slot of the route, on views**: the inputs applied, two settle passes (the pre-edge view), the edge pass from
@@ -1971,73 +1977,6 @@ theorem CoreMemDesign.Coherent.with_memory {E : CoreMemDesign} {st : CoreMemStat
     (m : MemState) : E.Coherent { st with memory := m } :=
   ⟨hc.store, hc.size, hc.typed⟩
 
-/-- **THE SLOT REFINEMENT**: for a design of the clocked profile, from every coherent state with a coherent memory and
-every typed stimulus entry, when the view-level slot succeeds the route's `step` succeeds, lands on exactly that view
-and memory view, and stays coherent. -/
-theorem CoreMemDesign.step_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk) {st : CoreMemState}
-    (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {entry : SvState}
-    (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
-    (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
-    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' ∧
-      E.Coherent st' ∧ E.MemCoherent st'.memory := by
-  simp only [CoreMemDesign.slotV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
-  obtain ⟨p0, h0, p, h1, ⟨pe, q, mq⟩, hq, s1, h2, s2, h3, rfl, rfl⟩ := hv
-  dsimp only at h2 h3
-  -- the inputs (no memory is an input port)
-  have hmi : E.applyMemoryInputs entry st.memory = st.memory := E.applyMemoryInputs_id hP.mems entry st.memory
-  have hTin : E.scalar.Typed (E.scalar.applyInputs st.scalar entry) := hc.typed.applyInputs entry
-  have hvin : E.scalar.view (E.scalar.applyInputs st.scalar entry) =
-      applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar) :=
-    Elab.view_applyInputs hP.names hP.four hc.typed hty
-  have hci := E.normalizeScalar_coherent { st with memory := E.applyMemoryInputs entry st.memory } hTin
-  have hvi : E.scalar.view (E.normalizeScalar { st with memory := E.applyMemoryInputs entry st.memory }
-      (E.scalar.applyInputs st.scalar entry)).scalar = applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar) := by
-    rw [E.normalizeScalar_view, hvin]
-  have hmemi : (E.normalizeScalar { st with memory := E.applyMemoryInputs entry st.memory }
-      (E.scalar.applyInputs st.scalar entry)).memory = st.memory := hmi
-  -- the two pre-edge settle passes
-  obtain ⟨st0, hs0, hv0, hc0, hm0⟩ := CoreMemDesign.settleAssign_seq hP hci (by rw [hmemi]; exact hmc)
-    (by rw [hvi, hmemi]; exact h0)
-  rw [hmemi] at hm0
-  obtain ⟨st1, hs1, hv1, hc1, hm1⟩ := CoreMemDesign.settleAssign_seq hP hc0 (by rw [hm0]; exact hmc)
-    (by rw [hv0, hm0]; exact h1)
-  rw [hm0] at hm1
-  -- the edge pass
-  obtain ⟨st2, hedge, hv2, hc2, hm2, hrec⟩ := CoreMemDesign.runEdges_V hP.names hP.four clk
-    (E.scalar.view st.scalar) (E.scalar.view st1.scalar) E.processes.toList hP.shapes st1 pe q mq hc1
-    (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact hq)
-  rw [hm1] at hm2
-  -- the commit: scalar updates
-  have hT2 : E.scalarEdge.base.Typed st2.scalar := by rw [hP.base]; exact hc2.typed
-  have hTc : E.scalar.Typed (E.scalarEdge.commit st2.scalar q) := by
-    have := Elab1.typed_commit (E := E.scalarEdge) q hT2
-    rwa [hP.base] at this
-  have hvc : E.scalar.view (E.scalarEdge.commit st2.scalar q) = commitNba2 pe q := by
-    have := Elab1.view_commit (E := E.scalarEdge) (by rw [hP.base]; exact hP.four) q hT2
-    rw [hP.base] at this
-    rw [this, hv2]
-  have hcc := E.normalizeScalar_coherent st2 hTc
-  have hvcc : E.scalar.view (E.normalizeScalar st2 (E.scalarEdge.commit st2.scalar q)).scalar = commitNba2 pe q := by
-    rw [E.normalizeScalar_view, hvc]
-  -- the commit: memory records
-  obtain ⟨m', hcm, hmc', hvm⟩ := CoreMemDesign.commitNba_V hP.mems mq st2.memory (by rw [hm2]; exact hmc) hrec
-  rw [hm2] at hvm
-  -- the two post-edge settle passes
-  obtain ⟨st3, hs3, hv3, hc3, hm3⟩ := CoreMemDesign.settleAssign_seq hP
-    (st := { E.normalizeScalar st2 (E.scalarEdge.commit st2.scalar q) with memory := m' })
-    (hcc.with_memory m') hmc'
-    (by rw [show E.scalar.view ({ E.normalizeScalar st2 (E.scalarEdge.commit st2.scalar q) with
-      memory := m' } : CoreMemState).scalar = commitNba2 pe q from hvcc, show
-      ({ E.normalizeScalar st2 (E.scalarEdge.commit st2.scalar q) with memory := m' } : CoreMemState).memory = m'
-      from rfl, hvm]; exact h2)
-  obtain ⟨st4, hs4, hv4, hc4, hm4⟩ := CoreMemDesign.settleAssign_seq hP hc3 (by rw [hm3]; exact hmc')
-    (by rw [hv3, hm3, hvm]; exact h3)
-  refine ⟨st4, ?_, hv4, by rw [hm4, hm3, hvm], hc4, by rw [hm4, hm3]; exact hmc'⟩
-  simp only [CoreMemDesign.step, hs0, Res.ok_bind, hP.hasComb, Bool.false_eq_true, ↓reduceIte, hs1, hedge, hcm,
-    hs3, hP.hasImplicit, hs4]
-
-#print axioms CoreMemDesign.step_seq
-
 /-! ## The cycle -/
 
 /-- **One clock cycle on views**: the low slot (`clk` = 0 and the data), then the high slot (`clk` raised); the pre
@@ -2048,47 +1987,10 @@ def CoreMemDesign.cycleMV (E : CoreMemDesign) (clk : String) (σ : SvState × Me
   let post ← E.slotV pre.1 pre.2 (highEntry clk)
   .ok (pre, post)
 
-/-- **THE CYCLE REFINEMENT (the cycle model derived from E)**: for a design of the clocked profile, from every coherent
-state with a coherent memory, for every typed data entry, when the view-level cycle gives `(pre, post)` the route's two
-slots succeed, land on exactly `pre` and `post` (views and memory views), and stay coherent. -/
-theorem CoreMemDesign.cycleMV_refines {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {data : SvState}
-    (hlow : EntryTyped E.scalar.toDesign2 (lowEntry clk data)) (hhigh : EntryTyped E.scalar.toDesign2 (highEntry clk))
-    {pre post : SvState × MemV}
-    (hv : E.cycleMV clk (E.scalar.view st.scalar, E.memOf st.memory) data = .ok (pre, post)) :
-    ∃ s1 s2, E.step st (lowEntry clk data) = .ok s1 ∧ E.step s1 (highEntry clk) = .ok s2 ∧
-      (E.scalar.view s1.scalar, E.memOf s1.memory) = pre ∧ (E.scalar.view s2.scalar, E.memOf s2.memory) = post ∧
-      E.Coherent s1 ∧ E.Coherent s2 ∧ E.MemCoherent s1.memory ∧ E.MemCoherent s2.memory := by
-  simp only [CoreMemDesign.cycleMV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
-  obtain ⟨⟨v1, m1⟩, h1, ⟨v2, m2⟩, h2, rfl, rfl⟩ := hv
-  obtain ⟨s1, hs1, hv1, hm1, hc1, hmc1⟩ := CoreMemDesign.step_seq hP hc hmc hlow h1
-  obtain ⟨s2, hs2, hv2, hm2, hc2, hmc2⟩ := CoreMemDesign.step_seq hP hc1 hmc1 hhigh (by rw [hv1, hm1]; exact h2)
-  exact ⟨s1, s2, hs1, hs2, by rw [hv1, hm1], by rw [hv2, hm2], hc1, hc2, hmc1, hmc2⟩
-
-#print axioms CoreMemDesign.cycleMV_refines
-
 /-- **One clock cycle of a design without memories**: the scalar part of `cycleMV` (the memory view is never read). -/
 def CoreMemDesign.cycleV (E : CoreMemDesign) (clk : String) (v data : SvState) : Res (SvState × SvState) := do
   let r ← E.cycleMV clk (v, memNone) data
   .ok (r.1.1, r.2.1)
-
-/-- **THE CYCLE REFINEMENT, without memories**: from every coherent state, for every typed data entry, when the
-view-level cycle gives `(pre, post)` the route's two slots succeed, land on exactly `pre` and `post`, and stay
-coherent. -/
-theorem CoreMemDesign.cycle_of_seqProfile {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hm : E.memories.toList = []) {st : CoreMemState} (hc : E.Coherent st) {data : SvState}
-    (hlow : EntryTyped E.scalar.toDesign2 (lowEntry clk data)) (hhigh : EntryTyped E.scalar.toDesign2 (highEntry clk))
-    {pre post : SvState} (hv : E.cycleV clk (E.scalar.view st.scalar) data = .ok (pre, post)) :
-    ∃ s1 s2, E.step st (lowEntry clk data) = .ok s1 ∧ E.step s1 (highEntry clk) = .ok s2 ∧
-      E.scalar.view s1.scalar = pre ∧ E.scalar.view s2.scalar = post ∧ E.Coherent s1 ∧ E.Coherent s2 := by
-  simp only [CoreMemDesign.cycleV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
-  obtain ⟨⟨⟨v1, m1⟩, ⟨v2, m2⟩⟩, h, rfl, rfl⟩ := hv
-  obtain ⟨s1, s2, hs1, hs2, hp1, hp2, hc1, hc2, -, -⟩ := CoreMemDesign.cycleMV_refines hP hc
-    (CoreMemDesign.memCoherent_noMem hm _) hlow hhigh (by rw [CoreMemDesign.memOf_noMem hm]; exact h)
-  simp only [Prod.mk.injEq] at hp1 hp2
-  exact ⟨s1, s2, hs1, hs2, hp1.1, hp2.1, hc1, hc2⟩
-
-#print axioms CoreMemDesign.cycle_of_seqProfile
 
 /-! ## The x start and typed entries -/
 

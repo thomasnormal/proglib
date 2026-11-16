@@ -190,10 +190,10 @@ set_option maxHeartbeats 1000000 in
 stimulus. -/
 theorem am_runs (W : Nat) (hW1 : 2 ≤ W) (hW2 : W < 2 ^ 30) (N : Nat) (hN1 : 2 ≤ N) (hN2 : N < 2 ^ 30) :
     SeqRunsM (am.e W N) "clk" (AmClaim W) := by
-  obtain ⟨E, hE, hP, -⟩ := am_structure W hW1 hW2 N hN1 hN2
+  obtain ⟨E, hE, hP, hO⟩ := am_structure W hW1 hW2 N hN1 hN2
   have hE0 := hE
   sv_seq_use [am.mirror_eq W hW1 hW2 N hN1 hN2, am.mirror_def] at hE0
-  refine SeqRunsM.of_cycleEqs hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) (AmInv W) ?_
+  refine SeqRunsM.of_cycleEqs hE hP hO (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) (AmInv W) ?_
     (AmStep W) (am_eqs W hW1 hW2 N hN1 hN2 hE) (fun σ ins tr _ _ h => amClaim_of_runSat W σ ins tr h)
   intro st hc hmc
   have hs := hc.shape

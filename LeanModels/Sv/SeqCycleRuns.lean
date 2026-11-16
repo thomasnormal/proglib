@@ -1,4 +1,4 @@
-import LeanModels.Sv.SeqCycle
+import LeanModels.Sv.SeqCycleObl
 
 /-!
 # Runs of the clocked route and the run judgment (`LeanModels.Sv.Kernel`)
@@ -15,6 +15,9 @@ import LeanModels.Sv.SeqCycle
   cycle equations, with no trace induction of the prover's own (`runF`, `stF`, `runF_getElem?`, `stF_succ`).
 * `cycleV_applied`, `cycleMV_applied`, `appliedIn_width`: a cycle reads its data entry only through the values it
   applies.
+
+The refinement theorems and the judgment's intro forms take the obligations (`hO : E.seqOblB clk = true`): they are
+what make the route's in-slot iteration stop after one round (`SeqCycleObl.lean`).
 -/
 
 namespace LeanModels.Sv.Kernel
@@ -57,7 +60,7 @@ theorem cyclePairs_map {α β : Type} (f : α → β) :
 view-level run succeeds the route's own run of the cycles (`runCoreMemRows` on `cycleRows`) succeeds and its samples,
 two per cycle, are exactly the view-level run's. -/
 theorem CoreMemDesign.runRowsM_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hclk : E.scalar.toDesign2.declWidth clk = some 1) :
+    (hO : E.seqOblB clk = true) (hclk : E.scalar.toDesign2.declWidth clk = some 1) :
     ∀ (ins : List SvState) (st : CoreMemState) (tr : List ((SvState × MemV) × (SvState × MemV))), E.Coherent st →
       E.MemCoherent st.memory → (∀ d ∈ ins, E.DataTyped clk d) →
       E.runMV clk (E.scalar.view st.scalar, E.memOf st.memory) ins = .ok tr →
@@ -71,13 +74,12 @@ theorem CoreMemDesign.runRowsM_seq {E : CoreMemDesign} {clk : String} (hP : E.Se
       simp only [CoreMemDesign.runMV, Res.bind_eq_ok, Res.ok.injEq] at hv
       obtain ⟨⟨pre, post⟩, hcyc, rest, hrest, rfl⟩ := hv
       obtain ⟨s1, s2, hs1, hs2, hv1, hv2, hc1, hc2, hmc1, hmc2⟩ :=
-        CoreMemDesign.cycleMV_refines hP hc hmc (hd d (by simp)) (CoreMemDesign.highEntry_typed hclk) hcyc
-      obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRowsM_seq hP hclk ds s2 rest hc2 hmc2
+        CoreMemDesign.cycleMV_refines hP hO hc hmc (hd d (by simp)) (CoreMemDesign.highEntry_typed hclk) hcyc
+      obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRowsM_seq hP hO hclk ds s2 rest hc2 hmc2
         (fun d' hd' => hd d' (by simp [hd'])) (by rw [hv2]; exact hrest)
       refine ⟨s1 :: s2 :: rows, ?_, ?_⟩
-      · simp only [cycleRows, runCoreMemRows, hs1, hs2, Res.ok_bind,
-          show (lowEntry clk d).isEmpty = false from rfl, show (highEntry clk).isEmpty = false from rfl,
-          Bool.false_and, Bool.false_eq_true, ↓reduceIte, hrows]
+      · simp only [cycleRows, runCoreMemRows_cons (show (lowEntry clk d).isEmpty = false from rfl),
+          runCoreMemRows_cons (show (highEntry clk).isEmpty = false from rfl), hs1, hs2, Res.ok_bind, hrows]
       · simp [cyclePairs, hv1, hv2, hpairs]
 
 #print axioms CoreMemDesign.runRowsM_seq
@@ -85,7 +87,7 @@ theorem CoreMemDesign.runRowsM_seq {E : CoreMemDesign} {clk : String} (hP : E.Se
 /-- **THE RUN REFINEMENT, without memories**: from every coherent state and every typed data list, when the view-level
 run succeeds the route's own run of the cycles succeeds and its samples are exactly the view-level run's. -/
 theorem CoreMemDesign.runRows_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hm : E.memories.toList = []) (hclk : E.scalar.toDesign2.declWidth clk = some 1) :
+    (hO : E.seqOblB clk = true) (hm : E.memories.toList = []) (hclk : E.scalar.toDesign2.declWidth clk = some 1) :
     ∀ (ins : List SvState) (st : CoreMemState) (tr : List (SvState × SvState)), E.Coherent st →
       (∀ d ∈ ins, E.DataTyped clk d) → E.runV clk (E.scalar.view st.scalar) ins = .ok tr →
       ∃ rows, runCoreMemRows E st (cycleRows clk ins) = .ok rows ∧
@@ -98,13 +100,12 @@ theorem CoreMemDesign.runRows_seq {E : CoreMemDesign} {clk : String} (hP : E.Seq
       simp only [CoreMemDesign.runV, Res.bind_eq_ok, Res.ok.injEq] at hv
       obtain ⟨⟨pre, post⟩, hcyc, rest, hrest, rfl⟩ := hv
       obtain ⟨s1, s2, hs1, hs2, hv1, hv2, hc1, hc2⟩ :=
-        CoreMemDesign.cycle_of_seqProfile hP hm hc (hd d (by simp)) (CoreMemDesign.highEntry_typed hclk) hcyc
-      obtain ⟨rows, hrows, hpairs⟩ :=
-        CoreMemDesign.runRows_seq hP hm hclk ds s2 rest hc2 (fun d' hd' => hd d' (by simp [hd'])) (by rw [hv2]; exact hrest)
+        CoreMemDesign.cycle_of_seqProfile hP hO hm hc (hd d (by simp)) (CoreMemDesign.highEntry_typed hclk) hcyc
+      obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRows_seq hP hO hm hclk ds s2 rest hc2
+        (fun d' hd' => hd d' (by simp [hd'])) (by rw [hv2]; exact hrest)
       refine ⟨s1 :: s2 :: rows, ?_, ?_⟩
-      · simp only [cycleRows, runCoreMemRows, hs1, hs2, Res.ok_bind,
-          show (lowEntry clk d).isEmpty = false from rfl, show (highEntry clk).isEmpty = false from rfl,
-          Bool.false_and, Bool.false_eq_true, ↓reduceIte, hrows]
+      · simp only [cycleRows, runCoreMemRows_cons (show (lowEntry clk d).isEmpty = false from rfl),
+          runCoreMemRows_cons (show (highEntry clk).isEmpty = false from rfl), hs1, hs2, Res.ok_bind, hrows]
       · simp [cyclePairs, hv1, hv2, hpairs]
 
 #print axioms CoreMemDesign.runRows_seq
@@ -189,7 +190,7 @@ success from the invariant keeping it (the cycle equations), and the claim about
 invariant (the prover's mathematics). -/
 theorem SeqRunsM.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
     {P : List ((SvState × MemV) × (SvState × MemV)) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
-    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState × MemV → Prop)
+    (hO : E.seqOblB clk = true) (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState × MemV → Prop)
     (hinv : ∀ st, E.Coherent st → E.MemCoherent st.memory → Inv (E.scalar.view st.scalar, E.memOf st.memory))
     (hstep : ∀ σ d, Inv σ → E.DataTyped clk d → ∃ pre post, E.cycleMV clk σ d = .ok (pre, post) ∧ Inv post)
     (hrun : ∀ σ ins tr, Inv σ → (∀ d ∈ ins, E.DataTyped clk d) → E.runMV clk σ ins = .ok tr → P tr) :
@@ -207,7 +208,7 @@ theorem SeqRunsM.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String
         exact ⟨(pre, post) :: tr, by simp [CoreMemDesign.runMV, hcyc, htr]⟩
   have hσ0 := hinv st hc hmc
   obtain ⟨tr, htr⟩ := hex ins _ hσ0 hd
-  obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRowsM_seq hP hclk ins st tr hc hmc hd htr
+  obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRowsM_seq hP hO hclk ins st tr hc hmc hd htr
   exact ⟨rows, hrows, hpairs ▸ hrun _ ins tr hσ0 hd htr⟩
 
 #print axioms SeqRunsM.intro
@@ -216,8 +217,8 @@ theorem SeqRunsM.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String
 view has, the cycle's success from the invariant keeping it (the cycle equations), and the claim about every view-level
 run from the invariant (the prover's mathematics). -/
 theorem SeqRuns.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
-    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hm : E.memories.toList = [])
-    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop)
+    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hO : E.seqOblB clk = true)
+    (hm : E.memories.toList = []) (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop)
     (hinv : ∀ v, E.ShapeV v → Inv v)
     (hstep : ∀ v d, Inv v → E.DataTyped clk d → ∃ pre post, E.cycleV clk v d = .ok (pre, post) ∧ Inv post)
     (hrun : ∀ v ins tr, Inv v → (∀ d ∈ ins, E.DataTyped clk d) → E.runV clk v ins = .ok tr → P tr) :
@@ -235,7 +236,7 @@ theorem SeqRuns.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
         exact ⟨(pre, post) :: tr, by simp [CoreMemDesign.runV, hcyc, htr]⟩
   have hv0 := hinv _ hc.shape
   obtain ⟨tr, htr⟩ := hex ins _ hv0 hd
-  obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRows_seq hP hm hclk ins st tr hc hd htr
+  obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRows_seq hP hO hm hclk ins st tr hc hd htr
   refine ⟨rows, hrows, ?_⟩
   have hmap : (cyclePairs (rows.map fun s => (E.scalar.view s.scalar, E.memOf s.memory))).map
       (fun pp => (pp.1.1, pp.2.1)) = cyclePairs (rows.map fun s => E.scalar.view s.scalar) := by
@@ -304,13 +305,13 @@ have, the cycle equations (`cycleMV` computes `F` and `F` keeps the invariant), 
 `F`'s runs. -/
 theorem SeqRunsM.of_cycleFn {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
     {P : List ((SvState × MemV) × (SvState × MemV)) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
-    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState × MemV → Prop)
+    (hO : E.seqOblB clk = true) (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState × MemV → Prop)
     (hinv : ∀ st, E.Coherent st → E.MemCoherent st.memory → Inv (E.scalar.view st.scalar, E.memOf st.memory))
     (F : SvState × MemV → SvState → (SvState × MemV) × (SvState × MemV))
     (hstep : ∀ σ d, Inv σ → E.DataTyped clk d → E.cycleMV clk σ d = .ok (F σ d) ∧ Inv (F σ d).2)
     (hrun : ∀ σ ins, Inv σ → (∀ d ∈ ins, E.DataTyped clk d) → P (runF F σ ins)) :
     SeqRunsM r clk P := by
-  refine SeqRunsM.intro hr hP hclk Inv hinv
+  refine SeqRunsM.intro hr hP hO hclk Inv hinv
     (fun σ d hσ hd => ⟨(F σ d).1, (F σ d).2, (hstep σ d hσ hd).1, (hstep σ d hσ hd).2⟩) ?_
   intro σ ins tr hσ hd htr
   have hall : ∀ (ins : List SvState) (σ : SvState × MemV), Inv σ → (∀ d ∈ ins, E.DataTyped clk d) →
@@ -332,13 +333,14 @@ theorem SeqRunsM.of_cycleFn {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : S
 invariant every shaped view has, the cycle equations (`cycleV` computes `F` and `F` keeps the invariant), and the claim
 about the samples of `F`'s runs. -/
 theorem SeqRuns.of_cycleFn {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
-    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hm : E.memories.toList = [])
-    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop) (hinv : ∀ v, E.ShapeV v → Inv v)
+    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hO : E.seqOblB clk = true)
+    (hm : E.memories.toList = []) (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop)
+    (hinv : ∀ v, E.ShapeV v → Inv v)
     (F : SvState → SvState → SvState × SvState)
     (hstep : ∀ v d, Inv v → E.DataTyped clk d → E.cycleV clk v d = .ok (F v d) ∧ Inv (F v d).2)
     (hrun : ∀ v ins, Inv v → (∀ d ∈ ins, E.DataTyped clk d) → P (runF F v ins)) :
     SeqRuns r clk P := by
-  refine SeqRuns.intro hr hP hm hclk Inv hinv
+  refine SeqRuns.intro hr hP hO hm hclk Inv hinv
     (fun v d hv hd => ⟨(F v d).1, (F v d).2, (hstep v d hv hd).1, (hstep v d hv hd).2⟩) ?_
   intro v ins tr hv hd htr
   have hall : ∀ (ins : List SvState) (v : SvState), Inv v → (∀ d ∈ ins, E.DataTyped clk d) →
@@ -417,12 +419,12 @@ def CoreMemDesign.CycleEqsM (E : CoreMemDesign) (clk : String) (Inv : SvState ×
 views have, the cycle equations as a relation, and the claim about every run whose samples satisfy them. -/
 theorem SeqRunsM.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
     {P : List ((SvState × MemV) × (SvState × MemV)) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
-    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState × MemV → Prop)
+    (hO : E.seqOblB clk = true) (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState × MemV → Prop)
     (hinv : ∀ st, E.Coherent st → E.MemCoherent st.memory → Inv (E.scalar.view st.scalar, E.memOf st.memory))
     (Step : SvState × MemV → SvState → (SvState × MemV) × (SvState × MemV) → Prop) (heqs : E.CycleEqsM clk Inv Step)
     (hrun : ∀ σ ins tr, Inv σ → (∀ d ∈ ins, E.DataTyped clk d) → RunSat Step σ ins tr → P tr) :
     SeqRunsM r clk P := by
-  refine SeqRunsM.intro hr hP hclk Inv hinv
+  refine SeqRunsM.intro hr hP hO hclk Inv hinv
     (fun σ d hσ hd => by obtain ⟨⟨pre, post⟩, h1, h2, -⟩ := heqs σ d hσ hd; exact ⟨pre, post, h1, h2⟩) ?_
   intro σ ins tr hσ hd htr
   refine hrun σ ins tr hσ hd ?_
@@ -442,12 +444,13 @@ theorem SeqRunsM.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : 
 
 /-- **How a `SeqRuns` claim is proved from per-signal equations, for a design without memories.** -/
 theorem SeqRuns.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
-    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hm : E.memories.toList = [])
-    (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop) (hinv : ∀ v, E.ShapeV v → Inv v)
+    {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hO : E.seqOblB clk = true)
+    (hm : E.memories.toList = []) (hclk : E.scalar.toDesign2.declWidth clk = some 1) (Inv : SvState → Prop)
+    (hinv : ∀ v, E.ShapeV v → Inv v)
     (Step : SvState → SvState → SvState × SvState → Prop) (heqs : E.CycleEqs clk Inv Step)
     (hrun : ∀ v ins tr, Inv v → (∀ d ∈ ins, E.DataTyped clk d) → RunSat Step v ins tr → P tr) :
     SeqRuns r clk P := by
-  refine SeqRuns.intro hr hP hm hclk Inv hinv
+  refine SeqRuns.intro hr hP hO hm hclk Inv hinv
     (fun v d hv hd => by obtain ⟨⟨pre, post⟩, h1, h2, -⟩ := heqs v d hv hd; exact ⟨pre, post, h1, h2⟩) ?_
   intro v ins tr hv hd htr
   refine hrun v ins tr hv hd ?_

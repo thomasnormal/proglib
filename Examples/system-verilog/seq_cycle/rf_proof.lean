@@ -295,9 +295,9 @@ set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state (memory contents arbitrary), on every typed
 stimulus. -/
 theorem rf_runs (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) : SeqRunsM (rf.e N) "clk" (RfClaim N) := by
-  obtain ⟨E, hE, hP, -⟩ := rf_structure N h1 h2
+  obtain ⟨E, hE, hP, hO⟩ := rf_structure N h1 h2
   have hE0 : rf.mirror N = E := Res.ok.inj ((rf.mirror_eq N h1 h2).symm.trans hE)
-  refine SeqRunsM.of_cycleFn hE hP (by subst hE0; simp [rf.mirror_def, Elab.toDesign2, Design2.declWidth]) RfInv ?_
+  refine SeqRunsM.of_cycleFn hE hP hO (by subst hE0; simp [rf.mirror_def, Elab.toDesign2, Design2.declWidth]) RfInv ?_
     (rfF N) (fun σ dt hσ hd => rf_cycle N h1 h2 hE σ dt hσ hd)
     (fun σ ins _ _ => rfClaim_of_runF N σ ins)
   intro st hc hmc

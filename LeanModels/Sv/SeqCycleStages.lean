@@ -74,11 +74,12 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
   let at_ := s!"process {i}"
   if p.isAppOfArity ``CoreMemProc.edge 1 then
     let f ← whnf (p.getArg! 0)
-    if f.isAppOfArity ``CoreMemEdge.mk 5 then
-      let clock := strLit? (f.getArg! 0)
+    if f.isAppOf ``CoreMemEdge.mk then
+      -- fields by projection, not by position: the record gains fields as the route grows
+      let clock := strLit? (← whnf (← mkProjection f `clock))
       if clock.isSome && clock != some clk then
         return s!"{at_} (an edge process) is clocked by `{clock.get!}`, not `{clk}`: two clocks are outside the clocked profile (the owner's to decide)"
-      let body := f.getArg! 3
+      let body ← whnf (← mkProjection f `body)
       if (body.find? (·.isConstOf ``PStmt.forLoop)).isSome then
         return s!"{at_} (an edge process) has a procedural `for` loop: the memories slice (next), refused"
       if (body.find? (·.isConstOf ``PExpr.functionCall)).isSome then
@@ -89,6 +90,8 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
     return s!"{at_} (an edge process): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.comb 1 then
     return s!"{at_} is an always_comb process: always_comb beside flip-flops is the next slice (T7), refused"
+  if p.isAppOfArity ``CoreMemProc.latch 1 then
+    return s!"{at_} is an always_latch process: a level-sensitive process is outside the clocked profile, refused"
   if p.isAppOfArity ``CoreMemProc.implicit 1 then
     return s!"{at_} is an implicit-event process (`always @*` / `always @(a)`): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.initial 1 then
@@ -158,10 +161,10 @@ def obligations : List (Name × Bool × String) :=
   [(``CoreMemDesign.oblDrivers, false, "two processes drive the same signal (one driver per signal)"),
    (``CoreMemDesign.topoC, false,
      "a continuous assign reads its own target or a later assign's target: the route's settle would be stale (U1), refused"),
-   (``CoreMemDesign.oblNoInputWrite, true, "a process drives an input or the clock"),
+   (``CoreMemDesign.oblNoInputWrite, true, "a process drives an input or the clock (an event source the design drives is outside the clocked view), refused"),
    (``CoreMemDesign.oblNoClockRead, true, "a process reads the clock"),
    (``CoreMemDesign.oblReset, true,
-     "an asynchronous reset is not an input port other than the clock (F7: the route sees a reset the design drives only in a later slot), refused"),
+     "an asynchronous reset is not an input port other than the clock (a reset the design drives would cause an event inside the slot, which the clocked view does not model), refused"),
    (``CoreMemDesign.oblEdgeOrder, false,
      "the design has several edge processes and one of them writes with a blocking assignment or to a select or concatenation: the edge order is not proved irrelevant for it (rule 4), refused"),
    (``CoreMemDesign.oblConverted, false,

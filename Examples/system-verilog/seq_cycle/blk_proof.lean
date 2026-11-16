@@ -124,10 +124,10 @@ theorem blkClaim_of_runF (v : SvState) (ins : List SvState) : BlkClaim (runF blk
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus. -/
 theorem blk_runs : SeqRuns blk.e "clk" BlkClaim := by
-  obtain ⟨E, hE, hP, -⟩ := blk_structure
+  obtain ⟨E, hE, hP, hO⟩ := blk_structure
   have hE0 := hE
   sv_seq_inst [blk.e, blk.pdesign] at hE0
-  refine SeqRuns.of_cycleFn hE hP (by subst hE0; rfl) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) BlkInv ?_
+  refine SeqRuns.of_cycleFn hE hP hO (by subst hE0; rfl) (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) BlkInv ?_
     blkF (fun v dt hv hd => blk_cycle hE v dt hv hd) (fun v ins _ _ => blkClaim_of_runF v ins)
   intro v hsh
   subst hE0
