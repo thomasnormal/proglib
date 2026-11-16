@@ -6223,6 +6223,11 @@ theorem frameGlobals_lookup_world
   rw [toRun_get_bind]
   rfl
 
+theorem listRepeatH_eq_heapListRepeat
+    (h : Heap) (xs : Array RVal) (count : Int) :
+    listRepeatH h xs count = heapListRepeat h xs count := by
+  rfl
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

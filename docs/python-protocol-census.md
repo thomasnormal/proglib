@@ -952,6 +952,12 @@ theorem therefore needs explicit refinement lemmas equating those shared
 protocol workers on their admitted domains; outside those domains the theorem
 must remain a loud refusal.
 
+`Monadic.listRepeatH_eq_heapListRepeat` closes the first worker refinement
+needed for that domain: the monadic list-repetition worker is definitionally
+the same bounded `heapListRepeat` worker used by `evalBinOpH`.  The remaining
+operator relation is dispatch and error-ordering around this shared worker,
+not a second repetition algorithm.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
