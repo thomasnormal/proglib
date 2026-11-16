@@ -1996,8 +1996,9 @@ def guardShr32 (signed : Bool) (a b : Int) : Except String Int :=
       .ok (guard32 (q - (2 : Int) ^ (32 - b.toNat)))
     else .ok (guard32 q)
 
-/-- Generate guards use the same signed 32-bit integer arithmetic as `int`.
-In particular, bitwise operations preserve the signed operand bit pattern. -/
+/-- Generate guards use the same 32-bit integer arithmetic as `int` for the
+legacy fallback vocabulary.  Self-determined system functions use their own
+operand widths, as required by IEEE 1800-2023 §20.8.1. -/
 def evalGenGuard32 (env : IEnv) : PExpr → Except String Int
   | .int v => .ok (guard32 v)
   | .paramRef n none =>
@@ -2046,9 +2047,10 @@ def evalGenGuard32 (env : IEnv) : PExpr → Except String Int
       | _ => .error "operator outside generate integer guards"
   | .resize _ a | .signedResize _ a | .squash2 _ a | .cast _ a => evalGenGuard32 env a
   | .sysCall .clog2 a => do
-      let v ← evalGenGuard32 env a
-      if v < 0 then .error "$clog2 of a negative value"
-      else .ok (guard32 (clog2 v.toNat : Int))
+      let ty ← ctype env a
+      let v ← evalAt env ty a
+      let u := v.emod ((2 : Int) ^ ty.1)
+      .ok (guard32 (clog2 u.toNat : Int))
   | _ => .error "expression outside generate integer guards"
 
 /-! A generate condition is a constant expression, so its operands retain
