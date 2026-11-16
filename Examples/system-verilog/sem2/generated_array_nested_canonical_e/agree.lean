@@ -43,14 +43,20 @@ def outputs (w : Nat) (stimuli : List SvState) : Res (List String) := do
   let rows ← runCoreMemRows d d.initial stimuli
   .ok (rows.map fun s => SvState.showSignal (CoreMemState.view d s) "y")
 
-def topologyRefusal : String :=
-  "10.3: continuous assignment target is read from itself or a later assignment; canonical E requires topological source order"
-
 #guard match generatedArrayNestedCanonicalE.e 4 with
-  | .unsupported msg => msg == topologyRefusal
+  | .ok d => d.memories.size == 2 && d.processes.size == 25
   | _ => false
 #guard match generatedArrayNestedCanonicalE.e 8 with
-  | .unsupported msg => msg == topologyRefusal
+  | .ok d => d.memories.size == 2 && d.processes.size == 25
+  | _ => false
+
+#guard match outputs 4 stimuli4 with
+  | .ok ["xxxxxxxx", "00000000", "00111101", "xxxxxxxx", "xxxxxx10",
+      "xxxxxxxz", "xxxxxxx1", "00000101"] => true
+  | _ => false
+#guard match outputs 8 stimuli8 with
+  | .ok ["xxxxxxxx", "00000000", "01111101", "xxxxxxxx", "xxxxxx10",
+      "xxxxxxxz", "xxxxxxx1", "01010101"] => true
   | _ => false
 
 end Examples.«system-verilog».sem2.generated_array_nested_canonical_e

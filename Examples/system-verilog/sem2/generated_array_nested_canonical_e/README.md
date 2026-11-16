@@ -12,14 +12,6 @@ The receipt drives `W=4` and `W=8`, including the initial/default value and
 known, x, and z values on both inputs.  Icarus Verilog 13.0 and Xcelium
 24.03-s004 are the pinned differential oracles.
 
-The receipt was measured after the generic §10.3 topology guard landed.  The
-clean-room source reaches `continuous assignment target is read from itself or
-a later assignment; canonical E requires topological source order` for both
-W=4 and W=8, before this §7.4 admission can run.  Icarus Verilog 13.0 and
-Xcelium 24.03-s004 still agree on all 16 source rows, including x/z.  The
-generated-array wall is therefore parked behind the owning ls-sv topology
-wall; no new §7.4 admission is claimed here.
-
 Regenerate the checked-in envelope with:
 
 ```text
@@ -28,8 +20,3 @@ python3 extractors/sv/extract.py --top generated_array_nested_canonical_e \
   -o Examples/system-verilog/sem2/generated_array_nested_canonical_e/generated_array_nested_canonical_e.sv.json \
   Examples/system-verilog/sem2/generated_array_nested_canonical_e/generated_array_nested_canonical_e.sv
 ```
-
-The corrected collect-all census now reports this E topology refusal without
-the obsolete scalar-memory refusal; the independent parameterized-storage
-control reports zero ordinary refusals, while the two-clock control retains
-`Clock:multiple`.
