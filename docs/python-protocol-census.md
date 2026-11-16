@@ -892,6 +892,14 @@ the precise fuel/state mismatch preventing the resolver branch from advancing
 the mutual theorem; adding a weaker value-only relation would lose state
 correlations.
 
+The first generalizable induction case is already present:
+`Monadic.twinAgrees_evalOpen_constant` supplies the literal leaf, and
+`Monadic.twinAgrees_evalOpenList_of_each` composes any pointwise expression
+bridge over an arbitrary-length left-to-right list while threading each
+resulting frame state.  This is the reusable control skeleton; the missing
+work is supplying the generic expression-node bridge, not another fixed-size
+literal matrix.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
