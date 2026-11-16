@@ -201,6 +201,10 @@ inductive Refusal where
   | valueUB (u : UB)
   | memUB (f : MemFault)
   | libc (name : String)
+  /-- `abort()` is a terminal program outcome, not a library refusal.  It
+  stays in the inner channel so expression evaluation can short-circuit, and
+  `EvalM.verdict` exposes it as `Outcome.aborted`. -/
+  | aborted
 deriving Repr, Inhabited, BEq
 
 /-- The result of a memory operation. `Except` rather than a bespoke sum,
@@ -925,6 +929,7 @@ retires: it is the product.** -/
 def cause : Refusal → Cause
   | .valueUB _ | .memUB _ => .undefined ()
   | .libc _ => .environment ()
+  | .aborted => .environment ()
 
 /-- The Annex J.2 index, where the refusal is UB and the annex has one. -/
 def j2 : Refusal → Option String
@@ -939,6 +944,7 @@ def j2 : Refusal → Option String
       | .shiftNegativeOperand _ | .shiftOverflow .. => some "J.2(49)"
       | .vaArgTypeMismatch .. => none
   | .libc _ => none
+  | .aborted => none
 
 end Refusal
 
@@ -953,6 +959,9 @@ snapshot guard holds: there is nowhere to put a `Mem` here either. -/
 /-- What a run produced, with the causes kept apart. -/
 inductive Outcome (α : Type) where
   | ok (value : α)
+  /-- The program called `abort()` (§7.22.4.1): a terminal outcome, distinct
+  from an exit status, undefined behavior, and an out-of-tier refusal. -/
+  | aborted
   /-- A refusal that rode in `ExceptT`: cause `undefined` or `environment`. -/
   | refused (r : Refusal)
   /-- Cause `unsupported` — out of tier. The snapshot is deliberately NOT
@@ -965,6 +974,7 @@ deriving Repr, Inhabited, BEq
 /-- The cause of an outcome, where it has one. -/
 def Outcome.cause? : Outcome α → Option Cause
   | .ok _ => none
+  | .aborted => none
   | .refused r => some r.cause
   | .unsupported _ => some (.unsupported ())
   | .timeout => none

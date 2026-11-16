@@ -907,6 +907,12 @@ def scoreEnvelope (fuel : Nat) (envl : Envelope)
       else match value with
         | .int _ 0 | .undef => .passed
         | .int _ _ | .float32 _ | .float64 _ | .ptr _ | .ptrInt _ | .funPtr _ | .aggregate _ _ => .failed
+  | .ok (.error .aborted, _) =>
+      match oracleSym with
+      | some sym =>
+          if hasDeclareCallDefine envl sym then .oracleTestsCompiler oracleWhy
+          else .failed
+      | none => .failed
   | .ok (.error (.libc "abort"), _) =>
       match oracleSym with
       | some sym =>
@@ -934,6 +940,8 @@ def singleMain (path : String) (fuel : Nat) : IO UInt32 := do
           IO.print (stdoutString mem.stdout); IO.println "ok\t0"; return 0
       | .ok (.ok value, mem) =>
           IO.print (stdoutString mem.stdout); IO.println s!"ok\t{repr value}"; return 0
+      | .ok (.error .aborted, _) =>
+          IO.eprintln "aborted"; return 5
       | .ok (.error (.libc "exit"), _) =>
           if exitIsAlwaysZero envl then
             IO.println "ok\t0"; return 0

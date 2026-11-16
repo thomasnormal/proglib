@@ -120,6 +120,7 @@ is nowhere to put a `Mem` in an `Outcome`. -/
 def EvalM.verdict (m : Mem) (x : EvalM α) : Outcome α :=
   match EvalM.run m x with
   | .ok (.ok a, _) => .ok a
+  | .ok (.error .aborted, _) => .aborted
   | .ok (.error r, _) => .refused r
   | .error .timeout => .timeout
   | .error (.unsupported _ msg _) => .unsupported msg
@@ -158,6 +159,11 @@ def refuseUnsupported (what : String) : EvalM α := fun m =>
 /-- Refuse an unmodeled library function. Cause: `libc`, which retires by
 widening the slice. -/
 def refuseLibc (name : String) : EvalM α := throw (.libc name)
+
+/-- C23 §7.22.4.1 terminal abnormal termination.  This is deliberately a
+named terminal primitive rather than a `libc` refusal: the public verdict
+preserves that the program aborted. -/
+def terminateAbort : EvalM α := throw .aborted
 
 /-! ### Lifting the memory model
 
@@ -1485,6 +1491,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       if compoundAssignmentHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in compound assignment"
       let p ← evalLValue ctx l
+      let rv ← evalExpr ctx r
+      -- C23 §6.5.16.3: the update is sequenced after the value
+      -- computations of both operands.  The lvalue is evaluated once for
+      -- its address, while its stored value is read only after the RHS has
+      -- completed; this preserves writes made by a called RHS (for example
+      -- `x |= foo()` where `foo` updates `x`).
       let old ← match l with
         | .member base field arrow fieldTy _ =>
             if ctx.layout.fieldBits base.ty field |>.isSome then
@@ -1493,7 +1505,6 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               loadAt p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
         | _ =>
             loadAt p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
-      let rv ← evalExpr ctx r
       match old, rv with
       | .ptr _, .int _ _ => do
           -- §6.5.17.3: pointer compound assignment uses the same

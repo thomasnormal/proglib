@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -110,6 +111,9 @@ def model_run(env, opts):
                 "stdout": p.stdout, "stderr": p.stderr}
     if p.returncode == 4:
         return {"verdict": "TIMEOUT", "detail": p.stderr.strip()}
+    if p.returncode == 5 and p.stderr.strip() == "aborted":
+        return {"verdict": "ABORTED", "detail": "abort() terminal outcome",
+                "stdout": p.stdout, "stderr": p.stderr}
     return {"verdict": "RUNNER", "detail": p.stderr.strip() or p.stdout.strip()}
 
 
@@ -163,6 +167,13 @@ def compare(clang, source, model, timeout):
         verdict = classify_sanitizer_mismatch(model, san)
         return verdict, {"o0": o0, "o2": o2, "sanitizer": san,
                          "model": model}
+    if model["verdict"] == "ABORTED":
+        expected = -signal.SIGABRT
+        native_aborted = (o0["returncode"] == expected and
+                          o2["returncode"] == expected and
+                          san["returncode"] == expected)
+        return ("MATCH" if native_aborted else "DIVERGE"), {
+            "native": o0, "sanitizer": san, "model": model}
     if model["verdict"] != "MODEL":
         return model["verdict"], {"native": o0, "sanitizer": san, "model": model}
     try:

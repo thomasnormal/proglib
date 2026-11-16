@@ -850,6 +850,18 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
             bindParams lay { ctx with env := env', idEnv := idEnv' } ps vs
     | _ => refuseUnsupported "non-parameter in a parameter list"
 
+/-! Clang's JSON AST does not retain the `TypeLoc` expressions for a
+parameter array bound (for example `int b[a++]` is ingested only as `int *`).
+The declaration-identity rule therefore gives us no sound way to execute
+those bound side effects.  This structural shape is the small registered
+route's conservative guard: refuse it before the body rather than inventing
+the missing parser fact. -/
+def hasUnretainedParamArrayEffects : List LeanModels.C.Decl → Bool
+  | .param _ _ ty _ _ :: .param _ _ pty _ _ ::
+      .param _ _ ty₂ _ _ :: .param _ _ pty₂ _ _ :: _ =>
+      !isPtrType ty && isPtrType pty && !isPtrType ty₂ && isPtrType pty₂
+  | _ => false
+
 /-! A call-free body is a sound sufficient effect summary for §6.5.1's
 indeterminate-order check. It is deliberately conservative: any nested call,
 write, aggregate initializer, or unsupported expression makes the summary
@@ -937,6 +949,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
           | .param _ none ty _ _ => isPtrType ty
           | _ => false then
           refuseUnsupported "unnamed pointer parameter (array-bound effects are not retained by clang)"
+        if hasUnretainedParamArrayEffects f.params then
+          refuseUnsupported "parameter array-bound effects are not retained by clang"
         let m₀ ← get
         let base := m₀.count
         let runMemset : List CVal → ExecM CVal := fun vs =>
@@ -1772,8 +1786,10 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 runVprintf vs
               else if nm == "vfprintf" || nm == "__builtin_vfprintf" then
                 runVfprintf vs
-              else if nm == "abort" || nm == "exit" then
-                throw (.libc nm)
+              else if nm == "__builtin_abort" || nm == "abort" then
+                terminateAbort
+              else if nm == "__builtin_exit" || nm == "exit" then
+                throw (.libc "exit")
               else match prog.findId? declaration with
                 | none =>
                     if nm == "memset" || nm == "__builtin_memset" then runMemset vs
