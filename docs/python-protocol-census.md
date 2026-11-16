@@ -1006,6 +1006,12 @@ case with the exact `ValueError "incomplete format"` outcome, independent of
 heap, address, fuel, and accumulator.  This preserves the formatter's error
 ordering as the prefix induction proceeds.
 
+The mapping-token parser remains a separate boundary.  `strFormatMapToken`
+uses a local accumulator recursion to collect arbitrary key characters before
+the closing `)` and conversion character; its prefix relation must account for
+that accumulator and list-association explicitly.  No vacuous wrapper or
+fixed-length parser theorem was added while that relation is unproved.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
