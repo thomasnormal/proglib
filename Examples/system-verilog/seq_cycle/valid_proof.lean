@@ -55,14 +55,23 @@ load_design_sv2 vc from "Examples/system-verilog/seq_valid_chain/valid_chain_pro
 
 set_option maxHeartbeats 1000000 in
 theorem vc_structure (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) :
-    ∃ E, vc.e W = .ok E ∧ E.SeqProfile "clk" := by
+    SeqDesign (vc.e W) "clk" := by
   cases hE : vc.e W with
   | ok E =>
       sv_seq_inst [vc.e, vc.pdesign] at hE
       subst hE
-      exact ⟨_, rfl, by sv_seq_profile⟩
+      exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
   | timeout => sv_seq_inst [vc.e, vc.pdesign] at hE
   | unsupported m => sv_seq_inst [vc.e, vc.pdesign] at hE
+
+/-- **The interface**: the ports with their declared widths, in declaration order. -/
+theorem vc_ports (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) :
+    SeqPorts (vc.e W) [("clk", 1), ("rst", 1), ("valid_i", 1), ("ready_i", 1), ("data_i", W)] [("valid_o", 1), ("data_o", W)] := by
+  obtain ⟨E, hE, -, -⟩ := vc_structure W h1 h2
+  refine ⟨E, hE, ?_⟩
+  sv_seq_inst [vc.e, vc.pdesign] at hE
+  subst hE
+  constructor <;> sv_seq_ports
 
 /-! ## 2. The cycle equations -/
 
@@ -297,7 +306,7 @@ set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus, the outputs show 0
 after a reset cycle, the inputs after a loading cycle, and the previous outputs after a holding cycle. -/
 theorem vc_runs (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : SeqRuns (vc.e W) "clk" (VcClaim W) := by
-  obtain ⟨E, hE, hP⟩ := vc_structure W h1 h2
+  obtain ⟨E, hE, hP, -⟩ := vc_structure W h1 h2
   have hE0 := hE
   sv_seq_inst [vc.e, vc.pdesign] at hE0
   refine SeqRuns.intro hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
@@ -324,6 +333,7 @@ theorem vc_runs (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : SeqRuns (vc.e W) "c
     exact ⟨r1, vi1, ry1, di1, vq1, dq1, hcyc, hlink⟩
 
 #print axioms vc_structure
+#print axioms vc_ports
 #print axioms vc_cycle
 #print axioms vc_runs
 

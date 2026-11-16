@@ -49,14 +49,23 @@ load_design_sv2 shreg from "Examples/system-verilog/sem2/packed_shift_canonical_
 
 set_option maxHeartbeats 1000000 in
 theorem shreg_structure (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) :
-    ∃ E, shreg.e N = .ok E ∧ E.SeqProfile "clk" := by
+    SeqDesign (shreg.e N) "clk" := by
   cases hE : shreg.e N with
   | ok E =>
       sv_seq_inst [shreg.e, shreg.pdesign] at hE
       subst hE
-      exact ⟨_, rfl, by sv_seq_profile⟩
+      exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
   | timeout => sv_seq_inst [shreg.e, shreg.pdesign] at hE
   | unsupported m => sv_seq_inst [shreg.e, shreg.pdesign] at hE
+
+/-- **The interface**: the ports with their declared widths, in declaration order. -/
+theorem shreg_ports (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) :
+    SeqPorts (shreg.e N) [("clk", 1), ("v", 1)] [("q", N)] := by
+  obtain ⟨E, hE, -, -⟩ := shreg_structure N h1 h2
+  refine ⟨E, hE, ?_⟩
+  sv_seq_inst [shreg.e, shreg.pdesign] at hE
+  subst hE
+  constructor <;> sv_seq_ports
 
 /-! ## 2. The cycle equations -/
 
@@ -225,7 +234,7 @@ set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus, `q` holds the last
 `N` inputs: bit `k` of `q` after cycle `c` is the input of cycle `c - k`. -/
 theorem shreg_runs (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (shreg.e N) "clk" (ShiftClaim N) := by
-  obtain ⟨E, hE, hP⟩ := shreg_structure N h1 h2
+  obtain ⟨E, hE, hP, -⟩ := shreg_structure N h1 h2
   have hE0 := hE
   sv_seq_inst [shreg.e, shreg.pdesign] at hE0
   refine SeqRuns.intro hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
@@ -245,6 +254,7 @@ theorem shreg_runs (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (shreg.e
     exact shiftClaim_of_trace N h1 tr t (shreg_trace N h1 h2 hE ins c a q t ha hq ht hd tr htr)
 
 #print axioms shreg_structure
+#print axioms shreg_ports
 #print axioms shreg_cycle
 #print axioms shreg_runs
 

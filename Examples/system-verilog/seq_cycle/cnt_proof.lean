@@ -46,14 +46,23 @@ load_design_sv2 cnt from "Examples/system-verilog/sem2/clk_cnt/clk_cnt.sv.json"
 
 set_option maxHeartbeats 1000000 in
 theorem cnt_structure (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
-    ∃ E, cnt.e N = .ok E ∧ E.SeqProfile "clk" := by
+    SeqDesign (cnt.e N) "clk" := by
   cases hE : cnt.e N with
   | ok E =>
       sv_seq_inst [cnt.e, cnt.pdesign] at hE
       subst hE
-      exact ⟨_, rfl, by sv_seq_profile⟩
+      exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
   | timeout => sv_seq_inst [cnt.e, cnt.pdesign] at hE
   | unsupported m => sv_seq_inst [cnt.e, cnt.pdesign] at hE
+
+/-- **The interface**: the ports with their declared widths, in declaration order. -/
+theorem cnt_ports (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
+    SeqPorts (cnt.e N) [("clk", 1), ("rst", 1), ("en", 1)] [("q", N)] := by
+  obtain ⟨E, hE, -, -⟩ := cnt_structure N h1 h2
+  refine ⟨E, hE, ?_⟩
+  sv_seq_inst [cnt.e, cnt.pdesign] at hE
+  subst hE
+  constructor <;> sv_seq_ports
 
 /-! ## 2. The cycle equations -/
 
@@ -262,7 +271,7 @@ set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus, `n` enabled cycles
 after a reset cycle the count is `n mod 2^N`. -/
 theorem cnt_runs (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (cnt.e N) "clk" (CntClaim N) := by
-  obtain ⟨E, hE, hP⟩ := cnt_structure N h1 h2
+  obtain ⟨E, hE, hP, -⟩ := cnt_structure N h1 h2
   have hE0 := hE
   sv_seq_inst [cnt.e, cnt.pdesign] at hE0
   refine SeqRuns.intro hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
@@ -282,6 +291,7 @@ theorem cnt_runs (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (cnt.e N) 
     exact cntClaim_of_trace N h1 tr q (cnt_trace N h1 h2 hE ins c r e q hr he hq hd tr htr)
 
 #print axioms cnt_structure
+#print axioms cnt_ports
 #print axioms cnt_cycle
 #print axioms cnt_runs
 
