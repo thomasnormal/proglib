@@ -30,7 +30,7 @@ low slot, so a fall fires the process THERE, before the clock edge, and the pre 
    1 to 0 shows `q = 0` already BEFORE its clock edge (the asynchronous reset); `rst_n = 1, en = 1` loads `d`;
    `rst_n = 1, en = 0` holds; and with `rst_n = 1` the pre sample shows the previous cycle's `q`.
 
-Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (459 rows at N = 1, 4, 8: the cycle
+Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (457 rows at N = 1, 4, 8: the cycle
 equations on 4-state `rst_n`/`en` and x data from the x start, and the claim's clauses; 0 mismatches).
 -/
 
