@@ -6175,6 +6175,51 @@ theorem globalCallEnv_eq_legacy_of_noGlobal
       markUnboundLocals body.toList (mkCallEnv params args) := by
   simp [globalCallEnv]
 
+/-- Lift a statement-level bridge across an arbitrary returning function body.
+The fuel threshold accounts for the legacy list walker; the frame equality
+uses the no-global embedding rather than assuming equal post-body worlds. -/
+theorem twinAgrees_callIn_top_ret_of_statement_bridge
+    (m : Module) (fuel base : Nat) (w : World) (fname : String)
+    (args : Array RVal) (f : FunctionDefn) (st' : FrameState) (v : RVal)
+    (hfind : findFunction m fname = some f)
+    (hgen : proofCellGeneratorUnsafe m fname = false)
+    (hargs : f.argsOk = true) (hlocal : f.localsOk = true)
+    (hnotgen : f.isGenerator = false) (hglobal : f.hasGlobal = false)
+    (harity : arityOk f.params args.size = true)
+    (hfuel : base + f.body.toList.length < fuel)
+    (hbridge : ∀ s ∈ f.body.toList, ∀ st g, base ≤ g → 0 < g →
+      toRun (execOpen (kont m fuel) m s) st = execStmt m g st s)
+    (hbody : execStmts m fuel
+      ⟨{ w with callDepth := 1 },
+        markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩ f.body.toList =
+      .ok st' (.ret v)) :
+    callInMono m (fuel + 1) w fname args =
+      callIn m (fuel + 1) { w with callDepth := pythonTopCallDepth } fname args := by
+  let st : FrameState := ⟨{ w with callDepth := 1 },
+    markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩
+  have hproject : toRun (execOpenList (kont m fuel) m f.body.toList) st =
+      .ok st' (.ret v) := by
+    rw [twinAgrees_execOpenList_of_threshold (kont m fuel) m f.body.toList
+      base fuel st hfuel hbridge]
+    exact hbody
+  have hraw : execOpenList (kont m fuel) m f.body.toList st =
+      .ok (.ok (.ret v), st') := by
+    unfold toRun at hproject
+    generalize heq : execOpenList (kont m fuel) m f.body.toList st = q at hproject
+    cases q with
+    | error e => cases e <;> simp at hproject
+    | ok p =>
+        cases p with
+        | mk r st'' =>
+            cases r with
+            | error e => simp at hproject
+            | ok flow => cases hproject; rfl
+  apply twinAgrees_callIn_top_body_ret m fuel w fname args f st' st' v
+    hfind hgen hargs hlocal hnotgen harity
+  · simpa [st, hglobal, globalCallEnv_eq_legacy_of_noGlobal] using hraw
+  · exact hbody
+  · rfl
+
 theorem finishCallM_pure_ok {α : Type} (depth : Nat) (w : World) (v : α) :
     toRun (finishCallM depth (pure v : SemW α)) w =
       .ok { w with callDepth := depth } v := by
