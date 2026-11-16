@@ -6344,6 +6344,32 @@ theorem strFormatMappingWalk_plain_prefix
               rw [show String.ofList [c] = String.singleton c by rfl,
                 String.ofList_cons, String.append_assoc]
 
+private def escapedPercentPrefix : Nat → List Char
+  | 0 => []
+  | n + 1 => '%' :: '%' :: escapedPercentPrefix n
+
+private def escapedPercentOutput : Nat → String
+  | 0 => ""
+  | n + 1 => "%" ++ escapedPercentOutput n
+
+theorem strFormatMappingWalk_escaped_percent_prefix
+    (h : Heap) (a : Addr) (fuel n : Nat) (acc : String) :
+    strFormatMappingWalk h a (fuel + 2 * n)
+      (escapedPercentPrefix n) acc =
+      .ok (acc ++ escapedPercentOutput n) := by
+  induction n generalizing fuel acc with
+  | zero =>
+      simpa [escapedPercentPrefix, escapedPercentOutput] using
+        strFormatMappingWalk_empty h a fuel acc
+  | succ n ih =>
+      rw [show fuel + 2 * (n + 1) = (fuel + 2 * n) + 2 by omega]
+      rw [show escapedPercentPrefix (n + 1) = '%' :: '%' :: escapedPercentPrefix n by rfl]
+      rw [strFormatMappingWalk_escaped_percent_step h a (fuel + 2 * n + 1)
+        (escapedPercentPrefix n) acc]
+      rw [show fuel + 2 * n + 1 = (fuel + 1) + 2 * n by omega]
+      rw [ih (fuel := fuel + 1) (acc := acc ++ "%")]
+      simp [escapedPercentOutput, String.append_assoc]
+
 theorem nameErrorRecursionCheck_run (st : FrameState) :
     toRun (liftRes (nameErrorRecursionCheck st.world.callDepth) : SemF Unit) st =
       Run.liftRes st (nameErrorRecursionCheck st.world.callDepth) := by

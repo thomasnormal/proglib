@@ -1003,6 +1003,13 @@ followed by `String.ofList` of the whole prefix.  This is the reusable
 length-parametric composition needed by the walk proof; escaped-percent,
 mapping-token, and conversion prefixes retain their own semantic branches.
 
+`Monadic.strFormatMappingWalk_escaped_percent_prefix` gives the corresponding
+length-parametric composition for any number of escaped-percent pairs.  Its
+structural prefix contains two percent characters per repetition, consumes two
+fuel units per pair, and appends one literal percent per pair.  The theorem is
+separate from the literal-prefix result because `%` changes the walk's parser
+branch, while heap lookup and conversion tokens remain independent cases.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
