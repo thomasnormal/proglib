@@ -17245,3 +17245,16 @@ executes `s` at `n` and, after `.next`, calls the tail at that same smaller
 all positive child fuels (as the existing composition theorem does), or be
 replaced by a threshold relation proved monotone in the legacy evaluator.
 This is the first failing equation for the proposed list-level refinement.
+
+The pass/constant body theorem now reaches the public successor call, but the
+first recursive call-plan equation remains separate.  In the monadic evaluator
+the `.modFun` arm evaluates arguments with `evalOpenCallList` and then enters
+`inFrame (K.call qname args)`.  The legacy `evalExpr` call arm evaluates the
+same arguments with `evalExprs m fuel` and then enters `callIn m fuel`.
+Argument-list adequacy can identify the argument values and updated frame, but
+it does not identify these two call boundaries: `K.call` at `kont m n` invokes
+`callInM (kont m n)`, while the legacy branch performs its frame/world setup and
+fuel decrement in one `callIn` equation.  The missing mutual theorem must
+relate these normalized states and the nested `finishCallM`/`leaveCallM`
+result, including exceptions and refusals.  This is the first call-plan
+equation still outside the proved threshold fragment.
