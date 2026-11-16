@@ -369,12 +369,43 @@ def coreMemCaseWrites : List (List PExpr × PStmt) → List String
   | [] => []
   | item :: rest => coreMemStmtWrites item.2 ++ coreMemCaseWrites rest
 
+def coreMemStmtBlockingWrites : PStmt → List String
+  | .blockingAssign name _ => [name]
+  | .nbaAssign _ _ => []
+  | .ifStmt _ yes none => coreMemStmtBlockingWrites yes
+  | .ifStmt _ yes (some no) =>
+      coreMemStmtBlockingWrites yes ++ coreMemStmtBlockingWrites no
+  | .block body => coreMemStmtBlockingWritesList body
+  | .forLoop _ _ _ _ body => coreMemStmtBlockingWrites body
+  | .blockingAssignL target _ => [target.name]
+  | .nbaAssignL _ _ => []
+  | .caseStmt _ items none _ _ => coreMemCaseBlockingWrites items
+  | .caseStmt _ items (some defaultBody) _ _ =>
+      coreMemCaseBlockingWrites items ++ coreMemStmtBlockingWrites defaultBody
+  | .unsupported _ _ => []
+
+def coreMemStmtBlockingWritesList : List PStmt → List String
+  | [] => []
+  | stmt :: rest =>
+      coreMemStmtBlockingWrites stmt ++ coreMemStmtBlockingWritesList rest
+
+def coreMemCaseBlockingWrites : List (List PExpr × PStmt) → List String
+  | [] => []
+  | item :: rest =>
+      coreMemStmtBlockingWrites item.2 ++ coreMemCaseBlockingWrites rest
+
 end
 
 def coreMemProcWrites : PProcess → List String
   | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
   | .alwaysFFR _ _ body _ | .initial body => coreMemStmtWrites body
+  | .assign _ _ | .assignL _ _ | .unsupported _ _ => []
+
+def coreMemProcBlockingWrites : PProcess → List String
+  | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysFFR _ _ body _ | .initial body => coreMemStmtBlockingWrites body
   | .assign _ _ | .assignL _ _ | .unsupported _ _ => []
 
 def coreMemEventSources : List PProcess → List String
@@ -395,6 +426,12 @@ def coreMemSourceWrittenTwiceInBody (name : String) : List PProcess → Bool
       coreMemWritesNameTwice name (coreMemProcWrites p) ||
         coreMemSourceWrittenTwiceInBody name rest
 
+def coreMemSourceHasBlockingWrite (name : String) : List PProcess → Bool
+  | [] => false
+  | p :: rest =>
+      (coreMemProcBlockingWrites p).contains name ||
+        coreMemSourceHasBlockingWrite name rest
+
 def coreMemFirstRepeatedEventSource : List String → List PProcess → Option String
   | [], _ => none
   | source :: rest, processes =>
@@ -407,8 +444,12 @@ def coreMemEventSourceMultiWriteViol (d : PDesign) (generated : List PProcess) :
   match coreMemFirstRepeatedEventSource (coreMemEventSources processes) processes with
   | none => none
   | some source =>
-      some ("Event:multiple-write",
-        s!"4.6: event source '{source}' is written more than once in one process activation; intermediate update events are not modeled")
+      if coreMemSourceHasBlockingWrite source processes then
+        some ("Event:multiple-write",
+          s!"4.3/10.4.1: blocking event source '{source}' is written more than once in one process activation; intermediate update events are not modeled")
+      else
+        some ("Event:multiple-write",
+          s!"4.6: NBA event source '{source}' is written more than once in one process activation; intermediate update events are not modeled")
 
 def coreMemClockResetViol (_d : PDesign) (_generated : List PProcess) :
     Option (String × String) :=
@@ -2337,6 +2378,17 @@ private def auditW1Processes : List PProcess :=
 
 #guard coreMemFirstRepeatedEventSource
     (coreMemEventSources auditW1Processes) auditW1Processes == some "p"
+
+private def auditW2Processes : List PProcess :=
+  [.alwaysPlain "clk"
+      (.block [
+        .blockingAssign "g" (.lit (.ofNat 1 1)),
+        .blockingAssign "g" (.lit (.ofNat 1 0))]),
+   .alwaysPlain "g" (.nbaAssign "seen" (.lit (.ofNat 1 1)))]
+
+#guard coreMemFirstRepeatedEventSource
+    (coreMemEventSources auditW2Processes) auditW2Processes == some "g"
+#guard coreMemSourceHasBlockingWrite "g" auditW2Processes
 
 end LeanModels.Sv.Kernel
 
