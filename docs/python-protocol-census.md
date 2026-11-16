@@ -792,6 +792,11 @@ boundary without imposing a statement-shape enumeration.
 exception-flow comparison, retaining the exception and requiring the same
 explicit post-body world equality.
 
+`Monadic.twinAgrees_callIn_recursive_body_ret` is the corresponding non-top
+depth rule.  It keeps the caller's `callDepth` inequalities explicit and
+checks the legacy `leaveCallDepth` decrement against the monadic
+`leaveCallM` result.
+
 `Monadic.twinAgrees_execOpenList_of_threshold` adds the matching arbitrary-list
 threshold form.  A uniform lower bound `base` is preserved as the legacy list
 walker consumes one fuel level per recursive tail, so callers can supply
