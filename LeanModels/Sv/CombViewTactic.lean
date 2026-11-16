@@ -731,6 +731,28 @@ private def lowerBounds (fvs : Array FVarId) : MetaM Nat := do
       lb := max lb (← check t.getAppArgs[3]! t.getAppArgs[2]! true)
   return lb
 
+/-- Whether the hypotheses in context EXCLUDE a sampled point (the sampler's reports are for points the theorem
+covers): some hypothesis whose free variables are all among the sampled parameters `fvs` becomes, with `fvs` replaced by
+the sampled literals `lits`, a decidable proposition that evaluates to `false` (a parity `W % 2 = 0`, a relation
+`P ≤ W / 2`, an upper bound). A hypothesis that does not evaluate (another free variable, no instance, a stuck
+reduction) excludes nothing. For the message only: the obligations are stated and proved as before. -/
+def pointExcluded (fvs : Array FVarId) (lits : Array Expr) : MetaM Bool := do
+  if fvs.isEmpty then return false
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    let t ← instantiateMVars d.type
+    if t.hasMVar then continue
+    unless ← Meta.isProp t do continue
+    let ids := (Lean.collectFVars {} t).fvarIds
+    if ids.isEmpty || !(ids.all fun i => fvs.contains i) then continue
+    let tK := t.replaceFVars (fvs.map mkFVar) lits
+    let excluded ← (do
+        let inst ← synthInstance (mkApp (mkConst ``Decidable) tK)
+        let r ← withTransparency .default <| whnf (mkApp2 (mkConst ``Decidable.decide) tK inst)
+        pure (r.isConstOf ``Bool.false)) <|> pure false
+    if excluded then return true
+  return false
+
 /-- Name of a constant the summary was read from, to unfold it in the normalization. -/
 private def headConst? (e : Expr) : Option Name :=
   match e.getAppFn with
@@ -3311,6 +3333,8 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       -- sampling: genuine violations are reported with the offending sites
       for k in [lb, lb + 1, lb + 2, lb + 3, lb + 4] do
         let lits := fvs.map fun _ => (mkNatLit k)
+        -- a point the hypotheses exclude is no counterexample (`pointExcluded`)
+        if ← pointExcluded fvs lits then continue
         let argsK := args.replaceFVars (fvs.map mkFVar) lits
         let argVals ← evalArgs argsK
         let σ := s.val argVals

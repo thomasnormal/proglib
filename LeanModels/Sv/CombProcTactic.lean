@@ -651,6 +651,8 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
         throwError "sv_structure: an `Acyclic` goal needs a rank over site identities, e.g. `sv_structure (rank := rippleRank … …)` or a lexicographic key `sv_structure (lexRank := fun | .plain 0 => (0, 0, 0) | …)`; run `sv_structure?` to see the sites and the rank relation they must satisfy"
       for k in [lb, lb + 1, lb + 2, lb + 4] do
         let lits := fvs.map fun _ => (mkNatLit k)
+        -- a point the hypotheses exclude is no counterexample (`pointExcluded`, CombViewTactic.lean)
+        if ← pointExcluded fvs lits then continue
         let argsK := args.replaceFVars (fvs.map mkFVar) lits
         let argVals ← evalArgs argsK
         let σ := s.val argVals
