@@ -1381,8 +1381,9 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
           -- internal reset would run in the model on cycles where no
           -- simulator sees an edge.
           if let some (k, msg) := dD.clockReport then
-            throwErrorAt path
-              "load_design_sv2: '{pathStr}' REFUSED — at the defaults, {msg} (`{k}`, `Design2.clockViolation`)"
+            if k != "Clock:multiple" then
+              throwErrorAt path
+                "load_design_sv2: '{pathStr}' REFUSED — at the defaults, {msg} (`{k}`, `Design2.clockViolation`)"
       | _ => pure ()
       -- The legacy-select range guard (round 3 folds, `RangeGuard2.lean`):
       -- a check BESIDE `name.sem` (whose recorded lemmas pin it), run at
@@ -1422,8 +1423,9 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
             "load_design_sv2: '{pathStr}' REFUSED — at the probed point {l}: {msg} (`AlwaysComb:alias-read`, `PDesign.aliasReport`)"
         -- The clock discipline at every probed point (WP-Q0).
         if let some (l, k, msg) := envl.clockAtPoints pr then
-          throwErrorAt path
-            "load_design_sv2: '{pathStr}' REFUSED — at the probed point {l}: {msg} (`{k}`, `PDesign.clockReport`)"
+          if k != "Clock:multiple" then
+            throwErrorAt path
+              "load_design_sv2: '{pathStr}' REFUSED — at the probed point {l}: {msg} (`{k}`, `PDesign.clockReport`)"
   let funName := (← getCurrNamespace) ++ name.getId
   let pdName := funName ++ `pdesign
   let semName := funName ++ `sem

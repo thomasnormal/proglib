@@ -7,3 +7,5 @@ route has no such event-queue input. It therefore refuses the design as
 `Clock:multiple` rather than selecting an interleaving.
 
 This fixture records refusal only; its source rows are checked against both pinned simulators.
+
+Canonical E now runs the same source-shaped rows directly through `CoreMemDesign.step`: separate edges update one domain at a time, a coincident edge samples the old value in the other domain, stopped clocks do not fire, and x/z clock transitions use the retained four-state edge table.

@@ -58,16 +58,12 @@ def refusal_receipt():
              "-o", f.name, str(source.relative_to(ROOT))])
         if Path(f.name).read_bytes() != envelope.read_bytes():
             raise RuntimeError("stale envelope")
-    with tempfile.NamedTemporaryFile("w", suffix=".lean") as f:
-        f.write("import LeanModels.Sv.Ingest2\n")
-        f.write(f'load_design_sv2 clkTwoCheck from "{envelope}"\n')
-        f.flush()
-        p = run(["lake", "env", "lean", f.name], check=False)
-    if p.returncode == 0 or "Clock:multiple" not in p.stdout:
-        raise RuntimeError("ordinary loader did not refuse Clock:multiple:\n" + p.stdout)
+    p = run(["lake", "env", "lean", "--run", "harness/sv/runner2.lean",
+             str(envelope), "harness/sv/cases2.json", "clk_two", "src"], check=False)
+    if p.returncode == 0 or "Clock:multiple" not in (p.stdout or "") + (p.stderr or ""):
+        raise RuntimeError("ordinary run2 runner did not refuse Clock:multiple:\n" + (p.stdout or "") + (p.stderr or ""))
     print("extractor: envelope regenerates byte-identically")
-    print("ordinary loader: REFUSED Clock:multiple")
-
+    print("ordinary run2 runner: REFUSED Clock:multiple")
 
 def simulator_receipt(sim):
     source = HERE / f"{HERE.name}.sv"

@@ -381,6 +381,14 @@ validation could inspect the wrong state for an edge process. The
 `qualified_case_timing` rows cover a pre-edge violation and a violation
 created by one edge and observed on the next.
 
+## Canonical E multiple input clocks — 2026-11-16
+
+Canonical E's existing source-shaped `CoreMemDesign.step` now admits multiple
+input clocks without the loader's `Clock:multiple` gate. Each edge process tests
+its own clock transition in the slot, so separate, coincident, stopped, ratio,
+and x/z clock rows retain their IEEE §9.4.2 behavior. The ordinary `run2`
+bridge still refuses multiple clocks because one run2 entry has one implicit edge.
+
 ## Canonical E negative-edge events — 2026-11-16
 
 Canonical E now retains a negative-edge `always_ff` clock as source-shaped
