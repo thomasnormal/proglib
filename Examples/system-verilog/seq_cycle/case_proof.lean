@@ -214,10 +214,10 @@ theorem caseClaim_of_runF (v : SvState) (ins : List SvState) : CaseClaim (runF c
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus. -/
 theorem case_runs : SeqRuns cs.e "clk" CaseClaim := by
-  obtain ⟨E, hE, hP, -⟩ := case_structure
+  obtain ⟨E, hE, hP, hO⟩ := case_structure
   have hE0 := hE
   sv_seq_inst [cs.e, cs.pdesign] at hE0
-  refine SeqRuns.of_cycleFn hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) CaseInv ?_
+  refine SeqRuns.of_cycleFn hE hP hO (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) CaseInv ?_
     caseF (fun v dt hv hd => case_cycle hE v dt hv hd) (fun v ins _ _ => caseClaim_of_runF v ins)
   intro v hsh
   subst hE0

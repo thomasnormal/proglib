@@ -234,10 +234,10 @@ set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus, `q` holds the last
 `N` inputs: bit `k` of `q` after cycle `c` is the input of cycle `c - k`. -/
 theorem shreg_runs (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (shreg.e N) "clk" (ShiftClaim N) := by
-  obtain ⟨E, hE, hP, -⟩ := shreg_structure N h1 h2
+  obtain ⟨E, hE, hP, hO⟩ := shreg_structure N h1 h2
   have hE0 := hE
   sv_seq_inst [shreg.e, shreg.pdesign] at hE0
-  refine SeqRuns.intro hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
+  refine SeqRuns.intro hE hP hO (by subst hE0; simp [Elab.toDesign2, Design2.declWidth])
     (fun v => ∃ c a q t, v = [("clk", c), ("v", a), ("q", q), ("t", t)] ∧ a.width = 1 ∧ q.width = N ∧
       t.width = N) ?_ ?_ ?_
   · intro v hs

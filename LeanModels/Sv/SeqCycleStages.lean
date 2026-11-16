@@ -74,11 +74,12 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
   let at_ := s!"process {i}"
   if p.isAppOfArity ``CoreMemProc.edge 1 then
     let f ← whnf (p.getArg! 0)
-    if f.isAppOfArity ``CoreMemEdge.mk 4 then
-      let clock := strLit? (f.getArg! 0)
+    if f.isAppOf ``CoreMemEdge.mk then
+      -- fields by projection, not by position: the record gains fields as the route grows
+      let clock := strLit? (← whnf (← mkProjection f `clock))
       if clock.isSome && clock != some clk then
         return s!"{at_} (an edge process) is clocked by `{clock.get!}`, not `{clk}`: two clocks are outside the clocked profile (the owner's to decide)"
-      let body := f.getArg! 2
+      let body ← whnf (← mkProjection f `body)
       if (body.find? (·.isConstOf ``PStmt.forLoop)).isSome then
         return s!"{at_} (an edge process) has a procedural `for` loop: the memories slice (next), refused"
       if (body.find? (·.isConstOf ``PExpr.functionCall)).isSome then
@@ -89,6 +90,8 @@ def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
     return s!"{at_} (an edge process): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.comb 1 then
     return s!"{at_} is an always_comb process: always_comb beside flip-flops is the next slice (T7), refused"
+  if p.isAppOfArity ``CoreMemProc.latch 1 then
+    return s!"{at_} is an always_latch process: a level-sensitive process is outside the clocked profile, refused"
   if p.isAppOfArity ``CoreMemProc.implicit 1 then
     return s!"{at_} is an implicit-event process (`always @*` / `always @(a)`): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.initial 1 then

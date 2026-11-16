@@ -278,10 +278,10 @@ theorem arstClaim_of_runF (N : Nat) (v : SvState) (ins : List SvState) : ArstCla
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus. -/
 theorem arst_runs (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (arst.e N) "clk" (ArstClaim N) := by
-  obtain ⟨E, hE, hP, -⟩ := arst_structure N h1 h2
+  obtain ⟨E, hE, hP, hO⟩ := arst_structure N h1 h2
   have hE0 := hE
   sv_seq_inst [arst.e, arst.pdesign] at hE0
-  refine SeqRuns.of_cycleFn hE hP (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) (ArstInv N) ?_
+  refine SeqRuns.of_cycleFn hE hP hO (by subst hE0; simp [Elab.toDesign2, Design2.declWidth]) (ArstInv N) ?_
     (arstF N) (fun v dt hv hd => arst_cycle N h1 h2 hE v dt hv hd)
     (fun v ins _ _ => arstClaim_of_runF N v ins)
   intro v hs
