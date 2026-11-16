@@ -1047,6 +1047,12 @@ the walk's token branch.  It preserves the exact heap-dict lookup,
 `strFormatConv` outcomes, key-error case, dangling-reference refusal, and
 recursive continuation; no token text is re-parsed.
 
+The conversion branch needs no separate wrapper: the token theorem already
+matches every `strFormatConv` outcome (`ok` with recursive continuation,
+exception, timeout, or refusal) and preserves the accumulator update.  Adding
+a theorem that only re-matches that result would duplicate control structure
+without adding a refinement fact.
+
 `Monadic.twinAgrees_callIn_top_ret_of_statement_bridge` is the first
 length-parametric returning-call bridge.  It combines the arbitrary-list
 threshold relation with the no-global frame embedding and leaves the
