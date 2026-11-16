@@ -2,10 +2,10 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1200/2214 MATCH (passed 1200, failed 3, oracle 0)
+- verdicts: 1201/2214 MATCH (passed 1201, failed 3, oracle 0)
 - manifest SHA-256: `3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4`
-- measured commit: `dbe0c70b8`
-- measured at: `2026-11-16T17:40:00Z`
+- measured commit: `ec10e4b3c`
+- measured at: `2026-11-16T18:40:00Z`
 
 ## Verdict counts
 
@@ -14,9 +14,9 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `failed` | 3 |
 | `not-parsed` | 350 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1200 |
+| `passed` | 1201 |
 | `refused-libc` | 21 |
-| `refused-ub` | 87 |
+| `refused-ub` | 86 |
 | `refused-unsupported` | 464 |
 | `timeout` | 88 |
 
@@ -33,9 +33,9 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-parsed` | 321 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 1008 |
+| `gcc.c-torture/execute` | `passed` | 1009 |
 | `gcc.c-torture/execute` | `refused-libc` | 18 |
-| `gcc.c-torture/execute` | `refused-ub` | 79 |
+| `gcc.c-torture/execute` | `refused-ub` | 78 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 403 |
 | `gcc.c-torture/execute` | `timeout` | 85 |
 | `gcc.c23-run` | `not-parsed` | 28 |
@@ -298,7 +298,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `frontend` | 350 | 350 | 00209.c, 20000112-1.c, 20000227-1.c, 20000314-3.c, 20000412-3.c |
 | `missing-main` | 102 | 102 | 20040705-1.c, 20040705-2.c, 20040709-3.c, builtins/20010124-1.c, builtins/abs-1.c |
 | `timeout` | 88 | 88 | 00040.c, 00041.c, 00128.c, 20000113-1.c, 20000121-1.c |
-| `undefined-behavior` | 87 | 87 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
+| `undefined-behavior` | 86 | 86 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 40 | 40 | builtins/20010124-1-lib.c, builtins/complex-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 24 | 24 | 00103.c, 00170.c, 20001017-2.c, 20050316-1.c, 20050607-1.c |
 | `unsupported:implementation-defined bit-field conversion` | 18 | 18 | 00218.c, 20230630-1.c, 20230630-2.c, 20230630-3.c, 20230630-4.c |

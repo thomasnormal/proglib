@@ -12,9 +12,9 @@
    "failed": 3,
    "not-parsed": 321,
    "oracle-tests-compiler": 1,
-   "passed": 1008,
+   "passed": 1009,
    "refused-libc": 18,
-   "refused-ub": 79,
+   "refused-ub": 78,
    "refused-unsupported": 403,
    "timeout": 85
   },
@@ -31,9 +31,9 @@
   "failed": 3,
   "not-parsed": 350,
   "oracle-tests-compiler": 1,
-  "passed": 1200,
+  "passed": 1201,
   "refused-libc": 21,
-  "refused-ub": 87,
+  "refused-ub": 86,
   "refused-unsupported": 464,
   "timeout": 88
  },
@@ -676,7 +676,6 @@
     "pr79286.c",
     "pr84339.c",
     "pr99079.c",
-    "ptr-arith-1.c",
     "return-addr.c",
     "stdarg-3.c",
     "strlen-7.c",
@@ -689,8 +688,8 @@
     "zero-struct-2.c",
     "zerolen-1.c"
    ],
-   "present": 87,
-   "sole": 87,
+   "present": 86,
+   "sole": 86,
    "wall": "undefined-behavior"
   },
   {
@@ -2296,8 +2295,8 @@
   }
  ],
  "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
- "measured_at_utc": "2026-11-16T17:40:00Z",
- "measured_commit": "dbe0c70b8",
+ "measured_at_utc": "2026-11-16T18:40:00Z",
+ "measured_commit": "ec10e4b3c",
  "pin": null,
  "rows": [
   {
@@ -27241,8 +27240,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 14 1 13",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ptr-arith-1.c",
    "sha256": "d7125e5a3d11cef291bad1cec7eca7dbc05b2e28750e0c59525b849b647b599c",
@@ -27250,7 +27249,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-ub"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
