@@ -319,6 +319,33 @@ def CoreMemProc.ofPProcessAt (env : IEnv) : PProcess → CoreMemProc
       | .error msg => .unsupported "Initial:check" msg
   | p => CoreMemProc.ofPProcess p
 
+/-! Canonical E's one-slot transition compares the slot's starting view with
+the settled pre-edge view.  IEEE 1800-2023 §§4.4 and 9.4.2 instead schedule a
+new active pass when an NBA changes a clock or asynchronous reset.  Until the
+event-queue transport is modelled, refuse those source-shaped events unless
+their signal is a top-level input port. -/
+
+def coreMemInputPortB (d : PDesign) (name : String) : Bool :=
+  d.decls.any (fun pd => pd.name == name && pd.isInput)
+
+def coreMemClockResetViol (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  (d.processes ++ generated).findSome? fun p =>
+    match p with
+    | .alwaysFF clk _ | .alwaysPlain clk _ =>
+        if coreMemInputPortB d clk then none
+        else some ("Clock:source",
+          s!"clock '{clk}' is not a top-level input port; canonical E refuses NBA-caused internal clock events under IEEE 1800-2023 §§4.4 and 9.4.2")
+    | .alwaysFFR clk rst _ _ =>
+        if !coreMemInputPortB d clk then
+          some ("Clock:source",
+            s!"clock '{clk}' is not a top-level input port; canonical E refuses NBA-caused internal clock events under IEEE 1800-2023 §§4.4 and 9.4.2")
+        else if !coreMemInputPortB d rst then
+          some ("Clock:reset",
+            s!"asynchronous reset '{rst}' is not a top-level input port; canonical E refuses NBA-caused internal reset events under IEEE 1800-2023 §§4.4 and 9.4.2")
+        else none
+    | _ => none
+
 /-! Module-level metadata that is already represented by retained source nodes.
 An empty input-only task has no runtime effect, and the two x/z markers carry
 the literal as a source `PExpr.lit`; admitting these markers therefore does not
@@ -669,33 +696,36 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     else
       let env2 := { env2 with dims := dimTable env2 (d.decls ++ generatedDecls) }
       let generated ← coreMemExpandList env2 iterFuel [] d.generates
-      match coreMemFirstUnsupportedOther d generated d.others with
-    | some (kind, text) =>
-      .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
-    | none =>
-      let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls)
-      let decls := decls0 ++ coreMemNetDecls d generated
-      let elems ← buildElems env2 sourceDecls
-      let envP := { env2 with widths := decls.map (fun dc => (dc.name, dc.width)) }
-      let memories ← buildMemDecls1 envP (d.decls ++ generatedDecls) 0
-      if memories.isEmpty && (d.decls ++ generatedDecls).any (fun pd => !pd.unpackedDims.isEmpty) then
-        .unsupported "UnpackedDecl:memory: no one-rank unpacked declaration was admitted"
-      else
-        let scalar : Elab :=
-          { name := d.name, decls := decls.toArray, procs := #[] }
-        let scalarEdge : Elab1 :=
-          { decls := decls.toArray, procs := #[], name := d.name }
-        let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
-          (generated.map (CoreMemProc.ofPProcessAt envP))
-        let result : CoreMemDesign :=
-          { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
-            memories := memories.toArray, processes := processes.toArray,
-            readmemh := d.readmemh }
-        if !result.assignTopoB then
-          .unsupported
-            "10.3: continuous assignment target is read from itself or a later assignment; canonical E requires topological source order"
-        else
-          .ok { result with compiledAssigns := result.compileAssigns }
+      match coreMemClockResetViol d generated with
+      | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+      | none =>
+          match coreMemFirstUnsupportedOther d generated d.others with
+          | some (kind, text) =>
+              .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
+          | none =>
+              let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls)
+              let decls := decls0 ++ coreMemNetDecls d generated
+              let elems ← buildElems env2 sourceDecls
+              let envP := { env2 with widths := decls.map (fun dc => (dc.name, dc.width)) }
+              let memories ← buildMemDecls1 envP (d.decls ++ generatedDecls) 0
+              if memories.isEmpty && (d.decls ++ generatedDecls).any (fun pd => !pd.unpackedDims.isEmpty) then
+                .unsupported "UnpackedDecl:memory: no one-rank unpacked declaration was admitted"
+              else
+                let scalar : Elab :=
+                  { name := d.name, decls := decls.toArray, procs := #[] }
+                let scalarEdge : Elab1 :=
+                  { decls := decls.toArray, procs := #[], name := d.name }
+                let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
+                  (generated.map (CoreMemProc.ofPProcessAt envP))
+                let result : CoreMemDesign :=
+                  { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
+                    memories := memories.toArray, processes := processes.toArray,
+                    readmemh := d.readmemh }
+                if !result.assignTopoB then
+                  .unsupported
+                    "10.3: continuous assignment target is read from itself or a later assignment; canonical E requires topological source order"
+                else
+                  .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
 
