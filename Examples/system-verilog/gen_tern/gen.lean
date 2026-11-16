@@ -40,7 +40,7 @@ load_design_sv2 gen_tern_sum from "Examples/system-verilog/gen_tern/neg/gen_tern
     (gen_tern.pdesign.instantiate2 [5] (PDesign.surfaceFuel [5])).toOption.isSome) == (true, false)
 
 -- The node loop's bound `3 ** l` as the instantiation evaluates it (`evalInt`) and as the summary's form does, against
--- Icarus Verilog 13.0's `pow3 l=…` (tac4/icarus/tb_pow.sv).
+-- Icarus Verilog 13.0's `pow3 l=…` (tb_pow.sv).
 #guard (gen_tern.pdesign.summary.toOption.bind fun s => (gen_tern.pdesign.paramEnv2 [3]).toOption.bind fun e =>
     match s.hdrSteps with
     | [_, _, (_, h)] =>

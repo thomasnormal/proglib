@@ -52,7 +52,7 @@ load_design_sv2 gen_pow_wide from "Examples/system-verilog/gen_pow/neg/gen_pow_w
 
 -- The arm the instantiation selects (`evalGenGuard` of `i >= (1 << l)` at the environment of `N = 5` with the genvars
 -- bound) and the summary's guard (`Guard.holds` at the summary's valuation) agree with the values Icarus Verilog 13.0
--- prints for the same condition over the same genvars (`iverilog -g2012`, tac4/icarus/tb_pow.sv: `cond l=… i=…`).
+-- prints for the same condition over the same genvars (`iverilog -g2012`, tb_pow.sv: `cond l=… i=…`).
 #guard (gen_pow.pdesign.summary.toOption.bind fun s => (gen_pow.pdesign.paramEnv2 [5]).toOption.bind fun e =>
     match s.condSteps with
     | [(_, c, g)] =>

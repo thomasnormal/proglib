@@ -216,7 +216,7 @@ theorem arrayPartTarget_part2 {E : IEnv} {σ : String → Int} {n : String} {mod
   rw [arrayPartTarget_of_inRange hg hlo (by omega)]
   simp
 
-/-! ### Three dimensions (tac8)
+/-! ### Three dimensions
 
 The flat offset of an in-range path of a zero-based descending 3-D array `[m1:0][m2:0][m3:0]` is the nested row-major
 `rmN (m3+1) (rmN (m2+1) s k) i` (plane `s`, row `k`, bit `i`): `walkIndices` gives `s·((m2+1)(m3+1)) + (k·(m3+1) + i)`,
@@ -1326,7 +1326,7 @@ def Summary.StructOk (s : Summary) : Prop :=
   s.lsites.Pairwise (fun a b => a.key ≠ b.key) ∧
   (∀ c ∈ s.condSteps, (∀ n ∈ c.2.1.gvLeaves, n ∈ c.1.map (·.g)) ∧ ∀ n ∈ c.2.1.pLeaves, n ∈ s.params)
 
--- (tac9: the start's names, the conjunct added to the path clause, take the instance search past its default size)
+-- (the start's names, the conjunct added to the path clause, take the instance search past its default size)
 set_option synthInstance.maxSize 1024 in
 set_option synthInstance.maxHeartbeats 200000 in
 instance (s : Summary) : Decidable s.StructOk := by
@@ -1399,7 +1399,7 @@ theorem xObl_of_atomFree (h : s.atomFree = true) (σ : String → Int) : s.XObl 
 within the generate fuel. The fuel is `(Σ|args| + 2)² + 64` (`PDesign.surfaceFuel`: each generate loop of the
 instantiation runs fewer iterations than it), and the bound owed here is EXACTLY that: a count at most
 `Σ|args|² + 4 · Σ|args| + 67`. The square is `fuelSq N`, a `Nat` atom for `omega`, so a count affine in the
-parameters closes as before (the bound was the linear `4 · Σ|args| + 60` until the tac5 round), and a count bounded by a
+parameters closes as before (the bound was the linear `4 · Σ|args| + 60` before), and a count bounded by a
 power (a tree's level of `3 ^ l` nodes) gets the facts that relate the power to the square (`sv_pow_facts`). A loop's
 count is owed at every valuation of the loops around it (`hdrSteps`): an inner bound may mention an outer genvar. The operands of
 a generate condition are evaluated at the signed 32-bit type: each subterm's value is owed in that range wherever the
@@ -2451,7 +2451,7 @@ theorem ctxElemsRow (C : Ctx σ E elems DW DG EW ns) {n : String} {m1 m2 : Int}
   have e : elemWOfDims [(m1, 0), (m2, 0)] = (m2 + 1).toNat := by simp [elemWOfDims]; omega
   rwa [e] at h
 
-/-- The element width of a zero-based three-dimensional declaration is its plane width (tac8). -/
+/-- The element width of a zero-based three-dimensional declaration is its plane width. -/
 theorem ctxElemsPlane (C : Ctx σ E elems DW DG EW ns) {n : String} {m1 m2 m3 : Int}
     (hdg : DG n = some [(m1, 0), (m2, 0), (m3, 0)]) (hm2 : 0 ≤ m2) (hm3 : 0 ≤ m3) :
     elems.lookup n = some ((m2 + 1) * (m3 + 1)).toNat := by
@@ -2548,7 +2548,7 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
               rw [instExpr2_bitSel_ident ctx hel' hev hx0]
               simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
                 Acc.rd, Acc.name, Acc.lo, Acc.wid, rmN, hw]
-            · -- a legacy select of a plane of a three-dimensional declaration (tac8)
+            · -- a legacy select of a plane of a three-dimensional declaration
               obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
               have hel' := ctxElemsPlane C hdg hm2 hm3
               obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -2601,7 +2601,7 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
         have hcell := rmN_eq_toNat (W := m2 + 1) (i := x.eval σ) (j := y.eval σ) (by omega) hx0 hy0
         simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
           Acc.rd, Acc.name, Acc.lo, hw, hcell]
-      · -- n[s], a plane of a 3-D array (tac8)
+      · -- n[s], a plane of a 3-D array
         obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
         have hd := C.dims n _ hdg
         obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -2654,7 +2654,7 @@ theorem inst_leaf (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr}
         have hcell := rmN_eq_toNat (W := m2 + 1) (i := r.eval σ) (j := y.eval σ) (by omega) hr0 hy0
         simp [RdOK, Expr2.unsupportedFree, Expr2.reads, Expr2.sliceReads, Expr2.idents,
           Acc.rd, Acc.name, Acc.lo, Acc.wid, hw, hcell]
-      · -- n[s][k][hi:lo], part of a row of a 3-D array (tac8)
+      · -- n[s][k][hi:lo], part of a row of a 3-D array
         obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
         have hd := C.dims n _ hdg
         obtain ⟨-, hep⟩ := affOf?_sound i p hp (hagx p (by simp [Acc.affs]))
@@ -2930,7 +2930,7 @@ theorem rdsLeaf_length {ds : List DeclT} {e : PExpr} {rs : List Acc} (h : rdsLea
     rfl
   · simp at h
 
-/-- The argument of a replication is a literal (no read) or one access (a non-literal; a whole signal included, tac8). -/
+/-- The argument of a replication is a literal (no read) or one access (a non-literal; a whole signal included). -/
 theorem repArgRd?_cases {ds : List DeclT} {a : PExpr} {rs : List Acc} (h : repArgRd? ds a = .ok rs) :
     (∃ v, a = .concat [.lit v] ∧ rs = []) ∨
       (∃ e, a = .concat [e] ∧ rdsLeaf? ds e = .ok rs ∧ (∀ v, e ≠ .lit v) ∧ rs.length = 1) := by
@@ -2970,7 +2970,7 @@ theorem repRd?_cases {ds : List DeclT} {c a : PExpr} {rs : List Acc} (h : repRd?
     exact ⟨k, rfl, h⟩
 
 /-- The count of a replication evaluates to its affine form and is non-negative (the scope and range facts of
-`ConstOK`; the count's shift and power atoms in range, tac7). -/
+`ConstOK`; the count's shift and power atoms in range). -/
 theorem repl_facts (C : Ctx σ E elems DW DG EW ns) {c a : PExpr} {k : Aff} (hk : affOf? c = some k)
     (hco : ConstOK σ ns (.repl c a)) : evalInt E c = .ok (k.eval σ) ∧ 0 ≤ k.eval σ := by
   have hn : ∀ n ∈ k.names, E.intVal? n = some (σ n) := by
@@ -3935,7 +3935,7 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
       exact ⟨(m2 + 1).toNat, by
         rw [instLhs2_bitSel hel' hev hx0]
         simp [Acc.lhs, Acc.lo, Acc.wid, rmN, hw]⟩
-    · -- a legacy select of a plane (tac8)
+    · -- a legacy select of a plane
       obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
       have hel' := ctxElemsPlane C hdg hm2 hm3
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -3968,7 +3968,7 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
       exact ⟨1, by
         rw [arrayElemTarget_of_inRange (arrayElemWindow_cell2 hd hevi hx0 hx1 hevj hy0 hy1)]
         simp [Acc.lhs, Acc.lo, hw, hcell]⟩
-    · -- a plane of a 3-D array (tac8)
+    · -- a plane of a 3-D array
       obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
       have hd := C.dims n _ hdg
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -4013,7 +4013,7 @@ theorem instLhs_acc (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {l : PLhs
       exact ⟨(x.eval σ - y.eval σ + 1).toNat, by
         rw [arrayPartTarget_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
         simp [Acc.lhs, Acc.lo, Acc.wid, hw, hcell]⟩
-    · -- part of a row of a 3-D array (tac8)
+    · -- part of a row of a 3-D array
       obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
       have hd := C.dims n _ hdg
       obtain ⟨-, hep⟩ := affOf?_sound i p hpa (hagx p (by simp [Acc.affs]))

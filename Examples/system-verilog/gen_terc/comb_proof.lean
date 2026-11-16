@@ -2,7 +2,7 @@ import Examples.«system-verilog».gen_terc.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# `sv_structure` on `?:` in an index and a loop bound (`Examples/system-verilog/gen_terc`, tac8)
+# `sv_structure` on `?:` in an index and a loop bound (`Examples/system-verilog/gen_terc`)
 
 The conditional atoms normalize to `if-then-else` terms of the obligations; `sv_ite_cases` splits on their conditions,
 and `omega` closes each branch.

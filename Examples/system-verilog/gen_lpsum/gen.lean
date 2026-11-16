@@ -3,7 +3,7 @@ import LeanModels.Sv.Gen2
 import LeanModels.Sv.CombView
 
 /-!
-# `gen_lpsum`: localparams evaluated node by node, as an `sv_comb` test subject (tac10)
+# `gen_lpsum`: localparams evaluated node by node, as an `sv_comb` test subject
 
 `S` sums 24 `?:` (the thresholds are the Dadda heights 2, 3, 4, 6, 9, …; the Dadda record's stage count has 51 such
 terms), `D = 2 * S - S` reads it through `*` by a literal and `-`, `NP = (N < 2) ? 2 : N` is a `?:` of a comparison and a

@@ -1,7 +1,7 @@
 import Examples.«system-verilog».mul_dadda.comb_proof
 
 /-!
-# The Dadda record has no combinational loop, at every `1 ≤ N < 2^30` (`Examples/system-verilog/mul_dadda`, tac10)
+# The Dadda record has no combinational loop, at every `1 ≤ N < 2^30` (`Examples/system-verilog/mul_dadda`)
 
 `mul_dadda_struct : CombDesign (mul_dadda.sem N) ∧ Acyclic (mul_dadda.sem N)`: the rank obligations of `sv_structure`
 (the ranged form, so the in-range facts come from `SharedObl`, proved with the profile in `comb_proof.lean`), each closed

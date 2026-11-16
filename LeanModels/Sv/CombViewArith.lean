@@ -165,7 +165,7 @@ theorem rmN_cell_le {W i j m1 : Int} (hi : i ≤ m1) (_hW : 0 ≤ W) (hj : j < W
   rw [Nat.add_mul] at h1
   omega
 
-/-- tac8: a window `[c, c + w)` of row `k` of plane `s` of a 3-D array (planes of `W2` rows of `W3` bits) ends inside the
+/-- a window `[c, c + w)` of row `k` of plane `s` of a 3-D array (planes of `W2` rows of `W3` bits) ends inside the
 vector of `m1 + 1` planes. -/
 theorem rmN3_le {W2 W3 s k m1 c : Int} {w : Nat} (hs1 : s ≤ m1) (hW2 : 0 ≤ W2) (hk1 : k < W2) (hk0 : 0 ≤ k)
     (hs0 : 0 ≤ s) (hc0 : 0 ≤ c) (hcw : c + w ≤ W3) :
@@ -180,7 +180,7 @@ theorem rmN3_le {W2 W3 s k m1 c : Int} {w : Nat} (hs1 : s ≤ m1) (hW2 : 0 ≤ W
   rw [e]
   omega
 
-/-- tac8: plane `s` of a 3-D array (planes of `W2` rows of `W3` bits) ends inside the vector of `m1 + 1` planes. -/
+/-- plane `s` of a 3-D array (planes of `W2` rows of `W3` bits) ends inside the vector of `m1 + 1` planes. -/
 theorem rmN3_plane_le {W2 W3 s m1 : Int} (hs1 : s ≤ m1) (hW2 : 0 ≤ W2) (hW3 : 0 ≤ W3) (hs0 : 0 ≤ s) :
     rmN W3 (rmN W2 s 0 : Int) 0 + (W2 * W3).toNat ≤ (m1 + 1).toNat * W2.toNat * W3.toNat := by
   have h1 : (s.toNat + 1) * W2.toNat ≤ (m1 + 1).toNat * W2.toNat := Nat.mul_le_mul_right _ (by omega)
@@ -197,7 +197,7 @@ theorem rmN3_plane_le {W2 W3 s m1 : Int} (hs1 : s ≤ m1) (hW2 : 0 ≤ W2) (hW3 
   rw [Nat.mul_assoc s.toNat] at h2 ⊢
   omega
 
-/-! ### Nested row-major offsets (tac8)
+/-! ### Nested row-major offsets
 
 A 3-D array's offset `rmN W3 (rmN W2 s k) c` is a row-major offset whose ROW is itself a row-major offset (cast to
 `Int`). After `rmN_lt_iff`/`rmN_le_iff` on the outer offset, the rows compare as casts; the lemmas below compare them

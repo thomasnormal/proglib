@@ -2,7 +2,7 @@ import Examples.«system-verilog».gen_lpsum.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# The parameter stage node by node (`Examples/system-verilog/gen_lpsum`, tac10)
+# The parameter stage node by node (`Examples/system-verilog/gen_lpsum`)
 
 At a symbolic `N` the parameter stage of `gen_lpsum` binds its three localparams from the lemmas of the nodes of their
 initializers (`closeParamEnvComp`): the 24 `?:` of `S` and its partial sums, `2 * S - S`, `(N < 2) ? 2 : N`, each node's

@@ -149,7 +149,7 @@ def PLocalParam.hren (pfx : String) (lp : PLocalParam) : PLocalParam :=
 
 namespace CombView
 
-/-- A conditional expression over the child's names, under the prefix (tac8). -/
+/-- A conditional expression over the child's names, under the prefix. -/
 def CL.hren (pfx : String) : CL → CL
   | .lin ts c => .lin (ts.map fun p => (pfx ++ p.1, p.2)) c
   | .shrK m k => .shrK (pfx ++ m) k
@@ -759,7 +759,7 @@ theorem declOf?_hren (pfx : String) {pd : PDecl} {dt : DeclT} (h : declOf? pd = 
             simp only [Except.ok.injEq] at h; subst h
             simp [PType.hren, DeclT.hren, PDecl.hren, dimOf?_hren pfx pd.name _ hd1,
               dimOf?_hren pfx pd.name _ hd2]
-          · -- a 3-D declaration (tac7)
+          · -- a 3-D declaration
             rcases hd1 : dimOf? pd.name d1 with e | p1 <;> simp only [hd1] at h
             · simp at h
             rcases hd2 : dimOf? pd.name d2 with e | p2 <;> simp only [hd2] at h

@@ -2,7 +2,7 @@ import Examples.«system-verilog».gen_d3s.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# `sv_structure` on the selects of a three-dimensional array (`Examples/system-verilog/gen_d3s`, tac8)
+# `sv_structure` on the selects of a three-dimensional array (`Examples/system-verilog/gen_d3s`)
 
 Every window is a nested row-major offset `rmN 4 (rmN 3 s k) c` of `T` or `U`. `sv_rowmajor` compares two of them
 lexicographically, first by the outer offset (`rmN_lt_iff`, the row `rmN 3 s k` against the row), then the rows by the

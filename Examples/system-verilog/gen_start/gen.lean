@@ -3,13 +3,13 @@ import LeanModels.Sv.Gen2
 import LeanModels.Sv.CombView
 
 /-!
-# `gen_start`: generate loops whose start is not an integer literal, as an `sv_comb` test subject (tac9)
+# `gen_start`: generate loops whose start is not an integer literal, as an `sv_comb` test subject
 
 IEEE 1800-2023 §27.4: the initialization of a loop generate scheme is a constant expression, evaluated once before the
 first iteration; the instantiation evaluates it with `evalInt`, as it does a bound (`GenItem.expand2`). The summary reads
 a start that is not an integer literal by `affOf?` (a linear form of the parameters and the enclosing genvars, quotient,
 shift and power atoms, a `?:` as one conditional atom: `Hdr.st`), and `affOf?_sound` says the instantiation's value is
-the reading's (`Hdr.evalInt_initE`). Until tac9 every such loop was refused ("generate-for header outside
+the reading's (`Hdr.evalInt_initE`). Before, every such loop was refused ("generate-for header outside
 `for (g = <int>; …)`").
 
 * `gen_start.sv`: a start that is a parameter expression (`for (i = N - N / 2; i < N; i++)`: `y[i]` is

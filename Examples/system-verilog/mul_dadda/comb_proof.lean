@@ -3,7 +3,7 @@ import LeanModels.Sv.CombViewTactic
 import LeanModels.Sv.CombPlumbing
 
 /-!
-# The Dadda record's structure, at every `1 ≤ N < 2^30` (`Examples/system-verilog/mul_dadda`, tac10)
+# The Dadda record's structure, at every `1 ≤ N < 2^30` (`Examples/system-verilog/mul_dadda`)
 
 `mul_dadda_comb_shared : CombDesign (mul_dadda.sem N) ∧ SharedObl mul_dadda.pdesign [N]` for every `1 ≤ N < 2^30` (the
 range of the record's own height table: `d(50) < 2^30 < d(51)`), by the `sv_comb` tactics; `acyclic.lean` proves

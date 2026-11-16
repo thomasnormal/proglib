@@ -8,7 +8,7 @@ by `rfl`, the metavariable `?s` becomes whatever the unifier's lazy weak-head ev
 summary's constructor applied to unevaluated fields (`List.map (·.name) d.params ++ …`, `{ name := "a", … }.isInput`,
 `(Aff.var "N").sub (Aff.const 1)`), and every later normalization (`simp` over the obligations of `sv_structure` and
 `sv_equations`) evaluates those fields again, in every obligation. Measured on the Kogge-Stone adder of
-`Examples/system-verilog/prefix_ks` (tac5 round): the summary term was 28 520 characters of such residue.
+`Examples/system-verilog/prefix_ks`: the summary term was 28 520 characters of such residue.
 
 Here: `ToExpr` for the summary and every type it holds (the envelope's `PExpr`, `PProcess`, … included, derived here
 because the tactics need them, without touching the files that define those types). With it the tactics instantiate

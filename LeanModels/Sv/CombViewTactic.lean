@@ -28,7 +28,7 @@ theorem ripple_struct (N : Nat) (hN : 1 ≤ N) : CombDesign (ripple_add.sem N) �
   sv_structure (rank := rippleRank …)   -- ONE round of obligations for both (WP-P): `obtain ⟨hc, ha⟩ := ripple_struct N hN`
 theorem ks_comb (N : Nat) (hN : 1 ≤ N) : CombDesign (ks.sem N) ∧ SharedObl ks.pdesign [N] := by
   sv_structure   -- the profile and the shared obligations; `sv_structure (lexRank := …) using hc` on `Acyclic` and
-                 -- `sv_equations` read `auto` and `inRange` from the `SharedObl` hypothesis (tac5)
+                 -- `sv_equations` read `auto` and `inRange` from the `SharedObl` hypothesis
 sv_structure?            -- prints the families, site identities and the required rank relation
 ```
 
@@ -81,17 +81,17 @@ register_option sv_comb.profile : Bool := {
   defValue := false
   descr := "sv_comb tactics: log the heartbeats the normalization of each obligation costs" }
 
-/-- `set_option sv_comb.rank_ranged true` (tac8): `sv_structure` states each rank obligation of a design with a generate loop
+/-- `set_option sv_comb.rank_ranged true`: `sv_structure` states each rank obligation of a design with a generate loop
 or a parameter with the in-range facts of the read and of the writer's window as premises
 (`Summary.rankObl'_of_groupsR`, CombViewGroup.lean): the columns of two row-major windows are then inside their rows by
 hypothesis, and a rank goal needs no fact about the index arithmetic (what proves the windows in range is proved once, in
-the `auto` and `inRange` obligations). On by default since tac10: with it on, every proof of the comb regression (237
+the `auto` and `inRange` obligations). On by default: with it on, every proof of the comb regression (237
 targets) builds unchanged; `set_option sv_comb.rank_ranged false` gives the plain rank form. -/
 register_option sv_comb.rank_ranged : Bool := {
   defValue := true
   descr := "sv_structure: state the rank obligations with the in-range facts of both windows as premises" }
 
-/-- `set_option sv_comb.lp_atoms true` (tac9): `sv_structure` and `sv_equations` state their obligations with each
+/-- `set_option sv_comb.lp_atoms true`: `sv_structure` and `sv_equations` state their obligations with each
 localparam a variable named after it and its definition a hypothesis `hlp_<name>` (`lpAtoms`), instead of a copy of the
 definition wherever the localparam is read (the netlist view of `sv_equations` keeps the definitions). Off by default:
 the obligations of every existing proof keep their form. -/
@@ -99,7 +99,7 @@ register_option sv_comb.lp_atoms : Bool := {
   defValue := false
   descr := "sv_structure/sv_equations: keep each localparam a variable of the obligations, its definition a hypothesis" }
 
-/-- `set_option sv_comb.auto_close false` (tac9): the tactics leave every goal of the in-range (`auto`) and atom (`XObl`)
+/-- `set_option sv_comb.auto_close false`: the tactics leave every goal of the in-range (`auto`) and atom (`XObl`)
 obligations to the player instead of trying `omega` and `sv_pow_omega` on each first. On a design whose goals hold large
 `if-then-else` terms (the Dadda record's schedule tables) those attempts are where the time goes; the player's closer then
 chooses the order (`sv_ite_omega`). On by default: every existing proof sees the goals it saw. -/
@@ -107,7 +107,7 @@ register_option sv_comb.auto_close : Bool := {
   defValue := true
   descr := "sv_structure/sv_equations: try omega and sv_pow_omega on each in-range and atom goal before returning it" }
 
-/-- `set_option sv_comb.param_comp false` (tac10): the parameter stage at a symbolic parameter does not try the node by
+/-- `set_option sv_comb.param_comp false`: the parameter stage at a symbolic parameter does not try the node by
 node evaluation of the localparams (`closeParamEnvComp`) and takes the general route only. On by default. -/
 register_option sv_comb.param_comp : Bool := {
   defValue := true
@@ -227,11 +227,11 @@ theorem canonInt32_of_bounds {v : Int} (h1 : -2147483648 ≤ v) (h2 : v < 214748
   canonInt32_of_range ⟨h1, h2⟩
 
 /-- A comparison's `int` value against zero (a `?:` whose condition is a comparison, `CE.cond (CE.cmp …)`, reads the
-comparison as `1`/`0` first): the comparison itself (tac9, the definitions `lpAtoms` states). -/
+comparison as `1`/`0` first): the comparison itself (the definitions `lpAtoms` states). -/
 theorem ite_one_zero_eq_zero (c : Prop) [Decidable c] : ((if c then (1 : Int) else 0) = 0) ↔ ¬ c := by
   by_cases h : c <;> simp [h]
 
-/-- An `if-then-else` of two values in `[lo, hi]` is in `[lo, hi]` (tac9, `addIteFacts`: the bounds of a localparam's
+/-- An `if-then-else` of two values in `[lo, hi]` is in `[lo, hi]` (`addIteFacts`: the bounds of a localparam's
 `?:` with literal arms, which `omega` otherwise reaches only by splitting the condition). -/
 theorem ite_mem_int {c : Prop} [Decidable c] {a b lo hi : Int} (ha : lo ≤ a ∧ a ≤ hi) (hb : lo ≤ b ∧ b ≤ hi) :
     lo ≤ (if c then a else b) ∧ (if c then a else b) ≤ hi := by
@@ -374,7 +374,7 @@ theorem ediv_two_pow_le_lit {x : Int} {t c : Nat} (m : Int) (hx : 0 ≤ x) (h : 
   exact Int.ofNat_le.mpr (Nat.div_le_div_left (Nat.pow_le_pow_right (by decide) h) (Nat.two_pow_pos c))
 
 /-- … and no smaller than the division by a larger power `m = 2 ^ d` (`t ≤ d`): a LOWER bound of a right shift from an
-upper bound of its amount (tac7: `(2*N) >> (l + 1)` is `N` where `l = 0`, so the width of a slot is positive). -/
+upper bound of its amount (`(2*N) >> (l + 1)` is `N` where `l = 0`, so the width of a slot is positive). -/
 theorem ediv_two_pow_ge_lit {x : Int} {t d : Nat} (m : Int) (hx : 0 ≤ x) (h : t ≤ d) (hm : (2 : Int) ^ d = m) :
     x / m ≤ x / 2 ^ t := by
   subst hm
@@ -413,7 +413,7 @@ theorem pow_nonneg_of {b : Int} (h : 0 ≤ b) : ∀ t : Nat, 0 ≤ b ^ t
   | 0 => by simp
   | t + 1 => by rw [Int.pow_succ]; exact Int.mul_nonneg (pow_nonneg_of h t) h
 
-/-- The powers of one exponent are monotone in the base (tac7: `2 ^ L ≤ 3 ^ L`, the padding `P = 4·2^L` of kara against
+/-- The powers of one exponent are monotone in the base (`2 ^ L ≤ 3 ^ L`, the padding `P = 4·2^L` of kara against
 its node count `T = 3^L`). -/
 theorem pow_le_pow_base {b1 b2 : Int} (h0 : 0 ≤ b1) (h : b1 ≤ b2) : ∀ t : Nat, b1 ^ t ≤ b2 ^ t
   | 0 => by simp
@@ -433,7 +433,7 @@ theorem pow_le_two_pow_sq {b : Int} (hb0 : 0 ≤ b) (hb : b ≤ 4) : ∀ n : Nat
     rw [Int.pow_succ, e]
     exact Int.mul_le_mul ih hb hb0 (Int.le_of_lt (Int.mul_pos h2 h2))
 
-/-- **A power against the square of a parameter** (tac5, the exact generate fuel: `AutoObl` owes a loop count at most
+/-- **A power against the square of a parameter** (the exact generate fuel: `AutoObl` owes a loop count at most
 `fuelSq X + 4 X + 67`): where `2 ^ t ≤ X + c`, a power of a base at most `4` is at most `(X + c)²`, the square written as
 the `fuelSq X` the fuel bound holds (a `Nat` atom for `omega`) and the linear rest. -/
 theorem pow_le_sq_of_two_pow_le {b : Int} (hb0 : 0 ≤ b) (hb : b ≤ 4) (t X c : Nat)
@@ -446,7 +446,7 @@ theorem pow_le_sq_of_two_pow_le {b : Int} (hb0 : 0 ≤ b) (hb : b ≤ 4) (t X c 
     rw [fuelSq, Int.natCast_mul]; grind
   exact Int.le_trans (pow_le_two_pow_sq hb0 hb t) (e ▸ hsq)
 
-/-- **The tangents of the fuel square** (tac7, W4): `2·a·X ≤ X² + a²`, i.e. `(X - a)² ≥ 0`, as a linear fact of the
+/-- **The tangents of the fuel square** (W4): `2·a·X ≤ X² + a²`, i.e. `(X - a)² ≥ 0`, as a linear fact of the
 `Nat` atom `fuelSq X` for a literal `a`. A loop count linear in the parameter with a larger slope than the fuel's linear
 part (`P = 4·2^$clog2(N+1) ≤ 8N + 4` against `N² + 4N + 67`) is within the fuel by the tangent at `a = 2`. -/
 theorem fuelSq_tangent (X a : Nat) : 2 * a * X ≤ fuelSq X + a * a := by
@@ -502,7 +502,7 @@ theorem shl_shr_facts {x : Int} (t : Nat) (h : 0 ≤ x) :
       rw [Int.one_mul] at this
       exact this
 
-/-! **The facts of the product atoms** (tac7, `XAt.mul`: a genvar or parameter times a shift or power atom, kara's slot
+/-! **The facts of the product atoms** (`XAt.mul`: a genvar or parameter times a shift or power atom, kara's slot
 bases `(3*t)*(P >> (l+1))`), as disjunctions `omega` reads with the product an opaque atom. -/
 
 /-- A product of two non-negative factors is non-negative. -/
@@ -740,7 +740,7 @@ namespace LeanModels.Sv.CombView
 
 open Lean Meta Simp in
 /-- Unfold `e`, an application of a definition by pattern matching on an access, only where the access `a` is a
-constructor application, so that the `match` it unfolds to reduces at once (tac8). Unfolded at a variable access (a
+constructor application, so that the `match` it unfolds to reduces at once. Unfolded at a variable access (a
 generic `Acc.win σ dw ls.site.tgt` under a binder of an obligation, before the site list is expanded), the definition
 is a `match` that cannot reduce, and the normalization simplified every one of its arms for nothing: each access form
 added to `Acc` made every normalization slower (measured on gen_deep's equations: +23% time, the proof term 61548 ->
@@ -751,7 +751,7 @@ def unfoldAtCtor (e a : Lean.Expr) : SimpM Step := do
   return .visit { expr := e' }
 
 open Lean Meta Simp in
-/-- `Summary.dm s σ n k` unfolds only at a literal name `n` (tac8): at a variable name, the declaration lookup it unfolds
+/-- `Summary.dm s σ n k` unfolds only at a literal name `n`: at a variable name, the declaration lookup it unfolds
 to cannot decide, and the normalization walked the whole declaration list for nothing. -/
 def unfoldDmAtLit (e : Lean.Expr) : SimpM Step := do
   let .lit (.strVal _) ← whnfR (e.getArg! 2) | return .continue
@@ -776,7 +776,7 @@ end LeanModels.Sv.CombView
 -- the others at the goal. A lemma added to one list belongs in its siblings unless the difference is intended and
 -- stated here. The multi-window copies `svL_eq_norm_multi_at` and `svL_eq_norm_multi` (CombProcTactic.lean) are
 -- `svL_eq_norm_at` and `svL_eq_norm` plus the skeleton vocabulary; they name this note and each other.
--- (tac8: `Nat.one_lt_succ_succ` decides `getElem?_pos`'s side condition `1 < 3` for `dims[1]?` of a declaration of
+-- (`Nat.one_lt_succ_succ` decides `getElem?_pos`'s side condition `1 < 3` for `dims[1]?` of a declaration of
 -- three dimensions, the one index `Nat.zero_lt_succ`/`Nat.lt_add_one` miss. The access functions `Acc.name`/`lo`/`wid`/
 -- `win`/`rd`, `Summary.InR`/`DimNum` unfold through the gated simprocs `svAccName`, ..., `svDimNum` (only at a
 -- constructor), and `Summary.dm` through `svDm` (only at a literal name), never by name; all eight copies.)
@@ -880,14 +880,14 @@ cells, a cell inside a row or a part of a row, the overlap of a read with a writ
 two such offsets. `sv_rowmajor` rewrites those comparisons into lexicographic comparisons of
 `(row, column)` with the library lemmas `rmN_add_col` (a window's end is the offset of its end
 column), `rmN_lt_iff` and `rmN_le_iff` (row-major order IS lexicographic order, for columns inside
-the row), and, for a 3-D array, whose row is itself an offset `rmN W2 s k` (tac8), `rmN_cast_lt_iff`, `rmN_cast_le_iff`
+the row), and, for a 3-D array, whose row is itself an offset `rmN W2 s k`, `rmN_cast_lt_iff`, `rmN_cast_le_iff`
 and `rmN_cast_eq_iff` (the rows compare as the inner offsets, again lexicographically); their side conditions (indices nonnegative, columns inside the row) are discharged by
 `omega` from the loop bounds in the context. What it leaves is linear: finish with `omega`. It is
 NOT part of `sv_structure`: the player calls it, on goals that mention `rmN`. -/
 macro "sv_rowmajor" : tactic =>
   `(tactic| (try simp (disch := omega) only [LeanModels.Sv.CombView.rmN_add_col,
       LeanModels.Sv.CombView.rmN_lt_iff, LeanModels.Sv.CombView.rmN_le_iff,
-      -- tac8: the nested offsets of a 3-D array, `rmN W3 (rmN W2 s k) c` (only a cast of an `rmN` matches these), and
+      -- the nested offsets of a 3-D array, `rmN W3 (rmN W2 s k) c` (only a cast of an `rmN` matches these), and
       -- the end of a plane as the start of the next (before `rmN_add_col`, which would make it a column past the row)
       LeanModels.Sv.CombView.rmN_cast_lt_iff, LeanModels.Sv.CombView.rmN_cast_le_iff,
       LeanModels.Sv.CombView.rmN_cast_eq_iff, ↓LeanModels.Sv.CombView.rmN3_plane_end,
@@ -895,7 +895,7 @@ macro "sv_rowmajor" : tactic =>
       -- a column comparison of two literals decides to `True` inside a conjunction (`0 = 0` of two rows' columns)
       and_true, true_and] at *))
 
-/-- The conditions of the closed `if-then-else` terms of `e`, outermost first (tac8, `sv_ite_cases`). -/
+/-- The conditions of the closed `if-then-else` terms of `e`, outermost first (`sv_ite_cases`). -/
 partial def iteConds (e : Expr) (acc : Array Expr) : Array Expr :=
   let acc := if e.isAppOfArity ``ite 5 && !(e.getArg! 1).hasLooseBVars && !acc.contains (e.getArg! 1) then
       acc.push (e.getArg! 1) else acc
@@ -929,7 +929,7 @@ partial def svIteCasesGo (fuel : Nat) : TacticM Unit := do
     out := out ++ (← getGoals)
   setGoals out
 
-/-- **`sv_ite_cases`** (tac8): case split on the condition of each `if-then-else` in the goal and the hypotheses (a `?:`
+/-- **`sv_ite_cases`**: case split on the condition of each `if-then-else` in the goal and the hypotheses (a `?:`
 read as a conditional atom, `XAt.cond`, normalizes to one), each branch simplified with its case, so that what is left is
 linear for `omega` (`intros; sv_ite_cases <;> omega`). At most 32 nested splits per goal. -/
 elab "sv_ite_cases" : tactic => do
@@ -941,7 +941,7 @@ elab "sv_ite_cases" : tactic => do
     out := out ++ (← getGoals)
   setGoals out
 
-/-- One node of `sv_ite_omega` (tac9): `omega` first; where it fails, split on the first condition of an `if-then-else`
+/-- One node of `sv_ite_omega`: `omega` first; where it fails, split on the first condition of an `if-then-else`
 (as `sv_ite_cases`), simplify both branches with their case, and continue in each. A branch that contradicts the context
 closes at its first `omega`, so a chain of conditions that exclude each other (`S - 1 - s == 0`, `== 1`, …) costs one
 node per live case, not one per combination. Fails where `omega` fails and no condition is left. -/
@@ -971,9 +971,9 @@ partial def svIteOmegaGo (fuel : Nat) : TacticM Unit := do
       svIteOmegaGo (fuel - 1)
   setGoals []
 
-/-- **`sv_ite_omega`** (tac9): close an arithmetic goal with `if-then-else` terms (conditional atoms, `XAt.cond`, and the
+/-- **`sv_ite_omega`**: close an arithmetic goal with `if-then-else` terms (conditional atoms, `XAt.cond`, and the
 `?:` starts of generate loops) by `omega`, splitting on a condition only where `omega` fails, and trying `omega` again in
-each branch before splitting further. At most 64 nested splits. The search runs without info trees (tac10): each failed
+each branch before splitting further. At most 64 nested splits. The search runs without info trees: each failed
 `omega` is a restored state, which would keep its info trees alive (`sv_cover`, CombEqTactic.lean, has the measurement). -/
 elab "sv_ite_omega" : tactic => do
   for g in ← getGoals do
@@ -1044,7 +1044,7 @@ partial def listElemExprs (e : Expr) : MetaM (Array Expr) := do
     | _ => throwError "sv_comb: cannot read a list expression element by element"
   return acc
 
-/-- **The localparams as variables of an obligation** (tac9, `sv_comb.lp_atoms`). The valuation of an obligation of the
+/-- **The localparams as variables of an obligation** (`sv_comb.lp_atoms`). The valuation of an obligation of the
 summary `s`, `s.val args`, is `σL` of the parameters zipped with the arguments, each localparam's value over what precedes
 it put in front (`lpEnv`). Here that list is written out, each localparam's value `CE.eval (σL acc) c` (the term
 `isDefEq` checks against `s.val args`), and each value is generalized in turn to a variable named after the localparam
@@ -1236,7 +1236,7 @@ def addClog2Facts (es : Array Lean.Expr) (unwrapped : Bool := false) : TacticM U
       let (_, g) ← g.intro1P
       replaceMainGoal [g]
 
-/-- The closed `if-then-else` subterms of `e` of type `Int` whose two arms are integer literals (tac9, `addIteFacts`). -/
+/-- The closed `if-then-else` subterms of `e` of type `Int` whose two arms are integer literals (`addIteFacts`). -/
 partial def iteIntLits (e : Lean.Expr) (acc : Array Lean.Expr) : Array Lean.Expr :=
   let acc := if e.isAppOfArity ``ite 5 && !e.hasLooseBVars && e.getArg! 0 == mkConst ``Int &&
       (e.getArg! 3).int?.isSome && (e.getArg! 4).int?.isSome && !acc.contains e then acc.push e else acc
@@ -1247,7 +1247,7 @@ partial def iteIntLits (e : Lean.Expr) (acc : Array Lean.Expr) : Array Lean.Expr
   | .letE _ t v b _ => iteIntLits b (iteIntLits v (iteIntLits t acc))
   | _ => acc
 
-/-- **The bounds of the `?:` with literal arms** (tac9): for each closed `if c then a else b` of `es` with integer literals
+/-- **The bounds of the `?:` with literal arms**: for each closed `if c then a else b` of `es` with integer literals
 `a`, `b`, the fact `min a b ≤ … ∧ … ≤ max a b` (`ite_mem_int`) in the context of the main goal. A localparam that sums
 such `?:` (the Dadda record's stage count, 51 of them) is then a linear sum of bounded atoms to `omega`, which needs no
 case split to place a partial sum in the 32-bit range. Nothing is added where `es` has no such term. -/
@@ -1314,7 +1314,7 @@ partial def tdivArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
   here ++ sub
 
 /-- A proof of `p` by `omega` in the context of the main goal, if there is one (the goal list is restored). Without
-info trees (tac10): the bisections call it many times, and a failed call's restored state would keep its trees. -/
+info trees: the bisections call it many times, and a failed call's restored state would keep its trees. -/
 def omegaProves (p : Lean.Expr) : TacticM (Option Lean.Expr) := do
   let st ← saveState
   let gs ← getGoals
@@ -1360,7 +1360,7 @@ def addPowFacts (es : Array Lean.Expr) : TacticM Unit := do
   let mut seenD : Array (Lean.Expr × Lean.Expr) := #[]
   -- the greatest lower bound found for each exponent of a power of two, with its proof
   let mut lows : Array (Lean.Expr × Nat × Lean.Expr) := #[]
-  -- … and the least upper bound (tac7: the lower bound of a quotient, `ediv_two_pow_ge_lit`)
+  -- … and the least upper bound (the lower bound of a quotient, `ediv_two_pow_ge_lit`)
   let mut highs : Array (Lean.Expr × Nat × Lean.Expr) := #[]
   let le (a b : Lean.Expr) : MetaM Lean.Expr := mkAppM ``LE.le #[a, b]
   let powLit (c : Nat) : MetaM (Lean.Expr × Lean.Expr) := do
@@ -1457,7 +1457,7 @@ def addPowFacts (es : Array Lean.Expr) : TacticM Unit := do
             assertMainM `hdiv_pow_le
               (mkAppOptM ``LeanModels.Sv.CombView.ediv_two_pow_le_lit #[x, t, toExpr c, m, h, hc, hm])
         -- where the exponent ranges over at most three values (`c ≤ t ≤ d ≤ c + 2`), the quotient is bounded from below by
-        -- the quotient by the largest power (tac7: the slot width `(2*N) >> (l + 1)` at `l = 0` is `N`); only there, so
+        -- the quotient by the largest power (the slot width `(2*N) >> (l + 1)` at `l = 0` is `N`); only there, so
         -- that the facts of a design whose exponents range widely (the prefix adders' levels) are those it had
         if let some (_, d, hd) := highs.find? (fun (t', _, _) => t' == t) then
           if lows.any (fun (t', c, _) => t' == t && d ≤ c + 2) then
@@ -1489,7 +1489,7 @@ partial def shlArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
 /-- **Put the facts of the shift and power atoms in the context of the main goal** (item 4), beyond `addPowFacts`'s
 bounds: for two powers `b ^ t1`, `b ^ t2` of one literal base, both orders of `pow_le_pow_or` (monotonicity, and the
 congruence `omega` cannot see inside an atom); for two powers `b1 ^ t`, `b2 ^ t` of one exponent and literal bases
-`0 ≤ b1 < b2`, `pow_le_pow_base` (tac7); for two quotients `x / 2 ^ t` and two `x / 2 ^ t * 2 ^ t`, their
+`0 ≤ b1 < b2`, `pow_le_pow_base`; for two quotients `x / 2 ^ t` and two `x / 2 ^ t * 2 ^ t`, their
 congruence (`div_pow_congr_or`, `mul_pow_congr_or`); for each `x / 2 ^ t * 2 ^ t` of an `x` that `omega` shows
 non-negative, `shl_shr_facts`. Every fact is proved; none is assumed. -/
 def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
@@ -1510,7 +1510,7 @@ def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
     for j in [0:pows.size] do
       let (b1, k1, t1) := pows[i]!
       let (b2, k2, t2) := pows[j]!
-      -- two literal bases, one exponent: the smaller base's power is the smaller (tac7)
+      -- two literal bases, one exponent: the smaller base's power is the smaller
       if i != j && 0 ≤ k1 && k1 < k2 && t1 == t2 then
         assertMainM `hpow_base do
           let h0 ← mkDecideProof (← mkAppM ``LE.le #[toExpr (0 : Int), b1])
@@ -1538,7 +1538,7 @@ def addAtomFacts (es : Array Lean.Expr) : TacticM Unit := do
       assertMainM `hshl (mkAppM ``LeanModels.Sv.CombView.shl_shr_facts #[t, h])
 
 /-- The pairs `(g, y)` of the products `g * y` of `e` of type `Int` (closed under no binder) whose `g` is a variable and
-`y` a shift or power atom: the product atoms (`XAt.mul`, tac7). -/
+`y` a shift or power atom: the product atoms (`XAt.mul`). -/
 partial def mulArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
   let isLit (x : Lean.Expr) : Bool :=
     x.isAppOfArity ``OfNat.ofNat 3 || x.isAppOfArity ``Neg.neg 3 && (x.getArg! 2).isAppOfArity ``OfNat.ofNat 3
@@ -1562,7 +1562,7 @@ partial def mulArgs (e : Lean.Expr) : Array (Lean.Expr × Lean.Expr) :=
     | _ => #[]
   here ++ sub
 
-/-- **The facts of the product atoms** (tac7, `XAt.mul`), for `omega`, which reads `g * y` as an opaque atom: for every
+/-- **The facts of the product atoms** (`XAt.mul`), for `omega`, which reads `g * y` as an opaque atom: for every
 product `g * y` of the terms `es`, its sign (`mul_nonneg_or`) and the bounds of the literal bounds of `g` that `omega`
 shows from the context, greatest lower and least upper in `[0, 64]` (`lit_mul_le_mul_or`, `mul_le_mul_lit_or`); for two
 products of the same `y`, their strict monotonicity in `g`, both orders (`mul_lt_mul_or`: slots `t·W` of width `W` do not
@@ -1607,7 +1607,7 @@ def addMulFacts (es : Array Lean.Expr) : TacticM Unit := do
           assertMainM `hmul_congr (mkAppM ``LeanModels.Sv.CombView.mul_congr_or #[g1, g2, y1, y2])
 
 /-- The arguments `X` of the squares `fuelSq X` of `e` (closed under no binder): the square of the parameters in the
-generate fuel bound (`AutoObl`, tac5). -/
+generate fuel bound (`AutoObl`). -/
 partial def squareArgs (e : Lean.Expr) : Array Lean.Expr :=
   let here : Array Lean.Expr :=
     if e.isAppOfArity ``LeanModels.Sv.CombView.fuelSq 1 && !e.hasLooseBVars then #[e.appArg!]
@@ -1619,7 +1619,7 @@ partial def squareArgs (e : Lean.Expr) : Array Lean.Expr :=
     | _ => #[]
   here ++ sub
 
-/-- **The powers against the square of the parameters** (tac5, the exact generate fuel bound `fuelSq X + 4 X + 67` of
+/-- **The powers against the square of the parameters** (the exact generate fuel bound `fuelSq X + 4 X + 67` of
 `AutoObl`): for every square `fuelSq X` and every power `b ^ t` of a literal base `2 ≤ b ≤ 4` in the terms `es`,
 `b ^ t ≤ fuelSq X + 2 c X + c²` (`pow_le_sq_of_two_pow_le`) for the least `c ≤ 4` with `2 ^ t ≤ X + c` provable by
 `omega` from the context and the monotonicity of `2 ^ t` against the other powers of two in it (`pow_le_pow_or`,
@@ -1637,7 +1637,7 @@ def addSquareFacts (es : Array Lean.Expr) : TacticM Unit := do
       if let some k ← getIntValue? b then
         if k == 2 && !twos.contains t then twos := twos.push t
         if 2 ≤ k && k ≤ 4 && !pows.any (fun (b', _, t') => b' == b && t' == t) then pows := pows.push (b, k, t)
-  -- the tangents of each square (tac7, W4): `2·a·X ≤ fuelSq X + a²` for `a` in 1, 2, 4, 8, 16 (`fuelSq_tangent`)
+  -- the tangents of each square (W4): `2·a·X ≤ fuelSq X + a²` for `a` in 1, 2, 4, 8, 16 (`fuelSq_tangent`)
   for x in sqs do
     for a in [1, 2, 4, 8, 16] do
       assertMainM `hsq_tan (mkAppM ``LeanModels.Sv.CombView.fuelSq_tangent #[x, toExpr (a : Nat)])
@@ -1768,7 +1768,7 @@ unsafe def closeHagWith (tac : String) (g : MVarId) (names : List String) (val :
       let r := val n
       unless ← isDefEq (mkApp gf nE).headBeta (← mkAppM ``Option.some #[r]) do
         throwError "{tac}: internal error: the valuation of `{n}` is not `{r}`"
-      -- tac10: a localparam the parameter stage evaluated node by node (`closeParamEnvComp`) is held at the summary's
+      -- a localparam the parameter stage evaluated node by node (`closeParamEnvComp`) is held at the summary's
       -- own term; the agreement is then the definitional check alone
       let fast ← if v == r then pure true
         else if (v.find? (·.isConstOf ``LeanModels.Sv.canonInt)).isSome then pure false
@@ -2237,7 +2237,7 @@ def liftCond (g : MVarId) (q : Lean.Expr) : TacticM (Lean.Expr × Lean.Expr) := 
     | none => mkEqRefl q1
   pure (res.expr, ← mkExpectedTypeHint pf (← mkEq q res.expr))
 
-/-! ### The parameter stage node by node (tac10, `CombParamComp.lean`)
+/-! ### The parameter stage node by node (`CombParamComp.lean`)
 
 `closeParamEnvComp` closes `h1` (`pd.paramEnv2 args = .ok ?env`) at a symbolic parameter for a design whose localparams
 are all typed `int` localparams of the fragment of `CombParamComp.lean`: the packages, enums and parameters are bound
@@ -2685,7 +2685,7 @@ between two values, is lifted into the value (`liftIte`), for a design whose loc
 `Summary.hasCond`): the environment then holds `if p then x else y`. -/
 unsafe def closeParamEnv (tac : String) (g : MVarId) (lift : Bool := false) (comp : Bool := false) : TacticM Unit := do
   let what := "the parameter stage (`paramEnv2`) of this design could not be evaluated at a symbolic parameter"
-  -- tac10: the localparams node by node, where they are in that fragment (`closeParamEnvComp`)
+  -- the localparams node by node, where they are in that fragment (`closeParamEnvComp`)
   if comp then
     if ← closeParamEnvComp tac g then return
   let tryRfl (g : MVarId) : TacticM Bool := do
@@ -3026,7 +3026,7 @@ def replSimpLemmas {m : Type → Type} [Monad m] [MonadQuotation m] :
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.affBin),
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.affMul),
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.affDiv),
-    -- a count with a shift or power atom (tac7: `{(P >> l){c}}`)
+    -- a count with a shift or power atom (`{(P >> l){c}}`)
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.xatOf?),
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.nameOf?),
     ← `(Lean.Parser.Tactic.simpLemma| LeanModels.Sv.CombView.litAmt?),
@@ -3126,7 +3126,7 @@ def goalExprs : TacticM (Array Lean.Expr) := do
       unless d.isImplementationDetail do es := es.push (← instantiateMVars d.type)
     pure es
 
-/-- **`sv_ite_bounds`** (tac10): for every `if c then a else b` of the goal and its hypotheses whose arms are integer
+/-- **`sv_ite_bounds`**: for every `if c then a else b` of the goal and its hypotheses whose arms are integer
 literals, the fact `min a b ≤ … ∧ … ≤ max a b` (`ite_mem_int`, `addIteFacts`) in the context, after `intros`. A
 localparam that sums such `?:` (`hlp_S` under `sv_comb.lp_atoms`) is then bounded for `omega` without a case split:
 `sv_ite_omega` after it splits only where a bound is not enough. -/
@@ -3198,14 +3198,14 @@ set_option maxRecDepth 4096 in
     evalTactic (← `(tactic| (
       simp only [LeanModels.Sv.CombView.Summary.XObl]
       (try sv_norm_core)
-      -- the replication counts (tac7: a count with an atom, `{(P >> l){x}}`; the fourth conjunct)
+      -- the replication counts (a count with an atom, `{(P >> l){x}}`; the fourth conjunct)
       (try simp only [LeanModels.Sv.PExpr.rcounts, LeanModels.Sv.PExpr.consts, LeanModels.Sv.CombView.repCount,
         LeanModels.Sv.CombView.repAff, LeanModels.Sv.CombView.affOf?, LeanModels.Sv.CombView.affBin,
         LeanModels.Sv.CombView.affMul, LeanModels.Sv.CombView.affDiv, LeanModels.Sv.CombView.xatOf?,
         LeanModels.Sv.CombView.nameOf?, LeanModels.Sv.CombView.litAmt?, LeanModels.Sv.CombView.affAmt?,
         Option.map_some, Option.getD_some, List.isEmpty_nil, List.isEmpty_cons, List.flatMap_cons, List.flatMap_nil,
         List.append_nil, List.nil_append])
-      -- (tac9: a loop start's atoms, `Hdr.StXOk`, `True` at a literal start)
+      -- (a loop start's atoms, `Hdr.StXOk`, `True` at a literal start)
       (try simp only [LeanModels.Sv.CombView.Acc.affs, LeanModels.Sv.CombView.Aff.XOk,
         LeanModels.Sv.CombView.Hdr.StXOk, Option.elim_none, Option.elim_some,
         LeanModels.Sv.CombView.Aff.XOkL, LeanModels.Sv.CombView.XAt.Ok, and_true, true_and, implies_true,
@@ -3213,7 +3213,7 @@ set_option maxRecDepth 4096 in
       (try sv_norm_core)
       (try sv_lp_norm)
       repeat' refine And.intro ?_ ?_)))
-    -- (tac9: not with `sv_comb.auto_close false`)
+    -- (not with `sv_comb.auto_close false`)
     if sv_comb.auto_close.get (← getOptions) then
       evalTactic (← `(tactic| all_goals first | sv_pow_omega | skip))
     let rest ← getGoals
@@ -3239,7 +3239,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
     let isBoth := isShared || (ty.isAppOfArity ``And 2 &&
       ty.appFn!.appArg!.getAppFn.isConstOf ``LeanModels.Sv.CombDesign &&
       ty.appArg!.getAppFn.isConstOf ``LeanModels.Sv.Acyclic)
-    -- the pair `CombDesign D ∧ SharedObl X.pdesign args` (tac5, CombShared.lean): the profile, and the shared
+    -- the pair `CombDesign D ∧ SharedObl X.pdesign args` (CombShared.lean): the profile, and the shared
     -- obligations for a later `sv_structure (rank := …) using hc` on `Acyclic D` and for `sv_equations`
     let isCombShared := ty.isAppOfArity ``And 2 &&
       ty.appFn!.appArg!.getAppFn.isConstOf ``LeanModels.Sv.CombDesign &&
@@ -3458,12 +3458,12 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       closeDecide `hok "the structural check failed"
       let mut out : Array MVarId := #[]
       let ranged := sv_comb.rank_ranged.get (← getOptions)
-      -- tac9: the localparams as variables of the obligations (`sv_comb.lp_atoms`, `lpAtoms`)
+      -- the localparams as variables of the obligations (`sv_comb.lp_atoms`, `lpAtoms`)
       let lpOn := sv_comb.lp_atoms.get (← getOptions)
       let runOb (n : Name) (nm : String) (tac : TSyntax ``Lean.Parser.Tactic.tacticSeq)
           (grouped : Bool := false) : TacticM (List MVarId) := do
         let g0 ← find n
-        -- tac8: the ranged rank form (`sv_comb.rank_ranged`) takes the grouped route at any number of sites, and a
+        -- the ranged rank form (`sv_comb.rank_ranged`) takes the grouped route at any number of sites, and a
         -- failure of it is an error (the player asked for that form)
         if ranged && n == `hrank then
           let g ← try
@@ -3509,7 +3509,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       -- is false) takes the normalization below, unchanged.
       let closePlain (n : Name) (lem : Name) (what : String) : TacticM Bool := do
         tryClosePlain s (← find n) lem what
-      -- the shared obligations (tac5, CombShared.lean): `auto` and `inRange` from a `SharedObl` hypothesis of this design in
+      -- the shared obligations (CombShared.lean): `auto` and `inRange` from a `SharedObl` hypothesis of this design in
       -- the context (`sv_structure` on `CombDesign D ∧ SharedObl …`), not normalized again; any mismatch takes the routes
       -- below. Not on the goals that package `SharedObl` themselves.
       let mut fromShared := false
@@ -3622,7 +3622,7 @@ def portsDesign? (ty : Expr) : Option Expr :=
     (e.isAppOfArity `LeanModels.Sv.Design2.inputPorts 1 || e.isAppOfArity `LeanModels.Sv.Design2.outputPorts 1 ||
       e.isAppOfArity ``LeanModels.Sv.Design2.decls 1)).map (·.appArg!)
 
-/-- The port-list definitions a task statement may be written with, as the user's file names them (tac8): svGolf's
+/-- The port-list definitions a task statement may be written with, as the user's file names them: svGolf's
 `SvGolf.inputPorts`/`SvGolf.outputPorts` and ls-sv's `Design2.inputPorts`/`Design2.outputPorts` (`CombTask.lean`; neither
 is imported here). Each is resolved in the user's scope, so `open` applies (a statement restated over ls-sv in a
 namespace of its own names svGolf's definitions as `SvGolf.…` through `open`), and a name the file cannot resolve is

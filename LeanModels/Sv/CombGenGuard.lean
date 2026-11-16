@@ -295,7 +295,7 @@ theorem opdBin_op {op : SymBinOp} {a b c : Aff} (h : opdBin op a b = some c) :
     op = .m0 .add ∨ op = .m0 .sub ∨ op = .mul ∨ op = .m0 .mul := by
   rcases opdBin_cases h with ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl | rfl, -⟩ <;> simp
 
-/-- **The two readings of an operand agree** (tac8): where both the conditional reading (`clOf?`) and the operand
+/-- **The two readings of an operand agree**: where both the conditional reading (`clOf?`) and the operand
 reading (`opdAffs?`) accept an expression, they give it the same value, at every valuation. -/
 theorem clOf?_opd_eval {σ : String → Int} :
     ∀ (e : PExpr) (x : CL) (a : Aff) (rs : List Aff), clOf? e = some x → opdAffs? e = some (a, rs) →
@@ -502,7 +502,7 @@ theorem opd_eval {E : IEnv} {σ : String → Int} :
           unfold_param_private
           rw [canonInt32_id hc]
   | .ternary (.binary cop l r) t e, a, rs, h, hg, hp, hr, hxk => by
-      -- tac8: a `?:` operand, one conditional atom. `evalAt` evaluates the condition at its own type (a comparison of
+      -- a `?:` operand, one conditional atom. `evalAt` evaluates the condition at its own type (a comparison of
       -- two `int` operands at the signed 32-bit type, IEEE 1800-2023 §11.8.1) and only the chosen arm at the context
       -- (§11.4.11); the atom's value is the same choice of the same values (`clOf?_opd_eval`)
       simp only [opdAffs?] at h

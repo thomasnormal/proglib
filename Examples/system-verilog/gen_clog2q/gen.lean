@@ -17,7 +17,7 @@ argument's own type, so its divisor is a converted literal and the argument, a q
   `5 ≤ N ≤ 12`: `/` truncates toward zero, IEEE 1800-2023 §11.4.2), which `$clog2` reads as unsigned (§20.8.1);
 * `neg/gen_clog2q_div.sv`: `$clog2((N + 9) / D)`, a quotient by a parameter: refused by the recognizer.
 
-Oracle: Icarus Verilog 12.0 (stable), `tac6/icarus/tb_clog2q.sv` of the round's notes, prints `NI`, `L`, `T` of an
+Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (`tb_clog2q.sv`), prints `NI`, `L`, `T` of an
 instance of each design at each `N` through its hierarchical names; the tables below are its output. For
 `gen_clog2q_neg` at `N ≤ 12` Icarus prints `NI = 33`: IEEE 1800-2023 §20.8.1 reads `$clog2`'s argument as unsigned, so
 `$clog2(-1)` and `$clog2(-2)` of the 32-bit `int` quotient are `32`; the instantiation reads it so too (`evalAt`,

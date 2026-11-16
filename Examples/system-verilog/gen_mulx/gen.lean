@@ -16,7 +16,7 @@ an atom form distributes into the product atoms `XAt.mul g x` (`g · x`, `affMul
 * `neg/gen_mulx_quot.sv`: `t * (P / 2)`, a genvar times a quotient: not read, refused (`comb_errors`);
 * `neg/gen_mulx_amt.sv`: `P >> (l + t)`, a shift by the sum of two genvars: not an atom, refused (`comb_errors`).
 
-Oracle: Icarus Verilog 12.0 (stable), `tac7/icarus/tb_mulx.sv` of the round's notes, every input at `N = 1..3`
+Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (`tb_mulx.sv`), every input at `N = 1..3`
 (4368 rows): its `y`, `z` and `q` agree with `mulxSpec` below on every row; `mulxCheck` checks the model against
 `mulxSpec` (every input at `N = 1, 2`, every 61st at `N = 3`).
 

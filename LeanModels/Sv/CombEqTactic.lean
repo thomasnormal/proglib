@@ -745,7 +745,7 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
                 st.restore
                 pure g0)
           else pure g0
-        -- tac9: the localparams as variables of the obligation (`sv_comb.lp_atoms`, `lpAtoms`)
+        -- the localparams as variables of the obligation (`sv_comb.lp_atoms`, `lpAtoms`)
         let g ← if sv_comb.lp_atoms.get (← getOptions) then lpAtoms s g else pure g
         setGoals [g]
         try svObProfile nm (evalTactic tac)
@@ -1556,7 +1556,7 @@ prove from the context, with a large constant bound in context: it may exhaust t
 an ordinary failure, the state restored, so that a player's `first | sv_cover | …` goes on to its next alternative. A
 runtime error passes through `try`/`first` unchanged, and the call would have ended the proof.
 
-The search runs without info trees (tac10): a restored state keeps the info trees of the attempts it undoes, so every
+The search runs without info trees: a restored state keeps the info trees of the attempts it undoes, so every
 failed witness tuple of the search left its goals alive, and memory grew with the search, not with the proof (measured
 on the Karatsuba record's 16 coverage goals, one capped `sv_cover` each: about 200 MB per goal, 2.26 GB to 5.29 GB with
 info trees, 2.09 GB throughout without). -/

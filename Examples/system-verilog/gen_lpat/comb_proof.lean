@@ -2,7 +2,7 @@ import Examples.«system-verilog».gen_lpat.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# `sv_structure` with the localparams as variables (`Examples/system-verilog/gen_lpat`, tac9)
+# `sv_structure` with the localparams as variables (`Examples/system-verilog/gen_lpat`)
 
 With `set_option sv_comb.lp_atoms true` every obligation reads the localparam `S` as a variable, its definition the
 hypothesis `hlp_S : <the sum of `?:`> = S`; `sv_ite_omega` splits the conditions of that definition only where `omega`

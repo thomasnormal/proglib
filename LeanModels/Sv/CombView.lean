@@ -56,7 +56,7 @@ namespace CombView
 
 /-! ## Affine terms -/
 
-/-! ## Conditional integer expressions (tac8)
+/-! ## Conditional integer expressions
 
 A `?:` of the parameters and genvars (IEEE 1800-2023 §11.4.11 over `int` operands), read where an affine form is read
 (an index, a bound, a loop's count, a replication count): `CL`, a small language of its own, and the atom `XAt.cond`
@@ -194,16 +194,16 @@ constant and the shifts of one named constant by another (`m`, `n`: genvars, par
 * `shr m n`  `m / 2 ^ n`         from `m >> n`
 * `shl m n`  `m / 2 ^ n * 2 ^ n` from `(m >> n) << n`
 * `bit m n`  `m / 2 ^ n % 2`     from `(m >> n) & 1`
-* `shrK m k` `m / 2 ^ k`         from `m >> k`, `k` an integer literal in `[0, 32)` (tac6)
-* `shlK m k` `m / 2 ^ k * 2 ^ k` from `(m >> k) << k`, the same literal twice (tac6)
-* `shrA m n c` `m / 2 ^ (n + c)` from `m >> (n + c)` and `m >> (n - c)`, `c` an integer literal (tac7)
+* `shrK m k` `m / 2 ^ k`         from `m >> k`, `k` an integer literal in `[0, 32)`
+* `shlK m k` `m / 2 ^ k * 2 ^ k` from `(m >> k) << k`, the same literal twice
+* `shrA m n c` `m / 2 ^ (n + c)` from `m >> (n + c)` and `m >> (n - c)`, `c` an integer literal
 * `mul g x`  `g · x`             a named constant times an atom: the products `(3*t)*(P >> (l+1))` of a form of names
-                                 and an atom form (`affMul`), one per name and atom (tac7)
+                                 and an atom form (`affMul`), one per name and atom
 
 `/` and `%` are the floor ones (`Int.ediv`, `Int.emod`), the instantiation's `tdiv` on the non-negative numerator the
 range `XAt.Ok` demands. IEEE 1800-2023 §11.4.10 (shifts: the amount is unsigned, a logical `>>` fills with zeros),
 §11.4.3 (`**`), §11.4.8 (`&`), §11.4.2 (`*`), all of 32-bit `int` operands (§27.4: a genvar is an integer).
-* `cond e`   `e`                 a `?:` of the parameters and genvars (tac8; `CL`, read by `clOf?`). -/
+* `cond e`   `e`                 a `?:` of the parameters and genvars (`CL`, read by `clOf?`). -/
 inductive XAt where
   | pow (b : Int) (n : String)
   | shr (m n : String)
@@ -734,7 +734,7 @@ theorem Agrees.mono {σ : String → Int} {E : IEnv} {ns ms : List String} (h : 
 def mulXs (ts : List (String × Int)) (xs : List (Int × XAt)) : List (Int × XAt) :=
   ts.flatMap fun p => xs.map fun q => (p.2 * q.1, XAt.mul p.1 q.2)
 
-/-- **The product of a form of names and an atom form** (tac7, kara's slot bases `(3*t)*(P>>(l+1))`): `a` names and a
+/-- **The product of a form of names and an atom form** (kara's slot bases `(3*t)*(P>>(l+1))`): `a` names and a
 constant (no quotient, no atom), `b` atoms and a constant (no name, no quotient). The product distributes:
 `(Σ kᵢ·nᵢ + c)·(Σ jₗ·xₗ + d) = Σ kᵢ·d·nᵢ + c·d + Σ kᵢ·jₗ·(nᵢ·xₗ) + Σ c·jₗ·xₗ`, each `nᵢ·xₗ` a product atom
 (`XAt.mul`). A product of two names, or of a name and a quotient, is not read. -/
@@ -789,7 +789,7 @@ theorem litAmt?_eq {r : PExpr} {k : Nat} (h : litAmt? r = some k) : r = .int (k 
     · rw [if_neg hv] at h; simp at h
   · simp at h
 
-/-- An affine shift amount (`shrA`, tac7): a named constant plus or minus an integer literal, `n + c` or `n - c`, as
+/-- An affine shift amount (`shrA`): a named constant plus or minus an integer literal, `n + c` or `n - c`, as
 `(n, c)` and `(n, -c)`. -/
 def affAmt? : PExpr → Option (String × Int)
   | .binary (.m0 .add) l (.int c) => (nameOf? l).map fun n => (n, c)
@@ -843,7 +843,7 @@ def xatOf? (op : SymBinOp) (l r : PExpr) : Option XAt :=
       | _, _, _ => none
   | _, _ => none
 
-/-- The comparison of a `?:` condition (tac8; `gcmpOf?`'s spellings). -/
+/-- The comparison of a `?:` condition (`gcmpOf?`'s spellings). -/
 def ccmpOf? : SymBinOp → Option CCmp
   | .slt => some .lt
   | .sle => some .le
@@ -919,7 +919,7 @@ theorem clShr_cases {op : SymBinOp} {l r : PExpr} {c : CL} (h : clShr op l r = s
     exact ⟨m, k, hx, (Option.some.inj h).symm⟩
   · simp at h
 
-/-- **The conditional reading** (tac8): a `?:` of the parameters and genvars, its condition a comparison and its arms,
+/-- **The conditional reading**: a `?:` of the parameters and genvars, its condition a comparison and its arms,
 and every operand of those, built of linear forms (`+`, `-`, `*` by a literal), the shifts of a name by a literal
 (`m >> k`, `xatOf?`'s `shrK`) and further `?:`. -/
 def clOf? : PExpr → Option CL
@@ -940,8 +940,8 @@ def clOf? : PExpr → Option CL
   | _ => none
 
 /-- The affine reading of a constant expression of the parameters and genvars: linear forms, quotient atoms and shift
-and power atoms (`xatOf?`, read where the linear operators do not apply), and a `?:` as one conditional atom (`clOf?`,
-tac8). -/
+and power atoms (`xatOf?`, read where the linear operators do not apply), and a `?:` as one conditional atom
+(`clOf?`). -/
 def affOf? : PExpr → Option Aff
   | .int v => some (Aff.const v)
   | .genvarRef n => some (Aff.var n)
@@ -1370,7 +1370,7 @@ theorem xatOf?_sound {E : IEnv} {σ : String → Int} {op : SymBinOp} {l r : PEx
     · simp at h
   · simp at h
 
-/-- **The conditional reading is the instantiation's value** (tac8): where the names it reads agree with the valuation
+/-- **The conditional reading is the instantiation's value**: where the names it reads agree with the valuation
 and its shifts are in range, a `?:` read by `clOf?` is in the INT class and `evalInt` gives `CL.eval` (the condition
 exact, the chosen arm's value). -/
 theorem clOf?_sound {E : IEnv} {σ : String → Int} :
@@ -1570,7 +1570,7 @@ theorem affOf?_sound {E : IEnv} {σ : String → Int} :
         rw [evalInt_div_of hi1 hi2 he1 he2 (by omega)]
         simp [Aff.eval, Aff.evalTerms]
   | .ternary c t e, a, h, hb => by
-      -- a `?:`: one conditional atom (tac8)
+      -- a `?:`: one conditional atom
       simp only [affOf?] at h
       rcases hx : clOf? (.ternary c t e) with _ | x <;> simp only [hx, Option.map_none, Option.map_some,
         reduceCtorEq, Option.some.injEq] at h
@@ -1726,7 +1726,7 @@ theorem consts_eq : ∀ v : PExpr, v.consts = (v.cnames, v.rcounts)
       simp [PExpr.consts, PExpr.cnames, PExpr.rcounts]
 
 /-- The constants of an expression are in scope and its replication counts are non-negative, their shift and power atoms
-in range (`Aff.XOk`, tac7: a count `P >> l`). -/
+in range (`Aff.XOk`: a count `P >> l`). -/
 def ConstOK (σ : String → Int) (ns : List String) (v : PExpr) : Prop :=
   (∀ n ∈ v.cnames, n ∈ ns) ∧ ∀ c ∈ v.rcounts, 0 ≤ c.eval σ ∧ c.XOk σ
 
@@ -1750,7 +1750,7 @@ inductive Acc where
   | cell2 (n : String) (w : Aff) (r c : Aff)
   | part1 (n : String) (hi lo : Aff)
   | part2 (n : String) (w : Aff) (r hi lo : Aff)
-  /-- tac8: the selects of a zero-based descending 3-D declaration `n[m1:0][m2:0][m3:0]` (`w2 = m2 + 1` rows of
+  /-- the selects of a zero-based descending 3-D declaration `n[m1:0][m2:0][m3:0]` (`w2 = m2 + 1` rows of
   `w3 = m3 + 1` bits in a plane): a plane `n[s]`, a row `n[s][k]`, a cell `n[s][k][i]`, a part of a row
   `n[s][k][hi:lo]`. The flat offset of a cell is the nested row-major `rmN w3 (rmN w2 s k) i`. -/
   | plane3 (n : String) (w2 w3 : Aff) (s : Aff)
@@ -1934,7 +1934,7 @@ def DeclT.vals (σ : String → Int) (dt : DeclT) : List (Int × Int) :=
 def DeclT.pdims (dt : DeclT) : List PDim := dt.dims.map (·.1)
 
 /-- The element width `buildElems` records: the width of the second dimension of a 2-D
-declaration, the product of the second and third of a 3-D one (tac7), `1` otherwise. -/
+declaration, the product of the second and third of a 3-D one, `1` otherwise. -/
 def DeclT.elemW (σ : String → Int) (dt : DeclT) : Nat :=
   match dt.dims with
   | [_, p] => 1 * ((p.2.1.eval σ - p.2.2.eval σ).natAbs + 1)
@@ -1977,7 +1977,7 @@ def declOf? (pd : PDecl) : Except String DeclT :=
                 match dimOf? pd.name d2 with
                 | .error e => .error e
                 | .ok p2 => .ok ⟨pd.name, pd.isInput, pd.isOutput, pd.isNet, pd.isSigned, [p1, p2]⟩
-        -- a 3-D packed declaration (tac7): read as a declaration (its width, its element width); a select of it is
+        -- a 3-D packed declaration: read as a declaration (its width, its element width); a select of it is
         -- refused by the access recognizer (`elemAcc?`, `partAcc?`), only the whole signal is an access
         | .packed [d1, d2, d3] _ =>
             match dimOf? pd.name d1 with
@@ -2027,7 +2027,7 @@ def _root_.LeanModels.Sv.PExpr.badQuot : PExpr → Bool
   | .resize _ a => a.badQuot
   | _ => false
 
-/-- (Refusal text only; tac7.) A product inside an index or a bound that `affOf?` does not read although it reads both
+/-- (Refusal text only.) A product inside an index or a bound that `affOf?` does not read although it reads both
 factors: two factors with names (`i*i`), or a quotient on either side (`affMul`). -/
 def _root_.LeanModels.Sv.PExpr.badProd : PExpr → Bool
   | .binary .mul l r =>
@@ -2149,7 +2149,7 @@ def bitAcc? (ds : List DeclT) (n : String) (a : Aff) : Except String Acc :=
   | some [(_, l1), (m2, l2)] =>
       if l1 = Aff.const 0 ∧ l2 = Aff.const 0 then .ok (.row n (m2.add (Aff.const 1)) a) else .ok (.bit n a)
   | some [(_, l1), (m2, l2), (m3, l3)] =>
-      -- tac8: over a zero-based three-dimensional declaration the legacy select is a whole PLANE (`elemW` is the
+      -- over a zero-based three-dimensional declaration the legacy select is a whole PLANE (`elemW` is the
       -- product of the inner two extents)
       if l1 = Aff.const 0 ∧ l2 = Aff.const 0 ∧ l3 = Aff.const 0 then
         .ok (.plane3 n (m2.add (Aff.const 1)) (m3.add (Aff.const 1)) a)
@@ -2238,7 +2238,7 @@ def partRd? (ds : List DeclT) (e : PExpr) : Except String (List Acc) :=
   | .lit _ => .ok []
   | _ => rdsLeaf? ds e
 
-/-- The argument of a replication (WP-B2 gate 4c): a sized literal, or ONE access, a whole signal included (tac8: the width
+/-- The argument of a replication (WP-B2 gate 4c): a sized literal, or ONE access, a whole signal included (the width
 of a replicated part is its window's, `Part.wid`, which for a whole signal is the declared width). -/
 def repArgRd? (ds : List DeclT) : PExpr → Except String (List Acc)
   | .concat [.lit _] => .ok []
@@ -2250,7 +2250,7 @@ def repCountRefusal (_c : PExpr) : String :=
   "replication count is not affine (outside the v1 fragment: dynamic or nonlinear)"
 
 /-- A replication `{c{a}}`: an affine count (parameters and genvars, quotient, shift and power atoms: `{(P >> l){c}}`,
-tac7; the atoms' ranges are owed by `Summary.XObl`) over a literal or one access. -/
+the atoms' ranges are owed by `Summary.XObl`) over a literal or one access. -/
 
 def repRd? (ds : List DeclT) (c a : PExpr) : Except String (List Acc) :=
   match affOf? c with
@@ -3251,7 +3251,7 @@ leaves and each intermediate result): an integer literal, a genvar or a paramete
 side, and a shift or power atom (`xatOf?`: `1 << n`, `b ** n`, `m >> n`, `(m >> n) << n`, `(m >> n) & 1`). The
 instantiation evaluates the operand at the signed 32-bit type (`evalGenGuard`, `evalAt`), so its value is the affine one
 exactly where every subterm's is a 32-bit value and every atom is in its range (`guard_eval`). A `?:` whose condition
-compares two such operands and whose arms are such operands is one conditional atom (tac8: `XAt.cond`, the `CL` that
+compares two such operands and whose arms are such operands is one conditional atom (`XAt.cond`, the `CL` that
 `clOf?` reads; `opd_eval` shows `evalAt`'s value is the atom's), its four operands' subterms owed in the range. -/
 def opdAffs? : PExpr → Option (Aff × List Aff)
   | .int v => some (Aff.const v, [Aff.const v])
@@ -3325,10 +3325,10 @@ structure Hdr where
   bound : Aff
   bndE : PExpr
   gs : List (Guard × Bool) := []
-  /-- The block's identity where its label is reused in another scope (tac7, `qualifyFams`): the label path
+  /-- The block's identity where its label is reused in another scope (`qualifyFams`): the label path
   `outer.inner`; `none` (the block's own label) everywhere else. Only the site identities read it (`Hdr.name`). -/
   qn : Option String := none
-  /-- A start that is not an integer literal (tac9: `for (g = E; …)`, `E` an affine form of the parameters and the
+  /-- A start that is not an integer literal (`for (g = E; …)`, `E` an affine form of the parameters and the
   enclosing genvars, a `?:` among them): the envelope's expression and its affine reading (`affOf?`). `none` for a
   literal start, which is `c0`; where it is `some`, `c0` is `0` and nothing reads it (`Hdr.lo`, `Hdr.initE`). -/
   st : Option (PExpr × Aff) := none
@@ -3338,7 +3338,7 @@ deriving Repr, Inhabited
 is reused in another scope (`Hdr.qn`). -/
 def Hdr.name (h : Hdr) : String := h.qn.getD (h.lbl.getD "genblk")
 
-/-- The loop's start at a valuation (tac9): the literal `c0`, or the value of the start's affine reading (`Hdr.st`).
+/-- The loop's start at a valuation: the literal `c0`, or the value of the start's affine reading (`Hdr.st`).
 An `Option.elim`, not a `match`: unfolded at a variable header it leaves `Option.elim h.st …`, which reduces only where
 `h.st` is a constructor (`Option.elim_none`, `Option.elim_some`), so the obligation vocabulary unfolds it by name without
 simplifying arms it cannot select; at a literal start it is `c0` by `rfl`. -/
@@ -3413,7 +3413,7 @@ def Hdr.gen (h : Hdr) (rc : Option Nat) (body : List GenItem) : GenItem :=
   .genFor h.lbl h.g h.initE (.binary .slt (.genvarRef h.g) h.bndE)
     (.unary .inc (.genvarRef h.g)) rc body
 
-/-- The header's recognized bound (and start, tac9) are the envelope's, and it carries no guard (a header of the
+/-- The header's recognized bound (and start) are the envelope's, and it carries no guard (a header of the
 generate tree). -/
 def Hdr.Wf (h : Hdr) : Prop := affOf? h.bndE = some h.bound ∧ h.gs = [] ∧ h.StWf
 
@@ -3498,7 +3498,7 @@ def TFam.Wf (f : TFam) : Prop := f.hdr.Wf ∧ ∀ it ∈ f.body, it.Wf
 
 theorem TFam.wf_item {f : TFam} : f.item.Wf ↔ f.Wf := TItem.wf_loop
 
-/-! ### Distinct identities for reused block labels (tac7)
+/-! ### Distinct identities for reused block labels
 
 IEEE 1800-2023 §27.6 lets a generate block label be used again in another scope: kara's `g_split[l].g_node[t]` and
 `g_comb[l].g_node[t]` are two blocks. A site's identity names its innermost block (`LSite.blk`, `SiteId.fam`), so two such
@@ -3623,8 +3623,10 @@ theorem procsOf?_eq : ∀ {l : List GenItem} {ps : List PProcess}, procsOf? l = 
   | .inst _ :: _, _, h => by simp [procsOf?] at h
   | .decl _ :: _, _, h => by simp [procsOf?] at h
 
-/-- The start of a generate loop (tac9): an integer literal is `c0` (`Hdr.st = none`, the form of every header before
-tac9); any other expression is read by `affOf?` (the parameters, the enclosing genvars, `?:` as a conditional atom),
+/-- The start of a generate loop: an integer literal is `c0` (`Hdr.st = none`, the form of every header before such
+starts
+were read); any other expression is read by `affOf?` (the parameters, the enclosing genvars, `?:` as a conditional
+atom),
 `evalInt`'s reading of it (`affOf?_sound`), and refused where that reading fails. -/
 def hdrStartOf? (initE : PExpr) : Except String (Int × Option (PExpr × Aff)) :=
   match initE with
@@ -4256,7 +4258,7 @@ def dm (σ : String → Int) (n : String) (k : Nat) : Int :=
       | none => 0
       | some p => p.2.1.eval σ
 
-/-- A select of a 3-D declaration (tac8): the declaration has three zero-based descending dimensions, and the recorded
+/-- A select of a 3-D declaration: the declaration has three zero-based descending dimensions, and the recorded
 widths are the extents of the second and the third. -/
 def acc3Ok (n : String) (w2 w3 : Aff) : Bool :=
   match s.dimsOf' n with

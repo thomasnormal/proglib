@@ -17,7 +17,7 @@ namespace CombView
 
 /-! ## Printing -/
 
-/-- A conditional expression, with its names renamed (tac8). -/
+/-- A conditional expression, with its names renamed. -/
 def CL.showR (rn : String → String) : CL → String
   | .lin ts c =>
       let parts := ts.map (fun p => s!"{p.2}*{rn p.1}") ++ (if c == 0 && !ts.isEmpty then [] else [toString c])
@@ -226,7 +226,7 @@ def GCmp.show : GCmp → String
 
 def Guard.show (g : Guard) : String := s!"{g.a.show} {g.op.show} {g.b.show}"
 
-/-- The start of a loop as `sv_structure?` prints it: the literal, or the start's affine reading (tac9). -/
+/-- The start of a loop as `sv_structure?` prints it: the literal, or the start's affine reading. -/
 def Hdr.loShow (h : Hdr) : String :=
   match h.st with
   | none => toString h.c0

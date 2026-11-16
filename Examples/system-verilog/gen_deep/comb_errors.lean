@@ -6,8 +6,8 @@ import LeanModels.Sv.CombViewTactic
 
 `gen_deep_dup`: the blocks `g_x[0].g_b` and `g_y[0].g_b` are distinct scopes (IEEE 1800-2023 §27.6). The summary names a
 site by its innermost block, its position there and its depth (`LSite.key`); where a label labels more than one loop of
-the design the block is named by its label path (`qualifyFams`, tac7), so the two families are `g_x.g_b` and `g_y.g_b`
-and the design is accepted. (Until tac7 the structural check refused it: "two sites share the identity (`g_b#0[i, j]` and
+the design the block is named by its label path (`qualifyFams`), so the two families are `g_x.g_b` and `g_y.g_b`
+and the design is accepted. (Before, the structural check refused it: "two sites share the identity (`g_b#0[i, j]` and
 `g_b#0[i, j]`)"; the file keeps its name.)
 -/
 

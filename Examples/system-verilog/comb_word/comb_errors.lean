@@ -27,7 +27,7 @@ what the checker's `--tactics` advisory reports as `in_fragment false`):
 * `neg_part_nz`, `neg_row_nz` (gate 4a): a part select of a declaration whose range is not zero-based (`[8:1]`) and a
   whole-row select of a two-dimensional declaration whose first range is not zero-based (`[4:1][2:0]`): the legacy selects
   of gate 4a are read over zero-based descending ranges only. (`neg_row_3d`, a select of a declaration of three packed
-  dimensions, was refused here until tac8; the legacy select over a zero-based 3-D declaration is a plane since, and the
+  dimensions, was refused here before; the legacy select over a zero-based 3-D declaration is a plane since, and the
   file now proves its structure.)
 
 (A sum in an `always_comb` leaf was the seventh negative of gate 1; the procedural chain reads the word-level
@@ -131,8 +131,9 @@ error: sv_structure: structural check failed:
 example : CombDesign (neg_row_nz.sem) := by
   sv_structure
 
--- a select of a three-dimensional declaration: refused until tac8 (tac7 read the declaration as a whole signal only); the
--- legacy select `r[0]` over a zero-based 3-D declaration is a whole plane since tac8 (`Acc.plane3`), so this flat netlist
+-- a select of a three-dimensional declaration: refused before (an earlier version read the declaration as a whole
+-- signal only); the
+-- legacy select `r[0]` over a zero-based 3-D declaration is a whole plane now (`Acc.plane3`), so this flat netlist
 -- is now read and its structure decided
 example : CombDesign (neg_row_3d.sem) := by
   sv_structure
@@ -145,7 +146,7 @@ error: sv_structure: outside the supported fragment — site `g#0`: a shift amou
 example (N : Nat) (hN : 1 ≤ N) : CombDesign (neg_shift_gv.sem N) := by
   sv_structure
 
--- a replication of a whole signal (`{2{a}}`): refused until tac8, read since (the window of a whole signal is its declared
+-- a replication of a whole signal (`{2{a}}`): refused before, read since (the window of a whole signal is its declared
 -- width, `Part.wid`; the design's file keeps its old name and comment)
 example (N : Nat) (hN : 1 ≤ N) (hR : (N : Int) < 2147483648) : CombDesign (neg_repl_whole.sem N) := by
   sv_structure

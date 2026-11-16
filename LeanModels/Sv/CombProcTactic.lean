@@ -928,7 +928,7 @@ unsafe def runSvInterfaceL : TacticM Unit := do
         | _ => #[]
       let taskLemmas ← taskIds.mapM fun i => `(Lean.Parser.Tactic.simpLemma| $i:ident)
       try
-        -- the port lists the user's file names (svGolf's or ls-sv's, `portUnfoldNames`; tac8: this route unfolded
+        -- the port lists the user's file names (svGolf's or ls-sv's, `portUnfoldNames`; this route unfolded
         -- `SvGolf.inputPorts` alone, so a statement over ls-sv's `Design2.inputPorts` failed here)
         let portLemmas ← ((← portUnfoldNames).map mkIdent).toArray.mapM fun i =>
           `(Lean.Parser.Tactic.simpLemma| $i:ident)

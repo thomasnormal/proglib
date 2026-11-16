@@ -2,7 +2,7 @@ import Examples.«system-verilog».gen_tercg.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# `sv_structure` on `?:` operands of generate-if conditions (`Examples/system-verilog/gen_tercg`, tac8)
+# `sv_structure` on `?:` operands of generate-if conditions (`Examples/system-verilog/gen_tercg`)
 
 A guard with a conditional atom normalizes to a comparison with an `if-then-else` operand; `sv_ite_cases` splits on its
 condition, and `omega` closes each branch (the two arms of each `if` write the same bit under complementary guards).

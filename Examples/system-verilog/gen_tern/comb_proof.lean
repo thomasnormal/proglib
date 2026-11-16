@@ -11,7 +11,7 @@ at `l < N` (the strict monotonicity of the power, `pow_lt_pow_or`, which `sv_pow
 The premise `N ≤ 4` is the GENERATE FUEL, not the atom: `X.sem N` instantiates with `PDesign.surfaceFuel [N] =
 (N + 2)² + 64` iterations per loop, and the leaves' loop runs `3 ^ N` times, within the fuel only up to `N = 4` (at
 `N = 5` the instantiation itself runs out of fuel, `gen.lean`). The comb tactics owe exactly that fuel (`AutoObl`: a
-count at most `fuelSq N + 4 N + 67`, since the tac5 round; the linear `4 N + 60` they owed before held the leaves only up
+count at most `fuelSq N + 4 N + 67`; the linear `4 N + 60` they owed before held the leaves only up
 to `N = 3`). Here the parameter is the exponent, so the leaves' count against the square is a statement about four
 values of `N`, decided case by case (`gen_tern_fuel`). Where the exponent stays below a `$clog2` of the parameter (a tree
 of `$clog2` depth, `kara_lv`'s shape) `sv_pow_facts` relates the power to the square itself (`ktree_count`).

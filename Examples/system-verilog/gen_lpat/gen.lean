@@ -3,7 +3,7 @@ import LeanModels.Sv.Gen2
 import LeanModels.Sv.CombView
 
 /-!
-# `gen_lpat`: a localparam that sums `?:`, as an `sv_comb` test subject (tac9)
+# `gen_lpat`: a localparam that sums `?:`, as an `sv_comb` test subject
 
 `S = ((N > 2) ? 1 : 0) + ((N > 4) ? 1 : 0) + ((N > 6) ? 1 : 0)` (the form of the Dadda record's stage count, there a sum
 of 51 such terms) is a loop bound and a loop start: `y[i] = a[N - 1 - i]` for `i < S`, `y[i] = a[i]` from `S` on. Read

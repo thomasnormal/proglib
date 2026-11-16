@@ -3,7 +3,7 @@ import LeanModels.Sv.Gen2
 import LeanModels.Sv.CombView
 
 /-!
-# `mul_dadda`: the svGolf `mul` record built as a Dadda tree, as an `sv_comb` test subject (tac10)
+# `mul_dadda`: the svGolf `mul` record built as a Dadda tree, as an `sv_comb` test subject
 
 The design (`mul_dadda.sv`, the svGolf record verbatim, its header kept) reduces the partial products of an `N`-bit
 multiplier column by column with full and half adders down to two rows, then adds them with a ripple-carry adder. Its

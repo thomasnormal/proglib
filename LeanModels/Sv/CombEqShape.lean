@@ -417,7 +417,7 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
               · rw [selfWidth2_bitSel_ident, hel']; simp [Acc.win, Acc.wid, hw]
               · rw [instExpr2_bitSel_ident ctx hel' hev hx0]
                 simp [accExpr, Acc.lo, Acc.wid, rmN, hw]
-            · -- a legacy select of a plane of a three-dimensional declaration (tac8)
+            · -- a legacy select of a plane of a three-dimensional declaration
               obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
               have hel' := ctxElemsPlane C hdg hm2 hm3
               obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -474,7 +474,7 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         · rw [selfWidth2_arrayElem_of hwin]; rfl
         · rw [instExpr2_arrayElem, arrayElemRead_of_inRange hwin]
           simp [accExpr, Acc.lo, Acc.wid, hw, hcell]
-      · -- a plane of a 3-D array (tac8)
+      · -- a plane of a 3-D array
         obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
         have hd := C.dims n _ hdg
         obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -531,7 +531,7 @@ theorem leaf_eq (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
         · rw [instExpr2_arrayPart _ (dynPartPlan_of_geom hg),
             arrayPartRead_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
           simp [accExpr, Acc.lo, Acc.wid, hw, hcell]
-      · -- part of a row of a 3-D array (tac8)
+      · -- part of a row of a 3-D array
         obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
         have hd := C.dims n _ hdg
         obtain ⟨-, hep⟩ := affOf?_sound i p hp (hagx p (by simp [Acc.affs]))
@@ -2686,7 +2686,7 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
       rw [instLhs2_bitSel hel' hev hx0]
       simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, rmN, hw]
-    · -- a legacy select of a plane (tac8)
+    · -- a legacy select of a plane
       obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
       have hel' := ctxElemsPlane C hdg hm2 hm3
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -2714,7 +2714,7 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       have hcell := rmN_eq_toNat (W := m2 + 1) (i := x.eval σ) (j := y.eval σ) (by omega) hx0 hy0
       rw [arrayElemTarget_of_inRange (arrayElemWindow_cell2 hd hevi hx0 hx1 hevj hy0 hy1)]
       simp [Acc.lhs, Acc.lo, Acc.win, hw, hcell]
-    · -- a plane of a 3-D array (tac8)
+    · -- a plane of a 3-D array
       obtain ⟨m1, m2, m3, hdg, hm2, hm3, hw2, hw3, hx0, hx1⟩ := hgeo
       have hd := C.dims n _ hdg
       obtain ⟨-, hev⟩ := affOf?_sound i x hx (hagx x (by simp [Acc.affs]))
@@ -2753,7 +2753,7 @@ theorem instLhs_acc_w (C : Ctx σ E elems DW DG EW ns) {dw : String → Nat}
       have hcell := rmN_eq_toNat (W := m2 + 1) (i := r.eval σ) (j := y.eval σ) (by omega) hr0 hy0
       rw [arrayPartTarget_part2 hd hei hr0 hr1 hx hy hox hoy hy0 hyx hxm]
       simp [Acc.lhs, Acc.lo, Acc.wid, Acc.win, hw, hcell]
-    · -- part of a row of a 3-D array (tac8)
+    · -- part of a row of a 3-D array
       obtain ⟨m1, m2, m3, hdg, hw2, hw3, hp0, hp1, hr0, hr1, hy0, hyx, hxm⟩ := hgeo
       have hd := C.dims n _ hdg
       obtain ⟨-, hep⟩ := affOf?_sound i p hpa (hagx p (by simp [Acc.affs]))

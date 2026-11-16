@@ -60,7 +60,7 @@ def TItem.stListL : List TItem → List TSite
 end
 
 mutual
-/-- The qualification of reused block labels (tac7, `qualifyFams`) keeps the sites. -/
+/-- The qualification of reused block labels (`qualifyFams`) keeps the sites. -/
 theorem TItem.stList_qualify (amb : List String) : ∀ (path : String) (x : TItem), (x.qualify amb path).stList = x.stList
   | _, .site _ => rfl
   | path, .loop h rc body => by
@@ -446,7 +446,7 @@ theorem decl2_facts {s : Summary} {σd : String → Int} {n : String} {M1 L1 M2 
   · intro x hx
     exact hdecl dt hm x (by simp [DeclT.affNames, hdt, hx])
 
-/-- The facts for a 3-D declaration `[M1:0][M2:0][M3:0]` (tac8). -/
+/-- The facts for a 3-D declaration `[M1:0][M2:0][M3:0]`. -/
 theorem decl3_facts {s : Summary} {σd : String → Int} {n : String} {M1 L1 M2 L2 M3 L3 : Aff}
     (hdecl : ∀ dt ∈ s.decls, ∀ n ∈ dt.affNames, n ∈ s.params)
     (h : s.dimsOf' n = some [(M1, L1), (M2, L2), (M3, L3)]) (hL1 : L1 = Aff.const 0)
@@ -466,7 +466,7 @@ theorem decl3_facts {s : Summary} {σd : String → Int} {n : String} {M1 L1 M2 
   · intro x hx
     exact hdecl dt hm x (by simp [DeclT.affNames, hdt, hx])
 
-/-- `acc3Ok` (tac8): the declaration's three dimensions and the recorded widths. -/
+/-- `acc3Ok`: the declaration's three dimensions and the recorded widths. -/
 theorem acc3Ok_facts {s : Summary} {n : String} {w2 w3 : Aff} (h : s.acc3Ok n w2 w3 = true) :
     ∃ M1 M2 M3, s.dimsOf' n = some [(M1, Aff.const 0), (M2, Aff.const 0), (M3, Aff.const 0)] ∧
       w2 = M2.add (Aff.const 1) ∧ w3 = M3.add (Aff.const 1) := by
@@ -1186,7 +1186,7 @@ theorem pairs_desc {s : Summary} {args : List Int} {σ : String → Int} {envD :
 
 /-! ## The generate tree expands to the closed form -/
 
-/-- The start of a loop evaluates to `Hdr.lo` (tac9): a literal to itself, a start expression to its affine reading's
+/-- The start of a loop evaluates to `Hdr.lo`: a literal to itself, a start expression to its affine reading's
 value (`affOf?_sound`), in an environment that agrees on the names it reads, with its atoms in range. -/
 theorem Hdr.evalInt_initE {env : IEnv} {σ : String → Int} {ns : List String} (hag : Agrees σ env ns) {h : Hdr}
     (hwf : h.StWf) (hsn : ∀ n ∈ h.stNames, n ∈ ns) (hsx : h.StXOk σ) :

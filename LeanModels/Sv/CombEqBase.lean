@@ -54,7 +54,7 @@ open CombView
 inductive Part where
   | lit (v : LVec)
   | rd (a : Acc)
-  /-- WP-B2 gate 4c: a replication `{c{v}}` of a sized literal, `{c{a}}` of one access (a whole signal included, tac8:
+  /-- WP-B2 gate 4c: a replication `{c{v}}` of a sized literal, `{c{a}}` of one access (a whole signal included:
   its width is its window's, the declared width) (the count affine, non-negative: an obligation of `InRangeObl`). -/
   | replit (c : Aff) (v : LVec)
   | reprd (c : Aff) (a : Acc)
@@ -854,7 +854,7 @@ def Sk.leaves : Sk → List Acc
   | .sx p => p.leaves
   | .zc _ => []
 
-/-- A whole-signal access (no longer read by `partKnown`, tac8: a replicated whole signal has its window's width). -/
+/-- A whole-signal access (no longer read by `partKnown`: a replicated whole signal has its window's width). -/
 def _root_.LeanModels.Sv.CombView.Acc.isWhole : Acc → Bool
   | .whole _ => true
   | _ => false

@@ -3,7 +3,7 @@ import LeanModels.Sv.CombTask
 import LeanModels.Sv.CombEqTactic
 
 /-!
-# The plumbing of a combinational task proof: lemmas and tactic steps (comb lane, tac6)
+# The plumbing of a combinational task proof: lemmas and tactic steps (comb lane)
 
 A task proof (`Examples/system-verilog/prefix_ks/add_proof.lean`) runs `sv_structure`, `sv_interface` and
 `sv_equations`, then does mathematics; what it wrote by hand around them is here:
@@ -378,7 +378,7 @@ whole bisection before failing). `inputsKnown_k` by `sv_known_inputs`; `cover_k`
 `sv_pow_facts <;> sv_cover` (the other order where the goal holds a wrapped constant, a `$clog2` or a power, unless it also
 holds a product of two non-numeral factors: `sv_cover`'s slot-window rule states its own facts); `auto_k`, `inRange_k`, `width_k`, `bitRead_k` by `intros; omega`, then `sv_pow_omega`. A goal
 of another tag (the main goal) is left untouched, and so is an obligation none of its closers proves. The closers run
-without info trees (tac10): a failed attempt's trees would otherwise stay alive after its state is restored. -/
+without info trees: a failed attempt's trees would otherwise stay alive after its state is restored. -/
 elab "sv_obligations" : tactic => do
   let gs ← getGoals
   let mut rest : Array MVarId := #[]

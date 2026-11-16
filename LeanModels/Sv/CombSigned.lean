@@ -94,7 +94,7 @@ theorem TItem.qualifyL_mapProcs (g : PProcess → PProcess) (amb : List String) 
         TItem.qualifyL_mapProcs g amb path rest]
 end
 
-/-- The qualification of reused block labels (tac7) reads the labels only: it commutes with relabelling the processes. -/
+/-- The qualification of reused block labels reads the labels only: it commutes with relabelling the processes. -/
 theorem qualifyFams_mapProcs (g : PProcess → PProcess) (fs : List TFam) :
     qualifyFams (fs.map (TFam.mapProcs g)) = (qualifyFams fs).map (TFam.mapProcs g) := by
   have ha : ambLabels (fs.map (TFam.mapProcs g)) = ambLabels fs := by

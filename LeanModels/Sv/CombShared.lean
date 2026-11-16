@@ -19,7 +19,7 @@ two of them packaged), and `sv_equations` reads a `SharedObl` hypothesis of the 
 normalizing `auto` and `inRange` again (it returns no `auto_k`/`inRange_k` goals then). Without it both tactics behave
 as before: opt-in, nothing else changes.
 
-Since the tac5 round `sv_structure` also proves `CombDesign (X.sem N) ∧ SharedObl X.pdesign [N]` (`comb_shared_view`),
+`sv_structure` also proves `CombDesign (X.sem N) ∧ SharedObl X.pdesign [N]` (`comb_shared_view`),
 and `sv_structure (rank := …) using hc` on `Acyclic (X.sem N)` reads `auto` and `inRange` from a `SharedObl` hypothesis
 too: the profile, the rank and the equations then live in three declarations, each normalizing only its own obligations
 (measured on the Kogge-Stone adder of `Examples/system-verilog/prefix_ks`: the bundle needed 223 thousand heartbeat
@@ -75,7 +75,7 @@ theorem comb_lex_shared_view {d : PDesign} {s : Summary} {args : List Int} {env 
   let h := comb_lex_view hs harity h1 hag hok hauto hin hdisj κ hrank
   ⟨h.1, h.2, sharedObl_of hs hauto hin⟩
 
-/-- `comb_view`, and the shared obligations packaged (`sv_structure` on `CombDesign D ∧ SharedObl X.pdesign args`, tac5):
+/-- `comb_view`, and the shared obligations packaged (`sv_structure` on `CombDesign D ∧ SharedObl X.pdesign args`):
 the profile and the two obligations a later `sv_structure (rank := …) using hc` and `sv_equations` read from the context,
 each theorem in a declaration (and a heartbeat budget) of its own. -/
 theorem comb_shared_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}

@@ -2,7 +2,7 @@ import Examples.«system-verilog».gen_start.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# `sv_structure` on generate loops whose start is not an integer literal (`Examples/system-verilog/gen_start`, tac9)
+# `sv_structure` on generate loops whose start is not an integer literal (`Examples/system-verilog/gen_start`)
 
 A start's value is `Hdr.lo` in the obligations: the loop ranges are `lo ≤ i < bound` (`Hdr.Rng`), the fuel is owed for
 `bound - lo` iterations (`AutoObl`), and a `?:` start normalizes to an `if-then-else` term like any conditional atom. The

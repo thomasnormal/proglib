@@ -2,7 +2,7 @@ import Lean
 import LeanModels.Sv.CombGenGuard
 
 /-!
-# The parameter stage, node by node (tac10)
+# The parameter stage, node by node
 
 At a symbolic parameter the tactics show the instantiation's environment (`PDesign.paramEnv2`) to agree with the
 summary's valuation. The general route (`closeParamEnv`, CombViewTactic.lean) evaluates the whole stage symbolically and

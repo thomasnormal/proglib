@@ -43,7 +43,7 @@ load_design_sv2 gen_bit_sum from "Examples/system-verilog/gen_bit/neg/gen_bit_su
 
 -- The arm the instantiation selects (`evalGenGuard` of `((i >> l) & 1) == 1`, `N = 9`), the summary's guard, and the
 -- index `((i >> l) << l) - 1` where the arm is the `then` one (`evalInt`, and the summary's form), against the values
--- Icarus Verilog 13.0 prints (tac4/icarus/tb_pow.sv: `bit l=… i=… <arm> <index>`), for `l < 3`, `i < 9`.
+-- Icarus Verilog 13.0 prints (tb_pow.sv: `bit l=… i=… <arm> <index>`), for `l < 3`, `i < 9`.
 #guard (gen_bit.pdesign.summary.toOption.bind fun s => (gen_bit.pdesign.paramEnv2 [9]).toOption.bind fun e =>
     match s.condSteps, s.lsites with
     | [(_, c, g)], [_, op, _, _] =>

@@ -2,10 +2,10 @@ import Examples.«system-verilog».gen_repw.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# `sv_structure` on replications of a whole signal (`Examples/system-verilog/gen_repw`, tac8)
+# `sv_structure` on replications of a whole signal (`Examples/system-verilog/gen_repw`)
 
 The window of `{(P >> l){cin}}` is `P >> l` copies of the declared width of `cin`; its count's atom is owed in range by
-`Summary.XObl`, its non-negativity by `InRangeObl` (tac7), and the facts of the shift atoms close the slots (`sv_pow_omega`).
+`Summary.XObl`, its non-negativity by `InRangeObl`, and the facts of the shift atoms close the slots (`sv_pow_omega`).
 
 Build: `lake build Examples.«system-verilog».gen_repw.comb_proof`.
 -/

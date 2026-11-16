@@ -125,7 +125,7 @@ theorem rankObl'_of_groups (s : Summary) (R : SiteId → SiteId → Prop) (σ : 
     (List.mem_map.2 ⟨a, ha, rfl⟩) (r, s.lsites.filter fun b => b.site.tgt.name == r.name)
     (List.mem_map.2 ⟨r, hr, rfl⟩) b hb'
 
-/-- **The rank obligation, grouped by signal, with the windows in range** (tac8, `set_option sv_comb.rank_ranged true`):
+/-- **The rank obligation, grouped by signal, with the windows in range** (`set_option sv_comb.rank_ranged true`):
 `rankObl'_of_groups` whose every obligation also has the in-range facts of the read (`InR`, from `AutoObl`'s first
 conjunct) and of the writer's window (`InR` of its target, from `InRangeObl`'s first conjunct; of a further window, from
 its second) as premises. Those facts are owed and proved anyway (they are the `auto` and `inRange` obligations of the

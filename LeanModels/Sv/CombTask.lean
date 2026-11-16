@@ -15,7 +15,7 @@ function is generic, and this file proves it once:
 * `CombDesign.lowerComb_eq`: a comb-profile design lowers to itself, so `Acyclic d` is its loop-freedom;
 * `Models2.of_comb_ports`: a property of every cycle's stimulus entry and snapshot, from the settled-state form, where
   each input port the entry drives holds the driven value;
-* `CombTask.of_comb` (tac6): the whole statement shape (ports, the generic conjuncts, the stimulus form) from
+* `CombTask.of_comb`: the whole statement shape (ports, the generic conjuncts, the stimulus form) from
   `CombDesign`, `Acyclic` and the ports, so a task proof starts at the settled-state goal.
 
 Nothing here is trusted: every theorem is proved, and nothing mentions a tactic.
@@ -86,7 +86,7 @@ theorem Models2.of_comb_ports {d : Design2} (hd : CombDesign d) {Q : SvState →
   obtain ⟨heqs, hs, hin⟩ := h c st hc
   exact hQ inputs st heqs hs fun n hn v hv => hin inputs hi n (by rwa [Design2.inputPorts_map_fst] at hn) v hv
 
-/-- **A combinational task's statement from the comb products** (tac6): the ports `ins`/`outs`, no clocked process, the
+/-- **A combinational task's statement from the comb products**: the ports `ins`/`outs`, no clocked process, the
 design its own lowering with the rank certificate `ha`, termination, and a property `Q` of every cycle's stimulus entry
 and snapshot, from the settled-state form (`Models2.of_comb_ports`, with the port list read through `hp`). The shape is
 the statement of a combinational task (svGolf's `CombTask.SatisfiedAt` unfolded, e.g. `prefix_ks/statement.lean`). -/

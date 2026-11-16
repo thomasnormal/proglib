@@ -2,7 +2,7 @@ import Examples.«system-verilog».gen_rankr.gen
 import LeanModels.Sv.CombViewTactic
 
 /-!
-# `sv_structure` with the ranged rank obligations (`Examples/system-verilog/gen_rankr`, tac8)
+# `sv_structure` with the ranged rank obligations (`Examples/system-verilog/gen_rankr`)
 
 `set_option sv_comb.rank_ranged true` states each rank obligation with the in-range facts of the read window and of the
 written window as premises (`Summary.rankObl'_of_groupsR`, CombViewGroup.lean): those facts are the `auto` and
