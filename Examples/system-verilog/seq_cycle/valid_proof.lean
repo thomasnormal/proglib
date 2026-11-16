@@ -29,7 +29,7 @@ endmodule
    `ready_i = 1` shows the inputs `valid_i`, `data_i` it saw; one that sees `rst = 0`, `ready_i = 0` shows what the
    previous cycle showed. The decisions read known values (rule 4's cheap sufficient condition).
 
-Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (round notes).
+Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository.
 -/
 
 open LeanModels.Sv LeanModels.Sv.Kernel

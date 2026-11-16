@@ -123,7 +123,9 @@ macro "sv_seq_obligations" : tactic =>
       LeanModels.Sv.Kernel.CoreMemProc.targets, LeanModels.Sv.Kernel.CoreMemProc.reads, LeanModels.Sv.Kernel.topoB,
       LeanModels.Sv.Kernel.assignTargets, LeanModels.Sv.PExpr.sigNames, LeanModels.Sv.PExpr.sigNamesList,
       LeanModels.Sv.PStmt.nbaTargets, LeanModels.Sv.PStmt.optNbaTargets, LeanModels.Sv.PStmt.listNbaTargets,
-      LeanModels.Sv.PStmt.readNames, LeanModels.Sv.PStmt.optReadNames, LeanModels.Sv.PStmt.listReadNames])
+      LeanModels.Sv.PStmt.readNames, LeanModels.Sv.PStmt.optReadNames, LeanModels.Sv.PStmt.listReadNames,
+      LeanModels.Sv.Kernel.CoreMemProc.unconverted, LeanModels.Sv.PExpr.unconverted, LeanModels.Sv.PExpr.unconvertedList,
+      LeanModels.Sv.PStmt.unconverted, LeanModels.Sv.PStmt.optUnconverted, LeanModels.Sv.PStmt.listUnconverted])
 
 /-- **`sv_seq_ports`**: the ports of a normal form. -/
 macro "sv_seq_ports" : tactic =>

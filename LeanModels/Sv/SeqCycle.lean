@@ -1170,6 +1170,54 @@ def _root_.LeanModels.Sv.PStmt.listReadNames : List PStmt → List String
 
 end
 
+mutual
+
+/-- The kinds of the nodes of an expression that ingestion kept as `unsupported` (not converted). -/
+def _root_.LeanModels.Sv.PExpr.unconverted : PExpr → List String
+  | .unsupported k _ => [k]
+  | .arrayElem _ is => PExpr.unconvertedList is
+  | .arrayPart _ is _ a b => PExpr.unconvertedList is ++ PExpr.unconverted a ++ PExpr.unconverted b
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a | .sysCall _ a | .reduce _ a | .cast _ a =>
+      PExpr.unconverted a
+  | .binary _ a b | .bitSel a b | .repl a b => PExpr.unconverted a ++ PExpr.unconverted b
+  | .ternary c a b | .partSel c a b => PExpr.unconverted c ++ PExpr.unconverted a ++ PExpr.unconverted b
+  | .concat xs | .functionCall _ xs => PExpr.unconvertedList xs
+  | .ident _ | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ => []
+
+/-- `unconverted` of a list. -/
+def _root_.LeanModels.Sv.PExpr.unconvertedList : List PExpr → List String
+  | [] => []
+  | x :: xs => PExpr.unconverted x ++ PExpr.unconvertedList xs
+
+end
+
+mutual
+
+/-- The unconverted expression nodes of a body (conditions and right-hand sides). -/
+def _root_.LeanModels.Sv.PStmt.unconverted : PStmt → List String
+  | .nbaAssign _ e | .blockingAssign _ e | .nbaAssignL _ e | .blockingAssignL _ e => PExpr.unconverted e
+  | .ifStmt c y n => PExpr.unconverted c ++ PStmt.unconverted y ++ PStmt.optUnconverted n
+  | .block body => PStmt.listUnconverted body
+  | _ => []
+
+/-- `unconverted` of an optional statement. -/
+def _root_.LeanModels.Sv.PStmt.optUnconverted : Option PStmt → List String
+  | none => []
+  | some s => PStmt.unconverted s
+
+/-- `unconverted` of a list. -/
+def _root_.LeanModels.Sv.PStmt.listUnconverted : List PStmt → List String
+  | [] => []
+  | s :: ss => PStmt.unconverted s ++ PStmt.listUnconverted ss
+
+end
+
+/-- The unconverted expression nodes of a process. -/
+def CoreMemProc.unconverted : CoreMemProc → List String
+  | .assign _ v => PExpr.unconverted v
+  | .edge f => f.body.unconverted
+  | _ => []
+
 /-- The names a process drives. -/
 def CoreMemProc.targets : CoreMemProc → List String
   | .assign (.ident n) _ => [n]
@@ -1198,14 +1246,16 @@ def topoB : List CoreMemProc → Bool
 /-- **The obligations of the clocked profile**, decided: one driver per signal (the targets of distinct processes are
 disjoint, and an assign's target is driven by no other process), the continuous assigns in topological source order
 (each reads no target of itself or of a later assign), no process writes an input or the clock, and no process reads
-the clock. Under them the route's one-pass settle is the fixpoint of the assigns and the commit of the edge processes'
-updates does not depend on their order (the cheap sufficient conditions of rule 4 for this slice). -/
+the clock, and no expression of a process holds a node ingestion kept unconverted (`PExpr.unsupported`: the route
+refuses it when it is evaluated, so the structure refuses it first). Under them the route's one-pass settle is the
+fixpoint of the assigns and the commit of the edge processes' updates does not depend on their order (the cheap
+sufficient conditions of rule 4 for this slice). -/
 def CoreMemDesign.seqOblB (E : CoreMemDesign) (clk : String) : Bool :=
   let ps := E.processes.toList
   let ts := ps.flatMap CoreMemProc.targets
   let ins := E.scalar.decls.toList.filterMap fun dc => if dc.isInput then some dc.name else none
   ts.Nodup && topoB ps && ts.all (fun t => !ins.contains t && t != clk) &&
-    ps.all (fun p => !p.reads.contains clk)
+    ps.all (fun p => !p.reads.contains clk) && ps.all (fun p => p.unconverted.isEmpty)
 
 /-- **The structure of a clocked family member**: it instantiates, in the clocked profile, with its obligations. -/
 def SeqDesign (r : Res CoreMemDesign) (clk : String) : Prop :=

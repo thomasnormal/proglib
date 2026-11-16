@@ -27,7 +27,7 @@ Its meaning is the loader's ordinary E entry `shreg.e N : Res CoreMemDesign` and
    included), on every typed stimulus: in every cycle `c`, bit `k < N` of `q` in the post sample is the bit the input
    `v` had in the pre sample of cycle `c - k`, for every `k ≤ c`. Exact on 4-state values: an x input travels as an x.
 
-Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (round notes): the x start, x and z inputs,
+Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository: the x start, x and z inputs,
 `N = 2, 4, 8`.
 -/
 

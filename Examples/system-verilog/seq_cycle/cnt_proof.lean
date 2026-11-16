@@ -22,7 +22,7 @@ endmodule
    `q` after cycle `c + n` is `n mod 2^N`. The decisions read known values (rule 4's cheap sufficient condition: the
    claim's hypotheses give `rst` and `en` as 0/1 values, so E's `if` takes the only branch every resolution would).
 
-Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (round notes).
+Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository.
 -/
 
 open LeanModels.Sv LeanModels.Sv.Kernel
