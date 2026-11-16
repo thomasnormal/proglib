@@ -1065,6 +1065,12 @@ any number of escaped-percent pairs.  It is a single parametric bridge over
 the mixed suffix, preserving every token outcome and avoiding a matrix of
 specialized segment counts.
 
+`Monadic.strFormatMappingWalk_plain_then_escaped_then_token` supplies the
+matching prefix composition: a safe literal segment, escaped-percent pairs,
+and then a mapping token.  It first consumes the two structural prefix
+continuations and applies the token branch at the remaining fuel, preserving
+all heap and conversion outcomes without re-parsing or fixed-count expansion.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
