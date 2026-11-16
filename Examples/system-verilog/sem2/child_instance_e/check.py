@@ -2,6 +2,10 @@
 from pathlib import Path
 import subprocess,tempfile
 HERE=Path(__file__).resolve().parent
+ENV=HERE/'child_instance_e.sv.json'
+ordinary = subprocess.run(['python3','harness/sv/refusal_census.py','ordinary',str(ENV)], cwd=HERE.parents[3], check=True, text=True, stdout=subprocess.PIPE).stdout
+if '"refusals": 0' not in ordinary:
+ raise SystemExit('ordinary hierarchical E census still refuses nested child instances: '+ordinary)
 TB='''module tb; logic clk,rst_n,d,q; child_instance_scan dut(.clk(clk),.rst_n(rst_n),.d(d),.q(q)); initial begin clk=0;rst_n=0;d=0;#1 $display("ROW %b",q);clk=1;rst_n=1;d=1;#1 $display("ROW %b",q);clk=0;d=0;#1 $display("ROW %b",q);clk=1;#1 $display("ROW %b",q);$finish;end endmodule'''
 expected=[["0"],["0"],["0"],["1"]]
 for sim in ('iverilog','xrun'):

@@ -8,3 +8,6 @@ processes, under IEEE 1800-2023 §§23.3 and 23.3.3. The four-row receipt agrees
 with Icarus Verilog 13.0, Xcelium 24.03-s004, and direct `instantiateE2H`:
 `q=0,0,0,1`. The flat one-clock loader remains loud where its child library is
 not used; this receipt exercises the canonical hierarchical E route.
+
+The ordinary hierarchical census is now also zero refusals; the checker
+asserts that regression result.
