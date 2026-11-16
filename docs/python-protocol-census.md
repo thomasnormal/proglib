@@ -1100,6 +1100,16 @@ token's heap and conversion outcomes while carrying independent no-`%`
 invariants and parametric costs for the two chains, closing the general
 token-position composition without a finite matrix.
 
+The remaining multi-token walk boundary is intentionally left explicit.  A
+general token-chain theorem needs an inductive parser relation for every token
+tail and a correlated heap/conversion result for each step: a successful
+conversion advances to the next token, while a missing key, exception, timeout,
+or refusal terminates the whole walk immediately.  The existing
+`strFormatMapToken_go_append` and `strFormatMappingWalk_token_branch` facts
+cover one token and its arbitrary tail, but do not provide that list-indexed
+correlation.  Adding a fixed two-token theorem would hide the missing relation
+behind a finite case, so no such matrix or duplicate parser was added.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
