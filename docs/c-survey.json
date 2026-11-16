@@ -12,11 +12,11 @@
    "failed": 3,
    "not-parsed": 321,
    "oracle-tests-compiler": 1,
-   "passed": 1007,
+   "passed": 1008,
    "refused-libc": 18,
    "refused-ub": 79,
    "refused-unsupported": 403,
-   "timeout": 86
+   "timeout": 85
   },
   "gcc.c23-run": {
    "not-parsed": 28,
@@ -31,11 +31,11 @@
   "failed": 3,
   "not-parsed": 350,
   "oracle-tests-compiler": 1,
-  "passed": 1199,
+  "passed": 1200,
   "refused-libc": 21,
   "refused-ub": 87,
   "refused-unsupported": 464,
-  "timeout": 89
+  "timeout": 88
  },
  "dynamic_wall_ranking": [
   {
@@ -548,7 +548,6 @@
     "memcpy-2.c",
     "memcpy-bi.c",
     "memset-1.c",
-    "minmaxcmp-1.c",
     "mode-dependent-address.c",
     "multi-ix.c",
     "nestfunc-4.c",
@@ -596,8 +595,8 @@
     "switch-1.c",
     "usad-run.c"
    ],
-   "present": 89,
-   "sole": 89,
+   "present": 88,
+   "sole": 88,
    "wall": "timeout"
   },
   {
@@ -2297,8 +2296,8 @@
   }
  ],
  "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
- "measured_at_utc": "2026-11-16T15:05:38Z",
- "measured_commit": "d10f0aa02f93631cad0b3f733c0f82b03295ddd8",
+ "measured_at_utc": "2026-11-16T17:40:00Z",
+ "measured_commit": "dbe0c70b8",
  "pin": null,
  "rows": [
   {
@@ -19146,15 +19145,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "per-file wall timeout (2s)",
-   "dynamic_wall": "timeout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
    "sha256": "c8373ae57ea0dec72ae5329a74a82f467b092ce0c3f95a8a4ce9181a9bba503e",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
