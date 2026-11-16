@@ -1034,6 +1034,12 @@ threads the literal percent output into the token branch and preserves all of
 the same heap and conversion outcomes, using the existing continuation and
 token theorems rather than another parser or fixed-count case.
 
+`Monadic.strFormatMappingWalk_plain_then_escaped` combines the two structural
+prefix forms: an arbitrary safe literal segment followed by any number of
+escaped-percent pairs and then an arbitrary suffix.  The proof composes the
+two continuation theorems, so mixed-prefix fuel and accumulator accounting is
+parametric in both lengths and introduces no finite bridge matrix.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
