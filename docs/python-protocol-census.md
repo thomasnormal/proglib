@@ -1028,6 +1028,12 @@ the heap lookup, conversion, key-error, timeout, and refusal outcomes while
 threading the prefix accumulator and fuel exactly once; the token parser is
 still consumed through its own equation theorem.
 
+`Monadic.strFormatMappingWalk_escaped_percent_then_token` provides the matching
+composition for any run of escaped-percent pairs before a mapping token.  It
+threads the literal percent output into the token branch and preserves all of
+the same heap and conversion outcomes, using the existing continuation and
+token theorems rather than another parser or fixed-count case.
+
 `Monadic.strFormatMappingWalk_escaped_percent_step` supplies the matching
 escaped-percent step: one fuel unit is consumed and `"%%"` appends a literal
 percent before continuing.  Mapping-token and conversion prefixes remain
