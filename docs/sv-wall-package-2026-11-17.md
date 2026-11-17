@@ -283,6 +283,12 @@ claimed. Its affected-module build passes; the broad dependent build reaches
 lead-owned SeqCycle/function proofs, with the first refusal lines captured in
 the gate log.
 
+Current-pin port-connection-target receipt (2026-11-17): the faithful structured
+fixture reports `PortConnection:target / parsePConn / hwif_out`, then the
+independent `VariableSymbol:type` and E boundaries. Xcelium 24.03-s004 matches
+all four x/z rows; Icarus cannot elaborate the unpacked-struct source, so no
+Icarus oracle result is claimed. The real-design present=6 count is unchanged.
+
 The pinned CV32E40P v1.0.1 handoff reaches a retained `BreakStatement` inside
 an edge-process loop at `rtl/riscv_hwloop_controller.sv:90` and
 `rtl/riscv_fetch_fifo.sv:157`. This is routed to ls-sv2 as its generic
