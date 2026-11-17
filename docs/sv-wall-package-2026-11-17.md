@@ -318,3 +318,9 @@ Public master is now `fdfbc6b06`; the intervening SV change records the
 CV32E40P break-wall evidence only. The measured break rows remain
 `x, x, 0, 0, 1` on both pinned simulators, and the retained envelope refusal
 remains unchanged. No real-design count transition is claimed.
+
+CURRENT HEAD CORRECTION — 2026-11-17T10:55Z
+
+Public master is now `ef58c13a0`; the intervening SV change updates
+wall-package head documentation only. The CV32E40P break evidence and refusal
+boundary are unchanged, and no real-design count transition is claimed.
