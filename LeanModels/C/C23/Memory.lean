@@ -1662,6 +1662,18 @@ theorem reallocAt_null_placement_lookup (m : Mem) (size address : Nat) (h : size
   simpa [mallocAt, alloc] using
     (allocAt_placement_lookup m .allocated size none address)
 
+@[simp] theorem reallocAt_null_placement_irrel (m : Mem) (size address₁ address₂ : Nat)
+    (h : size ≠ 0) :
+    (reallocAt m Ptr.null size address₁).map
+        (fun r => (r.2.obj, r.2.off, r.2.bound)) =
+      (reallocAt m Ptr.null size address₂).map
+        (fun r => (r.2.obj, r.2.off, r.2.bound)) := by
+  rw [reallocAt_null m size address₁ h, reallocAt_null m size address₂ h]
+  simp only [Except.map, Except.ok.injEq]
+  have hs := mallocAt_placement_irrel m size address₁ address₂
+  rcases hs with ⟨ho, hoff, hbound⟩
+  simp [ho, hoff, hbound]
+
 theorem allocZeroedAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
     (ty : Option CType) (address : Nat) (q : ObjId)
     (hq : q ≠ m.objs.length) :
