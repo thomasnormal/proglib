@@ -1591,6 +1591,18 @@ theorem allocZeroedAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
   rw [placementSet_find]
   rfl
 
+theorem mallocAt_placement_lookup (m : Mem) (size address : Nat) :
+    (m.mallocAt size address).1.placement?
+        (m.alloc .allocated size none).2 = some address := by
+  simpa [mallocAt] using
+    (allocAt_placement_lookup m .allocated size none address)
+
+theorem callocAt_placement_lookup (m : Mem) (n size address : Nat) :
+    (m.callocAt n size address).1.placement?
+        (m.allocZeroed .allocated (n * size) none).2 = some address := by
+  simpa [callocAt] using
+    (allocZeroedAt_placement_lookup m .allocated (n * size) none address)
+
 theorem allocZeroedAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
     (ty : Option CType) (address : Nat) (q : ObjId)
     (hq : q ≠ m.objs.length) :
