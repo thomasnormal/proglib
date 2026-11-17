@@ -656,3 +656,13 @@ interface-instance boundary and emits no distinct interface-port refusal. The
 same four Xcelium 24.03-s004 rows and Icarus syntax limitation recorded for
 the fixture therefore apply; no separate ordinary result or interface-port
 semantics is claimed.
+
+## Urgent interface-port-connection wall remeasurement
+
+The urgent interface-port-connection row is distinct in the same
+`interface_repro.sv` fixture: approved extraction retains
+`PortConnection:InterfacePortSymbol`, and ordinary E emits
+`parsePConn: <interface port connection>` before the interface-instance E
+boundary. The four Xcelium 24.03-s004 x/z rows and Icarus syntax limitation
+remain as recorded for this fixture. No interface connection lowering or
+semantic admission is added.
