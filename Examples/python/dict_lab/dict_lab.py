@@ -972,3 +972,8 @@ def del_list_bad_index(a):
     xs = [a]
     del xs["x"]
     return 0
+
+
+def not_callable_list():
+    values = [1]
+    return values()

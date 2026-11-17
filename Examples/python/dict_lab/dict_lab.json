@@ -6,7 +6,7 @@
     "version": "3.9.25"
   },
   "source_file": "Examples/python/dict_lab/dict_lab.py",
-  "source_sha256": "1020990ff8854303e20e1c5cbf6c106f9bf0d242f71a59f51949c7982cacf415",
+  "source_sha256": "8e2969022f2536328b30ecc6491dd4efead1c1874c187cccfcaf26fb659b51f1",
   "module": {
     "kind": "Module",
     "body": [
@@ -26784,6 +26784,97 @@
                 "type": "int",
                 "repr": "0"
               }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 977,
+          "col_offset": 0,
+          "end_lineno": 979,
+          "end_col_offset": 19
+        },
+        "name": "not_callable_list",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 978,
+              "col_offset": 4,
+              "end_lineno": 978,
+              "end_col_offset": 16
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 978,
+                  "col_offset": 4,
+                  "end_lineno": 978,
+                  "end_col_offset": 10
+                },
+                "id": "values"
+              }
+            ],
+            "value": {
+              "kind": "List",
+              "span": {
+                "lineno": 978,
+                "col_offset": 13,
+                "end_lineno": 978,
+                "end_col_offset": 16
+              },
+              "elts": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 978,
+                    "col_offset": 14,
+                    "end_lineno": 978,
+                    "end_col_offset": 15
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 979,
+              "col_offset": 4,
+              "end_lineno": 979,
+              "end_col_offset": 19
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 979,
+                "col_offset": 11,
+                "end_lineno": 979,
+                "end_col_offset": 19
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 979,
+                  "col_offset": 11,
+                  "end_lineno": 979,
+                  "end_col_offset": 17
+                },
+                "id": "values"
+              },
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
             }
           }
         ]

@@ -9,57 +9,35 @@ RUNNER rows). A survey row has one observed first wall, so the counts below are
 presence counts, not causal flip promises. The JSON artifacts retain the full
 file lists and every failing row.
 
-## 1. Object memory and layout
+The owner-selected build order is: (1) small-step machine and program logic,
+(2) scopes/names/functions as values with a minimal object core, (3) the
+external registry, (4) iteration, (5) exceptions as objects, (6) the full
+object model, (7) containers, (8) modules, and (9) numbers on shared
+SoftFloat. The sections below use that order; the current survey families are
+mapped into it rather than treated as independent wall priorities.
 
-**Members.** The heap `+` wall (`__future__.py`), list `.extend`
-(`unittest.py`), missing `frozenset` (`keyword.py`), missing `globals`
-(`token.py`), and the manifest's heap-backed container partial rows.
+## 1. Small-step machine and program logic
 
-**One mechanism.** A typed heap object layout with a single protocol table for
-allocation, lookup, mutation, iteration, and builtins. Operations take an
-explicit world and return a classified result; no builtin-specific fake value
-is permitted.
+**Members.** Every admitted and refused construct depends on this control
+kernel; the current generator frames are the clearest existing small-step
+island. The target is one transition system with labelled events and explicit
+choice points, with the runner derived from it.
 
-**Today.** The trunk heap model is in `LeanModels/Python/Runtime.lean` and
-`Semantics.lean` (`Heap`, `heapGet`, `heapSet`, `heapAppend`, `heapPop`,
-dict/set workers). The monadic evaluator mirrors these in
-`LeanModels/Python/Monadic/Eval.lean`.
+**One mechanism.** A small-step machine over the approved CPython AST
+envelope, frame stack, continuations, heap, event trace, and choice record;
+program logic rules reason about its transitions.
 
-**Missing and debt.** There is no common layout for all container protocols,
-so `heap-plus`, `.extend`, `frozenset`, and `globals` are separate refusal
-leaves. The builtin arms and concrete heap witnesses are debt to replace with
-the one table. This family depends on module/name resolution and callable
-argument binding before a heap operation can be reached. The survey contains
-five named first-wall files and additional partial manifest modules; no joint
-flip count is claimed until those dependencies are run together.
+**Today.** `Runtime.lean` has `Run`, `RFlow`, worlds, and generator frames;
+`Semantics.lean` and `Monadic/Eval.lean` are deterministic big-step control
+layers; `Obs.lean`/`PayloadBlind.lean` are fuel proof bundles.
 
-## 2. Module loading and name binding
+**Missing and debt.** There is no event trace or choice parameter, and the
+two control layers duplicate the transition work. Their fuel knots, generator
+island, and proof-specific adequacy bridges are debt to replace with the one
+machine. The approved CPython AST remains the theorem input by owner decision;
+source text, lexing, and parsing are outside this theorem boundary.
 
-**Members.** `Import` is present in 150 stdlib files (807 static nodes),
-`ImportFrom` in 239 nodes, and definition-order is the first wall in 34
-manifest modules. The manifest examples include `_aix_support`, `base64`,
-`copyreg`, `email.parser`, `heapq`, and `linecache`; the exact list is in the
-survey artifact. Accelerator imports (`bisect.py`, `opcode.py`, `stat.py`,
-and `decimal.py`) are the external-boundary subfamily below.
-
-**One mechanism.** Ordered module loading with an explicit module namespace,
-export table, import cache, and source-order function/class binding. Resolution
-must distinguish a live local, a module global, a builtin, and an absent name.
-
-**Today.** `ModuleInit.lean`, `Semantics.lean` (`moduleGlobals`, `evalOpen`,
-`findFunction`), and `Monadic/Eval.lean` implement separate pieces. The
-protocol census records shared `lookupG` but not one complete resolver.
-
-**Missing and debt.** `Import`/`ImportFrom` refusal branches, the
-position-independent function table, and the unresolved combined local/global
-resolver are special cases. They should be replaced by the ordered module
-loader. This family depends on object layout (module objects and import cache),
-external-library declarations, and class construction. The current survey
-has 48 stdlib files whose first observed wall is import and 34 manifest files
-whose body reaches definition-order; the number that becomes MATCH only after
-all four dependencies is not measured and must not be inferred from `sole`.
-
-## 3. Classes, callables, and protocols
+## 2. Scopes, names, functions, and minimal object core
 
 **Members.** Class creation is present in 102 stdlib files and is the first
 wall in 63 manifest modules. Lambda/first-class callable forms occur in the
@@ -82,7 +60,32 @@ binding, object layout, and exception unwinding. The measured class wall has
 62 modules, 2,015 driven calls, and 183 matching calls, but zero causal
 function flips; those are observations, not the work order.
 
-## 4. Collections, iteration, and comprehensions
+## 3. Library functions and accelerator boundaries
+
+**Members.** `ImportFrom:accelerator-outside-domain` occurs in `bisect.py`,
+`opcode.py`, and `stat.py`; `ImportFrom:accelerator-unmeasured` occurs in
+`decimal.py`. The manifest has two accelerator-outside rows, one
+accelerator-unmeasured row, and six currently verified public-function
+modules in the class-wall slice. The runner's 123-row observer difference is
+also part of this boundary.
+
+**One mechanism.** A version-pinned external specification registry: each
+permitted library function has a typed contract, CPython provenance, and a
+single implementation/refinement boundary shared by the trunk and monadic
+runner. Unregistered C behavior refuses loudly.
+
+**Today.** `Monadic/Spec.lean` contains two mvcgen gates; `Main.lean`,
+`tools/leanpy`, and the library survey drive external calls; no general
+registry feeds the trunk proof surface.
+
+**Missing and debt.** Accelerator refusal strings, builtin-specific tables,
+runner-only admissions, and concrete vendored witnesses are special cases.
+They should become registry entries with differential rows and, where useful,
+proofs. This family depends on module loading, object layout, numeric
+semantics, and callable protocols. Its joint MATCH count is intentionally
+unclaimed: a body can match while an accelerator call remains partial.
+
+## 4. Iterators, generators, and comprehensions
 
 **Members.** The stdlib static inventory contains Set display (63 nodes),
 Delete (21), YieldFrom (32), ListComp (10), SetComp (8), Starred display (7),
@@ -130,28 +133,74 @@ machine. This family depends on callable/class protocols and object layout;
 its only direct stdlib first-wall count is one, while its dependency surface
 is spread through the manifest's partial rows.
 
-## 6. Parser and AST admission
+## 6. Full object model: memory and layout
 
-**Members.** The stdlib static inventory contains AsyncFunctionDef (18 nodes)
-and AnnAssign without a value (9 nodes), alongside parser rejects reported by
-extraction. The manifest's unsupported bodies also include constructs that
-never reach a semantic worker.
+**Members.** The heap `+` wall (`__future__.py`), list `.extend`
+(`unittest.py`), missing `frozenset` (`keyword.py`), missing `globals`
+(`token.py`), and the manifest's heap-backed container partial rows.
 
-**One mechanism.** The approved CPython `ast` envelope must preserve every
-node and its source order; an unsupported node is a typed refusal carrying its
-node kind and location. No source-text reparse, lowering, or synthetic
-construct is allowed.
+**One mechanism.** A typed heap object layout with a single protocol table for
+allocation, lookup, mutation, iteration, and builtins. Operations take an
+explicit world and return a classified result; no builtin-specific fake value
+is permitted.
 
-**Today.** `extractors/python/extract.py` is the CPython AST frontend;
-`LeanModels/Python/Ast.lean` and `Json.lean` define the envelope and loader.
+**Today.** The trunk heap model is in `LeanModels/Python/Runtime.lean` and
+`Semantics.lean` (`Heap`, `heapGet`, `heapSet`, `heapAppend`, `heapPop`,
+dict/set workers). The monadic evaluator mirrors these in
+`LeanModels/Python/Monadic/Eval.lean`.
 
-**Missing and debt.** Async functions, annotation-without-value, and each
-parser-reject arm are separate admission tables. The tables should become one
-schema-driven node coverage check and loud semantic boundary. This family is
-a prerequisite for all other families; therefore its joint MATCH count is
-zero until the node is admitted and its defining family is implemented.
+**Missing and debt.** There is no common layout for all container protocols,
+so `heap-plus`, `.extend`, `frozenset`, and `globals` are separate refusal
+leaves. The builtin arms and concrete heap witnesses are debt to replace with
+the one table. This family depends on module/name resolution and callable
+argument binding before a heap operation can be reached. The survey contains
+five named first-wall files and additional partial manifest modules; no joint
+flip count is claimed until those dependencies are run together.
 
-## 7. Numeric and floating-point semantics
+## 7. Containers and views
+
+**Members.** Lists, dictionaries, sets, views, tuple/list displays, deletion,
+unpacking, and the heap-plus/extend/frozenset walls named in family 6.
+
+**One mechanism.** One abstract container protocol over the object layout and
+iterator cursor, with mutation, hashing, equality, view liveness, and order
+choices explicit in the implementation record.
+
+**Today.** `Runtime.lean` stores list/dict/set/view objects; `Semantics.lean`
+and `Monadic/Eval.lean` have separate heap workers and method switches.
+
+**Missing and debt.** `heap-plus`, `.extend`, `frozenset`, set-order tables,
+view-specific gates, and synthetic `<dictkeys>`/delete builtins are special
+cases. The container protocol deletes those admission checks and ingestion
+rewrites once it exists. It depends on families 1, 2, 4, and 6.
+
+## 8. Modules, loading, and name binding
+
+**Members.** `Import` is present in 150 stdlib files (807 static nodes),
+`ImportFrom` in 239 nodes, and definition-order is the first wall in 34
+manifest modules. The manifest examples include `_aix_support`, `base64`,
+`copyreg`, `email.parser`, `heapq`, and `linecache`; the exact list is in the
+survey artifact. Accelerator imports (`bisect.py`, `opcode.py`, `stat.py`,
+and `decimal.py`) are the external-boundary subfamily below.
+
+**One mechanism.** Ordered module loading with an explicit module namespace,
+export table, import cache, and source-order function/class binding. Resolution
+must distinguish a live local, a module global, a builtin, and an absent name.
+
+**Today.** `ModuleInit.lean`, `Semantics.lean` (`moduleGlobals`, `evalOpen`,
+`findFunction`), and `Monadic/Eval.lean` implement separate pieces. The
+protocol census records shared `lookupG` but not one complete resolver.
+
+**Missing and debt.** `Import`/`ImportFrom` refusal branches, the
+position-independent function table, and the unresolved combined local/global
+resolver are special cases. They should be replaced by the ordered module
+loader. This family depends on object layout (module objects and import cache),
+external-library declarations, and class construction. The current survey
+has 48 stdlib files whose first observed wall is import and 34 manifest files
+whose body reaches definition-order; the number that becomes MATCH only after
+all four dependencies is not measured and must not be inferred from `sole`.
+
+## 9. Numeric and floating-point semantics
 
 **Members.** The direct stdlib heap-binary-plus refusal is `__future__.py`;
 manifest rows also contain float, power, conversion, and mixed numeric partial
@@ -170,31 +219,6 @@ edge cases, and platform-dependent library math are special-case arms. They
 should be replaced by the numeric tower plus explicit external declarations.
 This family depends on object layout and callable protocol; no causal family
 flip is claimed by the current survey.
-
-## 8. Library functions and accelerator boundaries
-
-**Members.** `ImportFrom:accelerator-outside-domain` occurs in `bisect.py`,
-`opcode.py`, and `stat.py`; `ImportFrom:accelerator-unmeasured` occurs in
-`decimal.py`. The manifest has two accelerator-outside rows, one
-accelerator-unmeasured row, and six currently verified public-function
-modules in the class-wall slice. The runner's 123-row observer difference is
-also part of this boundary.
-
-**One mechanism.** A version-pinned external specification registry: each
-permitted library function has a typed contract, CPython provenance, and a
-single implementation/refinement boundary shared by the trunk and monadic
-runner. Unregistered C behavior refuses loudly.
-
-**Today.** `Monadic/Spec.lean` contains two mvcgen gates; `Main.lean`,
-`tools/leanpy`, and the library survey drive external calls; no general
-registry feeds the trunk proof surface.
-
-**Missing and debt.** Accelerator refusal strings, builtin-specific tables,
-runner-only admissions, and concrete vendored witnesses are special cases.
-They should become registry entries with differential rows and, where useful,
-proofs. This family depends on module loading, object layout, numeric
-semantics, and callable protocols. Its joint MATCH count is intentionally
-unclaimed: a body can match while an accelerator call remains partial.
 
 ## 4. Two interpreters: deletion cost
 
@@ -235,13 +259,12 @@ because it is an owner decision. I also confirm that scope, object layout,
 callable dispatch, iterators, exceptions, and external specifications are the
 right build families. I correct the review's proof-file and declaration counts
 with the current checkout above, and leave its larger ten-family breakdown as a
-refinement of this eight-family map rather than claiming that its estimated
+refinement of this nine-family map rather than claiming that its estimated
 machine size has been measured. **OBJECTION module system:** the review's
 description of `initFoldLive` continuing after a failed top-level statement is
 a current semantic debt and a likely wrong answer, not a behavior the new
-definition may preserve. **OBJECTION parser:** the approved CPython AST is the
-current frontend contract, but it cannot be the long-term language definition
-for ROADMAP 9.1; a grammar-independent definition is a later milestone.
+definition may preserve. The approved CPython AST is the theorem input by
+owner decision; source text, lexing, and parsing are outside the theorem.
 
 ### WHERE THE SPEC COPIES CPYTHON
 

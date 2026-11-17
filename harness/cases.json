@@ -1791,5 +1791,6 @@
   {"file": "Examples/python/dictcomp_lab/dictcomp_lab.py", "function": "mutate_iterable", "args": [[]], "expect": "unsupported", "note": "DictComp iteration observes list mutation with CPython's live iterator."},
   {"file": "Examples/python/dictcomp_lab/dictcomp_lab.py", "function": "empty_comp", "args": [[]], "expect": "unsupported", "note": "The result dict is outside the canonical returned-value tier."},
   {"file": "Examples/python/dictcomp_lab/dictcomp_lab.py", "function": "exception_key", "args": [[]], "expect": "unsupported", "note": "Key evaluation raises before value evaluation."},
-  {"file": "Examples/python/dictcomp_lab/dictcomp_lab.py", "function": "exception_value", "args": [[]], "expect": "unsupported", "note": "Value evaluation raises after key evaluation."}
+  {"file": "Examples/python/dictcomp_lab/dictcomp_lab.py", "function": "exception_value", "args": [[]], "expect": "unsupported", "note": "Value evaluation raises after key evaluation."},
+  {"file": "Examples/python/dict_lab/dict_lab.py", "function": "not_callable_list", "args": [[]], "expect": "match", "note": "CPython reports the receiver type in the non-callable error message."}
 ]
