@@ -133,6 +133,15 @@ returned `Res.ok ["0", "0", "0", "1"]`. This independently confirms the
 recorded Icarus/Xcelium child-hierarchy result; the real-design table still
 needs its own count refresh.
 
+Current-pin child-instance wall receipt (2026-11-17): the canonical-E hierarchy
+checker reports four rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004,
+and its ordinary census has zero refusals. The intentionally unresolved-child
+fixture remains a loud parser/admission boundary with
+`UninstantiatedDefSymbol:UninstantiatedDef`, `SlangError:UnknownModule`, and
+the enclosing `Instantiation:E:unsupported`; no simulator result is claimed
+for that source. The real-design present=4 count is unchanged pending direct
+source-overlay remeasurement.
+
 The older generated-child wrong-answer audit is closed by the same hierarchy
 landing. `generate_unbound_parameter_canonical_e/check.py` now reports eight
 rows matching E, Icarus Verilog 13.0, and Xcelium 24.03-s004; the expected
