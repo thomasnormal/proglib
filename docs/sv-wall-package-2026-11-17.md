@@ -686,3 +686,11 @@ direct canonical-E receipt matches eight separate, coincident, stopped, and
 x/z clock rows on Icarus Verilog 13.0 and Xcelium 24.03-s004 without selecting
 an interleaving. No multi-clock scheduler or hardware clock-domain claim is
 added.
+
+## Urgent delay-control wall remeasurement
+
+The urgent `event_always_repro.sv` fixture retains `TimedStatement:DelayControl`
+for `#1 q <= d;` in approved extraction and ordinary census at `parsePStmt`.
+Its four-row receipt matches Icarus Verilog 13.0 and Xcelium 24.03-s004. The
+zero-delay canonical-E route keeps this timing-control boundary loud; no delay
+approximation or scheduler timing semantics is added.
