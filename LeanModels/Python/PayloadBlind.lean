@@ -3395,6 +3395,13 @@ abbrev PBListCompStep (fuel : Nat) : Prop :=
     PBF pa o₀ o (evalListCompStep m fuel st saved elt target ifs xs acc)
       (evalListCompStep m fuel (st.swapAt pa o) saved elt target ifs xs acc)
 
+abbrev PBDictCompStep (fuel : Nat) : Prop :=
+  ∀ (m : Module) (st : FrameState) (saved : Env) (key value target : Expr)
+    (ifs : List Expr) (xs : List RVal) (acc : List (RVal × RVal)),
+    Heap.get? st.world.heap pa = some o₀ →
+    PBF pa o₀ o (evalDictCompStep m fuel st saved key value target ifs xs acc)
+      (evalDictCompStep m fuel (st.swapAt pa o) saved key value target ifs xs acc)
+
 abbrev PBExecAttrCall (fuel : Nat) : Prop :=
   ∀ (m : Module) (st : FrameState) (b : Addr) (attr : String) (args : List Expr),
     Heap.get? st.world.heap pa = some o₀ →
@@ -3561,6 +3568,55 @@ theorem pbListCompStep_succ (htwin : PayloadTwin o₀ o) (ih : PBAll pa o₀ o f
       | true =>
           refine PBF.bind (ihE m s2 elt hs2) fun s3 v _ hs3 => ?_
           exact ihLCStep m s3 saved elt target ifs rest (v :: acc) hs3
+
+theorem pbDictCompStep_succ (htwin : PayloadTwin o₀ o)
+    (ih : PBAll pa o₀ o fuel) (ihD : PBDictCompStep pa o₀ o fuel) :
+    PBDictCompStep pa o₀ o (fuel + 1) := by
+  obtain ⟨ihE, -, -, -, -, ihSs, -, -, -, -, -, -, -, -, -, -, -, -, ihLCIfs, ihLCStep⟩ := ih
+  intro m st saved key value target ifs xs acc hslot
+  cases xs with
+  | nil =>
+      simp only [evalDictCompStep, FrameState.swapAt_world, World.swapAt_heap,
+        Heap.size_swapAt]
+      refine ⟨fun st' v' h => ?_, fun st' e h => ?_⟩
+      · injection h with hst hv
+        subst hst; subst hv
+        refine ⟨?_, ?_⟩
+        · have hne : pa ≠ st.world.heap.size := Nat.ne_of_lt (Heap.lt_size_of_get? hslot)
+          rw [Heap.get?_eq_getElem?, Array.getElem?_push, if_neg hne,
+            ← Heap.get?_eq_getElem?]
+          exact hslot
+        · simp only [FrameState.swapAt, World.swapAt]
+          simp [Heap.swapAt_push (Heap.lt_size_of_get? hslot), Heap.size_swapAt]
+      · exact absurd h (by simp)
+  | cons x rest =>
+      simp only [evalDictCompStep]
+      have hassign : PBF pa o₀ o
+          (Run.liftRes st (assignToH st.world.heap st.locals target x))
+          (Run.liftRes (st.swapAt pa o)
+            (assignToH (Heap.swapAt st.world.heap pa o) st.locals target x)) := by
+        rw [assignToH_swapAt hslot htwin]
+        exact PBF.liftRes hslot _
+      refine PBF.bind hassign fun s env _ hs => ?_
+      refine PBF.bind (ihLCIfs m { s with locals := env } ifs hs)
+        fun s2 keep _ hs2 => ?_
+      cases keep with
+      | false => exact ihD m s2 saved key value target ifs rest acc hs2
+      | true =>
+          refine PBF.bind (ihE m s2 key hs2) fun s3 kv _ hs3 => ?_
+          refine PBF.bind (ihE m s3 value hs3) fun s4 vv _ hs4 => ?_
+          by_cases hh : hashableKey kv
+          · simp only [hh, ↓reduceIte]
+            exact ihD m s4 saved key value target ifs rest (dictStore acc kv vv).1 hs4
+          · simp only [hh, ↓reduceIte]
+            simp only [FrameState.swapAt_world, World.swapAt_heap,
+              keyRefusal_swapAt hs4 htwin]
+            cases hr : keyRefusal s4.world.heap kv with
+            | ok u =>
+                exact ihD m s4 saved key value target ifs rest (dictStore acc kv vv).1 hs4
+            | exn e => exact PBF.exn hs4 _
+            | timeout => exact PBF.timeout
+            | unsupported msg => exact PBF.unsupported
 
 /-- Argument lists: `evalExpr` then recurse, cons the values. -/
 theorem pbEvalExprs_succ (ih : PBAll pa o₀ o fuel) : PBEvalExprs pa o₀ o (fuel + 1) := by
