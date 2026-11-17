@@ -350,6 +350,12 @@ reports four rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004, while
 the ordinary census retains the exact `TimedStatement:DelayControl` refusal.
 The zero-delay E route makes no timing approximation.
 
+Current-pin delay-control receipt (2026-11-17): the clean-room ordinary census
+retains `TimedStatement:DelayControl / parsePStmt / #1 q <= d;`; its four x/z
+rows match Icarus Verilog 13.0 and Xcelium 24.03-s004. The real-design family
+remains present=5, sole=0 and predicted because ordinary admission reaches the
+retained event-process boundary first; no timing meaning is claimed.
+
 The explicit event-control wall receipt is current:
 `event_control_wall/check.py` reports four rows matching Icarus Verilog 13.0
 and Xcelium 24.03-s004, while the ordinary census retains the exact
