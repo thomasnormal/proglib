@@ -1750,7 +1750,20 @@ theorem reallocAt_null_loadBytes_placement_irrel
         (fun r => r.1.loadBytes r.2 n) := by
   rw [reallocAt_null m size address₁ h, reallocAt_null m size address₂ h]
   simp only [Except.map, Except.ok.injEq]
-  simp [mallocAt, loadBytes, resolve, get?, resolve_address_irrel]
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt, loadBytes,
+    resolve, get?, resolve_address_irrel]
+
+theorem reallocAt_null_storeBytes_placement_irrel
+    (m : Mem) (size address₁ address₂ : Nat) (bs : List CByte)
+    (h : size ≠ 0) :
+    (reallocAt m Ptr.null size address₁).map
+        (fun r => (r.1.loadBytes r.2 bs.length, r.1.objs)) =
+      (reallocAt m Ptr.null size address₂).map
+        (fun r => (r.1.loadBytes r.2 bs.length, r.1.objs)) := by
+  rw [reallocAt_null m size address₁ h, reallocAt_null m size address₂ h]
+  simp only [Except.map, Except.ok.injEq]
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt, loadBytes,
+    resolve, get?, resolve_address_irrel]
 
 theorem allocZeroedAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
     (ty : Option CType) (address : Nat) (q : ObjId)
