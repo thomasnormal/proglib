@@ -513,3 +513,12 @@ Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on the five measured rows:
 all-x, `a=0`, `a=1`, `a=x`, and `a=z` produce matching q/r/z values in each
 case. The receipt claims no source-order or preemption resolution; the loud
 fixed-point boundary remains sound.
+
+## Array-index wall remeasurement
+
+The ranked `array_index.sv` clean-room row is already admitted on the current
+tree. Approved extraction and the ordinary census both report zero refusals,
+and the canonical-E batch receipt matches Icarus Verilog 13.0 and Xcelium
+24.03-s004 on all eight cycles (`xxxxxxxx` throughout because `values[0:3]`
+has no initializer). This is a cleared/stale ranking row: no semantic change,
+no array-index lowering, and no new real-design count transition is claimed.
