@@ -196,3 +196,8 @@ Packed-shift receipts are current: `packed_shift_canonical_e` and
 `packed_shift_mem_e` each match eight rows on Icarus Verilog 13.0 and Xcelium
 24.03-s004; `packed_shift_register_canonical_e` regenerates byte-identically
 and matches 18 rows across N=4/N=8, including first, x, and z clock/data cases.
+
+The net/metadata receipts are current: `memory_metadata_canonical_e` matches
+two rows on both simulators, `net_z_output_port_canonical_e` matches two
+undriven-output rows, and `net_z_scalar_canonical_e` matches two undriven-net
+rows including a bit select.
