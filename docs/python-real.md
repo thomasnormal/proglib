@@ -80,6 +80,14 @@ bundle and the trunk/monadic agreement row remain outstanding. No local
 shortcut or theorem weakening is sound. The extractor remains loud, so no
 semantic flip is claimed before those remaining bundles are built.
 
+The current admission boundary is now exact: the trunk worker, fuel proof,
+standalone `PBAllWithDict`, and monadic `Kont.dictComp` continuation all build.
+The remaining theorem is the full `pbEvalExpr_succ` arm with a
+`PBAllWithDict` hypothesis; changing the old `PBAll` product in place breaks
+every established right-associated projection. The extractor therefore still
+refuses DictComp, and no differential row is changed until that product
+integration is completed.
+
 The priced `PayloadBlind` sub-item is the theorem
 `PB-evalDictCompStep`: for every `PayloadTwin o₀ o`, every frame whose heap
 slot `pa` contains `o₀`, and every key/value/target expression, the two
