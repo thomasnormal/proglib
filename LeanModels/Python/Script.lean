@@ -157,6 +157,9 @@ mutual
     | .listComp e t it ifs wb _ =>
       e.allNames ++ t.allNames ++ it.allNames ++ Expr.allNamesList ifs.toList
         ++ Expr.allNamesKw wb.toList
+    | .dictComp k v t it ifs _ =>
+      k.allNames ++ v.allNames ++ t.allNames ++ it.allNames
+        ++ Expr.allNamesList ifs.toList
     | .unsupported .. => []
 
   /-- Elementwise `Expr.allNames`. -/

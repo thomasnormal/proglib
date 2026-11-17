@@ -745,6 +745,21 @@ def convert_expr(node):
         }
 
     if isinstance(node, ast.DictComp):
+        gens = node.generators
+        if len(gens) == 1 and not getattr(gens[0], "is_async", 0):
+            g = gens[0]
+            # First admitted slice: one clause and no filters.  The AST node
+            # stays direct; multi-clause and filtered forms remain loud.
+            if not g.ifs:
+                return {
+                    "kind": "DictComp",
+                    "span": span(node),
+                    "key": convert_expr(node.key),
+                    "value": convert_expr(node.value),
+                    "target": convert_expr(g.target),
+                    "iter": _in_enclosing_scope(g.iter),
+                    "ifs": [],
+                }
         return unsupported(node, "DictComp")
 
     if isinstance(node, ast.SetComp):

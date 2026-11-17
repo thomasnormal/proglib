@@ -287,7 +287,8 @@ def KontLe (K K' : Kont) : Prop :=
   (∀ a, K.drainIter a ⊑ₚ K'.drainIter a) ∧
   (∀ a b, K.anyAllIter a b ⊑ₚ K'.anyAllIter a b) ∧
   (∀ body, K.withBody body ⊑ₚ K'.withBody body) ∧
-  (∀ c, K.listComp c ⊑ₚ K'.listComp c)
+  (∀ c, K.listComp c ⊑ₚ K'.listComp c) ∧
+  (∀ c, K.dictComp c ⊑ₚ K'.dictComp c)
 
 /-! ## §1 THE PRE-BLOCK HELPERS — in dependency order -/
 
@@ -373,7 +374,8 @@ theorem evalOpen_monoAll (K K' : Kont) (hK : KontLe K K') (m : Module) :
   have hCP := applyCallPlan_mono K K' hK m
   have hAP := applyAttrPlan_mono K K' hK
   obtain ⟨hfuel, hcall, hcallClo, hdictItems, hkwArgs, hwhile, hforSeq, hforList,
-          hforDict, hstepIter, hexecGen, hforGen, hdrain, hanyAll, hwithBody, hlistComp⟩ := hK
+          hforDict, hstepIter, hexecGen, hforGen, hdrain, hanyAll, hwithBody, hlistComp,
+          hdictComp⟩ := hK
   apply evalOpen.mutual_induct
     (motive_1 := fun e => evalOpen K m e ⊑ₚ evalOpen K' m e)
     (motive_2 := fun es => evalOpenList K m es ⊑ₚ evalOpenList K' m es)
@@ -402,6 +404,7 @@ theorem evalOpen_monoAll (K K' : Kont) (hK : KontLe K K') (m : Module) :
       | exact hdrain _
       | exact hanyAll _ _
       | exact hlistComp _
+      | exact hdictComp _
       | exact truthyM_mono _
       | exact PyLe.liftRes (evalCompareOpH_mono hfuel)
       | exact PyLe.map (g := flattenStarCallArgs) assumption
@@ -467,7 +470,7 @@ theorem listCompAt_mono (K K' : Kont) (hK : KontLe K K') (m : Module) :
     ∀ c, listCompAt K m c ⊑ₚ listCompAt K' m c := by
   have hE := evalOpen_mono K K' hK m
   have hI := listCompIfs_mono K K' hK m
-  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hLC⟩ := hK
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hLC, _⟩ := hK
   intro c
   induction hrest : c.rest with
   | nil => simp [listCompAt, hrest]; exact PyLe.refl' _
@@ -487,7 +490,7 @@ theorem listCompReqAt_mono (K K' : Kont) (hK : KontLe K K') (m : Module) :
   have hI := listCompIfs_mono K K' hK m
   have hA := listCompAt_mono K K' hK m
   have hIV := iterValues_mono K K' hK m "list" false
-  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hLC⟩ := hK
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hLC, _⟩ := hK
   intro req
   cases req with
   | step c => exact hA c
@@ -496,6 +499,42 @@ theorem listCompReqAt_mono (K K' : Kont) (hK : KontLe K K') (m : Module) :
       · simp [listCompReqAt, hw]
         mono_with (first | exact hE _ | exact hIV _ | exact hA _ | exact hLC _ | assumption)
       · simp [listCompReqAt, hw]
+        exact PyLe.refl' _
+
+set_option maxRecDepth 8000 in
+theorem dictCompAt_mono (K K' : Kont) (hK : KontLe K K') (m : Module) :
+    ∀ c, dictCompAt K m c ⊑ₚ dictCompAt K' m c := by
+  have hE := evalOpen_mono K K' hK m
+  have hI := listCompIfs_mono K K' hK m
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hDC⟩ := hK
+  intro c
+  induction hrest : c.rest with
+  | nil => simp [dictCompAt, hrest]; exact PyLe.refl' _
+  | cons v rest ih =>
+      simp [dictCompAt, hrest]
+      mono_with (first
+        | exact hE _
+        | exact hI _
+        | exact hDC (.step _)
+        | exact ih
+        | assumption)
+
+set_option maxRecDepth 8000 in
+theorem dictCompReqAt_mono (K K' : Kont) (hK : KontLe K K') (m : Module) :
+    ∀ req, dictCompReqAt K m req ⊑ₚ dictCompReqAt K' m req := by
+  have hE := evalOpen_mono K K' hK m
+  have hI := listCompIfs_mono K K' hK m
+  have hA := dictCompAt_mono K K' hK m
+  have hIV := iterValues_mono K K' hK m "dict" false
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hDC⟩ := hK
+  intro req
+  cases req with
+  | step c => exact hA c
+  | start key value target iter ifs =>
+      by_cases hi : ifs.isEmpty
+      · simp [dictCompReqAt, hi]
+        mono_with (first | exact hE _ | exact hIV _ | exact hA _ | exact hDC _ | assumption)
+      · simp [dictCompReqAt, hi]
         exact PyLe.refl' _
 
 /-! ## §3 THE FUEL-FREE STATEMENT HALF -/
@@ -640,7 +679,7 @@ theorem KontLe.bottom (K' : Kont) : KontLe Kont.bottom K' :=
    fun _ => PyLe.exhausted_le _, fun _ => PyLe.exhausted_le _,
    fun _ _ _ => PyLe.exhausted_le _, fun _ => PyLe.exhausted_le _,
    fun _ _ => PyLe.exhausted_le _, fun _ => PyLe.exhausted_le _,
-   fun _ => PyLe.exhausted_le _⟩
+   fun _ => PyLe.exhausted_le _, fun _ => PyLe.exhausted_le _⟩
 
 /-- The uniform leaf closer for every `Kont`-parameterised lemma: the two
 pure-worker seams the fuel BOUND comes through, then the context. `hf` is the
@@ -777,9 +816,10 @@ theorem kontMono (m : Module) : ∀ (f f' : Nat), f ≤ f' → KontLe (kont m f)
       have hAA := anyAllIterAt_mono _ _ IH
       have hE := evalOpen_mono _ _ IH m
       have hEL := execOpenList_mono _ _ IH m
+      have hDC := dictCompReqAt_mono (kont m f) (kont m g) (ih g hk) m
       obtain ⟨hfuel, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _⟩ := IH
       have hLC := listCompReqAt_mono (kont m f) (kont m g) (ih g hk) m
-      refine ⟨hk, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      refine ⟨hk, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
       all_goals intros
       all_goals simp only [kont]
       all_goals try mono_kont hfuel

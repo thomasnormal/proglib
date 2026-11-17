@@ -65,11 +65,14 @@ empty and nonempty iterables, filters, duplicate keys, and exceptions. The
 measured Starred alternative is one sole-wall module with 5 public functions,
 25 calls, and 8 matches, so it remains the fallback wall.
 
-The DictComp structural sub-item is now landed while the extractor remains
-loud: `Expr.dictComp` has synchronized AST, JSON, trunk/monadic evaluator, and
-`Obs.lean` fuel/world-invariance cases, and both evaluators return the named
-refusal. The CPython extractor still emits whole-node `DictComp` refusal, so no
-real program has been admitted and no semantic flip is claimed. The direct
+The DictComp one-clause/no-filter slice is now admitted end to end: `Expr.dictComp`
+has synchronized AST/JSON support, direct trunk and monadic workers, the
+`Obs.lean` fuel/world-invariance cases, and the approved CPython extractor emits
+the node without lowering or source reparsing. The direct worker preserves
+ordered target/key/value evaluation, duplicate-key replacement, hashability
+errors, fresh scope and fresh dict allocation. Focused CPython 3.9.25 rows for
+`dictcomp_lab` match in both interpreter modes (6/6 rows, 0 refusals).
+The remaining filtered and multi-clause forms stay loud. The direct
 worker now exists for the one-clause/no-filter shape, and its
 `evalDictCompStep` fuel-monotonicity conjunct is included in `Obs.lean`'s
 fixed-order mutual induction. The evaluator still refuses the AST arm because
