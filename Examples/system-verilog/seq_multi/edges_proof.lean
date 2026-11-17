@@ -322,6 +322,16 @@ theorem dd_row (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) {E : CoreMemDesign} (h
   simp only [seqE_getElem_zero, ddView, rise, fall]
   rfl
 
+set_option maxHeartbeats 4000000 in
+/-- **One equation set per event** (the instant function at each of the design's two events, from the mirror): from a
+low clock the instant `{posedge clk}` loads `qp` and leaves `qn`; from a high clock `{negedge clk}` loads `qn` and
+leaves `qp`. -/
+theorem dd_ticks (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) {E : CoreMemDesign} (hE : dd.e W = .ok E)
+    (d p n : LVec) (hd : d.width = W) (hp : p.width = W) (hn : n.width = W) (mv : MemV) :
+    E.tick (Instant.rise "clk") (ddView ⟨#[.l0]⟩ d p n, mv) = .ok (ddView ⟨#[.l1]⟩ d d n, mv) ∧
+      E.tick (Instant.fall "clk") (ddView ⟨#[.l1]⟩ d p n, mv) = .ok (ddView ⟨#[.l0]⟩ d p d, mv) := by
+  refine ⟨?_, ?_⟩ <;> simp only [ddView] <;> sv_equations
+
 /-- **The claim**: in every step of a run, `qp` takes the value `d` had before the step when `clk` rose in it, `qn`
 when it fell; each holds otherwise. -/
 def DdClaim (tr : List (SvState × MemV)) : Prop :=
@@ -430,6 +440,7 @@ theorem dd_runs (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : SeqRunsI (dd.e W) f
 #print axioms dd_structure
 #print axioms dd_domains
 #print axioms dd_row
+#print axioms dd_ticks
 #print axioms dd_runs
 
 end Examples.«system-verilog».seq_multi.edges_proof
