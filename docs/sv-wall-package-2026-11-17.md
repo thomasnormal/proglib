@@ -191,3 +191,8 @@ regenerates byte-identically and its five canonical-E rows match Icarus Verilog
 The memory-order receipt is current: `mem_order_e/check.py` passes its MemE
 boundary checks, and both Icarus Verilog 13.0 and Xcelium 24.03-s004 match two
 rows each for `mem_order_e` and `mem_always_comb_e`.
+
+Packed-shift receipts are current: `packed_shift_canonical_e` and
+`packed_shift_mem_e` each match eight rows on Icarus Verilog 13.0 and Xcelium
+24.03-s004; `packed_shift_register_canonical_e` regenerates byte-identically
+and matches 18 rows across N=4/N=8, including first, x, and z clock/data cases.
