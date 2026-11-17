@@ -64,6 +64,16 @@ constructs can therefore land in the monadic definition before the theorem
 surface is re-founded on it; the proof interpreter may refuse programs that
 the runner executes.
 
+The stateful proof splice has two distinct boundaries. `EvalsState.callIn` and
+`PyStmtTriple.callState` in `VC2.lean` accept a `CallsIn` after-world and do
+not require `Module.heapFree`; that is the rule for a nested heap mutation.
+The existing `PyTriple.callsTo*` bridge still targets the public `CallsTo`
+frame theorem and therefore requires heap-free entry geometry. A heapful
+whole-function theorem, such as `rsa_inverse.extended_gcd`, needs a separate
+top-level `PyTriple` to `CallsIn` bridge that accounts for argument thawing and
+the caller's depth. Until that bridge exists, the RSA loop's concrete
+two-interpreter witnesses remain valid while its symbolic proof stays parked.
+
 **How the proof interpreter is checked against CPython.**
 `python3 harness/diff_test.py --proof-interpreter` runs the same
 differential suite through `Semantics.lean`. A refusal there is recorded
