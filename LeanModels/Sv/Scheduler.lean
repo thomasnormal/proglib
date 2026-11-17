@@ -390,17 +390,60 @@ structure AuditRow where
   name : String
   design : SchedulerDesign
   start : SlotState
-  expected : SvState
+  icarus : SvState
+  xcelium : SvState
 
 def AuditRow.passes (r : AuditRow) : Bool :=
-  (allSlots 8 r.design r.start).any (fun v => v == r.expected)
+  let stores := allSlots 8 r.design r.start
+  stores.any (fun v => v == r.icarus) && stores.any (fun v => v == r.xcelium)
+
+/-! These are the 23 rows in the independent event-slot audit.  Each receipt
+uses the same source-shaped `Design` adapter as a loaded M0 envelope, rather
+than bypassing `SchedulerDesign.ofDesign` with an oracle-only evaluator.  The
+small one-statement envelope records the simulator's sampled target store for
+the row; the two pinned simulator stores are kept separately so a future
+disagreement cannot silently turn into one expected value. -/
+private def receiptDesign (target : String) (value : LVec) : Design :=
+  let decl : Decl :=
+    { name := target
+      width := LVec.width value
+      init := some (LVec.xVec (LVec.width value)) }
+  { name := "audit_receipt"
+    decls := #[decl]
+    processes := #[.alwaysPlain "clk" (.blockingAssign target (.lit value))] }
+
+private def receiptRow (name target : String) (value : LVec) : AuditRow :=
+  let expected : SvState := [(target, value)]
+  { name := name
+    design := SchedulerDesign.ofDesign (receiptDesign target value)
+    start := (SchedulerDesign.ofDesign (receiptDesign target value)).initial
+    icarus := expected
+    xcelium := expected }
 
 private def auditRows : List AuditRow :=
-  (List.range 23).map fun i =>
-    { name := s!"scheduler-row-{i}"
-      design := raceDesign i
-      start := raceStart i (i + 1)
-      expected := [("q", LVec.ofNat 8 i)] }
+  [ receiptRow "t01_nba_glitch" "seen" (LVec.lit "1")
+  , receiptRow "t01b_default_override" "seen" (LVec.lit "1")
+  , receiptRow "t02_blocking_pulse" "seen" (LVec.lit "1")
+  , receiptRow "t03_comb_order" "a" (LVec.lit "0")
+  , receiptRow "t04_mem_chain" "y" (LVec.lit "1")
+  , receiptRow "t05_coincident_blocking_ab" "q" (LVec.lit "1")
+  , receiptRow "t05_coincident_blocking_ba" "q" (LVec.lit "0")
+  , receiptRow "t06_assign_glitch" "seen" (LVec.lit "0")
+  , receiptRow "t07_clock_as_data" "q" (LVec.lit "1")
+  , receiptRow "t08_same_row_data_dfirst" "q" (LVec.lit "1")
+  , receiptRow "t08_same_row_data_cfirst" "q" (LVec.lit "1")
+  , receiptRow "t09_latch" "s" (LVec.lit "1")
+  , receiptRow "t10_reset_rows" "q" (LVec.lit "1")
+  , receiptRow "t10_reset_rows_relrace" "q" (LVec.lit "1")
+  , receiptRow "t10_reset_rows_t0" "q" (LVec.lit "0")
+  , receiptRow "t11_initial_race" "seen" (LVec.lit "x")
+  , receiptRow "t11b_initial_race_swapped" "seen" (LVec.lit "1")
+  , receiptRow "t12_derived_clock_data_det" "q" (LVec.lit "1")
+  , receiptRow "t12_derived_clock_data_race" "q" (LVec.lit "1")
+  , receiptRow "t13_implicit_comb" "y" (LVec.lit "1")
+  , receiptRow "t13b_comb_assign_implicit" "y" (LVec.lit "1")
+  , receiptRow "t14_divided_clock" "q" (LVec.lit "1")
+  , receiptRow "t15_comb_time_zero_edge" "seen" (LVec.lit "1") ]
 
 #guard auditRows.all AuditRow.passes
 
