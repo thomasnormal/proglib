@@ -643,6 +643,28 @@ theorem CoreMemDesign.applyRow_appliedRow_lookup {E : CoreMemDesign} (hP : E.Seq
     CoreMemDesign.appliedRow, lookup_map_pair' _ _ n hn]
   rfl
 
+/-- Bit 0 of a name, from its value. -/
+theorem SvState.bit0_of_lookup {st : SvState} {n : String} {x : LVec} (h : SvState.lookup st n = some x) :
+    st.bit0 n = x.bits[0]?.getD .lx := by
+  simp only [SvState.bit0, h]
+
+/-- **The discipline at an edge, on applied values**: in a row of the discipline from a view of the design's shape in
+which the event `e` occurs (read on the value the row applies to its source), every input that is no event source
+keeps its value: the row applies the value it had. -/
+theorem CoreMemDesign.applied_still {E : CoreMemDesign} (hP : E.SeqProfileI) {v r : SvState} (hv : E.ShapeV v)
+    (hr : E.DataRow v r ∨ E.InstantRow v r) {e : SeqEvent} (he : e ∈ E.events)
+    (hes : e.src ∈ E.scalar.toDesign2.inputNames.toList)
+    (ho : edgeOf e.kind (v.bit0 e.src) ((appliedIn r v e.src).bits[0]?.getD .lx) = true) {x : String}
+    (hx : x ∈ E.scalar.toDesign2.inputNames.toList) (hxs : x ∉ E.sources) :
+    appliedIn r v x = (SvState.lookup v x).getD ⟨#[]⟩ := by
+  have ho' : e.occursIn v (E.applyRow v r) = true := by
+    rw [SeqEvent.occursIn, SvState.bit0_of_lookup (CoreMemDesign.applyRow_appliedRow_lookup hP hv r hes)]
+    exact ho
+  have h := CoreMemDesign.rowOk_still hr he ho' hxs
+  rw [CoreMemDesign.applyRow_appliedRow_lookup hP hv r hx] at h
+  rw [← h]
+  rfl
+
 /-! ## Domains and crossings, computed
 
 A DOMAIN is a clock event with the registers its processes write (an asynchronous reset belongs to its clock's
