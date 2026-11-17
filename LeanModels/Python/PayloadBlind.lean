@@ -6896,6 +6896,14 @@ theorem pbAll (htwin : PayloadTwin o₀ o) : ∀ (fuel : Nat), PBAll pa o₀ o f
         pbAnyAllIter_succ htwin ihn, pbCallClosure_succ htwin ihn,
         pbListCompIfs_succ htwin ihn, pbListCompStep_succ htwin ihn⟩
 
+theorem pbDictAll (htwin : PayloadTwin o₀ o) :
+    ∀ (fuel : Nat), PBDictCompStep pa o₀ o fuel := by
+  intro fuel
+  induction fuel with
+  | zero => exact fun _ _ _ _ _ _ _ _ _ _ => PBF.timeout
+  | succ n ih =>
+      exact pbDictCompStep_succ htwin (pbAll htwin n) ih
+
 end Arms
 
 /-- **THE LOCALITY PROPERTY: the interpreter cannot observe the payload of a
