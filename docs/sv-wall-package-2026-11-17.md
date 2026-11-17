@@ -224,3 +224,7 @@ The wildcard time-zero receipt is current: `always_star_timezero_e/check.py`
 reports four startup rows matching the canonical source behavior on Icarus
 Verilog 13.0 and Xcelium 24.03-s004. The startup ordering split is retained
 as measured simulator behavior; no unmodelled time-zero event is approximated.
+
+The wildcard memory-read receipt is current: `always_star_memory_read_e/check.py`
+reports nine rows matching the source-shaped canonical behavior on Icarus
+Verilog 13.0 and Xcelium 24.03-s004.
