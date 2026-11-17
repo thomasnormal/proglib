@@ -298,6 +298,12 @@ theorem exposedAddress_nonnull (p : Ptr) (hp : p.obj.isSome) :
 @[simp] theorem fromExposedAddress_zero : fromExposedAddress 0 = some Ptr.null := by
   simp [fromExposedAddress]
 
+@[simp] theorem fromExposedAddress_negative (n : Int) (hn : n < 0) :
+    fromExposedAddress n = none := by
+  have hn0 : ¬ n = 0 := by omega
+  have hnp : ¬ 0 < n := by omega
+  simp [fromExposedAddress, hn, hn0, hnp]
+
 end Ptr
 
 inductive CByte where
