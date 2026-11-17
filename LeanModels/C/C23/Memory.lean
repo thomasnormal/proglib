@@ -872,6 +872,17 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+/-- For a valid allocated object and nonzero size, `reallocAt` returns a fresh
+    pointer at exactly the caller-selected concrete placement. -/
+theorem reallocAt_valid_address (m : Mem) (p : Ptr) (size address : Nat)
+    (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
+    (hc : m.get? o = some c) (hdur : c.dur = .allocated)
+    (hlive : c.live = true) (hoff : p.off = 0) :
+    (reallocAt m p size address).map (fun r => r.2.address) = .ok address := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq, allocAt,
+    alloc, Ptr.toObjectBoundAt] <;> rfl
+
 @[simp] theorem reallocAt_zero (m : Mem) (p : Ptr) (address : Nat) :
     reallocAt m p 0 address = .error (.memUB (.reallocZero p)) := by
   simp [reallocAt]
