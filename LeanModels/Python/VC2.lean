@@ -567,7 +567,8 @@ theorem callIn {m : Module} {st : FrameState} {fname : String}
       (RVal.thaw v))
     (hglob : lookupG (moduleGlobals m).1 fname = Option.none := by rfl)
     (hnt : findNamedTuple m fname = Option.none := by rfl)
-    (hm : m.heapFree = true := by rfl)
+    (hclass : findClass m fname = Option.none := by rfl)
+    (hunbound : hasUnboundLocal st.locals fname = false := by rfl)
     (hstar : fname ≠ starArgBuiltinName := by decide) :
     EvalsState m st
       (.call (.name fname sp) argEs #[] Option.none sp') (RVal.thaw v)
@@ -597,8 +598,7 @@ theorem callIn {m : Module} {st : FrameState} {fname : String}
       (RVal.thawList args.toList).toArray = .ok after (RVal.thaw v) := by
     simpa [RVal.thawArgs] using hc'
   simp [evalExpr, flattenStarRun, Run.withLocals, RVal.thawArgs, hlocal, hglob,
-    hfn, hnt, hstar, Module.heapFree_funs hm, findClass_heapFree hm fname,
-    ha', hc'', hflat]
+    hfn, hnt, hclass, hunbound, hstar, ha', hc'', hflat]
 
 end EvalsState
 
@@ -616,7 +616,8 @@ theorem PyStmtTriple.callState {m : Module} {P : FrameState → Prop}
           Q.next ⟨after, Env.set st.locals x (RVal.thaw v)⟩)
     (hglob : lookupG (moduleGlobals m).1 fname = Option.none := by rfl)
     (hnt : findNamedTuple m fname = Option.none := by rfl)
-    (hm : m.heapFree = true := by rfl)
+    (hclass : ∀ st, P st → findClass m fname = Option.none := by intros; rfl)
+    (hunbound : ∀ st, P st → hasUnboundLocal st.locals fname = false := by intros; rfl)
     (hstar : fname ≠ starArgBuiltinName := by decide) :
     PyStmtTriple m P
       (.assign #[.name x spx]
@@ -624,7 +625,7 @@ theorem PyStmtTriple.callState {m : Module} {P : FrameState → Prop}
   intro st hP
   obtain ⟨hlocal, args, after, v, hargs, hcall, hQ⟩ := h st hP
   have hev := EvalsState.callIn (sp := spf) (sp' := spc)
-    hlocal hargs hcall hglob hnt hm hstar
+    hlocal hargs hcall hglob hnt (hclass st hP) (hunbound st hP) hstar
   obtain ⟨te, he⟩ := hev.at_least
   refine ⟨te + 1, fun F hF => ?_⟩
   obtain ⟨F', rfl, hF'⟩ := succ_le_dest hF
