@@ -241,7 +241,7 @@ tables has no size or member offsets, so every use refuses — the honest zero.
 No ABI packing rule is reconstructed from a type spelling. -/
 def recordHasBitfield (fields : List Decl) : Bool :=
   fields.any fun d => match d with
-    | .field _ _ (some _) _ => true
+    | .field _ _ (some _) _ _ => true
     | _ => false
 
 def recordHasUnsupported (fields : List Decl) : Bool :=
@@ -264,8 +264,8 @@ def recordHasBlockingUnsupported (fields : List Decl) : Bool :=
 def fieldsOf (fields : List Decl) : Option (List (String × CType)) :=
   if recordHasBitfield fields || recordHasUnsupported fields || fields.isEmpty then none
   else some (fields.filterMap fun d => match d with
-    | .field (some fn) fty _ _ => some (fn, fty)
-    | .field none _ _ _ => none
+    | .field (some fn) fty _ _ _ => some (fn, fty)
+    | .field none _ _ _ _ => none
     | _ => none)
 
 mutual
@@ -358,7 +358,7 @@ def recordFieldSize (layout : RecordLayout) (field : String) : Option Nat :=
 
 def recordLayoutMatchesFields : List Decl → List RecordLayoutField → Bool
   | [], [] => true
-  | .field name _ bits _ :: ds, field :: fs =>
+  | .field name _ bits _ _ :: ds, field :: fs =>
       (match name with
        | some nm => field.name == nm
        | none => field.name == "") &&
@@ -379,9 +379,9 @@ def checkedRecordLayout? (fields : List Decl) (layout : RecordLayout) :
       recordLayoutMatchesFields fields layout.fields then some layout else none
 
 #guard recordLayoutMatchesFields
-  [.field (some "a") "int" none default,
+   [.field (some "a") "int" none none default,
    .record none none [] none default,
-   .field (some "b") "int" none default]
+   .field (some "b") "int" none none default]
   [{ name := "a", offsetBits := 0, bitfield := false },
    { name := "b", offsetBits := 32, bitfield := false }]
 #guard ("union (unnamed at x)".startsWith "union (unnamed")
@@ -398,19 +398,15 @@ def observedRecordFacts (envl : Envelope) :
   let ds := allDecls envl
   let nestedFacts := fun fields : List Decl =>
     fields.flatMap fun child => match child with
-      | .record _ none nested (some layout) childSpan =>
+      | .record (some childRecordId) none nested (some layout) _ =>
           match fields.find? (fun f => match f with
-            | .field _ _ty _ fspan =>
-                -- The field and its anonymous child are parser siblings.
-                -- Join them by Clang's source span, including the column;
-                -- the type text is not a grammar and must not be parsed.
-                fspan.line == childSpan.line && fspan.col == childSpan.col
+            | .field _ _ty _ (some rid) _ => rid == childRecordId
             | _ => false) with
-          | some (.field _ ty _ _) =>
+          | some (.field _ ty _ _ _) =>
               match checkedRecordLayout? nested layout with
               | some checked =>
                   let members := nested.filterMap fun field => match field with
-                    | .field name mty _ _ => some (name.getD "", mty)
+                    | .field name mty _ _ _ => some (name.getD "", mty)
                     | _ => none
                   let keyTy := (arrayOf ty).map (·.1) |>.getD ty
                   [(keyTy, members, checked)]
@@ -430,7 +426,7 @@ def observedRecordFacts (envl : Envelope) :
             else
               let tag := if checked.tagKind == "union" then "union " else "struct "
               let members := fields.filterMap fun field => match field with
-                | .field name ty _ _ => some (name.getD "", ty)
+                | .field name ty _ _ _ => some (name.getD "", ty)
                 | _ => none
               some (tag ++ nm, members, checked)
     | .record (some recordId) none fields (some layout) sp =>
@@ -452,7 +448,7 @@ def observedRecordFacts (envl : Envelope) :
                 if recordHasBlockingUnsupported fields then none
                 else
                   let members := fields.filterMap fun field => match field with
-                    | .field name ty _ _ => some (name.getD "", ty)
+                    | .field name ty _ _ _ => some (name.getD "", ty)
                     | _ => none
                   let keyTy := (arrayOf ty).map (·.1) |>.getD ty
                   some (keyTy, members, checked)
@@ -467,7 +463,7 @@ def observedRecordFacts (envl : Envelope) :
                 if recordHasBlockingUnsupported fields then none
                 else
                   let members := fields.filterMap fun field => match field with
-                    | .field name ty _ _ => some (name.getD "", ty)
+                    | .field name ty _ _ _ => some (name.getD "", ty)
                     | _ => none
                   let tag := if checked.tagKind == "union" then "union " else "struct "
                   some (tag ++ nm, members, checked)

@@ -539,7 +539,11 @@ class Extractor:
             if extras:
                 members.extend(self.node(c) for c in extras)
             members.append(self.node(child))
-        out = {"decl_id": n.get("id"), "name": n.get("name"), "fields": members}
+        record_id = n.get("id")
+        for member in members:
+            if member.get("kind") == "FieldDecl" and record_id:
+                member["record_decl_id"] = record_id
+        out = {"decl_id": record_id, "name": n.get("name"), "fields": members}
         if self.record_layouts is not None:
             offset = ((n.get("range") or {}).get("begin") or {}).get("offset")
             if offset is not None:
