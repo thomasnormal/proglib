@@ -166,8 +166,9 @@ layer, not a second parser.
 
 Slice 1 is ready for the owner's go/no-go decision only when all of these hold:
 
-1. There are zero unexplained divergences on the in-tier corpus: the 31 Stage 0
-   rows that fit the scope, non-printing `rustc` run-pass tests of at most 50
+1. There are zero unexplained divergences on the in-tier corpus: the 30 non-printing Stage 0
+   rows (the `println_once` control is retained for the later stdout slice),
+   non-printing `rustc` run-pass tests of at most 50
    lines, the selected Miri `tests/pass` and `tests/fail` rows, MiniRust pass
    and panic tests, and 1,000 Rustlantis programs. A row outside the tier has
    a named refusal in the envelope or interpreter; a timeout, incomplete proof,
