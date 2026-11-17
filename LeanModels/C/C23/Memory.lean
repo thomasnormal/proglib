@@ -507,9 +507,48 @@ the store as a tombstone — see `CObj.live`. -/
 def kill (m : Mem) (o : ObjId) : Mem :=
   { m with objs := m.objs.modify o (fun c => { c with live := false }) }
 
+theorem get?_kill_of_ne (m : Mem) (o q : ObjId) (h : q ≠ o) :
+    (m.kill o).get? q = m.get? q := by
+  simp only [kill, get?]
+  rw [List.getElem?_modify]
+  simp [Ne.symm h]
+
 @[simp] theorem kill_placements (m : Mem) (o : ObjId) :
     (m.kill o).placements = m.placements := by
   rfl
+
+theorem placementValid_kill (m : Mem) (o : ObjId) (address size alignment : Nat)
+    (hvalid : placementValid m address size alignment = true) :
+    placementValid (m.kill o) address size alignment = true := by
+  unfold placementValid at hvalid ⊢
+  simp only [Bool.and_eq_true] at hvalid ⊢
+  refine ⟨hvalid.1, ?_⟩
+  rw [List.all_eq_true] at hvalid ⊢
+  intro entry hmem
+  have hmem' : entry ∈ m.placements := by simpa using hmem
+  have hentry := hvalid.2 entry hmem'
+  by_cases he : entry.1 = o
+  · cases hg : m.get? entry.1 with
+    | none =>
+      have hg' : m.get? o = none := by simpa [he] using hg
+      have hk : (m.kill o).get? entry.1 = none := by
+        simp only [kill, get?]
+        rw [List.getElem?_modify]
+        by_cases ho : o < m.objs.length
+        · have : False := by simpa [get?, ho] using hg'
+          contradiction
+        · simp [hg', he, ho]
+      rw [hk]
+    | some c =>
+      have hg' : m.get? o = some c := by simpa [he] using hg
+      have hk : (m.kill o).get? entry.1 = some {c with live := false} := by
+        simp only [kill, get?] at hg' ⊢
+        rw [List.getElem?_modify]
+        simp [hg', he]
+      rw [hk]
+      simp
+  · rw [get?_kill_of_ne m o entry.1 he]
+    exact hentry
 
 @[simp] theorem kill_placement_lookup (m : Mem) (dead live : ObjId) :
     (m.kill dead).placement? live = m.placement? live := by
