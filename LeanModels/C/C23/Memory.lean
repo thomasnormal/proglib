@@ -669,9 +669,17 @@ this one. -/
 def member (p : Ptr) (fieldOff : Nat) : Ptr :=
   { p with off := p.off + (fieldOff : Int) }
 
+@[simp] theorem member_address_irrel (p : Ptr) (fieldOff address : Nat) :
+    (member {p with address := address} fieldOff).address = address := by
+  simp [member]
+
 def memberRange (p : Ptr) (fieldOff fieldSize : Nat) : Ptr :=
   let start := p.off + (fieldOff : Int)
   { p with off := start, bound := some (start + (fieldSize : Int)) }
+
+@[simp] theorem memberRange_address_irrel (p : Ptr) (fieldOff fieldSize address : Nat) :
+    (memberRange {p with address := address} fieldOff fieldSize).address = address := by
+  simp [memberRange]
 
 /-- **C23 §6.5.7p9 — pointer arithmetic**, and this is a constraint on
 FORMING the pointer, not only on using it: the result must point into the
