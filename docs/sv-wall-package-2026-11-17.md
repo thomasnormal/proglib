@@ -562,3 +562,12 @@ is modeled. Icarus Verilog 13.0 and Xcelium 24.03-s004 both accept the source
 with the same missing-edge warning and produce identical eight sampled rows,
 including x/z clock values. No E value is claimed; the level-event refusal
 remains loud under IEEE 1800-2023 §9.4.2.
+
+## Undeclared net wall remeasurement
+
+The ranked `net_z.sv` fixture assigns `missing` to `y` without declaring
+`missing`. Approved extraction emits `ContinuousAssignSymbol:InvalidExpression`
+and `SlangError:UndeclaredIdentifier`; ordinary E preserves those diagnostics
+and refuses at the E instantiation boundary. This is not a legal undriven-net
+(`net-z`) case, so no simulator value or net-resolution semantics is claimed;
+the parser-native refusal remains loud.
