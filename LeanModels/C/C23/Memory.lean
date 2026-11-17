@@ -747,6 +747,24 @@ placement annotation alone cannot change whether a range resolves. -/
     m.storeBytes {p with address := address} bs = m.storeBytes p bs := by
   simp [storeBytes, resolve_address_irrel]
 
+@[simp] theorem loadFloat32_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    m.loadFloat32 {p with address := address} = m.loadFloat32 p := by
+  simp [loadFloat32, loadBytes_address_irrel]
+
+@[simp] theorem loadFloat64_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    m.loadFloat64 {p with address := address} = m.loadFloat64 p := by
+  simp [loadFloat64, loadBytes_address_irrel]
+
+@[simp] theorem storeFloat32_address_irrel (m : Mem) (p : Ptr)
+    (f : Float32.Model) (address : Nat) :
+    m.storeFloat32 {p with address := address} f = m.storeFloat32 p f := by
+  simp [storeFloat32, storeBytes_address_irrel]
+
+@[simp] theorem storeFloat64_address_irrel (m : Mem) (p : Ptr)
+    (f : Float.Model) (address : Nat) :
+    m.storeFloat64 {p with address := address} f = m.storeFloat64 p f := by
+  simp [storeFloat64, storeBytes_address_irrel]
+
 /- Pointer representations are read from abstract bytes; the destination
    pointer's concrete placement is not part of the access decision. -/
 @[simp] theorem loadPtr_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
