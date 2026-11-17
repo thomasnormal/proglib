@@ -202,6 +202,10 @@ two rows on both simulators, `net_z_output_port_canonical_e` matches two
 undriven-output rows, and `net_z_scalar_canonical_e` matches two undriven-net
 rows including a bit select.
 
+The parameterized memory-shape receipts are current: shape A matches 12 rows,
+shape B one hierarchy-memory row, shape C four generated-array rows, and shape
+D six loop-local/x-index rows on Icarus Verilog 13.0 and Xcelium 24.03-s004.
+
 The task-memory receipt is current: `task_memory_e/check.py` passes its
 empty-task and source-shaped memory guards, with three rows matching Icarus
 Verilog 13.0 and Xcelium 24.03-s004.
