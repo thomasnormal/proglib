@@ -1719,7 +1719,89 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
               liftEval (writeMem (fun m => Mem.vaEnd m p))
               pure .undef
           | _ => refuseUnsupported "va_end: wrong argument count"
-        -- The callee's own call handler: one fuel less, so the recursion
+        /- Profile-indexed external-function registry. Translation-unit
+        definitions are resolved by declaration identity before this helper,
+        so a registry arm can never shadow a definition from the unit (H5). -/
+        let runExternal : String → List CVal → ExecM CVal := fun nm vs =>
+          if nm == "__builtin_strcmp" || nm == "strcmp" then
+            runStrcmp vs
+          else if nm == "__builtin_va_start" || nm == "__builtin_c23_va_start" then
+            runVaStart vs
+          else if nm == "__builtin_va_copy" then
+            runVaCopy vs
+          else if nm == "__builtin_va_end" then
+            runVaEnd vs
+          else if nm == "__builtin_sprintf" || nm == "sprintf" then
+            runSprintf vs
+          else if nm == "__builtin_strcpy" || nm == "strcpy" then
+            runBuiltinStrcpy vs
+          else if nm == "strncmp" || nm == "__builtin_strncmp" then
+            runStrncmp vs
+          else if nm == "strncpy" || nm == "__builtin_strncpy" then
+            runStrncpy vs
+          else if nm == "strcat" || nm == "__builtin_strcat" then
+            runStrcat vs
+          else if nm == "strlen" then
+            runStrlen vs
+          else if nm == "__builtin_bswap16" then
+            runBswap16 vs
+          else if nm == "__builtin_bswap32" then
+            runBswap32 vs
+          else if nm == "__builtin_bswap64" then
+            runBswap64 vs
+                else if nm == "__builtin_fabs" || nm == "__builtin_fabsf" || nm == "__builtin_fabsl" || nm == "fabs" || nm == "fabsf" then runFloatAbs nm vs
+                else if nm == "floor" || nm == "floorf" then runFloatFloor nm vs
+                else if nm == "__builtin_nanf" || nm == "__builtin_nan" || nm == "__builtin_nanl" then runFloatNan nm vs
+                else if nm == "__builtin_copysign" || nm == "__builtin_copysignf" then runCopySign nm vs
+                else if nm == "__builtin_isfinite" || nm == "__builtin_isnan" || nm == "__builtin_isinf" || nm == "__builtin_signbit" then runFloatClass nm vs
+                else if nm == "__builtin_isunordered" then runFloatUnordered vs
+                else if nm == "__builtin_inf" || nm == "__builtin_inff" || nm == "__builtin_infl" || nm == "__builtin_huge_val" || nm == "__builtin_huge_valf" || nm == "__builtin_huge_vall" then
+                  runInf nm vs
+          else if nm == "__builtin_abs" || nm == "abs" then
+            runAbs vs
+          else if nm == "__sync_add_and_fetch_8" then
+            runSyncAdd8 vs
+          else if nm == "__builtin_expect" then
+            runBuiltinExpect vs
+          else if nm == "__builtin_prefetch" then
+            runBuiltinPrefetch vs
+          else if nm == "strchr" then
+            runStrchr vs
+          else if nm == "strrchr" then
+            runStrrchr vs
+          else if nm == "printf" || nm == "__builtin_printf" then
+            runPrintf vs
+          else if nm == "fprintf" || nm == "__builtin_fprintf" then
+            runFprintf vs
+          else if nm == "vprintf" || nm == "__builtin_vprintf" then
+            runVprintf vs
+          else if nm == "vfprintf" || nm == "__builtin_vfprintf" then
+            runVfprintf vs
+          else if nm == "__builtin_abort" || nm == "abort" then
+            terminateAbort
+          else if nm == "__builtin_exit" || nm == "exit" then
+            throw (.libc "exit")
+          else if nm == "memset" || nm == "__builtin_memset" then runMemset vs
+          else if nm == "memcpy" || nm == "__builtin_memcpy" then runMemcpy vs
+          else if nm == "mempcpy" || nm == "__builtin_mempcpy" then runMempcpy vs
+          else if nm == "fprintf" || nm == "__builtin_fprintf" then runFprintf vs
+          else if nm == "vfprintf" || nm == "__builtin_vfprintf" then runVfprintf vs
+          else if nm == "memmove" || nm == "__builtin_memmove" then runMemmove vs
+          else if nm == "__builtin_strcmp" then runStrcmp vs
+          else if nm == "__builtin_memcmp" || nm == "memcmp" then runMemcmp vs
+          else if nm == "__builtin_strlen" then runStrlen vs
+          else if nm == "strnlen" || nm == "__builtin_strnlen" then runStrnlen vs
+          else if nm == "memchr" || nm == "__builtin_memchr" then runMemchr vs
+          else if nm == "__builtin_alloca" then runAlloca vs
+          else if nm == "malloc" || nm == "__builtin_malloc" then runMalloc vs
+          else if nm == "calloc" || nm == "__builtin_calloc" then runCalloc vs
+          else if nm == "free" || nm == "__builtin_free" then runFree vs
+          else if nm.contains "ctz" || nm.contains "clz" || nm.contains "clrsb" || nm.contains "popcount" || nm.contains "parity" then runBitCount nm vs
+          else if nm == "__builtin_ffs" || nm.contains "ffs" then runFfs vs
+          else if nm == "__builtin_mul_overflow" then runArithOverflow "mul" vs
+          else if nm == "__builtin_add_overflow" then runArithOverflow "add" vs
+          else throw (.libc nm)
+        -- The callee's own call handler: one fuel less, so recursion
         -- terminates on the fuel and on nothing else.
         let handler : CallHandler := fun callee indirect vs =>
           match indirect with
@@ -1730,91 +1812,12 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
           | some _ => refuseUnsupported "indirect call through a non-function value"
           | none => match calleeId callee with
           | some declaration =>
-            -- A translation-unit definition wins over every external
-            -- registry entry, even when its name is `strlen` or `printf` (H5).
+            -- H5: a translation-unit definition wins over the registry.
             match prog.findId? declaration with
             | some g => callFn fuel prog g vs
             | none =>
               match calleeName callee with
-              | some nm =>
-                if nm == "__builtin_strcmp" || nm == "strcmp" then
-                  runStrcmp vs
-                else if nm == "__builtin_va_start" || nm == "__builtin_c23_va_start" then
-                  runVaStart vs
-                else if nm == "__builtin_va_copy" then
-                  runVaCopy vs
-                else if nm == "__builtin_va_end" then
-                  runVaEnd vs
-                else if nm == "__builtin_sprintf" || nm == "sprintf" then
-                  runSprintf vs
-                else if nm == "__builtin_strcpy" || nm == "strcpy" then
-                  runBuiltinStrcpy vs
-                else if nm == "strncmp" || nm == "__builtin_strncmp" then
-                  runStrncmp vs
-                else if nm == "strncpy" || nm == "__builtin_strncpy" then
-                  runStrncpy vs
-                else if nm == "strcat" || nm == "__builtin_strcat" then
-                  runStrcat vs
-                else if nm == "strlen" then
-                  runStrlen vs
-                else if nm == "__builtin_bswap16" then
-                  runBswap16 vs
-                else if nm == "__builtin_bswap32" then
-                  runBswap32 vs
-                else if nm == "__builtin_bswap64" then
-                  runBswap64 vs
-                      else if nm == "__builtin_fabs" || nm == "__builtin_fabsf" || nm == "__builtin_fabsl" || nm == "fabs" || nm == "fabsf" then runFloatAbs nm vs
-                      else if nm == "floor" || nm == "floorf" then runFloatFloor nm vs
-                      else if nm == "__builtin_nanf" || nm == "__builtin_nan" || nm == "__builtin_nanl" then runFloatNan nm vs
-                      else if nm == "__builtin_copysign" || nm == "__builtin_copysignf" then runCopySign nm vs
-                      else if nm == "__builtin_isfinite" || nm == "__builtin_isnan" || nm == "__builtin_isinf" || nm == "__builtin_signbit" then runFloatClass nm vs
-                      else if nm == "__builtin_isunordered" then runFloatUnordered vs
-                      else if nm == "__builtin_inf" || nm == "__builtin_inff" || nm == "__builtin_infl" || nm == "__builtin_huge_val" || nm == "__builtin_huge_valf" || nm == "__builtin_huge_vall" then
-                        runInf nm vs
-                else if nm == "__builtin_abs" || nm == "abs" then
-                  runAbs vs
-                else if nm == "__sync_add_and_fetch_8" then
-                  runSyncAdd8 vs
-                else if nm == "__builtin_expect" then
-                  runBuiltinExpect vs
-                else if nm == "__builtin_prefetch" then
-                  runBuiltinPrefetch vs
-                else if nm == "strchr" then
-                  runStrchr vs
-                else if nm == "strrchr" then
-                  runStrrchr vs
-                else if nm == "printf" || nm == "__builtin_printf" then
-                  runPrintf vs
-                else if nm == "fprintf" || nm == "__builtin_fprintf" then
-                  runFprintf vs
-                else if nm == "vprintf" || nm == "__builtin_vprintf" then
-                  runVprintf vs
-                else if nm == "vfprintf" || nm == "__builtin_vfprintf" then
-                  runVfprintf vs
-                else if nm == "__builtin_abort" || nm == "abort" then
-                  terminateAbort
-                else if nm == "__builtin_exit" || nm == "exit" then
-                  throw (.libc "exit")
-                else if nm == "memset" || nm == "__builtin_memset" then runMemset vs
-                else if nm == "memcpy" || nm == "__builtin_memcpy" then runMemcpy vs
-                else if nm == "mempcpy" || nm == "__builtin_mempcpy" then runMempcpy vs
-                else if nm == "fprintf" || nm == "__builtin_fprintf" then runFprintf vs
-                else if nm == "vfprintf" || nm == "__builtin_vfprintf" then runVfprintf vs
-                else if nm == "memmove" || nm == "__builtin_memmove" then runMemmove vs
-                else if nm == "__builtin_strcmp" then runStrcmp vs
-                else if nm == "__builtin_memcmp" || nm == "memcmp" then runMemcmp vs
-                else if nm == "__builtin_strlen" then runStrlen vs
-                else if nm == "strnlen" || nm == "__builtin_strnlen" then runStrnlen vs
-                else if nm == "memchr" || nm == "__builtin_memchr" then runMemchr vs
-                else if nm == "__builtin_alloca" then runAlloca vs
-                else if nm == "malloc" || nm == "__builtin_malloc" then runMalloc vs
-                else if nm == "calloc" || nm == "__builtin_calloc" then runCalloc vs
-                else if nm == "free" || nm == "__builtin_free" then runFree vs
-                else if nm.contains "ctz" || nm.contains "clz" || nm.contains "clrsb" || nm.contains "popcount" || nm.contains "parity" then runBitCount nm vs
-                else if nm == "__builtin_ffs" || nm.contains "ffs" then runFfs vs
-                else if nm == "__builtin_mul_overflow" then runArithOverflow "mul" vs
-                else if nm == "__builtin_add_overflow" then runArithOverflow "add" vs
-                else throw (.libc nm)
+              | some nm => runExternal nm vs
               | none => throw (.libc declaration.value)
           | none => match calleeName callee with
           | none =>
@@ -1822,59 +1825,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
             -- Do not redo clang's resolved declaration identity by its name.
             refuseUnsupported "indirect call through a non-FunctionDecl reference"
           | some nm => match prog.find? nm with
-            -- One of the 27 externals: cause `libc`, which retires by
-            -- widening the slice and never pools with the other two.
-            | none =>
-              if nm == "__builtin_strcmp" || nm == "strcmp" then runStrcmp vs
-              else if nm == "__builtin_va_start" || nm == "__builtin_c23_va_start" then runVaStart vs
-              else if nm == "__builtin_va_copy" then runVaCopy vs
-              else if nm == "__builtin_va_end" then runVaEnd vs
-              else if nm == "__builtin_sprintf" || nm == "sprintf" then runSprintf vs
-              else if nm == "__builtin_strcpy" || nm == "strcpy" then runBuiltinStrcpy vs
-              else if nm == "strncmp" || nm == "__builtin_strncmp" then runStrncmp vs
-              else if nm == "strncpy" || nm == "__builtin_strncpy" then runStrncpy vs
-              else if nm == "strcat" || nm == "__builtin_strcat" then runStrcat vs
-              else if nm == "strlen" then runStrlen vs
-              else if nm == "printf" || nm == "__builtin_printf" then runPrintf vs
-              else if nm == "vprintf" || nm == "__builtin_vprintf" then runVprintf vs
-              else if nm == "memset" || nm == "__builtin_memset" then runMemset vs
-              else if nm == "memcpy" || nm == "__builtin_memcpy" then runMemcpy vs
-              else if nm == "mempcpy" || nm == "__builtin_mempcpy" then runMempcpy vs
-              else if nm == "memmove" || nm == "__builtin_memmove" then runMemmove vs
-              else if nm == "__builtin_strcmp" then runStrcmp vs
-              else if nm == "__builtin_memcmp" || nm == "memcmp" then runMemcmp vs
-              else if nm == "__builtin_strlen" then runStrlen vs
-              else if nm == "strnlen" || nm == "__builtin_strnlen" then runStrnlen vs
-              else if nm == "memchr" || nm == "__builtin_memchr" then runMemchr vs
-              else if nm == "__builtin_bswap16" then runBswap16 vs
-              else if nm == "__builtin_bswap32" then runBswap32 vs
-              else if nm == "__builtin_bswap64" then runBswap64 vs
-              else if nm == "__builtin_fabs" || nm == "__builtin_fabsf" || nm == "__builtin_fabsl" || nm == "fabs" || nm == "fabsf" then runFloatAbs nm vs
-              else if nm == "floor" || nm == "floorf" then runFloatFloor nm vs
-              else if nm == "__builtin_nanf" || nm == "__builtin_nan" || nm == "__builtin_nanl" then runFloatNan nm vs
-              else if nm == "__builtin_copysign" || nm == "__builtin_copysignf" then runCopySign nm vs
-              else if nm == "__builtin_isfinite" || nm == "__builtin_isnan" || nm == "__builtin_isinf" || nm == "__builtin_signbit" then runFloatClass nm vs
-              else if nm == "__builtin_isunordered" then runFloatUnordered vs
-              else if nm == "__builtin_inf" || nm == "__builtin_inff" || nm == "__builtin_infl" || nm == "__builtin_huge_val" || nm == "__builtin_huge_valf" || nm == "__builtin_huge_vall" then runInf nm vs
-              else if nm == "__builtin_abs" || nm == "abs" then runAbs vs
-              else if nm == "__sync_add_and_fetch_8" then runSyncAdd8 vs
-              else if nm == "__builtin_expect" then runBuiltinExpect vs
-              else if nm == "__builtin_prefetch" then runBuiltinPrefetch vs
-              else if nm == "strchr" then runStrchr vs
-              else if nm == "strrchr" then runStrrchr vs
-              else if nm == "__builtin_alloca" then runAlloca vs
-              else if nm == "malloc" || nm == "__builtin_malloc" then runMalloc vs
-              else if nm == "calloc" || nm == "__builtin_calloc" then runCalloc vs
-              else if nm == "free" || nm == "__builtin_free" then runFree vs
-              else if nm.contains "ctz" || nm.contains "clz" || nm.contains "clrsb" || nm.contains "popcount" || nm.contains "parity" then runBitCount nm vs
-              else if nm == "__builtin_ffs" || nm.contains "ffs" then runFfs vs
-              else if nm == "__builtin_mul_overflow" then runArithOverflow "mul" vs
-              else if nm == "__builtin_add_overflow" then runArithOverflow "add" vs
-              else throw (.libc nm)
-            -- A NESTED call to a defined function. `evalArgs` has already
-            -- evaluated `vs` in the CALLER's scope (§6.5.3.3p4), so this is
-            -- the ordinary call, one fuel down — the recursion this whole
-            -- definition is built around, and the arm that used to refuse.
+            | none => runExternal nm vs
             | some g => callFn fuel prog g vs
         -- §6.2.1p4: the frame starts with the file-scope objects in scope,
         -- and the parameters are bound ON TOP of them, so a parameter that
