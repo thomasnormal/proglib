@@ -1652,6 +1652,18 @@ theorem allocZeroedAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
   have hq' : m.objs.length ≠ q := Ne.symm hq
   simp [List.find?_append, hq, hq']
 
+theorem mallocAt_existing_placement (m : Mem) (size address : Nat) (q : ObjId)
+    (hq : q ≠ m.objs.length) :
+    (m.mallocAt size address).1.placement? q = m.placement? q := by
+  simpa [mallocAt] using
+    (allocAt_existing_placement m .allocated size none address q hq)
+
+theorem callocAt_existing_placement (m : Mem) (n size address : Nat) (q : ObjId)
+    (hq : q ≠ m.objs.length) :
+    (m.callocAt n size address).1.placement? q = m.placement? q := by
+  simpa [callocAt] using
+    (allocZeroedAt_existing_placement m .allocated (n * size) none address q hq)
+
 /-- INVERSION for `resolve`: everything a successful access establishes.
 
 Stated once because `resolve` is the single place C's three structural
