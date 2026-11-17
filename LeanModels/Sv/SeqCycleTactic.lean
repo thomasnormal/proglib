@@ -1,4 +1,4 @@
-import LeanModels.Sv.SeqCycleRuns
+import LeanModels.Sv.SeqCycleInstant
 import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.CombViewTactic
 
@@ -312,6 +312,21 @@ macro "sv_seq_profile" : tactic =>
       (by simp [LeanModels.Sv.Kernel.AllFour])
       (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
         LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
+        LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
+        LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
+        LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
+        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
+        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
+        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
+        LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf]))
+
+/-- **`sv_seq_profileI`**: the instant profile (any clocks, either edge) of a normal form, decided by `simp`. -/
+macro "sv_seq_profileI" : tactic =>
+  `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfileI.of_B
+      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB]) rfl (by simp)
+      (by simp [LeanModels.Sv.Kernel.AllFour])
+      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkIFrom,
+        LeanModels.Sv.Kernel.CoreMemDesign.procOkIB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
         LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
         LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
         LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,

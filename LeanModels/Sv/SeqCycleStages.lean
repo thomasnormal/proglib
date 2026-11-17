@@ -11,7 +11,8 @@ name gets a further elaborator, tried first, that recognizes ONLY its clocked go
 
 | name | clocked goal | what runs |
 |---|---|---|
-| `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the clocked profile, the obligations |
+| `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the single-clock profile, the obligations |
+| `sv_structure` | `SeqDesignI (X.e P…)` | the same for any number of events (any clocks, either edge): the instant profile and obligations |
 | `sv_interface` | `SeqPorts (X.e P…) ins outs` | the instantiation, the ports |
 | `sv_equations` | `E.cycleV clk v d = rhs` or `E.cycleMV clk σ d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed (with the context's width facts `x.width = n`), then `rhs` checked against them |
 
@@ -68,20 +69,22 @@ def strLit? (e : Lean.Expr) : Option String :=
   | Lean.Expr.lit (Lean.Literal.strVal s) => some s
   | _ => none
 
-/-- Why a process of the normal form is outside the clocked profile (the `procOkB` check failed on it). -/
-def whyProc (clk : String) (i : Nat) (p : Lean.Expr) : MetaM String := do
+/-- Why a process of the normal form is outside the clocked profile (the `procOkB` check failed on it; `clk? = some clk`
+for the single-clock profile, `none` for the instant profile). -/
+def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) : MetaM String := do
   let p ← whnf p
   let at_ := s!"process {i}"
   if p.isAppOfArity ``CoreMemProc.edge 1 then
     let f ← whnf (p.getArg! 0)
     if f.isAppOf ``CoreMemEdge.mk then
       -- fields by projection, not by position: the record gains fields as the route grows
-      let clock := strLit? (← whnf (← mkProjection f `clock))
-      if clock.isSome && clock != some clk then
-        return s!"{at_} (an edge process) is clocked by `{clock.get!}`, not `{clk}`: two clocks are outside the clocked profile (the owner's to decide)"
-      let edge ← whnf (← mkProjection f `edge)
-      if edge.isConstOf ``ClockEdge.negedge then
-        return s!"{at_} (an edge process) is sensitive to the falling edge of `{clk}`: the clocked profile is the one event `posedge {clk}` (the instant view, next), refused"
+      if let some clk := clk? then
+        let clock := strLit? (← whnf (← mkProjection f `clock))
+        if clock.isSome && clock != some clk then
+          return s!"{at_} (an edge process) is clocked by `{clock.get!}`, not `{clk}`: outside the single-clock profile `posedge {clk}`; state the design over instants (`SeqDesignI`, `SeqRunsI`)"
+        let edge ← whnf (← mkProjection f `edge)
+        if edge.isConstOf ``ClockEdge.negedge then
+          return s!"{at_} (an edge process) is sensitive to the falling edge of `{clk}`: outside the single-clock profile `posedge {clk}`; over instants `\{negedge {clk}}` is an instant of its own (`SeqDesignI`, `SeqRunsI`)"
       let body ← whnf (← mkProjection f `body)
       if (body.find? (·.isConstOf ``PStmt.forLoop)).isSome then
         return s!"{at_} (an edge process) has a procedural `for` loop: the memories slice (next), refused"
@@ -125,15 +128,18 @@ def closes (g : MVarId) (tac : TSyntax `tactic) : TacticM Bool := do
     s.restore
     return false
 
-/-- The profile stage on `E.SeqProfile clk` (`E` the normal form), with a named refusal. -/
+/-- The profile stage on `E.SeqProfile clk` or `E.SeqProfileI` (`E` the normal form), with a named refusal. -/
 def runProfile (g : MVarId) : TacticM Unit := do
-  if ← closes g (← `(tactic| sv_seq_profile)) then
-    setGoals [g]
-    evalTactic (← `(tactic| sv_seq_profile))
-    return
   let ty ← instantiateMVars (← g.getType)
+  let single := ty.isAppOfArity ``CoreMemDesign.SeqProfile 2
+  let tac ← if single then `(tactic| sv_seq_profile) else `(tactic| sv_seq_profileI)
+  if ← closes g tac then
+    setGoals [g]
+    evalTactic tac
+    return
   let E := ty.getArg! 0
-  let clk := (strLit? (← whnf (ty.getArg! 1))).getD "?"
+  let clkE ← if single then whnf (ty.getArg! 1) else pure (ty.getArg! 0)
+  let clk? : Option String := if single then some ((strLit? clkE).getD "?") else none
   let gm ← mkFreshExprMVar (← mkEq (mkApp (mkConst ``CoreMemDesign.memOkB) E) (toExpr true))
   unless ← closes gm.mvarId! (← `(tactic| simp (config := {decide := true})
       [LeanModels.Sv.Kernel.CoreMemDesign.memOkB])) do
@@ -142,10 +148,13 @@ def runProfile (g : MVarId) : TacticM Unit := do
     | throwError "sv_structure: the clocked profile does not hold (the processes are not a literal list at these parameters)"
   let mut i := 0
   for p in ps do
-    let t := mkApp4 (mkConst ``CoreMemDesign.procOkB) E (toExpr clk) (toExpr i) p
+    let t := match clk? with
+      | some clk => mkApp4 (mkConst ``CoreMemDesign.procOkB) E (toExpr clk) (toExpr i) p
+      | none => mkApp3 (mkConst ``CoreMemDesign.procOkIB) E (toExpr i) p
     let gp ← mkFreshExprMVar (← mkEq t (toExpr true))
     unless ← closes gp.mvarId! (← `(tactic| simp (config := {decide := true}) [
-        LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
+        LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.Kernel.CoreMemDesign.procOkIB,
+        LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
         LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
         LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
         LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
@@ -155,15 +164,22 @@ def runProfile (g : MVarId) : TacticM Unit := do
         LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList,
         LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?, LeanModels.Sv.Kernel.Elab.resolve,
         LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])) do
-      throwError "sv_structure: {← whyProc clk i p}"
+      throwError "sv_structure: {← whyProc clk? i p}"
     i := i + 1
   throwError "sv_structure: the clocked profile does not hold: the declarations are not distinct and 4-state, the scalar and edge views differ, or a memory is outside the profile (memories of distinct names, 4-state elements, none a port)"
 
-/-- The named obligations, in the order they are checked, with the reason each refuses. -/
+/-- The named obligations, in the order they are checked, with the reason each refuses (`true`: the obligation takes
+the clock: single clock only). -/
 def obligations : List (Name × Bool × String) :=
   [(``CoreMemDesign.oblDrivers, false, "two processes drive the same signal (one driver per signal)"),
    (``CoreMemDesign.topoC, false,
      "a continuous assign reads its own target or a later assign's target: the route's settle would be stale (U1), refused"),
+   (``CoreMemDesign.oblInputsUndriven, false,
+     "a process drives an input port (an event source the design drives would cause an event inside the slot, which the clocked view does not model), refused"),
+   (``CoreMemDesign.oblSources, false,
+     "an event source (a clock or an asynchronous reset) is not a one-bit input port of the design (an internally generated clock or reset is the scheduler's), refused"),
+   (``CoreMemDesign.oblNoSourceRead, false,
+     "a process reads an event source as data (a continuous assign reading a clock or reset, or an edge body reading a clock or another process's reset: in an instant it could read either value, §4.7), refused"),
    (``CoreMemDesign.oblNoInputWrite, true, "a process drives an input or the clock (an event source the design drives is outside the clocked view), refused"),
    (``CoreMemDesign.oblNoClockRead, true, "a process reads the clock"),
    (``CoreMemDesign.oblReset, true,
@@ -174,7 +190,7 @@ def obligations : List (Name × Bool × String) :=
      "an expression ingestion kept unconverted (a user function call, U5), refused"),
    (``CoreMemDesign.oblClockInput, true, "the clock is not an input port of the design, refused")]
 
-/-- The obligations stage on `E.seqOblB clk = true`, with a named refusal. -/
+/-- The obligations stage on `E.seqOblB clk = true` or `E.seqOblI = true`, with a named refusal. -/
 def runObligations (g : MVarId) : TacticM Unit := do
   if ← closes g (← `(tactic| sv_seq_obligations)) then
     setGoals [g]
@@ -183,9 +199,12 @@ def runObligations (g : MVarId) : TacticM Unit := do
   let ty ← instantiateMVars (← g.getType)
   let lhs := ty.getArg! 1
   let E := lhs.getArg! 0
-  let clk := lhs.getArg! 1
+  let clk? := if lhs.isAppOfArity ``CoreMemDesign.seqOblB 2 then some (lhs.getArg! 1) else none
   for (n, takesClk, msg) in obligations do
-    let t := if takesClk then mkApp2 (mkConst n) E clk else mkApp (mkConst n) E
+    if takesClk && clk?.isNone then continue
+    let t := match clk?, takesClk with
+      | some clk, true => mkApp2 (mkConst n) E clk
+      | _, _ => mkApp (mkConst n) E
     let go ← mkFreshExprMVar (← mkEq t (toExpr true))
     unless ← closes go.mvarId! (← `(tactic| sv_seq_obligations)) do
       throwError "sv_structure: obligation `{n.componentsRev.head!}`: {msg}"
@@ -232,11 +251,11 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
     throwError "{stage}: the instantiation does not normalize at these parameters (the clocked stages read the flat entry `X.e`; a module hierarchy is the later slice T9):\n{e.toMessageData}"
   evalTactic (← `(tactic| subst $hI:ident))
 
-/-- `sv_structure` on `SeqDesign (X.e P…) clk`. -/
+/-- `sv_structure` on `SeqDesign (X.e P…) clk` or `SeqDesignI (X.e P…)`. -/
 def runStructure (stx : Syntax) : TacticM Unit := do
   let goal ← getMainGoal
   let ty := (← instantiateMVars (← goal.getType)).consumeMData
-  unless ty.isAppOfArity ``SeqDesign 2 do throwUnsupportedSyntax
+  unless ty.isAppOfArity ``SeqDesign 2 || ty.isAppOfArity ``SeqDesignI 1 do throwUnsupportedSyntax
   guardSeq do
     unless stx[1].isNone && stx[2].isNone do
       throwError "sv_structure: a clocked goal takes no rank and no `using` clause"
