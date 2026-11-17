@@ -3508,6 +3508,12 @@ abbrev PBAll (fuel : Nat) : Prop :=
   PBAnyAllIter pa o₀ o fuel ∧ PBCallClosure pa o₀ o fuel ∧
   PBListCompIfs pa o₀ o fuel ∧ PBListCompStep pa o₀ o fuel
 
+/-- The existing mutual bundle remains projection-stable. DictComp's worker is
+kept as a named second component until its expression arm is admitted; this
+avoids changing every historical right-associated projection at once. -/
+abbrev PBAllWithDict (fuel : Nat) : Prop :=
+  PBAll pa o₀ o fuel ∧ PBDictCompStep pa o₀ o fuel
+
 end Conjuncts
 
 /-! ## Tier D arms — the composition-only members
@@ -6903,6 +6909,11 @@ theorem pbDictAll (htwin : PayloadTwin o₀ o) :
   | zero => exact fun _ _ _ _ _ _ _ _ _ _ => PBF.timeout
   | succ n ih =>
       exact pbDictCompStep_succ htwin (pbAll htwin n) ih
+
+theorem pbAllWithDict (htwin : PayloadTwin o₀ o) :
+    ∀ (fuel : Nat), PBAllWithDict pa o₀ o fuel := by
+  intro fuel
+  exact ⟨pbAll htwin fuel, pbDictAll htwin fuel⟩
 
 end Arms
 
