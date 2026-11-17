@@ -580,3 +580,12 @@ The ranked `invalid_continuous_assign.sv` fixture uses undeclared `missing` in
 ordinary E preserves those diagnostics and refuses at the E instantiation
 boundary. This is invalid source rather than a width or continuous-assignment
 semantic case, so no simulator value or semantic admission is claimed.
+
+## Typed unpacked-net wall remeasurement
+
+The ranked `typed_array.sv` fixture declares legal unpacked wire storage
+`values [0:3]`. Approved extraction emits `NetSymbol:type`; ordinary E
+preserves that member boundary and refuses at `PDesign.instantiateE2`. Icarus
+Verilog 13.0 and Xcelium 24.03-s004 both compile the source and agree on four
+rows (`y=xxxxxxxx` for known, x, and z inputs because the net cells are
+undriven). No net-resolution approximation or semantic admission is claimed.
