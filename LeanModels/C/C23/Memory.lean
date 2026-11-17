@@ -1214,6 +1214,18 @@ theorem free_valid_placement_lookup (m : Mem) (p : Ptr) (o q : ObjId) (c : CObj)
   change (.ok ((m.kill o).placement? q) : MRes (Option Nat)) = .ok (m.placement? q)
   rw [kill_placement_lookup]
 
+theorem free_valid_placementValid (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
+    (address size alignment : Nat)
+    (hp : p.obj = some o) (hc : m.get? o = some c)
+    (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0)
+    (hvalid : placementValid m address size alignment = true) :
+    (m.free p).map (fun m' => placementValid m' address size alignment) = .ok true := by
+  have hf : m.free p = .ok (m.kill o) := by
+    simpa using free_valid_address_irrel m p o c p.address hp hc hdur hlive hoff
+  rw [hf]
+  simp only [Except.map, Except.ok.injEq]
+  exact placementValid_kill m o address size alignment hvalid
+
 /-- §7.24.3.7 `realloc` — **and this is why pointers carry provenance.**
 
 The corpus reallocates the transposition table on the search path
