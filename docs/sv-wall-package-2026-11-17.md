@@ -96,3 +96,8 @@ the parked `ls-sv3-w1-gate`, `ls-sv3-w1push`, and
 and large receipt suites in their diff to master. They were left untouched; no
 branch with a clean, buildable wall-only delta is available for this lane to
 land.
+
+The public census also measured `inout_repro.sv` as the generic §6.6/
+§23.2.2 inout wall (`PortSymbol:InOut` and `PortConnection:InOut`). The wall
+table assigns both admission rows to `ls-sv3`; they are handed off without a
+shared semantic change here.
