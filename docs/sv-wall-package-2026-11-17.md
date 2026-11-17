@@ -89,3 +89,10 @@ The public-census handoff also confirms ownership boundaries: typed variable/mem
 paths, primitive instances, and specify blocks are `ls-sv3` rows in the current
 wall table. Those measured rows are handed to that lane; this lane makes no
 shared semantic change without an owner reassignment.
+
+Pending-branch review at the current public master found no landable SV packet:
+the parked `ls-sv3-w1-gate`, `ls-sv3-w1push`, and
+`ls-sv3-parked-20261117-0438` branches delete or rewrite scheduler/core files
+and large receipt suites in their diff to master. They were left untouched; no
+branch with a clean, buildable wall-only delta is available for this lane to
+land.
