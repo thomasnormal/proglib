@@ -331,6 +331,12 @@ reports four rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004, while
 the ordinary census retains the exact `TimedStatement:DelayControl` refusal.
 The zero-delay E route makes no timing approximation.
 
+The explicit event-control wall receipt is current:
+`event_control_wall/check.py` reports four rows matching Icarus Verilog 13.0
+and Xcelium 24.03-s004, while the ordinary census retains the exact
+`Clock:implicit` event-list refusal. The source is not reinterpreted as
+`always_comb` or latch semantics.
+
 CURRENT HEAD CORRECTION — 2026-11-17T11:05Z
 
 Public master is now `1f8c98756`; the intervening public change is a
