@@ -1047,12 +1047,24 @@ theorem storeInt_placement {m m' : Mem} {p : Ptr} {t : IntTy} {v : Int}
   apply storeBytes_placement hr
   simpa [storeInt] using h
 
+theorem storeInt_placement_lookup {m m' : Mem} {p : Ptr} {t : IntTy} {v : Int}
+    {o : ObjId} {c : CObj} {off : Nat} (q : ObjId)
+    (hr : m.resolve p (encodeInt t v).length = .ok (o, c, off))
+    (h : m.storeInt p t v = .ok m') : m'.placement? q = m.placement? q := by
+  exact storeBytes_placement_lookup q hr (by simpa [storeInt] using h)
+
 theorem storeFloat32_placement {m m' : Mem} {p : Ptr} {f : Float32.Model}
     {o : ObjId} {c : CObj} {off : Nat}
     (hr : m.resolve p (encodeFloat32 f).length = .ok (o, c, off))
     (h : m.storeFloat32 p f = .ok m') : m'.placements = m.placements := by
   apply storeBytes_placement hr
   simpa [storeFloat32] using h
+
+theorem storeFloat32_placement_lookup {m m' : Mem} {p : Ptr} {f : Float32.Model}
+    {o : ObjId} {c : CObj} {off : Nat} (q : ObjId)
+    (hr : m.resolve p (encodeFloat32 f).length = .ok (o, c, off))
+    (h : m.storeFloat32 p f = .ok m') : m'.placement? q = m.placement? q := by
+  exact storeBytes_placement_lookup q hr (by simpa [storeFloat32] using h)
 
 theorem storeFloat64_placement {m m' : Mem} {p : Ptr} {f : Float.Model}
     {o : ObjId} {c : CObj} {off : Nat}
@@ -1061,12 +1073,26 @@ theorem storeFloat64_placement {m m' : Mem} {p : Ptr} {f : Float.Model}
   apply storeBytes_placement hr
   simpa [storeFloat64] using h
 
+theorem storeFloat64_placement_lookup {m m' : Mem} {p : Ptr} {f : Float.Model}
+    {o : ObjId} {c : CObj} {off : Nat} (q : ObjId)
+    (hr : m.resolve p (encodeFloat64 f).length = .ok (o, c, off))
+    (h : m.storeFloat64 p f = .ok m') : m'.placement? q = m.placement? q := by
+  exact storeBytes_placement_lookup q hr (by simpa [storeFloat64] using h)
+
 theorem storePtr_placement {m m' : Mem} {p q : Ptr}
     {o : ObjId} {c : CObj} {off : Nat}
     (hr : m.resolve p 8 = .ok (o, c, off))
     (h : m.storePtr p q = .ok m') : m'.placements = m.placements := by
   exact storeBytes_placement (bs := (List.range 8).map (CByte.ptrByte q))
     (by simpa using hr) (by simpa [storePtr] using h)
+
+theorem storePtr_placement_lookup {m m' : Mem} {p q : Ptr}
+    {o : ObjId} {c : CObj} {off : Nat} (r : ObjId)
+    (hr : m.resolve p 8 = .ok (o, c, off))
+    (h : m.storePtr p q = .ok m') : m'.placement? r = m.placement? r := by
+  exact storeBytes_placement_lookup r
+    (bs := (List.range 8).map (CByte.ptrByte q)) (by simpa using hr)
+    (by simpa [storePtr] using h)
 
 theorem storeFunction_placement {m m' : Mem} {p : Ptr} {id : DeclarationId}
     {o : ObjId} {c : CObj} {off : Nat}
@@ -1075,12 +1101,28 @@ theorem storeFunction_placement {m m' : Mem} {p : Ptr} {id : DeclarationId}
   exact storeBytes_placement (bs := List.replicate 8 (CByte.funByte id))
     (by simpa using hr) (by simpa [storeFunction] using h)
 
+theorem storeFunction_placement_lookup {m m' : Mem} {p : Ptr} {id : DeclarationId}
+    {o : ObjId} {c : CObj} {off : Nat} (q : ObjId)
+    (hr : m.resolve p 8 = .ok (o, c, off))
+    (h : m.storeFunction p id = .ok m') : m'.placement? q = m.placement? q := by
+  exact storeBytes_placement_lookup q
+    (bs := List.replicate 8 (CByte.funByte id)) (by simpa using hr)
+    (by simpa [storeFunction] using h)
+
 theorem storePtrInt_placement {m m' : Mem} {p q : Ptr}
     {o : ObjId} {c : CObj} {off : Nat}
     (hr : m.resolve p 8 = .ok (o, c, off))
     (h : m.storePtrInt p q = .ok m') : m'.placements = m.placements := by
   exact storeBytes_placement (bs := (List.range 8).map (CByte.ptrIntByte q))
     (by simpa using hr) (by simpa [storePtrInt] using h)
+
+theorem storePtrInt_placement_lookup {m m' : Mem} {p q : Ptr}
+    {o : ObjId} {c : CObj} {off : Nat} (r : ObjId)
+    (hr : m.resolve p 8 = .ok (o, c, off))
+    (h : m.storePtrInt p q = .ok m') : m'.placement? r = m.placement? r := by
+  exact storeBytes_placement_lookup r
+    (bs := (List.range 8).map (CByte.ptrIntByte q)) (by simpa using hr)
+    (by simpa [storePtrInt] using h)
 
 @[simp] theorem loadInt_address_irrel (m : Mem) (p : Ptr) (t : IntTy)
     (address : Nat) :
