@@ -17,6 +17,14 @@ Delete 14, YieldFrom:delegation 12, ListComp 7, SetComp 6, and Starred:display
 5, all with zero sole blockers. The artifact is
 `stdlib-2026-11-17.json` (gate/ls-python artifact).
 
+The focused import-wall price drove the 11 sole-import manifest modules:
+18 public functions and 135 calls produced 59 MATCH calls, with one fully
+VERIFIED module (`email.charset`), five PARTIAL modules, and five REFUSED
+modules. The five partial rows have independent walls in their calls; this
+price predicts zero new VERIFIED functions from an import-only change. The
+artifact is `import-wall-2026-11-17.json` (gate/ls-python artifact), and the
+next measured choice is the class-creation wall by agreed calls (2,015).
+
 ## 2026-11-16 refresh
 
 The verified runner survey covered the current 183-module manifest and 1,542
@@ -47,13 +55,9 @@ The next item is therefore the `import` wall: it is the only wall with twenty
 sole blockers, while the survey does not yet claim function flips for those
 stdlib files. The historical artifacts were moved to the lane gate directory; the current run is recorded above.
 
-The focused function-level price used the nine sole-import modules that are in
-the manifest (`_bootsubprocess`, `codeop`, `contextvars`, `fnmatch`, `linecache`,
-`reprlib`, `struct`, `tty`, and `uu`). It covered 18 public functions and 112
-calls: seven modules produced MATCH call results and two had no drivable calls;
-no DIVERGE was observed. The other sole-import stdlib files are outside the
-current manifest, so their function flips remain unmeasured rather than being
-treated as zero.
+The earlier focused function-level price used nine sole-import modules and
+112 calls; the fresh 11-module price above supersedes it for planning. No
+DIVERGE was observed in either run.
 
 The complete sole-wall price over the 14 sole-wall modules that are in the
 manifest is 47 public functions and 161 calls:
