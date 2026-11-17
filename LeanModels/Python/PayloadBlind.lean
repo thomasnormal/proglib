@@ -5158,6 +5158,10 @@ tier. Nothing in it is a new idea: displays and constructors ALLOCATE
 a member of the block under the IH. -/
 theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAll pa o₀ o fuel) :
     PBEvalExpr pa o₀ o (fuel + 1) := by
+  /- DictComp's admitted arm is intentionally not folded into this legacy
+     theorem yet: its worker relation is declared after `pbAll`, while `pbAll`
+     calls this theorem. Admission therefore requires one mutual strengthened
+     induction, rather than a forward reference or a local shortcut. -/
   obtain ⟨ihE, ihEs, ihBool, ihCmp, -, -, -, ihIn, -, ihItems, -, ihAttrCall,
     ihIter, -, -, ihDrain, ihAny, ihClosure, ihLCIfs, ihLCStep⟩ := ih
   intro m st e hslot
