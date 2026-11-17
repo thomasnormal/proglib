@@ -477,3 +477,15 @@ A clean-room parameterized generate-for fixture with one source-shaped
 this change. Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on its known and
 x/z rows: `00, 01, 10, 11, 00, 00, 00, 00`. The source-shaped process remains
 subject to the existing scheduler and fixed-point boundaries in later routes.
+
+## For-loop wall remeasurement
+
+The current public clean-room `for_loop.sv` source was re-extracted with the
+approved procedural-retention mode and passed through the ordinary census.
+The extractor retains the finite loop body, the ordinary census reports zero
+refusals, and canonical E produces eight source cycles matching Icarus Verilog
+13.0 and Xcelium 24.03-s004 (`xxxxxxxx` at each sample because the four array
+cells have no initializer). This is a measurement only: the generic
+`ForLoopStatement` wall remains assigned to ls-sv3 in the current census, no
+real-design count transition is claimed, and no loop lowering or new scheduler
+meaning was added in this lane.
