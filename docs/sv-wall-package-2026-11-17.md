@@ -616,3 +616,13 @@ Canonical E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 for all eight
 cycles at N1 and N2, including x/z rows. The prior `GenerateIf: UnpackedDecl`
 ranking row is stale; no generate lowering, memory semantic change, or
 real-design count transition is claimed.
+
+## Child-instance urgent wall remeasurement
+
+The urgent `child_instance_scan.sv` handoff is already cleared on the current
+tree. Approved extraction and ordinary census report zero refusals for the
+nested generated `child_instance_scan -> scan_chain -> scan_leaf` hierarchy.
+The checked-in canonical-E receipt matches four source rows on Icarus Verilog
+13.0 and Xcelium 24.03-s004. No hierarchy lowering or semantic change is
+needed; the real present=4 row is stale pending the next full source-overlay
+table refresh.
