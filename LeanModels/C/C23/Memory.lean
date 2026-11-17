@@ -382,6 +382,23 @@ def vaArg (m : Mem) (p : Ptr) : MRes (CVal × Mem) :=
       | some [] => .error (.memUB (.outOfBounds o 0 1 0))
       | some (v :: vs) => .ok (v, { m with vaCursors := vaSet m.vaCursors o vs })
 
+@[simp] theorem vaStart_address_irrel (m : Mem) (p : Ptr) (args : List CVal)
+    (address : Nat) : vaStart m {p with address := address} args = vaStart m p args := by
+  simp [vaStart]
+
+@[simp] theorem vaCopy_address_irrel (m : Mem) (dst src : Ptr) (addressDst addressSrc : Nat) :
+    vaCopy m {dst with address := addressDst} {src with address := addressSrc} =
+      vaCopy m dst src := by
+  simp [vaCopy]
+
+@[simp] theorem vaEnd_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    vaEnd m {p with address := address} = vaEnd m p := by
+  simp [vaEnd]
+
+@[simp] theorem vaArg_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    vaArg m {p with address := address} = vaArg m p := by
+  simp [vaArg]
+
 theorem vaStart_placements {m m' : Mem} {p : Ptr} {args : List CVal}
     (h : vaStart m p args = .ok m') : m'.placements = m.placements := by
   cases hp : p.obj with
