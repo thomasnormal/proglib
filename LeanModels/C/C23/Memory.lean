@@ -1008,6 +1008,16 @@ theorem free_valid_address_irrel (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
   have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
   simp [free, hp, hc, hdur, hlive, hoff, hbeq]
 
+theorem free_valid_placements (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
+    (hp : p.obj = some o) (hc : m.get? o = some c)
+    (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0) :
+    (m.free p).map Mem.placements = .ok m.placements := by
+  have h : m.free p = .ok (m.kill o) := by
+    simpa using free_valid_address_irrel m p o c p.address hp hc hdur hlive hoff
+  rw [h]
+  change (.ok (m.kill o).placements : MRes (List (ObjId × Nat))) = .ok m.placements
+  rw [kill_placements]
+
 /-- §7.24.3.7 `realloc` — **and this is why pointers carry provenance.**
 
 The corpus reallocates the transposition table on the search path
