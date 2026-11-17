@@ -2,21 +2,21 @@
  "by_corpus": {
   "c-testsuite/single-exec": {
    "not-parsed": 1,
-   "passed": 184,
+   "passed": 185,
    "refused-libc": 1,
    "refused-ub": 4,
-   "refused-unsupported": 27,
+   "refused-unsupported": 26,
    "timeout": 3
   },
   "gcc.c-torture/execute": {
    "failed": 3,
    "not-parsed": 321,
    "oracle-tests-compiler": 1,
-   "passed": 1009,
+   "passed": 1010,
    "refused-libc": 18,
    "refused-ub": 78,
    "refused-unsupported": 314,
-   "timeout": 85
+   "timeout": 84
   },
   "gcc.c23-run": {
    "not-parsed": 28,
@@ -32,11 +32,11 @@
   "no-entry-point": 102,
   "not-parsed": 350,
   "oracle-tests-compiler": 1,
-  "passed": 1201,
+  "passed": 1203,
   "refused-libc": 21,
   "refused-ub": 86,
-  "refused-unsupported": 362,
-  "timeout": 88
+  "refused-unsupported": 361,
+  "timeout": 87
  },
  "dynamic_wall_ranking": [
   {
@@ -401,7 +401,6 @@
     "00040.c",
     "00041.c",
     "00128.c",
-    "20000113-1.c",
     "20000121-1.c",
     "20000412-2.c",
     "20000605-1.c",
@@ -487,8 +486,8 @@
     "switch-1.c",
     "usad-run.c"
    ],
-   "present": 88,
-   "sole": 88,
+   "present": 87,
+   "sole": 87,
    "wall": "timeout"
   },
   {
@@ -1587,14 +1586,6 @@
   },
   {
    "files": [
-    "00124.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'int (*(*)(int, int))(int, int)'"
-  },
-  {
-   "files": [
     "991112-1.c"
    ],
    "present": 1,
@@ -2190,8 +2181,8 @@
   "no-entry-point": 102
  },
  "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
- "measured_at_utc": "2026-11-16T18:40:00Z",
- "measured_commit": "ec10e4b3c",
+ "measured_at_utc": "2026-11-17T02:57:41Z",
+ "measured_commit": "333e9c076",
  "pin": null,
  "rows": [
   {
@@ -3531,15 +3522,15 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "no layout for declared type 'int (*(*)(int, int))(int, int)'",
-   "dynamic_wall": "unsupported:no layout for declared type 'int (*(*)(int, int))(int, int)'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00124.c",
    "sha256": "77b3d195814db328448ba7ce8986574ab66ed59ded9746ce479c94a75b31e02d",
    "static_walls": [
     "libc-call"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4855,15 +4846,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "per-file wall timeout (2s)",
-   "dynamic_wall": "timeout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000113-1.c",
    "sha256": "af68bc3df3e62ae153d40190366af58dbfe6bbdedf2058a217a279c37d3b9ca9",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

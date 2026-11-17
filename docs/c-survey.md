@@ -2,11 +2,11 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1201/2112 MATCH (passed 1201, failed 3, oracle 0)
+- verdicts: 1203/2112 MATCH (passed 1203, failed 3, oracle 0)
 - excluded from denominator: no-entry-point 102
 - manifest SHA-256: `3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4`
-- measured commit: `ec10e4b3c`
-- measured at: `2026-11-16T18:40:00Z`
+- measured commit: `333e9c076`
+- measured at: `2026-11-17T02:57:41Z`
 
 ## Verdict counts
 
@@ -16,30 +16,30 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `no-entry-point` | 102 |
 | `not-parsed` | 350 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1201 |
+| `passed` | 1203 |
 | `refused-libc` | 21 |
 | `refused-ub` | 86 |
-| `refused-unsupported` | 362 |
-| `timeout` | 88 |
+| `refused-unsupported` | 361 |
+| `timeout` | 87 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
 | `c-testsuite/single-exec` | `not-parsed` | 1 |
-| `c-testsuite/single-exec` | `passed` | 184 |
+| `c-testsuite/single-exec` | `passed` | 185 |
 | `c-testsuite/single-exec` | `refused-libc` | 1 |
 | `c-testsuite/single-exec` | `refused-ub` | 4 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 27 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 26 |
 | `c-testsuite/single-exec` | `timeout` | 3 |
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-parsed` | 321 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 1009 |
+| `gcc.c-torture/execute` | `passed` | 1010 |
 | `gcc.c-torture/execute` | `refused-libc` | 18 |
 | `gcc.c-torture/execute` | `refused-ub` | 78 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 314 |
-| `gcc.c-torture/execute` | `timeout` | 85 |
+| `gcc.c-torture/execute` | `timeout` | 84 |
 | `gcc.c23-run` | `not-parsed` | 28 |
 | `gcc.c23-run` | `passed` | 8 |
 | `gcc.c23-run` | `refused-libc` | 2 |
@@ -254,7 +254,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
 | `frontend` | 350 | 350 | 00209.c, 20000112-1.c, 20000227-1.c, 20000314-3.c, 20000412-3.c |
-| `timeout` | 88 | 88 | 00040.c, 00041.c, 00128.c, 20000113-1.c, 20000121-1.c |
+| `timeout` | 87 | 87 | 00040.c, 00041.c, 00128.c, 20000121-1.c, 20000412-2.c |
 | `undefined-behavior` | 86 | 86 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 40 | 40 | builtins/20010124-1-lib.c, builtins/complex-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 24 | 24 | 00103.c, 00170.c, 20001017-2.c, 20050316-1.c, 20050607-1.c |
@@ -355,7 +355,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'char[argc]'` | 1 | 1 | 00207.c |
 | `unsupported:no layout for declared type 'double (*)(float)'` | 1 | 1 | func-ptr-1.c |
 | `unsupported:no layout for declared type 'double[n]'` | 1 | 1 | 920929-1.c |
-| `unsupported:no layout for declared type 'int (*(*)(int, int))(int, int)'` | 1 | 1 | 00124.c |
 | `unsupported:no layout for declared type 'int (*)(int, int)'` | 1 | 1 | 991112-1.c |
 | `unsupported:no layout for declared type 'int (*)[++i]'` | 1 | 1 | gcc/testsuite/gcc.dg/c23-auto-2.c |
 | `unsupported:no layout for declared type 'int[len][len]'` | 1 | 1 | 20221006-1.c |
