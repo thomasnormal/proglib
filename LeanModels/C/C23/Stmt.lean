@@ -179,7 +179,7 @@ def zeroInit : Nat → Ctx → Ptr → CType → ExecM Unit
   | fuel + 1, ctx, p, ty =>
     match intTyOf? (ctx.layout.normalizeTy ty) with
     -- an integer member: the value zero at its own width
-    | some t => liftEval (writeMem (fun m => Mem.storeInt m p t 0))
+    | some t => liftEval (writeMem (fun m => Mem.storeIntChecked m p t ty 0))
     | none =>
       if ctx.layout.normalizeTy ty == "float" then
         liftEval (writeMem (fun m => Mem.storeFloat32 m p (Float32.Model.ofBits (UInt32.ofNat 0))))

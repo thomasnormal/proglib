@@ -814,7 +814,7 @@ def loadAt (p : Ptr) (ty : CType) (size : Option Nat) : EvalM CVal :=
     pure (.ptrInt q)
   else do
     match intTyOf? ty with
-    | some t => readMem (fun m => Mem.loadInt m p t)
+    | some t => readMem (fun m => Mem.loadIntChecked m p t ty)
     | none =>
         match size with
         | some n => do
@@ -832,7 +832,7 @@ def storeAt (p : Ptr) (ty : CType) (v : CVal) : EvalM Unit :=
       else refuseUnsupported "pointer-integer value stored outside uintptr_t/intptr_t"
   | .int _ n => do
       let t ← intTyOf ty
-      writeMem (fun m => Mem.storeInt m p t n)
+      writeMem (fun m => Mem.storeIntChecked m p t ty n)
   | .float32 f => if ty == "float" then writeMem (fun m => Mem.storeFloat32 m p f)
                  else refuseUnsupported "floating store without a floating layout"
   | .float64 f => if ty == "double" then writeMem (fun m => Mem.storeFloat64 m p f)
