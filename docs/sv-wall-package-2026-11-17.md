@@ -242,3 +242,7 @@ The implicit-event latch-case receipt is current:
 `always_star_case_latch_e/check.py` passes its retention check and reports
 eight rows matching the source behavior on Icarus Verilog 13.0 and Xcelium
 24.03-s004; the first startup row is the documented simulator split.
+
+The implicit-case memory receipt is current:
+`memory_implicit_case_canonical_e/check.py` reports four canonical-E rows
+matching Icarus Verilog 13.0 and Xcelium 24.03-s004.
