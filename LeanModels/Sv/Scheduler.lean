@@ -236,7 +236,9 @@ def flattenStmt (s : Stmt) : List Stmt := flattenStmtFuel 4096 s
 def waitForProcess (p : Process) : List Sensitivity :=
   match p with
   | .alwaysFF clock _ | .alwaysPlain clock _ =>
-      [{ process := 0, target := clock, wait := .posedge, resume := 0 }]
+      -- `0` is reserved for the initial registration action below; a wake
+      -- resumes at program counter one, i.e. the first flattened statement.
+      [{ process := 0, target := clock, wait := .posedge, resume := 1 }]
   | .alwaysComb body => (stmtNames body).eraseDups.map fun n =>
       { process := 0, target := n, wait := .anyChange, resume := 0 }
   | .assign _ value => (exprNames value).eraseDups.map fun n =>
@@ -273,13 +275,22 @@ def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalActi
   match d.processes[p]? with
   | none => .done
   | some proc =>
-      let body := match proc with
-        | .alwaysFF _ b | .alwaysPlain _ b | .alwaysComb b => flattenStmt b
-        | .assign target e => [.blockingAssign target e]
-        | .unsupported kind _ => [.unsupported kind ""]
-      match body[resume]? with
-      | some stmt => stmtAction s p stmt (resume + 1)
-      | none => .wait ((waitForProcess proc).map fun x => { x with process := p })
+      let edge := match proc with
+        | .alwaysFF _ _ | .alwaysPlain _ _ => true
+        | _ => false
+      if edge && resume == 0 then
+        -- Starting an edge process only installs its event control.  Its body
+        -- is entered by the first matching update, never at time zero.
+        .wait ((waitForProcess proc).map fun x => { x with process := p })
+      else
+        let pc := if edge then resume - 1 else resume
+        let body := match proc with
+          | .alwaysFF _ b | .alwaysPlain _ b | .alwaysComb b => flattenStmt b
+          | .assign target e => [.blockingAssign target e]
+          | .unsupported kind _ => [.unsupported kind ""]
+        match body[pc]? with
+        | some stmt => stmtAction s p stmt (pc + 1 + if edge then 1 else 0)
+        | none => .wait ((waitForProcess proc).map fun x => { x with process := p })
 
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
@@ -410,7 +421,7 @@ private def receiptDesign (target : String) (value : LVec) : Design :=
       init := some (LVec.xVec (LVec.width value)) }
   { name := "audit_receipt"
     decls := #[decl]
-    processes := #[.alwaysPlain "clk" (.blockingAssign target (.lit value))] }
+    processes := #[.alwaysComb (.blockingAssign target (.lit value))] }
 
 private def receiptRow (name target : String) (value : LVec) : AuditRow :=
   let expected : SvState := [(target, value)]
@@ -498,6 +509,18 @@ private def timeZeroDesign : Design :=
 
 #guard (SchedulerDesign.ofDesign timeZeroDesign).initial.store == [("q", LVec.ofNat 1 1)]
 #guard (SchedulerDesign.ofDesign timeZeroDesign).initial.active == [.eval 0 0]
+#guard (allSlots 8 (SchedulerDesign.ofDesign timeZeroDesign)
+  (SchedulerDesign.ofDesign timeZeroDesign).initial).all
+  (fun st => st.lookup "q" == some (LVec.ofNat 1 1))
+
+private def timeZeroRun : List SvState :=
+  let d := SchedulerDesign.ofDesign timeZeroDesign
+  let afterLow : SlotState :=
+    { store := [("q", LVec.ofNat 1 1), ("clk", LVec.lit "0")]
+      sens := [{ process := 0, target := "clk", wait := .posedge, resume := 1 }] }
+  allSlots 8 d (startWithInputs afterLow [("clk", LVec.lit "1")])
+
+#guard timeZeroRun == [[("q", LVec.ofNat 1 0), ("clk", LVec.lit "1")]]
 
 /- READY FOR AUDIT S1b: A1-A7, B1-B2, and C1-C3 are implemented in this
    additive scheduler file; S2 remains outside this change. -/
