@@ -493,6 +493,27 @@ private def readAfterWriteResult : List SvState :=
 
 #guard readAfterWriteResult.any (fun s => s.lookup "b" == some (LVec.ofNat 1 1))
 
+private def midBodyWait : SchedulerDesign :=
+  { eval := fun _ resume s =>
+      if resume == 0 then .blocking "x" (LVec.ofNat 1 1) 1
+      else if resume == 1 then
+        .wait [{ process := 0, target := "y", wait := .level, resume := 2 }]
+      else if resume == 2 then .blocking "z" (LVec.ofNat 1 1) 3
+      else .done }
+
+private def midBodyWaitStart : SlotState :=
+  { store := [("x", LVec.ofNat 1 0), ("y", LVec.ofNat 1 0), ("z", LVec.ofNat 1 0)]
+    active := [.eval 0 0,
+      .update { owner := none, seq := none, target := "y", value := LVec.ofNat 1 1 }]
+    sens := [] }
+
+private def midBodyWaitResult : List SvState :=
+  allSlots 12 midBodyWait midBodyWaitStart
+
+#guard midBodyWaitResult.any (fun s =>
+  s.lookup "x" == some (LVec.ofNat 1 1) &&
+  s.lookup "z" == some (LVec.ofNat 1 1))
+
 private def unorderedInputs : SlotState :=
   { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)]
     active := (inputUpdates [("a", LVec.ofNat 1 1), ("b", LVec.ofNat 1 1)]).map Active.update }
