@@ -311,3 +311,10 @@ loop lowering or E meaning is introduced here.
 
 Current public master is `69530791d`; the private-name cleanup is on master and
 the wall package remains clean under the required public-tree gate.
+
+CURRENT HEAD CORRECTION — 2026-11-17T10:45Z
+
+Public master is now `fdfbc6b06`; the intervening SV change records the
+CV32E40P break-wall evidence only. The measured break rows remain
+`x, x, 0, 0, 1` on both pinned simulators, and the retained envelope refusal
+remains unchanged. No real-design count transition is claimed.
