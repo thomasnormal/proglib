@@ -316,6 +316,13 @@ private def placementSet (xs : List (ObjId × Nat)) (o : ObjId) (address : Nat) 
   | [] => [(o, address)]
   | (q, old) :: rest => if q == o then (o, address) :: rest else (q, old) :: placementSet rest o address
 
+private theorem placementSet_mem (xs : List (ObjId × Nat)) (o : ObjId) (address : Nat) :
+    (o, address) ∈ placementSet xs o address := by
+  induction xs with
+  | nil => simp [placementSet]
+  | cons x xs ih =>
+    by_cases h : x.1 == o <;> simp [placementSet, h, ih]
+
 def vaStart (m : Mem) (p : Ptr) (args : List CVal) : MRes Mem :=
   match p.obj with
   | none => .error (.memUB (.nullDeref p.off))
@@ -1099,6 +1106,16 @@ theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
     (address : Nat) :
     (m.allocAt dur size ty address).2.obj = some (m.alloc dur size ty).2 := by
   simp [allocAt, Ptr.toObjectBoundAt]
+
+theorem allocAt_placement (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) :
+    (m.allocAt dur size ty address).2.obj = some (m.alloc dur size ty).2 ∧
+      ((m.alloc dur size ty).2, address) ∈ (m.allocAt dur size ty address).1.placements := by
+  change (some m.objs.length = some m.objs.length) ∧
+    (m.objs.length, address) ∈
+      placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
+        m.objs.length address
+  exact ⟨rfl, placementSet_mem _ _ _⟩
 
 /-- INVERSION for `resolve`: everything a successful access establishes.
 
