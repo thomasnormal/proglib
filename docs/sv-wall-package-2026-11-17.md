@@ -228,3 +228,7 @@ as measured simulator behavior; no unmodelled time-zero event is approximated.
 The wildcard memory-read receipt is current: `always_star_memory_read_e/check.py`
 reports nine rows matching the source-shaped canonical behavior on Icarus
 Verilog 13.0 and Xcelium 24.03-s004.
+
+The implicit-event memory receipt is current: `memory_implicit_event_canonical_e/check.py`
+reports three canonical-E rows matching Icarus Verilog 13.0 and Xcelium
+24.03-s004.
