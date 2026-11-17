@@ -257,3 +257,9 @@ landing. On pinned OpenTitan `prim_arbiter_ppc`, the measured
 `AssignmentExpression:target`/`GenItem.expand` residue moved from 1 to 0;
 the generated real-design row therefore moves from 6 to 5 unsupported nodes,
 while its first remaining wall stays `LocalDecl`.
+
+Current-head status after the concurrent public Python pushes: public master is
+`8c86906cd`, with no SV semantic change after `fc95337c5`. The real-design
+flip above remains the current SV measurement; the E import-closure audit still
+reports the pre-existing `Sem2`/`Sem2Run`/`Spec2` reach and is retained as a
+red-before baseline in the lane gate log.
