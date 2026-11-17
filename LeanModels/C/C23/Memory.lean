@@ -436,6 +436,30 @@ def get? (m : Mem) (o : ObjId) : Option CObj := m.objs[o]?
 def placement? (m : Mem) (o : ObjId) : Option Nat :=
   (m.placements.find? (fun entry => entry.1 == o)).map Prod.snd
 
+theorem vaStart_placement_lookup {m m' : Mem} {p : Ptr} {args : List CVal} (q : ObjId)
+    (h : vaStart m p args = .ok m') : m'.placement? q = m.placement? q := by
+  have hp : m'.placements = m.placements := vaStart_placements h
+  unfold placement?
+  simp only [hp]
+
+theorem vaCopy_placement_lookup {m m' : Mem} {dst src : Ptr} (q : ObjId)
+    (h : vaCopy m dst src = .ok m') : m'.placement? q = m.placement? q := by
+  have hp : m'.placements = m.placements := vaCopy_placements h
+  unfold placement?
+  simp only [hp]
+
+theorem vaEnd_placement_lookup {m m' : Mem} {p : Ptr} (q : ObjId)
+    (h : vaEnd m p = .ok m') : m'.placement? q = m.placement? q := by
+  have hp : m'.placements = m.placements := vaEnd_placements h
+  unfold placement?
+  simp only [hp]
+
+theorem vaArg_placement_lookup {m : Mem} {p : Ptr} {v : CVal} {m' : Mem} (q : ObjId)
+    (h : vaArg m p = .ok (v, m')) : m'.placement? q = m.placement? q := by
+  have hp : m'.placements = m.placements := vaArg_placements h
+  unfold placement?
+  simp only [hp]
+
 def rangesDisjoint (a sizeA b sizeB : Nat) : Bool :=
   a + sizeA ≤ b || b + sizeB ≤ a
 
