@@ -186,6 +186,14 @@ Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z reset and clock-edge
 cases. Both supported forms are ordinary-admitted; the real-design family is
 present=0, sole=0. Generated/internal resets remain separate refusals.
 
+Ordered wall-package status at public master `f595abb64` (2026-11-17): the
+recovered asynchronous-reset handoff and every subsequent ordered handoff
+(child instance, port target, delay, event process, hierarchy value, initial,
+interface instance/port/connection, internal clock, and multiple clocks) have a
+current receipt in this document. No active wall handoff remains in the inbox;
+the remaining real-design counts are unchanged until direct source-overlay
+remeasurement, and a new owner instruction is required for the next item.
+
 Current-pin internal-clock receipt (2026-11-17): the dedicated generated-clock
 fixture reports five rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004.
 Its ordinary census retains `Clock:source` at `PDesign.clockReport` and the
