@@ -816,6 +816,16 @@ def ptrLt (a b : Ptr) : MRes Bool :=
                       else .error (.memUB (.relationalAcrossObjects a b))
   | _, _ => .error (.memUB (.relationalAcrossObjects a b))
 
+/- On the defined same-object path, relational comparison ignores concrete
+   placement.  Cross-object refusals retain the offending pointer in their
+   diagnostic, so the unrestricted equality is intentionally not claimed. -/
+theorem ptrLt_same_object_address_irrel (a b : Ptr) (addressA addressB : Nat)
+    (h : ∃ o, a.obj = some o ∧ b.obj = some o) :
+    ptrLt {a with address := addressA} {b with address := addressB} =
+      .ok (a.off < b.off) := by
+  obtain ⟨o, ha, hb⟩ := h
+  simp [ptrLt, ha, hb]
+
 /-! ## §7.24.3 Memory management functions
 
 C23 §7.24.3p1: "The lifetime of an allocated object extends from the
