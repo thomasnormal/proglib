@@ -5156,14 +5156,14 @@ tier. Nothing in it is a new idea: displays and constructors ALLOCATE
 (`PBF.pushRef`), `sorted` allocates through a `map`-shaped equation
 (§Tier C′), every other leaf is a §Tier B equation under `PBF.liftRes` or
 a member of the block under the IH. -/
-theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAll pa o₀ o fuel) :
+theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAllWithDict pa o₀ o fuel) :
     PBEvalExpr pa o₀ o (fuel + 1) := by
   /- DictComp's admitted arm is intentionally not folded into this legacy
      theorem yet: its worker relation is declared after `pbAll`, while `pbAll`
      calls this theorem. Admission therefore requires one mutual strengthened
      induction, rather than a forward reference or a local shortcut. -/
   obtain ⟨ihE, ihEs, ihBool, ihCmp, -, -, -, ihIn, -, ihItems, -, ihAttrCall,
-    ihIter, -, -, ihDrain, ihAny, ihClosure, ihLCIfs, ihLCStep⟩ := ih
+    ihIter, -, -, ihDrain, ihAny, ihClosure, ihLCIfs, ihLCStep⟩ := ih.1
   intro m st e hslot
   cases e with
   | constant c sp => simp only [evalExpr]; exact PBF.ok hslot _
@@ -6892,13 +6892,13 @@ fuel, and at `0` every member is `.timeout` (each one guards on fuel
 before anything else). -/
 
 /-- **The whole block, at every fuel.** -/
-theorem pbAll (htwin : PayloadTwin o₀ o) : ∀ (fuel : Nat), PBAll pa o₀ o fuel := by
+theorem pbAll (htwin : PayloadTwin o₀ o) : ∀ (fuel : Nat), PBAllWithDict pa o₀ o fuel := by
   intro fuel
   induction fuel with
   | zero =>
       -- every member guards on fuel BEFORE it looks at anything, so the whole
       -- block is `.timeout` here and the relation constrains nothing
-      exact ⟨fun _ _ _ _ => PBF.timeout, fun _ _ _ _ => PBF.timeout,
+      exact ⟨⟨fun _ _ _ _ => PBF.timeout, fun _ _ _ _ => PBF.timeout,
         fun _ _ _ _ _ _ => PBF.timeout, fun _ _ _ _ _ _ => PBF.timeout,
         fun _ _ _ _ => PBF.timeout, fun _ _ _ _ => PBF.timeout,
         fun _ _ _ _ _ _ => PBF.timeout, fun _ _ _ _ _ => PBW.timeout,
@@ -6909,18 +6909,20 @@ theorem pbAll (htwin : PayloadTwin o₀ o) : ∀ (fuel : Nat), PBAll pa o₀ o f
         fun _ _ _ _ _ => PBW.timeout,
         fun _ _ _ _ _ _ _ _ _ _ _ => PBW.timeout,
         fun _ _ _ _ => PBF.timeout,
-        fun _ _ _ _ _ _ _ _ _ => PBF.timeout⟩
+        fun _ _ _ _ _ _ _ _ _ => PBF.timeout⟩,
+        fun _ _ _ _ _ _ _ _ _ _ => PBF.timeout⟩
   | succ n ihn =>
-      exact ⟨pbEvalExpr_succ htwin ihn, pbEvalExprs_succ ihn,
-        pbEvalBoolChain_succ htwin ihn, pbEvalCompareChain_succ htwin ihn,
-        pbExecStmt_succ htwin ihn, pbExecStmts_succ ihn,
-        pbExecWhile_succ htwin ihn, pbCallIn_succ htwin ihn,
-        pbExecFor_succ htwin ihn, pbEvalDictItems_succ ihn,
-        pbExecForList_succ htwin ihn, pbExecAttrCall_succ htwin ihn,
-        pbStepIter_succ htwin ihn, pbExecGen_succ htwin ihn,
-        pbExecForGen_succ htwin ihn, pbDrainIter_succ ihn,
-        pbAnyAllIter_succ htwin ihn, pbCallClosure_succ htwin ihn,
-        pbListCompIfs_succ htwin ihn, pbListCompStep_succ htwin ihn⟩
+      exact ⟨⟨pbEvalExpr_succ htwin ihn, pbEvalExprs_succ ihn.1,
+        pbEvalBoolChain_succ htwin ihn.1, pbEvalCompareChain_succ htwin ihn.1,
+        pbExecStmt_succ htwin ihn.1, pbExecStmts_succ ihn.1,
+        pbExecWhile_succ htwin ihn.1, pbCallIn_succ htwin ihn.1,
+        pbExecFor_succ htwin ihn.1, pbEvalDictItems_succ ihn.1,
+        pbExecForList_succ htwin ihn.1, pbExecAttrCall_succ htwin ihn.1,
+        pbStepIter_succ htwin ihn.1, pbExecGen_succ htwin ihn.1,
+        pbExecForGen_succ htwin ihn.1, pbDrainIter_succ ihn.1,
+        pbAnyAllIter_succ htwin ihn.1, pbCallClosure_succ htwin ihn.1,
+        pbListCompIfs_succ htwin ihn.1, pbListCompStep_succ htwin ihn.1⟩,
+        pbDictCompStep_succ htwin ihn.1 ihn.2⟩
 
 theorem pbDictAll (htwin : PayloadTwin o₀ o) :
     ∀ (fuel : Nat), PBDictCompStep pa o₀ o fuel := by
@@ -6928,19 +6930,19 @@ theorem pbDictAll (htwin : PayloadTwin o₀ o) :
   induction fuel with
   | zero => exact fun _ _ _ _ _ _ _ _ _ _ => PBF.timeout
   | succ n ih =>
-      exact pbDictCompStep_succ htwin (pbAll htwin n) ih
+      exact pbDictCompStep_succ htwin (pbAll htwin n).1 ih
 
 theorem pbAllWithDict (htwin : PayloadTwin o₀ o) :
     ∀ (fuel : Nat), PBAllWithDict pa o₀ o fuel := by
   intro fuel
-  exact ⟨pbAll htwin fuel, pbDictAll htwin fuel⟩
+  exact pbAll htwin fuel
 
 /- The named product can feed the existing expression theorem without
 altering any historic `PBAll` projection. -/
 theorem pbEvalExpr_succ_withDict (htwin : PayloadTwin o₀ o)
     (ih : PBAllWithDict pa o₀ o fuel) :
     PBEvalExpr pa o₀ o (fuel + 1) :=
-  pbEvalExpr_succ htwin ih.1
+  pbEvalExpr_succ htwin ih
 
 end Arms
 
@@ -7016,7 +7018,8 @@ consumers (`IterDrains.of_genYields`, `gen_moves_drains_ref`) can drop
 `PayloadBlind` from their signatures and call this. -/
 theorem payloadBlind (m : Module) : PayloadBlind m := by
   refine payloadBlind_of_execGen fun pa o₀ o htwin fuel => ?_
-  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, ihGen, -⟩ := pbAll htwin fuel
+  obtain ⟨bundle, -⟩ := pbAll htwin fuel
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, ihGen, -⟩ := bundle
   exact ihGen
 
 end LeanModels.Python
