@@ -542,6 +542,16 @@ for all eight cycles (`xxxxxxxx` throughout because the four pipe cells are
 uninitialized). This ranking row is cleared on the current tree; no array
 lowering, semantic change, or real-design count transition is claimed.
 
+## Undeclared array-select wall remeasurement
+
+The ranked `array_select.sv` fixture selects `missing[i]` without declaring
+`missing`. Approved extraction emits `ContinuousAssignSymbol:InvalidExpression`
+and `SlangError:UndeclaredIdentifier`; ordinary E preserves those parser-native
+refusals and reports the same E instantiation boundary. Icarus Verilog 13.0
+and Xcelium 24.03-s004 both reject elaboration, so no simulator value is
+claimed. This is an invalid-source boundary, not an array-index semantic wall;
+no source repair or semantic admission is appropriate.
+
 ## Signal-event-control wall remeasurement
 
 The clean-room `signal_event_control.sv` fixture uses `always_ff @(clk)`
