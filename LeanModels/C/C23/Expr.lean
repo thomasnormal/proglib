@@ -455,8 +455,12 @@ structure Layout where
   The pair is `(offset_bits, width_bits)`; `none` means an ordinary member.
   These are frontend facts, never reconstructed from a type spelling. -/
   fieldBits : CType → String → Option (Nat × Nat) := fun _ _ => none
+  /-- Parser-native bit-field facts keyed by the base declaration identity. -/
+  fieldBitsDecl : DeclarationId → String → Option (Nat × Nat) := fun _ _ => none
   /-- Parser-native flexible-array member marker from the record layout. -/
   flexibleField : CType → String → Bool := fun _ _ => false
+  /-- Parser-native flexible-array facts keyed by the base declaration identity. -/
+  flexibleFieldDecl : DeclarationId → String → Bool := fun _ _ => false
   /-- An array type's element type and extent, for `T[N]`.
 
   Needed because **aggregate initialization WRITES through the layout**
@@ -489,6 +493,22 @@ structure Layout where
   every refusal stays exactly as loud as it was. -/
   normalizeTy : CType → CType := id
 
+/-- The declaration identity carried by a direct base expression.  Clang's
+member access facts are keyed by the declaration that owns the object; the
+spelling fallback remains only for older envelopes without that identity. -/
+def directDeclId : Expr → Option DeclarationId
+  | .declRef id _ _ _ _ => id
+  | .implicitCast _ sub _ _ => directDeclId sub
+  | .cast _ sub _ _ => directDeclId sub
+  | .paren sub _ _ => directDeclId sub
+  | _ => none
+
+/-- Resolve bit-field facts through the parser-native declaration key first. -/
+def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
+    Option (Nat × Nat) :=
+  (directDeclId base).bind (fun did => layout.fieldBitsDecl did field)
+    |>.orElse (fun _ => layout.fieldBits base.ty field)
+
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/
 def Layout.unknown : Layout :=
@@ -498,8 +518,8 @@ def Layout.unknown : Layout :=
     pointeeSize := fun _ => none
     fieldSize := fun _ _ => none, fieldSizeDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
-    fieldBits := fun _ _ => none
-    flexibleField := fun _ _ => false
+    fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
+    flexibleField := fun _ _ => false, flexibleFieldDecl := fun _ _ => false
     elem := fun _ => none, members := fun _ => none
     normalizeTy := id }
 
@@ -1264,7 +1284,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | none =>
               match sub with
               | .member base field arrow fieldTy _ =>
-                  if ctx.layout.fieldBits base.ty field |>.isSome then
+                  if ctx.layout.fieldBitsAt base field |>.isSome then
                     loadBitFieldAt ctx base.ty field fieldTy p
                   else
                     loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
@@ -1395,7 +1415,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let v ← evalExpr ctx r
         match l with
         | .member base field arrow fieldTy _ =>
-            if ctx.layout.fieldBits base.ty field |>.isSome then
+            if ctx.layout.fieldBitsAt base field |>.isSome then
               storeBitFieldAt ctx base.ty field fieldTy p v
             else
               storeAt p (ctx.layout.normalizeTy l.ty) v
@@ -1458,7 +1478,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let p ← evalLValue ctx sub
         let old ← match sub with
           | .member base field arrow fieldTy _ =>
-              if ctx.layout.fieldBits base.ty field |>.isSome then
+              if ctx.layout.fieldBitsAt base field |>.isSome then
                 loadBitFieldAt ctx base.ty field fieldTy p
               else loadAt p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
           | _ => loadAt p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
@@ -1471,7 +1491,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               (.int IntTy.int_ 1) (ctx.layout.normalizeTy sub.ty)
             match sub with
             | .member base field arrow fieldTy _ =>
-                if ctx.layout.fieldBits base.ty field |>.isSome then
+                if ctx.layout.fieldBitsAt base field |>.isSome then
                   storeBitFieldAt ctx base.ty field fieldTy p nv
                 else storeAt p (ctx.layout.normalizeTy sub.ty) nv
             | _ => storeAt p (ctx.layout.normalizeTy sub.ty) nv
@@ -1486,7 +1506,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                 let stored := convert storedT nv
                 match sub with
                 | .member base field arrow fieldTy _ =>
-                    if ctx.layout.fieldBits base.ty field |>.isSome then
+                    if ctx.layout.fieldBitsAt base field |>.isSome then
                       storeBitFieldAt ctx base.ty field fieldTy p stored
                     else storeAt p (ctx.layout.normalizeTy sub.ty) stored
                 | _ => storeAt p (ctx.layout.normalizeTy sub.ty) stored
@@ -1508,7 +1528,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       -- `x |= foo()` where `foo` updates `x`).
       let old ← match l with
         | .member base field arrow fieldTy _ =>
-            if ctx.layout.fieldBits base.ty field |>.isSome then
+            if ctx.layout.fieldBitsAt base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p
             else
               loadAt p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
@@ -1523,7 +1543,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let nv ← evalArith ctx (compoundBase op) old rv computeResultType
           match l with
           | .member base field arrow fieldTy _ =>
-              if ctx.layout.fieldBits base.ty field |>.isSome then
+              if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p nv
               else
                 storeAt p (ctx.layout.normalizeTy l.ty) nv
@@ -1534,7 +1554,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let nv ← float32Binop (compoundBase op) a b
           match l with
           | .member base field arrow fieldTy _ =>
-              if ctx.layout.fieldBits base.ty field |>.isSome then
+              if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
                 storeAt p (ctx.layout.normalizeTy l.ty) nv
@@ -1545,7 +1565,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let nv ← float64Binop (compoundBase op) a b
           match l with
           | .member base field arrow fieldTy _ =>
-              if ctx.layout.fieldBits base.ty field |>.isSome then
+              if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
                 storeAt p (ctx.layout.normalizeTy l.ty) nv
@@ -1565,7 +1585,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let stored := convert storageT nvN
           match l with
           | .member base field arrow fieldTy _ =>
-              if ctx.layout.fieldBits base.ty field |>.isSome then
+              if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p stored
               else
                 storeAt p (ctx.layout.normalizeTy l.ty) stored
@@ -1579,7 +1599,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- either way (§6.3.2.1p2).
   | .member base field arrow ty span => do
       let p ← memberAddr ctx base field arrow ty
-      if ctx.layout.fieldBits base.ty field |>.isSome then
+      if ctx.layout.fieldBitsAt base field |>.isSome then
         loadBitFieldAt ctx base.ty field ty p
       else
         loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
@@ -1744,13 +1764,6 @@ def evalArgs (ctx : Ctx) : List Expr → EvalM (List CVal)
 Takes `base` — a strict SUBTERM — rather than the reassembled node. The
 node this replaces was rebuilt as `.member base field arrow ty sp`, which
 is not a subterm of anything, and that is what defeated the recursion. -/
-def directDeclId : Expr → Option DeclarationId
-  | .declRef id _ _ _ _ => id
-  | .implicitCast _ sub _ _ => directDeclId sub
-  | .cast _ sub _ _ => directDeclId sub
-  | .paren sub _ _ => directDeclId sub
-  | _ => none
-
 def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
     (fieldTy : CType) : EvalM Ptr := do
   let basePtr ← if arrow then (do let v ← evalExpr ctx base; asPtr v)
