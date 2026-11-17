@@ -101,6 +101,17 @@ def lookupEnv : REnv → String → Option RVal
 def setEnv (env : REnv) (name : String) (value : RVal) : REnv :=
   (name, value) :: env.filter (fun binding => binding.1 != name)
 
+def findFunction : List FunctionDefn → String → Option FunctionDefn
+  | [], _ => none
+  | function :: rest, name =>
+      if function.name == name then some function else findFunction rest name
+
+def bindParams : List Param → List RVal → Option REnv
+  | [], [] => some []
+  | parameter :: params, value :: values =>
+      bindParams params values |>.map (fun env => (parameter.arg, value) :: env)
+  | _, _ => none
+
 def truthy : RVal → Bool
   | .none => false
   | .bool b => b
@@ -188,7 +199,7 @@ def finish : MachineState → Observation → Event → MachineState
           events := state.events ++ [event]
           resources := { fuel := state.resources.fuel } }
 
-def stepStmt (state : MachineState) (frame : Frame) (rest : List Stmt) (stmt : Stmt) :
+def stepStmt (m : Module) (state : MachineState) (frame : Frame) (rest : List Stmt) (stmt : Stmt) :
     Option (Event × MachineState) :=
   match stmt with
   | .pass _ =>
@@ -213,6 +224,28 @@ def stepStmt (state : MachineState) (frame : Frame) (rest : List Stmt) (stmt : S
           | .unsupported reason =>
               let reason := "machine print arguments"
               some (.refuse reason, finish state (.refused reason) (.refuse reason))
+      | .call (.name name _) args _ none _ =>
+          match findFunction m.functions.toList name, args.toList.mapM (evalExpr frame.locals) with
+          | some function, .ok values =>
+              if !function.argsOk || !function.localsOk then
+                let reason := "machine function admission"
+                some (.refuse reason, finish state (.refused reason) (.refuse reason))
+              else
+                match bindParams function.params.toList values with
+                | some locals =>
+                    some (.choice "call" 0,
+                      { state with
+                          frames := { control := .statements function.body.toList, locals := locals } :: state.frames
+                          continuations := .sequence rest :: state.continuations })
+                | none =>
+                    let reason := "machine function arity"
+                    some (.refuse reason, finish state (.refused reason) (.refuse reason))
+          | none, _ =>
+              let reason := "machine function lookup"
+              some (.refuse reason, finish state (.refused reason) (.refuse reason))
+          | _, .exn error => some (.raise error, finish state (.raised error) (.raise error))
+          | _, .timeout => some (.resource .recursion, finish state (.resource .recursion) (.resource .recursion))
+          | _, .unsupported reason => some (.refuse reason, finish state (.refused reason) (.refuse reason))
       | _ =>
         match evalExpr frame.locals value with
       | .ok _ => some (.choice "expr" 0, { state with frames := { frame with control := .statements rest } :: state.frames.tail! })
@@ -263,7 +296,7 @@ def stepStmt (state : MachineState) (frame : Frame) (rest : List Stmt) (stmt : S
       let reason := "machine statement"
       some (.refuse reason, finish state (.refused reason) (.refuse reason))
 
-def step : MachineState → Option (Event × MachineState)
+def step (m : Module) : MachineState → Option (Event × MachineState)
   | state@{ frames := [], .. } => none
   | state@{ frames := frame :: _, resources := ⟨0⟩, .. } =>
       some (.resource .recursion, finish state (.resource .recursion) (.resource .recursion))
@@ -271,17 +304,23 @@ def step : MachineState → Option (Event × MachineState)
       match frame.control with
       | .halted _ => none
       | .statements [] =>
-          some (.return .none, finish state (.returned .none) (.return .none))
+          match state.frames, state.continuations with
+          | _ :: caller :: tail, .sequence rest :: continuations =>
+              some (.return .none, { state with
+                frames := { caller with control := .statements rest } :: tail
+                continuations := continuations
+                events := state.events ++ [.return .none] })
+          | _, _ => some (.return .none, finish state (.returned .none) (.return .none))
       | .statements (stmt :: rest) =>
-          match stepStmt state frame rest stmt with
+          match stepStmt m state frame rest stmt with
           | some (event, next) => some (event, { next with resources := ⟨fuel⟩ })
           | none => none
 
-def stepRel (state : MachineState) (event : Event) (next : MachineState) : Prop :=
-  step state = some (event, next)
+def stepRel (m : Module) (state : MachineState) (event : Event) (next : MachineState) : Prop :=
+  step m state = some (event, next)
 
-theorem runner_step_mem (state next : MachineState) (event : Event)
-    (h : step state = some (event, next)) : stepRel state event next := h
+theorem runner_step_mem (m : Module) (state next : MachineState) (event : Event)
+    (h : step m state = some (event, next)) : stepRel m state event next := h
 
 def initial (m : Module) : MachineState :=
   { frames := [{ control := .statements m.topLevel.toList, locals := [] }]
@@ -292,15 +331,15 @@ def initial (m : Module) : MachineState :=
     choices := [.cpython39]
     resources := { fuel := 4096 } }
 
-def steps : MachineState → List Event → MachineState → Prop
+def steps (m : Module) : MachineState → List Event → MachineState → Prop
   | start, [], finishState => start = finishState
   | start, event :: events, finishState =>
-      ∃ next, step start = some (event, next) ∧ steps next events finishState
+      ∃ next, step m start = some (event, next) ∧ steps m next events finishState
 
-inductive Trace : MachineState → List Event → MachineState → Prop where
-  | nil (state : MachineState) : Trace state [] state
+inductive Trace (m : Module) : MachineState → List Event → MachineState → Prop where
+  | nil (state : MachineState) : Trace m state [] state
   | cons {state next finish : MachineState} {event : Event} {events : List Event} :
-      stepRel state event next → Trace next events finish → Trace state (event :: events) finish
+      stepRel m state event next → Trace m next events finish → Trace m state (event :: events) finish
 
 def observationOfEvents : List Event → Option Observation
   | [] => none
@@ -315,14 +354,14 @@ def observationOfEvents : List Event → Option Observation
           | .resource kind => some (.resource kind)
           | _ => none
 
-def runTrace (impl : Impl) : Nat → MachineState → List Event × MachineState
+def runTrace (impl : Impl) (m : Module) : Nat → MachineState → List Event × MachineState
   | 0, state => ([], state)
   | fuel + 1, state =>
-      match step state with
+      match step m state with
       | none => ([], state)
       | some (_, next) =>
-          let result := runTrace impl fuel next
-          match step state with
+          let result := runTrace impl m fuel next
+          match step m state with
           | some (event, _) => (event :: result.1, result.2)
           | none => (result.1, result.2)
 
@@ -332,15 +371,15 @@ def run (impl : Impl) (fuel : Nat) (m : Module) : MachineState × Observation :=
       let state := { initial m with resources := { fuel := 0 } }
       (state, .resource .recursion)
   | fuel + 1 =>
-      let result := runTrace impl (fuel + 1) { initial m with resources := { fuel := fuel + 1 } }
+      let result := runTrace impl m (fuel + 1) { initial m with resources := { fuel := fuel + 1 } }
       (result.2, (observationOfEvents result.2.events).getD (.resource .memory))
 
-theorem runTrace_is_trace (impl : Impl) (fuel : Nat) (state : MachineState) :
-    Trace state (runTrace impl fuel state).1 (runTrace impl fuel state).2 := by
+theorem runTrace_is_trace (impl : Impl) (m : Module) (fuel : Nat) (state : MachineState) :
+    Trace m state (runTrace impl m fuel state).1 (runTrace impl m fuel state).2 := by
   induction fuel generalizing state with
   | zero => exact Trace.nil state
   | succ fuel ih =>
-      cases hstep : step state with
+      cases hstep : step m state with
       | none =>
           simp [runTrace, hstep]
           exact Trace.nil state
@@ -358,8 +397,8 @@ theorem run_step_refines (impl : Impl) (fuel : Nat) (m : Module) :
   · exact Or.inr (List.exists_mem_of_ne_nil _ h)
 
 theorem toy_trace_refinement (m : Module) (event : Event) (next : MachineState)
-    (h : step (initial m) = some (event, next)) :
-    steps (initial m) [event] next := by
+    (h : step m (initial m) = some (event, next)) :
+    steps m (initial m) [event] next := by
   exact ⟨next, h, rfl⟩
 
 end LeanModels.Python.Machine

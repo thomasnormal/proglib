@@ -170,6 +170,8 @@ The implementation is in `LeanModels/Python/Machine/Core.lean`. The derived
 script runner is available through `leanmodels-run --machine-script-batch`.
 `harness/machine_diff.py` runs the first real rows through CPython and the
 machine in one batch. `harness/scripts/hello.py` and
-`harness/scripts/scalar_expr.py` are matching scalar-output rows, while
+`harness/scripts/scalar_expr.py` are matching scalar-output rows, and
+`harness/scripts/function_call.py` checks a positional module-function call,
+while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is two matches, one refusal, and zero divergence.
+current result is three matches, one refusal, and zero divergence.
