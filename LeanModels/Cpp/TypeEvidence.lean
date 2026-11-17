@@ -73,6 +73,7 @@ private def CppTypeEvidence.referencedHandles : CppTypeEvidence → List Fronten
       CppTypeEvidence.referencedHandles result ++
         parameters.flatMap CppTypeEvidence.referencedHandles
   | .record declaration | .enumeration declaration => [declaration]
+  | .typedefRef declaration => [declaration]
 
 private def CppTypeEvidence.containsUnsupportedReference (type : CppTypeEvidence)
     (declarations : List DeclarationEvidenceRow) : Bool :=

@@ -22,6 +22,8 @@ example : sharedPointer = cppPointer := rfl
 #guard LeanModels.Clang.QualType.beq sharedPointer cppPointer
 #guard LeanModels.Clang.QualType.beq sharedArray (.array (.builtin .int) (some 4))
 #guard !LeanModels.Clang.QualType.beq sharedArray (.array (.builtin .int) (some 5))
+#guard LeanModels.Clang.QualType.beq
+  (.typedefRef {value := "0x1"}) (.typedefRef {value := "0x1"})
 
 private def handle (value : String) : FrontendHandle := {value}
 

@@ -29,6 +29,7 @@ inductive QualType where
   | function (result : QualType) (parameters : List QualType) (variadic : Bool)
   | record (declaration : DeclarationHandle)
   | enumeration (declaration : DeclarationHandle)
+  | typedefRef (declaration : DeclarationHandle)
   deriving Repr, Inhabited
 
 mutual
@@ -46,7 +47,8 @@ mutual
     | .function left lp lv, .function right rp rv =>
         QualType.beq left right && QualType.beqList lp rp && lv == rv
     | .record left, .record right
-    | .enumeration left, .enumeration right => left == right
+    | .enumeration left, .enumeration right
+    | .typedefRef left, .typedefRef right => left == right
     | _, _ => false
   termination_by structural left
 
