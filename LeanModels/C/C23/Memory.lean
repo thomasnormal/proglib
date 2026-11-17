@@ -971,6 +971,12 @@ theorem resolve_kill (m : Mem) (o : ObjId) (c : CObj) (p : Ptr) (n : Nat)
     simp [hc]
   simp [resolve, hp, hk]
 
+@[simp] theorem resolve_kill_address_irrel (m : Mem) (o : ObjId) (c : CObj)
+    (p : Ptr) (n address : Nat) (hp : p.obj = some o) (hc : m.get? o = some c) :
+    (m.kill o).resolve {p with address := address} n =
+      (m.kill o).resolve p n := by
+  simp [resolve_address_irrel]
+
 /-- **The round trip.** What `storeBytes` wrote, `loadBytes` reads back —
 so the byte lattice is a memory and not a filter.
 
