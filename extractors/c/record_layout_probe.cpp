@@ -96,13 +96,22 @@ public:
     const auto finish = end_loc.isValid() ? sources.getFileOffset(end_loc) : begin;
     const auto size = context->getTypeSizeInChars(decl->getType());
     const auto align = context->getTypeAlignInChars(decl->getType());
-    records.push_back(llvm::json::Object{
+    llvm::json::Object item{
         {"kind", "TypeLayout"},
         {"offset", static_cast<int64_t>(begin)},
         {"token_length", static_cast<int64_t>(finish - begin)},
         {"type", decl->getType().getAsString()},
         {"size_bytes", static_cast<int64_t>(size.getQuantity())},
-        {"alignment_bytes", static_cast<int64_t>(align.getQuantity())}});
+        {"alignment_bytes", static_cast<int64_t>(align.getQuantity())}};
+    if (decl->getType()->isPointerType()) {
+      const auto pointee = decl->getType()->getPointeeType();
+      if (pointee->isArrayType()) {
+        const auto pointeeSize = context->getTypeSizeInChars(pointee);
+        item["pointee_size_bytes"] =
+            static_cast<int64_t>(pointeeSize.getQuantity());
+      }
+    }
+    records.push_back(std::move(item));
     return true;
   }
 };

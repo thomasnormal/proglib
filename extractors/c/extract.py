@@ -272,6 +272,10 @@ def record_layout_records(path):
                     record["size_bytes"] < 0 or type(record.get("alignment_bytes")) is not int or
                     record["alignment_bytes"] < 0):
                 die("record layout probe returned an invalid type layout")
+            if (record.get("pointee_size_bytes") is not None and
+                    (type(record["pointee_size_bytes"]) is not int or
+                     record["pointee_size_bytes"] < 0)):
+                die("record layout probe returned an invalid pointee size")
             type_layouts.append(record)
             continue
         if record.get("kind") == "EnumValue":
@@ -981,7 +985,9 @@ def extract(path, source_name=None, standard="c23"):
         "translation_unit": {"kind": "TranslationUnit", "decls": top},
         "externals": externals(tu, target, Loc),
         "type_layouts": [{"type": r["type"], "size_bytes": r["size_bytes"],
-                          "alignment_bytes": r["alignment_bytes"]}
+                          "alignment_bytes": r["alignment_bytes"],
+                          **({"pointee_size_bytes": r["pointee_size_bytes"]}
+                             if r.get("pointee_size_bytes") is not None else {})}
                          for r in ex.type_layouts],
         "lean_blocks": [],
     }, ex.unsupported

@@ -407,7 +407,8 @@ def parseExternal (j : Json) : Except String External :=
 def parseTypeLayout (j : Json) : Except String TypeLayout := withCtx "type_layout" do
   return { ty := ← getStr j "type"
            sizeBytes := ← getNat j "size_bytes"
-           alignmentBytes := ← getNat j "alignment_bytes" }
+           alignmentBytes := ← getNat j "alignment_bytes"
+           pointeeSizeBytes := ← getOptNat j "pointee_size_bytes" }
 
 def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
   let ver ← getStr j "schema_version"

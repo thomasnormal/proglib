@@ -429,6 +429,8 @@ structure Layout where
   size : CType → Option Nat
   /-- Frontend-observed sizes for declarator-shaped types. -/
   typeSize : CType → Option Nat := fun _ => none
+  /-- Frontend-observed byte stride for a declared pointer-to-array object. -/
+  pointeeSize : CType → Option Nat := fun _ => none
   /-- `offsetof`, keyed on the BASE expression's spelling, so `p->f` and
   `x.f` look up under `"const Pos *"` and `"Pos"` respectively. -/
   fieldOff : CType → String → Option Nat
@@ -487,6 +489,7 @@ def Layout.unknown : Layout :=
   { size := fun _ => none, fieldOff := fun _ _ => none
     fieldOffType := fun _ _ => none
     typeSize := fun _ => none
+    pointeeSize := fun _ => none
     fieldSize := fun _ _ => none
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none
@@ -883,7 +886,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
   -- whenever either operand is one. Measured: 8 `+`, 4 `-`.
   | .ptr p, .int _ i =>
       if op == "+" || op == "-" then
-        match (pointeeOf ty).bind ctx.layout.size with
+        match ctx.layout.pointeeSize ty |>.orElse (fun _ => (pointeeOf ty).bind ctx.layout.size) with
         | some esz => do
             let d := if op == "+" then i else -i
             let q ← readMem (fun m => Mem.offsetPtr m p esz d)
@@ -892,7 +895,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
       else refuseUnsupported s!"operator '{op}' on a pointer and an integer"
   | .int _ i, .ptr p =>
       if op == "+" then
-        match (pointeeOf ty).bind ctx.layout.size with
+        match ctx.layout.pointeeSize ty |>.orElse (fun _ => (pointeeOf ty).bind ctx.layout.size) with
         | some esz => do
             let q ← readMem (fun m => Mem.offsetPtr m p esz i)
             pure (.ptr q)

@@ -135,6 +135,10 @@ structure TypeLayout where
   ty : CType
   sizeBytes : Nat
   alignmentBytes : Nat
+  /-- For a declared pointer-to-array object, Clang's exact byte extent of
+  the pointee array.  This avoids parsing the flat pointer spelling when
+  pointer arithmetic needs its stride. -/
+  pointeeSizeBytes : Option Nat := none
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 /-! ## The three layers

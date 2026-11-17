@@ -78,7 +78,10 @@ the pinned Clang layout probe. It is keyed by the exact type string already
 attached to a Clang declaration; the extractor and Lean loader never parse
 that spelling. It covers declarator-shaped objects such as nested function
 pointers whose size has no `RecordLayout` node. A missing fact remains a loud
-layout refusal.
+layout refusal. For a declared pointer-to-array object, the optional
+`pointee_size_bytes` field carries Clang's exact byte extent for the pointee;
+pointer arithmetic consumes that parser fact without parsing the flat type
+spelling.
 
 ## 2 Spans
 
