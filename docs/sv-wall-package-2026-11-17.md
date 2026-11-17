@@ -636,3 +636,13 @@ canonical E. The checked-in receipt reports four x/z rows matching Xcelium
 24.03-s004. Icarus Verilog 13.0 rejects the unpacked-struct syntax, so no
 Icarus oracle result is claimed. No port-target lowering or aggregate
 connection semantics is added here.
+
+## Urgent interface-instance wall remeasurement
+
+The urgent `interface_repro.sv` fixture retains interface-instance, interface
+port, and interface-port-connection nodes in approved extraction. Ordinary E
+reports the exact `GenItem.expand` interface-instance boundary and refuses at
+`PDesign.instantiateE2`. The checked-in receipt matches four x/z rows on
+Xcelium 24.03-s004; Icarus Verilog 13.0 rejects the interface-port syntax, so
+no Icarus oracle is claimed. No interface lowering or connection semantics is
+added here.
