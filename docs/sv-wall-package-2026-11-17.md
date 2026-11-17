@@ -607,3 +607,12 @@ refusal, and the existing canonical-E receipt passes two source rows on Icarus
 Verilog 13.0 and Xcelium 24.03-s004 (`y=x`, then `y=0`). The child edge body
 and connected ports remain source-shaped; no hierarchy lowering or semantic
 change is made.
+
+## Generate-if unpacked-array wall remeasurement
+
+The ranked `generate_if_unpacked_array.sv` fixture is already admitted on the
+current tree. Approved extraction and ordinary census report zero refusals.
+Canonical E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 for all eight
+cycles at N1 and N2, including x/z rows. The prior `GenerateIf: UnpackedDecl`
+ranking row is stale; no generate lowering, memory semantic change, or
+real-design count transition is claimed.
