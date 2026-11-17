@@ -358,6 +358,12 @@ The edge-memory case receipt is current:
 byte-identically; its two source-shaped canonical-E rows and six simulator
 source rows match Icarus Verilog 13.0 and Xcelium 24.03-s004.
 
+The wildcard edge-memory receipt is current:
+`memory_edge_casez_casex_canonical_e/check.py` regenerates its envelope
+byte-identically; its two source-shaped canonical-E rows and six simulator
+source rows (case, casez, and casex) match Icarus Verilog 13.0 and Xcelium
+24.03-s004.
+
 CURRENT HEAD CORRECTION — 2026-11-17T11:05Z
 
 Public master is now `1f8c98756`; the intervening public change is a
