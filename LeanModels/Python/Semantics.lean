@@ -415,6 +415,7 @@ def Expr.kindName : Expr → String
   | .slice .. => "Slice"
   | .genExp .. => "GeneratorExp"
   | .listComp .. => "ListComp"
+  | .dictComp .. => "DictComp"
   | .unsupported pyKind _ _ => pyKind
 
 /-- Schema `kind` name of a statement node (error messages) — the
@@ -8618,6 +8619,7 @@ mutual
     | .slice _ _ _ _ _ => false
     | .genExp .. => false               -- ALLOCATES a generator (H4)
     | .listComp .. => false              -- ALLOCATES the result list
+    | .dictComp .. => false
     | .unsupported .. => true           -- loud, never decides `.ok`
 
   /-- Elementwise `Expr.heapFree`. -/
@@ -8786,6 +8788,7 @@ mutual
       v.genAllocFree && l.genAllocFree && u.genAllocFree && st.genAllocFree
     | .genExp .. => false
     | .listComp .. => false
+    | .dictComp .. => false
     | .unsupported .. => true
 
   /-- Elementwise `Expr.genAllocFree`. -/
@@ -10588,6 +10591,7 @@ def evalExpr (m : Module) (fuel : Nat) (st : FrameState) (e : Expr) :
           | .exn e => .exn st e
           | .timeout => .timeout
           | .ok xs => evalListCompStep m fuel st st.locals elt target ifs.toList xs []
+    | .dictComp .. => .unsupported "DictComp semantics is outside the current tier"
     | .unsupported pyKind _ _ => .unsupported s!"unsupported expression '{pyKind}'"
   termination_by structural fuel
 
@@ -12192,6 +12196,9 @@ mutual
     | .listComp e t it ifs wb _ => proofCellDrainExpr genName e || proofCellDrainExpr genName t ||
         proofCellDrainExpr genName it || ifs.toList.any (proofCellDrainExpr genName) ||
         wb.toList.any (fun kv => proofCellDrainExpr genName kv.2)
+    | .dictComp k v t it ifs _ => proofCellDrainExpr genName k ||
+        proofCellDrainExpr genName v || proofCellDrainExpr genName t ||
+        proofCellDrainExpr genName it || ifs.toList.any (proofCellDrainExpr genName)
 
   partial def proofCellDrainStmt (genName : String) : Stmt → Bool
     | .annNoValue .. => false

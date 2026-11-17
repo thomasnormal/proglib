@@ -5273,6 +5273,9 @@ theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAll pa o₀ o fuel)
         | ok xs =>
             simp only [hvals]
             exact ihLCStep m s s.locals elt target ifs.toList xs [] hs
+  | dictComp key value target iter ifs sp =>
+      simp only [evalExpr]
+      exact PBF.unsupported
   | unsupported pyKind text sp => simp only [evalExpr]; exact PBF.unsupported
   | call f args kwargs callUnsupported sp =>
       simp only [evalExpr, FrameState.swapAt_world, FrameState.swapAt_locals,

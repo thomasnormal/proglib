@@ -604,11 +604,15 @@ theorem fuelMono (fuel : Nat) :
     (∀ (m : Module) (st : FrameState) (saved : Env) (elt target : Expr)
       (ifs : List Expr) (xs acc : List RVal) (fuel' : Nat), fuel ≤ fuel' →
       evalListCompStep m fuel st saved elt target ifs xs acc ⊑ʳ
-        evalListCompStep m fuel' st saved elt target ifs xs acc) := by
+        evalListCompStep m fuel' st saved elt target ifs xs acc) ∧
+    (∀ (m : Module) (st : FrameState) (key value target iter : Expr)
+      (ifs : Array Expr) (sp : Span) (fuel' : Nat), fuel ≤ fuel' →
+      evalExpr m fuel st (.dictComp key value target iter ifs sp) ⊑ʳ
+        evalExpr m fuel' st (.dictComp key value target iter ifs sp)) := by
   induction fuel with
   | zero =>
     -- Fuel 0 is `.timeout` everywhere, the bottom of `⊑ʳ`.
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · exact fun m st e fuel' _ => Or.inl (by simp [evalExpr])
     · exact fun m st es fuel' _ => Or.inl (by simp [evalExprs])
     · exact fun m st op e rest fuel' _ => Or.inl (by simp [evalBoolChain])
@@ -631,10 +635,13 @@ theorem fuelMono (fuel : Nat) :
     · exact fun m st ifs fuel' _ => Or.inl (by simp [evalListCompIfs])
     · exact fun m st saved elt target ifs xs acc fuel' _ =>
         Or.inl (by simp [evalListCompStep])
+    · exact fun m st key value target iter ifs sp fuel' _ =>
+        Or.inl (by simp [evalExpr])
   | succ fuel ih =>
     obtain ⟨ihE, ihEs, ihB, ihC, ihS, ihSs, ihW, ihCall, ihFor, ihItems, ihForL,
-      ihAttrC, ihStep, ihGen, ihForG, ihDrain, ihAnyAll, ihClosure, ihLCIfs, ihLCStep⟩ := ih
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      ihAttrC, ihStep, ihGen, ihForG, ihDrain, ihAnyAll, ihClosure, ihLCIfs, ihLCStep,
+      ihDC⟩ := ih
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     -- evalExpr
     · intro m st e fuel' hf
       cases fuel' with
@@ -1380,6 +1387,9 @@ theorem fuelMono (fuel : Nat) :
             | exn e => exact Run.le_refl _
             | timeout => exact Run.le_refl _
             | ok xs => exact ihLCStep m st st.locals elt tgt ifs.toList xs [] k hk
+        | dictComp key value tgt iter ifs sp =>
+          simp only [evalExpr]
+          exact Run.le_refl _
         | list elts _ =>
           simp only [evalExpr]
           exact Run.le_bind (ihEs m st elts.toList k hk) fun st vs => Run.le_refl _
@@ -2307,6 +2317,12 @@ theorem fuelMono (fuel : Nat) :
           | true =>
             refine Run.le_bind (ihE m st elt k hk) fun st v => ?_
             exact ihLCStep m st saved elt target ifs rest (v :: acc) k hk
+    · intro m st key value target iter ifs sp fuel' hf
+      cases fuel' with
+      | zero => exact absurd hf (Nat.not_succ_le_zero fuel)
+      | succ k =>
+          simp only [evalExpr]
+          exact Run.le_refl _
 
 /-! Fuel transport for the proof-side ListComp seam. These helpers sit after
 the main mutual theorem so they can use its existing `evalExpr` projection. -/
@@ -3451,6 +3467,8 @@ theorem worldInv (m : Module) (hm : m.heapFree = true) (fuel : Nat) :
         -- H4: a genexp ALLOCATES a generator — outside the fragment
         simp [Expr.heapFree] at hfree
       | listComp elt tgt it ifs wb _ =>
+        simp [Expr.heapFree] at hfree
+      | dictComp key value tgt iter ifs _ =>
         simp [Expr.heapFree] at hfree
       | list elts _ =>
         -- H2: list displays ALLOCATE — outside the fragment

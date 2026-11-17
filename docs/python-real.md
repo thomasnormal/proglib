@@ -65,15 +65,13 @@ empty and nonempty iterables, filters, duplicate keys, and exceptions. The
 measured Starred alternative is one sole-wall module with 5 public functions,
 25 calls, and 8 matches, so it remains the fallback wall.
 
-The DictComp implementation is currently parked at a measured tool boundary.
-Adding a node-for-node `Expr.dictComp` constructor requires synchronized cases
-in the AST reference scans, JSON lowering, both evaluators, and the mutual
-`Obs.lean` fuel/world-invariance bundles; those bundles use fixed conjunction
-projection order. The attempted structured-node change was reverted before
-commit because the package was red at those proof-bundle cases. No call
-lowering or parser shortcut was introduced, and the existing whole-node
-`DictComp` refusal remains loud. The next implementation item is to extend
-those mutual bundles once, then add the direct comprehension worker.
+The DictComp structural sub-item is now landed while the extractor remains
+loud: `Expr.dictComp` has synchronized AST, JSON, trunk/monadic evaluator, and
+`Obs.lean` fuel/world-invariance cases, and both evaluators return the named
+refusal. The CPython extractor still emits whole-node `DictComp` refusal, so no
+real program has been admitted and no semantic flip is claimed. The next item
+is the direct comprehension worker; call lowering and source reparsing remain
+forbidden.
 
 The fallback `Starred:call` probe has now crossed its extractor boundary: the
 extractor admits `ast.Starred` positional arguments into the existing synthetic

@@ -268,6 +268,13 @@ partial def parseExpr (j : Json) : Except String Expr := do
         else
           return .unsupported "ListComp:walrus"
             "list-comprehension walrus filters are outside the tier" span
+    | "DictComp" =>
+        let key ← parseExpr (← getField j "key")
+        let value ← parseExpr (← getField j "value")
+        let target ← parseExpr (← getField j "target")
+        let iter ← parseExpr (← getField j "iter")
+        let ifs ← (← (← getField j "ifs").getArr?).mapM parseExpr
+        return Expr.dictComp key value target iter ifs span
     | "GeneratorExp" =>
         -- Structured only (H4); `parseModule` lowers admitted occurrences
         -- into a synthesized generator function.
@@ -731,6 +738,9 @@ mutual
     | .listComp e t it ifs wb _ =>
       exprRefs e ++ exprRefs t ++ exprRefs it ++ (ifs.toList.map exprRefs).flatten
         ++ (wb.toList.map (fun p => exprRefs p.2)).flatten
+    | .dictComp k v t it ifs _ =>
+      exprRefs k ++ exprRefs v ++ exprRefs t ++ exprRefs it
+        ++ (ifs.toList.map exprRefs).flatten
     | .unsupported .. => []
 
   /-- Every `Name` occurring in the statement. -/
@@ -1093,6 +1103,8 @@ private partial def exprAssigns : Expr → List String
       (ifs.toList.map exprAssigns).flatten ++ (wb.toList.map (fun p => exprAssigns p.2)).flatten
   | .listComp e t it ifs wb _ => exprAssigns e ++ exprAssigns t ++ exprAssigns it ++
       (ifs.toList.map exprAssigns).flatten ++ (wb.toList.map (fun p => exprAssigns p.2)).flatten
+  | .dictComp k v t it ifs _ => exprAssigns k ++ exprAssigns v ++ exprAssigns t ++
+      exprAssigns it ++ (ifs.toList.map exprAssigns).flatten
   | .constant .. | .name .. | .unsupported .. => []
 
 /-- Names a function body assigns anywhere (CPython's static-locals
@@ -1282,6 +1294,8 @@ private partial def exprNamesXW : Expr → List String
       exprNamesXW e ++ exprNamesXW t ++ exprNamesXW it
         ++ (ifs.toList.map exprNamesXW).flatten
         ++ (wb.toList.map (fun p => exprNamesXW p.2)).flatten
+  | .dictComp k v t it ifs _ => exprNamesXW k ++ exprNamesXW v ++ exprNamesXW t
+      ++ exprNamesXW it ++ (ifs.toList.map exprNamesXW).flatten
   | .unsupported .. => []
 
 /-- The statement-level walk for `exprNamesXW` (binds included via the
@@ -1450,6 +1464,10 @@ mutual
         return .listComp (← lowerExpr ctx elt) (← lowerExpr ctx target)
           (← lowerExpr ctx iter) (← lowerExprs ctx ifs)
           (← wb.mapM fun p => do pure (p.1, ← lowerExpr ctx p.2)) sp
+    | .dictComp key value target iter ifs sp =>
+        return .dictComp (← lowerExpr ctx key) (← lowerExpr ctx value)
+          (← lowerExpr ctx target) (← lowerExpr ctx iter)
+          (← lowerExprs ctx ifs) sp
 
   /-- Elementwise `lowerExpr`. -/
   private partial def lowerExprs (ctx : LowerCtx) (es : Array Expr) :

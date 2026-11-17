@@ -134,6 +134,8 @@ inductive Expr where
       (walrus : Array (String × Expr)) (span : Span)
   | listComp (elt : Expr) (target : Expr) (iter : Expr) (ifs : Array Expr)
       (walrus : Array (String × Expr)) (span : Span)
+  | dictComp (key : Expr) (value : Expr) (target : Expr) (iter : Expr)
+      (ifs : Array Expr) (span : Span)
   /-- The WALRUS `(x := e)` in general expression position (schema
   `NamedExpr`, H7+ — docs/memory-model.md §the walrus operator).
   Evaluates `e`, BINDS `x` in the executing frame, and answers the same
@@ -406,6 +408,10 @@ mutual
           || exprMentionsAny names iter
           || exprListMentionsAny names ifs.toList
           || pairExprMentionsAny names walrus.toList
+    | .dictComp key value target iter ifs _ =>
+        exprMentionsAny names key || exprMentionsAny names value
+          || exprMentionsAny names target || exprMentionsAny names iter
+          || exprListMentionsAny names ifs.toList
     | .namedExpr target value _ => names.contains target || exprMentionsAny names value
     | .unsupported .. => false
 

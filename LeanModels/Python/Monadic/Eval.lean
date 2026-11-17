@@ -1514,6 +1514,7 @@ def evalOpen (K : Kont) (m : Module) : Expr → SemF RVal
       refuse "this generator expression is outside the tier (ingestion could not lower it to a generator function; docs/memory-model.md §generator semantics)"
   | .listComp elt target iter ifs walrus _ =>
       K.listComp (.start elt target iter ifs walrus)
+  | .dictComp .. => refuse "DictComp semantics is outside the current tier"
   | .unsupported pyKind _ _ => refuse s!"unsupported expression '{pyKind}'"
   termination_by structural e => e
 
