@@ -31178,11 +31178,43 @@ def _enum_base_node(sm, ct):
     try:
         syn = ct.syntax
         if syn is not None and syn.kind == SyntaxKind.EnumType:
-            for c in syn:
-                k = getattr(c, "kind", None)
-                if k in (SyntaxKind.LogicType, SyntaxKind.RegType,
-                         SyntaxKind.BitType):
-                    packed = _syntax_packed_dims(sm, c)
+            # ``typedef enum integer`` has no LogicType/RegType/BitType
+            # child in the source tree.  Its canonical base is nevertheless
+            # a PredefinedIntegerType and §6.19 gives it that type's full
+            # fixed width.  Keep the source-shaped explicit range used by
+            # ``_dtype_sym`` for predefined integer declarations, rather
+            # than dropping the width and making the enum look scalar.
+            base = getattr(ct, "baseType", None)
+            base_canonical = getattr(base, "canonicalType", base)
+            if type(base_canonical).__name__ == "PredefinedIntegerType":
+                width = int(base_canonical.bitWidth)
+                if width == 1:
+                    packed = []
+                else:
+                    packed = [{
+                        "msb": {"kind": "Int", "span": None,
+                                "value": width - 1,
+                                "resolved_width": None},
+                        "lsb": {"kind": "Int", "span": None,
+                                "value": 0, "resolved_width": None},
+                    }]
+            else:
+                for c in syn:
+                    k = getattr(c, "kind", None)
+                    if k not in (SyntaxKind.LogicType, SyntaxKind.RegType,
+                                 SyntaxKind.BitType):
+                        continue
+                    # ``_syntax_packed_dims`` uses ``None`` for both a
+                    # scalar base and an irregular dimension.  Distinguish
+                    # those cases so scalar logic/bit/reg enums retain the
+                    # explicit empty packed shape while malformed vectors
+                    # remain loud.
+                    has_dimension = any(
+                        getattr(child, "kind", None)
+                        == SyntaxKind.VariableDimension
+                        for child in _syntax_children(c))
+                    packed = (_syntax_packed_dims(sm, c)
+                              if has_dimension else [])
                     break
     except Exception:
         packed = None

@@ -9,6 +9,49 @@ import extract
 
 
 class SymbolicPackageEnumDefaults(unittest.TestCase):
+    def test_scalar_package_enum_keeps_empty_packed_shape(self):
+        source = (
+            "package p; typedef enum logic {IDLE=1'b0, RUN=1'b1} state_t; "
+            "endpackage module top(input p::state_t state, output logic y); "
+            "always_comb y = (state == p::IDLE); endmodule"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "top.sv"
+            out = Path(directory) / "top.sv.json"
+            src.write_text(source)
+            extract.process_symbolic("top", [str(src)], [], str(out))
+            module = json.loads(out.read_text())["design"]["modules"][0]
+
+        enum = module["types"][0]
+        self.assertEqual(enum["name"], "state_t")
+        self.assertEqual(enum["base_width"], {
+            "kind": "PackedType", "packed": [], "resolved": 1})
+
+    def test_integer_enum_keeps_fixed_predefined_width(self):
+        source = (
+            "package p; typedef enum integer {IDLE=0, RUN=1} state_t; "
+            "endpackage module top #(parameter p::state_t S = p::IDLE) "
+            "(output logic y); always_comb y = (S == p::IDLE); endmodule"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "top.sv"
+            out = Path(directory) / "top.sv.json"
+            src.write_text(source)
+            extract.process_symbolic("top", [str(src)], [], str(out))
+            module = json.loads(out.read_text())["design"]["modules"][0]
+
+        enum = module["types"][0]
+        self.assertEqual(enum["base_width"], {
+            "kind": "PackedType",
+            "packed": [{
+                "msb": {"kind": "Int", "span": None,
+                        "value": 31, "resolved_width": None},
+                "lsb": {"kind": "Int", "span": None,
+                        "value": 0, "resolved_width": None},
+            }],
+            "resolved": 32,
+        })
+
     def test_qualified_enum_default_stays_source_shaped(self):
         source = (
             "package p; typedef enum logic [1:0] {IDLE=0, RUN=1} state_t; "
