@@ -285,6 +285,15 @@ the Python language definition:
 - identity and hash choices for immutable objects, dict/set order, and the
   resolution of resource exhaustion.
 
+Rows already waiting for these implementation-defined choices include
+`dict_lab.distinct_literals` and `dict_lab.self_cycle_eq` (identity and
+recursion), `set_lab.sorted_set` and the set membership rows (set order and
+hash probing), and the explicit recursion pools in
+`harness/recursive_entry_probe.py`, `harness/recursion_limit_probe.py`, and
+`harness/foundation_edges.py`. They are differential evidence, not definitions
+of the choices; the future machine will check that CPython's selected
+resolution belongs to the allowed set.
+
 The Language Reference and library documentation remain the specification. The
 CPython 3.9 oracle supplies tests and later representation-refinement evidence;
 it does not define these choices. The future machine must quantify over choices

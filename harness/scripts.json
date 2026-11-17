@@ -717,5 +717,10 @@
     "file": "harness/scripts/import_dead_script.py",
     "expect": "match",
     "note": "Unobserved imports of the pinned math module have no tier-visible effect."
+  },
+  {
+    "file": "harness/scripts/init_unsupported_rollback.py",
+    "expect": "unsupported",
+    "note": "Top-level try/except else stays a loud refusal; module initialization must not roll back and continue."
   }
 ]
