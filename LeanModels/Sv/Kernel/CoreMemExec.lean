@@ -798,6 +798,68 @@ def coreMemAssignTopoB : List CoreMemProc → Bool
 def CoreMemDesign.assignTopoB (E : CoreMemDesign) : Bool :=
   coreMemAssignTopoB E.processes.toList
 
+mutual
+def coreMemPExprHasMemory : PExpr → Bool
+  | .arrayElem .. | .arrayPart .. => true
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
+  | .sysCall _ a | .reduce _ a | .cast _ a => coreMemPExprHasMemory a
+  | .binary _ a b => coreMemPExprHasMemory a || coreMemPExprHasMemory b
+  | .ternary c a b => coreMemPExprHasMemory c || coreMemPExprHasMemory a || coreMemPExprHasMemory b
+  | .concat xs | .functionCall _ xs => coreMemPExprHasMemoryList xs
+  | .bitSel a b | .repl a b => coreMemPExprHasMemory a || coreMemPExprHasMemory b
+  | .partSel a b c => coreMemPExprHasMemory a || coreMemPExprHasMemory b || coreMemPExprHasMemory c
+  | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
+  | .fill _ | .unsupported .. => false
+
+def coreMemPExprHasMemoryList : List PExpr → Bool
+  | [] => false
+  | x :: xs => coreMemPExprHasMemory x || coreMemPExprHasMemoryList xs
+
+end
+
+mutual
+def coreMemPLhsHasMemory : PLhs → Bool
+  | .arrayElem .. | .arrayPart .. => true
+  | .bitSel _ i => coreMemPExprHasMemory i
+  | .partSel _ msb lsb => coreMemPExprHasMemory msb || coreMemPExprHasMemory lsb
+  | .concat xs => coreMemPLhsHasMemoryList xs
+  | .ident _ => false
+
+def coreMemPLhsHasMemoryList : List PLhs → Bool
+  | [] => false
+  | x :: xs => coreMemPLhsHasMemory x || coreMemPLhsHasMemoryList xs
+
+end
+
+def coreMemPAssignTarget : PProcess → Option String
+  | .assign target _ => some target
+  | .assignL target _ => some target.name
+  | _ => none
+
+def coreMemPAssignValue : PProcess → Option PExpr
+  | .assign _ value | .assignL _ value => some value
+  | _ => none
+
+def coreMemPAssignUsesMemory : PProcess → Bool
+  | .assignL target value => coreMemPLhsHasMemory target || coreMemPExprHasMemory value
+  | .assign _ value => coreMemPExprHasMemory value
+  | _ => false
+
+def coreMemPAssignTargets : List PProcess → List String
+  | [] => []
+  | p :: rest => (match coreMemPAssignTarget p with | some name => [name] | none => []) ++
+      coreMemPAssignTargets rest
+
+def coreMemPAssignMemoryTopoB : List PProcess → Bool
+  | [] => true
+  | p :: rest =>
+      match coreMemPAssignTarget p, coreMemPAssignValue p with
+      | some target, some value =>
+          let laterTargets := coreMemPAssignTargets (p :: rest)
+          let backward := (coreMemSignalNames value).any (fun name => laterTargets.contains name)
+          (!coreMemPAssignUsesMemory p || !backward) && coreMemPAssignMemoryTopoB rest
+      | _, _ => coreMemPAssignMemoryTopoB rest
+
 /-! Comb/latch/implicit bodies are activated after the edge pass, but this
 executor does not yet run a dependency scheduler to a fixed point.  Therefore
 admit only a source-order topological fragment: a reactive process may not
@@ -968,10 +1030,16 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
       else match coreMemEventSourceMultiWriteViol d generated with
       | some (kind, msg) => .unsupported s!"{kind}: {msg}"
       | none =>
-        match coreMemClockResetViol d generated with
-        | some (kind, msg) => .unsupported s!"{kind}: {msg}"
-        | none =>
-          match coreMemFirstUnsupportedOther d generated d.others with
+          let allProcesses := d.processes ++ generated
+          if !coreMemPAssignMemoryTopoB allProcesses then
+            .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
+          else match coreMemCombDependencyViol d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none =>
+            match coreMemClockResetViol d generated with
+            | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+            | none =>
+              match coreMemFirstUnsupportedOther d generated d.others with
           | some (kind, text) =>
               .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
           | none =>
@@ -2519,6 +2587,33 @@ private def auditW2Processes : List PProcess :=
 #guard coreMemFirstRepeatedEventSource
     (coreMemEventSources auditW2Processes) auditW2Processes == some "g"
 #guard coreMemSourceHasBlockingWrite "g" auditW2Processes
+
+private def auditW3Processes : List PProcess :=
+  [.alwaysComb (.blockingAssign "a" (.ident "b")),
+   .alwaysComb (.blockingAssign "b" (.ident "x"))]
+
+#guard coreMemReactiveDependencyViol auditW3Processes == some "b"
+#guard (coreMemCombDependencyViol
+    { name := "auditW3", params := [], localParams := [], enums := [], decls := [],
+      processes := auditW3Processes, generates := [] } []).isSome
+
+private def auditW3bProcesses : List PProcess :=
+  [.alwaysComb (.blockingAssign "t" (.ident "q")),
+   .assign "t2" (.ident "t"),
+   .alwaysImplicit (.blockingAssign "y" (.ident "t2"))]
+
+#guard coreMemReactiveWrites auditW3bProcesses.head! == ["t"]
+#guard coreMemReactiveReads auditW3bProcesses[2]! == ["t2"]
+#guard coreMemSignalNames (.ident "t") == ["t"]
+#guard coreMemAssignReactiveChainViol auditW3bProcesses == some "t2"
+
+private def auditW4Processes : List PProcess :=
+  [.assignL (.arrayElem "m4" [.int 0]) (.arrayElem "m3" [.int 0]),
+   .assignL (.arrayElem "m3" [.int 0]) (.arrayElem "m2" [.int 0]),
+   .assignL (.arrayElem "m2" [.int 0]) (.arrayElem "m1" [.int 0]),
+   .assignL (.arrayElem "m1" [.int 0]) (.ident "x")]
+
+#guard coreMemPAssignMemoryTopoB auditW4Processes == false
 
 end LeanModels.Sv.Kernel
 
