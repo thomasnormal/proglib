@@ -451,6 +451,48 @@ def coreMemEventSourceMultiWriteViol (d : PDesign) (generated : List PProcess) :
         some ("Event:multiple-write",
           s!"4.6: NBA event source '{source}' is written more than once in one process activation; intermediate update events are not modeled")
 
+/-! Canonical E uses one explicit settled start state for every fixture: all
+declaration initializers and input values are installed, then continuous
+assignments settle, before the first cycle.  IEEE 1800-2023 §9.2.2.2 runs an
+`always_comb` once at time zero, and §9.6 runs runtime `initial` processes; if
+either (or an `always_latch`) drives an edge source, that time-zero event is
+outside this start-state discipline.  Refuse the syntactic shape until the
+scheduler models the time-zero activation exactly. -/
+
+def coreMemTimeZeroProcWrites : PProcess → List String
+  | .alwaysComb body | .alwaysLatch body | .initial body => coreMemStmtWrites body
+  | _ => []
+
+def coreMemSourceWrittenAtTimeZero (name : String) : List PProcess → Bool
+  | [] => false
+  | p :: rest =>
+      (coreMemTimeZeroProcWrites p).contains name ||
+        coreMemSourceWrittenAtTimeZero name rest
+
+def coreMemFirstTimeZeroEventSource (sources : List String) (processes : List PProcess) :
+    Option String :=
+  match sources with
+  | [] => none
+  | source :: rest =>
+      if coreMemSourceWrittenAtTimeZero source processes then some source
+      else coreMemFirstTimeZeroEventSource rest processes
+
+def coreMemTimeZeroEventSourceViol (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  let processes := d.processes ++ generated
+  match coreMemFirstRepeatedEventSource (coreMemEventSources processes) processes with
+  | some source =>
+      if coreMemSourceWrittenAtTimeZero source processes then
+        some ("Event:time-zero",
+          s!"9.2.2.2/9.6: event source '{source}' is driven by an initial/always_comb/always_latch activation at time zero; canonical E requires the settled start state")
+      else none
+  | none =>
+      match coreMemFirstTimeZeroEventSource (coreMemEventSources processes) processes with
+      | none => none
+      | some source =>
+          some ("Event:time-zero",
+            s!"9.2.2.2/9.6: event source '{source}' is driven by an initial/always_comb/always_latch activation at time zero; canonical E requires the settled start state")
+
 def coreMemClockResetViol (_d : PDesign) (_generated : List PProcess) :
     Option (String × String) :=
   -- Canonical E now iterates NBA-caused clock/reset events in the same slot
@@ -1030,10 +1072,13 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
       else match coreMemEventSourceMultiWriteViol d generated with
       | some (kind, msg) => .unsupported s!"{kind}: {msg}"
       | none =>
-          let allProcesses := d.processes ++ generated
-          if !coreMemPAssignMemoryTopoB allProcesses then
+          match coreMemTimeZeroEventSourceViol d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none =>
+            let allProcesses := d.processes ++ generated
+            if !coreMemPAssignMemoryTopoB allProcesses then
             .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
-          else match coreMemCombDependencyViol d generated with
+            else match coreMemCombDependencyViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none =>
             match coreMemClockResetViol d generated with
@@ -2614,6 +2659,16 @@ private def auditW4Processes : List PProcess :=
    .assignL (.arrayElem "m1" [.int 0]) (.ident "x")]
 
 #guard coreMemPAssignMemoryTopoB auditW4Processes == false
+
+private def auditW5Processes : List PProcess :=
+  [.alwaysComb (.blockingAssign "g" (.unary (.m0 .bnot) (.ident "k"))),
+   .alwaysFF "g" (.nbaAssign "seen" (.lit (.ofNat 1 1)))]
+
+#guard coreMemFirstTimeZeroEventSource
+    (coreMemEventSources auditW5Processes) auditW5Processes == some "g"
+#guard (coreMemTimeZeroEventSourceViol
+    { name := "auditW5", params := [], localParams := [], enums := [], decls := [],
+      processes := auditW5Processes, generates := [] } []).isSome
 
 end LeanModels.Sv.Kernel
 
