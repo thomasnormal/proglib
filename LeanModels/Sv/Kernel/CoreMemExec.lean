@@ -902,6 +902,13 @@ def coreMemPAssignMemoryTopoB : List PProcess → Bool
           (!coreMemPAssignUsesMemory p || !backward) && coreMemPAssignMemoryTopoB rest
       | _, _ => coreMemPAssignMemoryTopoB rest
 
+def coreMemHasEdgeProc : List PProcess → Bool
+  | [] => false
+  | p :: rest =>
+      (match p with
+       | .alwaysFF .. | .alwaysFFNegedge .. | .alwaysPlain .. | .alwaysFFR .. => true
+       | _ => false) || coreMemHasEdgeProc rest
+
 /-! Comb/latch/implicit bodies are activated after the edge pass, but this
 executor does not yet run a dependency scheduler to a fixed point.  Therefore
 admit only a source-order topological fragment: a reactive process may not
@@ -1076,7 +1083,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none =>
             let allProcesses := d.processes ++ generated
-            if !coreMemPAssignMemoryTopoB allProcesses then
+            if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
             .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
             else match coreMemCombDependencyViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
