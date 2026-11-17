@@ -894,6 +894,15 @@ theorem resolve_alloc (m : Mem) (dur : Duration) (size n : Nat) (ty : Option CTy
   have hn : ¬ size < n := by omega
   simp [resolve, Ptr.toObject, Ptr.toObjectAt, CObj.size, hn]
 
+/-- Explicit placement changes only the concrete address.  Provenance,
+    offset, and the one-past bound are independent of that open choice. -/
+theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
+    (ty : Option CType) (address₁ address₂ : Nat) :
+    let p₁ := (m.allocAt dur size ty address₁).2
+    let p₂ := (m.allocAt dur size ty address₂).2
+    p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
+  simp [allocAt, alloc, Ptr.toObjectBoundAt]
+
 @[simp] theorem allocAt_ptr (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) :
     (m.allocAt dur size ty address).2.address = address := by
