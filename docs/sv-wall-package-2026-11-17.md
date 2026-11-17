@@ -489,3 +489,15 @@ cells have no initializer). This is a measurement only: the generic
 `ForLoopStatement` wall remains assigned to ls-sv3 in the current census, no
 real-design count transition is claimed, and no loop lowering or new scheduler
 meaning was added in this lane.
+
+## Memory-cell identifier wall remeasurement
+
+The public clean-room `memory_cell_identifier.sv` fixture uses `cell` as a
+signal identifier inside a generated block. Slang's approved parser retains
+`EmptyMemberSymbol:EmptyMember` and syntax diagnostics at the declaration and
+uses; the ordinary census reports those parser-native errors before the E
+route. Icarus Verilog 13.0 rejects the source with syntax errors, while
+Xcelium 24.03-s004 rejects elaboration (including the two generated continuous
+drivers on `q`). No simulator value is claimed. The identifier is outside the
+language grammar, so this wall needs no semantic admission or source rewrite;
+the loud parser refusal remains the exact boundary.
