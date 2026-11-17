@@ -710,3 +710,12 @@ through a child instance. Ordinary census emits the exact
 `HierarchicalValueExpression / parsePExpr` refusal. Its two-row receipt
 matches Icarus Verilog 13.0 and Xcelium 24.03-s004. No hierarchical-name
 resolution or source lowering is added.
+
+## Urgent initial-process wall remeasurement
+
+The urgent `initial_storage_repro.sv` fixture is admitted by the current
+canonical-E route: approved extraction and ordinary census report zero
+refusals, and its two-row receipt matches Icarus Verilog 13.0 and Xcelium
+24.03-s004. The legacy Design2/run2 initial-process boundary remains a
+separate route refusal; no runtime-initial lowering or new scheduler meaning
+is added here.
