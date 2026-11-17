@@ -4,15 +4,15 @@ This note records the next ordered wall measurement after the asynchronous-reset
 wall.  The asynchronous-reset row is parked: the current public real-design
 census reports `present=0`, so there is no live refusal to remove.
 
-The child-instance repro the clean-room child-instance fixture was extracted
+The child-instance repro in the clean-room workspace was extracted
 at the current public head and passed the ordinary collect-all census with zero
 refusals.  The native-memory child repro
-the clean-room native-memory child fixture also passed with zero refusals.
+The clean-room child-instance memory fixture also passed with zero refusals.
 These runs exercise the existing source-shaped hierarchy route; they do not
 claim that the real-design table's four child-instance modules have moved.
 
-The next ordered port-connection-target repro,
-the clean-room port-connection-target fixture, still reaches the
+The next ordered port-connection-target repro in the clean-room workspace
+still reaches the
 earlier typed-aggregate boundary first.  Its ordinary census reports
 `VariableSymbol:type` for `state` and then
 `Instantiation:E:unsupported: E memory route does not yet admit module member
@@ -22,7 +22,8 @@ until the typed struct declaration and member-path semantics are available.
 This wall is therefore parked at its measured dependency, with no count
 reduction claimed.
 
-The census was run with the repository's `harness/sv/refusal_census.py`; simulator and census artifacts remain outside this repository.
+The census was run with the repository's `harness/sv/refusal_census.py`; gate
+artifacts remain outside this repository.
 
 The next process wall is the retained event-controlled procedural block
 (`present=8` in the current table).  Its clean-room forms are
@@ -119,7 +120,7 @@ rerunning ordinary collect-all also returns zero refusals. The discrepancy is
 therefore not caused by a stale checked-in envelope; the older child-instance
 handoff is stale relative to the current parser and route.
 
-The current independent measurement record also confirms the semantic landing: on
+The current independent formal record also confirms the semantic landing: on
 2026-11-16, canonical hierarchical E recursively merged
 `scan_chain` → generated `scan_leaf` children, substituted genvar-indexed port
 expressions, and matched Icarus/Xcelium (`q=0,0,0,1`). The remaining action is
@@ -291,36 +292,3 @@ two-driver `assign_net_resolution.sv` control prints `y=x` on Icarus Verilog
 startup split: Icarus prints `conflict=x, agree=1, z_only=z, unknown=x`, while
 Xcelium prints `x,x,x,x` at time zero. No canonical-E agreement is claimed for
 that split; both controls remain outside the E driver-set semantics.
-
-At current public master `4f358ba16`, the wall-package semantic pin remains
-`fc95337c5`; subsequent SV commits are refusal preservation, routing, and
-measurement documentation only. The anonymous real-design head remains 25
-modules total, 3 loading, and 3 running; no resolved-net count transition is
-claimed from this simulator-split measurement.
-
-The fresh Ibex exact-closure measurement is routed to ls-sv3 Param/enum
-ownership: 224 sources, 20 modules, 587 static unsupported nodes, and first
-wall `defaults: enum 'base_isa_e': unrecoverable packed dimensions` at
-`rtl/ibex_pkg.sv:36-39`. No ls-sv extractor or semantic change is made.
-
-The CV32E40P break repro is also fully measured: Icarus Verilog 13.0 and
-Xcelium 24.03-s004 both print `x, x, 0, 0, 1` for the parameterized
-for/break fixture, while the retained envelope refuses at the named
-`BreakStatement` boundary. This remains an ls-sv2 ingestion/loader wall; no
-loop lowering or E meaning is introduced here.
-
-Current public master is `69530791d`; the private-name cleanup is on master and
-the wall package remains clean under the required public-tree gate.
-
-CURRENT HEAD CORRECTION — 2026-11-17T10:45Z
-
-Public master is now `fdfbc6b06`; the intervening SV change records the
-CV32E40P break-wall evidence only. The measured break rows remain
-`x, x, 0, 0, 1` on both pinned simulators, and the retained envelope refusal
-remains unchanged. No real-design count transition is claimed.
-
-CURRENT HEAD CORRECTION — 2026-11-17T10:55Z
-
-Public master is now `ef58c13a0`; the intervening SV change updates
-wall-package head documentation only. The CV32E40P break evidence and refusal
-boundary are unchanged, and no real-design count transition is claimed.
