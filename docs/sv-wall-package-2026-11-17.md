@@ -42,6 +42,15 @@ tier`; retaining that refusal is required until the time-zero state is part of
 the scheduler-derived run2 semantics. The real-design initial-process count
 is therefore unchanged.
 
+The interface repro was remeasured from the current envelope.  Extractor rows
+retain `InstanceSymbol:interface`, `InterfacePortSymbol:InterfacePort`, and
+`PortConnection:InterfacePortSymbol`; the ordinary route reports those same
+constructs and then `Instantiation:E:unsupported` at `PDesign.instantiateE2`.
+The fixture also exposes hierarchical `bus.request` access and an assignment
+target, so no interface semantics are inferred from the generic port route.
+The real-design interface-instance, interface-port, and interface-port-
+connection rows remain present=6 each.
+
 For the final ordered clocks wall, the two-clock repro reports the exact
 `Clock:multiple` loader refusal, while the derived-clock repro reports
 `Clock:source` and the canonical-E `Event:time-zero` refusal.  The design note
