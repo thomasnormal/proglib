@@ -1306,10 +1306,12 @@ def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
       some (m.alloc .allocated size none).2 := by
   simp [mallocAt, allocAt, Ptr.toObjectBoundAt]
 
+
 @[simp] theorem callocAt_provenance (m : Mem) (n size address : Nat) :
     (m.callocAt n size address).2.obj =
       some (m.allocZeroed .allocated (n * size) none).2 := by
   simp [callocAt, allocZeroedAt, Ptr.toObjectBoundAt]
+
 
 @[simp] theorem mallocAt_placement_irrel (m : Mem) (size address₁ address₂ : Nat) :
     let p₁ := (m.mallocAt size address₁).2
@@ -1542,6 +1544,20 @@ theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
       (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₂ size) n
   exact resolve_address_irrel (m.allocZeroed dur size ty).1
     (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₂ size) n address₁
+
+@[simp] theorem mallocAt_resolve_placement_irrel (m : Mem) (size address₁ address₂ n : Nat) :
+    (m.mallocAt size address₁).1.resolve (m.mallocAt size address₁).2 n =
+      (m.mallocAt size address₂).1.resolve (m.mallocAt size address₂).2 n := by
+  simpa [mallocAt] using
+    (allocAt_resolve_placement_irrel m .allocated size none address₁ address₂ n)
+
+@[simp] theorem callocAt_resolve_placement_irrel
+    (m : Mem) (n size address₁ address₂ offset : Nat) :
+    (m.callocAt n size address₁).1.resolve (m.callocAt n size address₁).2 offset =
+      (m.callocAt n size address₂).1.resolve (m.callocAt n size address₂).2 offset := by
+  simpa [callocAt] using
+    (allocZeroedAt_resolve_placement_irrel m .allocated (n * size) none
+      address₁ address₂ offset)
 
 @[simp] theorem allocAt_ptr (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) :
