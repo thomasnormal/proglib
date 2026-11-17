@@ -626,3 +626,13 @@ The checked-in canonical-E receipt matches four source rows on Icarus Verilog
 13.0 and Xcelium 24.03-s004. No hierarchy lowering or semantic change is
 needed; the real present=4 row is stale pending the next full source-overlay
 table refresh.
+
+## Urgent port-connection target wall remeasurement
+
+The urgent `port_connection_target_struct_array.sv` fixture retains
+`PortConnection:target` at extraction and ordinary E, with the typed aggregate
+member boundary following it. Ordinary census refuses at `parsePConn` before
+canonical E. The checked-in receipt reports four x/z rows matching Xcelium
+24.03-s004. Icarus Verilog 13.0 rejects the unpacked-struct syntax, so no
+Icarus oracle result is claimed. No port-target lowering or aggregate
+connection semantics is added here.
