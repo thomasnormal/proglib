@@ -11,12 +11,17 @@ the same constructors after the C-only QualType nodes land. -/
 private def sharedPointer : LeanModels.Clang.QualType :=
   .pointer (.builtin .int)
 
+private def sharedArray : LeanModels.Clang.QualType :=
+  .array (.builtin .int) (some 4)
+
 private def cppPointer : CppTypeEvidence :=
   .pointer (.builtin .int)
 
 example : sharedPointer = cppPointer := rfl
 
 #guard LeanModels.Clang.QualType.beq sharedPointer cppPointer
+#guard LeanModels.Clang.QualType.beq sharedArray (.array (.builtin .int) (some 4))
+#guard !LeanModels.Clang.QualType.beq sharedArray (.array (.builtin .int) (some 5))
 
 private def handle (value : String) : FrontendHandle := {value}
 

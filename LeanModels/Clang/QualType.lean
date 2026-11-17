@@ -22,6 +22,7 @@ inductive QualType where
   | builtin (type : LeanModels.Cpp.CppIntType)
   | void
   | pointer (pointee : QualType)
+  | array (element : QualType) (extent : Option Nat)
   | lvalueReference (referent : QualType)
   | rvalueReference (referent : QualType)
   | qualified (isConst : Bool) (isVolatile : Bool) (base : QualType)
@@ -35,7 +36,9 @@ mutual
     match left, right with
     | .void, .void => true
     | .builtin left, .builtin right => left == right
-    | .pointer left, .pointer right
+    | .pointer left, .pointer right => QualType.beq left right
+    | .array left le, .array right re =>
+        QualType.beq left right && le == re
     | .lvalueReference left, .lvalueReference right
     | .rvalueReference left, .rvalueReference right => QualType.beq left right
     | .qualified lc lv left, .qualified rc rv right =>

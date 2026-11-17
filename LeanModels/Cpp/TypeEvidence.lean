@@ -65,6 +65,7 @@ partial def parseCppTypeEvidence (raw : Raw) : Except String CppTypeEvidence := 
 
 private def CppTypeEvidence.referencedHandles : CppTypeEvidence → List FrontendHandle
   | .void | .builtin _ => []
+  | .array element _ => CppTypeEvidence.referencedHandles element
   | .pointer pointee | .lvalueReference pointee | .rvalueReference pointee =>
       CppTypeEvidence.referencedHandles pointee
   | .qualified _ _ base => CppTypeEvidence.referencedHandles base
