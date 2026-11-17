@@ -237,3 +237,8 @@ The wildcard-case memory receipt is current:
 `always_comb_wildcard_case_memory_canonical_e/check.py` regenerates its
 envelope byte-identically and reports four rows matching canonical E, Icarus
 Verilog 13.0, and Xcelium 24.03-s004.
+
+The implicit-event latch-case receipt is current:
+`always_star_case_latch_e/check.py` passes its retention check and reports
+eight rows matching the source behavior on Icarus Verilog 13.0 and Xcelium
+24.03-s004; the first startup row is the documented simulator split.
