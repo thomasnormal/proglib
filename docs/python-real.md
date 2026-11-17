@@ -88,6 +88,14 @@ every established right-associated projection. The extractor therefore still
 refuses DictComp, and no differential row is changed until that product
 integration is completed.
 
+The projection-rewrite price is measured in
+`/scratch/thomas-ahle/gate/ls-python/pball-rewrite-inventory.txt`: 31
+`PBAll` references, 34 conjunction destructures, and 21 successor-arm
+theorems. The old product is consumed by 20 existing arms plus the final
+`payloadBlind` reduction; the new DictComp component can be threaded through a
+named product without changing those declarations. This is the next proof
+item, before any extractor or differential-row change.
+
 The priced `PayloadBlind` sub-item is the theorem
 `PB-evalDictCompStep`: for every `PayloadTwin o₀ o`, every frame whose heap
 slot `pa` contains `o₀`, and every key/value/target expression, the two
