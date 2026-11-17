@@ -1505,6 +1505,21 @@ theorem reallocAt_valid_loadBytes_placement_irrel
   simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq,
     kill, Ptr.toObjectBoundAt, loadBytes, resolve, get?, resolve_address_irrel]
 
+theorem reallocAt_valid_storeBytes_placement_irrel
+    (m : Mem) (p : Ptr) (size address₁ address₂ : Nat) (bs : List CByte)
+    (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
+    (hc : m.get? o = some c) (hdur : c.dur = .allocated)
+    (hlive : c.live = true) (hoff : p.off = 0) :
+    (reallocAt m p size address₁).map
+        (fun r => (r.1.loadBytes r.2 bs.length, r.1.objs)) =
+      (reallocAt m p size address₂).map
+        (fun r => (r.1.loadBytes r.2 bs.length, r.1.objs)) := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  change m.objs[o]? = some c at hc
+  simp only [Except.map, Except.ok.injEq]
+  simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq,
+    kill, Ptr.toObjectBoundAt, loadBytes, resolve, get?, resolve_address_irrel]
+
 theorem reallocAt_existing_placement (m : Mem) (p : Ptr) (size address : Nat)
     (q : ObjId) (o : ObjId) (c : CObj) (hsize : size ≠ 0)
     (hp : p.obj = some o) (hc : m.get? o = some c)
