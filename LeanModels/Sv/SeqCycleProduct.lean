@@ -14,8 +14,8 @@ assigns into `S` read only `S`, the domain evolves on its own:
   on `S` sample by sample. So a run of the whole design projects to the run in which only `A`'s events occur (the
   other clocks stopped): a single-clock theorem about `A` transfers unchanged, and the interleaving with the other
   domains adds nothing to prove;
-* `tick_comm`: a coincident instant of two such domains is the two single-domain instants in either order (the
-  ticks commute) on what each domain owns.
+* `tick_comm`: a coincident instant of two such domains is one domain's instant followed by the other's, either domain
+  first (the coincident instant's moves listed in that order), name by name.
 * `dataV_quiet`: a data row's slot is the settle of the inputs it applies (no edge process runs, no register changes).
 
 Every edge body is nonblocking to whole signals (the obligations' form for several edge processes), so no edge process

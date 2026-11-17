@@ -35,9 +35,9 @@ design refuses).
    included). The discipline is what makes "before the edge" the standard's only answer: in an instant row the data
    does not move.
 2. **The product theorem applied** (`tr_comm`, `tr_project`): the two domains own disjoint names and read nothing of
-   each other (`CoreMemDesign.Domain`), so a coincident instant of both clocks is the two single-clock instants in
-   either order, and on `clka`'s domain every run is the run with `clkb` stopped: `qa`'s single-clock behaviour
-   transfers unchanged to every interleaving.
+   each other (`CoreMemDesign.Domain`), so a coincident instant of both clocks is `clka`'s instant followed by
+   `clkb`'s (and, with the roles swapped, the other way round), and on `clka`'s domain every run is the run with
+   `clkb` stopped: `qa`'s single-clock behaviour transfers unchanged to every interleaving.
 3. **A relation between the clocks as a hypothesis** (`tr_derived`): if `clkb` ticks only together with `clka`
    (`TicksOnlyWith`, a derived clock by assumption; the semantics lets the two clocks move independently), `qb` changes
    only in steps in which `clka` rises.
