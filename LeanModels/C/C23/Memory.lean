@@ -270,11 +270,15 @@ structure Mem where
   per enclosing block entry (§6.5.2.5p5).  The identity table lets repeated
   loop execution reuse that object instead of fabricating a fresh address. -/
   compoundObjects : List (CSpan × ObjId) := []
+  /-- Concrete placements are tracked separately from provenance.  They are
+  supplied by the allocation oracle and never authorize an access; only the
+  object id in `Ptr.obj` does that. -/
+  placements : List (ObjId × Nat) := []
 deriving Repr, Inhabited, BEq
 
 namespace Mem
 
-def empty : Mem := ⟨[], [], [], []⟩
+def empty : Mem := ⟨[], [], [], [], []⟩
 
 def emitStdout (m : Mem) (bytes : List CByte) : Mem :=
   { m with stdout := m.stdout ++ bytes }
@@ -306,6 +310,12 @@ private def vaDrop (xs : List (ObjId × List CVal)) (o : ObjId) : List (ObjId ×
   | [] => []
   | (q, vs) :: rest => if q == o then rest else (q, vs) :: vaDrop rest o
 
+private def placementSet (xs : List (ObjId × Nat)) (o : ObjId) (address : Nat) :
+    List (ObjId × Nat) :=
+  match xs with
+  | [] => [(o, address)]
+  | (q, old) :: rest => if q == o then (o, address) :: rest else (q, old) :: placementSet rest o address
+
 def vaStart (m : Mem) (p : Ptr) (args : List CVal) : MRes Mem :=
   match p.obj with
   | none => .error (.memUB (.nullDeref p.off))
@@ -335,6 +345,27 @@ def vaArg (m : Mem) (p : Ptr) : MRes (CVal × Mem) :=
 
 def get? (m : Mem) (o : ObjId) : Option CObj := m.objs[o]?
 
+def placement? (m : Mem) (o : ObjId) : Option Nat :=
+  (m.placements.find? (fun entry => entry.1 == o)).map Prod.snd
+
+def rangesDisjoint (a sizeA b sizeB : Nat) : Bool :=
+  a + sizeA ≤ b || b + sizeB ≤ a
+
+/-- A caller-selected placement is aligned and disjoint from every live
+object whose placement is known.  This is the validity obligation for the
+open-address choice; provenance remains separate. -/
+def placementValid (m : Mem) (address size alignment : Nat) : Bool :=
+  (alignment == 0 || address % alignment == 0) &&
+    m.placements.all (fun entry =>
+      match m.get? entry.1 with
+      | some c => !c.live || rangesDisjoint entry.2 c.size address size
+      | none => true)
+
+@[simp] theorem placementValid_empty (address size alignment : Nat) :
+    placementValid Mem.empty address size alignment =
+      (alignment == 0 || address % alignment == 0) := by
+  simp [placementValid, empty]
+
 def count (m : Mem) : Nat := m.objs.length
 
 def compoundObject? (m : Mem) (span : CSpan) : Option ObjId :=
@@ -352,11 +383,17 @@ INDETERMINATE. Returns the new memory and the object's id.
 Every automatic object is created this way on block entry — which is the
 locals-are-objects decision, executed. -/
 def alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × ObjId :=
-  ({ m with objs := m.objs ++ [⟨dur, true, List.replicate size .indet, ty⟩] }, m.objs.length)
+  let o := m.objs.length
+  ({ m with
+      objs := m.objs ++ [⟨dur, true, List.replicate size .indet, ty⟩]
+      placements := m.placements ++ [(o, o)] }, o)
 
 /-- `calloc`'s object (§7.24.3.2p2): all bits zero, hence determinate. -/
 def allocZeroed (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × ObjId :=
-  ({ m with objs := m.objs ++ [⟨dur, true, List.replicate size (.conc 0), ty⟩] }, m.objs.length)
+  let o := m.objs.length
+  ({ m with
+      objs := m.objs ++ [⟨dur, true, List.replicate size (.conc 0), ty⟩]
+      placements := m.placements ++ [(o, o)] }, o)
 
 /-- Allocate at an explicit concrete placement.  The caller supplies the
 address choice; provenance remains the returned object id and is what
@@ -364,12 +401,14 @@ address choice; provenance remains the returned object id and is what
 def allocAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) : Mem × Ptr :=
   let (m', o) := m.alloc dur size ty
-  (m', Ptr.toObjectBoundAt o address size)
+  ({ m' with placements := placementSet m'.placements o address },
+    Ptr.toObjectBoundAt o address size)
 
 def allocZeroedAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) : Mem × Ptr :=
   let (m', o) := m.allocZeroed dur size ty
-  (m', Ptr.toObjectBoundAt o address size)
+  ({ m' with placements := placementSet m'.placements o address },
+    Ptr.toObjectBoundAt o address size)
 
 /-- C23 §6.2.4p6 / §7.24.3: end an object's lifetime. The object stays in
 the store as a tombstone — see `CObj.live`. -/
@@ -946,7 +985,10 @@ def realloc (m : Mem) (p : Ptr) (size : Nat) : MRes (Mem × Ptr) :=
       if c.dur == .allocated && c.live && p.off == 0 then
         let keep := c.bytes.take size
         let fresh := keep ++ List.replicate (size - keep.length) CByte.indet
-        let m' : Mem := { m with objs := m.objs ++ [⟨.allocated, true, fresh, none⟩] }
+        let newO := m.objs.length
+        let m' : Mem := { m with
+          objs := m.objs ++ [⟨.allocated, true, fresh, none⟩]
+          placements := m.placements ++ [(newO, newO)] }
         .ok (m'.kill o, Ptr.toObjectBound m.objs.length size)
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
@@ -963,7 +1005,10 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
       if c.dur == .allocated && c.live && p.off == 0 then
         let keep := c.bytes.take size
         let fresh := keep ++ List.replicate (size - keep.length) CByte.indet
-        let m' : Mem := { m with objs := m.objs ++ [⟨.allocated, true, fresh, none⟩] }
+        let newO := m.objs.length
+        let m' : Mem := { m with
+          objs := m.objs ++ [⟨.allocated, true, fresh, none⟩]
+          placements := m.placements ++ [(newO, address)] }
         .ok (m'.kill o, Ptr.toObjectBoundAt m.objs.length address size)
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
