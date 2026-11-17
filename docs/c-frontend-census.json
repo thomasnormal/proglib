@@ -6233,8 +6233,8 @@
   }
  ],
  "schema": "c-frontend-census-0.1",
- "survey_commit": "e646567600c850eb9af9645aaa7a0c6944b7b2cd",
- "survey_measured_at_utc": "2026-11-12T15:45:35Z",
+ "survey_commit": "ec10e4b3c",
+ "survey_measured_at_utc": "2026-11-16T18:40:00Z",
  "survey_schema": "c-survey-0.1",
  "totals": {
   "c17_accepted": 56,
