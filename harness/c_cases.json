@@ -338,5 +338,12 @@
     "source": "struct S { int a[2]; int b; };\nint main(void) { struct S s = {{1, 2}, 3}; return s.a[2]; }\n",
     "expect": "refuse",
     "error": "outOfBounds"
+  },
+  {
+    "id": "pointer-integer-roundtrip",
+    "source": "#include <stdint.h>\nint main(void) { int x = 3; uintptr_t u = (uintptr_t)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "envelope_checks": []
   }
 ]

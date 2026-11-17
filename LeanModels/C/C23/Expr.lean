@@ -817,9 +817,6 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat) :
   else if isPtrType ty then do
     let q ← readMem (fun m => Mem.loadPtr m p)
     pure (.ptr q)
-  else if isPtrIntType ty then do
-    let q ← readMem (fun m => Mem.loadPtrInt m p)
-    pure (.ptrInt q)
   else do
     match intTyOf? ty with
     | some t => readMem (fun m => Mem.loadIntChecked m alias p t ty)
@@ -2254,27 +2251,12 @@ theorem asInt' (v : CVal) : MemInvariant (asInt v) := by
 
 theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat) : MemInvariant (loadAt alias p ty size) := by
   unfold loadAt
-  split
-  · exact readMem' _
-  · split
-    · exact readMem' _
-    · split
-      · exact bind (readMem' _) fun _ => pure' _
-      · cases h : intTyOf? ty with
-        | some t =>
-            split
-            · exact bind (readMem' _) fun _ => pure' _
-            · exact readMem' _
-        | none =>
-          cases hs : size with
-          | some n =>
-              split
-              · exact bind (readMem' _) fun _ => pure' _
-              · exact bind (readMem' _) fun _ => pure' _
-          | none =>
-              split
-              · exact bind (readMem' _) fun _ => pure' _
-              · exact refuseUnsupported' _
+  repeat
+    first
+    | exact readMem' _
+    | exact bind (readMem' _) fun _ => pure' _
+    | exact refuseUnsupported' _
+    | split
 
 theorem intBinop' (op : String) (t : IntTy) (a b : Int) :
     MemInvariant (intBinop op t a b) := by
