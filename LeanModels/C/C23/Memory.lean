@@ -436,6 +436,10 @@ def kill (m : Mem) (o : ObjId) : Mem :=
     (m.kill o).placements = m.placements := by
   rfl
 
+@[simp] theorem kill_placement_lookup (m : Mem) (dead live : ObjId) :
+    (m.kill dead).placement? live = m.placement? live := by
+  rfl
+
 /-- End the lifetime of automatic objects allocated at or after `start`.
 Static objects remain live for the whole execution (§6.2.4p3). -/
 def killFrom (m : Mem) (start : Nat) : Mem :=
