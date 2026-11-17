@@ -1,5 +1,22 @@
 # PY-REAL baseline
 
+## 2026-11-17 measurement
+
+A fresh built-runner survey covered all 183 manifest modules and 8,677 calls.
+It recorded 4,095 MATCH, 4,533 REFUSED, 41 UNCOMPARABLE, one TIMEOUT, and
+seven RUNNER rows whose batch did not finish. The run is an incomplete refresh;
+the prior complete baseline below remains authoritative. It found no DIVERGE.
+The artifact is `library-2026-11-17.json` (gate/ls-python artifact).
+
+The standard-library wild sweep covered 166 files: 7 MATCH, 159 REFUSE, and
+zero DIVERGE, TIMEOUT, ORACLE, HUNG, or RUNNER failures. Its current sole-wall
+price is Import 26/150, no-static-wall 6/6, and
+ImportFrom:accelerator-outside-domain 3/3; the remaining present walls are
+class-creation 102, Set:display 27, Lambda 23, accelerator-unmeasured 21,
+Delete 14, YieldFrom:delegation 12, ListComp 7, SetComp 6, and Starred:display
+5, all with zero sole blockers. The artifact is
+`stdlib-2026-11-17.json` (gate/ls-python artifact).
+
 ## 2026-11-16 refresh
 
 The verified runner survey covered the current 183-module manifest and 1,542
@@ -28,8 +45,7 @@ The current sole-wall price from the standard-library sweep is:
 
 The next item is therefore the `import` wall: it is the only wall with twenty
 sole blockers, while the survey does not yet claim function flips for those
-stdlib files. The exact artifacts are `/tmp/ls-python-library-survey.json`
-and `/tmp/ls-python-stdlib-survey.json`.
+stdlib files. The historical artifacts were moved to the lane gate directory; the current run is recorded above.
 
 The focused function-level price used the nine sole-import modules that are in
 the manifest (`_bootsubprocess`, `codeop`, `contextvars`, `fnmatch`, `linecache`,
@@ -108,7 +124,7 @@ build failed, and the extractor remains loud until this structural choice is
 implemented as one complete item.
 
 The projection-rewrite price is measured in
-`/scratch/thomas-ahle/gate/ls-python/pball-rewrite-inventory.txt`: 31
+`gate/ls-python/pball-rewrite-inventory.txt`: 31
 `PBAll` references, 34 conjunction destructures, and 21 successor-arm
 theorems. The old product is consumed by 20 existing arms plus the final
 `payloadBlind` reduction; the new DictComp component can be threaded through a
