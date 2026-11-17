@@ -51,6 +51,13 @@ target, so no interface semantics are inferred from the generic port route.
 The real-design interface-instance, interface-port, and interface-port-
 connection rows remain present=6 each.
 
+Current-pin interface-instance receipt (2026-11-17): the clean-room checker
+retains the exact `InstanceSymbol:interface`, `InterfacePortSymbol:InterfacePort`,
+and `PortConnection:InterfacePortSymbol` boundaries. Xcelium 24.03-s004
+matches four x/z rows; Icarus rejects the interface-port syntax, so no Icarus
+oracle result is claimed. The real-design interface families remain present=6,
+sole=0 each.
+
 Stall-rule remeasurement: the public hierarchy corpus contains 90 envelopes;
 the completed ordinary census has 63 refusal rows across 30 envelopes. The
 remaining package walls occur once each for `PortConnection:target`,
