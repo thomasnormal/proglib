@@ -750,6 +750,12 @@ def ptrEqBoundary (m : Mem) (a b : Ptr) : Bool :=
         (onePast a x && b.off == 0) || (onePast b y && a.off == 0)
   | _, _ => false
 
+@[simp] theorem ptrEqBoundary_address_irrel (m : Mem) (a b : Ptr)
+    (addressA addressB : Nat) :
+    ptrEqBoundary m {a with address := addressA} {b with address := addressB} =
+      ptrEqBoundary m a b := by
+  simp [ptrEqBoundary]
+
 /-- **C23 §6.5.9p6 — relational.** Comparing pointers into DIFFERENT
 objects with `<`, `>`, `<=` or `>=` is UNDEFINED — "in all other cases,
 the behavior is undefined" (`J.2(45)`).
