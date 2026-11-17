@@ -152,9 +152,10 @@ machine; the 292 monadic adequacy bridges are not ported.
 
 ## Acceptance gates for the first machine slice
 
-The first slice covers literals, ordered expression evaluation, assignments,
-returns, `if`, `while`, list iteration, calls, and the terminal flow classes.
-It must provide:
+The first slice covers literals, ordered scalar expression evaluation,
+assignments, returns, `if`, `while`, and the terminal flow classes. Calls and
+container iteration remain typed refusal transitions until their families land.
+It provides:
 
 - a kernel-reducible `step` and trace closure;
 - an `Impl.cpython39` choice resolver and the runner-membership theorem;
@@ -165,5 +166,9 @@ It must provide:
 - no edits to the frozen old interpreters except compatibility wiring required
   to build the machine runner.
 
-No machine source file belongs in this commit. This design is ready for review
-and implementation as the next item.
+The implementation is in `LeanModels/Python/Machine/Core.lean`. The derived
+script runner is available through `leanmodels-run --machine-script-batch`.
+`harness/machine_diff.py` runs the first real rows through CPython and the
+machine in one batch. `harness/scripts/hello.py` is a matching scalar-output
+row, while `harness/scripts/cpython_list_basics.py` checks the explicit list
+refusal. The current result is one match, one refusal, and zero divergence.

@@ -1,0 +1,12 @@
+[
+  {
+    "source": "harness/scripts/hello.py",
+    "envelope": "harness/scripts/hello.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/cpython_list_basics.py",
+    "envelope": "harness/scripts/cpython_list_basics.json",
+    "expect": "unsupported"
+  }
+]

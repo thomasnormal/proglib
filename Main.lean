@@ -541,18 +541,24 @@ def scriptJson (path : String) (live : Nat) : Run World Unit → String
         ++ toString live ++ "}"
 
 def machineObservationJson : Machine.Observation → String
-  | .returned _ => "\"ok\""
-  | .raised error => "\"exn\",\"exn\":" ++ jsonStr (errName error)
-  | .refused reason => "\"unsupported\",\"msg\":" ++ jsonStr reason
-  | .resource _ => "\"resource\""
+  | .returned _ => "\"status\":\"ok\",\"exit\":0"
+  | .raised error => "\"status\":\"exn\",\"exit\":1,\"exn\":" ++ jsonStr (errName error)
+  | .refused reason => "\"status\":\"unsupported\",\"exit\":3,\"msg\":" ++ jsonStr reason
+  | .resource _ => "\"status\":\"timeout\",\"exit\":4"
+
+def machineStdout (events : List Machine.Event) : List String :=
+  events.filterMap fun event =>
+    match event with
+    | .output text => some text
+    | _ => none
 
 def machineScriptJson (path : String) (m : Module) (fuel : Nat) : String :=
   let result := Machine.run Machine.Impl.cpython39 fuel m
   let state := result.1
   let observation := result.2
-  "{\"path\":" ++ jsonStr path ++ ",\"status\":"
-    ++ machineObservationJson observation ++ ",\"events\":"
-    ++ toString state.events.length ++ "}"
+  "{\"path\":" ++ jsonStr path ++ "," ++ machineObservationJson observation
+    ++ ",\"stdout\":" ++ jsonStrArray (machineStdout state.events)
+    ++ ",\"events\":" ++ toString state.events.length ++ "}"
 
 /-- One parsed job line of `--batch` mode. `clock` is the optional
 CLOCK TRACE (pass 6, docs/memory-model.md §the trace clock): integer

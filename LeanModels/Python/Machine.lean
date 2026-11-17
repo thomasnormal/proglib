@@ -25,7 +25,7 @@ private def refusing : Module where
 
 #guard (initial toy).frames.length == 1
 #guard (run Impl.cpython39 8 toy).2 == .returned (.int 7)
-#guard (run Impl.cpython39 8 printing).1.events == [.output "", .return .none]
+#guard (run Impl.cpython39 8 printing).1.events == [.output "hello", .return .none]
 #guard (run Impl.cpython39 8 failing).2 == .raised (.nameError "missing")
 #guard (run Impl.cpython39 8 refusing).2 == .refused "machine statement"
 #guard (run Impl.cpython39 0 toy).2 == .resource .recursion

@@ -113,6 +113,17 @@ def truthy : RVal → Bool
   | .rangeV lo hi step => lo.toInt != hi.toInt || step.toInt != 0
   | _ => true
 
+def renderValue : RVal → Option String
+  | .none => some "None"
+  | .bool true => some "True"
+  | .bool false => some "False"
+  | .int n => some (toString n)
+  | .str s => some s
+  | _ => none
+
+def renderPrint (values : List RVal) : Option String :=
+  values.mapM renderValue |>.map (String.intercalate " ")
+
 def mapRes (f : α → β) : Res α → Res β
   | .ok value => .ok (f value)
   | .exn error => .exn error
@@ -176,10 +187,15 @@ def stepStmt (state : MachineState) (frame : Frame) (rest : List Stmt) (stmt : S
       match value with
       | .call (.name "print" _) args _ none _ =>
           match args.toList.mapM (evalExpr frame.locals) with
-          | .ok _ =>
-              some (.output "", { state with
-                frames := { frame with control := .statements rest } :: state.frames.tail!
-                events := state.events ++ [.output ""] })
+          | .ok values =>
+              match renderPrint values with
+              | some text =>
+                  some (.output text, { state with
+                    frames := { frame with control := .statements rest } :: state.frames.tail!
+                    events := state.events ++ [.output text] })
+              | none =>
+                  let reason := "machine print value"
+                  some (.refuse reason, finish state (.refused reason) (.refuse reason))
           | .exn error =>
               some (.raise error, finish state (.raised error) (.raise error))
           | .timeout =>
