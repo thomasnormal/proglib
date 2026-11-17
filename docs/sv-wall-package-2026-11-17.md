@@ -101,3 +101,9 @@ The public census also measured `inout_repro.sv` as the generic §6.6/
 §23.2.2 inout wall (`PortSymbol:InOut` and `PortConnection:InOut`). The wall
 table assigns both admission rows to `ls-sv3`; they are handed off without a
 shared semantic change here.
+
+Current-state audit at public master `82bb6353a` still shows the loader-owned
+rows at child=4, event-controlled=8, initial=5, hierarchy value=7,
+interface instance/port/connection=6 each, internal clock=3, multiple clocks=4,
+and port target=6. The repository private-name self-test and diff check pass;
+no newer owner instruction is present.
