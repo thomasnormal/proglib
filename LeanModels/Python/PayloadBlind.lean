@@ -6632,6 +6632,7 @@ theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAll pa o₀ o fuel)
                       · exact PBF.exn hs1 _
                   | _ => exact PBF.exn hs1 _
             | _ => exact PBF.unsupported
+
           -- ===== H6 KEYWORD TIER =====
           · cases f with
             | name fname sp' =>
@@ -6862,6 +6863,21 @@ theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAll pa o₀ o fuel)
                       RVal.typeNameH_swapAt hs1 htwin]
                     exact PBF.unsupported
             | _ => exact PBF.unsupported
+
+/-! The refused DictComp expression arm is payload-blind while the extractor
+remains loud. The admitted worker relation is recorded separately in
+`PBAllWithDict`; this theorem keeps the current AST refusal explicit. -/
+theorem pbEvalExpr_dictComp_refusal {pa : Addr} {o₀ o : Obj}
+    (m : Module) (fuel : Nat) (st : FrameState)
+    (key value target iter : Expr) (ifs : Array Expr) (sp : Span)
+    (hslot : Heap.get? st.world.heap pa = some o₀)
+    (htwin : PayloadTwin o₀ o) :
+    PBF pa o₀ o
+      (evalExpr m fuel st (.dictComp key value target iter ifs sp))
+      (evalExpr m fuel (st.swapAt pa o) (.dictComp key value target iter ifs sp)) := by
+  cases fuel with
+  | zero => exact PBF.timeout
+  | succ n => simp only [evalExpr]; exact PBF.unsupported
 
 /-! ### The mutual induction on fuel
 
