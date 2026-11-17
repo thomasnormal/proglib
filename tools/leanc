@@ -196,7 +196,7 @@ def main(argv=None):
     ap.add_argument("--compare", action="store_true")
     ap.add_argument("--fuel", type=int, default=512)
     ap.add_argument("--cache", default=os.environ.get(
-        "LEANC_CACHE", "/scratch/thomas-ahle/ls-cpp-cache/leanc-cache"))
+        "LEANC_CACHE", os.path.join(os.path.expanduser("~"), ".cache", "leanc-cache")))
     ap.add_argument("--build", action="store_true")
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--json", action="store_true")
