@@ -1301,6 +1301,18 @@ def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
     (m.callocAt n size address).2.address = address := by
   simp [callocAt, allocZeroedAt, Ptr.toObjectBoundAt]
 
+@[simp] theorem mallocAt_placement_irrel (m : Mem) (size address₁ address₂ : Nat) :
+    let p₁ := (m.mallocAt size address₁).2
+    let p₂ := (m.mallocAt size address₂).2
+    p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt]
+
+@[simp] theorem callocAt_placement_irrel (m : Mem) (n size address₁ address₂ : Nat) :
+    let p₁ := (m.callocAt n size address₁).2
+    let p₂ := (m.callocAt n size address₂).2
+    p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
+  simp [callocAt, allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt]
+
 /-- §7.24.3.3 `free`. Refuses a pointer no allocation returned, or one
 already freed (**`J.2(184)`**). A null pointer is accepted and does
 nothing, per §7.24.3.3p2. -/
