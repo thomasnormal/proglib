@@ -4,6 +4,20 @@ namespace LeanModels.Cpp.TypeEvidenceTests
 
 open LeanModels.Cpp
 
+/-! The C++ evidence view and the shared clang representation are definitionally
+the same tree. This is the first F1 bridge; C's envelope migration will consume
+the same constructors after the C-only QualType nodes land. -/
+
+private def sharedPointer : LeanModels.Clang.QualType :=
+  .pointer (.builtin .int)
+
+private def cppPointer : CppTypeEvidence :=
+  .pointer (.builtin .int)
+
+example : sharedPointer = cppPointer := rfl
+
+#guard LeanModels.Clang.QualType.beq sharedPointer cppPointer
+
 private def handle (value : String) : FrontendHandle := {value}
 
 private def distinctTypes : List CppTypeEvidence := [

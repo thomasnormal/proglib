@@ -1,47 +1,17 @@
 import LeanModels.Cpp.Evidence
-import LeanModels.Cpp.Types
 
 namespace LeanModels.Cpp
 
-inductive CppTypeEvidence where
-  | builtin (type : CppIntType)
-  | void
-  | pointer (pointee : CppTypeEvidence)
-  | lvalueReference (referent : CppTypeEvidence)
-  | rvalueReference (referent : CppTypeEvidence)
-  | qualified (isConst : Bool) (isVolatile : Bool) (base : CppTypeEvidence)
-  | function (result : CppTypeEvidence) (parameters : List CppTypeEvidence) (variadic : Bool)
-  | record (declaration : FrontendHandle)
-  | enumeration (declaration : FrontendHandle)
-  deriving Repr, Inhabited
+abbrev CppTypeEvidence := LeanModels.Clang.QualType
 
-mutual
-  /-- Structural equality also reduces for types nested in function parameter lists. -/
-  def CppTypeEvidence.beq (left right : CppTypeEvidence) : Bool :=
-    match left, right with
-    | .void, .void => true
-    | .builtin left, .builtin right => left == right
-    | .pointer left, .pointer right
-    | .lvalueReference left, .lvalueReference right
-    | .rvalueReference left, .rvalueReference right => left.beq right
-    | .qualified lc lv left, .qualified rc rv right =>
-        lc == rc && lv == rv && left.beq right
-    | .function left lp lv, .function right rp rv =>
-        left.beq right && CppTypeEvidence.beqList lp rp && lv == rv
-    | .record left, .record right
-    | .enumeration left, .enumeration right => left == right
-    | _, _ => false
-  termination_by structural left
+namespace CppTypeEvidence
 
-  def CppTypeEvidence.beqList (left right : List CppTypeEvidence) : Bool :=
-    match left, right with
-    | [], [] => true
-    | left :: ls, right :: rs => left.beq right && CppTypeEvidence.beqList ls rs
-    | _, _ => false
-  termination_by structural left
-end
+def beq (left right : CppTypeEvidence) : Bool := LeanModels.Clang.QualType.beq left right
 
-instance : BEq CppTypeEvidence := ⟨CppTypeEvidence.beq⟩
+def beqList (left right : List CppTypeEvidence) : Bool :=
+  LeanModels.Clang.QualType.beqList left right
+
+end CppTypeEvidence
 
 structure TypeEvidenceRow where
   ordinal : Nat
@@ -96,10 +66,11 @@ partial def parseCppTypeEvidence (raw : Raw) : Except String CppTypeEvidence := 
 private def CppTypeEvidence.referencedHandles : CppTypeEvidence → List FrontendHandle
   | .void | .builtin _ => []
   | .pointer pointee | .lvalueReference pointee | .rvalueReference pointee =>
-      pointee.referencedHandles
-  | .qualified _ _ base => base.referencedHandles
+      CppTypeEvidence.referencedHandles pointee
+  | .qualified _ _ base => CppTypeEvidence.referencedHandles base
   | .function result parameters _ =>
-      result.referencedHandles ++ parameters.flatMap CppTypeEvidence.referencedHandles
+      CppTypeEvidence.referencedHandles result ++
+        parameters.flatMap CppTypeEvidence.referencedHandles
   | .record declaration | .enumeration declaration => [declaration]
 
 private def CppTypeEvidence.containsUnsupportedReference (type : CppTypeEvidence)

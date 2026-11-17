@@ -1,10 +1,9 @@
 import LeanModels.Cpp.StrictJson
+import LeanModels.Clang.QualType
 
 namespace LeanModels.Cpp
 
-structure FrontendHandle where
-  value : String
-  deriving Repr, BEq, Inhabited, Lean.ToExpr
+abbrev FrontendHandle := LeanModels.Clang.DeclarationHandle
 
 structure FunctionShapeEvidence where
   definition : Bool
