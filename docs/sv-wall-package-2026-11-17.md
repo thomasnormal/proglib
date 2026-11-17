@@ -330,3 +330,9 @@ The delayed-control wall receipt is current: `delay_control_wall/check.py`
 reports four rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004, while
 the ordinary census retains the exact `TimedStatement:DelayControl` refusal.
 The zero-delay E route makes no timing approximation.
+
+CURRENT HEAD CORRECTION — 2026-11-17T11:05Z
+
+Public master is now `1f8c98756`; the intervening public change is a
+private-name cleanup outside SV semantics. The delayed-control receipt and its
+`TimedStatement:DelayControl` refusal remain unchanged.
