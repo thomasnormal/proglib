@@ -75,6 +75,12 @@ lowering or parser shortcut was introduced, and the existing whole-node
 `DictComp` refusal remains loud. The next implementation item is to extend
 those mutual bundles once, then add the direct comprehension worker.
 
+The fallback `Starred:call` probe has now crossed its extractor boundary: the
+extractor admits `ast.Starred` positional arguments into the existing synthetic
+`<star-arg>` marker, while `**` keyword unpacking remains loud. The monadic
+evaluator build remains green; the focused copyreg price (5 public functions,
+25 calls, 8 matches) is the next differential check before claiming a wall flip.
+
 Generated from `harness/library_corpus.json` (CPython 3.9.25, 183 modules) and the refreshed disjoint baseline chunks run on 2026-11-12. The manifest records SHA-256 hashes for all 141 pure-Python stdlib files available to the pinned interpreter.
 
 The full post-stall survey (141 pinned CPython 3.9.25 library rows, run 2026-11-12) has **13 VERIFIED public-function modules**, with 4,091 of 8,677 driven calls matching, **0 call DIVERGEs**, 8 calls that did not finish, and 41 canonical-value gaps. The targeted import refresh flipped `email.charset` from body REFUSED to VERIFIED with 24/24 matching calls; the call denominator is unchanged because those calls were already driven through the closed-function surface. The 13 VERIFIED modules are `email.charset`, `fstring_shadow`, `g1_lab`, `gcd`, `init_lab`, `midpoint`, `my_abs`, `nested_flow`, `sum_to`, `tut_01`, `tut_02`, `tut_03`, and `fnprint`.

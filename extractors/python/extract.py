@@ -623,8 +623,6 @@ def convert_expr(node):
         # (a keyword node with arg=None) stays a loud call_unsupported.
         if any(kw.arg is None for kw in node.keywords):
             reasons.append("** unpacking in call")
-        if any(isinstance(a, ast.Starred) for a in node.args):
-            return unsupported(node, "Starred:call")
         return {
             "kind": "Call",
             "span": span(node),
