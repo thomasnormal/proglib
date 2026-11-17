@@ -166,6 +166,17 @@ layout still lives in the scorer; these are architectural gaps, not merely
 missing individual walls. The static `type-layout` table is only a
 conservative inventory; route selection uses the dynamic first-refusal table.
 
+The owner's settled decisions refine this map. C and C++ must share one
+structured clang `QualType` representation and one object store; the C++ type
+plugin is the starting point (D1). The language profile is GNU17: C89-only
+implicit-int/K&R/implicit-declaration programs leave the denominator under an
+explicit `out-of-scope-c89` verdict (D2). A minimal kernel-reducible or
+unfolding-lemma proof surface with a `CallsTo`-style judgment and three proved
+examples follows F2 immediately (D3), before evaluator-shape/F3 work. The
+confirmed order is H1--H5, this map, F1, F2, proof surface, evaluator shape/F3,
+F6+F5, F4, with F7 on shared SoftFloat after F1 and F8 translation-unit
+linking whenever it fits.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
