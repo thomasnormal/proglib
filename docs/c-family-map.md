@@ -1,18 +1,19 @@
 # C feature families and architecture map
 
-This map uses the committed C survey (`docs/c-survey.json`, measured
-2026-11-17) as its measurement. The survey has 1,211 MATCH rows out of
-2,214, with 3 failed rows, 21 libc refusals, 86 UB refusals, 353 other
-unsupported rows, 87 timeouts, 350 parser rejects, 102 no-entry-point rows,
-and one compiler-oracle row. The families below partition the first outcome
-of every row; the wall counts are present/sole counts from the dynamic
-ranking, so a file can appear in more than one static family before its first
-outcome is known.
+This map uses the authoritative post-push score receipt
+(`20261117T104602Z-score.json`, measured 2026-11-17) as its measurement. It
+reports 888 MATCH rows out of 2,214, with 1 failed row, 12 libc refusals,
+66 UB refusals, 823 other unsupported rows, 73 timeouts, 350 parser rejects,
+and one compiler-oracle row. The separate entry-point census records 99
+no-entry-point files. The families below partition the first outcome of every
+row; the wall counts are present/sole counts from the dynamic ranking, so a
+file can appear in more than one static family before its first outcome is
+known.
 
 ## 1. Parser, dialect, and entry-point boundary
 
 This family contains the 350 parser rejects (349 C23 rejects, 56 of those
-accepted by the registered C17 fallback), plus the 102 no-entry-point rows.
+accepted by the registered C17 fallback), plus the 99 no-entry-point rows.
 The one mechanism is a parser-profile manifest: clang AST extraction, the
 per-file C23/C17 mode, and an explicit entry-point classification. It exists
 in `extractors/c/extract.py`, `harness/c_frontend_census.py`, and
@@ -187,14 +188,18 @@ unsupported refusals citing C23 clauses instead of fabricated
 refusal) for route selection; the static wall table remains measurement only.
 H4 is landed in the same commit's gate change: the full-survey default fuel
 is one million, with the fixed per-file wall as the termination guard;
-focused probes may still pass an explicit bound. H5 remains architecture
-debt: the external registry must give a translation-unit definition precedence
-over a library model, with a regression row for a program-defined
-`strlen`/`printf`; no one-off dispatch patch substitutes for that registry.
+focused probes may still pass an explicit bound. H5 is landed in the call
+handler (commits `c15ae3bab` and `2fc7e48f0`): declaration identity gives a
+translation-unit definition precedence over the external registry, with
+pinned-Clang rows for program-defined `strlen` and `printf`. Centralising the
+remaining name-based library arms into a profile-indexed registry is still
+architecture work; it must preserve that precedence rather than reintroduce
+the bug.
 
 The authoritative post-push survey is **888/2,214 MATCH**, one failed row,
-823 unsupported, 66 UB, 73 timeout, 350 parser rejects, and 99 no-entry-point
+823 unsupported, 66 UB, 73 timeout, 350 parser rejects, and one
+compiler-oracle row; the separate entry-point census records 99 no-entry-point
 rows. The three historical failed rows are canonical-runner refusals on
 unbound declarations while pinned native runs abort; they are not model/native
-value divergences. H1--H4 are instrument changes and H5 remains debt pending
-the family plan.
+value divergences. H1--H5 are instrument changes; the remaining registry
+centralisation is an architecture item for the family plan.
