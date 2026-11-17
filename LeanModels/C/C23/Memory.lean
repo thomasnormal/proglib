@@ -333,6 +333,24 @@ private theorem placementSet_find (xs : List (ObjId × Nat)) (o : ObjId) (addres
     · simp [placementSet, h]
     · simp [placementSet, h, ih]
 
+private theorem placementSet_other (xs : List (ObjId × Nat)) (o q : ObjId)
+    (address : Nat) (hq : q ≠ o) :
+    (placementSet xs o address).find? (fun entry => entry.1 == q) =
+      xs.find? (fun entry => entry.1 == q) := by
+  induction xs with
+  | nil => have hoq : o ≠ q := Ne.symm hq; simp [placementSet, hoq]
+  | cons x xs ih =>
+    by_cases ho : x.1 == o
+    · have hxo : x.1 ≠ q := by
+        intro hxq
+        apply hq
+        exact hxq.symm.trans (beq_iff_eq.mp ho)
+      have hqo : o ≠ q := Ne.symm hq
+      simp [placementSet, ho, hxo, hqo, ih]
+    · by_cases hxq : x.1 == q
+      · simp [placementSet, ho, hxq]
+      · simp [placementSet, ho, hxq, ih]
+
 def vaStart (m : Mem) (p : Ptr) (args : List CVal) : MRes Mem :=
   match p.obj with
   | none => .error (.memUB (.nullDeref p.off))
@@ -1216,6 +1234,17 @@ theorem allocAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
         Prod.snd = some address
   rw [placementSet_find]
   rfl
+
+theorem allocAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
+    (ty : Option CType) (address : Nat) (q : ObjId)
+    (hq : q ≠ m.objs.length) :
+    (m.allocAt dur size ty address).1.placement? q = m.placement? q := by
+  change ((placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
+      m.objs.length address).find? (fun entry => entry.1 == q)).map Prod.snd =
+    (m.placements.find? (fun entry => entry.1 == q)).map Prod.snd
+  rw [placementSet_other _ _ _ _ hq]
+  have hq' : m.objs.length ≠ q := Ne.symm hq
+  simp [List.find?_append, hq, hq']
 
 theorem allocZeroedAt_placement (m : Mem) (dur : Duration) (size : Nat)
     (ty : Option CType) (address : Nat) :
