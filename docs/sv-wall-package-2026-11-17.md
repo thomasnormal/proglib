@@ -646,3 +646,13 @@ reports the exact `GenItem.expand` interface-instance boundary and refuses at
 Xcelium 24.03-s004; Icarus Verilog 13.0 rejects the interface-port syntax, so
 no Icarus oracle is claimed. No interface lowering or connection semantics is
 added here.
+
+## Urgent interface-port wall remeasurement
+
+The urgent interface-port row is explicitly predicted in the current
+collect-all table: approved extraction retains `InterfacePortSymbol:InterfacePort`
+for `interface_repro.sv`, but ordinary admission stops earlier at the
+interface-instance boundary and emits no distinct interface-port refusal. The
+same four Xcelium 24.03-s004 rows and Icarus syntax limitation recorded for
+the fixture therefore apply; no separate ordinary result or interface-port
+semantics is claimed.
