@@ -270,6 +270,22 @@ def toObjectBoundAt (o : ObjId) (address : Nat) (size : Nat) : Ptr :=
 
 def toObjectBound (o : ObjId) (size : Nat) : Ptr := toObjectBoundAt o o size
 
+/-- PNVI-style exposure used by the default C address instance.  Zero is
+reserved for the null pointer; object placements are therefore exposed as
+positive integers.  A later memory instance may replace this bijection with
+any aligned, non-overlapping placement map. -/
+def exposedAddress (p : Ptr) : Int :=
+  match p.obj with
+  | none => 0
+  | some _ => (p.address : Int) + 1
+
+def fromExposedAddress (n : Int) : Option Ptr :=
+  if n == 0 then some null
+  else if n > 0 then
+    let a := (n - 1).toNat
+    some (toObjectAt a a)
+  else none
+
 end Ptr
 
 inductive CByte where

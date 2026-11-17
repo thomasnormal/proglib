@@ -544,6 +544,12 @@ structure Ctx where
   /-- Conservative effect summary for direct calls. `false` means the
   callee may write and must stay in the indeterminate-order refusal path. -/
   callPure : Expr → Bool := fun _ => false
+  /-- PNVI-ae-udi address exposure hooks.  The default instance is the
+  deterministic placement used by the current C runner; a Rust or fully
+  quantified memory instance can replace both functions without changing
+  expression semantics. -/
+  pointerToInteger : Ptr → Int := Ptr.exposedAddress
+  integerToPointer : Int → Option Ptr := Ptr.fromExposedAddress
   /-- The current function's parser-native statement list.  A `goto` may
   jump backward to a label in this same function (§6.8.6.1); carrying the
   already-ingested list lets statement execution resume at that label
@@ -1365,14 +1371,16 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         if isPtrIntType (ctx.layout.normalizeTy ty) then do
           let v ← evalExpr ctx sub
           let p ← asPtr v
-          pure (.ptrInt p)
+          let t ← intTyOf (ctx.layout.normalizeTy ty)
+          pure (convert t (ctx.pointerToInteger p))
         else refuseUnsupported "pointer-to-integer conversion outside uintptr_t/intptr_t"
       else if ck == "IntegralToPointer" then
         if isPtrType ty then do
           let v ← evalExpr ctx sub
-          match v with
-          | .ptrInt p => pure (.ptr p)
-          | _ => refuseUnsupported "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip"
+          let (_, n) ← asInt v
+          match ctx.integerToPointer n with
+          | some p => pure (.ptr p)
+          | none => refuseUnsupported "integer-to-pointer address is not exposed by this memory instance"
         else refuseUnsupported "integer-to-pointer conversion outside pointer type"
       else refuseUnsupported s!"castKind '{ck}'"
 
