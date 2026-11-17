@@ -422,6 +422,10 @@ the store as a tombstone — see `CObj.live`. -/
 def kill (m : Mem) (o : ObjId) : Mem :=
   { m with objs := m.objs.modify o (fun c => { c with live := false }) }
 
+@[simp] theorem kill_placements (m : Mem) (o : ObjId) :
+    (m.kill o).placements = m.placements := by
+  rfl
+
 /-- End the lifetime of automatic objects allocated at or after `start`.
 Static objects remain live for the whole execution (§6.2.4p3). -/
 def killFrom (m : Mem) (start : Nat) : Mem :=
