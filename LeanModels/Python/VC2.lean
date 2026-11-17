@@ -752,6 +752,48 @@ theorem PyTriple.callsTo_arityOk {m : Module} {fname : String}
   | timeout => exact (PyPost.holds_ne_timeout hr rfl).elim
   | unsupported msg => exact hr.elim
 
+/-! A raw nested-call bridge. This is intentionally below the public
+`CallsTo` frame theorem: the caller supplies the world and already-thawed
+arguments, and the result world retains the callee's heap writes while the
+call frame is unwound. -/
+theorem PyTriple.callsIn_raw_ofRet {m : Module} {fname : String}
+    {f : FunctionDefn} {before : World} {args : Array RVal} {v : RVal}
+    (hdepth : before.callDepth ≠ pythonTopCallDepth)
+    (hfull : ¬ pythonFrameFull before.callDepth)
+    (hf : findFunction m fname = some f)
+    (hargsOk : f.argsOk = true) (hlocalsOk : f.localsOk = true)
+    (hgen : f.isGenerator = false)
+    (harity : arityOk f.params args.size = true)
+    (h : PyTriple m
+      (fun st => st = (⟨{before with callDepth := before.callDepth + 1},
+        markUnboundLocals f.body.toList (mkCallEnv f.params args)⟩ : FrameState))
+      f.body.toList
+      (.ofRet fun rv _ => rv = v)) :
+    ∃ after, CallsIn m before fname args after v := by
+  obtain ⟨r, t, hr, hrun⟩ := h.exec rfl
+  cases r with
+  | ok st flow =>
+    cases flow with
+    | ret rv =>
+      simp [PyPost.ofRet] at hr
+      subst rv
+      let after : World := { st.world with callDepth := st.world.callDepth - 1 }
+      refine ⟨after, t + 1, ?_⟩
+      have htop : before.callDepth ≠ 1001 := by
+        simpa [pythonTopCallDepth, pythonRecursionLimit] using hdepth
+      have hnotfull : ¬ (1000 ≤ before.callDepth) := by
+        simpa [pythonFrameFull, pythonRecursionLimit] using hfull
+      simp [callIn, hf, hargsOk, hlocalsOk, hgen, harity,
+        htop, hnotfull, pythonTopCallDepth, pythonRecursionLimit,
+        Run.leaveCallDepth, Run.toWorld, Run.bind, after,
+        hrun t (by omega)]
+    | next => exact hr.elim
+    | brk => exact hr.elim
+    | cont => exact hr.elim
+  | exn st e => exact hr.elim
+  | timeout => exact (PyPost.holds_ne_timeout hr rfl).elim
+  | unsupported msg => exact hr.elim
+
 /-- Triple → arrow, value side: a whole-body triple whose `ret` arm pins
 `RVal.thaw v` (and whose `next` arm forces `v = None`, Python's
 fall-off-the-end) yields `CallsTo m fname args v` — i.e.
