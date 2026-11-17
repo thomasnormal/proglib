@@ -88,6 +88,15 @@ every established right-associated projection. The extractor therefore still
 refuses DictComp, and no differential row is changed until that product
 integration is completed.
 
+The admitted-arm probe found a declaration-order constraint: `pbEvalExpr_succ`
+is defined before `pbAll` and `pbDictAll`, but its DictComp branch needs the
+all-fuel `PBDictCompStep` relation. A direct call to `pbDictAll` is therefore
+not in scope; passing it as an extra arm hypothesis requires threading the
+relation through the mutual product, while moving the induction block would
+rewrite all existing declarations. The probe was reverted after the dependent
+build failed, and the extractor remains loud until this structural choice is
+implemented as one complete item.
+
 The projection-rewrite price is measured in
 `/scratch/thomas-ahle/gate/ls-python/pball-rewrite-inventory.txt`: 31
 `PBAll` references, 34 conjunction destructures, and 21 successor-arm
