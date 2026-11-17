@@ -161,3 +161,8 @@ the implicit/signal event fixtures regenerate byte-identically, match all
 Icarus Verilog 13.0 and Xcelium 24.03-s004 x/z rows, and retain the exact
 `Clock:implicit` event-list refusal. No unsupported implicit sensitivity is
 executed by E.
+
+The level-sensitive `always_latch` receipt is current: its Lean canonical-E
+agreement passes, and the six-row x/z fixture matches Icarus Verilog 13.0 and
+Xcelium 24.03-s004. This confirms the admitted latch form's measured behavior;
+hardware metastability and latch-enable glitches remain outside the model.
