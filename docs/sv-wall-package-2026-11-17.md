@@ -571,3 +571,12 @@ and `SlangError:UndeclaredIdentifier`; ordinary E preserves those diagnostics
 and refuses at the E instantiation boundary. This is not a legal undriven-net
 (`net-z`) case, so no simulator value or net-resolution semantics is claimed;
 the parser-native refusal remains loud.
+
+## Invalid continuous-assignment wall remeasurement
+
+The ranked `invalid_continuous_assign.sv` fixture uses undeclared `missing` in
+`{x, missing} >> 1`. Approved extraction emits
+`ContinuousAssignSymbol:InvalidExpression` and `SlangError:UndeclaredIdentifier`;
+ordinary E preserves those diagnostics and refuses at the E instantiation
+boundary. This is invalid source rather than a width or continuous-assignment
+semantic case, so no simulator value or semantic admission is claimed.
