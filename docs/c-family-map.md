@@ -155,3 +155,35 @@ construct therefore pays a proof and refusal cost repeatedly. The special
 cases named above should become registrations or derived rules over those
 three mechanisms. The survey remains measurement and regression evidence,
 not the architecture order.
+
+## Review corrections and authorised honesty work
+
+The independent architecture review confirms F1 (structured parser types) as
+the foundation, followed by F2 (object memory), then the evaluator decision
+and sequencing/control-flow families. I agree with that order. The current
+memory core is useful, but effective types are not actually checked and
+layout still lives in the scorer; these are architectural gaps, not merely
+missing individual walls. The static `type-layout` table is only a
+conservative inventory; route selection uses the dynamic first-refusal table.
+
+The five authorised instrument-honesty actions are recorded here. H1 is
+already implemented: `abort` and `__builtin_abort` terminate through the
+`.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
+classification. H2 is landed in commit `4352f5cda`: undefined values used as
+arithmetic, truth, pointer, or unknown operator operands now produce named
+unsupported refusals citing C23 clauses instead of fabricated
+`indetAutomatic 0 0` UB. H3 uses `dynamic_wall_ranking` (the first runtime
+refusal) for route selection; the static wall table remains measurement only.
+H4 is landed in the same commit's gate change: the full-survey default fuel
+is one million, with the fixed per-file wall as the termination guard;
+focused probes may still pass an explicit bound. H5 remains architecture
+debt: the external registry must give a translation-unit definition precedence
+over a library model, with a regression row for a program-defined
+`strlen`/`printf`; no one-off dispatch patch substitutes for that registry.
+
+The authoritative post-push survey is **888/2,214 MATCH**, one failed row,
+823 unsupported, 66 UB, 73 timeout, 350 parser rejects, and 99 no-entry-point
+rows. The three historical failed rows are canonical-runner refusals on
+unbound declarations while pinned native runs abort; they are not model/native
+value divergences. H1--H4 are instrument changes and H5 remains debt pending
+the family plan.
