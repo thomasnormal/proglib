@@ -232,3 +232,8 @@ Verilog 13.0 and Xcelium 24.03-s004.
 The implicit-event memory receipt is current: `memory_implicit_event_canonical_e/check.py`
 reports three canonical-E rows matching Icarus Verilog 13.0 and Xcelium
 24.03-s004.
+
+The wildcard-case memory receipt is current:
+`always_comb_wildcard_case_memory_canonical_e/check.py` regenerates its
+envelope byte-identically and reports four rows matching canonical E, Icarus
+Verilog 13.0, and Xcelium 24.03-s004.
