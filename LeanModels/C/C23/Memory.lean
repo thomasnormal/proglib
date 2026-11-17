@@ -738,6 +738,15 @@ placement annotation alone cannot change whether a range resolves. -/
     m.resolve {p with address := address} n = m.resolve p n := by
   simp [resolve]
 
+@[simp] theorem loadBytes_address_irrel (m : Mem) (p : Ptr) (n address : Nat) :
+    m.loadBytes {p with address := address} n = m.loadBytes p n := by
+  simp [loadBytes, resolve_address_irrel]
+
+@[simp] theorem storeBytes_address_irrel (m : Mem) (p : Ptr) (bs : List CByte)
+    (address : Nat) :
+    m.storeBytes {p with address := address} bs = m.storeBytes p bs := by
+  simp [storeBytes, resolve_address_irrel]
+
 def ptrEqBoundary (m : Mem) (a b : Ptr) : Bool :=
   match a.obj, b.obj with
   | some x, some y =>
