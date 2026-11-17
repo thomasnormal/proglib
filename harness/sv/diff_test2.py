@@ -94,6 +94,7 @@ RUNNER = os.path.join("harness", "sv", "runner2.lean")
 RUNNER_MEM = os.path.join("harness", "sv", "runner_mem2.lean")
 RUNNER_E0 = os.path.join("harness", "sv", "runner_e0.lean")
 RUNNER_E1 = os.path.join("harness", "sv", "runner_e1.lean")
+RUNNER_ECANON = os.path.join("harness", "sv", "runner_ecanon.lean")
 
 sys.path.insert(0, HARNESS_DIR)
 import gen_tb2  # noqa: E402
@@ -107,7 +108,7 @@ from oracle_disagreements import (HarnessError, SimulatorError, check_declaratio
 SV_LEAN_MODULES = ["Basic", "Ast", "Semantics", "Obs", "Sem2", "CombGuard2",
                    "Param", "Param2", "Hier2", "Probe2", "RangeGuard2", "CombAlias2",
                    "ClockGuard2", "Ingest2", "PreemptGuard2",
-                   "MemPreemptGuard"]
+                   "MemPreemptGuard", "Kernel.CoreMemExec"]
 
 SIGMA_NAMES = ("src", "rev")
 
@@ -431,8 +432,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sim", choices=["auto", "xrun", "iverilog", "verilator", "both"],
                     default="auto")
-    ap.add_argument("--backend", choices=["run2", "e0", "e1"], default="run2",
-                    help="Lean semantics backend (run2, E-core-0 array executor, or E-core-1 edge executor)")
+    ap.add_argument("--backend", choices=["run2", "e0", "e1", "ecanon"], default="run2",
+                    help="Lean semantics backend (run2, E-core-0, E-core-1, or canonical E)")
     ap.add_argument("--case", action="append", default=None,
                     help="restrict to one or more case names (repeat the option)")
     ap.add_argument("--workdir", default=None)
@@ -535,6 +536,8 @@ def main():
                 print("%-24s SKIP (memory rows are outside E-core-0)" % name)
                 continue
             runner = RUNNER_E0
+        elif args.backend == "ecanon":
+            runner = RUNNER_ECANON
         else:
             runner = RUNNER_MEM if case.get("memory") else RUNNER
         if "refusal" in case:
