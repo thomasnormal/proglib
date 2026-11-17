@@ -591,11 +591,14 @@ def layoutFor (envl : Envelope) : Layout :=
         match ds.find? (fun q => match q with
           | .record (some rrid) _ _ _ _ => rrid == rid
           | _ => false) with
-        | some (.record _ _ fields (some layout) _) =>
-            match checkedRecordLayout? fields layout with
-            | some checked =>
-                checked.fields.find? (fun field => field.name == f)
-                  |>.map (fun field => field.offsetBits / 8)
+        | some (.record (some rrid) _ fields _ _) =>
+            match observedRecordLayout? envl rrid with
+            | some layout =>
+              match checkedRecordLayout? fields layout with
+              | some checked =>
+                  checked.fields.find? (fun field => field.name == f)
+                    |>.map (fun field => field.offsetBits / 8)
+              | none => none
             | none => none
         | _ => none
     | _ => none
