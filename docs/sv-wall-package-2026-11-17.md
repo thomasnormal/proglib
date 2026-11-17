@@ -532,3 +532,14 @@ all eight cycles at both W4 and W8, including the x/z rows (`xxxxxxxz`), with
 the measured values retained by the receipt. The prior topology-boundary
 ranking is stale on this tree; no generated-index lowering, memory semantics
 change, or real-design count transition is claimed.
+
+## Signal-event-control wall remeasurement
+
+The clean-room `signal_event_control.sv` fixture uses `always_ff @(clk)`
+without an edge keyword. Approved extraction emits
+`SignalEventControl:None_`; ordinary E emits `Clock:implicit` at both
+`parsePProcess` and `PDesign.instantiateE2`, because no level-event scheduler
+is modeled. Icarus Verilog 13.0 and Xcelium 24.03-s004 both accept the source
+with the same missing-edge warning and produce identical eight sampled rows,
+including x/z clock values. No E value is claimed; the level-event refusal
+remains loud under IEEE 1800-2023 §9.4.2.
