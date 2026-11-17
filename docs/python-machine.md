@@ -172,6 +172,7 @@ script runner is available through `leanmodels-run --machine-script-batch`.
 machine in one batch. `harness/scripts/hello.py` and
 `harness/scripts/scalar_expr.py` are matching scalar-output rows, and
 `harness/scripts/function_call.py` checks a positional module-function call,
-while
+`harness/scripts/function_print.py` checks a direct-return call inside
+`print`, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is three matches, one refusal, and zero divergence.
+current result is four matches, one refusal, and zero divergence.

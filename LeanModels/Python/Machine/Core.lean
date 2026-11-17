@@ -188,6 +188,28 @@ def evalExpr (env : REnv) : Expr → Res RVal
   | .unsupported kind _ _ => .unsupported ("machine AST node: " ++ kind)
   | _ => .unsupported "machine expression"
 
+def evalFunctionReturn (m : Module) (env : REnv) (name : String)
+    (args : Array Expr) : Res RVal :=
+  match findFunction m.functions.toList name, args.toList.mapM (evalExpr env) with
+  | some function, .ok values =>
+      if !function.argsOk || !function.localsOk then
+        .unsupported "machine function admission"
+      else
+        match bindParams function.params.toList values, function.body.toList with
+        | some locals, [.ret (some expression) _] => evalExpr locals expression
+        | some _, [.ret none _] => .ok .none
+        | _, _ => .unsupported "machine nested function body"
+  | none, _ => .unsupported "machine function lookup"
+  | _, .exn error => .exn error
+  | _, .timeout => .timeout
+  | _, .unsupported reason => .unsupported reason
+
+def evalPrintExpr (m : Module) (env : REnv) : Expr → Res RVal
+  | .call (.name name _) args kwargs none _ =>
+      if kwargs.isEmpty then evalFunctionReturn m env name args
+      else .unsupported "machine nested function keywords"
+  | expression => evalExpr env expression
+
 def targetName : Expr → Option String
   | .name name _ => some name
   | _ => none
@@ -207,7 +229,7 @@ def stepStmt (m : Module) (state : MachineState) (frame : Frame) (rest : List St
   | .exprStmt value _ =>
       match value with
       | .call (.name "print" _) args _ none _ =>
-          match args.toList.mapM (evalExpr frame.locals) with
+          match args.toList.mapM (evalPrintExpr m frame.locals) with
           | .ok values =>
               match renderPrint values with
               | some text =>
