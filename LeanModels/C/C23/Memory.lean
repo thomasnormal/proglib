@@ -1072,7 +1072,7 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
         let newO := m.objs.length
         let m' : Mem := { m with
           objs := m.objs ++ [⟨.allocated, true, fresh, none⟩]
-          placements := m.placements ++ [(newO, address)] }
+          placements := placementSet m.placements newO address }
         .ok (m'.kill o, Ptr.toObjectBoundAt m.objs.length address size)
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
@@ -1097,6 +1097,19 @@ theorem reallocAt_valid_placement (m : Mem) (p : Ptr) (size address : Nat)
   have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
   simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq, kill,
     List.mem_append, Except.map]
+  exact placementSet_mem _ _ _
+
+theorem reallocAt_valid_placement_lookup (m : Mem) (p : Ptr) (size address : Nat)
+    (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
+    (hc : m.get? o = some c) (hdur : c.dur = .allocated)
+    (hlive : c.live = true) (hoff : p.off = 0) :
+    (reallocAt m p size address).map
+        (fun r => r.1.placement? m.objs.length) = .ok (some address) := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq, kill,
+    placement?, placementSet, Except.map]
+  rw [placementSet_find]
+  simp
 
 @[simp] theorem reallocAt_zero (m : Mem) (p : Ptr) (address : Nat) :
     reallocAt m p 0 address = .error (.memUB (.reallocZero p)) := by
