@@ -79,6 +79,18 @@ fresh dictionary allocation; the monadic continuation likewise still needs a
 is sound. The extractor remains loud, so no semantic flip is claimed before
 those remaining bundles are built.
 
+The priced `PayloadBlind` sub-item is the theorem
+`PB-evalDictCompStep`: for every `PayloadTwin o₀ o`, every frame whose heap
+slot `pa` contains `o₀`, and every key/value/target expression, the two
+`evalDictCompStep` runs on `st` and `st.swapAt pa o` must be related by `PBF`.
+Its obligations are target assignment transport, the existing filter and
+expression transport lemmas, identical `hashableKey`/`keyRefusal` decisions,
+`dictStore`'s heap-independent duplicate-key update, and the fresh-dict
+allocation slot/address lemmas. The theorem must then be appended to `PBAll`
+and threaded through all existing tuple projections before the DictComp arm is
+admitted. This is a finite proof-bundle extension; no fixed-count examples or
+payload-insensitive shortcut is sound.
+
 The fallback `Starred:call` probe has now crossed its extractor boundary: the
 extractor admits `ast.Starred` positional arguments into the existing synthetic
 `<star-arg>` marker, while `**` keyword unpacking remains loud. The monadic
