@@ -378,6 +378,55 @@ def vaArg (m : Mem) (p : Ptr) : MRes (CVal × Mem) :=
       | some [] => .error (.memUB (.outOfBounds o 0 1 0))
       | some (v :: vs) => .ok (v, { m with vaCursors := vaSet m.vaCursors o vs })
 
+theorem vaStart_placements {m m' : Mem} {p : Ptr} {args : List CVal}
+    (h : vaStart m p args = .ok m') : m'.placements = m.placements := by
+  cases hp : p.obj with
+  | none => simp [vaStart, hp] at h
+  | some o =>
+    simp [vaStart, hp] at h
+    cases h
+    rfl
+
+theorem vaCopy_placements {m m' : Mem} {dst src : Ptr}
+    (h : vaCopy m dst src = .ok m') : m'.placements = m.placements := by
+  cases hd : dst.obj with
+  | none => simp [vaCopy, hd] at h
+  | some d =>
+    cases hs : src.obj with
+    | none => simp [vaCopy, hd, hs] at h
+    | some s =>
+      cases hv : vaGet m.vaCursors s with
+      | none => simp [vaCopy, hd, hs, hv] at h
+      | some vs =>
+        simp [vaCopy, hd, hs, hv] at h
+        cases h
+        rfl
+
+theorem vaEnd_placements {m m' : Mem} {p : Ptr}
+    (h : vaEnd m p = .ok m') : m'.placements = m.placements := by
+  cases hp : p.obj with
+  | none => simp [vaEnd, hp] at h
+  | some o =>
+    simp [vaEnd, hp] at h
+    cases h
+    rfl
+
+theorem vaArg_placements {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
+    (h : vaArg m p = .ok (v, m')) : m'.placements = m.placements := by
+  cases hp : p.obj with
+  | none => simp [vaArg, hp] at h
+  | some o =>
+    cases hv : vaGet m.vaCursors o with
+    | none => simp [vaArg, hp, hv] at h
+    | some vs =>
+      cases vs with
+      | nil => simp [vaArg, hp, hv] at h
+      | cons v rest =>
+        simp [vaArg, hp, hv] at h
+        have hm : m'.placements = m.placements := by
+          simpa using (congrArg (fun r : Mem => r.placements) h.2).symm
+        exact hm
+
 def get? (m : Mem) (o : ObjId) : Option CObj := m.objs[o]?
 
 def placement? (m : Mem) (o : ObjId) : Option Nat :=
