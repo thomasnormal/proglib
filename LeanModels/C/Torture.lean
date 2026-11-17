@@ -451,7 +451,8 @@ def observedRecordFacts (envl : Envelope) :
                   let members := fields.filterMap fun field => match field with
                     | .field name ty _ _ => some (name.getD "", ty)
                     | _ => none
-                  some (ty, members, checked)
+                  let keyTy := (arrayOf ty).map (·.1) |>.getD ty
+                  some (keyTy, members, checked)
         | none => match ds.find? (fun q => match q with
           | .typedef nm ty _ tsp =>
               tsp.line == sp.line && (ty == "struct " ++ nm || ty == "union " ++ nm)
@@ -630,11 +631,30 @@ def layoutFor (envl : Envelope) : Layout :=
     | none => none
   let observedTypeSize := fun t : CType =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
+  /- A subscript asks for the element stride, while Clang's parser-native
+     TypeLayout observation is attached to the declared array object.  Keep
+     the observation as the source of the stride: divide the observed array
+     extent by its constant element count only when the division is exact.
+     This is only a bridge between two AST-derived views; no ABI size is
+     reconstructed here. -/
+  let observedArrayElem := fun t : CType =>
+    let rec arraySeek : List TypeLayout → Option Nat
+      | [] => none
+      | row :: rows =>
+          match arrayOf row.ty with
+          | some (elem, count) =>
+              if count > 0 && elem == t && row.sizeBytes % count == 0 then
+                some (row.sizeBytes / count)
+              else arraySeek rows
+          | none => arraySeek rows
+    arraySeek envl.typeLayouts
   { size := fun t => match observedTypeSize t with
       | some sz => some sz
       | none => match observedFor t with
         | some (_, _, layout) => some layout.sizeBytes
-        | none => (sizeAlign tds recsWithObserved 16 t).map (·.1)
+        | none =>
+            (observedArrayElem t).orElse
+              (fun _ => (sizeAlign tds recsWithObserved 16 t).map (·.1))
     typeSize := observedTypeSize
     fieldSize := observedFieldSizeFor
     fieldOffType := observedFieldOffType
