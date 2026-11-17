@@ -73806,6 +73806,99 @@
       ],
       "refusal": "Schedule:preemptive",
       "measured": "2026-11-12: source-shaped for-loop increment `i++` is retained as UnaryOp.inc in the canonical memory E route; E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 over four rows."
+    },
+    {
+      "name": "always_latch_e",
+      "example": "sem2/always_latch_e",
+      "top": "always_latch_e",
+      "canonical_e": true,
+      "signals": [
+        "en",
+        "d",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "en": "0",
+          "d": "1"
+        },
+        {
+          "en": "1",
+          "d": "1"
+        },
+        {
+          "en": "0",
+          "d": "0"
+        },
+        {
+          "en": "1",
+          "d": "0"
+        }
+      ]
+    },
+    {
+      "name": "initial_storage_e",
+      "example": "sem2/initial_storage_e",
+      "top": "initial_storage_e",
+      "canonical_e": true,
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {},
+        {}
+      ]
+    },
+    {
+      "name": "internal_clock_e",
+      "example": "sem2/internal_clock_e",
+      "top": "internal_clock_e",
+      "signals": [
+        "result"
+      ],
+      "stimulus": [
+        {
+          "enable": "0",
+          "data": "0"
+        },
+        {
+          "enable": "1",
+          "data": "1"
+        },
+        {
+          "enable": "0",
+          "data": "0"
+        },
+        {
+          "enable": "1",
+          "data": "0"
+        }
+      ],
+      "refusal": "Event:time-zero",
+      "measured": "Audit W5: internal generated clock is driven by an always_comb time-zero activation and is refused by canonical E."
+    },
+    {
+      "name": "non_topological_assign_e",
+      "example": "sem2/non_topological_assign",
+      "top": "non_topological_assign",
+      "canonical_e": true,
+      "signals": [
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "0"
+        },
+        {
+          "x": "1"
+        },
+        {
+          "x": "x"
+        },
+        {
+          "x": "z"
+        }
+      ]
     }
   ]
 }
