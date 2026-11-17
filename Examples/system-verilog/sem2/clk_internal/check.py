@@ -56,7 +56,7 @@ def main():
                 raise RuntimeError(f"{sim}: {actual} != {EXPECTED}")
             print(f"{sim}: 10 x/z rows MATCH")
     run(["lake", "env", "lean", str(HERE / "agree.lean")])
-    print("ordinary loader: REFUSED Clock:source; canonical E census: REFUSED Clock:source")
+    print("ordinary loader: REFUSED Clock:source; canonical E: REFUSED Event:time-zero when the internal clock is driven before the settled start state")
 
 
 if __name__ == "__main__":

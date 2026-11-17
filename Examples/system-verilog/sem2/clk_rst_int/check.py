@@ -57,7 +57,7 @@ def main():
                 raise RuntimeError(f"{sim}: {actual} != {EXPECTED}")
             print(f"{sim}: 10 x/z rows MATCH")
     run(["lake", "env", "lean", str(HERE / "agree.lean")])
-    print("ordinary loader: REFUSED Clock:reset; canonical E census: REFUSED Clock:reset")
+    print("ordinary loader: REFUSED Clock:reset; canonical E: named event-source boundary")
 
 
 if __name__ == "__main__":
