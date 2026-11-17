@@ -202,6 +202,11 @@ two rows on both simulators, `net_z_output_port_canonical_e` matches two
 undriven-output rows, and `net_z_scalar_canonical_e` matches two undriven-net
 rows including a bit select.
 
+The generated/parameterized memory receipts are current: `generate_memory_canonical_e`
+regenerates byte-identically and matches eight rows on both simulators;
+`param_mem_child_e`, `param_mem_input_gen_e`, and `param_mem_shift_e` each
+match ten rows on Icarus Verilog 13.0 and Xcelium 24.03-s004.
+
 The parameterized memory-shape receipts are current: shape A matches 12 rows,
 shape B one hierarchy-memory row, shape C four generated-array rows, and shape
 D six loop-local/x-index rows on Icarus Verilog 13.0 and Xcelium 24.03-s004.
