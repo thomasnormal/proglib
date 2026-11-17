@@ -76,12 +76,15 @@ The remaining filtered and multi-clause forms stay loud. The focused rerun of
 the manifest's `token` module used the built runner and 24 battery calls: 16
 matched and 8 calls refused on independent ordering comparisons, so no
 additional DictComp-only function flip is claimed by that module-level probe.
-The direct
-worker now exists for the one-clause/no-filter shape, and its
+The subsequent full manifest rerun with the built runner covered all 183
+modules and 8,677 calls: 4,095 MATCH, 4,533 REFUSED, 41 UNCOMPARABLE, 1
+TIMEOUT, and 7 RUNNER rows whose batch did not finish. It is recorded as an
+explicit incomplete refresh rather than replacing the prior complete baseline;
+the `token` row remains 16/24 MATCH with no DictComp-only flip.
+The direct worker now exists for the one-clause/no-filter shape, and its
 `evalDictCompStep` fuel-monotonicity conjunct is included in `Obs.lean`'s
-fixed-order mutual induction. The evaluator still refuses the AST arm because
-the remaining `PayloadBlind` swap theorem must cover the recursive walk and its
-fresh dictionary allocation. The monadic continuation is now implemented as a
+fixed-order mutual induction. The evaluator admits the AST arm for this shape;
+filtered and multi-clause forms remain loud. The monadic continuation is now implemented as a
 `Kont.dictComp` field with a structural stepper, but its evaluator-side proof
 bundle and the trunk/monadic agreement row remain outstanding. No local
 shortcut or theorem weakening is sound. The extractor remains loud, so no
