@@ -326,6 +326,11 @@ theorem fromExposedAddress_positive_address (n : Int) (hn : 0 < n) :
   have hn0 : ¬ n = 0 := by omega
   simp [fromExposedAddress, toObjectAt, hn, hn0]
 
+theorem fromExposedAddress_positive_provenance (n : Int) (hn : 0 < n) :
+    (fromExposedAddress n).map (fun q => q.obj) = some (some (n - 1).toNat) := by
+  have hn0 : ¬ n = 0 := by omega
+  simp [fromExposedAddress, toObjectAt, hn, hn0]
+
 end Ptr
 
 inductive CByte where
