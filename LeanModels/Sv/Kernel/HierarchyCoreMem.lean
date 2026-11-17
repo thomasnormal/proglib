@@ -311,8 +311,19 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) (parentPfx : 
               let child'' := hParamDesign (hParamVals cenv) child'
               let generated ← generatedParentList cenv
                 (PDesign.surfaceFuel cargs) [] child''.generates
-              .ok { child := child'', args := cargs, inst := i,
-                    pfx := parentPfx ++ pfx, parentPfx, generated }
+              -- A child declaration or port boundary is discovered before
+              -- its processes are hoisted into the parent.  Letting an
+              -- unsupported aggregate node reach the process compiler loses
+              -- the parser-native wall (and previously hit an incomplete
+              -- constructor match on the child path).  Preserve the exact
+              -- child member refusal under IEEE 1800-2023 §23.3.3 instead
+              -- of flattening or re-parsing the aggregate.
+              match coreMemFirstUnsupportedOther child'' generated child''.others with
+              | some (kind, text) =>
+                  .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
+              | none =>
+                  .ok { child := child'', args := cargs, inst := i,
+                        pfx := parentPfx ++ pfx, parentPfx, generated }
           | .error e => .unsupported e
 
 /-- Build a one-child source-shaped memory design. The child may contain the
