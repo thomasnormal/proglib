@@ -3,7 +3,8 @@ import LeanModels.Sv.Spec2
 /-!
 # The observation interface, its `run2` backend, and the signature of its E backend
 
-**Status labels** (EXECUTION-PLAN §1). This module is imported by nothing.
+**Status labels** (EXECUTION-PLAN §1). This module is imported by the public
+observation root and remains provisional until its interface review completes.
 
 * §1, the interface (`Iface`, `Clocking`, `PortSample`, `CycleObs`, `ObservationModel`, `Behaves`,
   `Progress`, `Safe`, `Included`): **DRAFT of trusted statement surface.** It becomes trusted text only

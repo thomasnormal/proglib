@@ -1,9 +1,11 @@
 # Internal asynchronous reset refusal
 
 The register-driven reset `rst_q` is refused by the ordinary clock discipline
-and by canonical E. The latter reports `Clock:reset: asynchronous reset 'rst_q'
-is not a top-level input port; canonical E refuses NBA-caused internal reset
-events under IEEE 1800-2023 §§4.4 and 9.4.2`. `check.py` compares ten x/z
-rows on Icarus Verilog 13.0 and Xcelium 24.03-s004.
+and by canonical E's soundness boundaries. The ordinary route reports
+`Clock:reset`; canonical E reports the applicable event-source refusal when the
+internal reset would be driven outside the settled start state, under IEEE
+1800-2023 §§4.4, 9.2.2.2, and 9.6. `check.py` compares ten x/z rows on
+Icarus Verilog 13.0 and Xcelium 24.03-s004.
 
-Canonical E B3 now iterates NBA-caused edge events in the same slot. The direct `b3_probe.lean` receipt exercises the register-driven reset: the first clock NBA changes `rst_q`, the asynchronous reset process fires in that same slot, and the four-row q trace passes. The ordinary loader remains a `Clock:reset` refusal.
+The direct `b3_probe.lean` receipt remains the focused NBA event exercise; the
+ordinary loader retains its named `Clock:reset` refusal.

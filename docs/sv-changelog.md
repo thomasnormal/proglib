@@ -391,8 +391,9 @@ ordinary loader remains its separate `Clock:reset` boundary.
 
 ## Canonical E multiple input clocks — 2026-11-16
 
-Canonical E's existing source-shaped `CoreMemDesign.step` now admits multiple
-input clocks without the loader's `Clock:multiple` gate. Each edge process tests
+Canonical E's existing source-shaped `CoreMemDesign.step` retains multiple
+input-clock source shapes; the ordinary loader keeps its `Clock:multiple` gate.
+Each edge process tests
 its own clock transition in the slot, so separate, coincident, stopped, ratio,
 and x/z clock rows retain their IEEE §9.4.2 behavior. The ordinary `run2`
 bridge still refuses multiple clocks because one run2 entry has one implicit edge.
@@ -409,7 +410,7 @@ table, including x/z transitions. The ordinary run2 bridge remains a loud
 The temporary `ClockInstant`/`runMulti` route has been removed. It duplicated the
 canonical E meaning, keyed event sources by signal names, and had no refinement
 theorem. Multi-clock designs remain a loud `Clock:multiple` boundary on `run2`
-and the ordinary loader until canonical E's event-slot work lands.
+and the ordinary loader; canonical-E rows use the dedicated `ecanon` backend.
 
 ## Guarded generate and non-affine genvar obligations
 

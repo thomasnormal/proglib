@@ -10,8 +10,8 @@ canonical `Store`/`Elab1` store and its scalar NBA queue; unpacked storage is
 one native `MemState`.  The source `PStmt` is retained, including a procedural
 `forLoop`, and the loop is evaluated from `Loop2.headerSchema` at run time.
 
-The adapter is deliberately small: one-rank unpacked declarations, positive
-clock edges, continuous scalar assignments, one-shot time-zero initialization,
+The adapter is deliberately small: one-rank unpacked declarations, retained edge clocks (including negative
+edges), continuous scalar assignments, one-shot time-zero initialization,
 and a retained plain `always @*` body with raw-read sensitivity.  It does not
 lower a loop to a block, expand a memory into cells, or introduce another
 memory representation.  Unknown and out-of-range memory indices use

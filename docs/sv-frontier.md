@@ -398,7 +398,10 @@ this order:
 | 6 | `assign n = d` beside an async-reset `always_ff` | **Resolved in this packet:** `ffResetProfileB` admits comb processes before/after the retained reset process, while `ffMixedProfileB` covers the corresponding no-reset profile. `cycleStep2_mixedProfile` settles comb logic before reset, edge/NBA, and final settle under an explicit acyclic-comb settle contract. The `async_reset_comb_profile` witness matches Icarus over five cycles. |
 | 7 | `initial $readmemh(...)` ROM initialization | `sv_structure` refuses `ProceduralBlockSymbol:Initial`; initial-process semantics remain a named boundary. |
 
-The F4 clock rung remains a named `Clock:multiple` boundary on the ordinary one-clock transport; canonical E event-slot work is pending.
+The F4 clock rung remains a named `Clock:multiple` boundary on the ordinary
+one-clock run2 transport. Canonical E has an executable event-slot backend;
+multi-clock schedule-sensitive rows still require an explicit choice and are
+not admitted as ordinary run2 judgments.
 
 The same audit exercises the F1 property forms. Finite concurrent assertions,
 bounded ranges, and assumptions with `disable iff` load with their retained
