@@ -180,6 +180,12 @@ ordinary loader refuses `Clock:source`/`Clock:reset`, and canonical E refuses
 the corresponding event-source boundary. No internal-clock or reset meaning is
 silently approximated.
 
+Current-pin asynchronous-reset cleared-wall receipt (2026-11-17): active-low
+and active-high canonical-E/loader checks each report 19 source rows matching
+Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z reset and clock-edge
+cases. Both supported forms are ordinary-admitted; the real-design family is
+present=0, sole=0. Generated/internal resets remain separate refusals.
+
 Current-pin internal-clock receipt (2026-11-17): the dedicated generated-clock
 fixture reports five rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004.
 Its ordinary census retains `Clock:source` at `PDesign.clockReport` and the
