@@ -10,6 +10,36 @@ row; the wall counts are present/sole counts from the dynamic ranking, so a
 file can appear in more than one static family before its first outcome is
 known.
 
+## Drop table: 1,211 → 888 MATCH
+
+The old receipt (`docs/c-survey.md`, 1,211 MATCH out of 2,112 scored files)
+and the post-push receipt (888 MATCH out of 2,214 files) contain the same
+2,214 named rows. Comparing their row verdicts gives **325 rows** that were
+previously `passed` and are now refused or timed out. The table groups each
+row by its new first runtime wall; it explains the measurement change without
+claiming that an old accidental MATCH was correct.
+
+| cause in the new first wall | rows | evidence / route |
+| --- | ---: | --- |
+| H2 undefined-value refusals | 0 | H2 reclassified non-MATCH undefined-value cases; no old MATCH row first refused there |
+| H4 fuel and fixed-wall change | 1 | `minmaxcmp-1.c` is now the fixed per-file timeout |
+| H5 own-definition precedence | 0 | the full receipt predates the H5 landing; the focused `strlen` and `printf` rows now MATCH |
+| denominator change | 0 old MATCH drops; +102 rows scored | the old denominator excluded 102 no-entry-point files; the new receipt scores the 2,214-row manifest |
+| structured layout and object binding | 128 | `no layout`, `unbound declaration`, and `unknown enum declaration`; F1/F2 route |
+| floating parser-native bits | 69 | `floating literal lacks parser-native bits`; shared SoftFloat route after F1 |
+| library and string behavior | 79 | `printf`, `sprintf`, `strcmp`, `strlen`, `strcpy`, and string-literal refusals; F6 route |
+| calls and variadics | 23 | `more arguments than parameters`; calls/`va_list` route |
+| UB, lifetime, and bounds | 11 | named `MemFault.outOfBounds` refusals; memory-model route |
+| parser-node refusal | 5 | `DesignatedInitUpdateExpr`; node-level ingestion/semantics route |
+| other named semantic walls | 9 | the remaining named first refusals, retained for their family routes |
+| **total old MATCH rows no longer MATCH** | **325** | exact row-by-row comparison |
+
+This is a measurement explanation, not permission to preserve a wrong old
+answer: any row whose old MATCH was correct must return to MATCH or become a
+standard-mandated loud refusal. The denominator and H2/H4/H5 rows are
+instrument effects; the remaining rows are the semantic walls the family plan
+already names.
+
 ## 1. Parser, dialect, and entry-point boundary
 
 This family contains the 350 parser rejects (349 C23 rejects, 56 of those
