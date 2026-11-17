@@ -820,6 +820,15 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
                 else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+/- Concrete placement does not participate in C's successful `free` path:
+   object identity, lifetime, and base offset determine the result. -/
+theorem free_valid_address_irrel (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
+    (address : Nat) (hp : p.obj = some o) (hc : m.get? o = some c)
+    (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0) :
+    m.free {p with address := address} = .ok (m.kill o) := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  simp [free, hp, hc, hdur, hlive, hoff, hbeq]
+
 /-- §7.24.3.7 `realloc` — **and this is why pointers carry provenance.**
 
 The corpus reallocates the transposition table on the search path
