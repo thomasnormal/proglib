@@ -337,6 +337,12 @@ and Xcelium 24.03-s004, while the ordinary census retains the exact
 `Clock:implicit` event-list refusal. The source is not reinterpreted as
 `always_comb` or latch semantics.
 
+The initial-storage receipt is current: `initial_storage_e/check.py` reports
+two rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004. Canonical E's
+`initialState` executes the simple blocking initialization, while the ordinary
+run2 surface retains `T2:Initial: initial process outside the cycle semantic`
+refusal until scheduler-derived time-zero semantics is available.
+
 CURRENT HEAD CORRECTION — 2026-11-17T11:05Z
 
 Public master is now `1f8c98756`; the intervening public change is a
