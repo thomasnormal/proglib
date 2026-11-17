@@ -58,6 +58,13 @@ matches four x/z rows; Icarus rejects the interface-port syntax, so no Icarus
 oracle result is claimed. The real-design interface families remain present=6,
 sole=0 each.
 
+Current-pin interface-port marker receipt (2026-11-17): the same envelope
+retains `InterfacePortSymbol:InterfacePort` in the interface declaration before
+ordinary admission reaches the interface-instance boundary. This row is
+predicted rather than a distinct ordinary refusal; the Xcelium four-row result
+and Icarus parser boundary are recorded above, and no interface-port semantics
+are claimed.
+
 Stall-rule remeasurement: the public hierarchy corpus contains 90 envelopes;
 the completed ordinary census has 63 refusal rows across 30 envelopes. The
 remaining package walls occur once each for `PortConnection:target`,
