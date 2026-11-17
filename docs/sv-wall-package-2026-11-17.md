@@ -126,3 +126,9 @@ The current carnot-formal record also confirms the semantic landing: on
 expressions, and matched Icarus/Xcelium (`q=0,0,0,1`). The remaining action is
 only to remeasure the real-design table at the current pin; no present-count
 transition is claimed here until that measurement lands.
+
+The checked-in canonical receipt was also run directly at the current tree:
+`lake env lean Examples/system-verilog/sem2/child_instance_e/agree.lean`
+returned `Res.ok ["0", "0", "0", "1"]`. This independently confirms the
+recorded Icarus/Xcelium child-hierarchy result; the real-design table still
+needs its own count refresh.
