@@ -36,3 +36,29 @@ python3 harness/rust/miri_oracle.py --self-test
 
 The fixture `exit.rs` intentionally returns status 7. Its empty diagnostic
 stream and nonzero status are recorded as the `exit` verdict.
+
+## Stage 0 MIR measurement
+
+`measure.py` runs the structured extractor and the Miri interpreter trace over
+the 31-row corpus in `measurement_manifest.json`. It records unique reachable
+bodies, blocks, and statements from the envelope, plus unique executed
+bodies/blocks and executed statement visits from
+`RUSTC_LOG=rustc_const_eval::interpret=info`. The trace starts at the
+extracted entry body, so the Rust launcher is not counted. Both Stacked Borrows
+and Tree Borrows are run for every row.
+
+```console
+export RUST_LANE_ROOT=/path/to/your/rust-lane-root
+export RUSTUP_HOME="$RUST_LANE_ROOT/rustup"
+export CARGO_HOME="$RUST_LANE_ROOT/cargo"
+export TMPDIR="$RUST_LANE_ROOT/tmp"
+export MIRI_SYSROOT="$RUST_LANE_ROOT/miri-cache/nightly-2026-11-16-x86_64-unknown-linux-gnu"
+export RUST_MIR_EXTRACTOR="$RUST_LANE_ROOT/rust-mir-extract"
+python3 harness/rust/measure.py --output docs/rust-stage0-measurement.json
+python3 harness/rust/summarize_measurement.py docs/rust-stage0-measurement.json
+```
+
+The report schema is `lean-surfaces.rust.mir-measurement.v0`. The summary
+script is intentionally a separate deterministic projection of the JSON, so
+every scalar in `docs/rust-stage0-measurement.md` has a command that regenerates
+it.

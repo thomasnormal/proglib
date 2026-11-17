@@ -78,6 +78,53 @@ fn query_layout(ty: Ty) -> Result<Result<rustc_public::abi::Layout, rustc_public
     result
 }
 
+/// `rustc_public::Ty::layout` still asserts for some types whose generic
+/// arguments contain an escaping trait-object binder.  Detect those shapes
+/// structurally before entering the compiler query.  This is a refusal of a
+/// layout value, not a fallback to a textual type representation.
+fn has_dynamic_type(ty: Ty, seen: &mut HashSet<Ty>) -> bool {
+    if !seen.insert(ty) {
+        return false;
+    }
+    let contains_args = |args: &GenericArgs, seen: &mut HashSet<Ty>| {
+        args.0.iter().any(|argument| match argument {
+            GenericArgKind::Type(inner) => has_dynamic_type(*inner, seen),
+            GenericArgKind::Lifetime(_) | GenericArgKind::Const(_) => false,
+        })
+    };
+    match ty.kind() {
+        TyKind::RigidTy(rigid) => match rigid {
+            RigidTy::Dynamic(_, _) => true,
+            RigidTy::Adt(_, args)
+            | RigidTy::FnDef(_, args)
+            | RigidTy::Closure(_, args)
+            | RigidTy::Coroutine(_, args)
+            | RigidTy::CoroutineClosure(_, args) => contains_args(&args, seen),
+            RigidTy::CoroutineWitness(_, args) => contains_args(&args, seen),
+            RigidTy::Array(inner, _) | RigidTy::Pat(inner, _) | RigidTy::Slice(inner)
+            | RigidTy::RawPtr(inner, _) | RigidTy::Ref(_, inner, _) => {
+                has_dynamic_type(inner, seen)
+            }
+            RigidTy::FnPtr(signature) => signature
+                .value
+                .inputs_and_output
+                .iter()
+                .any(|inner| has_dynamic_type(*inner, seen)),
+            RigidTy::Tuple(types) => types.iter().any(|inner| has_dynamic_type(*inner, seen)),
+            RigidTy::Bool
+            | RigidTy::Char
+            | RigidTy::Int(_)
+            | RigidTy::Uint(_)
+            | RigidTy::Float(_)
+            | RigidTy::Foreign(_)
+            | RigidTy::Str
+            | RigidTy::Never => false,
+        },
+        TyKind::Alias(_, alias) => contains_args(&alias.args, seen),
+        TyKind::Param(_) | TyKind::Bound(_, _) => false,
+    }
+}
+
 fn raw<T: Serialize + ?Sized>(value: &T) -> Value {
     json::to_value(value)
         .unwrap_or_else(|error| object([("serialization_error", string(error.0))]))
@@ -270,13 +317,17 @@ impl Metadata {
         self.type_values.push(null());
         let kind = ty.kind();
         self.add_ty_kind(&kind);
-        let layout = match query_layout(ty) {
-            Err(_) => object([( "error", string("rustc_public layout query panicked") )]),
-            Ok(Err(error)) => object([( "error", string(error.to_string()) )]),
-            Ok(Ok(layout)) => object([
-                ("shape", raw(&layout.shape())),
-                ("handle", string(raw_key(&layout))),
-            ]),
+        let layout = if has_dynamic_type(ty, &mut HashSet::new()) {
+            object([( "error", string("layout refused: type contains a dynamic trait object") )])
+        } else {
+            match query_layout(ty) {
+                Err(_) => object([( "error", string("rustc_public layout query panicked") )]),
+                Ok(Err(error)) => object([( "error", string(error.to_string()) )]),
+                Ok(Ok(layout)) => object([
+                    ("shape", raw(&layout.shape())),
+                    ("handle", string(raw_key(&layout))),
+                ]),
+            }
         };
         let type_index = id[1..].parse::<usize>().unwrap();
         self.type_values[type_index] = object([

@@ -1,0 +1,234 @@
+{
+  "schema": "lean-surfaces.rust.mir-measurement-manifest.v0",
+  "description": "Stage 0 item 0.4 corpus: ten study shapes, twenty non-printing rustc run-pass tests, and one println control.",
+  "rustc_revision": "5f4effd579500175af844241eb179e756190f1e7",
+  "programs": [
+    {
+      "id": "study_for_vec",
+      "category": "study_shape",
+      "path": "measurement_programs/study/01_for_vec.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_iterator_chain",
+      "category": "study_shape",
+      "path": "measurement_programs/study/02_iterator_chain.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_match_or_guard",
+      "category": "study_shape",
+      "path": "measurement_programs/study/03_match_or_guard.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_closures",
+      "category": "study_shape",
+      "path": "measurement_programs/study/04_closures.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_drop_struct",
+      "category": "study_shape",
+      "path": "measurement_programs/study/05_drop_struct.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_generic_trait",
+      "category": "study_shape",
+      "path": "measurement_programs/study/06_generic_trait.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_question_mark",
+      "category": "study_shape",
+      "path": "measurement_programs/study/07_question_mark.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_async",
+      "category": "study_shape",
+      "path": "measurement_programs/study/08_async.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_derive",
+      "category": "study_shape",
+      "path": "measurement_programs/study/09_derive.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "study_while_gcd",
+      "category": "study_shape",
+      "path": "measurement_programs/study/10_while_gcd.rs",
+      "edition": "2024"
+    },
+    {
+      "id": "rustc_ivec-pass-by-value",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/01_ivec-pass-by-value.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/array-slice-vec/ivec-pass-by-value.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_vec-repeat-with-cast",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/02_vec-repeat-with-cast.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/array-slice-vec/vec-repeat-with-cast.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_nested-closure-call",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/03_nested-closure-call.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/closures/nested-closure-call.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_closure-returning-closure",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/04_closure-returning-closure.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/functions-closures/closure-returning-closure.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_move-arg",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/05_move-arg.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/moves/move-arg.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_i32-sub",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/06_i32-sub.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/numbers-arithmetic/i32-sub.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_return-nil",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/07_return-nil.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/return/return-nil.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_match-bot-2",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/08_match-bot-2.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/binding/match-bot-2.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_let-destruct-ref",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/09_let-destruct-ref.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/binding/let-destruct-ref.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_multi-let",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/10_multi-let.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/binding/multi-let.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_binop-mutate-lhs-in-rhs",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/11_binop-mutate-lhs-in-rhs.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/binop/binop-mutate-lhs-in-rhs.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_const-prop-ice3",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/12_const-prop-ice3.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/const_prop/const-prop-ice3.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_if-ret",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/13_if-ret.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/expr/if/if-ret.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_return-in-block-tuple",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/14_return-in-block-tuple.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/expr/return-in-block-tuple.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_vector-no-ann-2",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/15_vector-no-ann-2.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/array-slice-vec/vector-no-ann-2.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_generic-newtype-struct",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/16_generic-newtype-struct.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/generics/generic-newtype-struct.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_match-on-negative-integer-ranges",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/17_match-on-negative-integer-ranges.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/match/match-on-negative-integer-ranges.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_by-value-self-method-on-int",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/18_by-value-self-method-on-int.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/methods/by-value-self-method-on-int.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_new-unsafe-pointers",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/19_new-unsafe-pointers.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/unsafe/new-unsafe-pointers.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "rustc_empty-mutable-vec",
+      "category": "rustc_run_pass",
+      "path": "measurement_programs/rustc_run_pass/20_empty-mutable-vec.rs",
+      "edition": "2024",
+      "upstream_path": "tests/ui/array-slice-vec/empty-mutable-vec.rs",
+      "upstream_revision": "5f4effd579500175af844241eb179e756190f1e7"
+    },
+    {
+      "id": "println_once",
+      "category": "println",
+      "path": "measurement_programs/println_once.rs",
+      "edition": "2024",
+      "expected_stdout": "one println\n"
+    }
+  ]
+}
