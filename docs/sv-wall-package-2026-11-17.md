@@ -144,3 +144,8 @@ report 10 x/z rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004; the
 ordinary loader refuses `Clock:source`/`Clock:reset`, and canonical E refuses
 the corresponding event-source boundary. No internal-clock or reset meaning is
 silently approximated.
+
+The scalar topological-chain receipt is also current: `backreg_e/check.py`
+regenerates its envelope byte-identically, canonical E refuses the §10.3
+topological boundary, and all eight x/z rows match Icarus Verilog 13.0 and
+Xcelium 24.03-s004. The route makes no stale-value claim for this shape.
