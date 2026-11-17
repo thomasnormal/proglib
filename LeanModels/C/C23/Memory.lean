@@ -562,6 +562,34 @@ theorem placementValid_kill (m : Mem) (o : ObjId) (address size alignment : Nat)
   · rw [get?_kill_of_ne m o entry.1 he]
     exact hentry
 
+private theorem killFrom_fold_placementValid (xs : List Nat) (m : Mem) (start : Nat)
+    (address size alignment : Nat)
+    (hvalid : placementValid m address size alignment = true) :
+    placementValid
+        (xs.foldl (fun acc i =>
+          let o := start + i
+          match acc.get? o with
+          | some c => if c.dur == .automatic then acc.kill o else acc
+          | none => acc) m)
+        address size alignment = true := by
+  induction xs generalizing m with
+  | nil => exact hvalid
+  | cons i xs ih =>
+    simp only [List.foldl]
+    cases hg : m.get? (start + i) with
+    | none =>
+      simp [hg]
+      apply ih m
+      simpa [hg] using hvalid
+    | some c =>
+      by_cases ha : c.dur == .automatic
+      · simp [hg, ha]
+        apply ih (m.kill (start + i))
+        exact placementValid_kill m (start + i) address size alignment hvalid
+      · simp [hg, ha]
+        apply ih m
+        simpa [hg, ha] using hvalid
+
 @[simp] theorem kill_placement_lookup (m : Mem) (dead live : ObjId) :
     (m.kill dead).placement? live = m.placement? live := by
   rfl
@@ -596,6 +624,12 @@ private theorem killFrom_fold_placements (xs : List Nat) (m : Mem) (start : Nat)
 @[simp] theorem killFrom_placements (m : Mem) (start : Nat) :
     (m.killFrom start).placements = m.placements := by
   exact killFrom_fold_placements (List.range (m.count - start)) m start
+
+@[simp] theorem placementValid_killFrom (m : Mem) (start address size alignment : Nat)
+    (hvalid : placementValid m address size alignment = true) :
+    placementValid (m.killFrom start) address size alignment = true := by
+  exact killFrom_fold_placementValid (List.range (m.count - start)) m start
+    address size alignment hvalid
 
 @[simp] theorem killFrom_placement_lookup (m : Mem) (start live : ObjId) :
     (m.killFrom start).placement? live = m.placement? live := by
