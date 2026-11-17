@@ -123,6 +123,7 @@ def torScalarSize : CType → Option Nat
   | "int" | "unsigned int" | "unsigned" | "int32_t" | "uint32_t" => some 4
   | "long" | "unsigned long" | "long long" | "unsigned long long"
   | "long int" | "unsigned long int" => some 8
+  | "intptr_t" | "uintptr_t" => some 8
   | "int64_t" | "uint64_t" => some 8
   | "__int128" | "unsigned __int128" | "__uint128_t" => some 16
   | t => if t.startsWith "enum " then some 4
@@ -700,8 +701,17 @@ def layoutFor (envl : Envelope) : Layout :=
     -- of the translation unit and not of the spelling.
     normalizeTy := fun t =>
       let q := stripQuals 8 t
-      if q == "uintptr_t" || q == "intptr_t" then q
-      else resolve tds 8 q }
+      let rec ptrIntAlias : Nat → CType → Option CType
+        | 0, _ => none
+        | n + 1, x =>
+            if x == "uintptr_t" then some "uintptr_t"
+            else if x == "intptr_t" then some "intptr_t"
+            else match tds.find? (·.1 == x) with
+              | some (_, under) => ptrIntAlias n under
+              | none => none
+      match ptrIntAlias 8 q with
+      | some marker => marker
+      | none => resolve tds 8 q }
 
 /-- Peel the conversions a value arrives wrapped in. -/
 def peelVal : Expr → Expr

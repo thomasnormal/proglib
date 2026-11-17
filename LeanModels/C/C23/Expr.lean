@@ -298,6 +298,8 @@ def intTyOf? (ty : CType) : Option IntTy :=
   | "uint32_t" => some IntTy.uint
   | "int64_t" => some IntTy.long_
   | "uint64_t" => some IntTy.ulong
+  | "intptr_t" => some IntTy.long_
+  | "uintptr_t" => some IntTy.ulong
   | "_Bool" | "bool" => some IntTy.bool_
   -- QUALIFIED spellings, tabled rather than stripped. Measured: these four
   -- are the ONLY qualified integer spellings on an expression node in the
@@ -1336,7 +1338,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | .float64 f => float64ToInt f t
         | _ => refuseUnsupported "non-floating value in floating-to-integral conversion"
       else if ck == "PointerToIntegral" then
-        if isPtrIntType ty then do
+        if isPtrIntType (ctx.layout.normalizeTy ty) then do
           let v ← evalExpr ctx sub
           let p ← asPtr v
           pure (.ptrInt p)

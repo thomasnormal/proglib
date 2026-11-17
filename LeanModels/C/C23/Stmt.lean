@@ -265,7 +265,11 @@ def initObject : Nat → Ctx → Ptr → CType → Expr → ExecM Unit
         | _, _, _ => refuseUnsupported "unsupported Clang array_filler initializer"
     | .initList inits field _ _ =>
         let initTy := ctx.layout.normalizeTy ty
-        if (initTy.startsWith "union ") then
+        -- An array whose element is a union still starts with the parser's
+        -- `union ...` spelling (`union u0[4]`).  §6.7.11 applies the array
+        -- walk first; treating the whole declarator as a union loses the
+        -- element initializers and reports a fabricated missing member.
+        if (ctx.layout.elem initTy).isNone && initTy.startsWith "union " then
           match ctx.layout.members initTy, inits with
           | some _, [] => zeroInit fuel ctx p initTy
           | some ms, e :: _ =>
