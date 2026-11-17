@@ -162,7 +162,17 @@ def evalExpr (env : REnv) : Expr → Res RVal
       | .exn e, _ | _, .exn e => .exn e
       | .timeout, _ | _, .timeout => .timeout
       | .unsupported msg, _ | _, .unsupported msg => .unsupported msg
-  | .ifExp _ _ _ _ => .unsupported "machine conditional expression"
+  | .boolOp _ _ _ => .unsupported "machine boolean expression"
+  | .compare _ _ _ _ => .unsupported "machine comparison"
+  | .ifExp test body orelse _ =>
+      match evalExpr env test with
+      | .ok value =>
+          match truthy value with
+          | true => evalExpr env body
+          | false => evalExpr env orelse
+      | .exn error => .exn error
+      | .timeout => .timeout
+      | .unsupported reason => .unsupported reason
   | .call _ _ _ _ _ => .unsupported "machine call registry"
   | .unsupported kind _ _ => .unsupported ("machine AST node: " ++ kind)
   | _ => .unsupported "machine expression"
