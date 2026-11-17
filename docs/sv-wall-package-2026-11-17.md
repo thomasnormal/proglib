@@ -180,6 +180,13 @@ ordinary loader refuses `Clock:source`/`Clock:reset`, and canonical E refuses
 the corresponding event-source boundary. No internal-clock or reset meaning is
 silently approximated.
 
+Current-pin internal-clock receipt (2026-11-17): the dedicated generated-clock
+fixture reports five rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004.
+Its ordinary census retains `Clock:source` at `PDesign.clockReport` and the
+canonical-E `Event:time-zero` boundary at `PDesign.instantiateE2`; no derived
+clock meaning is claimed. The real-design internal-clock family remains
+present=3, sole=0.
+
 The scalar topological-chain receipt is also current: `backreg_e/check.py`
 regenerates its envelope byte-identically, canonical E refuses the §10.3
 topological boundary, and all eight x/z rows match Icarus Verilog 13.0 and
