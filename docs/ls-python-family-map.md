@@ -160,7 +160,7 @@ flip count is claimed until those dependencies are run together.
 ## 7. Containers and views
 
 **Members.** Lists, dictionaries, sets, views, tuple/list displays, deletion,
-unpacking, and the heap-plus/extend/frozenset walls named in family 6.
+unpacking, and the heap-plus/extend/frozenset walls named in the object-model family.
 
 **One mechanism.** One abstract container protocol over the object layout and
 iterator cursor, with mutation, hashing, equality, view liveness, and order
