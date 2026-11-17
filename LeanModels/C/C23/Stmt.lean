@@ -326,11 +326,11 @@ def initObject : Nat → Ctx → Ptr → CType → Expr → ExecM Unit
                 | none => refuseUnsupported "wide string literal lacks element layout"
         | _, _ => do
             let v ← evalE ctx (.strLit value decoded ty default)
-            liftEval (storeAt p (ctx.layout.normalizeTy ty) v)
+            liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v)
     -- §6.7.11p11 — a scalar initializer is a single expression.
     | _ => do
         let v ← evalE ctx e
-        liftEval (storeAt p (ctx.layout.normalizeTy ty) v)
+        liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v)
 
 /-- Array elements, then zero-fill (§6.7.11p10). -/
 def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List Expr → ExecM Unit
@@ -842,7 +842,7 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
             let m ← get
             let (m', o) := m.alloc .automatic sz (some ty)
             set m'
-            liftEval (storeAt (Ptr.toObject o) (lay.normalizeTy ty) v)
+            liftEval (storeAt Mem.cAliasModel (Ptr.toObject o) (lay.normalizeTy ty) v)
             -- …and the ONLY difference an unnamed parameter makes is that
             -- no identifier denotes the object, which in this model is
             -- exactly one thing: no environment entry. This is the single
@@ -1670,10 +1670,10 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 if t != IntTy.ulong then
                   refuseUnsupported "__sync_add_and_fetch_8: destination is not unsigned long long"
                 else do
-                  let old ← liftEval (loadAt dp ty (prog.layout.size ty))
+                  let old ← liftEval (loadAt Mem.cAliasModel dp ty (prog.layout.size ty))
                   let (_, x) ← asInt old
                   let result := t.wrap (x + y)
-                  liftEval (storeAt dp ty (.int t result))
+                  liftEval (storeAt Mem.cAliasModel dp ty (.int t result))
                   pure (.int t result)
           | _ => refuseUnsupported "__sync_add_and_fetch_8: wrong argument count"
         let runArithOverflow (op : String) : List CVal → ExecM CVal := fun vs =>
@@ -1696,7 +1696,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
               let t ← liftEval (intTyOf storageTy)
               let result := if op == "add" then x + y else x * y
               let overflow := !t.inRange result
-              liftEval (storeAt dp storageTy (.int t (t.wrap result)))
+              liftEval (storeAt Mem.cAliasModel dp storageTy (.int t (t.wrap result)))
               pure (.int IntTy.int_ (if overflow then 1 else 0))
           | _ => refuseUnsupported s!"__builtin_{op}_overflow: wrong argument count"
         let runVaStart : List CVal → ExecM CVal := fun vs =>

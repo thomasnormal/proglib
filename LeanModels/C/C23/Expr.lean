@@ -809,7 +809,7 @@ def compatiblePointerTypes (ctx : Ctx) (a b : CType) : Bool :=
 /-- Load whatever an lvalue of this type holds — an integer or a pointer.
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
 implicit of the whole corpus.** -/
-def loadAt (p : Ptr) (ty : CType) (size : Option Nat) : EvalM CVal :=
+def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat) : EvalM CVal :=
   if ty == "float" then
     readMem (fun m => Mem.loadFloat32 m p)
   else if ty == "double" then
@@ -822,7 +822,7 @@ def loadAt (p : Ptr) (ty : CType) (size : Option Nat) : EvalM CVal :=
     pure (.ptrInt q)
   else do
     match intTyOf? ty with
-    | some t => readMem (fun m => Mem.loadIntChecked m Mem.cAliasModel p t ty)
+    | some t => readMem (fun m => Mem.loadIntChecked m alias p t ty)
     | none =>
         match size with
         | some n => do
@@ -831,7 +831,7 @@ def loadAt (p : Ptr) (ty : CType) (size : Option Nat) : EvalM CVal :=
         | none => refuseUnsupported s!"aggregate load without a layout '{ty}'"
 
 /-- Store a value at an address, at the lvalue's type. -/
-def storeAt (p : Ptr) (ty : CType) (v : CVal) : EvalM Unit :=
+def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal) : EvalM Unit :=
   match v with
   | .funPtr id => writeMem (fun m => Mem.storeFunction m p id)
   | .ptr q => writeMem (fun m => Mem.storePtr m p q)
@@ -840,7 +840,7 @@ def storeAt (p : Ptr) (ty : CType) (v : CVal) : EvalM Unit :=
       else refuseUnsupported "pointer-integer value stored outside uintptr_t/intptr_t"
   | .int _ n => do
       let t ← intTyOf ty
-      writeMem (fun m => Mem.storeIntChecked m Mem.cAliasModel p t ty n)
+      writeMem (fun m => Mem.storeIntChecked m alias p t ty n)
   | .float32 f => if ty == "float" then writeMem (fun m => Mem.storeFloat32 m p f)
                  else refuseUnsupported "floating store without a floating layout"
   | .float64 f => if ty == "double" then writeMem (fun m => Mem.storeFloat64 m p f)
@@ -1295,9 +1295,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                   if ctx.layout.fieldBitsAt base field |>.isSome then
                     loadBitFieldAt ctx base.ty field fieldTy p
                   else
-                    loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+                    loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
               | _ =>
-                  loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+                  loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
       else if ck == "ArrayToPointerDecay" then do
         -- §6.3.2.1p3 — 405 sites, the LARGEST pointer producer there is.
         let p ← evalLValue ctx sub
@@ -1428,9 +1428,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             if ctx.layout.fieldBitsAt base field |>.isSome then
               storeBitFieldAt ctx base.ty field fieldTy p v
             else
-              storeAt p (ctx.layout.normalizeTy l.ty) v
+              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
         | _ =>
-            storeAt p (ctx.layout.normalizeTy l.ty) v
+            storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
         pure v
       else do
         let lv ← evalExpr ctx l
@@ -1458,7 +1458,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | .funPtr id => pure (.funPtr id)
         | _ =>
             let p ← asPtr v
-            loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
       else if op == "!" then do
         -- §6.5.4.3p5 — `!x` is `(0 == x)`. 80 sites.
         let v ← evalExpr ctx sub
@@ -1490,8 +1490,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | .member base field arrow fieldTy _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 loadBitFieldAt ctx base.ty field fieldTy p
-              else loadAt p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
-          | _ => loadAt p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
+              else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
+          | _ => loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
         match old with
         | .ptr _ =>
             -- C23 §6.5.3.5p2 defines pointer increment/decrement in terms
@@ -1503,8 +1503,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             | .member base field arrow fieldTy _ =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
                   storeBitFieldAt ctx base.ty field fieldTy p nv
-                else storeAt p (ctx.layout.normalizeTy sub.ty) nv
-            | _ => storeAt p (ctx.layout.normalizeTy sub.ty) nv
+                else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
+            | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
             pure (if post then old else nv)
         | _ =>
             let (storageT, n) ← asInt old
@@ -1518,8 +1518,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                 | .member base field arrow fieldTy _ =>
                     if ctx.layout.fieldBitsAt base field |>.isSome then
                       storeBitFieldAt ctx base.ty field fieldTy p stored
-                    else storeAt p (ctx.layout.normalizeTy sub.ty) stored
-                | _ => storeAt p (ctx.layout.normalizeTy sub.ty) stored
+                    else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored
+                | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored
                 pure (if post then old else stored)
             | .ok _ => refuseUnsupported "increment of a non-integer value"
       else refuseUnsupported s!"unary operator '{op}'"
@@ -1541,9 +1541,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             if ctx.layout.fieldBitsAt base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p
             else
-              loadAt p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
+              loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
         | _ =>
-            loadAt p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
       match old, rv with
       | .ptr _, .int _ _ => do
           -- §6.5.17.3: pointer compound assignment uses the same
@@ -1556,9 +1556,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p nv
               else
-                storeAt p (ctx.layout.normalizeTy l.ty) nv
+                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           | _ =>
-              storeAt p (ctx.layout.normalizeTy l.ty) nv
+              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           pure nv
       | .float32 a, .float32 b => do
           let nv ← float32Binop (compoundBase op) a b
@@ -1567,9 +1567,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
-                storeAt p (ctx.layout.normalizeTy l.ty) nv
+                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           | _ =>
-              storeAt p (ctx.layout.normalizeTy l.ty) nv
+              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           pure nv
       | .float64 a, .float64 b => do
           let nv ← float64Binop (compoundBase op) a b
@@ -1578,9 +1578,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
-                storeAt p (ctx.layout.normalizeTy l.ty) nv
+                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           | _ =>
-              storeAt p (ctx.layout.normalizeTy l.ty) nv
+              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           pure nv
       | _, _ => do
           let lhsT ← intTyOf (ctx.layout.normalizeTy computeLHSType)
@@ -1598,9 +1598,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p stored
               else
-                storeAt p (ctx.layout.normalizeTy l.ty) stored
+                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored
           | _ =>
-              storeAt p (ctx.layout.normalizeTy l.ty) stored
+              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored
           pure stored
 
   -- ===== lvalues reaching value position without a conversion =====
@@ -1612,10 +1612,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       if ctx.layout.fieldBitsAt base field |>.isSome then
         loadBitFieldAt ctx base.ty field ty p
       else
-        loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+        loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
   | .index base idx ty _ => do
       let p ← indexAddr ctx base idx ty
-      loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+      loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
 
   -- ===== §6.4.4 — constants =====
   | .intLit v ty _ => do
@@ -1659,7 +1659,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some o =>
             let p := match ctx.layout.size (ctx.layout.normalizeTy ty) with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
   | .declRef none name declKind ty _ =>
       if declKind == "EnumConstantDecl" then
@@ -1670,7 +1670,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some o =>
             let p := match ctx.layout.size (ctx.layout.normalizeTy ty) with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
         | none => refuseUnsupported s!"unbound name '{name}'"
 
   -- §6.5.3.3p4 — the arguments are evaluated HERE, in the caller's scope,
@@ -2252,7 +2252,7 @@ theorem asPtr' (v : CVal) : MemInvariant (asPtr v) := by
 theorem asInt' (v : CVal) : MemInvariant (asInt v) := by
   cases v <;> first | exact pure' _ | exact refuseUnsupported' _ | exact refuseUB' _
 
-theorem loadAt' (p : Ptr) (ty : CType) (size : Option Nat) : MemInvariant (loadAt p ty size) := by
+theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat) : MemInvariant (loadAt alias p ty size) := by
   unfold loadAt
   split
   · exact readMem' _
