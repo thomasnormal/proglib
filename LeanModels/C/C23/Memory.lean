@@ -771,6 +771,28 @@ placement annotation alone cannot change whether a range resolves. -/
     m.storeBytes {p with address := address} bs = m.storeBytes p bs := by
   simp [storeBytes, resolve_address_irrel]
 
+@[simp] theorem loadInt_address_irrel (m : Mem) (p : Ptr) (t : IntTy)
+    (address : Nat) :
+    m.loadInt {p with address := address} t = m.loadInt p t := by
+  simp [loadInt, resolve_address_irrel]
+
+@[simp] theorem loadIntChecked_address_irrel (m : Mem) (alias : AliasModel)
+    (p : Ptr) (t : IntTy) (used : CType) (address : Nat) :
+    m.loadIntChecked alias {p with address := address} t used =
+      m.loadIntChecked alias p t used := by
+  simp [loadIntChecked, resolve_address_irrel]
+
+@[simp] theorem storeInt_address_irrel (m : Mem) (p : Ptr) (t : IntTy)
+    (v : Int) (address : Nat) :
+    m.storeInt {p with address := address} t v = m.storeInt p t v := by
+  simp [storeInt, storeBytes_address_irrel]
+
+@[simp] theorem storeIntChecked_address_irrel (m : Mem) (alias : AliasModel)
+    (p : Ptr) (t : IntTy) (used : CType) (v : Int) (address : Nat) :
+    m.storeIntChecked alias {p with address := address} t used v =
+      m.storeIntChecked alias p t used v := by
+  simp [storeIntChecked, resolve_address_irrel]
+
 @[simp] theorem loadFloat32_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
     m.loadFloat32 {p with address := address} = m.loadFloat32 p := by
   simp [loadFloat32, loadBytes_address_irrel]
