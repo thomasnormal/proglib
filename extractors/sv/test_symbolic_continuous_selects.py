@@ -7,6 +7,16 @@ from pathlib import Path
 import extract
 
 
+def _nodes(value):
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            yield from _nodes(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _nodes(child)
+
+
 class SymbolicContinuousSelects(unittest.TestCase):
     def extract(self, source):
         with tempfile.TemporaryDirectory() as directory:
@@ -864,6 +874,28 @@ class SymbolicContinuousSelects(unittest.TestCase):
         module = envelope["design"]["modules"][0]
         self.assertEqual(module["decls"][0]["kind"], "Unsupported")
         self.assertEqual(module["decls"][0]["sv_kind"], "NetSymbol:type")
+
+    def test_parameterized_whole_unpacked_copy_keeps_memory_nodes(self):
+        envelope = self.extract(
+            "module top #(parameter int N = 2, parameter int DW = 8) ("
+            "input logic [DW-1:0] data_i [N], "
+            "output logic [DW-1:0] q); "
+            "logic [DW-1:0] unused_data [N]; "
+            "assign unused_data = data_i; "
+            "assign q = unused_data[0] ^ unused_data[1]; endmodule")
+        module = envelope["design"]["modules"][0]
+        copy, observe = module["processes"]
+        self.assertEqual(copy["kind"], "Assign")
+        self.assertTrue(copy["continuous_whole_array_copy"])
+        self.assertEqual(copy["target"]["kind"], "ArraySel")
+        self.assertEqual(copy["target"]["indices"], [])
+        self.assertTrue(copy["target"]["unpacked"])
+        self.assertEqual(copy["value"]["kind"], "ArraySel")
+        self.assertEqual(copy["value"]["indices"], [])
+        self.assertTrue(copy["value"]["unpacked"])
+        self.assertEqual(observe["kind"], "Assign")
+        self.assertNotIn("AssignmentExpression:target",
+                         [node.get("sv_kind") for node in _nodes(envelope)])
 
 
 if __name__ == "__main__":

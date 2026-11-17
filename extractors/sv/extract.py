@@ -28525,6 +28525,30 @@ def convert_continuous_assign(sm, m):
             "body": {"kind": "Empty", "span": node_span(sm, e)},
             "dynamic_array_continuous_target_rejected": True,
         }
+    # A parameter-sized one-rank unpacked whole-array assignment is a native
+    # memory operation, not a packed signal target.  Retain both parser names
+    # as empty-index ArraySel nodes so canonical E can apply its exact
+    # bounds-checked `copyMemoryAssign` operation without freezing slang's
+    # default-point cells (IEEE 1800-2023 §§7.4, 10.3).
+    if _SYM is not None:
+        whole_target = _sym_whole_unpacked_ref(e.left)
+        whole_source = _sym_whole_unpacked_ref(e.right)
+        if whole_target is not None and whole_source is not None:
+            target = {
+                "kind": "ArraySel", "span": node_span(sm, e.left),
+                "width": int(e.left.type.bitWidth), "name": whole_target,
+                "indices": [], "part": None, "unpacked": True,
+            }
+            value = {
+                "kind": "ArraySel", "span": node_span(sm, e.right),
+                "width": int(e.right.type.bitWidth), "name": whole_source,
+                "indices": [], "part": None, "unpacked": True,
+            }
+            return {
+                "kind": "Assign", "span": node_span(sm, e),
+                "target": target, "value": value,
+                "continuous_whole_array_copy": True,
+            }
     static_array_copy = _fixed_array_static_continuous_copy(sm, e)
     if static_array_copy is not None:
         return static_array_copy
@@ -34753,6 +34777,40 @@ def _sym_whole_unpacked_actual(e):
             return None
         shape = _fixed_array_dimensions(op.type, max_cells=None)
         if shape is None or len(shape[0]) != 1:
+            return None
+        return _array_storage_name(symbol)
+    except Exception:
+        return None
+
+
+def _sym_whole_unpacked_ref(e):
+    """Return the source name of a retained one-rank unpacked array value.
+
+    A parameter-dependent unpacked declaration cannot be represented by the
+    symbolic extractor's default-point flat cells.  The canonical memory
+    route already has the source-shaped ``ArraySel``/``arrayElem []`` node for
+    a whole-array port connection; use that same parser-shaped value for a
+    whole continuous assignment (IEEE 1800-2023 §§7.4, 10.3).  Fixed arrays
+    use this path only when the caller explicitly requests retained
+    source-shaped procedures.  Ordinary fixed arrays continue through their
+    existing flat-cell lowering and remain loud for aggregate operations.
+    """
+    try:
+        op = e
+        while type(op).__name__ == "ConversionExpression":
+            op = getattr(op, "operand", None)
+            if op is None:
+                return None
+        if type(op).__name__ != "NamedValueExpression":
+            return None
+        symbol = getattr(op, "symbol", None)
+        if symbol is None or str(getattr(symbol, "kind", "")) not in (
+                "SymbolKind.Variable", "SymbolKind.Net"):
+            return None
+        shape = _fixed_array_dimensions(op.type, max_cells=None)
+        if shape is None or len(shape[0]) != 1:
+            return None
+        if not (_RETAIN_PROC_REWRITES or _sym_array_point_dependent(None, symbol)):
             return None
         return _array_storage_name(symbol)
     except Exception:
