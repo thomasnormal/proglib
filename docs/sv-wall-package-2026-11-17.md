@@ -285,3 +285,10 @@ The prim_packer `ready_o` handoff is a separate §6.6 resolved-net wall: its
 metadata reports two generated drivers, so the current E refusal is sound and
 must not be relabelled as an undriven-net z case. A per-driver strength and
 resolution relation remains an unassigned general-E item.
+
+The public resolved-net controls were rerun for this handoff. The live
+two-driver `assign_net_resolution.sv` control prints `y=x` on Icarus Verilog
+13.0 and Xcelium 24.03-s004. The static literal-driver control is a simulator
+startup split: Icarus prints `conflict=x, agree=1, z_only=z, unknown=x`, while
+Xcelium prints `x,x,x,x` at time zero. No canonical-E agreement is claimed for
+that split; both controls remain outside the E driver-set semantics.
