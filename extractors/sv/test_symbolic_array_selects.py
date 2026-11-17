@@ -159,6 +159,20 @@ class SymbolicArraySelects(unittest.TestCase):
         self.assertEqual(statement["kind"], "Unsupported")
         self.assertEqual(statement["sv_kind"], "AssignmentExpression:target")
 
+    def test_dynamic_fixed_nba_is_source_shaped_without_retention_flag(self):
+        module = self.extract(
+            "module top (input logic clk, input logic [1:0] index,"
+            " input logic [3:0] source, output logic [3:0] out);"
+            " logic [3:0] mem [0:3];"
+            " always_ff @(posedge clk) mem[index] <= source;"
+            " assign out = mem[index]; endmodule")
+        declaration = next(d for d in module["decls"] if d["name"] == "mem")
+        self.assertEqual(declaration["kind"], "UnpackedDecl")
+        process = module["processes"][0]
+        self.assertEqual(process["body"]["kind"], "NonblockingAssign")
+        self.assertEqual(process["body"]["target"]["kind"], "ArraySel")
+        self.assertEqual(module["processes"][1]["value"]["kind"], "ArraySel")
+
     def test_dynamic_fixed_unpacked_read_expands_to_conditionals(self):
         module = self.extract(
             "module top (input logic [2:0] index, input logic [7:0] a [0:3],"

@@ -2954,6 +2954,80 @@ def _fixed_array_dimensions(array_type, max_cells=1024):
         return None
 
 
+def _sym_source_shaped_fixed_array(symbol):
+    """Whether ``symbol`` is a fixed memory with a retained dynamic NBA.
+
+    A fixed one-rank integral variable only needs the source-shaped memory
+    route when a procedural nonblocking assignment selects it with a
+    run-time index.  This is the IEEE 1800-2023 §10.4/§10.5 shape used by
+    real register files; constant-only, blocking-only, aggregate,
+    initialized, port, nested, and otherwise unsupported declarations keep
+    their established finite-cell or loud paths.  The parser's
+    ``ArraySel``/``UnpackedDecl`` nodes then let E apply the §7.4.6 and
+    §11.5.1 index rules without a source rewrite.
+    """
+    try:
+        if symbol is None:
+            return False
+        if str(getattr(symbol, "kind", "")).split(".")[-1] != "Variable":
+            return False
+        parent_scope = getattr(symbol, "parentScope", None)
+        if parent_scope is None or getattr(parent_scope, "isProceduralContext", False):
+            return False
+        instance = getattr(parent_scope, "containingInstance", None)
+        if instance is None:
+            return False
+        # Slang creates a module-body VariableSymbol beside the PortSymbol
+        # for a port.  Do not turn a port into a native memory declaration.
+        for member in getattr(instance, "body", ()):
+            if (type(member).__name__ == "PortSymbol"
+                    and getattr(member, "name", None) == getattr(symbol, "name", None)):
+                return False
+        if getattr(symbol, "initializer", None) is not None:
+            return False
+        shape = _fixed_array_dimensions(symbol.type.canonicalType,
+                                        max_cells=None)
+        if shape is None or len(shape[0]) != 1:
+            return False
+        width, _two_state, reason = type_width_2s(shape[1])
+        if width is None or reason is not None:
+            return False
+
+        found = False
+
+        def inspect(node):
+            nonlocal found
+            if found:
+                return
+            if type(node).__name__ != "AssignmentExpression":
+                return
+            if not getattr(node, "isNonBlocking", False):
+                return
+            lhs = getattr(node, "left", None)
+            # A packed bit/range select may wrap the unpacked element select;
+            # walk the parser nodes without lowering them.
+            while type(lhs).__name__ in ("RangeSelectExpression",
+                                          "ElementSelectExpression"):
+                if type(lhs).__name__ == "ElementSelectExpression":
+                    base = getattr(lhs, "value", None)
+                    if getattr(base, "symbol", None) is symbol:
+                        break
+                lhs = getattr(lhs, "value", None)
+            else:
+                return
+            if type(lhs).__name__ != "ElementSelectExpression":
+                return
+            # A literal (including a signed unary literal) is elaborated to a
+            # fixed cell.  Every other supported selector is runtime state.
+            if _literal_integral_value(getattr(lhs, "selector", None)) is None:
+                found = True
+
+        instance.visit(inspect)
+        return found
+    except Exception:
+        return False
+
+
 def _nested_dynamic_array_dimensions(source, max_cells=1024):
     """Return a sampled dynamic outer dimension followed by fixed dimensions.
 
@@ -13798,7 +13872,7 @@ def _convert_sym_select_expr(sm, e, cname):
         # historical flat-cell lowering; this branch is opt-in so the
         # canonical E memory node sees the parser's own select and can apply
         # IEEE 1800-2023 §7.4.6 run-time index rules at execution time.
-        if _SYM is not None and _RETAIN_PROC_REWRITES:
+        if _SYM is not None:
             try:
                 root = e.value
                 # A chain of unpacked element selections remains one
@@ -13825,7 +13899,9 @@ def _convert_sym_select_expr(sm, e, cname):
                         "NamedValueExpression"):
                     shape = _fixed_array_dimensions(
                         current.type.canonicalType, max_cells=None)
-                    if shape is not None and len(indices) <= len(shape[0]):
+                    if (shape is not None and len(indices) <= len(shape[0])
+                            and (_RETAIN_PROC_REWRITES
+                                 or _sym_source_shaped_fixed_array(current.symbol))):
                         with _SymPos():
                             converted = [_convert_expr(sm, index)
                                          for index in reversed(indices)]
@@ -13862,7 +13938,9 @@ def _convert_sym_select_expr(sm, e, cname):
                 if type(root).__name__ == "NamedValueExpression":
                     shape = _fixed_array_dimensions(
                         root.type.canonicalType, max_cells=None)
-                    if shape is not None and len(shape[0]) == 1:
+                    if (shape is not None and len(shape[0]) == 1
+                            and (_RETAIN_PROC_REWRITES
+                                 or _sym_source_shaped_fixed_array(root.symbol))):
                         with _SymPos():
                             index = _convert_expr(sm, e.selector)
                         return {
@@ -21183,6 +21261,8 @@ def _sym_runtime_unpacked_lhs(lhs):
         array_type = lhs.value.type.canonicalType
         if type(array_type).__name__ != "FixedSizeUnpackedArrayType":
             return False
+        if _sym_source_shaped_fixed_array(lhs.value.symbol):
+            return False
         if _RETAIN_PROC_REWRITES:
             shape = _fixed_array_dimensions(array_type, max_cells=None)
             if shape is not None and len(shape[0]) == 1:
@@ -21205,6 +21285,8 @@ def _sym_retained_unpacked_lhs(lhs):
             return False
         if _literal_integral_value(lhs.selector) is not None:
             return False
+        if _sym_source_shaped_fixed_array(lhs.value.symbol):
+            return True
         if _RETAIN_PROC_REWRITES:
             shape = _fixed_array_dimensions(array_type, max_cells=None)
             return shape is not None and len(shape[0]) == 1
@@ -32870,7 +32952,7 @@ def _sym_unsized_xz_widening(sm, e, op, tw):
 def convert_var_sym(sm, m):
     if is_inert_2state_floating_decl(m):
         return {"kind": "Empty", "span": sym_span(sm, m)}
-    retain_fixed = False
+    retain_fixed = _sym_source_shaped_fixed_array(m)
     if _RETAIN_PROC_REWRITES:
         try:
             fixed = _fixed_array_dimensions(m.type.canonicalType,
@@ -32924,8 +33006,9 @@ def _convert_unpacked_decl_sym(sm, m, direction=None, isym=None):
             # memory route.  Keep a fixed one-rank declaration there too;
             # the non-retained route continues to flatten it into cells.
             fixed = _fixed_array_dimensions(array_type, max_cells=None)
-            if not (_RETAIN_PROC_REWRITES and fixed is not None
-                    and len(fixed[0]) == 1):
+            if not (_sym_source_shaped_fixed_array(symbol)
+                    or (_RETAIN_PROC_REWRITES and fixed is not None
+                        and len(fixed[0]) == 1)):
                 return None
         shape = _fixed_array_dimensions(array_type, max_cells=None)
         if shape is None:
