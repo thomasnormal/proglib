@@ -598,3 +598,12 @@ preserves that member boundary and refuses at `PDesign.instantiateE2`. Icarus
 Verilog 13.0 and Xcelium 24.03-s004 both compile the source and agree on four
 rows (`y=xxxxxxxx` for known, x, and z inputs because the net cells are
 undriven). No net-resolution approximation or semantic admission is claimed.
+
+## Edge-child instance wall remeasurement
+
+The ranked `edge_child_instance.sv` fixture is already admitted through the
+canonical hierarchy merge. Approved extraction and ordinary census report no
+refusal, and the existing canonical-E receipt passes two source rows on Icarus
+Verilog 13.0 and Xcelium 24.03-s004 (`y=x`, then `y=0`). The child edge body
+and connected ports remain source-shaped; no hierarchy lowering or semantic
+change is made.
