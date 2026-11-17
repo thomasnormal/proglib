@@ -10627,7 +10627,16 @@ def evalExpr (m : Module) (fuel : Nat) (st : FrameState) (e : Expr) :
           | .exn e => .exn st e
           | .timeout => .timeout
           | .ok xs => evalListCompStep m fuel st st.locals elt target ifs.toList xs []
-    | .dictComp .. => .unsupported "DictComp semantics is outside the current tier"
+    | .dictComp key value target iter ifs _ =>
+        if !ifs.isEmpty then
+          .unsupported "filtered dictionary comprehensions are outside the current tier"
+        else
+          evalExpr m fuel st iter ⤳ fun st src =>
+          match listCompValues st.world.heap src with
+          | .unsupported msg => .unsupported msg
+          | .exn e => .exn st e
+          | .timeout => .timeout
+          | .ok xs => evalDictCompStep m fuel st st.locals key value target [] xs []
     | .unsupported pyKind _ _ => .unsupported s!"unsupported expression '{pyKind}'"
   termination_by structural fuel
 

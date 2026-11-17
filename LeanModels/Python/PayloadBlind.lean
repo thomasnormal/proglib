@@ -5341,7 +5341,23 @@ theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAllWithDict pa o₀
             exact ihLCStep m s s.locals elt target ifs.toList xs [] hs
   | dictComp key value target iter ifs sp =>
       simp only [evalExpr]
-      exact PBF.unsupported
+      by_cases hifs : !ifs.isEmpty
+      · simp only [hifs, Bool.not_eq_true]
+        exact PBF.unsupported
+      · simp only [hifs, Bool.not_eq_false]
+        refine PBF.bind (ihE m st iter hslot) fun s src _ hs => ?_
+        have hv : listCompValues (Heap.swapAt s.world.heap pa o) src =
+            listCompValues s.world.heap src :=
+          listCompValues_swapAt hs htwin src
+        simp only [FrameState.swapAt_world, World.swapAt_heap, FrameState.swapAt_locals]
+        rw [hv]
+        cases hvals : listCompValues s.world.heap src with
+        | unsupported msg => simp only [hvals]; exact PBF.unsupported
+        | exn e => simp only [hvals]; exact PBF.exn hs _
+        | timeout => simp only [hvals]; exact PBF.timeout
+        | ok xs =>
+            simp only [hvals]
+            exact ih.2 m s s.locals key value target [] xs [] hs
   | unsupported pyKind text sp => simp only [evalExpr]; exact PBF.unsupported
   | call f args kwargs callUnsupported sp =>
       simp only [evalExpr, FrameState.swapAt_world, FrameState.swapAt_locals,
@@ -6867,21 +6883,6 @@ theorem pbEvalExpr_succ (htwin : PayloadTwin o₀ o) (ih : PBAllWithDict pa o₀
                       RVal.typeNameH_swapAt hs1 htwin]
                     exact PBF.unsupported
             | _ => exact PBF.unsupported
-
-/-! The refused DictComp expression arm is payload-blind while the extractor
-remains loud. The admitted worker relation is recorded separately in
-`PBAllWithDict`; this theorem keeps the current AST refusal explicit. -/
-theorem pbEvalExpr_dictComp_refusal {pa : Addr} {o₀ o : Obj}
-    (m : Module) (fuel : Nat) (st : FrameState)
-    (key value target iter : Expr) (ifs : Array Expr) (sp : Span)
-    (hslot : Heap.get? st.world.heap pa = some o₀)
-    (htwin : PayloadTwin o₀ o) :
-    PBF pa o₀ o
-      (evalExpr m fuel st (.dictComp key value target iter ifs sp))
-      (evalExpr m fuel (st.swapAt pa o) (.dictComp key value target iter ifs sp)) := by
-  cases fuel with
-  | zero => exact PBF.timeout
-  | succ n => simp only [evalExpr]; exact PBF.unsupported
 
 /-! ### The mutual induction on fuel
 

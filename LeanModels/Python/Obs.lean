@@ -1396,7 +1396,14 @@ theorem fuelMono (fuel : Nat) :
             | ok xs => exact ihLCStep m st st.locals elt tgt ifs.toList xs [] k hk
         | dictComp key value tgt iter ifs sp =>
           simp only [evalExpr]
-          exact Run.le_refl _
+          split
+          · exact Run.le_refl _
+          · refine Run.le_bind (ihE m st iter k hk) fun st src => ?_
+            cases hvals : listCompValues st.world.heap src with
+            | unsupported msg => exact Run.le_refl _
+            | exn e => exact Run.le_refl _
+            | timeout => exact Run.le_refl _
+            | ok xs => exact ihDCStep m st st.locals key value tgt [] xs [] k hk
         | list elts _ =>
           simp only [evalExpr]
           exact Run.le_bind (ihEs m st elts.toList k hk) fun st vs => Run.le_refl _
@@ -2328,8 +2335,16 @@ theorem fuelMono (fuel : Nat) :
       cases fuel' with
       | zero => exact absurd hf (Nat.not_succ_le_zero fuel)
       | succ k =>
-          simp only [evalExpr]
-          exact Run.le_refl _
+        have hk : fuel ≤ k := Nat.le_of_succ_le_succ hf
+        simp only [evalExpr]
+        split
+        · exact Run.le_refl _
+        · refine Run.le_bind (ihE m st iter k hk) fun st src => ?_
+          cases hvals : listCompValues st.world.heap src with
+          | unsupported msg => exact Run.le_refl _
+          | exn e => exact Run.le_refl _
+          | timeout => exact Run.le_refl _
+          | ok xs => exact ihDCStep m st st.locals key value target [] xs [] k hk
     · intro m st saved key value target ifs xs acc fuel' hf
       cases fuel' with
       | zero => exact absurd hf (Nat.not_succ_le_zero fuel)
