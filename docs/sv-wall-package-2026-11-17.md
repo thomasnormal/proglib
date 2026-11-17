@@ -552,6 +552,15 @@ and Xcelium 24.03-s004 both reject elaboration, so no simulator value is
 claimed. This is an invalid-source boundary, not an array-index semantic wall;
 no source repair or semantic admission is appropriate.
 
+## Undriven output-net wall remeasurement
+
+The legal `wire_output_port.sv` fixture has an undriven four-state output wire
+as specified by IEEE 1800-2023 §6.6. Approved extraction and the legacy
+`PDesign.instantiate` census retain `PortSymbol:net-z`, but canonical E has no
+`PDesign.instantiateE2` refusal. Icarus Verilog 13.0 and Xcelium 24.03-s004
+agree on four rows: `y=zzzzzzzz` for known, x, and z input values. The
+canonical-E wall is cleared on this shape; no net-resolution change is made.
+
 ## Signal-event-control wall remeasurement
 
 The clean-room `signal_event_control.sv` fixture uses `always_ff @(clk)`
