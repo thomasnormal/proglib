@@ -51,6 +51,18 @@ target, so no interface semantics are inferred from the generic port route.
 The real-design interface-instance, interface-port, and interface-port-
 connection rows remain present=6 each.
 
+Stall-rule remeasurement: the public hierarchy corpus contains 90 envelopes;
+the completed ordinary census has 63 refusal rows across 30 envelopes. The
+remaining package walls occur once each for `PortConnection:target`,
+`VariableSymbol:type`, `HierarchicalValueExpression`, and the interface
+constructs; no public envelope emits the child-instance refusal. The largest
+actionable ordinary family is outside this package (`Instantiation:E:unsupported`
+19 rows, mostly parameter override context), followed by unrelated unsized-X/Z
+rows (23 total). Ranking therefore keeps typed aggregate/member support ahead of
+port-target admission, while child-instance admission has no public count to
+flip. This remeasurement changes the next action from repeated wall receipts to
+the typed aggregate dependency, pending an owner-assigned semantics item.
+
 The delayed-event repro now gives a direct ordinary measurement:
 `TimedStatement:DelayControl` at `parsePStmt` for `#1 q <= d;`.  This is a
 time-control boundary under §9.4; it is retained as a loud refusal until the
