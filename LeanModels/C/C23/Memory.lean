@@ -471,6 +471,10 @@ private theorem killFrom_fold_placements (xs : List Nat) (m : Mem) (start : Nat)
     (m.killFrom start).placements = m.placements := by
   exact killFrom_fold_placements (List.range (m.count - start)) m start
 
+@[simp] theorem killFrom_placement_lookup (m : Mem) (start live : ObjId) :
+    (m.killFrom start).placement? live = m.placement? live := by
+  simp [placement?, killFrom_placements]
+
 /-! ### The one place the structural refusals are raised -/
 
 /-- Resolve a pointer to a live object and an in-bounds byte range.
