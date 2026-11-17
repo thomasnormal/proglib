@@ -1166,6 +1166,19 @@ theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
   exact resolve_address_irrel (m.alloc dur size ty).1
     (Ptr.toObjectBoundAt (m.alloc dur size ty).2 address₂ size) n address₁
 
+@[simp] theorem allocZeroedAt_resolve_placement_irrel (m : Mem) (dur : Duration)
+    (size : Nat) (ty : Option CType) (address₁ address₂ n : Nat) :
+    (m.allocZeroedAt dur size ty address₁).1.resolve
+        (m.allocZeroedAt dur size ty address₁).2 n =
+      (m.allocZeroedAt dur size ty address₂).1.resolve
+        (m.allocZeroedAt dur size ty address₂).2 n := by
+  change (m.allocZeroed dur size ty).1.resolve
+      (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₁ size) n =
+    (m.allocZeroed dur size ty).1.resolve
+      (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₂ size) n
+  exact resolve_address_irrel (m.allocZeroed dur size ty).1
+    (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₂ size) n address₁
+
 @[simp] theorem allocAt_ptr (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) :
     (m.allocAt dur size ty address).2.address = address := by
