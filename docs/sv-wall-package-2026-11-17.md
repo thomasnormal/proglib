@@ -132,3 +132,8 @@ The checked-in canonical receipt was also run directly at the current tree:
 returned `Res.ok ["0", "0", "0", "1"]`. This independently confirms the
 recorded Icarus/Xcelium child-hierarchy result; the real-design table still
 needs its own count refresh.
+
+The older generated-child wrong-answer audit is closed by the same hierarchy
+landing. `generate_unbound_parameter_canonical_e/check.py` now reports eight
+rows matching E, Icarus Verilog 13.0, and Xcelium 24.03-s004; the expected
+connected-child sequence is `1,1,1,1,z,1,0,1`.
