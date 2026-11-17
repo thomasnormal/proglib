@@ -903,6 +903,21 @@ theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
     p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
   simp [allocAt, alloc, Ptr.toObjectBoundAt]
 
+/-- The resolver observes provenance, offset, lifetime, and bounds, but not
+    the concrete placement chosen for a fresh allocation. -/
+@[simp] theorem allocAt_resolve_placement_irrel (m : Mem) (dur : Duration)
+    (size : Nat) (ty : Option CType) (address₁ address₂ n : Nat) :
+    (m.allocAt dur size ty address₁).1.resolve
+        (m.allocAt dur size ty address₁).2 n =
+      (m.allocAt dur size ty address₂).1.resolve
+        (m.allocAt dur size ty address₂).2 n := by
+  change (m.alloc dur size ty).1.resolve
+      (Ptr.toObjectBoundAt (m.alloc dur size ty).2 address₁ size) n =
+    (m.alloc dur size ty).1.resolve
+      (Ptr.toObjectBoundAt (m.alloc dur size ty).2 address₂ size) n
+  exact resolve_address_irrel (m.alloc dur size ty).1
+    (Ptr.toObjectBoundAt (m.alloc dur size ty).2 address₂ size) n address₁
+
 @[simp] theorem allocAt_ptr (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) :
     (m.allocAt dur size ty address).2.address = address := by
