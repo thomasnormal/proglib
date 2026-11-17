@@ -283,6 +283,10 @@ def empty : Mem := ⟨[], [], [], [], []⟩
 def emitStdout (m : Mem) (bytes : List CByte) : Mem :=
   { m with stdout := m.stdout ++ bytes }
 
+@[simp] theorem emitStdout_placements (m : Mem) (bytes : List CByte) :
+    (m.emitStdout bytes).placements = m.placements := by
+  rfl
+
 private def vaSet (xs : List (ObjId × List CVal)) (o : ObjId) (vs : List CVal) :
     List (ObjId × List CVal) :=
   match xs with
@@ -460,6 +464,10 @@ def compoundObject? (m : Mem) (span : CSpan) : Option ObjId :=
 
 def rememberCompound (m : Mem) (span : CSpan) (o : ObjId) : Mem :=
   { m with compoundObjects := (span, o) :: m.compoundObjects }
+
+@[simp] theorem rememberCompound_placements (m : Mem) (span : CSpan) (o : ObjId) :
+    (m.rememberCompound span o).placements = m.placements := by
+  rfl
 
 /-- C23 §6.2.4 / §6.7.11: create an object whose representation is
 INDETERMINATE. Returns the new memory and the object's id.
