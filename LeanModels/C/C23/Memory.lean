@@ -500,20 +500,27 @@ def indetFault (dur : Duration) (o : ObjId) (off : Nat) : MemFault :=
 access slice compares the parser-carried type spellings exactly; the
 declaration-identity normalizer supplies aliases before an object is
 allocated, while an unrecognised spelling remains a loud mismatch. -/
-def effectiveAccessOK (used eff : CType) : Bool :=
+structure AliasModel where
+  /-- Whether an lvalue access type may inspect bytes carrying `eff`.
+  Languages with a borrow or provenance discipline can supply another
+  instance without changing the byte store. -/
+  compatible : CType → CType → Bool
+
+def cAliasModel : AliasModel where
+  compatible := fun used eff =>
   -- A declared aggregate's bytes are accessed through its parser-derived
   -- member types; the aggregate-to-member relation is supplied by the
   -- layout layer and is not reconstructible from this spelling-only memory
   -- primitive.  Enforce scalar mismatches here and leave aggregate member
   -- compatibility to that identity-keyed layout path.
-  eff.startsWith "struct " || eff.startsWith "union " || eff.contains "[" ||
-    used == eff || used == "char" || used == "signed char" || used == "unsigned char"
+    eff.startsWith "struct " || eff.startsWith "union " || eff.contains "[" ||
+      used == eff || used == "char" || used == "signed char" || used == "unsigned char"
 
-def checkEffective (o : ObjId) (c : CObj) (off : Nat) (used : CType) : MRes Unit :=
+def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat) (used : CType) : MRes Unit :=
   match c.effTy with
   | none => .ok ()
   | some eff =>
-      if effectiveAccessOK used eff then .ok ()
+      if alias.compatible used eff then .ok ()
       else .error (.memUB (.effectiveType o off used eff))
 
 /-- Read an integer. C23 §6.3.2.1p2 (lvalue conversion) with
@@ -540,10 +547,10 @@ def loadInt (m : Mem) (p : Ptr) (t : IntTy) : MRes CVal := do
         .error (.memUB (.nonValueRepresentation o off))
 
 /-- Integer lvalue access with the §6.5.1p6-p7 effective-type check. -/
-def loadIntChecked (m : Mem) (p : Ptr) (t : IntTy) (used : CType) : MRes CVal := do
+def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType) : MRes CVal := do
   let width := max 1 (t.bits / 8)
   let (o, c, off) ← m.resolve p width
-  checkEffective o c off used
+  checkEffective alias o c off used
   let bs := (c.bytes.drop off).take width
   match decodeInt t bs with
   | some v => return .int t v
@@ -558,10 +565,10 @@ def storeInt (m : Mem) (p : Ptr) (t : IntTy) (v : Int) : MRes Mem :=
   m.storeBytes p (encodeInt t v)
 
 /-- Integer store with effective-type establishment for allocated storage. -/
-def storeIntChecked (m : Mem) (p : Ptr) (t : IntTy) (used : CType) (v : Int) : MRes Mem := do
+def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType) (v : Int) : MRes Mem := do
   let bs := encodeInt t v
   let (o, c, off) ← m.resolve p bs.length
-  checkEffective o c off used
+  checkEffective alias o c off used
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
   let effTy := match c.effTy with | some eff => some eff | none => some used
   return { m with objs := m.objs.set o { c with bytes := bytes, effTy := effTy } }
