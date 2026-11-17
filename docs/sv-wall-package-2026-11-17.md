@@ -381,6 +381,13 @@ two rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004. Canonical E's
 run2 surface retains `T2:Initial: initial process outside the cycle semantic`
 refusal until scheduler-derived time-zero semantics is available.
 
+Current-pin initial-process receipt (2026-11-17): the canonical-E agreement
+remains `.ok ["0", "0"]`, both pinned simulators match its two rows, and the
+ordinary hierarchical census reports zero refusals for this admitted E shape.
+The real-design initial-process family remains present=5, sole=0 because the
+legacy Design2/run2 route still refuses ordinary runtime initial actions; no
+new time-zero scheduler claim is made.
+
 The canonical memory-initialization receipt is current:
 `memory_initial_canonical_e/check.py` reports three rows (time-zero
 initialization, known index, and x index) matching canonical E, Icarus Verilog
