@@ -753,6 +753,14 @@ placement annotation alone cannot change whether a range resolves. -/
     m.loadPtr {p with address := address} = m.loadPtr p := by
   simp [loadPtr, resolve_address_irrel]
 
+@[simp] theorem loadPtrInt_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    m.loadPtrInt {p with address := address} = m.loadPtrInt p := by
+  simp [loadPtrInt, resolve_address_irrel]
+
+@[simp] theorem loadFunction_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    m.loadFunction {p with address := address} = m.loadFunction p := by
+  simp [loadFunction, resolve_address_irrel]
+
 @[simp] theorem storePtr_address_irrel (m : Mem) (p q : Ptr) (address : Nat) :
     m.storePtr {p with address := address} q = m.storePtr p q := by
   simp [storePtr, storeBytes_address_irrel]
