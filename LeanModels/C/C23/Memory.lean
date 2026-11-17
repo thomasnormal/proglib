@@ -1301,6 +1301,16 @@ def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
     (m.callocAt n size address).2.address = address := by
   simp [callocAt, allocZeroedAt, Ptr.toObjectBoundAt]
 
+@[simp] theorem mallocAt_provenance (m : Mem) (size address : Nat) :
+    (m.mallocAt size address).2.obj =
+      some (m.alloc .allocated size none).2 := by
+  simp [mallocAt, allocAt, Ptr.toObjectBoundAt]
+
+@[simp] theorem callocAt_provenance (m : Mem) (n size address : Nat) :
+    (m.callocAt n size address).2.obj =
+      some (m.allocZeroed .allocated (n * size) none).2 := by
+  simp [callocAt, allocZeroedAt, Ptr.toObjectBoundAt]
+
 @[simp] theorem mallocAt_placement_irrel (m : Mem) (size address₁ address₂ : Nat) :
     let p₁ := (m.mallocAt size address₁).2
     let p₂ := (m.mallocAt size address₂).2
