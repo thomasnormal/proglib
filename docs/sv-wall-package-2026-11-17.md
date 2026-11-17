@@ -246,3 +246,8 @@ eight rows matching the source behavior on Icarus Verilog 13.0 and Xcelium
 The implicit-case memory receipt is current:
 `memory_implicit_case_canonical_e/check.py` reports four canonical-E rows
 matching Icarus Verilog 13.0 and Xcelium 24.03-s004.
+
+The fixed-array index receipt is current:
+`array_index_canonical_e/check.py` regenerates its envelope byte-identically
+and reports eight known/x/z rows matching canonical E, Icarus Verilog 13.0,
+and Xcelium 24.03-s004.
