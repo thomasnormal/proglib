@@ -343,6 +343,11 @@ two rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004. Canonical E's
 run2 surface retains `T2:Initial: initial process outside the cycle semantic`
 refusal until scheduler-derived time-zero semantics is available.
 
+The canonical memory-initialization receipt is current:
+`memory_initial_canonical_e/check.py` reports three rows (time-zero
+initialization, known index, and x index) matching canonical E, Icarus Verilog
+13.0, and Xcelium 24.03-s004.
+
 CURRENT HEAD CORRECTION — 2026-11-17T11:05Z
 
 Public master is now `1f8c98756`; the intervening public change is a
