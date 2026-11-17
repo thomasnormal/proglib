@@ -286,6 +286,18 @@ def fromExposedAddress (n : Int) : Option Ptr :=
     some (toObjectAt a a)
   else none
 
+@[simp] theorem exposedAddress_null : exposedAddress Ptr.null = 0 := by
+  simp [exposedAddress, Ptr.null]
+
+theorem exposedAddress_nonnull (p : Ptr) (hp : p.obj.isSome) :
+    0 < exposedAddress p := by
+  cases h : p.obj with
+  | none => rw [h] at hp; simp at hp
+  | some o => simp [exposedAddress, h]
+
+@[simp] theorem fromExposedAddress_zero : fromExposedAddress 0 = some Ptr.null := by
+  simp [fromExposedAddress]
+
 end Ptr
 
 inductive CByte where
