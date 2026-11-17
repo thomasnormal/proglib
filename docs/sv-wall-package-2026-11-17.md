@@ -85,6 +85,12 @@ parser-native port connections, but it does not invent semantics for an
 arbitrary hierarchical value expression (§23.6); the loud refusal remains
 sound and the real-design present=7 count is unchanged.
 
+Current-pin hierarchical-value receipt (2026-11-17): the wall checker reports
+two rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004. The ordinary
+census retains `HierarchicalValueExpression / parsePExpr / u.internal_value`;
+the real-design present=7, sole=0 count is unchanged and no arbitrary
+hierarchical-value meaning is claimed.
+
 The public-census handoff also confirms ownership boundaries: typed variable/member
 paths, primitive instances, and specify blocks are `ls-sv3` rows in the current
 wall table. Those measured rows are handed to that lane; this lane makes no
