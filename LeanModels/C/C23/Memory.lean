@@ -1195,6 +1195,16 @@ theorem allocZeroedAt_placement (m : Mem) (dur : Duration) (size : Nat)
         m.objs.length address
   exact ⟨rfl, placementSet_mem _ _ _⟩
 
+theorem allocZeroedAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
+    (ty : Option CType) (address : Nat) :
+    (m.allocZeroedAt dur size ty address).1.placement?
+        (m.allocZeroed dur size ty).2 = some address := by
+  change ((placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
+      m.objs.length address).find? (fun entry => entry.1 == m.objs.length)).map
+        Prod.snd = some address
+  rw [placementSet_find]
+  rfl
+
 /-- INVERSION for `resolve`: everything a successful access establishes.
 
 Stated once because `resolve` is the single place C's three structural
