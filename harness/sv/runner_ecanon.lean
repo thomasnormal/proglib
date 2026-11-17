@@ -63,12 +63,15 @@ def parseEntry (decls : List Decl) (j : Json) : Except String SvState := do
       return st
   | _ => .error "stimulus entry is not an object"
 
-def lowAfterSample (E : CoreMemDesign) (clock : String) (st : CoreMemState) : CoreMemState :=
-  E.compactScalar st (SvState.set (E.scalar.view st.scalar) clock (LVec.ofNat 1 0))
+def lowAfterSample (E : CoreMemDesign) (clock edge : String) (st : CoreMemState) : CoreMemState :=
+  let value := if edge == "negedge" then LVec.ofNat 1 1 else LVec.ofNat 1 0
+  E.compactScalar st (SvState.set (E.scalar.view st.scalar) clock value)
 
-def addClock (clock : String) : List SvState → List SvState
+def addClock (clock : String) (edge : String) : List SvState → List SvState
   | [] => []
-  | row :: rest => SvState.set row clock (LVec.ofNat 1 1) :: addClock clock rest
+  | row :: rest =>
+      let value := if edge == "negedge" then LVec.ofNat 1 0 else LVec.ofNat 1 1
+      SvState.set row clock value :: addClock clock edge rest
 
 end SvCanonicalEHarness
 
@@ -82,7 +85,7 @@ def main (argv : List String) : IO UInt32 := do
   | [envPath, casesPath, caseName, _sigma] => do
       let envText ← IO.FS.readFile ⟨envPath⟩
       let casesText ← IO.FS.readFile ⟨casesPath⟩
-      let r : Except String (CoreMemDesign × List SvState × List String × Nat × String) := do
+      let r : Except String (CoreMemDesign × List SvState × List String × Nat × String × String) := do
         let (pd, lib) ← loadHierString envText
         unless lib.isEmpty do .error "canonical E backend does not admit hierarchy in this row"
         let cj ← Json.parse casesText
@@ -96,10 +99,11 @@ def main (argv : List String) : IO UInt32 := do
         let signals ← (← getArr case "signals").toList.mapM (·.getStr?)
         let fuel := (getOpt cj "fuel").bind (·.getNat?.toOption) |>.getD 4096
         let clock := (getOpt case "clock").bind (·.getStr?.toOption) |>.getD "clk"
-        pure (d, addClock clock stim0, signals, fuel, clock)
+        let edge := (getOpt case "clock_edge").bind (·.getStr?.toOption) |>.getD "posedge"
+        pure (d, addClock clock edge stim0, signals, fuel, clock, edge)
       match r with
       | .error e => err e
-      | .ok (d, stim, signals, fuel, clock) =>
+      | .ok (d, stim, signals, fuel, clock, edge) =>
           let out ← IO.getStdout
           for dc in d.scalar.decls.toList do
             let sign := if dc.isSigned then "signed" else "unsigned"
@@ -116,7 +120,7 @@ def main (argv : List String) : IO UInt32 := do
                     | .timeout => err "canonical E step: timeout"
                     | .unsupported m => err s!"canonical E step: unsupported: {m}"
                     | .ok next => do
-                        let sampled := lowAfterSample d clock next
+                        let sampled := lowAfterSample d clock edge next
                         let cells := signals.map fun s => s!"{s}={SvState.showSignal (d.scalar.view sampled.scalar) s}"
                         out.putStrLn (s!"CYCLE {k} " ++ " ".intercalate cells)
                         loop (k + 1) sampled rest

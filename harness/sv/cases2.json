@@ -32019,40 +32019,34 @@
       ],
       "stimulus": [
         {
-          "d": "0",
-          "clk": "1"
+          "d": "0"
         },
         {
-          "d": "1",
-          "clk": "0"
+          "d": "1"
         },
         {
-          "d": "0",
-          "clk": "1"
+          "d": "0"
         },
         {
-          "d": "1",
-          "clk": "x"
+          "d": "1"
         },
         {
-          "d": "1",
-          "clk": "0"
+          "d": "1"
         },
         {
-          "d": "0",
-          "clk": "z"
+          "d": "0"
         },
         {
-          "d": "0",
-          "clk": "1"
+          "d": "0"
         },
         {
-          "d": "1",
-          "clk": "0"
+          "d": "1"
         }
       ],
       "refusal": "Clock:edge",
-      "measured": "Canonical-E negative-edge backend row; the legacy run2 refusal remains recorded separately, while this row compares the retained negedge semantics against the simulator."
+      "measured": "Canonical-E negative-edge backend row; the legacy run2 refusal remains recorded separately, while this row compares the retained negedge semantics against the simulator.",
+      "canonical_e": true,
+      "clock_edge": "negedge"
     },
     {
       "name": "clk_implicit",

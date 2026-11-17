@@ -139,6 +139,9 @@ def generate_tb2(mod_name, ports, case):
     port_width = {p[0]: p[2] for p in ports}
     in_names = {p[0] for p in ports if p[1] == "in"}
     clock = case.get("clock", "clk")
+    edge = case.get("clock_edge", "posedge")
+    if edge not in ("posedge", "negedge"):
+        raise TbError("clock_edge must be posedge or negedge")
     params = case.get("params", {}) or {}
 
     signals = case["signals"]
@@ -164,7 +167,8 @@ def generate_tb2(mod_name, ports, case):
     lines.append("// Canonical output: 'CYCLE <k> <name>=<binary>...' per cycle,")
     lines.append("// sampled at negedge (after the posedge timestep's NBA commit).")
     lines.append("module tb;")
-    lines.append("  logic %s = 1'b0;  // decl init: no time-0 transition" % clock)
+    initial_clock = "1'b1" if edge == "negedge" else "1'b0"
+    lines.append("  logic %s = %s;  // edge-controlled start" % (clock, initial_clock))
     decl_lines, array_groups = _decl_port_groups(
         [p for p in ports if p[0] != clock])
     lines.extend(decl_lines)
@@ -192,7 +196,8 @@ def generate_tb2(mod_name, ports, case):
     lines.append("  integer cycle = 0;")
     fmt = "CYCLE %0d " + " ".join("%s=%%b" % n for n in signals)
     args = ", ".join(["cycle"] + ["dut.%s" % n for n in signals])
-    lines.append("  always @(negedge %s) begin" % clock)
+    sample_edge = "posedge" if edge == "negedge" else "negedge"
+    lines.append("  always @(%s %s) begin" % (sample_edge, clock))
     lines.append('    $display("%s", %s);' % (fmt, args))
     lines.append("    cycle = cycle + 1;")
     lines.append("  end")
@@ -202,8 +207,12 @@ def generate_tb2(mod_name, ports, case):
         lines.append("    // cycle %d" % k)
         for name, bits in entry.items():
             lines.append("    %s = %d'b%s;" % (name, len(bits), bits))
-        lines.append("    #1 %s = 1'b1;" % clock)
-        lines.append("    #1 %s = 1'b0;" % clock)
+        if edge == "negedge":
+            lines.append("    #1 %s = 1'b0;" % clock)
+            lines.append("    #1 %s = 1'b1;" % clock)
+        else:
+            lines.append("    #1 %s = 1'b1;" % clock)
+            lines.append("    #1 %s = 1'b0;" % clock)
         lines.append("    #1;")
     lines.append("    $finish;")
     lines.append("  end")
