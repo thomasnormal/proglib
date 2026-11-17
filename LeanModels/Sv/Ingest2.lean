@@ -1260,8 +1260,9 @@ agree, `.error msg` = the first failing entry (or a parse error). Since
 round 3 (folds) also `.error` when the legacy-select range guard refuses
 at a probed point (`Envelope2.legacyRangeAtPoints`), and since round 6 when
 a select guard does (`Envelope2.selectGuardAtPoints`) or the `always_comb`
-alias guard does (`Envelope2.aliasAtPoints`), and since WP-Q0 (2026-10-30) when
-the clock-discipline guard does (`Envelope2.clockAtPoints`). -/
+alias guard does (`Envelope2.aliasAtPoints`). Clock reports remain available
+to run-route clients; probe loading itself does not reject a multi-clock
+envelope. -/
 def probeCheckString (envText probesText : String) : Except String Nat := do
   let rep ← probeReportString envText probesText
   match rep.find? (fun (_, v) => !v.ok) with
@@ -1275,9 +1276,11 @@ def probeCheckString (envText probesText : String) : Except String Nat := do
           match e.aliasAtPoints pr with
           | some (l, msg) => throw s!"alias guard FAILED at {l}: {msg} (`AlwaysComb:alias-read`)"
           | none =>
-              match e.clockAtPoints pr with
-              | some (l, k, msg) => throw s!"clock guard FAILED at {l}: {msg} (`{k}`)"
-              | none => return rep.length
+              -- Clock discipline belongs to the single-clock run route.  A
+              -- multi-clock envelope remains loadable for canonical E and
+              -- instant-view consumers; the runner still checks `clockReport`
+              -- before invoking `run2`.
+              return rep.length
 
 /-- `probeCheckString` on files: the envelope at `envPath` and its sidecar
 (`probeSidecarPath`). `.ok none` = no sidecar exists (nothing checked —
@@ -1316,12 +1319,12 @@ encoding):
   the hierarchy flattened at the defaults must have distinct names
   (`Design2.namesNodup`) and one driver per bit (`driversOk`: no
   `PortConn:driver` process).
-  Since WP-Q0 (2026-10-30) the instantiated design must also pass the clock
-  discipline (`ClockGuard2.lean`, `Design2.clockViolation`, a check BESIDE
-  `name.sem`, at the defaults and at every probed point): every edge process
-  is clocked by the same one-bit INPUT port, an asynchronous reset is an input
-  port, and nothing reads the clock as data (`Clock:source`, `Clock:reset`,
-  `Clock:multiple`, `Clock:data-read`).
+  The instantiated design retains its computed clock report for the
+  single-clock run route (`ClockGuard2.lean`, `Design2.clockViolation`).
+  Loading does not reject a second input clock: canonical E and instant-view
+  consumers need the literal design term. The run route still refuses
+  `Clock:source`, `Clock:reset`, `Clock:multiple`, and `Clock:data-read` before
+  stepping.
 
 Before defining anything the command replays the defaults elaboration and
 compares it against the envelope's `resolved` metadata
@@ -1416,15 +1419,10 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
                 throwErrorAt path
                   "load_design_sv2: '{pathStr}' REFUSED — at the defaults, {msg} (`AlwaysComb:alias-read`, `Stmt2.aliasViol`)"
             | _ => pure ()
-          -- The clock discipline (WP-Q0, 2026-10-30, `ClockGuard2.lean`): a
-          -- check BESIDE `name.sem`, run at the defaults here and at every
-          -- probed point below. A clocked design whose clock is not an input
-          -- port of the top, is read as data, is a second clock or an
-          -- internal reset would run in the model on cycles where no
-          -- simulator sees an edge.
-          if let some (k, msg) := dD.clockReport then
-            throwErrorAt path
-              "load_design_sv2: '{pathStr}' REFUSED — at the defaults, {msg} (`{k}`, `Design2.clockViolation`)"
+          -- Clock discipline is a run-route guard, not a load guard.  Keep
+          -- the computed report available to `run2` and the runner while
+          -- preserving the literal design family for canonical E and instant
+          -- consumers, including designs with several input clocks.
       | _ => pure ()
       -- The legacy-select range guard (round 3 folds, `RangeGuard2.lean`):
       -- a check BESIDE `name.sem` (whose recorded lemmas pin it), run at
@@ -1462,10 +1460,8 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
         if let some (l, msg) := envl.aliasAtPoints pr then
           throwErrorAt path
             "load_design_sv2: '{pathStr}' REFUSED — at the probed point {l}: {msg} (`AlwaysComb:alias-read`, `PDesign.aliasReport`)"
-        -- The clock discipline at every probed point (WP-Q0).
-        if let some (l, k, msg) := envl.clockAtPoints pr then
-          throwErrorAt path
-            "load_design_sv2: '{pathStr}' REFUSED — at the probed point {l}: {msg} (`{k}`, `PDesign.clockReport`)"
+        -- Clock discipline remains attached to the single-clock run route;
+        -- probe loading must not discard a multi-clock design term.
   let funName := (← getCurrNamespace) ++ name.getId
   let pdName := funName ++ `pdesign
   let semName := funName ++ `sem
