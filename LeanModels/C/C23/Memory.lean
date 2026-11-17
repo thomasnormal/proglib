@@ -810,6 +810,17 @@ placement annotation alone cannot change whether a range resolves. -/
     m.storeBytes {p with address := address} bs = m.storeBytes p bs := by
   simp [storeBytes, resolve_address_irrel]
 
+theorem storeBytes_placement {m m' : Mem} {p : Ptr} {bs : List CByte}
+    {o : ObjId} {c : CObj} {off : Nat}
+    (hr : m.resolve p bs.length = .ok (o, c, off))
+    (h : m.storeBytes p bs = .ok m') :
+    m'.placements = m.placements := by
+  unfold storeBytes at h
+  rw [hr] at h
+  simp only [Except.bind, pure, Except.pure] at h
+  cases h
+  rfl
+
 @[simp] theorem loadInt_address_irrel (m : Mem) (p : Ptr) (t : IntTy)
     (address : Nat) :
     m.loadInt {p with address := address} t = m.loadInt p t := by
