@@ -1514,7 +1514,8 @@ def evalOpen (K : Kont) (m : Module) : Expr → SemF RVal
       refuse "this generator expression is outside the tier (ingestion could not lower it to a generator function; docs/memory-model.md §generator semantics)"
   | .listComp elt target iter ifs walrus _ =>
       K.listComp (.start elt target iter ifs walrus)
-  | .dictComp .. => refuse "DictComp semantics is outside the current tier"
+  | .dictComp key value target iter ifs _ =>
+      K.dictComp (.start key value target iter ifs)
   | .unsupported pyKind _ _ => refuse s!"unsupported expression '{pyKind}'"
   termination_by structural e => e
 
@@ -2215,6 +2216,52 @@ def listCompReqAt (K : Kont) (m : Module) : ListCompReq → SemF RVal
             envPut saved.locals
             raisePy e)
 
+def dictCompAt (K : Kont) (m : Module) : DictCompCont → SemF RVal
+  | c =>
+      match c.rest with
+      | [] => do
+          envPut c.savedLocals
+          let a ← heapPush (.dict c.acc.reverse.toArray 0)
+          pure (.ref a)
+      | v :: rest => do
+          assignM c.target v
+          let keep ← listCompIfs K m c.ifs
+          if keep then do
+            let kv ← evalOpen K m c.key
+            let vv ← evalOpen K m c.value
+            let one ← dictBuildM [(kv, vv)]
+            match one with
+            | [p] =>
+                let next := { c with rest := rest, acc := (dictStore c.acc p.1 p.2).1 }
+                K.dictComp (.step next)
+            | _ => refuse "internal: dictionary comprehension key/value builder returned the wrong shape"
+          else
+            K.dictComp (.step { c with rest := rest })
+  termination_by structural c.rest
+
+def dictCompReqAt (K : Kont) (m : Module) : DictCompReq → SemF RVal
+  | .step c => dictCompAt K m c
+  | .start key value target iter ifs => do
+      if !ifs.isEmpty then
+        refuse "filtered dictionary comprehensions are outside the current tier"
+      else
+        let source ← evalOpen K m iter
+        let xs ← match source with
+          | .ref a =>
+              match Heap.get? (← frameHeap) a with
+              | some (.generator ..) =>
+                  refuse "dictionary comprehension over a generator requires lazy stepping (outside the one-generator slice)"
+              | _ => iterValues K m "dict" false source
+          | _ => iterValues K m "dict" false source
+        let saved ← get
+        tryCatch
+          (K.dictComp (.step
+            { key := key, value := value, target := target, ifs := ifs.toList,
+              rest := xs, acc := [], savedLocals := saved.locals }))
+          (fun e => do
+            envPut saved.locals
+            raisePy e)
+
 /-! ## §2.6 THE DICT LOCKSTEP — the one walk that could not be a block member
 
 **THE ARCHITECTURAL DEBT OF §0.5, PAID — and this is the choice and its price.**
@@ -2848,7 +2895,8 @@ def kont (m : Module) : Nat → Kont
       drainIter := fun a => drainIterAt (kont m fuel) a
       anyAllIter := fun a b => anyAllIterAt (kont m fuel) a b
       withBody := fun body => execOpenList (kont m fuel) m body
-      listComp := fun c => listCompReqAt (kont m fuel) m c }
+      listComp := fun c => listCompReqAt (kont m fuel) m c
+      dictComp := fun c => dictCompReqAt (kont m fuel) m c }
   termination_by structural fuel => fuel
 
 

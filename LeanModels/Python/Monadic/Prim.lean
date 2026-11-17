@@ -231,6 +231,19 @@ inductive ListCompReq where
       (walrus : Array (String × Expr))
   | step (state : ListCompCont)
 
+structure DictCompCont where
+  key : Expr
+  value : Expr
+  target : Expr
+  ifs : List Expr
+  rest : List RVal
+  acc : List (RVal × RVal)
+  savedLocals : Env
+
+inductive DictCompReq where
+  | start (key value target iter : Expr) (ifs : Array Expr)
+  | step (state : DictCompCont)
+
 structure Kont where
   /-- The fuel level this `Kont` sits at. It is NOT a recursion argument here —
   the fueled recursion is on `kont`'s own `Nat` — but the trunk's fuel-TAKING
@@ -315,6 +328,7 @@ structure Kont where
   withBody : List Stmt → SemF RFlow
   /-- Advance one element of a one-generator list comprehension. -/
   listComp : ListCompReq → SemF RVal
+  dictComp : DictCompReq → SemF RVal
 
 /-- The fuel-exhausted continuation: every fueled operation is `.timeout`.
 This is `kont m 0`, and it is the ONLY source of `.timeout` in the rebuild —
@@ -336,6 +350,7 @@ def Kont.bottom : Kont where
   anyAllIter  := fun _ _   => exhausted
   withBody    := fun _     => exhausted
   listComp    := fun _     => exhausted
+  dictComp    := fun _     => exhausted
 
 /-! ## §4 THE REBUILD FRONTIER
 

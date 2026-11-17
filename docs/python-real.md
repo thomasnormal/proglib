@@ -74,10 +74,11 @@ worker now exists for the one-clause/no-filter shape, and its
 `evalDictCompStep` fuel-monotonicity conjunct is included in `Obs.lean`'s
 fixed-order mutual induction. The evaluator still refuses the AST arm because
 the remaining `PayloadBlind` swap theorem must cover the recursive walk and its
-fresh dictionary allocation; the monadic continuation likewise still needs a
-`Kont.dictComp` field and proof bundle. No local shortcut or theorem weakening
-is sound. The extractor remains loud, so no semantic flip is claimed before
-those remaining bundles are built.
+fresh dictionary allocation. The monadic continuation is now implemented as a
+`Kont.dictComp` field with a structural stepper, but its evaluator-side proof
+bundle and the trunk/monadic agreement row remain outstanding. No local
+shortcut or theorem weakening is sound. The extractor remains loud, so no
+semantic flip is claimed before those remaining bundles are built.
 
 The priced `PayloadBlind` sub-item is the theorem
 `PB-evalDictCompStep`: for every `PayloadTwin o₀ o`, every frame whose heap
