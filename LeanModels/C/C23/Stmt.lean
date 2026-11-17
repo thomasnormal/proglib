@@ -723,7 +723,8 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
           match storage with
           | some "auto" | some "register" | some "static" | none => pure ()
           | some s => refuseUnsupported s!"block-scope storage class '{s}' is outside the tier"
-          match if vaList then some 1 else ctx.layout.size ty with
+          match if vaList then some 1 else
+              (id.bind ctx.layout.declSize).orElse (fun _ => ctx.layout.size ty) with
           | none => refuseUnsupported s!"no layout for declared type '{ty}'"
           | some sz => do
             -- §6.2.4p6: an automatic object lives from block entry, with
@@ -826,7 +827,8 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
   | ctx, d :: ps, v :: vs =>
     match d with
     | .param id n ty vaList _ =>
-        match if vaList then some 1 else lay.size ty with
+        match if vaList then some 1 else
+            (id.bind lay.declSize).orElse (fun _ => lay.size ty) with
         | none => refuseUnsupported s!"no layout for parameter type '{ty}'"
         | some sz => do
             -- §6.9.2p7 holds for an UNNAMED parameter too: the object

@@ -429,6 +429,8 @@ it is what keeps the C type parser out of the tier. -/
 structure Layout where
   /-- `sizeof(ty)` in bytes (§6.5.4.4). -/
   size : CType → Option Nat
+  /-- Parser-native size keyed by the declaration that owns the object. -/
+  declSize : DeclarationId → Option Nat := fun _ => none
   /-- Frontend-observed sizes for declarator-shaped types. -/
   typeSize : CType → Option Nat := fun _ => none
   /-- Frontend-observed byte stride for a declared pointer-to-array object. -/
@@ -488,7 +490,7 @@ structure Layout where
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/
 def Layout.unknown : Layout :=
-  { size := fun _ => none, fieldOff := fun _ _ => none
+  { size := fun _ => none, declSize := fun _ => none, fieldOff := fun _ _ => none
     fieldOffType := fun _ _ => none
     typeSize := fun _ => none
     pointeeSize := fun _ => none

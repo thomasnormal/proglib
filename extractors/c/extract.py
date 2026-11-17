@@ -963,6 +963,26 @@ def extract(path, source_name=None, standard="c23"):
                 unify(child)
     unify(top)
 
+    # Join parser-native TypeLayout observations to the owning VarDecl by
+    # clang's AST declaration identity. The probe reports the same source
+    # offset; this join is over parser nodes, never over a type spelling.
+    decl_ids_by_offset = {}
+    def collect_decl_offsets(node):
+        if isinstance(node, dict):
+            if node.get("kind") == "VarDecl" and node.get("id"):
+                begin = (node.get("range") or {}).get("begin") or {}
+                if begin.get("offset") is not None:
+                    decl_ids_by_offset.setdefault(begin["offset"], node["id"])
+            for child in kids(node):
+                collect_decl_offsets(child)
+        elif isinstance(node, list):
+            for child in node:
+                collect_decl_offsets(child)
+    collect_decl_offsets(tu)
+    for record in ex.type_layouts:
+        if record.get("offset") in decl_ids_by_offset:
+            record["decl_id"] = decl_ids_by_offset[record["offset"]]
+
     # The corpus lives in ANOTHER repository (tools/ctwin/ in sunfish), so a
     # path relative to this root would be a fiction.  `--source-name` records
     # the corpus's own path in its own repo; without it we fall back to a
@@ -987,6 +1007,7 @@ def extract(path, source_name=None, standard="c23"):
         "translation_unit": {"kind": "TranslationUnit", "decls": top},
         "externals": externals(tu, target, Loc),
         "type_layouts": [{"type": r["type"], "size_bytes": r["size_bytes"],
+                          **({"decl_id": r["decl_id"]} if r.get("decl_id") is not None else {}),
                           "alignment_bytes": r["alignment_bytes"],
                           **({"pointee_size_bytes": r["pointee_size_bytes"]}
                              if r.get("pointee_size_bytes") is not None else {})}

@@ -132,6 +132,7 @@ deriving Repr, Inhabited, BEq, Lean.ToExpr
 This supplements record layouts for declarator-shaped objects such as nested
 function-pointer objects whose size is a frontend fact but has no record node. -/
 structure TypeLayout where
+  declaration : Option DeclarationId := none
   ty : CType
   sizeBytes : Nat
   alignmentBytes : Nat

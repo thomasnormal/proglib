@@ -634,6 +634,8 @@ def layoutFor (envl : Envelope) : Layout :=
     | none => none
   let observedTypeSize := fun t : CType =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
+  let observedDeclSize := fun id : DeclarationId =>
+    envl.typeLayouts.find? (fun row => row.declaration == some id) |>.map (·.sizeBytes)
   let observedPointeeSize := fun t : CType =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.pointeeSizeBytes)
   /- A subscript asks for the element stride, while Clang's parser-native
@@ -660,6 +662,7 @@ def layoutFor (envl : Envelope) : Layout :=
         | none =>
             (observedArrayElem t).orElse
               (fun _ => (sizeAlign tds recsWithObserved 16 t).map (·.1))
+    declSize := observedDeclSize
     typeSize := observedTypeSize
     pointeeSize := observedPointeeSize
     fieldSize := observedFieldSizeFor
