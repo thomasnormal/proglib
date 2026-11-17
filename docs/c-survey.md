@@ -2,11 +2,11 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1210/2112 MATCH (passed 1210, failed 3, oracle 0)
+- verdicts: 1211/2112 MATCH (passed 1211, failed 3, oracle 0)
 - excluded from denominator: no-entry-point 102
 - manifest SHA-256: `3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4`
-- measured commit: `333e9c076`
-- measured at: `2026-11-17T03:03:54Z`
+- measured commit: `3faf427a1`
+- measured at: `2026-11-17T03:06:44Z`
 
 ## Verdict counts
 
@@ -16,10 +16,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `no-entry-point` | 102 |
 | `not-parsed` | 350 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1210 |
+| `passed` | 1211 |
 | `refused-libc` | 21 |
 | `refused-ub` | 86 |
-| `refused-unsupported` | 354 |
+| `refused-unsupported` | 353 |
 | `timeout` | 87 |
 
 ## Counts by corpus
@@ -35,10 +35,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-parsed` | 321 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 1017 |
+| `gcc.c-torture/execute` | `passed` | 1018 |
 | `gcc.c-torture/execute` | `refused-libc` | 18 |
 | `gcc.c-torture/execute` | `refused-ub` | 78 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 307 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 306 |
 | `gcc.c-torture/execute` | `timeout` | 84 |
 | `gcc.c23-run` | `not-parsed` | 28 |
 | `gcc.c23-run` | `passed` | 8 |
@@ -394,7 +394,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:sizeof: no layout for operand type 'c'` | 1 | 1 | 20040411-1.c |
 | `unsupported:sizeof: no layout for operand type 'int (*volatile[6])(void)'` | 1 | 1 | bcp-1.c |
 | `unsupported:sizeof: no layout for operand type 'va_list'` | 1 | 1 | va-arg-21.c |
-| `unsupported:src/20000412-5.c` | 1 | 1 | 20000412-5.c |
 | `unsupported:src/930628-1.c` | 1 | 1 | 930628-1.c |
 | `unsupported:src/ffs-2.c` | 1 | 1 | ffs-2.c |
 | `unsupported:src/ieee/mul-subnormal-single-1.c` | 1 | 1 | ieee/mul-subnormal-single-1.c |

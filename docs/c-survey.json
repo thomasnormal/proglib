@@ -12,10 +12,10 @@
    "failed": 3,
    "not-parsed": 321,
    "oracle-tests-compiler": 1,
-   "passed": 1017,
+   "passed": 1018,
    "refused-libc": 18,
    "refused-ub": 78,
-   "refused-unsupported": 307,
+   "refused-unsupported": 306,
    "timeout": 84
   },
   "gcc.c23-run": {
@@ -32,10 +32,10 @@
   "no-entry-point": 102,
   "not-parsed": 350,
   "oracle-tests-compiler": 1,
-  "passed": 1210,
+  "passed": 1211,
   "refused-libc": 21,
   "refused-ub": 86,
-  "refused-unsupported": 354,
+  "refused-unsupported": 353,
   "timeout": 87
  },
  "dynamic_wall_ranking": [
@@ -1894,14 +1894,6 @@
   },
   {
    "files": [
-    "20000412-5.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/20000412-5.c"
-  },
-  {
-   "files": [
     "930628-1.c"
    ],
    "present": 1,
@@ -2153,8 +2145,8 @@
   "no-entry-point": 102
  },
  "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
- "measured_at_utc": "2026-11-17T03:03:54Z",
- "measured_commit": "333e9c076",
+ "measured_at_utc": "2026-11-17T03:06:44Z",
+ "measured_commit": "3faf427a1",
  "pin": null,
  "rows": [
   {
@@ -5012,15 +5004,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20000412-5.c:5:5)'",
-   "dynamic_wall": "unsupported:src/20000412-5.c",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000412-5.c",
    "sha256": "08f980ed32b546363beca355277a1c285f18ef9f55ee989e52a0cec0dc9d3235",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
