@@ -867,6 +867,10 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
     reallocAt m p 0 address = .error (.memUB (.reallocZero p)) := by
   simp [reallocAt]
 
+@[simp] theorem reallocAt_null (m : Mem) (size address : Nat) (h : size ≠ 0) :
+    reallocAt m Ptr.null size address = .ok (m.mallocAt size address) := by
+  simp [reallocAt, Ptr.null, h, mallocAt]
+
 /-! ## Well-formedness
 
 Four properties the interpreter will lean on, each stated about the
