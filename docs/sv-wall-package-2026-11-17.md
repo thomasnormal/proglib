@@ -41,3 +41,10 @@ surface still emits `T2:Initial: initial process outside the cycle semantic
 tier`; retaining that refusal is required until the time-zero state is part of
 the scheduler-derived run2 semantics. The real-design initial-process count
 is therefore unchanged.
+
+The hierarchical-value repro was measured next. Both extractor and ordinary
+collect-all retain `HierarchicalValueExpression` at `parsePExpr` for the
+generic `u.internal_value` read. The existing hierarchy flattener handles
+parser-native port connections, but it does not invent semantics for an
+arbitrary hierarchical value expression (§23.6); the loud refusal remains
+sound and the real-design present=7 count is unchanged.
