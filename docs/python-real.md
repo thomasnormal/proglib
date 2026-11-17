@@ -72,7 +72,11 @@ the node without lowering or source reparsing. The direct worker preserves
 ordered target/key/value evaluation, duplicate-key replacement, hashability
 errors, fresh scope and fresh dict allocation. Focused CPython 3.9.25 rows for
 `dictcomp_lab` match in both interpreter modes (6/6 rows, 0 refusals).
-The remaining filtered and multi-clause forms stay loud. The direct
+The remaining filtered and multi-clause forms stay loud. The focused rerun of
+the manifest's `token` module used the built runner and 24 battery calls: 16
+matched and 8 calls refused on independent ordering comparisons, so no
+additional DictComp-only function flip is claimed by that module-level probe.
+The direct
 worker now exists for the one-clause/no-filter shape, and its
 `evalDictCompStep` fuel-monotonicity conjunct is included in `Obs.lean`'s
 fixed-order mutual induction. The evaluator still refuses the AST arm because
