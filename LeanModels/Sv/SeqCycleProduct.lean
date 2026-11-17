@@ -16,6 +16,7 @@ assigns into `S` read only `S`, the domain evolves on its own:
   domains adds nothing to prove;
 * `tick_comm`: a coincident instant of two such domains is the two single-domain instants in either order (the
   ticks commute) on what each domain owns.
+* `dataV_quiet`: a data row's slot is the settle of the inputs it applies (no edge process runs, no register changes).
 
 Every edge body is nonblocking to whole signals (the obligations' form for several edge processes), so no edge process
 writes a memory and the memory view is one through the run (a memory written across domains is the memory slice's,
@@ -798,5 +799,55 @@ theorem CoreMemDesign.tick_comm {E : CoreMemDesign} (hP : E.SeqProfileI) (hO : E
       CoreMemDesign.lookup_matV_none _ hdx]
 
 #print axioms CoreMemDesign.tick_comm
+
+/-! ## A data row runs no edge process -/
+
+/-- **A DATA ROW'S SLOT IS THE SETTLE OF ITS INPUTS**: from a coherent state's view, a typed data row (no event of the
+design occurs) runs no edge process: the slot is the continuous assigns settled on the applied inputs, with the memory
+view unchanged (no register changes in a data row). -/
+theorem CoreMemDesign.dataV_quiet {E : CoreMemDesign} (hP : E.SeqProfileI) (hO : E.seqOblI = true)
+    {st : CoreMemState} (hc : E.Coherent st) {d : SvState} (hty : EntryTyped E.scalar.toDesign2 d)
+    (hd : E.DataRow (E.scalar.view st.scalar) d) (mv : MemV) :
+    E.dataV (E.scalar.view st.scalar, mv) d =
+      (do let p ← E.settleV mv (E.applyRow (E.scalar.view st.scalar) d); .ok (p, mv)) := by
+  have ht := (CoreMemDesign.seqOblI_spec hO).2.1
+  unfold CoreMemDesign.dataV CoreMemDesign.slotV CoreMemDesign.applyRow
+  dsimp only
+  cases hp0 : E.settleV mv (applyInputs2 E.scalar.toDesign2 d (E.scalar.view st.scalar)) with
+  | ok p0 =>
+      have hidem : E.settleV mv p0 = .ok p0 := CoreMemDesign.settleV_idem ht (CoreMemDesign.matV_applyRow hP hc hty) hp0
+      simp only [Res.ok_bind, hidem]
+      -- no edge process fires: the sources of the settled view are the applied ones, and no event occurs
+      have hsrc : ∀ x, x ∈ E.sources → SvState.lookup p0 x =
+          SvState.lookup (E.applyRow (E.scalar.view st.scalar) d) x := by
+        intro x hx
+        have hna : x ∉ assignTargets E.processes.toList := fun h' =>
+          CoreMemDesign.source_undriven hO hx (CoreMemDesign.assignTargets_driven x h')
+        rw [CoreMemDesign.settleV_frame hp0 hna, CoreMemDesign.matV_applyRow hP hc hty]
+        try rfl
+      have hquiet : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.fires (E.scalar.view st.scalar) p0 = false := by
+        intro f hf
+        rw [CoreMemEdge.fires_eq, List.any_eq_false]
+        intro e he
+        have hmem : e ∈ E.events := CoreMemDesign.mem_events.mpr ⟨f, hf, he⟩
+        have hes : e.src ∈ E.sources := List.mem_map.mpr ⟨e, hmem, rfl⟩
+        have hocc : e.occursIn (E.scalar.view st.scalar) (E.applyRow (E.scalar.view st.scalar) d) = false := by
+          unfold CoreMemDesign.DataRow CoreMemDesign.occurs at hd
+          rw [List.filter_eq_nil_iff] at hd
+          simpa using hd e hmem
+        simp only [SeqEvent.occursIn] at hocc ⊢
+        rw [SvState.bit0_congr (hsrc _ hes)]
+        simpa using hocc
+      rw [CoreMemDesign.edgesV_quiet _ hquiet]
+      simp only [Res.ok_bind]
+      show (do let s1 ← E.settleV mv (commitNba2 p0 []); let s2 ← E.settleV mv s1; .ok (s2, mv)) = _
+      rw [show commitNba2 p0 [] = p0 from rfl, hidem]
+      simp only [Res.ok_bind]
+      rw [hidem]
+      rfl
+  | timeout => rfl
+  | unsupported m => rfl
+
+#print axioms CoreMemDesign.dataV_quiet
 
 end LeanModels.Sv.Kernel

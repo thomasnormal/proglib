@@ -17,8 +17,9 @@ then `tick (Instant.rise clk)` by definition); nothing here is special to one cl
   slot's per-row equations, the claim from a run whose rows each carry their discipline fact).
 * `SeqProfile.separated_cycleRows`, `SeqRunsM_iff`: on a design whose only event is `posedge clk` every cycle stimulus
   keeps the discipline, so the single-clock judgment means what it meant (over every typed data list).
-* `eventTrace`, `TicksOnlyWith`, `FairWithin`: relations between clocks, as hypotheses of a claim (a derived or
-  divided clock by assumption; a bounded fairness), never part of the semantics.
+* `eventTrace` (the events of each row of a stimulus), `stepEvents` (the events of each step of a run, read on its
+  samples), `TicksOnlyWith`, `FairWithin`: relations between clocks, as hypotheses of a claim (a derived or divided
+  clock by assumption; a bounded fairness), never part of the semantics.
 
 Why the discipline (IEEE 1800-2023 §4.7, §9.4.2): the route applies a row's inputs first, then runs the processes whose
 events occurred. That is the standard's only resolution exactly when no process woken in the slot reads a signal the
@@ -28,7 +29,8 @@ process sees its clock event while its reset moves (`ResetStill`). Outside the d
 (the route's run, `runRows_slots`); a claim about it is then about the route's resolution, not the standard's.
 
 Theorems about a design with a read across domains are LANGUAGE-LEVEL: they describe the SystemVerilog semantics (a
-crossing read sees the source's committed value, old or new by §10.4.2), not hardware (metastability is not modelled).
+crossing read sees the source's value from before the slot: its nonblocking update commits after every woken process
+has read, §10.4.2), not hardware (metastability is not modelled).
 -/
 
 namespace LeanModels.Sv.Kernel
@@ -530,25 +532,32 @@ theorem SeqRunsM_iff {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
 /-! ## Relations between clocks: hypotheses of a claim, never the semantics
 
 "Every run" means every sequence of instants: any interleaving, any ratio, stopped clocks, coincident edges. A relation
-between clocks is a hypothesis of a claim, stated on the stimulus (the events each row makes from the inputs applied
-before it). Two examples: a clock that ticks only together with another (a derived or divided clock, by assumption),
-and a bounded fairness (an event occurs in every window of `n` rows). -/
+between clocks is a hypothesis of a claim, stated on what the claim sees: the events of each step of the run, read on
+its samples (`stepEvents`; the stimulus-level `eventTrace` reads them from the inputs applied before each row). Two
+examples: a clock that ticks only together with another (a derived or divided clock, by assumption), and a bounded
+fairness (an event occurs in every window of `n` steps). -/
 
 /-- The events of each row of a stimulus, from the inputs applied before it. -/
 def CoreMemDesign.eventTrace (E : CoreMemDesign) : SvState → List SvState → List (List SeqEvent)
   | _, [] => []
   | v, r :: rs => E.occurs v (E.applyRow v r) :: E.eventTrace (E.applyRow v r) rs
 
-/-- **`b` ticks only together with `a`**: every row in which `b` occurs is one in which `a` occurs (a clock derived
-from or divided from another, by assumption; the semantics does not know it). -/
-def CoreMemDesign.TicksOnlyWith (E : CoreMemDesign) (v : SvState) (rows : List SvState) (b a : SeqEvent) : Prop :=
-  ∀ evs ∈ E.eventTrace v rows, b ∈ evs → a ∈ evs
+/-- The events of step `k` of a run, read on its samples (from the sample after step `k` to the sample after step
+`k + 1`): what a claim inside a run judgment sees. -/
+def CoreMemDesign.stepEvents (E : CoreMemDesign) (tr : List (SvState × MemV)) (k : Nat) : List SeqEvent :=
+  match tr[k]?, tr[k + 1]? with
+  | some s, some s' => E.occurs s.1 s'.1
+  | _, _ => []
 
-/-- **Fairness, bounded**: the event `a` occurs in every window of `n` consecutive rows (the finite form of "`a` occurs
-infinitely often", with a bound on the gap). -/
-def CoreMemDesign.FairWithin (E : CoreMemDesign) (v : SvState) (rows : List SvState) (a : SeqEvent) (n : Nat) :
-    Prop :=
-  ∀ k, k + n ≤ rows.length → ∃ j evs, k ≤ j ∧ j < k + n ∧ (E.eventTrace v rows)[j]? = some evs ∧ a ∈ evs
+/-- **`b` ticks only together with `a`**: every step of a run in which `b` occurs is one in which `a` occurs (a clock
+derived from or divided from another, by assumption; the semantics does not know it). A hypothesis of a claim. -/
+def CoreMemDesign.TicksOnlyWith (E : CoreMemDesign) (tr : List (SvState × MemV)) (b a : SeqEvent) : Prop :=
+  ∀ k, b ∈ E.stepEvents tr k → a ∈ E.stepEvents tr k
+
+/-- **Fairness, bounded**: the event `a` occurs in every window of `n` consecutive steps of a run (the finite form of
+"`a` occurs infinitely often", with a bound on the gap). A hypothesis of a claim. -/
+def CoreMemDesign.FairWithin (E : CoreMemDesign) (tr : List (SvState × MemV)) (a : SeqEvent) (n : Nat) : Prop :=
+  ∀ k, k + n < tr.length → ∃ j, k ≤ j ∧ j < k + n ∧ a ∈ E.stepEvents tr j
 
 /-- The event trace has one entry per row. -/
 theorem CoreMemDesign.eventTrace_length (E : CoreMemDesign) :
@@ -679,7 +688,8 @@ A DOMAIN is a clock event with the registers its processes write (an asynchronou
 domain; one driver per signal makes the domains a partition of the registers). A CROSSING is a read, by an edge
 process of one domain, of a register of another (directly, or through continuous assigns). Crossings are where the
 interleaving of instants matters; with none, a design is the product of its single-domain parts. A claim about a
-crossing is LANGUAGE-LEVEL (the read sees the source's committed value, §10.4.2; metastability is not modelled). -/
+crossing is LANGUAGE-LEVEL (the read sees the source's value from before the slot, §10.4.2; metastability is not
+modelled). -/
 
 /-- A list without repeats, first occurrences kept (computed by `simp` on a literal list). -/
 def dedupL {α : Type} [DecidableEq α] (l : List α) : List α :=
