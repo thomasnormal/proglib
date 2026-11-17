@@ -273,3 +273,15 @@ claimed. Its affected-module build passes; the broad dependent build reaches
 878 targets and remains red only on pre-existing refusal expectation rows and
 lead-owned SeqCycle/function proofs, with the first refusal lines captured in
 the gate log.
+
+The pinned CV32E40P v1.0.1 handoff reaches a retained `BreakStatement` inside
+an edge-process loop at `rtl/riscv_hwloop_controller.sv:90` and
+`rtl/riscv_fetch_fifo.sv:157`. This is routed to ls-sv2 as its generic
+loop/process ingestion wall, with the minimal parameterized for/break repro
+and both pinned simulator rows retained there; ls-sv makes no source rewrite or
+semantic claim for it.
+
+The prim_packer `ready_o` handoff is a separate §6.6 resolved-net wall: its
+metadata reports two generated drivers, so the current E refusal is sound and
+must not be relabelled as an undriven-net z case. A per-driver strength and
+resolution relation remains an unassigned general-E item.
