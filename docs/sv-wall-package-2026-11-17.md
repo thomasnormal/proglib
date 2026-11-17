@@ -666,3 +666,13 @@ The urgent interface-port-connection row is distinct in the same
 boundary. The four Xcelium 24.03-s004 x/z rows and Icarus syntax limitation
 remain as recorded for this fixture. No interface connection lowering or
 semantic admission is added.
+
+## Urgent internal-clock-source wall remeasurement
+
+The urgent `internal_clock_repro.sv` fixture retains a posedge process driven
+by `generated_clock`, which an `always_comb` computes inside the module.
+Ordinary census emits the exact `Clock:source` refusal at
+`PDesign.clockReport`; canonical E then refuses with the `Event:time-zero`
+§9.2.2.2/§9.6 settled-start boundary. The five-row receipt matches Icarus
+Verilog 13.0 and Xcelium 24.03-s004. No derived-clock scheduling or hardware
+glitch semantics is added.
