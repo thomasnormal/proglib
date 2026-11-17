@@ -702,3 +702,11 @@ process without a supported edge route. Ordinary census emits the exact
 `Clock:implicit` refusal at the parser/design boundary, while its four-row
 receipt matches Icarus Verilog 13.0 and Xcelium 24.03-s004. No event-list
 sensitivity scheduler or source reinterpretation is added.
+
+## Urgent hierarchical-value wall remeasurement
+
+The urgent `hierarchical_value_repro.sv` fixture reads `u.internal_value`
+through a child instance. Ordinary census emits the exact
+`HierarchicalValueExpression / parsePExpr` refusal. Its two-row receipt
+matches Icarus Verilog 13.0 and Xcelium 24.03-s004. No hierarchical-name
+resolution or source lowering is added.
