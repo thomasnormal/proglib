@@ -25,6 +25,13 @@ price predicts zero new VERIFIED functions from an import-only change. The
 artifact is `import-wall-2026-11-17.json` (gate/ls-python artifact), and the
 next measured choice is the class-creation wall by agreed calls (2,015).
 
+The exact class-creation price drove 62 modules, 2,015 calls and 183
+MATCH calls. It contained 41 PARTIAL rows, 18 REFUSED rows, and 3 BODY-ONLY
+rows; the 383 public names include skipped/non-drivable entries, while the
+ranked denominator counts 282 modeled functions. No class-creation row
+produced a new VERIFIED function, so this wall also has zero measured
+function flips. The artifact is `class-creation-exact-2026-11-17.json` (gate/ls-python artifact).
+
 ## 2026-11-16 refresh
 
 The verified runner survey covered the current 183-module manifest and 1,542
