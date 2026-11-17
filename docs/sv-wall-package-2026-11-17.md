@@ -263,3 +263,13 @@ Current-head status after the concurrent public Python pushes: public master is
 flip above remains the current SV measurement; the E import-closure audit still
 reports the pre-existing `Sem2`/`Sem2Run`/`Spec2` reach and is retained as a
 red-before baseline in the lane gate log.
+
+The hierarchy child-aggregate preservation landing `67f623196` is also current.
+The canonical child and parameterized-hierarchy receipts regenerate and match
+Icarus Verilog 13.0 and Xcelium 24.03-s004. The typed aggregate port-target
+receipt still reports `PortConnection:target / parsePConn / hwif_out` after the
+earlier `VariableSymbol:type` boundary, so no typed-aggregate meaning is
+claimed. Its affected-module build passes; the broad dependent build reaches
+878 targets and remains red only on pre-existing refusal expectation rows and
+lead-owned SeqCycle/function proofs, with the first refusal lines captured in
+the gate log.
