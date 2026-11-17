@@ -298,3 +298,8 @@ At current public master `4f358ba16`, the wall-package semantic pin remains
 measurement documentation only. The anonymous real-design head remains 25
 modules total, 3 loading, and 3 running; no resolved-net count transition is
 claimed from this simulator-split measurement.
+
+The fresh Ibex exact-closure measurement is routed to ls-sv3 Param/enum
+ownership: 224 sources, 20 modules, 587 static unsupported nodes, and first
+wall `defaults: enum 'base_isa_e': unrecoverable packed dimensions` at
+`rtl/ibex_pkg.sv:36-39`. No ls-sv extractor or semantic change is made.
