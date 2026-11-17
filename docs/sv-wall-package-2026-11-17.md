@@ -155,3 +155,9 @@ stale (old source hash and spans). Approved re-extraction now makes the
 envelope byte-identical; `clk_two/check.py` reports ordinary run2
 `Clock:multiple` refusal and eight x/z rows matching Icarus Verilog 13.0 and
 Xcelium 24.03-s004.
+
+The event-list refusal receipts are current as well: `event_control_wall` and
+the implicit/signal event fixtures regenerate byte-identically, match all
+Icarus Verilog 13.0 and Xcelium 24.03-s004 x/z rows, and retain the exact
+`Clock:implicit` event-list refusal. No unsupported implicit sensitivity is
+executed by E.
