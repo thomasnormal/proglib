@@ -435,6 +435,28 @@ def killFrom (m : Mem) (start : Nat) : Mem :=
     | some c => if c.dur == .automatic then acc.kill o else acc
     | none => acc) m
 
+private theorem killFrom_fold_placements (xs : List Nat) (m : Mem) (start : Nat) :
+    (xs.foldl (fun acc i =>
+      let o := start + i
+      match acc.get? o with
+      | some c => if c.dur == .automatic then acc.kill o else acc
+      | none => acc) m).placements = m.placements := by
+  induction xs generalizing m with
+  | nil => rfl
+  | cons i xs ih =>
+    simp only [List.foldl]
+    rw [ih]
+    cases hget : m.get? (start + i) with
+    | none => simp [hget]
+    | some c =>
+      by_cases ha : (c.dur == .automatic) = true
+      · simp [hget, ha, kill]
+      · simp [hget, ha]
+
+@[simp] theorem killFrom_placements (m : Mem) (start : Nat) :
+    (m.killFrom start).placements = m.placements := by
+  exact killFrom_fold_placements (List.range (m.count - start)) m start
+
 /-! ### The one place the structural refusals are raised -/
 
 /-- Resolve a pointer to a live object and an in-bounds byte range.
