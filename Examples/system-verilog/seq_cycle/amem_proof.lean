@@ -29,7 +29,7 @@ closed on the computed views.
    and after the edge; cell 0 before the edge is the reset's write when the reset fell, else the held contents; every
    other cell never changes.
 3. **The claim over every run** (`am_runs`), from every coherent state (memory contents arbitrary), on every typed
-   stimulus: `rstn = 0` gives `q = 0` after the edge; a fall `1 → 0` gives `q = 0` already BEFORE the edge; `rstn = 1`
+   stimulus keeping the input discipline (the reset's assertion never in a row with a data change, §4.7): `rstn = 0` gives `q = 0` after the edge; a fall `1 → 0` gives `q = 0` already BEFORE the edge; `rstn = 1`
    gives `q = d` after the edge; and every cell `k ≠ 0` keeps its contents in every cycle of every run.
 
 Oracle: Icarus Verilog 12.0 (stable), a testbench outside the repository (1069 rows at (W, N) = (2, 2), (4, 4), (8, 3):
@@ -187,7 +187,7 @@ theorem amClaim_of_runSat (W : Nat) (σ : SvState × MemV) (ins : List SvState)
 
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state (memory contents arbitrary), on every typed
-stimulus. -/
+stimulus keeping the input discipline. -/
 theorem am_runs (W : Nat) (hW1 : 2 ≤ W) (hW2 : W < 2 ^ 30) (N : Nat) (hN1 : 2 ≤ N) (hN2 : N < 2 ^ 30) :
     SeqRunsM (am.e W N) "clk" (AmClaim W) := by
   obtain ⟨E, hE, hP, hO⟩ := am_structure W hW1 hW2 N hN1 hN2

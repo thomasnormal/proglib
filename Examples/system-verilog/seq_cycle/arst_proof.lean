@@ -26,7 +26,8 @@ low slot, so a fall fires the process THERE, before the clock edge, and the pre 
    activation on the pre sample. Exact on 4-state values (an x reset that "falls" reads `!x`, not true: the `else`
    branch, as the simulator does).
 3. **The claim** (`arst_runs`): in every run, from every coherent state (the x start and every power-up included), on
-   every typed stimulus: a cycle that sees `rst_n = 0` shows `q = 0` after its edge; a cycle whose `rst_n` falls from
+   every typed stimulus keeping the input discipline (the reset's assertion never in a row with a data change, §4.7:
+   the race the route resolves as "all inputs first", which the judgment no longer claims): a cycle that sees `rst_n = 0` shows `q = 0` after its edge; a cycle whose `rst_n` falls from
    1 to 0 shows `q = 0` already BEFORE its clock edge (the asynchronous reset); `rst_n = 1, en = 1` loads `d`;
    `rst_n = 1, en = 0` holds; and with `rst_n = 1` the pre sample shows the previous cycle's `q`.
 
@@ -276,7 +277,8 @@ theorem arstClaim_of_runF (N : Nat) (v : SvState) (ins : List SvState) : ArstCla
         simp [arstF, view, lk, SvState.lookup, fell_into_one]
 
 set_option maxHeartbeats 1000000 in
-/-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus. -/
+/-- **THE CLAIM**: in every run of the route, from every coherent state, on every typed stimulus keeping the input
+discipline. -/
 theorem arst_runs (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqRuns (arst.e N) "clk" (ArstClaim N) := by
   obtain ⟨E, hE, hP, hO⟩ := arst_structure N h1 h2
   have hE0 := hE
