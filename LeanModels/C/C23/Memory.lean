@@ -747,6 +747,20 @@ placement annotation alone cannot change whether a range resolves. -/
     m.storeBytes {p with address := address} bs = m.storeBytes p bs := by
   simp [storeBytes, resolve_address_irrel]
 
+/- Pointer representations are read from abstract bytes; the destination
+   pointer's concrete placement is not part of the access decision. -/
+@[simp] theorem loadPtr_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    m.loadPtr {p with address := address} = m.loadPtr p := by
+  simp [loadPtr, resolve_address_irrel]
+
+@[simp] theorem storePtr_address_irrel (m : Mem) (p q : Ptr) (address : Nat) :
+    m.storePtr {p with address := address} q = m.storePtr p q := by
+  simp [storePtr, storeBytes_address_irrel]
+
+@[simp] theorem storePtrInt_address_irrel (m : Mem) (p q : Ptr) (address : Nat) :
+    m.storePtrInt {p with address := address} q = m.storePtrInt p q := by
+  simp [storePtrInt, storeBytes_address_irrel]
+
 def ptrEqBoundary (m : Mem) (a b : Ptr) : Bool :=
   match a.obj, b.obj with
   | some x, some y =>
