@@ -1654,6 +1654,14 @@ theorem callocAt_placement_lookup (m : Mem) (n size address : Nat) :
   simpa [callocAt] using
     (allocZeroedAt_placement_lookup m .allocated (n * size) none address)
 
+theorem reallocAt_null_placement_lookup (m : Mem) (size address : Nat) (h : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.placement? m.objs.length) = .ok (some address) := by
+  rw [reallocAt_null m size address h]
+  simp only [Except.map, Except.ok.injEq]
+  simpa [mallocAt, alloc] using
+    (allocAt_placement_lookup m .allocated size none address)
+
 theorem allocZeroedAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
     (ty : Option CType) (address : Nat) (q : ObjId)
     (hq : q ≠ m.objs.length) :
