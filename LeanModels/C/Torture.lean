@@ -622,6 +622,20 @@ def layoutFor (envl : Envelope) : Layout :=
     match observedPointeeFor t with
     | some (_, _, layout) => recordFieldSize layout f
     | none => none
+  let observedFieldSizeDeclFor := fun (did : DeclarationId) (f : String) =>
+    match ds.find? (fun q => match q with
+      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+          ds.any (fun r => match r with
+            | .record (some rrid) _ _ (some _) _ => rrid == rid
+            | _ => false)
+      | _ => false) with
+    | some (.var _ _ _ _ _ (some rid) _ _) =>
+        match ds.find? (fun q => match q with
+          | .record (some rrid) _ _ (some _) _ => rrid == rid
+          | _ => false) with
+        | some (.record _ _ _ (some layout) _) => recordFieldSize layout f
+        | _ => none
+    | _ => none
   let observedFieldOffType := fun (t : CType) (memberTy : CType) =>
     match observedPointeeFor t with
     | some (_, members, layout) =>
@@ -666,6 +680,7 @@ def layoutFor (envl : Envelope) : Layout :=
     typeSize := observedTypeSize
     pointeeSize := observedPointeeSize
     fieldSize := observedFieldSizeFor
+    fieldSizeDecl := observedFieldSizeDeclFor
     fieldOffType := observedFieldOffType
     fieldOffDecl := declFieldOff
     elem := fun t => arrayOf (resolve tds 8 t)

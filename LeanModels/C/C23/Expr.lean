@@ -446,6 +446,8 @@ structure Layout where
   member type is a function pointer, whose spelling is intentionally not
   re-parsed by the layout fallback. -/
   fieldSize : CType → String → Option Nat := fun _ _ => none
+  /-- Frontend-observed member extent keyed by the base declaration identity. -/
+  fieldSizeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   /-- Declaration-identity lookup for block-local records whose tag spelling
   collides with another record in the same translation unit. -/
   fieldOffDecl : DeclarationId → String → Option Nat := fun _ _ => none
@@ -494,7 +496,7 @@ def Layout.unknown : Layout :=
     fieldOffType := fun _ _ => none
     typeSize := fun _ => none
     pointeeSize := fun _ => none
-    fieldSize := fun _ _ => none
+    fieldSize := fun _ _ => none, fieldSizeDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none
     flexibleField := fun _ _ => false
@@ -1761,7 +1763,8 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
   match off? with
   | some off =>
       match (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
-          (fun _ => ctx.layout.fieldSize base.ty field) with
+          (fun _ => (directDeclId base).bind (fun did => ctx.layout.fieldSizeDecl did field))
+          |>.orElse (fun _ => ctx.layout.fieldSize base.ty field) with
       | some sz => pure (Mem.memberRange basePtr off sz)
       | none => refuseUnsupported s!"no layout for field '{field}'"
   | none => refuseUnsupported s!"no layout for field '{field}'"
