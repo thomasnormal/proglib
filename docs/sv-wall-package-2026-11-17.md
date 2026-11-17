@@ -676,3 +676,13 @@ Ordinary census emits the exact `Clock:source` refusal at
 §9.2.2.2/§9.6 settled-start boundary. The five-row receipt matches Icarus
 Verilog 13.0 and Xcelium 24.03-s004. No derived-clock scheduling or hardware
 glitch semantics is added.
+
+## Urgent multiple-edge-clock wall remeasurement
+
+The urgent `multi_clock_domain.sv` fixture has two independent input clocks.
+Ordinary run2 census emits the exact `Clock:multiple` refusal from
+`PDesign.clockReport`, preserving the one-clock route's sound boundary. The
+direct canonical-E receipt matches eight separate, coincident, stopped, and
+x/z clock rows on Icarus Verilog 13.0 and Xcelium 24.03-s004 without selecting
+an interleaving. No multi-clock scheduler or hardware clock-domain claim is
+added.
