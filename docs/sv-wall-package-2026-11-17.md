@@ -4,15 +4,15 @@ This note records the next ordered wall measurement after the asynchronous-reset
 wall.  The asynchronous-reset row is parked: the current public real-design
 census reports `present=0`, so there is no live refusal to remove.
 
-The child-instance repro `cleanroom/child_instance_scan.sv` was extracted
+The child-instance repro the clean-room child-instance fixture was extracted
 at the current public head and passed the ordinary collect-all census with zero
 refusals.  The native-memory child repro
-`cleanroom/child_instance_memory.sv` also passed with zero refusals.
+the clean-room native-memory child fixture also passed with zero refusals.
 These runs exercise the existing source-shaped hierarchy route; they do not
 claim that the real-design table's four child-instance modules have moved.
 
 The next ordered port-connection-target repro,
-`cleanroom/port_connection_target_struct_array.sv`, still reaches the
+the clean-room port-connection-target fixture, still reaches the
 earlier typed-aggregate boundary first.  Its ordinary census reports
 `VariableSymbol:type` for `state` and then
 `Instantiation:E:unsupported: E memory route does not yet admit module member
@@ -22,8 +22,7 @@ until the typed struct declaration and member-path semantics are available.
 This wall is therefore parked at its measured dependency, with no count
 reduction claimed.
 
-The census was run with the repository's `harness/sv/refusal_census.py` and all
-gate artifacts were written outside this repository.
+The census was run with the repository's `harness/sv/refusal_census.py`; simulator and census artifacts remain outside this repository.
 
 The next process wall is the retained event-controlled procedural block
 (`present=8` in the current table).  Its clean-room forms are
@@ -120,7 +119,7 @@ rerunning ordinary collect-all also returns zero refusals. The discrepancy is
 therefore not caused by a stale checked-in envelope; the older child-instance
 handoff is stale relative to the current parser and route.
 
-The current real-design measurement record also confirms the semantic landing: on
+The current independent measurement record also confirms the semantic landing: on
 2026-11-16, canonical hierarchical E recursively merged
 `scan_chain` → generated `scan_leaf` children, substituted genvar-indexed port
 expressions, and matched Icarus/Xcelium (`q=0,0,0,1`). The remaining action is
