@@ -279,6 +279,14 @@ def exposedAddress (p : Ptr) : Int :=
   | none => 0
   | some _ => (p.address : Int) + 1
 
+@[simp] theorem exposedAddress_toObjectAt (o : ObjId) (address : Nat) :
+    exposedAddress (toObjectAt o address) = (address : Int) + 1 := by
+  simp [exposedAddress, toObjectAt]
+
+theorem exposedAddress_provenance_irrel (o₁ o₂ : ObjId) (address : Nat) :
+    exposedAddress (toObjectAt o₁ address) = exposedAddress (toObjectAt o₂ address) := by
+  simp [exposedAddress_toObjectAt]
+
 def fromExposedAddress (n : Int) : Option Ptr :=
   if n == 0 then some null
   else if n > 0 then
