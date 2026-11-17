@@ -24,3 +24,12 @@ reduction claimed.
 
 The census was run with the repository's `harness/sv/refusal_census.py` and all
 gate artifacts were written under `/scratch/thomas-ahle/gate/ls-sv/`.
+
+The next process wall is the retained event-controlled procedural block
+(`present=8` in the current table).  Its clean-room forms are
+`event_control_repro.sv` and `event_generated_repro.sv`; the ordinary boundary
+is the retained-process/event-list refusal.  Admitting it requires the
+choice-bearing scheduler integration, which is explicitly prohibited before
+the inbox records `ACCEPTED S1`, so this item remains a loud refusal and is
+parked without a count claim.  The following initial-process wall is subject
+to the same time-zero scheduler dependency.
