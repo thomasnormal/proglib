@@ -137,3 +137,10 @@ The older generated-child wrong-answer audit is closed by the same hierarchy
 landing. `generate_unbound_parameter_canonical_e/check.py` now reports eight
 rows matching E, Icarus Verilog 13.0, and Xcelium 24.03-s004; the expected
 connected-child sequence is `1,1,1,1,z,1,0,1`.
+
+The internal-clock and internally driven-reset refusals were also rerun as
+soundness receipts. `clk_internal/check.py` and `clk_rst_int/check.py` each
+report 10 x/z rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004; the
+ordinary loader refuses `Clock:source`/`Clock:reset`, and canonical E refuses
+the corresponding event-source boundary. No internal-clock or reset meaning is
+silently approximated.
