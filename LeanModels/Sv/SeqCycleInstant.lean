@@ -439,6 +439,14 @@ theorem SeqRunsI.intro {r : Res CoreMemDesign} {E : CoreMemDesign}
   SeqRunsI.of_rowEqs hr hP hO Inv hinv (fun σ row σ' => E.slotV σ.1 σ.2 row = .ok σ')
     (fun σ row hi hne hty => by obtain ⟨σ', h1, h2⟩ := hstep σ row hi hne hty; exact ⟨σ', h1, h2, h1⟩) hrun
 
+/-- A claim over every sequence of instants implies every weaker claim. -/
+theorem SeqRunsI.mono {r : Res CoreMemDesign} {P Q : List SvState → List (SvState × MemV) → Prop}
+    (h : SeqRunsI r P) (hPQ : ∀ rows tr, P rows tr → Q rows tr) : SeqRunsI r Q := by
+  obtain ⟨E, hr, hall⟩ := h
+  exact ⟨E, hr, fun st rows hc hmc hty hs => by
+    obtain ⟨outs, ho, hp⟩ := hall st rows hc hmc hty hs
+    exact ⟨outs, ho, hPQ _ _ hp⟩⟩
+
 /-! ## Single clock is the one-event instance -/
 
 /-- **On a design whose only event is `posedge clk`, every cycle stimulus keeps the input discipline**, from every view:
