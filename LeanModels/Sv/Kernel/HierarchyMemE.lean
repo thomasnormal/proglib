@@ -59,8 +59,10 @@ private partial def hStmt (pfx : String) : PStmt → PStmt
 
 private def hProcess (pfx : String) (clockMap : List (String × String)) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
   | .alwaysPlain c b => .alwaysPlain (clockMap.lookup c |>.getD (pfx ++ c)) (hStmt pfx b)
   | .alwaysComb b => .alwaysComb (hStmt pfx b)
+  | .alwaysLatch b => .alwaysLatch (hStmt pfx b)
   | .alwaysImplicit b => .alwaysImplicit (hStmt pfx b)
   | .alwaysFFR c r b hi => .alwaysFFR (clockMap.lookup c |>.getD (pfx ++ c))
       (clockMap.lookup r |>.getD (pfx ++ r)) (hStmt pfx b) hi

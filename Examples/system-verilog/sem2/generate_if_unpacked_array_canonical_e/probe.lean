@@ -7,6 +7,7 @@ load_design_sv2 generateIfUnpackedArray from
 
 def kinds : CoreMemProc → String
   | .comb _ => "comb"
+  | .latch _ => "latch"
   | .edge _ => "edge"
   | .assign _ _ => "assign"
   | .initial _ => "initial"

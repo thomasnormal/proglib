@@ -723,7 +723,7 @@ def runMemProcess (d : MemDesign2) (fuel : Nat) (st : MemCycleState)
   | .alwaysFF _ body | .alwaysPlain _ body | .alwaysFFR _ _ body _ =>
       execMemStmt d fuel st q body
   | .alwaysFFNegedge _ _ => .unsupported "AlwaysPosedge:edge: negative-edge clock is outside the provisional memory cycle route"
-  | .alwaysComb body => execMemStmt d fuel st q body
+  | .alwaysComb body | .alwaysLatch body => execMemStmt d fuel st q body
   | .initial body => execMemStmt d fuel st q body
   | .assign target e => do
       let v ← evalMemExpr d fuel st (d.env.widths.lookup target) e

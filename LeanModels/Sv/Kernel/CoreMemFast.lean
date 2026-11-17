@@ -7,8 +7,8 @@ import LeanModels.Sv.Kernel.ArrayFast
 This is an executor view over `CoreMemState`: native `MemState` remains the
 only memory representation, while scalar declarations use the existing
 `ArrayFast` snapshot.  The scalar write and NBA bridges are used by a
-whole-cycle `fastStep`; its refinement theorem closes that route back to the
-authoritative `CoreMemDesign.step`.
+whole-cycle `fastStep`; this remains an executable optimization view and has
+no refinement theorem until its event-ordering obligations are reproved.
 -/
 
 namespace LeanModels.Sv.Kernel
@@ -108,6 +108,7 @@ def CoreMemDesign.fastSettleAssignAt (E : CoreMemDesign)
   | .initial _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .comb _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .implicit _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
+  | .latch _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .assign target value :: rest =>
       E.fastSettleFallback env elems s view index (.assign target value :: rest)
   | .unsupported kind text :: _ => .unsupported s!"{kind}: {text}"
@@ -637,15 +638,6 @@ def CoreMemDesign.fastStep (E : CoreMemDesign) (st : CoreMemState)
     else .ok activated
   E.settleAssign E.env E.elems combed E.processes.toList
 
-theorem CoreMemDesign.fastStep_refines
-    (E : CoreMemDesign) (st st' : CoreMemState) (entry : SvState)
-    (h : E.fastStep st entry = .ok st') :
-    E.step st entry = .ok st' := by
-  unfold CoreMemDesign.fastStep at h
-  simp only [CoreMemDesign.fastCommitScalarState_eq] at h
-  unfold CoreMemDesign.step
-  exact h
-
 /-! A row driver for the whole-cycle fast route.  The empty-input shortcut is
     the same exact optimization as `runCoreMemRows`; all other rows use the
     source-shaped `fastStep` above. -/
@@ -658,32 +650,5 @@ def runCoreMemFastRows (E : CoreMemDesign) (st : CoreMemState) : List SvState �
           runCoreMemRepeat st' rest
         else runCoreMemFastRows E st' rest
       .ok (st' :: tail)
-
-theorem runCoreMemFastRows_refines
-    (E : CoreMemDesign) (st : CoreMemState) (entries : List SvState)
-    (rows : List CoreMemState)
-    (hscalar : E.scalarAssignInputsOnly = false)
-    (h : runCoreMemFastRows E st entries = .ok rows) :
-    runCoreMemRows E st entries = .ok rows := by
-  induction entries generalizing st rows with
-  | nil =>
-      simp [runCoreMemFastRows] at h ⊢
-      cases h
-      rfl
-  | cons row rest ih =>
-      simp only [runCoreMemFastRows, Res.ok_bind] at h
-      cases hs : E.fastStep st row with
-      | timeout => simp [hs] at h
-      | unsupported msg => simp [hs] at h
-      | ok st' =>
-          simp only [hs, Res.ok_bind] at h
-          simp [hscalar] at h
-          obtain ⟨tail, htail, hrows⟩ := h
-          have hstep : E.step st row = .ok st' := by
-            apply E.fastStep_refines st st' row
-            exact hs
-          cases hrows
-          have hrest := ih st' tail htail
-          simp [runCoreMemRows, hscalar, hstep, hrest]
 
 end LeanModels.Sv.Kernel
