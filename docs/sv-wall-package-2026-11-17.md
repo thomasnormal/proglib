@@ -292,3 +292,9 @@ two-driver `assign_net_resolution.sv` control prints `y=x` on Icarus Verilog
 startup split: Icarus prints `conflict=x, agree=1, z_only=z, unknown=x`, while
 Xcelium prints `x,x,x,x` at time zero. No canonical-E agreement is claimed for
 that split; both controls remain outside the E driver-set semantics.
+
+At current public master `4f358ba16`, the wall-package semantic pin remains
+`fc95337c5`; subsequent SV commits are refusal preservation, routing, and
+measurement documentation only. The anonymous real-design head remains 25
+modules total, 3 loading, and 3 running; no resolved-net count transition is
+claimed from this simulator-split measurement.
