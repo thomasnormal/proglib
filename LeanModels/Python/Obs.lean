@@ -608,11 +608,16 @@ theorem fuelMono (fuel : Nat) :
     (∀ (m : Module) (st : FrameState) (key value target iter : Expr)
       (ifs : Array Expr) (sp : Span) (fuel' : Nat), fuel ≤ fuel' →
       evalExpr m fuel st (.dictComp key value target iter ifs sp) ⊑ʳ
-        evalExpr m fuel' st (.dictComp key value target iter ifs sp)) := by
+        evalExpr m fuel' st (.dictComp key value target iter ifs sp)) ∧
+    (∀ (m : Module) (st : FrameState) (saved : Env) (key value target : Expr)
+      (ifs : List Expr) (xs : List RVal) (acc : List (RVal × RVal)) (fuel' : Nat),
+      fuel ≤ fuel' →
+      evalDictCompStep m fuel st saved key value target ifs xs acc ⊑ʳ
+        evalDictCompStep m fuel' st saved key value target ifs xs acc) := by
   induction fuel with
   | zero =>
     -- Fuel 0 is `.timeout` everywhere, the bottom of `⊑ʳ`.
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · exact fun m st e fuel' _ => Or.inl (by simp [evalExpr])
     · exact fun m st es fuel' _ => Or.inl (by simp [evalExprs])
     · exact fun m st op e rest fuel' _ => Or.inl (by simp [evalBoolChain])
@@ -637,11 +642,13 @@ theorem fuelMono (fuel : Nat) :
         Or.inl (by simp [evalListCompStep])
     · exact fun m st key value target iter ifs sp fuel' _ =>
         Or.inl (by simp [evalExpr])
+    · exact fun m st saved key value target ifs xs acc fuel' _ =>
+        Or.inl (by simp [evalDictCompStep])
   | succ fuel ih =>
     obtain ⟨ihE, ihEs, ihB, ihC, ihS, ihSs, ihW, ihCall, ihFor, ihItems, ihForL,
       ihAttrC, ihStep, ihGen, ihForG, ihDrain, ihAnyAll, ihClosure, ihLCIfs, ihLCStep,
-      ihDC⟩ := ih
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      ihDC, ihDCStep⟩ := ih
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     -- evalExpr
     · intro m st e fuel' hf
       cases fuel' with
@@ -2323,6 +2330,32 @@ theorem fuelMono (fuel : Nat) :
       | succ k =>
           simp only [evalExpr]
           exact Run.le_refl _
+    · intro m st saved key value target ifs xs acc fuel' hf
+      cases fuel' with
+      | zero => exact absurd hf (Nat.not_succ_le_zero fuel)
+      | succ k =>
+        have hk : fuel ≤ k := Nat.le_of_succ_le_succ hf
+        cases xs with
+        | nil => exact Run.le_refl _
+        | cons x rest =>
+          simp only [evalDictCompStep]
+          refine Run.le_bind (Run.le_refl _) fun st env => ?_
+          refine Run.le_bind
+            (ihLCIfs m { st with locals := env } ifs k hk) fun st keep => ?_
+          cases keep with
+          | false => exact ihDCStep m st saved key value target ifs rest acc k hk
+          | true =>
+            refine Run.le_bind (ihE m st key k hk) fun st kv => ?_
+            refine Run.le_bind (ihE m st value k hk) fun st vv => ?_
+            by_cases hh : hashableKey kv
+            · simp only [hh, ↓reduceIte]
+              exact ihDCStep m st saved key value target ifs rest (dictStore acc kv vv).1 k hk
+            · simp only [hh, ↓reduceIte]
+              cases hr : keyRefusal st.world.heap kv with
+              | ok u => exact ihDCStep m st saved key value target ifs rest (dictStore acc kv vv).1 k hk
+              | exn e => exact Run.le_refl _
+              | timeout => exact Run.le_refl _
+              | unsupported msg => exact Run.le_refl _
 
 /-! Fuel transport for the proof-side ListComp seam. These helpers sit after
 the main mutual theorem so they can use its existing `evalExpr` projection. -/

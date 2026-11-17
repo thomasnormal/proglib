@@ -70,13 +70,14 @@ loud: `Expr.dictComp` has synchronized AST, JSON, trunk/monadic evaluator, and
 `Obs.lean` fuel/world-invariance cases, and both evaluators return the named
 refusal. The CPython extractor still emits whole-node `DictComp` refusal, so no
 real program has been admitted and no semantic flip is claimed. The direct
-worker probe is parked at the shared proof boundary. A trunk worker compiles
-for the one-clause/no-filter shape, but admitting it requires a new
-`evalDictCompStep` fuel-monotonicity conjunct in `Obs.lean`'s fixed-order
-mutual induction, plus the corresponding `PayloadBlind` arm. The monadic
-continuation requires a new `Kont.dictComp` field and its own generated proof
-bundle. No local shortcut or theorem weakening is sound. The extractor remains
-loud, so no semantic flip is claimed before that bundle is priced and built.
+worker now exists for the one-clause/no-filter shape, and its
+`evalDictCompStep` fuel-monotonicity conjunct is included in `Obs.lean`'s
+fixed-order mutual induction. The evaluator still refuses the AST arm because
+the remaining `PayloadBlind` swap theorem must cover the recursive walk and its
+fresh dictionary allocation; the monadic continuation likewise still needs a
+`Kont.dictComp` field and proof bundle. No local shortcut or theorem weakening
+is sound. The extractor remains loud, so no semantic flip is claimed before
+those remaining bundles are built.
 
 The fallback `Starred:call` probe has now crossed its extractor boundary: the
 extractor admits `ast.Starred` positional arguments into the existing synthetic

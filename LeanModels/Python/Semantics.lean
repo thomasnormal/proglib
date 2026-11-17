@@ -9207,6 +9207,42 @@ def evalListCompStep (m : Module) (fuel : Nat) (st : FrameState) (saved : Env)
         evalListCompStep m fuel st saved elt target ifs rest acc
   termination_by structural fuel
 
+/- The one-clause dictionary-comprehension walk.  The target assignment and
+filters use the same workers as list comprehensions; key evaluation precedes
+value evaluation, and each accepted pair is inserted immediately so duplicate
+keys retain their first position while taking the last value. -/
+def evalDictCompStep (m : Module) (fuel : Nat) (st : FrameState) (saved : Env)
+    (key value target : Expr) (ifs : List Expr)
+    (xs : List RVal) (acc : List (RVal × RVal)) : Run FrameState RVal :=
+  match fuel with
+  | 0 => .timeout
+  | fuel + 1 =>
+    match xs with
+    | [] =>
+      let st' := { st with world :=
+        { st.world with heap := st.world.heap.push (.dict acc.reverse.toArray 0) } }
+      .ok { st' with locals := saved } (.ref st.world.heap.size)
+    | x :: rest =>
+      Run.liftRes st (assignToH st.world.heap st.locals target x) ⤳ fun st env =>
+      evalListCompIfs m fuel { st with locals := env } ifs ⤳ fun st keep =>
+      if keep then
+        evalExpr m fuel st key ⤳ fun st kv =>
+        evalExpr m fuel st value ⤳ fun st vv =>
+        if hashableKey kv then
+          evalDictCompStep m fuel st saved key value target ifs rest
+            (dictStore acc kv vv).1
+        else
+          match (keyRefusal st.world.heap kv : Res Unit) with
+          | .ok _ =>
+              evalDictCompStep m fuel st saved key value target ifs rest
+                (dictStore acc kv vv).1
+          | .exn e => .exn st e
+          | .timeout => .timeout
+          | .unsupported msg => .unsupported msg
+      else
+        evalDictCompStep m fuel st saved key value target ifs rest acc
+  termination_by structural fuel
+
 /-- Evaluate an expression. Since H1 expressions thread the frame state
 (calls mutate the shared world once the dict tier lands; in stage H1-1 the
 state rides through unchanged but the TYPE already tells the truth).
