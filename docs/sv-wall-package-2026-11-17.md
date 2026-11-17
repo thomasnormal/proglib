@@ -348,6 +348,11 @@ The canonical memory-initialization receipt is current:
 initialization, known index, and x index) matching canonical E, Icarus Verilog
 13.0, and Xcelium 24.03-s004.
 
+The `$readmemh` ROM receipt is current:
+`readmemh_rom_canonical_e/check.py` regenerates its envelope byte-identically
+and reports five time-zero rows matching canonical E, Icarus Verilog 13.0, and
+Xcelium 24.03-s004.
+
 CURRENT HEAD CORRECTION — 2026-11-17T11:05Z
 
 Public master is now `1f8c98756`; the intervening public change is a
