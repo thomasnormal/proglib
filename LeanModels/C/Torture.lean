@@ -422,8 +422,8 @@ def observedRecordFacts (envl : Envelope) :
       | .record _ _ nested _ _ => nestedFacts nested
       | _ => [])
   let facts := ds.filterMap fun d => match d with
-    | .record (some _) (some nm) fields (some layout) _ =>
-        match checkedRecordLayout? fields layout with
+    | .record (some recordId) (some nm) fields (some _) _ =>
+        match observedRecordLayout? envl recordId |>.bind (checkedRecordLayout? fields) with
         | none => none
         | some checked =>
             if recordHasBlockingUnsupported fields then none
@@ -471,7 +471,8 @@ def observedRecordFacts (envl : Envelope) :
                     | _ => none
                   let tag := if checked.tagKind == "union" then "union " else "struct "
                   some (tag ++ nm, members, checked)
-        | _ => none
+        | some _ => none
+        | none => none
     | _ => none
   facts ++ ds.flatMap (fun d => match d with
     | .record _ _ fields _ _ => nestedFacts2 fields
