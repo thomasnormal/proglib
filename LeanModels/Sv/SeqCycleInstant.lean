@@ -548,4 +548,150 @@ theorem CoreMemDesign.eventTrace_length (E : CoreMemDesign) :
   | _, [] => rfl
   | v, _ :: rs => by simp [CoreMemDesign.eventTrace, CoreMemDesign.eventTrace_length E _ rs]
 
+/-- **In a row of the discipline in which an event occurs, nothing but event sources moves** (a data row has no event;
+an instant row moves only event sources). -/
+theorem CoreMemDesign.rowOk_still {E : CoreMemDesign} {v r : SvState} (hr : E.DataRow v r ∨ E.InstantRow v r)
+    {e : SeqEvent} (he : e ∈ E.events) (ho : e.occursIn v (E.applyRow v r) = true) {n : String}
+    (hn : n ∉ E.sources) : SvState.lookup (E.applyRow v r) n = SvState.lookup v n := by
+  rcases hr with hd | hi
+  · unfold CoreMemDesign.DataRow CoreMemDesign.occurs at hd
+    exact absurd (List.mem_filter.mpr ⟨he, ho⟩) (by rw [hd]; simp)
+  · exact hi.2.1 n hn
+
+/-! ## A slot reads its row only through the values it applies (for the per-row equations) -/
+
+/-- The row binding every input port (clocks, resets, data) to the value the row `r` applies to the view `v`. -/
+def CoreMemDesign.appliedRow (E : CoreMemDesign) (r v : SvState) : SvState :=
+  E.scalar.toDesign2.inputNames.toList.map fun n => (n, appliedIn r v n)
+
+private theorem lookup_map_pair' (f : String → LVec) : ∀ (ns : List String) (n : String), n ∈ ns →
+    SvState.lookup (ns.map fun m => (m, f m)) n = some (f n)
+  | [], _, h => by simp at h
+  | m :: ms, n, h => by
+      by_cases hmn : m = n
+      · subst hmn; simp [SvState.lookup]
+      · have hmn' : (m == n) = false := by simpa using hmn
+        simp only [List.map_cons, SvState.lookup, hmn', Bool.false_eq_true, ↓reduceIte]
+        simp only [List.mem_cons] at h
+        rcases h with h | h
+        · exact absurd h.symm hmn
+        · exact lookup_map_pair' f ms n h
+
+private theorem lookup_some_of_key' : ∀ (v : SvState) (n : String), n ∈ v.map Prod.fst →
+    ∃ y, SvState.lookup v n = some y
+  | [], _, h => by simp at h
+  | (k, w) :: rest, n, h => by
+      by_cases hk : k = n
+      · exact ⟨w, by simp [SvState.lookup, hk]⟩
+      · have hk' : (k == n) = false := by simpa using hk
+        simp only [SvState.lookup, hk', Bool.false_eq_true, ↓reduceIte]
+        simp only [List.map_cons, List.mem_cons] at h
+        rcases h with h | h
+        · exact absurd h.symm hk
+        · exact lookup_some_of_key' rest n h
+
+/-- **A slot reads its row only through the values it applies**: on a view with every declaration, a row applies the
+same inputs as the row binding every input port to its applied value. -/
+theorem CoreMemDesign.applyRow_applied {E : CoreMemDesign} (hP : E.SeqProfileI) {v : SvState} (hv : E.ShapeV v)
+    (r : SvState) : E.applyRow v r = E.applyRow v (E.appliedRow r v) := by
+  have h4' : ∀ dc ∈ E.scalar.toDesign2.decls.toList, dc.isInput = true → dc.twoState = false :=
+    fun dc hdc _ => hP.four dc (by simpa [Elab.toDesign2] using hdc)
+  have hkeys : ∀ n ∈ E.scalar.toDesign2.inputNames.toList, n ∈ v.map Prod.fst := by
+    intro n hn
+    rw [hv.1]
+    obtain ⟨dc, hdc, -, rfl⟩ : ∃ dc ∈ E.scalar.decls.toList, dc.isInput = true ∧ dc.name = n := by
+      simpa [Design2.inputNames, Elab.toDesign2] using hn
+    exact List.mem_map_of_mem (f := Decl.name) hdc
+  apply SvState.ext
+  · unfold CoreMemDesign.applyRow; rw [keys_applyInputs2 _ _ h4' hkeys, keys_applyInputs2 _ _ h4' hkeys]
+  · unfold CoreMemDesign.applyRow; rw [keys_applyInputs2 _ _ h4' hkeys, hv.1]; exact hP.names
+  · intro n
+    rw [CoreMemDesign.lookup_applyRow hP.four, CoreMemDesign.lookup_applyRow hP.four]
+    split
+    · rename_i hn
+      obtain ⟨y, hy⟩ := lookup_some_of_key' v n (hkeys n hn)
+      rw [CoreMemDesign.appliedRow, lookup_map_pair' _ _ n hn]
+      cases hr : SvState.lookup r n <;> simp [appliedIn, hr, hy]
+    · rfl
+
+/-- The slot on a row is the slot on the row binding every input port to its applied value. -/
+theorem CoreMemDesign.slotV_applied {E : CoreMemDesign} (hP : E.SeqProfileI) {v : SvState} (hv : E.ShapeV v)
+    (mv : MemV) (r : SvState) : E.slotV v mv r = E.slotV v mv (E.appliedRow r v) := by
+  have h := CoreMemDesign.applyRow_applied hP hv r
+  unfold CoreMemDesign.applyRow at h
+  simp only [CoreMemDesign.slotV, h]
+
+/-- An applied input has its declared width (the row is typed, the held value has the width). -/
+theorem CoreMemDesign.appliedIn_width_row {E : CoreMemDesign} {r : SvState} (hty : EntryTyped E.scalar.toDesign2 r)
+    {n : String} (hn : n ∈ E.scalar.toDesign2.inputNames.toList) {w : Nat}
+    (hw : E.scalar.toDesign2.declWidth n = some w) {v : SvState} {x : LVec} (hx : SvState.lookup v n = some x)
+    (hxw : x.width = w) : (appliedIn r v n).width = w := by
+  unfold appliedIn
+  cases hrn : SvState.lookup r n with
+  | none => simp [hx, hxw]
+  | some y =>
+      have := hty n y hn hrn
+      rw [hw] at this
+      simp only [Option.getD_some]
+      exact (Option.some.inj this).symm
+
+/-- The row an applied row applies, name by name: the applied value of every input port. -/
+theorem CoreMemDesign.applyRow_appliedRow_lookup {E : CoreMemDesign} (hP : E.SeqProfileI) {v : SvState}
+    (hv : E.ShapeV v) (r : SvState) {n : String} (hn : n ∈ E.scalar.toDesign2.inputNames.toList) :
+    SvState.lookup (E.applyRow v r) n = some (appliedIn r v n) := by
+  rw [CoreMemDesign.applyRow_applied hP hv r, CoreMemDesign.lookup_applyRow hP.four, if_pos hn,
+    CoreMemDesign.appliedRow, lookup_map_pair' _ _ n hn]
+  rfl
+
+/-! ## Domains and crossings, computed
+
+A DOMAIN is a clock event with the registers its processes write (an asynchronous reset belongs to its clock's
+domain; one driver per signal makes the domains a partition of the registers). A CROSSING is a read, by an edge
+process of one domain, of a register of another (directly, or through continuous assigns). Crossings are where the
+interleaving of instants matters; with none, a design is the product of its single-domain parts. A claim about a
+crossing is LANGUAGE-LEVEL (the read sees the source's committed value, §10.4.2; metastability is not modelled). -/
+
+/-- A list without repeats, first occurrences kept (computed by `simp` on a literal list). -/
+def dedupL {α : Type} [DecidableEq α] (l : List α) : List α :=
+  l.foldl (fun acc a => if a ∈ acc then acc else acc ++ [a]) []
+
+/-- The domain of an edge process: its clock event. -/
+def CoreMemProc.domain? : CoreMemProc → Option SeqEvent
+  | .edge f => some f.clockEvent
+  | .assign _ _ => none
+  | .initial _ => none
+  | .comb _ => none
+  | .implicit _ => none
+  | .latch _ => none
+  | .unsupported _ _ => none
+
+/-- **The domains of a design**: each clock event with the registers its processes write. -/
+def CoreMemDesign.domains (E : CoreMemDesign) : List (SeqEvent × List String) :=
+  (dedupL (E.processes.toList.filterMap CoreMemProc.domain?)).map fun e =>
+    (e, E.processes.toList.flatMap fun p => if p.domain? = some e then p.targets else [])
+
+/-- The domain whose processes write a name (none for an input or a continuous assign's target). -/
+def CoreMemDesign.domainOf (E : CoreMemDesign) (x : String) : Option SeqEvent :=
+  (E.processes.toList.find? fun p => p.isEdge && p.targets.contains x).bind CoreMemProc.domain?
+
+/-- The registers a name reads through the continuous assigns: a register itself, an assign's target the registers
+its expression reads (`fuel` bounds the chain; the assigns are acyclic under `topoC`). -/
+def CoreMemDesign.stateReads (E : CoreMemDesign) : Nat → String → List String
+  | 0, _ => []
+  | fuel + 1, x =>
+      if (E.domainOf x).isSome then [x]
+      else (E.processes.toList.flatMap fun p => match p with
+        | .assign (.ident n) v => if n = x then PExpr.sigNames v else []
+        | _ => []).flatMap (E.stateReads fuel)
+
+/-- **The crossings of a design**: (the reader's domain, the register, its domain) for every read of another domain's
+register by an edge process. -/
+def CoreMemDesign.crossings (E : CoreMemDesign) : List (SeqEvent × String × SeqEvent) :=
+  E.processes.toList.flatMap fun p => match p with
+    | .edge f => (dedupL (f.body.readNames.flatMap (E.stateReads (E.processes.size + 1)))).filterMap fun x =>
+        match E.domainOf x with
+        | some B => if B = f.clockEvent then none else some (f.clockEvent, x, B)
+        | none => none
+    | _ => []
+
 end LeanModels.Sv.Kernel

@@ -15,6 +15,8 @@ name gets a further elaborator, tried first, that recognizes ONLY its clocked go
 | `sv_structure` | `SeqDesignI (X.e P…)` | the same for any number of events (any clocks, either edge): the instant profile and obligations |
 | `sv_interface` | `SeqPorts (X.e P…) ins outs` | the instantiation, the ports |
 | `sv_equations` | `E.cycleV clk v d = rhs` or `E.cycleMV clk σ d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed (with the context's width facts `x.width = n`), then `rhs` checked against them |
+| `sv_equations` | `E.tick i σ = rhs`, `E.dataV σ d = rhs` or `E.slotV v mv r = rhs` (any number of events), `hE` in the context | one instant's (or one row's) equations, computed and checked the same way: one equation set per event |
+| `sv_domains` | any goal, `hE : X.e P… = .ok E` in the context | adds `hevents : E.events = …`, `hdomains : E.domains = …`, `hcrossings : E.crossings = …` (computed) and reports them |
 
 A clocked stage that fails names its reason: the route's own refusal message, a process outside the clocked profile
 (with its index, its kind and what puts it outside), or the obligation that does not hold. The macros of
@@ -286,7 +288,10 @@ def runEquations : TacticM Unit := do
   let goal ← getMainGoal
   let ty := (← instantiateMVars (← goal.getType)).consumeMData
   unless ty.isAppOfArity ``Eq 3 && ((ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.cycleV 4 ||
-      (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.cycleMV 4) do
+      (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.cycleMV 4 ||
+      (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.tick 3 ||
+      (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.dataV 3 ||
+      (ty.getArg! 1).consumeMData.isAppOfArity ``CoreMemDesign.slotV 4) do
     throwUnsupportedSyntax
   guardSeq do
     let lhs := (ty.getArg! 1).consumeMData
@@ -339,7 +344,62 @@ def runEquations : TacticM Unit := do
     catch _ =>
       throwError "sv_equations: the stated cycle differs from the computed one (width facts used: {factNames}); computed:\n{computed}"
 
+/-- `sv_domains`: the events, the domains and the crossings of the design of `hE : X.e P… = .ok E`, computed on its
+normal form, added as hypotheses and reported. -/
+def runDomains : TacticM Unit := do
+  let goal ← getMainGoal
+  let mut hE? : Option (Name × Lean.Expr × Lean.Expr) := none
+  for d in ← goal.getDecl <&> (·.lctx) do
+    if d.isImplementationDetail then continue
+    let t ← instantiateMVars d.type
+    if t.isAppOfArity ``Eq 3 && (t.getArg! 2).isAppOfArity ``Res.ok 2 &&
+        ((t.getArg! 1).getAppFn.constName?.map (·.toString.endsWith ".e")).getD false then
+      hE? := some (d.userName, t.getArg! 1, (t.getArg! 2).appArg!)
+  let some (hN, r, E) := hE?
+    | throwError "sv_domains: no hypothesis `hE : X.e P… = .ok E` in the context"
+  let (eN, pN) ← familyNames "sv_domains" r
+  let hC := mkIdent `hSeqDom
+  evalTactic (← `(tactic| have $hC:ident := $(mkIdent hN):ident))
+  if let some (mN, mEq, mDef) ← mirrorOf eN then
+    let rS ← Term.exprToSyntax r
+    let mS ← Term.exprToSyntax (mkAppN (mkConst mN) r.getAppArgs)
+    let hMI := mkIdent `hSeqDomMir
+    evalTactic (← `(tactic| have $hMI:ident : $rS:term = .ok $mS:term := by apply $(mkIdent mEq) <;> omega))
+    evalTactic (← `(tactic| rw [$hMI:ident, $(mkIdent mDef):ident] at $hC:ident))
+    evalTactic (← `(tactic| replace $hC:ident := Res.ok.inj $hC:ident))
+  else
+    evalTactic (← `(tactic| sv_seq_inst [$(mkIdent eN):ident, $(mkIdent pN):ident] at $hC:ident))
+  let ES ← Term.exprToSyntax E
+  for (nm, fn) in [(`hevents, ``CoreMemDesign.events), (`hdomains, ``CoreMemDesign.domains),
+      (`hcrossings, ``CoreMemDesign.crossings)] do
+    let h := mkIdent nm
+    let fI := mkIdent fn
+    evalTactic (← `(tactic| have $h:ident := (rfl : $fI $ES = $fI $ES)))
+    evalTactic (← `(tactic| conv at $h:ident => rhs; rw [← $hC:ident]; simp (config := {maxSteps := 4000000, decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.events,
+      LeanModels.Sv.Kernel.CoreMemProc.events, LeanModels.Sv.Kernel.CoreMemEdge.events,
+      LeanModels.Sv.Kernel.CoreMemEdge.clockEvent, LeanModels.Sv.Kernel.CoreMemEdge.resetEvent?,
+      LeanModels.Sv.Kernel.CoreMemDesign.domains, LeanModels.Sv.Kernel.CoreMemDesign.domainOf,
+      LeanModels.Sv.Kernel.CoreMemDesign.stateReads, LeanModels.Sv.Kernel.CoreMemDesign.crossings,
+      LeanModels.Sv.Kernel.CoreMemProc.domain?, LeanModels.Sv.Kernel.dedupL, LeanModels.Sv.Kernel.CoreMemProc.targets,
+      LeanModels.Sv.Kernel.CoreMemProc.isEdge, LeanModels.Sv.PStmt.writes, LeanModels.Sv.PStmt.optWrites,
+      LeanModels.Sv.PStmt.listWrites, LeanModels.Sv.PStmt.itemsWrites, LeanModels.Sv.PLhs.baseNames,
+      LeanModels.Sv.PLhs.baseNamesList, LeanModels.Sv.PStmt.readNames, LeanModels.Sv.PStmt.optReadNames,
+      LeanModels.Sv.PStmt.listReadNames, LeanModels.Sv.PStmt.itemsReadNames, LeanModels.Sv.PLhs.indexNames,
+      LeanModels.Sv.PLhs.indexNamesList, LeanModels.Sv.PExpr.sigNames, LeanModels.Sv.PExpr.sigNamesList,
+      List.filterMap_cons, List.filterMap_nil, List.eraseDups_cons, List.eraseDups_nil]))
+    let g ← getMainGoal
+    let hd ← g.withContext do getLocalDeclFromUserName nm
+    logInfo m!"sv_domains: {nm}: {hd.type}"
+
 end LeanModels.Sv.Kernel.SeqStage
+
+/-- **`sv_domains`**: the events, the domains (each clock event with the registers it writes) and the crossings (reads
+of another domain's registers, directly or through continuous assigns) of the design of `hE : X.e P… = .ok E`,
+computed on its normal form, added as hypotheses `hevents`, `hdomains`, `hcrossings` and reported. -/
+syntax (name := svDomains) "sv_domains" : tactic
+
+open LeanModels.Sv.Kernel.SeqStage in
+@[tactic svDomains] def evalSvDomains : Tactic := fun _ => runDomains
 
 /-- **`seq_mirror (P : Nat) (h : …) … : X.e P…`**: the instantiation of a loaded family at its symbolic parameters,
 computed ONCE: defines `X.mirror P… : CoreMemDesign` (the normal form the instantiation pass computes), states its

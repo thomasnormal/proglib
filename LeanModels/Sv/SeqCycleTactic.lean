@@ -47,6 +47,10 @@ theorem seqE_natAbs_sub_one (N : Nat) (h : 1 ≤ N) : ((N : Int) - 1).natAbs = N
 /-- No positive edge into a 0. -/
 theorem seqE_isPosedge_l0 (b : Logic) : isPosedge b .l0 = false := by cases b <;> rfl
 
+/-- Bit 0 as the cycle stage leaves it for a vector of known nonzero width (`v.bits[0]`), as the edge table reads it. -/
+theorem seqE_getElem_zero (v : LVec) (h : 0 < v.bits.size) : v.bits[0]'h = v.bits[0]?.getD .lx := by
+  simp [Array.getElem?_eq_getElem h]
+
 theorem seqE_bit0_zero : (LVec.ofBitVec 0#1).bits[0]? = some Logic.l0 := by decide
 theorem seqE_bit0_one : (LVec.ofBitVec 1#1).bits[0]? = some Logic.l1 := by decide
 
