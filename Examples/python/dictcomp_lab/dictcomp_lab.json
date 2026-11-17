@@ -941,16 +941,6 @@
         "locals_unsupported": null,
         "body": [
           {
-            "kind": "AnnAssignNoValue",
-            "span": {
-              "lineno": 28,
-              "col_offset": 18,
-              "end_lineno": 28,
-              "end_col_offset": 29
-            },
-            "name": "y"
-          },
-          {
             "kind": "Assign",
             "span": {
               "lineno": 27,
@@ -1005,113 +995,15 @@
               }
             ],
             "value": {
-              "kind": "DictComp",
+              "kind": "Unsupported",
               "span": {
                 "lineno": 28,
                 "col_offset": 13,
                 "end_lineno": 28,
                 "end_col_offset": 49
               },
-              "key": {
-                "kind": "Name",
-                "span": {
-                  "lineno": 28,
-                  "col_offset": 14,
-                  "end_lineno": 28,
-                  "end_col_offset": 15
-                },
-                "id": "x"
-              },
-              "value": {
-                "kind": "NamedExpr",
-                "span": {
-                  "lineno": 28,
-                  "col_offset": 18,
-                  "end_lineno": 28,
-                  "end_col_offset": 29
-                },
-                "target": "y",
-                "value": {
-                  "kind": "BinOp",
-                  "span": {
-                    "lineno": 28,
-                    "col_offset": 23,
-                    "end_lineno": 28,
-                    "end_col_offset": 29
-                  },
-                  "left": {
-                    "kind": "Name",
-                    "span": {
-                      "lineno": 28,
-                      "col_offset": 23,
-                      "end_lineno": 28,
-                      "end_col_offset": 24
-                    },
-                    "id": "x"
-                  },
-                  "op": "Add",
-                  "right": {
-                    "kind": "Constant",
-                    "span": {
-                      "lineno": 28,
-                      "col_offset": 27,
-                      "end_lineno": 28,
-                      "end_col_offset": 29
-                    },
-                    "value": {
-                      "type": "int",
-                      "repr": "10"
-                    }
-                  }
-                }
-              },
-              "target": {
-                "kind": "Name",
-                "span": {
-                  "lineno": 28,
-                  "col_offset": 35,
-                  "end_lineno": 28,
-                  "end_col_offset": 36
-                },
-                "id": "x"
-              },
-              "iter": {
-                "kind": "Call",
-                "span": {
-                  "lineno": 28,
-                  "col_offset": 40,
-                  "end_lineno": 28,
-                  "end_col_offset": 48
-                },
-                "func": {
-                  "kind": "Name",
-                  "span": {
-                    "lineno": 28,
-                    "col_offset": 40,
-                    "end_lineno": 28,
-                    "end_col_offset": 45
-                  },
-                  "id": "range"
-                },
-                "args": [
-                  {
-                    "kind": "Constant",
-                    "span": {
-                      "lineno": 28,
-                      "col_offset": 46,
-                      "end_lineno": 28,
-                      "end_col_offset": 47
-                    },
-                    "value": {
-                      "type": "int",
-                      "repr": "3"
-                    }
-                  }
-                ],
-                "keywords": [],
-                "call_unsupported": null
-              },
-              "ifs": []
+              "py_kind": "DictComp:walrus",
+              "text": "{x: (y := (x + 10)) for x in range(3)}"
             }
           },
           {
@@ -1200,94 +1092,15 @@
                   "end_col_offset": 31
                 },
                 "value": {
-                  "kind": "DictComp",
+                  "kind": "Unsupported",
                   "span": {
                     "lineno": 35,
                     "col_offset": 8,
                     "end_lineno": 35,
                     "end_col_offset": 31
                   },
-                  "key": {
-                    "kind": "Name",
-                    "span": {
-                      "lineno": 35,
-                      "col_offset": 9,
-                      "end_lineno": 35,
-                      "end_col_offset": 10
-                    },
-                    "id": "x"
-                  },
-                  "value": {
-                    "kind": "BinOp",
-                    "span": {
-                      "lineno": 35,
-                      "col_offset": 12,
-                      "end_lineno": 35,
-                      "end_col_offset": 17
-                    },
-                    "left": {
-                      "kind": "Constant",
-                      "span": {
-                        "lineno": 35,
-                        "col_offset": 12,
-                        "end_lineno": 35,
-                        "end_col_offset": 13
-                      },
-                      "value": {
-                        "type": "int",
-                        "repr": "1"
-                      }
-                    },
-                    "op": "Div",
-                    "right": {
-                      "kind": "Constant",
-                      "span": {
-                        "lineno": 35,
-                        "col_offset": 16,
-                        "end_lineno": 35,
-                        "end_col_offset": 17
-                      },
-                      "value": {
-                        "type": "int",
-                        "repr": "0"
-                      }
-                    }
-                  },
-                  "target": {
-                    "kind": "Name",
-                    "span": {
-                      "lineno": 35,
-                      "col_offset": 22,
-                      "end_lineno": 35,
-                      "end_col_offset": 23
-                    },
-                    "id": "x"
-                  },
-                  "iter": {
-                    "kind": "List",
-                    "span": {
-                      "lineno": 35,
-                      "col_offset": 27,
-                      "end_lineno": 35,
-                      "end_col_offset": 30
-                    },
-                    "elts": [
-                      {
-                        "kind": "Constant",
-                        "span": {
-                          "lineno": 35,
-                          "col_offset": 28,
-                          "end_lineno": 35,
-                          "end_col_offset": 29
-                        },
-                        "value": {
-                          "type": "int",
-                          "repr": "1"
-                        }
-                      }
-                    ]
-                  },
-                  "ifs": []
+                  "py_kind": "DictComp:raising-body",
+                  "text": "{x: 1 / 0 for x in [1]}"
                 }
               }
             ],
@@ -1431,76 +1244,15 @@
               },
               "args": [
                 {
-                  "kind": "DictComp",
+                  "kind": "Unsupported",
                   "span": {
                     "lineno": 42,
                     "col_offset": 15,
                     "end_lineno": 42,
                     "end_col_offset": 40
                   },
-                  "key": {
-                    "kind": "Name",
-                    "span": {
-                      "lineno": 42,
-                      "col_offset": 16,
-                      "end_lineno": 42,
-                      "end_col_offset": 17
-                    },
-                    "id": "x"
-                  },
-                  "value": {
-                    "kind": "Call",
-                    "span": {
-                      "lineno": 42,
-                      "col_offset": 19,
-                      "end_lineno": 42,
-                      "end_col_offset": 27
-                    },
-                    "func": {
-                      "kind": "Attribute",
-                      "span": {
-                        "lineno": 42,
-                        "col_offset": 19,
-                        "end_lineno": 42,
-                        "end_col_offset": 25
-                      },
-                      "value": {
-                        "kind": "Name",
-                        "span": {
-                          "lineno": 42,
-                          "col_offset": 19,
-                          "end_lineno": 42,
-                          "end_col_offset": 21
-                        },
-                        "id": "xs"
-                      },
-                      "attr": "pop"
-                    },
-                    "args": [],
-                    "keywords": [],
-                    "call_unsupported": null
-                  },
-                  "target": {
-                    "kind": "Name",
-                    "span": {
-                      "lineno": 42,
-                      "col_offset": 32,
-                      "end_lineno": 42,
-                      "end_col_offset": 33
-                    },
-                    "id": "x"
-                  },
-                  "iter": {
-                    "kind": "Name",
-                    "span": {
-                      "lineno": 42,
-                      "col_offset": 37,
-                      "end_lineno": 42,
-                      "end_col_offset": 39
-                    },
-                    "id": "xs"
-                  },
-                  "ifs": []
+                  "py_kind": "DictComp:call-in-body",
+                  "text": "{x: xs.pop() for x in xs}"
                 }
               ],
               "keywords": [],
@@ -1605,94 +1357,15 @@
               "end_col_offset": 34
             },
             "value": {
-              "kind": "DictComp",
+              "kind": "Unsupported",
               "span": {
                 "lineno": 50,
                 "col_offset": 11,
                 "end_lineno": 50,
                 "end_col_offset": 34
               },
-              "key": {
-                "kind": "BinOp",
-                "span": {
-                  "lineno": 50,
-                  "col_offset": 12,
-                  "end_lineno": 50,
-                  "end_col_offset": 17
-                },
-                "left": {
-                  "kind": "Constant",
-                  "span": {
-                    "lineno": 50,
-                    "col_offset": 12,
-                    "end_lineno": 50,
-                    "end_col_offset": 13
-                  },
-                  "value": {
-                    "type": "int",
-                    "repr": "1"
-                  }
-                },
-                "op": "Div",
-                "right": {
-                  "kind": "Constant",
-                  "span": {
-                    "lineno": 50,
-                    "col_offset": 16,
-                    "end_lineno": 50,
-                    "end_col_offset": 17
-                  },
-                  "value": {
-                    "type": "int",
-                    "repr": "0"
-                  }
-                }
-              },
-              "value": {
-                "kind": "Name",
-                "span": {
-                  "lineno": 50,
-                  "col_offset": 19,
-                  "end_lineno": 50,
-                  "end_col_offset": 20
-                },
-                "id": "x"
-              },
-              "target": {
-                "kind": "Name",
-                "span": {
-                  "lineno": 50,
-                  "col_offset": 25,
-                  "end_lineno": 50,
-                  "end_col_offset": 26
-                },
-                "id": "x"
-              },
-              "iter": {
-                "kind": "List",
-                "span": {
-                  "lineno": 50,
-                  "col_offset": 30,
-                  "end_lineno": 50,
-                  "end_col_offset": 33
-                },
-                "elts": [
-                  {
-                    "kind": "Constant",
-                    "span": {
-                      "lineno": 50,
-                      "col_offset": 31,
-                      "end_lineno": 50,
-                      "end_col_offset": 32
-                    },
-                    "value": {
-                      "type": "int",
-                      "repr": "1"
-                    }
-                  }
-                ]
-              },
-              "ifs": []
+              "py_kind": "DictComp:raising-body",
+              "text": "{1 / 0: x for x in [1]}"
             }
           }
         ]
@@ -1719,94 +1392,15 @@
               "end_col_offset": 34
             },
             "value": {
-              "kind": "DictComp",
+              "kind": "Unsupported",
               "span": {
                 "lineno": 54,
                 "col_offset": 11,
                 "end_lineno": 54,
                 "end_col_offset": 34
               },
-              "key": {
-                "kind": "Name",
-                "span": {
-                  "lineno": 54,
-                  "col_offset": 12,
-                  "end_lineno": 54,
-                  "end_col_offset": 13
-                },
-                "id": "x"
-              },
-              "value": {
-                "kind": "BinOp",
-                "span": {
-                  "lineno": 54,
-                  "col_offset": 15,
-                  "end_lineno": 54,
-                  "end_col_offset": 20
-                },
-                "left": {
-                  "kind": "Constant",
-                  "span": {
-                    "lineno": 54,
-                    "col_offset": 15,
-                    "end_lineno": 54,
-                    "end_col_offset": 16
-                  },
-                  "value": {
-                    "type": "int",
-                    "repr": "1"
-                  }
-                },
-                "op": "Div",
-                "right": {
-                  "kind": "Constant",
-                  "span": {
-                    "lineno": 54,
-                    "col_offset": 19,
-                    "end_lineno": 54,
-                    "end_col_offset": 20
-                  },
-                  "value": {
-                    "type": "int",
-                    "repr": "0"
-                  }
-                }
-              },
-              "target": {
-                "kind": "Name",
-                "span": {
-                  "lineno": 54,
-                  "col_offset": 25,
-                  "end_lineno": 54,
-                  "end_col_offset": 26
-                },
-                "id": "x"
-              },
-              "iter": {
-                "kind": "List",
-                "span": {
-                  "lineno": 54,
-                  "col_offset": 30,
-                  "end_lineno": 54,
-                  "end_col_offset": 33
-                },
-                "elts": [
-                  {
-                    "kind": "Constant",
-                    "span": {
-                      "lineno": 54,
-                      "col_offset": 31,
-                      "end_lineno": 54,
-                      "end_col_offset": 32
-                    },
-                    "value": {
-                      "type": "int",
-                      "repr": "1"
-                    }
-                  }
-                ]
-              },
-              "ifs": []
+              "py_kind": "DictComp:raising-body",
+              "text": "{x: 1 / 0 for x in [1]}"
             }
           }
         ]

@@ -4,8 +4,10 @@
 
 A fresh built-runner survey covered all 183 manifest modules and 8,677 calls.
 It recorded 4,095 MATCH, 4,533 REFUSED, 41 UNCOMPARABLE, one TIMEOUT, and
-seven RUNNER rows whose batch did not finish. The run is an incomplete refresh;
-the prior complete baseline below remains authoritative. It found no DIVERGE.
+seven RUNNER rows whose batch did not finish. This is an explicitly incomplete
+refresh and is reported as such; the 2026-11-16 baseline below remains the
+authoritative scoreboard for completed function classifications. Neither run
+found a DIVERGE.
 The artifact is `library-2026-11-17.json` (gate/ls-python artifact).
 
 The standard-library wild sweep covered 166 files: 7 MATCH, 159 REFUSE, and
@@ -199,4 +201,4 @@ The measured opaque arm now admits the imports needed by `email.charset`; its th
 
 The remaining observed messages are one accelerator-domain wall, one heap `+` wall, one unsupported `try/except` wall, one missing `frozenset` builtin, and one list `.extend` wall. They remain recorded per module in the JSON result and are not silently omitted from the ranking.
 
-The baseline command used pinned `python3.9`, fixed fuel (`200000` body, `10000` call), eight calls per public function, a 900-second body bound, and a 120-second per-module call bound. The complete run covered all 183 manifest and in-repo rows in one survey; its eight unfinished calls remain explicit and are not counted as agreement.
+The baseline command used pinned `python3.9`, fixed fuel (`200000` body, `10000` call), eight calls per public function, a 900-second body bound, and a 120-second per-module call bound. The baseline survey completed its scheduled module pass; its eight unfinished calls remain explicit and are not counted as agreement. The newer 2026-11-17 refresh is a separate incomplete run and does not replace these classifications.

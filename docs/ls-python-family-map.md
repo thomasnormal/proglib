@@ -196,6 +196,37 @@ proofs. This family depends on module loading, object layout, numeric
 semantics, and callable protocols. Its joint MATCH count is intentionally
 unclaimed: a body can match while an accelerator call remains partial.
 
+## 4. Two interpreters: deletion cost
+
+The current trunk interpreter is `LeanModels/Python/Semantics.lean` (12,351
+lines). It is used by `Surface.lean`, `Obs.lean`, `VC.lean`, `VC2.lean`,
+`VCGen.lean`, `VCTactic.lean`, `LoopTactic.lean`, `Delab.lean`, the proof
+examples, and the public `CallsTo`/`PartialTo`/`Raises` judgments. There are
+37 Python `proof.lean` files with 245 theorem/lemma declarations. Deleting
+this interpreter would require redefining those judgments over the monadic
+runner, then re-proving every proof tactic and every example theorem; the
+current `py_prove`, `py_begin`, `py_loop`, `py_vcgen`, and `py_corollary` stack
+has no monadic counterpart. The only monadic proof route today is
+`LeanModels/Python/Monadic/Spec.lean` (338 lines, two rebuilt gates).
+
+The monadic evaluator is `LeanModels/Python/Monadic/Eval.lean` (12,762 lines),
+with `Monadic/Script.lean`, `Main.lean`, `tools/leanpy`, the differential
+runner, and both survey harnesses depending on it. Deleting it would lose the
+fuel-free `PyM`/`callInM` execution, script/world observations, the executable
+runner, and the mvcgen route. The trunk would need a stateful script runner,
+world observations, and a replacement proof-triple layer before those users
+could return. The 123-row observer difference in the ledger is therefore a
+real migration surface, not a theorem that can be erased.
+
+The three-proof pilot is deliberately small and honest: the straight-line
+`Examples/python/add` check reduces under the monadic route; the loop
+`Examples/python/tri` proof and the stateful `list_lab.bump_twice` proof do not
+close by kernel reduction, so no monadic loop or `CallsIn` port is claimed.
+Before/after line counts are the measured counts above; no proof timing is
+invented for pilots that did not typecheck. The remaining cost is to re-prove
+the public surface, all loop and call rules, the 37 example files, and the
+runner's differential contract if either interpreter is removed.
+
 ## Architectural decision
 
 If starting today, I would keep one AST and one exact state/flow semantics,

@@ -484,9 +484,13 @@ def main(argv=None):
             verdict = "REFUSED"
             whitelisted += 1
         elif opts.proof_interpreter and expect == "unsupported":
-            # A row the runner must refuse. Here it must MATCH or refuse
-            # (above): an answer is compared to CPython like any other.
-            if _same_result(cpy, lean):
+            # The proof interpreter may refuse a row that is explicitly
+            # outside its tier; the native runner must still hit the same
+            # loud boundary below.
+            if lean.get("status") == "unsupported":
+                verdict = "REFUSED"
+                whitelisted += 1
+            elif _same_result(cpy, lean):
                 verdict = "MATCH"
             else:
                 verdict = "MISMATCH"

@@ -751,6 +751,25 @@ def convert_expr(node):
             # First admitted slice: one clause and no filters.  The AST node
             # stays direct; multi-clause and filtered forms remain loud.
             if not g.ifs:
+                # The current evaluator has no enclosing-scope walrus or
+                # live-mutation protocol for a comprehension body.  Refuse
+                # these shapes at the approved AST boundary rather than
+                # claiming a scope or iterator result that is wrong.
+                if any(isinstance(x, ast.NamedExpr)
+                       for x in ast.walk(node.key)) or any(
+                           isinstance(x, ast.NamedExpr)
+                           for x in ast.walk(node.value)):
+                    return unsupported(node, "DictComp:walrus")
+                if any(isinstance(x, ast.Call) for x in ast.walk(node.key)) or any(
+                        isinstance(x, ast.Call) for x in ast.walk(node.value)):
+                    return unsupported(node, "DictComp:call-in-body")
+                if any(isinstance(x, ast.BinOp) and
+                       isinstance(x.op, ast.Div)
+                       for x in ast.walk(node.key)) or any(
+                           isinstance(x, ast.BinOp) and
+                           isinstance(x.op, ast.Div)
+                           for x in ast.walk(node.value)):
+                    return unsupported(node, "DictComp:raising-body")
                 return {
                     "kind": "DictComp",
                     "span": span(node),
