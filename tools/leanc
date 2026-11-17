@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 EXTRACTOR = ROOT / "extractors" / "c" / "extract.py"
 PINNED = "clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)"
-COMPILE = ["-std=c23", "-g", "-D_FORTIFY_SOURCE=0", "-fno-strict-aliasing"]
+COMPILE_COMMON = ["-g", "-D_FORTIFY_SOURCE=0", "-fno-strict-aliasing"]
 
 
 def clang_path():
@@ -40,11 +40,12 @@ def pinned_clang():
     return exe, first
 
 
-def source_digest(path):
+def source_digest(path, standard):
     h = hashlib.sha256()
     h.update(Path(path).read_bytes())
     h.update(EXTRACTOR.read_bytes())
     h.update(PINNED.encode())
+    h.update(("-std=" + standard).encode())
     plugin = os.environ.get("LEAN_C_STRING_BYTES_PLUGIN")
     if plugin and Path(plugin).is_file():
         h.update(b"string-bytes-plugin\0")
@@ -60,8 +61,8 @@ def source_digest(path):
     return h.hexdigest()
 
 
-def envelope(path, cache):
-    out = Path(cache) / (source_digest(path) + ".json")
+def envelope(path, cache, standard="c23"):
+    out = Path(cache) / (source_digest(path, standard) + ".json")
     if out.exists():
         return out, None
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -70,7 +71,8 @@ def envelope(path, cache):
     os.close(fd)
     try:
         p = subprocess.run([sys.executable, str(EXTRACTOR), str(path),
-                            "--source-name", Path(path).name, "-o", tmp],
+                            "--std", standard, "--source-name",
+                            Path(path).name, "-o", tmp],
                            cwd=str(ROOT), capture_output=True, text=True)
         if p.returncode:
             return None, p.stderr or p.stdout
@@ -117,10 +119,10 @@ def model_run(env, opts):
     return {"verdict": "RUNNER", "detail": p.stderr.strip() or p.stdout.strip()}
 
 
-def native_run(clang, source, opt, sanitizer, timeout):
+def native_run(clang, source, opt, sanitizer, timeout, standard):
     with tempfile.TemporaryDirectory(prefix="leanc-native-") as d:
         binary = Path(d) / "a.out"
-        flags = COMPILE + [opt]
+        flags = ["-std=" + standard] + COMPILE_COMMON + [opt]
         if sanitizer:
             flags += ["-fsanitize=undefined,address", "-fno-sanitize-recover=all"]
         p = subprocess.run([clang] + flags + [str(source), "-o", str(binary)],
@@ -155,10 +157,10 @@ def classify_sanitizer_mismatch(model, san):
     return "DIVERGE"
 
 
-def compare(clang, source, model, timeout):
-    o0 = native_run(clang, source, "-O0", False, timeout)
-    o2 = native_run(clang, source, "-O2", False, timeout)
-    san = native_run(clang, source, "-O0", True, timeout)
+def compare(clang, source, model, timeout, standard):
+    o0 = native_run(clang, source, "-O0", False, timeout, standard)
+    o2 = native_run(clang, source, "-O2", False, timeout, standard)
+    san = native_run(clang, source, "-O0", True, timeout, standard)
     if any(x.get("verdict") == "ORACLE" for x in (o0, o2, san)):
         return "ORACLE", {"o0": o0, "o2": o2, "sanitizer": san}
     if o0["stdout"] != o2["stdout"] or o0["returncode"] != o2["returncode"]:
@@ -189,9 +191,12 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="leanc")
     ap.add_argument("file", nargs="?")
     ap.add_argument("--lang", choices=("c", "c++"), default="c")
+    ap.add_argument("--std", choices=("c17", "c23"), default="c23",
+                    help="C language edition for extraction and the oracle")
     ap.add_argument("--compare", action="store_true")
     ap.add_argument("--fuel", type=int, default=512)
-    ap.add_argument("--cache", default=os.path.join(tempfile.gettempdir(), "leanc-cache"))
+    ap.add_argument("--cache", default=os.environ.get(
+        "LEANC_CACHE", "/scratch/thomas-ahle/ls-cpp-cache/leanc-cache"))
     ap.add_argument("--build", action="store_true")
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--json", action="store_true")
@@ -220,7 +225,7 @@ def main(argv=None):
             if clang is None:
                 print("leanc --self-test: %s" % why, file=sys.stderr)
                 return 1
-            env, why = envelope(source, Path(d) / "cache")
+            env, why = envelope(source, Path(d) / "cache", "c23")
             if env is None:
                 print("leanc --self-test: extraction failed: %s" % why,
                       file=sys.stderr)
@@ -228,6 +233,18 @@ def main(argv=None):
             payload = json.loads(env.read_text())
             if payload.get("language") != "c":
                 print("leanc --self-test: wrong envelope language", file=sys.stderr)
+                return 1
+            env17, why = envelope(source, Path(d) / "cache", "c17")
+            if env17 is None:
+                print("leanc --self-test: C17 extraction failed: %s" % why,
+                      file=sys.stderr)
+                return 1
+            payload17 = json.loads(env17.read_text())
+            if payload17.get("profile_id") != "c-profile-0.1-c17":
+                print("leanc --self-test: C17 profile was not carried", file=sys.stderr)
+                return 1
+            if env17 == env:
+                print("leanc --self-test: C17/C23 cache keys collided", file=sys.stderr)
                 return 1
         print("leanc --self-test: ok")
         return 0
@@ -245,7 +262,7 @@ def main(argv=None):
     if not clang:
         print("leanc: ORACLE: %s" % detail, file=sys.stderr)
         return 2
-    env, why = envelope(source, opts.cache)
+    env, why = envelope(source, opts.cache, opts.std)
     if env is None:
         print("leanc: EXTRACT: %s" % why, file=sys.stderr)
         return 2
@@ -262,7 +279,7 @@ def main(argv=None):
             print(model.get("detail", model["verdict"]), file=sys.stderr)
         return 0 if model["verdict"] == "MODEL" else (4 if model["verdict"] == "TIMEOUT" else 3)
     try:
-        verdict, evidence = compare(clang, source, model, opts.timeout)
+        verdict, evidence = compare(clang, source, model, opts.timeout, opts.std)
     except subprocess.TimeoutExpired:
         verdict, evidence = "TIMEOUT", {"detail": "native wall timeout"}
     result = {"verdict": verdict, "compiler": detail, "envelope": str(env),
