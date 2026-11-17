@@ -540,6 +540,11 @@ theorem EvalsTo.call {m : Module} {st : FrameState} {fname : String}
 
 /-! ## Stateful call expressions
 
+The `CallsIn` splice below is deliberately independent of `Module.heapFree`:
+its postcondition carries the callee's after-world, so heap mutation is the
+point of this rule. The ordinary `EvalsTo.call` rule remains heap-free because
+it is the separate public `CallsTo` frame theorem.
+
 `EvalsTo` is intentionally pinned to one frame state.  A nested call in the
 depth-aware interpreter can return a changed world, so the proof layer needs a
 small effectful twin for the call splice.  The relation is kept local to this
