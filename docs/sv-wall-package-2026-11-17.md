@@ -306,9 +306,13 @@ wall `defaults: enum 'base_isa_e': unrecoverable packed dimensions` at
 
 The CV32E40P break repro is also fully measured: Icarus Verilog 13.0 and
 Xcelium 24.03-s004 both print `x, x, 0, 0, 1` for the parameterized
-for/break fixture, while the retained envelope refuses at the named
-`BreakStatement` boundary. This remains an ls-sv2 ingestion/loader wall; no
-loop lowering or E meaning is introduced here.
+for/break fixture, while the retained envelope reaches the named
+`BreakStatement` refusal. The symbolic ingester now keeps that parser node as
+a loud `PStmt.unsupported` statement, so the envelope itself loads and the
+ordinary census reports `BreakStatement` at `parsePStmt`; no loop lowering or
+E meaning is introduced here. The real-design first wall consequently moves
+to the next retained generate-member boundary, with no claim that a real-design
+count has dropped.
 
 Current public master is `69530791d`; the private-name cleanup is on master and
 the wall package remains clean under the required public-tree gate.

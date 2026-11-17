@@ -628,6 +628,12 @@ partial def parsePStmt (j : Json) : Except String PStmt := do
         -- envelope.  Stmt2 is frozen and has no scoped declaration node, but
         -- rejecting the whole JSON envelope would hide the source boundary.
         return .unsupported "LocalDecl" "block-local declaration requires scoped procedural storage"
+    | "Break" =>
+        -- Preserve the parser's loop-transfer node as a loud statement.  The
+        -- frozen Stmt2 AST has no transfer constructor, so do not lower `break`
+        -- into a flag or discard it while decoding the envelope.
+        return .unsupported "BreakStatement"
+          "break transfers control to the nearest loop; the frozen Stmt2 tier has no loop-transfer constructor"
     | "Empty" => return .block []
     | "Unsupported" =>
         let (svKind, text) ← parseUnsupportedFields j
@@ -1816,6 +1822,9 @@ private def unsupMemberText : String := r#"{
 #guard (Json.parse r#"{"kind": "CompoundAssign", "span": null, "target": {"kind": "Ident", "name": "v"}, "op": "+", "value": {"kind": "Int", "value": 1}}"# >>= parsePStmt).toOption
         == some (.unsupported "AssignmentExpression:compound"
           "source-level compound assignment is retained; a frozen Stmt2 compound node is not yet available")
+#guard (Json.parse r#"{"kind": "Break", "span": null}"# >>= parsePStmt).toOption
+        == some (.unsupported "BreakStatement"
+          "break transfers control to the nearest loop; the frozen Stmt2 tier has no loop-transfer constructor")
 -- Reset-event guards cannot be dropped while the event AST is frozen.
 #guard match (Json.parse r#"{"kind":"AlwaysPosedge","style":"always_ff","clock":"clk",
   "areset_n":"rst_n","reset_iff":{"kind":"Ident","name":"en"},"body":{"kind":"Empty"}}"#
