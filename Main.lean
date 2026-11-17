@@ -12,6 +12,7 @@ import LeanModels.Python.Script
 -- charge that rebuild to the eleven other lanes sharing this master. The runner
 -- is the one target that must know about the rebuild anyway.
 import LeanModels.Python.Monadic
+import LeanModels.Python.Machine
 
 /-!
 # `leanmodels-run` — CLI runner for the differential harness
@@ -539,6 +540,20 @@ def scriptJson (path : String) (live : Nat) : Run World Unit → String
       "{\"path\":" ++ jsonStr path ++ ",\"status\":\"timeout\",\"exit\":4,\"live\":"
         ++ toString live ++ "}"
 
+def machineObservationJson : Machine.Observation → String
+  | .returned _ => "\"ok\""
+  | .raised error => "\"exn\",\"exn\":" ++ jsonStr (errName error)
+  | .refused reason => "\"unsupported\",\"msg\":" ++ jsonStr reason
+  | .resource _ => "\"resource\""
+
+def machineScriptJson (path : String) (m : Module) (fuel : Nat) : String :=
+  let result := Machine.run Machine.Impl.cpython39 fuel m
+  let state := result.1
+  let observation := result.2
+  "{\"path\":" ++ jsonStr path ++ ",\"status\":"
+    ++ machineObservationJson observation ++ ",\"events\":"
+    ++ toString state.events.length ++ "}"
+
 /-- One parsed job line of `--batch` mode. `clock` is the optional
 CLOCK TRACE (pass 6, docs/memory-model.md §the trace clock): integer
 readings `time.time()` consumes in order — the model side of the
@@ -759,6 +774,35 @@ def runScriptBatchMode (jobsPath : String) (defaultFuel : Nat) : IO UInt32 := do
         stdout.flush
       return (if hadError then 1 else 0)
 
+def runMachineScriptBatchMode (jobsPath : String) (defaultFuel : Nat) : IO UInt32 := do
+  match ← (IO.FS.readFile ⟨jobsPath⟩).toBaseIO with
+  | .error e =>
+      IO.eprintln s!"leanmodels-run --machine-script-batch: cannot read '{jobsPath}': {toString e}"
+      return 1
+  | .ok contents =>
+      let stdout ← IO.getStdout
+      let mut hadError := false
+      for line in contents.splitOn "\n" do
+        if line.trimAscii.copy.isEmpty then continue
+        match parseScriptJob line with
+        | .error e =>
+            hadError := true
+            stdout.putStrLn ("{\"status\":\"runner-error\",\"msg\":" ++ jsonStr e ++ "}")
+        | .ok job =>
+            match ← (IO.FS.readFile ⟨job.path⟩).toBaseIO with
+            | .error e =>
+                hadError := true
+                stdout.putStrLn ("{\"path\":" ++ jsonStr job.path ++ ",\"status\":\"runner-error\",\"msg\":" ++ jsonStr (toString e) ++ "}")
+            | .ok contents =>
+                match parseEnvelopeString contents with
+                | .error e =>
+                    hadError := true
+                    stdout.putStrLn ("{\"path\":" ++ jsonStr job.path ++ ",\"status\":\"runner-error\",\"msg\":" ++ jsonStr e ++ "}")
+                | .ok envl =>
+                    stdout.putStrLn (machineScriptJson job.path envl.module (job.fuel.getD defaultFuel))
+        stdout.flush
+      return (if hadError then 1 else 0)
+
 def main (argv : List String) : IO UInt32 := do
   match argv with
   | "--batch" :: rest =>
@@ -797,6 +841,17 @@ def main (argv : List String) : IO UInt32 := do
       | [jobsPath] => runScriptBatchMode jobsPath (fuel?.getD 1000000)
       | _ =>
           IO.eprintln "usage: leanmodels-run --script-batch <jobs.jsonl> [--fuel N]"
+          return 2
+  | "--machine-script-batch" :: rest =>
+    match splitFuel rest with
+    | .error e =>
+        IO.eprintln s!"leanmodels-run --machine-script-batch: {e}"
+        return 2
+    | .ok (positional, fuel?) =>
+      match positional with
+      | [jobsPath] => runMachineScriptBatchMode jobsPath (fuel?.getD 4096)
+      | _ =>
+          IO.eprintln "usage: leanmodels-run --machine-script-batch <jobs.jsonl> [--fuel N]"
           return 2
   | "--script" :: rest =>
     -- leanpy: `leanmodels-run --script <envelope.json> [--fuel N] [--clock i,j]`
