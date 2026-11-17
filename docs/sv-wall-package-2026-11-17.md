@@ -501,3 +501,15 @@ Xcelium 24.03-s004 rejects elaboration (including the two generated continuous
 drivers on `q`). No simulator value is claimed. The identifier is outside the
 language grammar, so this wall needs no semantic admission or source rewrite;
 the loud parser refusal remains the exact boundary.
+
+## Reactive preemption wall remeasurement
+
+The clean-room `preempt_block_refuse.sv` fixture has two `always_comb`
+processes where the first writes `q` and the second reads it. Ordinary E
+refuses it at `PDesign.instantiateE2` with
+`Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'q' from
+itself or a later reactive process; canonical E has no fixed-point scheduler`.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on the five measured rows:
+all-x, `a=0`, `a=1`, `a=x`, and `a=z` produce matching q/r/z values in each
+case. The receipt claims no source-order or preemption resolution; the loud
+fixed-point boundary remains sound.
