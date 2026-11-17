@@ -302,3 +302,12 @@ The fresh Ibex exact-closure measurement is routed to ls-sv3 Param/enum
 ownership: 224 sources, 20 modules, 587 static unsupported nodes, and first
 wall `defaults: enum 'base_isa_e': unrecoverable packed dimensions` at
 `rtl/ibex_pkg.sv:36-39`. No ls-sv extractor or semantic change is made.
+
+The CV32E40P break repro is also fully measured: Icarus Verilog 13.0 and
+Xcelium 24.03-s004 both print `x, x, 0, 0, 1` for the parameterized
+for/break fixture, while the retained envelope refuses at the named
+`BreakStatement` boundary. This remains an ls-sv2 ingestion/loader wall; no
+loop lowering or E meaning is introduced here.
+
+Current public master is `69530791d`; the private-name cleanup is on master and
+the wall package remains clean under the required public-tree gate.
