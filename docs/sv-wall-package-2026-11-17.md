@@ -107,3 +107,10 @@ rows at child=4, event-controlled=8, initial=5, hierarchy value=7,
 interface instance/port/connection=6 each, internal clock=3, multiple clocks=4,
 and port target=6. The repository private-name self-test and diff check pass;
 no newer owner instruction is present.
+
+Current-pin discrepancy check: ordinary collect-all on both the checked-in
+`Examples/system-verilog/sem2/child_instance_e/child_instance_e.sv.json` and
+the clean-room `child_instance_scan.sv.json` returns zero refusals. This
+conflicts with the older 03:37 handoff that names a child-instance refusal for
+the latter shape. The older count is not treated as current evidence; a
+current-pin remeasurement has been requested from the measuring lane.
