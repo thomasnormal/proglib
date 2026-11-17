@@ -854,7 +854,7 @@ partial def parseGenItem (j : Json) : Except String GenItem := do
           | none => pure []
           | some je => (← je.getArr?).toList.mapM parseGenItem
         return .genIf cond thenB elseB
-    | "AlwaysPosedge" | "AlwaysComb" | "Assign" | "Initial" =>
+    | "AlwaysPosedge" | "AlwaysComb" | "AlwaysEvent" | "Assign" | "Initial" =>
         return .process (← parsePProcess j)
     | "Instance" => return .inst (← parsePInst j)
     | "UnpackedDecl" =>
@@ -1845,6 +1845,10 @@ private def unsupMemberText : String := r#"{
     "expr": {"kind": "Int", "span": null, "value": 1, "resolved_width": 32}, "resolved": 1}"#
     >>= parseGenItem).toOption
         == some (.unsupported "GenerateDecl:LocalParam" "generate-local declaration 'LL'")
+#guard match (Json.parse r#"{"kind":"AlwaysEvent","event_kind":"ImplicitEventControl",
+    "body":{"kind":"Empty"}}"# >>= parseGenItem).toOption with
+  | some (.process (.alwaysImplicit (.block []))) => true
+  | _ => false
 #guard match (Json.parse r#"{"kind": "UnpackedDecl", "span": null, "name": "mem",
     "width": {"kind": "PackedType", "packed": [], "resolved": 1},
     "unpacked": [{"msb": {"kind": "Int", "value": 1},

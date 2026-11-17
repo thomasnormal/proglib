@@ -394,3 +394,18 @@ CURRENT HEAD CORRECTION — 2026-11-17T11:05Z
 Public master is now `1f8c98756`; the intervening public change is a
 private-name cleanup outside SV semantics. The delayed-control receipt and its
 `TimedStatement:DelayControl` refusal remain unchanged.
+
+## Generate-for implicit event process wall
+
+The pinned CV32E40P source contains a `GenerateFor` whose body is the parser's
+`AlwaysEvent` with `event_kind: "ImplicitEventControl"` (the generated loop in
+`riscv_hwloop_controller.sv`). `parseGenItem` now dispatches that parser node
+through `parsePProcess`, preserving its `PProcess.alwaysImplicit` body. Explicit
+event-list forms still take the existing loud refusal; no generated loop is
+unrolled and no event is reinterpreted as a clocked process.
+
+A clean-room parameterized generate-for fixture with one source-shaped
+`always @*` writer passes the collect-all extractor and ordinary census after
+this change. Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on its known and
+x/z rows: `00, 01, 10, 11, 00, 00, 00, 00`. The source-shaped process remains
+subject to the existing scheduler and fixed-point boundaries in later routes.
