@@ -178,3 +178,8 @@ and `always_comb_case_memory_canonical_e` each match four rows on Icarus
 Verilog 13.0/Xcelium 24.03-s004, and `memory_edge_blocking_canonical_e`
 matches three source rows on both simulators. These receipts cover time-zero
 combination, memory NBA/read behavior, and blocking edge assignments.
+
+The edge-case memory receipts are current: `memory_edge_case_canonical_e` and
+`memory_edge_casez_casex_canonical_e` regenerate byte-identically and each match
+six source rows on Icarus Verilog 13.0 and Xcelium 24.03-s004, covering plain
+case, casez, and casex edge assignments.
