@@ -711,6 +711,30 @@ mirror is visible, not because it computes anything new. -/
 def subscript (m : Mem) (p : Ptr) (elemSize : Nat) (i : Int) : MRes Ptr :=
   m.offsetPtr p elemSize i
 
+/- Pointer arithmetic checks provenance, object bounds, and subobject bounds;
+   the concrete placement is carried through a successful result but is not
+   inspected by the checks or by their named refusals. -/
+@[simp] theorem offsetPtr_address_irrel (m : Mem) (p : Ptr) (elemSize : Nat)
+    (i : Int) (address : Nat) :
+    m.offsetPtr {p with address := address} elemSize i =
+      (m.offsetPtr p elemSize i).map (fun q => {q with address := address}) := by
+  cases hobj : p.obj with
+  | none => simp [offsetPtr, Except.map, hobj]
+  | some o =>
+    cases hget : m.get? o with
+    | none => simp [offsetPtr, Except.map, hobj, hget]
+    | some c =>
+      by_cases h1 : p.off + i * (elemSize : Int) < 0 <;>
+        by_cases h2 : (c.size : Int) < p.off + i * (elemSize : Int) <;>
+        by_cases h3 : p.bound.getD (c.size : Int) < p.off + i * (elemSize : Int) <;>
+        simp [offsetPtr, Except.map, hobj, hget, h1, h2, h3]
+
+@[simp] theorem subscript_address_irrel (m : Mem) (p : Ptr) (elemSize : Nat)
+    (i : Int) (address : Nat) :
+    m.subscript {p with address := address} elemSize i =
+      (m.subscript p elemSize i).map (fun q => {q with address := address}) := by
+  simp [subscript, offsetPtr_address_irrel]
+
 /-! ### §6.5.9 / §6.5.10 — comparing pointers, and the asymmetry
 
 Two operators from the same clause family give OPPOSITE verdicts on the
