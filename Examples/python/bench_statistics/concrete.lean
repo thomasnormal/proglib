@@ -27,12 +27,12 @@ surfaces; this pins the binary64 division result for the shipped source. -/
 theorem bench_statistics_median_even :
     (match callFunction bench_statistics "median"
       #[.list #[.int 1, .int 3, .int 5, .int 7]] 4096 with
-     | .ok (.float _) => true
+     | .ok (.float f) => f == Float64.ofBits 0x4010000000000000
      | _ => false) &&
     (match LeanModels.Python.Monadic.callInMono bench_statistics 4096
         (initWorld bench_statistics) "median"
         #[.listV #[.int 1, .int 3, .int 5, .int 7]] with
-     | .ok _ (.float _) => true
+     | .ok _ (.float f) => f == Float64.ofBits 0x4010000000000000
      | _ => false) = true := by
   native_decide
 
