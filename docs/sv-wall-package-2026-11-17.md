@@ -42,6 +42,15 @@ tier`; retaining that refusal is required until the time-zero state is part of
 the scheduler-derived run2 semantics. The real-design initial-process count
 is therefore unchanged.
 
+For the final ordered clocks wall, the two-clock repro reports the exact
+`Clock:multiple` loader refusal, while the derived-clock repro reports
+`Clock:source` and the canonical-E `Event:time-zero` refusal.  The design note
+in the journal treats both input clocks as free environment events, quantifies
+over every interleaving including simultaneous edges, and leaves metastability
+refused.  No source-order choice is introduced.  The real-design multiple
+clock count remains present=4 and internal-clock count remains present=3 until
+the scheduler is accepted.
+
 The hierarchical-value repro was measured next. Both extractor and ordinary
 collect-all retain `HierarchicalValueExpression` at `parsePExpr` for the
 generic `u.internal_value` read. The existing hierarchy flattener handles
