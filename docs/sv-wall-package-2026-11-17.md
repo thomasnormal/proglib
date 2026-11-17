@@ -694,3 +694,11 @@ for `#1 q <= d;` in approved extraction and ordinary census at `parsePStmt`.
 Its four-row receipt matches Icarus Verilog 13.0 and Xcelium 24.03-s004. The
 zero-delay canonical-E route keeps this timing-control boundary loud; no delay
 approximation or scheduler timing semantics is added.
+
+## Urgent event-controlled-process wall remeasurement
+
+The urgent event-control clean-room fixture retains a source-level event
+process without a supported edge route. Ordinary census emits the exact
+`Clock:implicit` refusal at the parser/design boundary, while its four-row
+receipt matches Icarus Verilog 13.0 and Xcelium 24.03-s004. No event-list
+sensitivity scheduler or source reinterpretation is added.
