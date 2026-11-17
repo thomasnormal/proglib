@@ -788,10 +788,24 @@ def malloc (m : Mem) (size : Nat) : Mem × Ptr :=
   let (m', o) := m.alloc .allocated size none
   (m', Ptr.toObjectBound o size)
 
+def mallocAt (m : Mem) (size address : Nat) : Mem × Ptr :=
+  m.allocAt .allocated size none address
+
 /-- §7.24.3.2 `calloc`: all bits zero. -/
 def calloc (m : Mem) (n size : Nat) : Mem × Ptr :=
   let (m', o) := m.allocZeroed .allocated (n * size) none
   (m', Ptr.toObjectBound o (n * size))
+
+def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
+  m.allocZeroedAt .allocated (n * size) none address
+
+@[simp] theorem mallocAt_address (m : Mem) (size address : Nat) :
+    (m.mallocAt size address).2.address = address := by
+  simp [mallocAt, allocAt, Ptr.toObjectBoundAt]
+
+@[simp] theorem callocAt_address (m : Mem) (n size address : Nat) :
+    (m.callocAt n size address).2.address = address := by
+  simp [callocAt, allocZeroedAt, Ptr.toObjectBoundAt]
 
 /-- §7.24.3.3 `free`. Refuses a pointer no allocation returned, or one
 already freed (**`J.2(184)`**). A null pointer is accepted and does
