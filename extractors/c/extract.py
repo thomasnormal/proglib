@@ -550,7 +550,7 @@ class Extractor:
 
     def e_TypedefDecl(self, n):
         under = next((c for c in kids(n) if c.get("kind") in TYPES), None)
-        return {"name": n.get("name"), "type": qual(n),
+        return {"decl_id": n.get("id"), "name": n.get("name"), "type": qual(n),
                 "underlying": self.type_node(under) if under else None}
 
     def e_EnumDecl(self, n):
@@ -586,6 +586,8 @@ class Extractor:
             return None
         k = t.get("kind")
         out = {"kind": k, "type": qual(t)}
+        if t.get("referencedDecl", {}).get("id"):
+            out["decl"] = {"id": t["referencedDecl"]["id"]}
         if k not in TYPES:
             return {"kind": "Unsupported", "c_kind": k, "text": qual(t) or "?"}
         sub = [c for c in kids(t) if c.get("kind") in TYPES]

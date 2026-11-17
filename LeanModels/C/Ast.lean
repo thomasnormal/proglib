@@ -101,7 +101,7 @@ inductive TypeNode where
   | paren (inner : TypeNode)
   | elaborated (inner : TypeNode)
   | record (ty : CType)
-  | typedefRef (ty : CType)
+  | typedefRef (id : Option DeclarationId) (ty : CType)
   | funcProto (ret : TypeNode) (params : List TypeNode)
   | unsupported (cKind : String) (text : String)
 deriving Repr, Inhabited, BEq
@@ -227,7 +227,8 @@ inductive Decl where
   | field (name : Option String) (ty : CType) (bits : Option Nat) (span : CSpan)
   | record (id : Option DeclarationId) (name : Option String) (fields : List Decl)
       (layout : Option RecordLayout) (span : CSpan)
-  | typedef (name : String) (ty : CType) (underlying : Option TypeNode) (span : CSpan)
+  | typedef (id : Option DeclarationId) (name : String) (ty : CType)
+      (underlying : Option TypeNode) (span : CSpan)
   | enum (name : Option String) (constants : List Decl) (span : CSpan)
   /-- An enumeration constant. clang's `ConstantExpr` wrapper is flattened
   by the extractor (schema §3.1). `value` is the FOLDED integer as a decimal

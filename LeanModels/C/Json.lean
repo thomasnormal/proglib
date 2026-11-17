@@ -169,7 +169,13 @@ partial def parseTypeNode (j : Json) : Except String TypeNode := do
     | "ParenType" => return .paren (← inner)
     | "ElaboratedType" => return .elaborated (← inner)
     | "RecordType" => return .record (← getStr j "type")
-    | "TypedefType" => return .typedefRef (← getStr j "type")
+    | "TypedefType" =>
+        let id ← match getOptNode j "decl" with
+          | none => pure none
+          | some d => do
+              let rawId ← getOptStr d "id"
+              pure (rawId.map DeclarationId.mk)
+        return .typedefRef id (← getStr j "type")
     | "FunctionProtoType" =>
         let ret ← match getOptNode j "ret" with
           | none => throw "missing 'ret'"
@@ -313,7 +319,8 @@ partial def parseDecl (j : Json) : Except String Decl := do
         return .record ((← getOptStr j "decl_id").map DeclarationId.mk) (← getOptStr j "name")
           (← (← getArr j "fields").mapM parseDecl) (← getOptRecordLayout j) span
     | "TypedefDecl" =>
-        return .typedef (← getStr j "name") (← getStr j "type")
+        return .typedef ((← getOptStr j "decl_id").map DeclarationId.mk)
+          (← getStr j "name") (← getStr j "type")
           (← match getOptNode j "underlying" with
               | none => pure none
               | some v => some <$> parseTypeNode v) span

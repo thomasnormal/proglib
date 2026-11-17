@@ -190,7 +190,7 @@ def arrayOf (t : CType) : Option (CType × Nat) :=
 computation — so resolving through it invents nothing. -/
 def typedefsOf (envl : Envelope) : List (CType × CType) :=
   envl.unit.items.filterMap fun i => match i with
-    | .decl (.typedef nm ty _ _) => some (nm, ty)
+    | .decl (.typedef _ nm ty _ _) => some (nm, ty)
     | _ => none
 
 def resolve (tds : List (CType × CType)) : Nat → CType → CType
@@ -457,10 +457,10 @@ def observedRecordFacts (envl : Envelope) :
                   let keyTy := (arrayOf ty).map (·.1) |>.getD ty
                   some (keyTy, members, checked)
         | none => match ds.find? (fun q => match q with
-          | .typedef nm ty _ tsp =>
+          | .typedef _ nm ty _ tsp =>
               tsp.line == sp.line && (ty == "struct " ++ nm || ty == "union " ++ nm)
           | _ => false) with
-        | some (.typedef nm _ _ _) =>
+        | some (.typedef _ nm _ _ _) =>
             match checkedRecordLayout? fields layout with
             | none => none
             | some checked =>
