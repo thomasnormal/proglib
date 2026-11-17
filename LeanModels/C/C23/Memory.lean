@@ -309,6 +309,10 @@ def vaValues (m : Mem) (p : Ptr) : MRes (List CVal) :=
       | some vs => .ok vs
       | none => .error (.memUB (.nonValueRepresentation o 0))
 
+@[simp] theorem vaValues_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    vaValues m {p with address := address} = vaValues m p := by
+  simp [vaValues]
+
 private def vaDrop (xs : List (ObjId × List CVal)) (o : ObjId) : List (ObjId × List CVal) :=
   match xs with
   | [] => []
