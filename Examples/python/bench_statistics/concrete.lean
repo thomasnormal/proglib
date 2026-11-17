@@ -21,3 +21,20 @@ theorem bench_statistics_median_odd :
      | .ok _ (.int 3) => true
      | _ => false) = true := by
   native_decide
+
+/-! The even-cardinality branch is also checked at both public interpreter
+surfaces; this pins the binary64 division result for the shipped source. -/
+theorem bench_statistics_median_even :
+    (match callFunction bench_statistics "median"
+      #[.list #[.int 1, .int 3, .int 5, .int 7]] 4096 with
+     | .ok (.float _) => true
+     | _ => false) &&
+    (match LeanModels.Python.Monadic.callInMono bench_statistics 4096
+        (initWorld bench_statistics) "median"
+        #[.listV #[.int 1, .int 3, .int 5, .int 7]] with
+     | .ok _ (.float _) => true
+     | _ => false) = true := by
+  native_decide
+
+#print axioms bench_statistics_median_odd
+#print axioms bench_statistics_median_even
