@@ -1719,6 +1719,15 @@ theorem mallocAt_loadBytes_placement_irrel
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt, loadBytes,
     resolve, get?, resolve_address_irrel]
 
+theorem callocAt_loadBytes_placement_irrel
+    (m : Mem) (n size address₁ address₂ offset : Nat) :
+    (m.callocAt n size address₁).1.loadBytes
+        (m.callocAt n size address₁).2 offset =
+      (m.callocAt n size address₂).1.loadBytes
+        (m.callocAt n size address₂).2 offset := by
+  simp [callocAt, allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt,
+    loadBytes, resolve, get?, resolve_address_irrel]
+
 theorem reallocAt_null_placement_lookup (m : Mem) (size address : Nat) (h : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
         (fun r => r.1.placement? m.objs.length) = .ok (some address) := by
