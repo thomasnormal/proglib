@@ -1954,34 +1954,41 @@ theorem CoreMemEdge.fires_of_agree {f : CoreMemEdge} {a b : SvState}
       simp only [hbr]
       cases f.edge <;> cases f.resetHigh <;> simp [hpos, hneg]
 
+/-- **The frame of a slot's edge round**: the view the round leaves (edges, commit, the region settled twice) agrees with
+the pre-edge view on every name no process drives. -/
+theorem CoreMemDesign.round_frame {E : CoreMemDesign} (hP : E.SeqProfileI) {v p s1 s2 : SvState} {mv mv' : MemV}
+    {r : ExecV} (hp : E.matV p = p) (hr : E.edgesV v p p mv E.processes.toList = .ok r)
+    (h1 : E.settleV mv' (commitNba2 r.1 r.2.1) = .ok s1) (h2 : E.settleV mv' s1 = .ok s2) :
+    ∀ x, x ∉ E.driven → SvState.lookup s2 x = SvState.lookup p x := by
+  have hfr := CoreMemDesign.edgesV_frame hP.names hP.four E.processes.toList p mv r hr
+  intro x hx
+  have hxa : x ∉ assignTargets E.processes.toList := fun h' => hx (CoreMemDesign.assignTargets_driven x h')
+  simp only [CoreMemDesign.settleV, Res.bind_eq_ok, Res.ok.injEq] at h1 h2
+  obtain ⟨raw1, hr1, rfl⟩ := h1
+  obtain ⟨raw2, hr2, rfl⟩ := h2
+  have e2 := CoreMemDesign.settleRaw_frame _ _ _ _ hr2 x hxa
+  have e1 := CoreMemDesign.settleRaw_frame _ _ _ _ hr1 x hxa
+  have ec : SvState.lookup (commitNba2 r.1 r.2.1) x = SvState.lookup r.1 x :=
+    commitNba2_frame r.2.1 r.1 x fun u hu he => hx (he ▸ hfr.2 u hu)
+  calc SvState.lookup (E.matV raw2) x = SvState.lookup (E.matV (E.matV raw1)) x :=
+        CoreMemDesign.lookup_matV_congr e2
+    _ = SvState.lookup (E.matV raw1) x := by rw [CoreMemDesign.matV_matV hP.names hP.four]
+    _ = SvState.lookup (E.matV (commitNba2 r.1 r.2.1)) x := CoreMemDesign.lookup_matV_congr e1
+    _ = SvState.lookup (E.matV r.1) x := CoreMemDesign.lookup_matV_congr ec
+    _ = SvState.lookup (E.matV p) x := hfr.1 x hx
+    _ = SvState.lookup p x := by rw [hp]
+
 /-- **NO FOLLOW-UP EVENT**: under the obligations, the view a slot's first round leaves agrees with its pre-edge view
 on every name no process drives, so no edge process's event occurs between them (no process drives an event source:
-the clock is not driven, a reset is an input port and no input is driven). The route's in-slot iteration therefore
-stops after the first round. -/
+every clock and every reset is an undriven input port). The route's in-slot iteration therefore stops after the first
+round. -/
 theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} (hP : E.SeqProfileI)
     (hO : E.seqOblI = true) {v p s1 s2 : SvState} {mv mv' : MemV} {r : ExecV} (hp : E.matV p = p)
     (hr : E.edgesV v p p mv E.processes.toList = .ok r)
     (h1 : E.settleV mv' (commitNba2 r.1 r.2.1) = .ok s1) (h2 : E.settleV mv' s1 = .ok s2) :
     E.firesAny p s2 = false := by
   -- the slot changes only driven names
-  have hfr := CoreMemDesign.edgesV_frame hP.names hP.four E.processes.toList p mv r hr
-  have hfix : ∀ x, x ∉ E.driven → SvState.lookup s2 x = SvState.lookup p x := by
-    intro x hx
-    have hxa : x ∉ assignTargets E.processes.toList := fun h' => hx (CoreMemDesign.assignTargets_driven x h')
-    simp only [CoreMemDesign.settleV, Res.bind_eq_ok, Res.ok.injEq] at h1 h2
-    obtain ⟨raw1, hr1, rfl⟩ := h1
-    obtain ⟨raw2, hr2, rfl⟩ := h2
-    have e2 := CoreMemDesign.settleRaw_frame _ _ _ _ hr2 x hxa
-    have e1 := CoreMemDesign.settleRaw_frame _ _ _ _ hr1 x hxa
-    have ec : SvState.lookup (commitNba2 r.1 r.2.1) x = SvState.lookup r.1 x :=
-      commitNba2_frame r.2.1 r.1 x fun u hu he => hx (he ▸ hfr.2 u hu)
-    calc SvState.lookup (E.matV raw2) x = SvState.lookup (E.matV (E.matV raw1)) x :=
-          CoreMemDesign.lookup_matV_congr e2
-      _ = SvState.lookup (E.matV raw1) x := by rw [CoreMemDesign.matV_matV hP.names hP.four]
-      _ = SvState.lookup (E.matV (commitNba2 r.1 r.2.1)) x := CoreMemDesign.lookup_matV_congr e1
-      _ = SvState.lookup (E.matV r.1) x := CoreMemDesign.lookup_matV_congr ec
-      _ = SvState.lookup (E.matV p) x := hfr.1 x hx
-      _ = SvState.lookup p x := by rw [hp]
+  have hfix := CoreMemDesign.round_frame hP hp hr h1 h2
   simp only [CoreMemDesign.firesAny, List.any_eq_false]
   intro q hq
   cases q with
