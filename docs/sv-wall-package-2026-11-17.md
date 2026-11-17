@@ -533,6 +533,15 @@ the measured values retained by the receipt. The prior topology-boundary
 ranking is stale on this tree; no generated-index lowering, memory semantics
 change, or real-design count transition is claimed.
 
+## Default-point array wall remeasurement
+
+The ranked `default_point_array.sv` row is already admitted with retained
+procedural loops. Approved extraction and ordinary census report zero
+refusals, and canonical E matches Icarus Verilog 13.0 and Xcelium 24.03-s004
+for all eight cycles (`xxxxxxxx` throughout because the four pipe cells are
+uninitialized). This ranking row is cleared on the current tree; no array
+lowering, semantic change, or real-design count transition is claimed.
+
 ## Signal-event-control wall remeasurement
 
 The clean-room `signal_event_control.sv` fixture uses `always_ff @(clk)`
