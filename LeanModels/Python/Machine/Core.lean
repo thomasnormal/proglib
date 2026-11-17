@@ -271,6 +271,11 @@ def steps : MachineState → List Event → MachineState → Prop
   | start, event :: events, finishState =>
       ∃ next, step start = some (event, next) ∧ steps next events finishState
 
+inductive Trace : MachineState → List Event → MachineState → Prop where
+  | nil (state : MachineState) : Trace state [] state
+  | cons {state next finish : MachineState} {event : Event} {events : List Event} :
+      stepRel state event next → Trace next events finish → Trace state (event :: events) finish
+
 def observationOfEvents : List Event → Option Observation
   | [] => none
   | event :: rest =>
@@ -284,18 +289,40 @@ def observationOfEvents : List Event → Option Observation
           | .resource kind => some (.resource kind)
           | _ => none
 
-def runFuel (impl : Impl) : Nat → MachineState → MachineState × Observation
-  | 0, state => (state, .resource .recursion)
+def runTrace (impl : Impl) : Nat → MachineState → List Event × MachineState
+  | 0, state => ([], state)
   | fuel + 1, state =>
       match step state with
-      | none => (state, (observationOfEvents state.events).getD (.resource .memory))
+      | none => ([], state)
       | some (_, next) =>
-          if next.frames.isEmpty then
-            (next, (observationOfEvents next.events).getD (.resource .memory))
-          else runFuel impl fuel next
+          let result := runTrace impl fuel next
+          match step state with
+          | some (event, _) => (event :: result.1, result.2)
+          | none => (result.1, result.2)
 
 def run (impl : Impl) (fuel : Nat) (m : Module) : MachineState × Observation :=
-  runFuel impl fuel { initial m with resources := { fuel := fuel } }
+  match fuel with
+  | 0 =>
+      let state := { initial m with resources := { fuel := 0 } }
+      (state, .resource .recursion)
+  | fuel + 1 =>
+      let result := runTrace impl (fuel + 1) { initial m with resources := { fuel := fuel + 1 } }
+      (result.2, (observationOfEvents result.2.events).getD (.resource .memory))
+
+theorem runTrace_is_trace (impl : Impl) (fuel : Nat) (state : MachineState) :
+    Trace state (runTrace impl fuel state).1 (runTrace impl fuel state).2 := by
+  induction fuel generalizing state with
+  | zero => exact Trace.nil state
+  | succ fuel ih =>
+      cases hstep : step state with
+      | none =>
+          simp [runTrace, hstep]
+          exact Trace.nil state
+      | some transition =>
+          cases transition with
+          | mk event next =>
+              simp [runTrace, hstep]
+              exact Trace.cons hstep (ih next)
 
 theorem run_step_refines (impl : Impl) (fuel : Nat) (m : Module) :
     (run impl (fuel + 1) m).1.events = [] ∨
