@@ -108,12 +108,14 @@ Allocation = {
 ```
 
 `ByteCell` carries its initialization state and, where a pointer fragment is
-stored, its provenance. A pointer value carries an allocation id and offset;
-it is not just an integer. The `AddressChoice` component of `world` chooses a
-non-overlapping concrete address for each allocation, subject to the ABI's
-alignment and address-space constraints. The same allocation keeps the same
-choice for its lifetime. Correctness quantifies over every admissible address
-assignment, so a proof cannot rely on a lucky numeric address.
+stored, its provenance. A pointer value is the pair `(provenance, concrete
+address)`: provenance identifies the allocation and offset, while the concrete
+address is the chosen base address plus that offset. It is not just an
+integer. The `AddressChoice` component of `world` chooses a non-overlapping
+concrete base address for each allocation, subject to the ABI's alignment and
+address-space constraints. The same allocation keeps the same choice for its
+lifetime. Correctness quantifies over every admissible address assignment, so
+a proof cannot rely on a lucky numeric address.
 
 The primitive operations are `alloc`, `dealloc`, `read`, `write`, `copy`,
 `ptr_offset`, `encode`, and `decode`. `encode` and `decode` use the rustc
