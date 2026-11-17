@@ -1137,6 +1137,21 @@ theorem reallocAt_valid_placement_lookup (m : Mem) (p : Ptr) (size address : Nat
   rw [placementSet_find]
   simp
 
+theorem reallocAt_existing_placement (m : Mem) (p : Ptr) (size address : Nat)
+    (q : ObjId) (o : ObjId) (c : CObj) (hsize : size ≠ 0)
+    (hp : p.obj = some o) (hc : m.get? o = some c)
+    (hdur : c.dur = .allocated) (hlive : c.live = true)
+    (hoff : p.off = 0) (hq : q ≠ m.objs.length) :
+    (reallocAt m p size address).map
+        (fun r => r.1.placement? q) = .ok (m.placement? q) := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq, kill,
+    placement?, Except.map]
+  change ((placementSet m.placements m.objs.length address).find?
+      (fun entry => entry.1 == q)).map Prod.snd =
+    (m.placements.find? (fun entry => entry.1 == q)).map Prod.snd
+  rw [placementSet_other _ _ _ _ hq]
+
 @[simp] theorem reallocAt_zero (m : Mem) (p : Ptr) (address : Nat) :
     reallocAt m p 0 address = .error (.memUB (.reallocZero p)) := by
   simp [reallocAt]
