@@ -219,3 +219,8 @@ The scalar nonblocking memory receipt is current: `memory_scalar_nba_e/check.py`
 reports five rows matching canonical E, Icarus Verilog 13.0, and Xcelium
 24.03-s004. This covers the scalar memory NBA shape without admitting a
 different scheduling meaning.
+
+The wildcard time-zero receipt is current: `always_star_timezero_e/check.py`
+reports four startup rows matching the canonical source behavior on Icarus
+Verilog 13.0 and Xcelium 24.03-s004. The startup ordering split is retained
+as measured simulator behavior; no unmodelled time-zero event is approximated.
