@@ -114,3 +114,8 @@ the clean-room `child_instance_scan.sv.json` returns zero refusals. This
 conflicts with the older 03:37 handoff that names a child-instance refusal for
 the latter shape. The older count is not treated as current evidence; a
 current-pin remeasurement has been requested from the measuring lane.
+
+Regenerating `child_instance_scan.sv.json` with the current Slang extractor and
+rerunning ordinary collect-all also returns zero refusals. The discrepancy is
+therefore not caused by a stale checked-in envelope; the older child-instance
+handoff is stale relative to the current parser and route.
