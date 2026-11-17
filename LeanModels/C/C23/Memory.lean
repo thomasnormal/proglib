@@ -1208,6 +1208,13 @@ theorem allocZeroedAt_placement (m : Mem) (dur : Duration) (size : Nat)
         m.objs.length address
   exact ⟨rfl, placementSet_mem _ _ _⟩
 
+theorem allocZeroedAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
+    (ty : Option CType) (address₁ address₂ : Nat) :
+    let p₁ := (m.allocZeroedAt dur size ty address₁).2
+    let p₂ := (m.allocZeroedAt dur size ty address₂).2
+    p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
+  simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt]
+
 theorem allocZeroedAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
     (ty : Option CType) (address : Nat) :
     (m.allocZeroedAt dur size ty address).1.placement?
