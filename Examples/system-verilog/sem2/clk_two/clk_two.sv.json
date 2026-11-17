@@ -10,7 +10,7 @@
   "source_files": [
     {
       "path": "Examples/system-verilog/sem2/clk_two/clk_two.sv",
-      "sha256": "bb28e30bb43db16775a28169e59dbdd2983bb18a3db9226105574ee43d28ce78"
+      "sha256": "8c59410e34e4e62a87e8f7ba10b4598f4dfe4577e85cdc29b9f12d13cbb8b6ac"
     }
   ],
   "packages": [],
@@ -20,9 +20,9 @@
       {
         "kind": "Module",
         "span": {
-          "line": 3,
+          "line": 4,
           "col": 1,
-          "end_line": 9,
+          "end_line": 10,
           "end_col": 10
         },
         "name": "clk_two",
@@ -33,9 +33,9 @@
           {
             "kind": "Port",
             "span": {
-              "line": 4,
+              "line": 5,
               "col": 16,
-              "end_line": 4,
+              "end_line": 5,
               "end_col": 20
             },
             "name": "clk1",
@@ -49,9 +49,9 @@
           {
             "kind": "Port",
             "span": {
-              "line": 4,
+              "line": 5,
               "col": 22,
-              "end_line": 4,
+              "end_line": 5,
               "end_col": 26
             },
             "name": "clk2",
@@ -65,9 +65,9 @@
           {
             "kind": "Port",
             "span": {
-              "line": 4,
+              "line": 5,
               "col": 28,
-              "end_line": 4,
+              "end_line": 5,
               "end_col": 29
             },
             "name": "d",
@@ -81,9 +81,9 @@
           {
             "kind": "Port",
             "span": {
-              "line": 5,
+              "line": 6,
               "col": 16,
-              "end_line": 5,
+              "end_line": 6,
               "end_col": 17
             },
             "name": "a",
@@ -97,9 +97,9 @@
           {
             "kind": "Port",
             "span": {
-              "line": 5,
+              "line": 6,
               "col": 19,
-              "end_line": 5,
+              "end_line": 6,
               "end_col": 20
             },
             "name": "b",
@@ -116,55 +116,13 @@
           {
             "kind": "AlwaysPosedge",
             "span": {
-              "line": 7,
-              "col": 3,
-              "end_line": 7,
-              "end_col": 36
-            },
-            "style": "always_ff",
-            "clock": "clk1",
-            "body": {
-              "kind": "NonblockingAssign",
-              "span": {
-                "line": 7,
-                "col": 29,
-                "end_line": 7,
-                "end_col": 36
-              },
-              "target": {
-                "kind": "Ident",
-                "span": {
-                  "line": 7,
-                  "col": 29,
-                  "end_line": 7,
-                  "end_col": 30
-                },
-                "width": 1,
-                "name": "a"
-              },
-              "value": {
-                "kind": "Ident",
-                "span": {
-                  "line": 7,
-                  "col": 34,
-                  "end_line": 7,
-                  "end_col": 35
-                },
-                "width": 1,
-                "name": "d"
-              }
-            }
-          },
-          {
-            "kind": "AlwaysPosedge",
-            "span": {
               "line": 8,
               "col": 3,
               "end_line": 8,
               "end_col": 36
             },
             "style": "always_ff",
-            "clock": "clk2",
+            "clock": "clk1",
             "body": {
               "kind": "NonblockingAssign",
               "span": {
@@ -182,7 +140,7 @@
                   "end_col": 30
                 },
                 "width": 1,
-                "name": "b"
+                "name": "a"
               },
               "value": {
                 "kind": "Ident",
@@ -190,6 +148,48 @@
                   "line": 8,
                   "col": 34,
                   "end_line": 8,
+                  "end_col": 35
+                },
+                "width": 1,
+                "name": "d"
+              }
+            }
+          },
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 9,
+              "col": 3,
+              "end_line": 9,
+              "end_col": 36
+            },
+            "style": "always_ff",
+            "clock": "clk2",
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 9,
+                "col": 29,
+                "end_line": 9,
+                "end_col": 36
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 9,
+                  "col": 29,
+                  "end_line": 9,
+                  "end_col": 30
+                },
+                "width": 1,
+                "name": "b"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 9,
+                  "col": 34,
+                  "end_line": 9,
                   "end_col": 35
                 },
                 "width": 1,

@@ -149,3 +149,9 @@ The scalar topological-chain receipt is also current: `backreg_e/check.py`
 regenerates its envelope byte-identically, canonical E refuses the §10.3
 topological boundary, and all eight x/z rows match Icarus Verilog 13.0 and
 Xcelium 24.03-s004. The route makes no stale-value claim for this shape.
+
+The two-clock receipt was refreshed after its source-shaped envelope was found
+stale (old source hash and spans). Approved re-extraction now makes the
+envelope byte-identical; `clk_two/check.py` reports ordinary run2
+`Clock:multiple` refusal and eight x/z rows matching Icarus Verilog 13.0 and
+Xcelium 24.03-s004.
