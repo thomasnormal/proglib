@@ -520,11 +520,11 @@ class Extractor:
         # Record and field attributes change the layout, so they cannot be
         # dropped while retaining an apparently ordinary record. Keep every
         # non-field child as an Unsupported declaration. For a field, retain
-        # the field only when its children are the already-modelled bit-field
-        # width ConstantExpr; any other child (PackedAttr, AlignedAttr, …)
-        # becomes an Unsupported declaration and the layout walker refuses
-        # the containing record. This preserves the AST evidence and prevents
-        # natural-alignment layout for a packed or aligned record.
+        # both the attribute node(s) and the FieldDecl: the record-layout
+        # observation supplies the exact offsets and sizes, while the AST
+        # still carries the attribute that caused those facts. The semantic
+        # layout walker decides which attributes are covered by that
+        # observation; no field is silently replaced by an attribute.
         members = []
         for child in kids(n):
             if child.get("kind") != "FieldDecl":
@@ -534,8 +534,7 @@ class Extractor:
             extras = [c for c in kids(child) if c.get("kind") not in allowed]
             if extras:
                 members.extend(self.node(c) for c in extras)
-            else:
-                members.append(self.node(child))
+            members.append(self.node(child))
         out = {"decl_id": n.get("id"), "name": n.get("name"), "fields": members}
         if self.record_layouts is not None:
             offset = ((n.get("range") or {}).get("begin") or {}).get("offset")
@@ -1042,6 +1041,21 @@ def selftest():
                 decl["record_decl_id"] = prev["decl_id"]
     check("file-scope anonymous record identity is retained",
           top[1].get("record_decl_id"), "id-record")
+
+    # 5. A field attribute is evidence carried alongside its FieldDecl. It
+    # must not replace the field: the layout probe supplies the exact offset,
+    # while the AST still records why that offset differs from natural ABI
+    # alignment.
+    attributed = {
+        "kind": "RecordDecl", "id": "id-s", "name": "S",
+        "range": {"begin": {"offset": 0}},
+        "inner": [{"kind": "FieldDecl", "name": "a",
+                   "type": {"qualType": "int"},
+                   "inner": [{"kind": "ModeAttr"}]}],
+    }
+    fields = ex.e_RecordDecl(attributed)["fields"]
+    check("field attribute preserves FieldDecl", [x["kind"] for x in fields],
+          ["Unsupported", "FieldDecl"])
 
     print("extract --selftest:", "ok" if ok else "FAILED")
     return 0 if ok else 1

@@ -248,14 +248,16 @@ def recordHasUnsupported (fields : List Decl) : Bool :=
     | .unsupported .. => true
     | _ => false
 
-/- The parser's `AlignedAttr` is a layout fact already carried by the
-   identity-joined `RecordLayout` observation.  It must not poison that
-   observed path: the frontend has supplied the exact size and alignment.
-   The spelling-based fallback keeps treating every unsupported child as a
-   refusal, so no ABI rule is inferred when the observation is absent. -/
+/- These parser attributes affect representation, but the identity-joined
+   `RecordLayout` observation carries the frontend's exact answer. They may
+   therefore pass only on the observed path; the spelling-based fallback
+   still treats every unsupported child as a refusal, so no ABI rule is
+   inferred when the observation is absent. -/
 def recordHasBlockingUnsupported (fields : List Decl) : Bool :=
   fields.any fun d => match d with
-    | .unsupported kind _ _ => kind != "AlignedAttr" && kind != "IndirectFieldDecl"
+    | .unsupported kind _ _ =>
+        kind != "AlignedAttr" && kind != "PackedAttr" && kind != "ModeAttr" &&
+        kind != "MaxFieldAlignmentAttr" && kind != "IndirectFieldDecl"
     | _ => false
 
 def fieldsOf (fields : List Decl) : Option (List (String × CType)) :=
