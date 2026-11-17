@@ -696,6 +696,20 @@ addresses, so that case is detected and refused rather than assigned a
 false result. -/
 def ptrEq (a b : Ptr) : Bool := a.obj == b.obj && a.off == b.off
 
+/-- Address independence for equality: C's equality rule observes
+provenance and subobject offset, while the concrete placement is an
+implementation choice. -/
+@[simp] theorem ptrEq_address_irrel (a b : Ptr) (addressA addressB : Nat) :
+    ptrEq {a with address := addressA} {b with address := addressB} = ptrEq a b := by
+  simp [ptrEq]
+
+/-- The memory store is addressed by provenance and offset, so changing the
+placement annotation alone cannot change whether a range resolves. -/
+@[simp] theorem resolve_address_irrel (m : Mem) (p : Ptr) (n : Nat)
+    (address : Nat) :
+    m.resolve {p with address := address} n = m.resolve p n := by
+  simp [resolve]
+
 def ptrEqBoundary (m : Mem) (a b : Ptr) : Bool :=
   match a.obj, b.obj with
   | some x, some y =>
