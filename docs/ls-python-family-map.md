@@ -227,9 +227,51 @@ invented for pilots that did not typecheck. The remaining cost is to re-prove
 the public surface, all loop and call rules, the 37 example files, and the
 runner's differential contract if either interpreter is removed.
 
+The independent architecture review and ROADMAP section 9 draft support this
+direction, with two corrections from the current tree. I confirm that a future
+definition should be one small-step machine with labelled events and explicit
+choice points, with the runner derived from it; I have not started that machine
+because it is an owner decision. I also confirm that scope, object layout,
+callable dispatch, iterators, exceptions, and external specifications are the
+right build families. I correct the review's proof-file and declaration counts
+with the current checkout above, and leave its larger ten-family breakdown as a
+refinement of this eight-family map rather than claiming that its estimated
+machine size has been measured. **OBJECTION module system:** the review's
+description of `initFoldLive` continuing after a failed top-level statement is
+a current semantic debt and a likely wrong answer, not a behavior the new
+definition may preserve. **OBJECTION parser:** the approved CPython AST is the
+current frontend contract, but it cannot be the long-term language definition
+for ROADMAP 9.1; a grammar-independent definition is a later milestone.
+
+### WHERE THE SPEC COPIES CPYTHON
+
+These are implementation choices currently embedded in the semantics and must
+move behind an explicit CPython implementation record. They are not clauses of
+the Python language definition:
+
+- the small-integer identity cache used by `is`;
+- the set hash-table layout and probing sequence used to produce iteration
+  order;
+- C-level recursion units and the limit of 1000;
+- exception message text tables, including exact punctuation;
+- binary64 float rendering digits and other repr formatting details;
+- the closed-function module initializer's poisoning/live-view behavior,
+  including continuing after a failed top-level statement;
+- accelerator availability and the choice of CPython's concrete external
+  library implementation;
+- identity and hash choices for immutable objects, dict/set order, and the
+  resolution of resource exhaustion.
+
+The Language Reference and library documentation remain the specification. The
+CPython 3.9 oracle supplies tests and later representation-refinement evidence;
+it does not define these choices. The future machine must quantify over choices
+the language leaves open and carry CPython selections only through its explicit
+implementation record.
+
 ## Architectural decision
 
-If starting today, I would keep one AST and one exact state/flow semantics,
+If starting today, I would keep one approved AST envelope and one small-step
+state/flow semantics with events and explicit choice points,
 then derive both the executable runner and the proof surface from it. The
 current trunk `Semantics.lean` and monadic `Eval.lean` duplicate dispatch,
 recursion checks, heap protocols, and error ordering; the deletion-cost ledger
@@ -241,4 +283,5 @@ boundaries. The replacement architecture is: one parser envelope; one
 world/frame/flow machine; one object/callable/iterator protocol registry; a
 fuel adapter for proofs; and a separate, explicit external-spec registry.
 Until that consolidation is designed and proved, no new one-off survey wall
-should be started.
+should be started. This is a plan recorded for the owner, not an implementation
+request; the machine remains frozen until the inbox says `MACHINE: GO`.
