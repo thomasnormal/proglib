@@ -454,6 +454,12 @@ def placementValid (m : Mem) (address size alignment : Nat) : Bool :=
       (alignment == 0 || address % alignment == 0) := by
   simp [placementValid, empty]
 
+@[simp] theorem placementValid_emitStdout (m : Mem) (bytes : List CByte)
+    (address size alignment : Nat) :
+    placementValid (m.emitStdout bytes) address size alignment =
+      placementValid m address size alignment := by
+  rfl
+
 def count (m : Mem) : Nat := m.objs.length
 
 def compoundObject? (m : Mem) (span : CSpan) : Option ObjId :=
@@ -467,6 +473,12 @@ def rememberCompound (m : Mem) (span : CSpan) (o : ObjId) : Mem :=
 
 @[simp] theorem rememberCompound_placements (m : Mem) (span : CSpan) (o : ObjId) :
     (m.rememberCompound span o).placements = m.placements := by
+  rfl
+
+@[simp] theorem placementValid_rememberCompound (m : Mem) (span : CSpan) (o : ObjId)
+    (address size alignment : Nat) :
+    placementValid (m.rememberCompound span o) address size alignment =
+      placementValid m address size alignment := by
   rfl
 
 /-- C23 §6.2.4 / §6.7.11: create an object whose representation is
