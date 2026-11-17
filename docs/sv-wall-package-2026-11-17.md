@@ -362,6 +362,13 @@ and Xcelium 24.03-s004, while the ordinary census retains the exact
 `Clock:implicit` event-list refusal. The source is not reinterpreted as
 `always_comb` or latch semantics.
 
+Current-pin event-controlled-process receipt (2026-11-17): the same four rows
+match Icarus Verilog 13.0 and Xcelium 24.03-s004. The ordinary census retains
+both `Clock:implicit` lines from `parsePProcess` and `PDesign.instantiateE2`
+(`event-controlled process has no supported edge or implicit sensitivity
+semantics`). The real-design event-controlled family remains present=8, sole=0;
+no event-list scheduler meaning is claimed.
+
 The initial-storage receipt is current: `initial_storage_e/check.py` reports
 two rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004. Canonical E's
 `initialState` executes the simple blocking initialization, while the ordinary
