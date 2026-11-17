@@ -522,3 +522,13 @@ and the canonical-E batch receipt matches Icarus Verilog 13.0 and Xcelium
 24.03-s004 on all eight cycles (`xxxxxxxx` throughout because `values[0:3]`
 has no initializer). This is a cleared/stale ranking row: no semantic change,
 no array-index lowering, and no new real-design count transition is claimed.
+
+## Generated-array nested-index wall remeasurement
+
+The ranked `generated_array_nested.sv` row is already admitted with the
+approved procedural-retention extraction. Its ordinary census reports zero
+refusals. Canonical E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 for
+all eight cycles at both W4 and W8, including the x/z rows (`xxxxxxxz`), with
+the measured values retained by the receipt. The prior topology-boundary
+ranking is stale on this tree; no generated-index lowering, memory semantics
+change, or real-design count transition is claimed.
