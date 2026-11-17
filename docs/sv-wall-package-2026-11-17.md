@@ -292,3 +292,41 @@ two-driver `assign_net_resolution.sv` control prints `y=x` on Icarus Verilog
 startup split: Icarus prints `conflict=x, agree=1, z_only=z, unknown=x`, while
 Xcelium prints `x,x,x,x` at time zero. No canonical-E agreement is claimed for
 that split; both controls remain outside the E driver-set semantics.
+
+At current public master `4f358ba16`, the wall-package semantic pin remains
+`fc95337c5`; subsequent SV commits are refusal preservation, routing, and
+measurement documentation only. The anonymous real-design head remains 25
+modules total, 3 loading, and 3 running; no resolved-net count transition is
+claimed from this simulator-split measurement.
+
+The fresh Ibex exact-closure measurement is routed to ls-sv3 Param/enum
+ownership: 224 sources, 20 modules, 587 static unsupported nodes, and first
+wall `defaults: enum 'base_isa_e': unrecoverable packed dimensions` at
+`rtl/ibex_pkg.sv:36-39`. No ls-sv extractor or semantic change is made.
+
+The CV32E40P break repro is also fully measured: Icarus Verilog 13.0 and
+Xcelium 24.03-s004 both print `x, x, 0, 0, 1` for the parameterized
+for/break fixture, while the retained envelope refuses at the named
+`BreakStatement` boundary. This remains an ls-sv2 ingestion/loader wall; no
+loop lowering or E meaning is introduced here.
+
+Current public master is `69530791d`; the private-name cleanup is on master and
+the wall package remains clean under the required public-tree gate.
+
+CURRENT HEAD CORRECTION — 2026-11-17T10:45Z
+
+Public master is now `fdfbc6b06`; the intervening SV change records the
+CV32E40P break-wall evidence only. The measured break rows remain
+`x, x, 0, 0, 1` on both pinned simulators, and the retained envelope refusal
+remains unchanged. No real-design count transition is claimed.
+
+CURRENT HEAD CORRECTION — 2026-11-17T10:55Z
+
+Public master is now `ef58c13a0`; the intervening SV change updates
+wall-package head documentation only. The CV32E40P break evidence and refusal
+boundary are unchanged, and no real-design count transition is claimed.
+
+The delayed-control wall receipt is current: `delay_control_wall/check.py`
+reports four rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004, while
+the ordinary census retains the exact `TimedStatement:DelayControl` refusal.
+The zero-delay E route makes no timing approximation.
