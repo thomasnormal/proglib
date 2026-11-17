@@ -552,7 +552,7 @@ def truthy (v : CVal) : EvalM Bool :=
   | .ptrInt _ => refuseUnsupported "pointer-integer value used in a Boolean context"
   | .funPtr _ => refuseUnsupported "function pointer used in a Boolean context"
   | .aggregate _ _ => refuseUnsupported "aggregate used as truth value"
-  | .undef => refuseUB (.indetAutomatic 0 0)
+  | .undef => refuseUnsupported "undefined value used where an integer is required (C23 6.3.2.1p2)"
 
 /-- §6.5.9p3 / §6.5.10p3: a comparison yields `int`, 0 or 1. -/
 def ofBool (b : Bool) : CVal := .int IntTy.int_ (if b then 1 else 0)
@@ -699,7 +699,7 @@ def asPtr (v : CVal) : EvalM Ptr :=
   | .int _ _ => refuseUnsupported "integer used as a pointer (no int↔ptr cast in tier)"
   | .float32 _ | .float64 _ => refuseUnsupported "floating value used as a pointer"
   | .aggregate _ _ => refuseUnsupported "aggregate used as a pointer"
-  | .undef => refuseUB (.indetAutomatic 0 0)
+  | .undef => refuseUnsupported "undefined value used as a truth value (C23 6.3.2.1p2)"
 
 /-- Require an integer, with its type. -/
 def asInt (v : CVal) : EvalM (IntTy × Int) :=
@@ -710,7 +710,7 @@ def asInt (v : CVal) : EvalM (IntTy × Int) :=
   | .funPtr _ => refuseUnsupported "function pointer used as an integer"
   | .float32 _ | .float64 _ => refuseUnsupported "floating value used as an integer"
   | .aggregate _ _ => refuseUnsupported "aggregate used as an integer"
-  | .undef => refuseUB (.indetAutomatic 0 0)
+  | .undef => refuseUnsupported "undefined value used as a pointer (C23 6.3.2.1p2)"
 
 /-- Is this spelling a pointer type? Spelling-based, and deliberately so:
 the tier carries clang's `qualType` string rather than a type tree
@@ -958,7 +958,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
       else match intTyOf? (ctx.layout.normalizeTy ty) with
         | some rt => intBinop op rt a b
         | none => intBinop op t a b        -- a comparison: the result is `int`
-  | _, _ => refuseUB (.indetAutomatic 0 0)
+  | _, _ => refuseUnsupported "operator operands have unsupported value kinds (C23 6.5)"
 
 /-! ## §6.5 — the evaluator
 

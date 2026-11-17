@@ -33,7 +33,9 @@ CACHE="${LS_C_CORPUS_CACHE:-${TMPDIR:-/tmp}/ls-c-torture}"
 REV="$(python3 -c "import json;print(json.load(open('$ROOT/docs/c23-suite-census.json'))['corpora']['gcc-torture-exec']['rev'])")"
 MANIFEST="$CACHE/$REV/manifest.json"
 LOG="${LS_C_TORTURE_LOG:-${TMPDIR:-/tmp}/c-torture-run.log}"
-FUEL="${LS_C_TORTURE_FUEL:-64}"
+# Survey fuel is spent at loops/calls; keep the wall controller as the
+# termination guard. Focused probes may override this explicitly.
+FUEL="${LS_C_TORTURE_FUEL:-1000000}"
 SB="$ROOT/docs/c-torture-scoreboard.json"
 FRESH="${TMPDIR:-/tmp}/c-torture-scoreboard.fresh.json"
 
