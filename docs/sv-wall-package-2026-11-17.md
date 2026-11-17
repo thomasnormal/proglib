@@ -166,3 +166,9 @@ The level-sensitive `always_latch` receipt is current: its Lean canonical-E
 agreement passes, and the six-row x/z fixture matches Icarus Verilog 13.0 and
 Xcelium 24.03-s004. This confirms the admitted latch form's measured behavior;
 hardware metastability and latch-enable glitches remain outside the model.
+
+The canonical time-zero memory receipts are current: `memory_initial_canonical_e`
+matches three rows on Icarus Verilog 13.0 and Xcelium 24.03-s004, and
+`readmemh_rom_canonical_e` regenerates byte-identically with five rows matching
+both simulators. These receipts cover known and x indices plus literal
+`$readmemh` initialization without adding a run2 meaning.
