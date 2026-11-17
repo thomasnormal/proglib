@@ -84,3 +84,8 @@ generic `u.internal_value` read. The existing hierarchy flattener handles
 parser-native port connections, but it does not invent semantics for an
 arbitrary hierarchical value expression (§23.6); the loud refusal remains
 sound and the real-design present=7 count is unchanged.
+
+The public-census handoff also confirms ownership boundaries: typed variable/member
+paths, primitive instances, and specify blocks are `ls-sv3` rows in the current
+wall table. Those measured rows are handed to that lane; this lane makes no
+shared semantic change without an owner reassignment.
