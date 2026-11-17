@@ -33,3 +33,11 @@ choice-bearing scheduler integration, which is explicitly prohibited before
 the inbox records `ACCEPTED S1`, so this item remains a loud refusal and is
 parked without a count claim.  The following initial-process wall is subject
 to the same time-zero scheduler dependency.
+
+The initial-process repro was measured separately. Canonical E's
+`CoreMemDesign.initialState` executes the simple blocking assignment and the
+ordinary census therefore reports zero E refusals. The `Design2`/`run2`
+surface still emits `T2:Initial: initial process outside the cycle semantic
+tier`; retaining that refusal is required until the time-zero state is part of
+the scheduler-derived run2 semantics. The real-design initial-process count
+is therefore unchanged.
