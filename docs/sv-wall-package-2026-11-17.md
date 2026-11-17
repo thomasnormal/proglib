@@ -172,3 +172,9 @@ matches three rows on Icarus Verilog 13.0 and Xcelium 24.03-s004, and
 `readmemh_rom_canonical_e` regenerates byte-identically with five rows matching
 both simulators. These receipts cover known and x indices plus literal
 `$readmemh` initialization without adding a run2 meaning.
+
+The memory execution receipts remain green: `always_comb_memory_canonical_e`
+and `always_comb_case_memory_canonical_e` each match four rows on Icarus
+Verilog 13.0/Xcelium 24.03-s004, and `memory_edge_blocking_canonical_e`
+matches three source rows on both simulators. These receipts cover time-zero
+combination, memory NBA/read behavior, and blocking edge assignments.
