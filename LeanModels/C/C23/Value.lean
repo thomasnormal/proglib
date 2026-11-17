@@ -295,6 +295,15 @@ theorem exposedAddress_nonnull (p : Ptr) (hp : p.obj.isSome) :
   | none => rw [h] at hp; simp at hp
   | some o => simp [exposedAddress, h]
 
+theorem fromExposedAddress_exposed_address (p : Ptr) (hp : p.obj.isSome) :
+    (fromExposedAddress (exposedAddress p)).map (fun q => q.address) = some p.address := by
+  cases h : p.obj with
+  | none => rw [h] at hp; simp at hp
+  | some o =>
+      have hn0 : ¬ ((p.address : Int) + 1 = 0) := by omega
+      have hpos : 0 < (p.address : Int) + 1 := by omega
+      simp [exposedAddress, fromExposedAddress, toObjectAt, h, hn0, hpos]
+
 @[simp] theorem fromExposedAddress_zero : fromExposedAddress 0 = some Ptr.null := by
   simp [fromExposedAddress]
 
