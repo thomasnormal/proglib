@@ -796,7 +796,7 @@ theorem resolve_alloc (m : Mem) (dur : Duration) (size n : Nat) (ty : Option CTy
       = .ok ((m.alloc dur size ty).2,
              ⟨dur, true, List.replicate size .indet, ty⟩, 0) := by
   have hn : ¬ size < n := by omega
-  simp [resolve, Ptr.toObject, CObj.size, hn]
+  simp [resolve, Ptr.toObject, Ptr.toObjectAt, CObj.size, hn]
 
 /-- INVERSION for `resolve`: everything a successful access establishes.
 

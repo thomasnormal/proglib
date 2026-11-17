@@ -231,7 +231,14 @@ C23 §6.3.2.3p3: a null pointer constant converts to a null pointer, which
 function". Here `obj = none` **IS** the null pointer — not offset 0 of a
 distinguished object, so no arithmetic can accidentally reach one. -/
 structure Ptr where
+  /-- Allocation provenance.  This is the authority used by the memory
+  store; it is deliberately separate from the concrete address below. -/
   obj : Option ObjId
+  /-- Concrete placement chosen for this allocation.  The evaluator does
+  not inspect it yet, so address-independent programs retain their existing
+  behaviour; future memory instances may choose any valid non-overlapping
+  placement and expose it through pointer-to-integer casts. -/
+  address : Nat := 0
   off : Int
   /-- Exclusive byte end of the array or subobject this pointer may walk.
   `none` keeps the old whole-object fallback for pointers whose declaration
@@ -242,7 +249,7 @@ deriving Repr, Inhabited, BEq, DecidableEq
 namespace Ptr
 
 /-- C23 §6.3.2.3p3: the null pointer. -/
-def null : Ptr := ⟨none, 0, none⟩
+def null : Ptr := ⟨none, 0, 0, none⟩
 
 def isNull (p : Ptr) : Bool := p.obj.isNone
 
@@ -251,9 +258,17 @@ def isNull (p : Ptr) : Bool := p.obj.isNone
 with two spellings, because the standard defines them that way
 (§6.5.4.2p3's `&*p == p` identity) and because pretending they differ
 would double every lemma about them. -/
-def toObject (o : ObjId) : Ptr := ⟨some o, 0, none⟩
+def toObjectAt (o : ObjId) (address : Nat) : Ptr := ⟨some o, address, 0, none⟩
 
-def toObjectBound (o : ObjId) (size : Nat) : Ptr := ⟨some o, 0, some size⟩
+/-- Compatibility constructor for the current deterministic placement.
+The memory interface also provides `toObjectAt` for an explicit address
+choice; no semantics relies on object ids being addresses. -/
+def toObject (o : ObjId) : Ptr := toObjectAt o o
+
+def toObjectBoundAt (o : ObjId) (address : Nat) (size : Nat) : Ptr :=
+  ⟨some o, address, 0, some size⟩
+
+def toObjectBound (o : ObjId) (size : Nat) : Ptr := toObjectBoundAt o o size
 
 end Ptr
 
