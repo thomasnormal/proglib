@@ -214,3 +214,8 @@ D six loop-local/x-index rows on Icarus Verilog 13.0 and Xcelium 24.03-s004.
 The task-memory receipt is current: `task_memory_e/check.py` passes its
 empty-task and source-shaped memory guards, with three rows matching Icarus
 Verilog 13.0 and Xcelium 24.03-s004.
+
+The scalar nonblocking memory receipt is current: `memory_scalar_nba_e/check.py`
+reports five rows matching canonical E, Icarus Verilog 13.0, and Xcelium
+24.03-s004. This covers the scalar memory NBA shape without admitting a
+different scheduling meaning.
