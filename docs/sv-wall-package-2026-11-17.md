@@ -183,3 +183,7 @@ The edge-case memory receipts are current: `memory_edge_case_canonical_e` and
 `memory_edge_casez_casex_canonical_e` regenerate byte-identically and each match
 six source rows on Icarus Verilog 13.0 and Xcelium 24.03-s004, covering plain
 case, casez, and casex edge assignments.
+
+The asynchronous-memory FIFO receipt is current: `async_mem_fifo_canonical_e`
+regenerates byte-identically and its five canonical-E rows match Icarus Verilog
+13.0 and Xcelium 24.03-s004.
