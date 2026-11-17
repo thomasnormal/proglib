@@ -1728,6 +1728,18 @@ theorem callocAt_loadBytes_placement_irrel
   simp [callocAt, allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt,
     loadBytes, resolve, get?, resolve_address_irrel]
 
+theorem mallocAt_storeBytes_objs_irrel
+    (m : Mem) (size address₁ address₂ : Nat) (bs : List CByte) :
+    ((m.mallocAt size address₁).1.storeBytes (m.mallocAt size address₁).2 bs).map
+        (fun m' => m'.objs) =
+      ((m.mallocAt size address₂).1.storeBytes (m.mallocAt size address₂).2 bs).map
+        (fun m' => m'.objs) := by
+  by_cases hbs : size < bs.length
+  · simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt, storeBytes,
+      resolve, get?, CObj.size, resolve_address_irrel, Except.map, hbs] <;> rfl
+  · simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt, storeBytes,
+      resolve, get?, CObj.size, resolve_address_irrel, Except.map, hbs] <;> rfl
+
 theorem reallocAt_null_placement_lookup (m : Mem) (size address : Nat) (h : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
         (fun r => r.1.placement? m.objs.length) = .ok (some address) := by
