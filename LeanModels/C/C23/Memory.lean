@@ -1032,6 +1032,14 @@ theorem storeBytes_placement {m m' : Mem} {p : Ptr} {bs : List CByte}
   cases h
   rfl
 
+theorem storeBytes_placement_lookup {m m' : Mem} {p : Ptr} {bs : List CByte}
+    {o : ObjId} {c : CObj} {off : Nat} (q : ObjId)
+    (hr : m.resolve p bs.length = .ok (o, c, off))
+    (h : m.storeBytes p bs = .ok m') : m'.placement? q = m.placement? q := by
+  have hp : m'.placements = m.placements := storeBytes_placement hr h
+  unfold placement?
+  simp only [hp]
+
 theorem storeInt_placement {m m' : Mem} {p : Ptr} {t : IntTy} {v : Int}
     {o : ObjId} {c : CObj} {off : Nat}
     (hr : m.resolve p (encodeInt t v).length = .ok (o, c, off))
