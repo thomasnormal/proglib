@@ -846,6 +846,23 @@ def realloc (m : Mem) (p : Ptr) (size : Nat) : MRes (Mem × Ptr) :=
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+/-- Explicit-placement variant of realloc.  The fresh allocation address is
+chosen by the caller; the old object still dies and provenance changes. -/
+def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
+  if size == 0 then .error (.memUB (.reallocZero p)) else
+  match p.obj with
+  | none => .ok (m.mallocAt size address)
+  | some o =>
+    match m.get? o with
+    | some c =>
+      if c.dur == .allocated && c.live && p.off == 0 then
+        let keep := c.bytes.take size
+        let fresh := keep ++ List.replicate (size - keep.length) CByte.indet
+        let m' : Mem := { m with objs := m.objs ++ [⟨.allocated, true, fresh, none⟩] }
+        .ok (m'.kill o, Ptr.toObjectBoundAt m.objs.length address size)
+      else .error (.memUB (.freeUnmatched p))
+    | none => .error (.memUB (.freeUnmatched p))
+
 /-! ## Well-formedness
 
 Four properties the interpreter will lean on, each stated about the
