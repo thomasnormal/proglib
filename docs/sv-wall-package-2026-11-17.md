@@ -51,6 +51,12 @@ target, so no interface semantics are inferred from the generic port route.
 The real-design interface-instance, interface-port, and interface-port-
 connection rows remain present=6 each.
 
+The delayed-event repro now gives a direct ordinary measurement:
+`TimedStatement:DelayControl` at `parsePStmt` for `#1 q <= d;`.  This is a
+time-control boundary under §9.4; it is retained as a loud refusal until the
+scheduler models delay regions.  The real-design delay-control family remains
+present=5, with no count reduction claimed.
+
 For the final ordered clocks wall, the two-clock repro reports the exact
 `Clock:multiple` loader refusal, while the derived-clock repro reports
 `Clock:source` and the canonical-E `Event:time-zero` refusal.  The design note
