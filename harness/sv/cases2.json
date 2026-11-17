@@ -1,5 +1,5 @@
 {
-  "_comment": "SV phase-2 (semantic tier) differential cases. Per case: example dir under Examples/system-verilog/, top module, optional source-file base (file), parameter values (params; absent -> envelope defaults), clock port name (clock, default 'clk'), signals to sample, one stimulus object per cycle (input name -> MSB-first binary at the instantiated width; absent inputs hold). The IEEE 1800-2023 \u00a74.7 suspension guard is a default admission check; rows that need an explicit refusal name `Schedule:preemptive`. xrun_only: skip Icarus (it cannot parse `case inside`). verilator_only: run only with the explicit opt-in Verilator host oracle; it is never selected by --sim auto.",
+  "_comment": "SV phase-2 (semantic tier) differential cases. Per case: example dir under Examples/system-verilog/, top module, optional source-file base (file), parameter values (params; absent -> envelope defaults), clock port name (clock, default 'clk'), signals to sample, one stimulus object per cycle (input name -> MSB-first binary at the instantiated width; absent inputs hold). The IEEE 1800-2023 §4.7 suspension guard is a default admission check; rows that need an explicit refusal name `Schedule:preemptive`. xrun_only: skip Icarus (it cannot parse `case inside`). verilator_only: run only with the explicit opt-in Verilator host oracle; it is never selected by --sim auto.",
   "fuel": 2000,
   "cases": [
     {
@@ -7,8 +7,20 @@
       "example": "sem2/reset_event_iff",
       "top": "reset_event_iff",
       "refusal": "AlwaysPosedge:reset-iff",
-      "signals": ["guarded_n", "guarded_p", "plain_n", "plain_p"],
-      "stimulus": [{"rn": "1", "rp": "0", "en": "0", "d": "1"}]
+      "signals": [
+        "guarded_n",
+        "guarded_p",
+        "plain_n",
+        "plain_p"
+      ],
+      "stimulus": [
+        {
+          "rn": "1",
+          "rp": "0",
+          "en": "0",
+          "d": "1"
+        }
+      ]
     },
     {
       "name": "preemptive_profile_cross_process_nba",
@@ -32,7 +44,7 @@
           "b": "1"
         }
       ],
-      "measured": "2026-11-09: two NBA-only always_ff processes may read and write the same state across a clock edge without exposing an intermediate write; the default \u00a74.7 guard admits the source-shaped row and the trace matches Icarus/Xcelium."
+      "measured": "2026-11-09: two NBA-only always_ff processes may read and write the same state across a clock edge without exposing an intermediate write; the default §4.7 guard admits the source-shaped row and the trace matches Icarus/Xcelium."
     },
     {
       "name": "preemptive_profile_blocking_refuse",
@@ -54,7 +66,7 @@
           "b": "0"
         }
       ],
-      "measured": "2026-11-09: a multi-write blocking always_comb can be suspended after its first write while another process reads that window; the default \u00a74.7 guard refuses the source-shaped design."
+      "measured": "2026-11-09: a multi-write blocking always_comb can be suspended after its first write while another process reads that window; the default §4.7 guard refuses the source-shaped design."
     },
     {
       "name": "port_net_width_refuse",
@@ -754,7 +766,10 @@
       "example": "sem2/net_decl_driver",
       "top": "net_decl_driver",
       "mode": "timed",
-      "signals": ["a", "c"],
+      "signals": [
+        "a",
+        "c"
+      ],
       "stimulus": [],
       "measured": "2026-11-09: IEEE 1800-2023 §10.3.1 makes `wire [3:0] c = a` a continuous driver. Icarus 13.0 and Xcelium 24.03 both print P03 post=5 after a changes; the source-shaped timed row keeps c's initial z state and the declaration assignment as its own driver."
     },
@@ -787,11 +802,21 @@
       "example": "sem2/fdivp_walls",
       "file": "fdivp_sized_localparam",
       "top": "fdivp_sized_localparam",
-      "params": {"W": 8, "OFF": 0},
-      "signals": ["a", "y"],
+      "params": {
+        "W": 8,
+        "OFF": 0
+      },
+      "signals": [
+        "a",
+        "y"
+      ],
       "stimulus": [
-        {"a": "00000000"},
-        {"a": "10100101"}
+        {
+          "a": "00000000"
+        },
+        {
+          "a": "10100101"
+        }
       ],
       "measured": "2026-11-12: an implicit width conversion on an exact typed localparam tree is retained and evaluated at the current declaration width; E matches Icarus and Xcelium."
     },
@@ -799,11 +824,21 @@
       "name": "function_inline_e",
       "example": "sem2/symbolic_inline_function",
       "top": "symbolic_inline_function",
-      "signals": ["a", "y", "z"],
+      "signals": [
+        "a",
+        "y",
+        "z"
+      ],
       "stimulus": [
-        {"a": "0000"},
-        {"a": "0101"},
-        {"a": "1111"}
+        {
+          "a": "0000"
+        },
+        {
+          "a": "0101"
+        },
+        {
+          "a": "1111"
+        }
       ],
       "measured": "2026-11-12: source-shaped automatic input-only functions are retained as Function and FunctionCall nodes; E evaluates the return expression with the actual bound to the formal, matching Icarus and Xcelium."
     },
@@ -811,11 +846,20 @@
       "name": "function_generated_large_case_e",
       "example": "sem2/function_generated_large_case",
       "top": "function_generated_large_case",
-      "signals": ["a", "y"],
+      "signals": [
+        "a",
+        "y"
+      ],
       "stimulus": [
-        {"a": "00000000000000000000000000000000000000000000000000000000000000000"},
-        {"a": "00000000000000000000000000000000000000000000000000000000000000001"},
-        {"a": "11111111111111111111111111111111111111111111111111111111111111111"}
+        {
+          "a": "00000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "a": "00000000000000000000000000000000000000000000000000000000000000001"
+        },
+        {
+          "a": "11111111111111111111111111111111111111111111111111111111111111111"
+        }
       ],
       "measured": "2026-11-12: source-shaped automatic lookup5 with a 32-arm case and 13 generated part-select calls executes in E; Icarus rows agree, with Xcelium reported by its readiness gate."
     },
@@ -872,9 +916,14 @@
         "W": 8,
         "P": 3
       },
-      "signals": ["a", "y"],
+      "signals": [
+        "a",
+        "y"
+      ],
       "stimulus": [
-        {"a": "10101010"}
+        {
+          "a": "10101010"
+        }
       ],
       "measured": "2026-11-11: at W=8,P=3 the child port windows leave parent output bit 3 undriven; IEEE 1800-2023 §6.6.1 and Icarus retain that net bit as z, while driven bits follow a."
     },
@@ -3978,7 +4027,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): the cv32e40p register file's untyped `localparam NUM_TOT_WORDS = FPU ? (ZFINX ? NUM_WORDS : NUM_WORDS + NUM_FP_WORDS) : NUM_WORDS` (and NUM_WORDS = 2 ** (ADDR_WIDTH - 1)) is built with + and **, which Icarus 12.0 types wider than the 32-bit int of slang and Yosys 0.53 (`N + 1` is 33 bits there, measured with $bits); here its width is only read in dimension and generate bounds, where it is unobservable, and Icarus agreed with the model through round 5 \u2014 a recorded over-refusal of the whole-class rule Constant:untyped-width"
+      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): the cv32e40p register file's untyped `localparam NUM_TOT_WORDS = FPU ? (ZFINX ? NUM_WORDS : NUM_WORDS + NUM_FP_WORDS) : NUM_WORDS` (and NUM_WORDS = 2 ** (ADDR_WIDTH - 1)) is built with + and **, which Icarus 12.0 types wider than the 32-bit int of slang and Yosys 0.53 (`N + 1` is 33 bits there, measured with $bits); here its width is only read in dimension and generate bounds, where it is unobservable, and Icarus agreed with the model through round 5 — a recorded over-refusal of the whole-class rule Constant:untyped-width"
     },
     {
       "name": "concat_add",
@@ -17317,7 +17366,7 @@
           "a": "1"
         }
       ],
-      "measured": "round 3 CX repair 2026-10-28: the output-port initializer used to be dropped (round-2 WP2 verifier: lean y = x1, x0 where Icarus 12.0 gives 11, 10); now emitted as the Port's init; round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 3 CX repair 2026-10-28: the output-port initializer used to be dropped (round-2 WP2 verifier: lean y = x1, x0 where Icarus 12.0 gives 11, 10); now emitted as the Port's init; round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "vg_initqp",
@@ -17342,7 +17391,7 @@
           "a": "0"
         }
       ],
-      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "vg_initqp_n1",
@@ -17367,7 +17416,7 @@
           "a": "x"
         }
       ],
-      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "vg_initqp_n3",
@@ -17392,7 +17441,7 @@
           "a": "x"
         }
       ],
-      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "vg_initqp_n5",
@@ -17417,7 +17466,7 @@
           "a": "x"
         }
       ],
-      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 3 CX repair 2026-10-28: parametric twin of vg_initq (the dropped initializer was identical at every N, so the cross-check agreed; these rows pin it at N = 1, 2, 3, 5); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "vg_initc",
@@ -17441,7 +17490,7 @@
           "a": "z"
         }
       ],
-      "measured": "round 3 CX repair 2026-10-28: a declaration initializer plus an always_comb writer is legal (round-2 WP2 verifier probe, PASS against Icarus 12.0); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_comb writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_comb output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it; the round-3 claim 'a declaration initializer plus an always_comb writer is legal' is withdrawn"
+      "measured": "round 3 CX repair 2026-10-28: a declaration initializer plus an always_comb writer is legal (round-2 WP2 verifier probe, PASS against Icarus 12.0); round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_comb writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_comb output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it; the round-3 claim 'a declaration initializer plus an always_comb writer is legal' is withdrawn"
     },
     {
       "name": "vg_init",
@@ -19364,7 +19413,7 @@
           "a": "1"
         }
       ],
-      "measured": "round 3 folds 2026-10-28 (CX verifier major): the non-ANSI `output [1:0] y; logic [1:0] y = 2'b10;` initializer was dropped (y read x1 where Icarus reads 11); Yosys 0.53 agrees with the model now; round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 3 folds 2026-10-28 (CX verifier major): the non-ANSI `output [1:0] y; logic [1:0] y = 2'b10;` initializer was dropped (y read x1 where Icarus reads 11); Yosys 0.53 agrees with the model now; round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "pi_nonansi_reg",
@@ -19426,7 +19475,7 @@
           "a": "x"
         }
       ],
-      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "pi_nonansi_p",
@@ -19458,7 +19507,7 @@
           "a": "1"
         }
       ],
-      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "pi_nonansi_p_n1",
@@ -19493,7 +19542,7 @@
           "a": "0"
         }
       ],
-      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "pi_nonansi_p_n2",
@@ -19528,7 +19577,7 @@
           "a": "0"
         }
       ],
-      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "pi_nonansi_p_n5",
@@ -19563,7 +19612,7 @@
           "a": "1"
         }
       ],
-      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 \u00a79.2.2.2/\u00a79.2.2.4 with \u00a76.5/\u00a710.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
+      "measured": "round 4 Lane A 2026-10-28 (row corrected from PASS to a loud refusal): an always_ff writer of a variable with a declaration initializer is refused because the tools split on its legality: Xcelium 24.03 rejects this fixture ('xmelab: *E,MULAXX: Multiple drivers to always_ff output variable', IEEE 1800-2023 §9.2.2.2/§9.2.2.4 with §6.5/§10.5 counting the initialization as a procedural assignment) where Icarus 12.0, Yosys 0.53 and slang run it"
     },
     {
       "name": "fold_pgen",
@@ -21894,7 +21943,7 @@
           "a": "x"
         }
       ],
-      "measured": "round 4 Lane A 2026-10-28: the round-2 \u00a76.5 mixture inside a child: Icarus 12.0 'o Unable to assign to unresolved wires', Xcelium 24.03 '*E,ICDDIV: Illegal combination of driver and declaration initializer', Yosys 0.53 a conflicting constant driver"
+      "measured": "round 4 Lane A 2026-10-28: the round-2 §6.5 mixture inside a child: Icarus 12.0 'o Unable to assign to unresolved wires', Xcelium 24.03 '*E,ICDDIV: Illegal combination of driver and declaration initializer', Yosys 0.53 a conflicting constant driver"
     },
     {
       "name": "fold_rself",
@@ -24702,7 +24751,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) \u2014 a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
+      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) — a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
     },
     {
       "name": "fold_uovf_sb100",
@@ -24728,7 +24777,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) \u2014 a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
+      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) — a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
     },
     {
       "name": "fold_uovf_n16",
@@ -24754,7 +24803,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) \u2014 a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
+      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) — a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
     },
     {
       "name": "fold_uovf_n4_sb3",
@@ -24781,7 +24830,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) \u2014 a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
+      "measured": "round 6 folds 2026-10-29 (row corrected, was a PASS row): untyped `localparam Y = SB + 1'b1` and `Z = SB * 2'd2` (8-bit SB) are 9 and 10 bits wide in Icarus 12.0 (lossless untyped width, measured with $bits) and 8 bits in slang and the Yosys 0.53 netlist; this row's outputs read them in 64-bit contexts, where Icarus and Yosys agree (it passed through round 5) — a recorded over-refusal of the whole-class rule Constant:untyped-width (Param.lean evalUntyped/PExpr.icarusWidens), which refuses every untyped constant built with + - * ** at every point"
     },
     {
       "name": "fold_uovf_sb255",
@@ -26168,7 +26217,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3 and minor 4, repros vs_uw/vs_uw3/vs_upw2): untyped `localparam Y = SB + 1'b1` (8-bit SB) is 8 bits in slang and the Yosys 0.53 netlist and 9 in Icarus 12.0 (lossless untyped width, measured with $bits); at N = 16 the tools AGREE on this row's outputs (Y is 17 bits in Icarus, 16 in Yosys, and every read context is wide enough) \u2014 a recorded over-refusal of the whole-class rule. Refused at every point (Constant:untyped-width, Param.lean evalUntyped/PExpr.icarusWidens)"
+      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3 and minor 4, repros vs_uw/vs_uw3/vs_upw2): untyped `localparam Y = SB + 1'b1` (8-bit SB) is 8 bits in slang and the Yosys 0.53 netlist and 9 in Icarus 12.0 (lossless untyped width, measured with $bits); at N = 16 the tools AGREE on this row's outputs (Y is 17 bits in Icarus, 16 in Yosys, and every read context is wide enough) — a recorded over-refusal of the whole-class rule. Refused at every point (Constant:untyped-width, Param.lean evalUntyped/PExpr.icarusWidens)"
     },
     {
       "name": "fold_uwid_sb255",
@@ -26273,7 +26322,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3, repro vs_up): untyped PARAMETER `Y = SB + 1'b1` with an 8-bit SB is 9 bits in Icarus 12.0 and 8 in slang and the Yosys 0.53 netlist at the default point (o1 = (Y + a) >> 1 at a = 255: 130 against 2); refused there (Constant:untyped-width). Overridden by an integer (Y = 6) Y is an int in every tool and the tools agree; the load gate refuses the design at its defaults first \u2014 a recorded over-refusal."
+      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3, repro vs_up): untyped PARAMETER `Y = SB + 1'b1` with an 8-bit SB is 9 bits in Icarus 12.0 and 8 in slang and the Yosys 0.53 netlist at the default point (o1 = (Y + a) >> 1 at a = 255: 130 against 2); refused there (Constant:untyped-width). Overridden by an integer (Y = 6) Y is an int in every tool and the tools agree; the load gate refuses the design at its defaults first — a recorded over-refusal."
     },
     {
       "name": "fold_uwidp_y6_sb3",
@@ -26300,7 +26349,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3, repro vs_up): untyped PARAMETER `Y = SB + 1'b1` with an 8-bit SB is 9 bits in Icarus 12.0 and 8 in slang and the Yosys 0.53 netlist at the default point (o1 = (Y + a) >> 1 at a = 255: 130 against 2); refused there (Constant:untyped-width). Overridden by an integer (Y = 6, SB = 3) Y is an int in every tool and the tools agree; the load gate refuses the design at its defaults first \u2014 a recorded over-refusal."
+      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3, repro vs_up): untyped PARAMETER `Y = SB + 1'b1` with an 8-bit SB is 9 bits in Icarus 12.0 and 8 in slang and the Yosys 0.53 netlist at the default point (o1 = (Y + a) >> 1 at a = 255: 130 against 2); refused there (Constant:untyped-width). Overridden by an integer (Y = 6, SB = 3) Y is an int in every tool and the tools agree; the load gate refuses the design at its defaults first — a recorded over-refusal."
     },
     {
       "name": "fold_uwidp_y250",
@@ -26326,7 +26375,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3, repro vs_up): untyped PARAMETER `Y = SB + 1'b1` with an 8-bit SB is 9 bits in Icarus 12.0 and 8 in slang and the Yosys 0.53 netlist at the default point (o1 = (Y + a) >> 1 at a = 255: 130 against 2); refused there (Constant:untyped-width). Overridden by an integer (Y = 250) Y is an int in every tool and the tools agree; the load gate refuses the design at its defaults first \u2014 a recorded over-refusal."
+      "measured": "round 6 folds 2026-10-29 (round 5 FOLDS verifier major 3, repro vs_up): untyped PARAMETER `Y = SB + 1'b1` with an 8-bit SB is 9 bits in Icarus 12.0 and 8 in slang and the Yosys 0.53 netlist at the default point (o1 = (Y + a) >> 1 at a = 255: 130 against 2); refused there (Constant:untyped-width). Overridden by an integer (Y = 250) Y is an int in every tool and the tools agree; the load gate refuses the design at its defaults first — a recorded over-refusal."
     },
     {
       "name": "fold_uwint",
@@ -26350,7 +26399,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29: the INT-class twin \u2014 untyped `localparam B = N + 1` (int N) is a 32-bit int to slang, the LRM and the Yosys 0.53 netlist and 33 bits in Icarus 12.0; `C = N - 9` likewise; `E = 2 ** N` is 42 bits in Icarus at N = 40. N = 8, a = 15: `{a, B}` is 0x1e00000009 in Icarus and 0xf00000009 in Yosys; `a + C` (C = -1) is 0x20000000e against 0x10000000e. Refused at every point (Constant:untyped-width); before, the model followed Yosys (32-bit int widths, value tier paramNWidth)"
+      "measured": "round 6 folds 2026-10-29: the INT-class twin — untyped `localparam B = N + 1` (int N) is a 32-bit int to slang, the LRM and the Yosys 0.53 netlist and 33 bits in Icarus 12.0; `C = N - 9` likewise; `E = 2 ** N` is 42 bits in Icarus at N = 40. N = 8, a = 15: `{a, B}` is 0x1e00000009 in Icarus and 0xf00000009 in Yosys; `a + C` (C = -1) is 0x20000000e against 0x10000000e. Refused at every point (Constant:untyped-width); before, the model followed Yosys (32-bit int widths, value tier paramNWidth)"
     },
     {
       "name": "fold_uwint_n0",
@@ -26377,7 +26426,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29: the INT-class twin \u2014 untyped `localparam B = N + 1` (int N) is a 32-bit int to slang, the LRM and the Yosys 0.53 netlist and 33 bits in Icarus 12.0; `C = N - 9` likewise; `E = 2 ** N` is 42 bits in Icarus at N = 40. N = 0: `{a, B}` 0x1e00000001 against 0xf00000001; `a + C` (C = -9) 0x200000006 against 0x100000006. Refused at every point (Constant:untyped-width); before, the model followed Yosys (32-bit int widths, value tier paramNWidth)"
+      "measured": "round 6 folds 2026-10-29: the INT-class twin — untyped `localparam B = N + 1` (int N) is a 32-bit int to slang, the LRM and the Yosys 0.53 netlist and 33 bits in Icarus 12.0; `C = N - 9` likewise; `E = 2 ** N` is 42 bits in Icarus at N = 40. N = 0: `{a, B}` 0x1e00000001 against 0xf00000001; `a + C` (C = -9) 0x200000006 against 0x100000006. Refused at every point (Constant:untyped-width); before, the model followed Yosys (32-bit int widths, value tier paramNWidth)"
     },
     {
       "name": "fold_uwint_n40",
@@ -26404,7 +26453,7 @@
         }
       ],
       "refusal": "Constant:untyped-width",
-      "measured": "round 6 folds 2026-10-29: the INT-class twin \u2014 untyped `localparam B = N + 1` (int N) is a 32-bit int to slang, the LRM and the Yosys 0.53 netlist and 33 bits in Icarus 12.0; `C = N - 9` likewise; `E = 2 ** N` is 42 bits in Icarus at N = 40. N = 40: `{a, E}` (E = 2^40) is a\u00b72^42 + 2^40 in Icarus and a\u00b72^32 in Yosys (the 32-bit int wraps to 0). Refused at every point (Constant:untyped-width); before, the model followed Yosys (32-bit int widths, value tier paramNWidth)"
+      "measured": "round 6 folds 2026-10-29: the INT-class twin — untyped `localparam B = N + 1` (int N) is a 32-bit int to slang, the LRM and the Yosys 0.53 netlist and 33 bits in Icarus 12.0; `C = N - 9` likewise; `E = 2 ** N` is 42 bits in Icarus at N = 40. N = 40: `{a, E}` (E = 2^40) is a·2^42 + 2^40 in Icarus and a·2^32 in Yosys (the 32-bit int wraps to 0). Refused at every point (Constant:untyped-width); before, the model followed Yosys (32-bit int widths, value tier paramNWidth)"
     },
     {
       "name": "fold_uwok",
@@ -26670,7 +26719,7 @@
         }
       ],
       "refusal": "EnumValueSymbol:default-point-value",
-      "measured": "round 6 folds 2026-10-29: `typedef enum logic [7:0] {EA = N, EB = N + 2} e_t` (default N = 3): the envelope's EnumType carried the default point's member values (EB = 5) and the model read them at every N. At the default point the value is right (o1 = 5) \u2014 a recorded over-refusal of the default point. Icarus 12.0 and the Yosys 0.53 netlist agree. Refused (extractor EnumValueSymbol:default-point-value, _sym_enum_values_point_dependent)"
+      "measured": "round 6 folds 2026-10-29: `typedef enum logic [7:0] {EA = N, EB = N + 2} e_t` (default N = 3): the envelope's EnumType carried the default point's member values (EB = 5) and the model read them at every N. At the default point the value is right (o1 = 5) — a recorded over-refusal of the default point. Icarus 12.0 and the Yosys 0.53 netlist agree. Refused (extractor EnumValueSymbol:default-point-value, _sym_enum_values_point_dependent)"
     },
     {
       "name": "fold_enm_n5",
@@ -27717,7 +27766,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) \u2014 a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 8: X1 = -1, X6 = 44, the fold is exact at the default point \u2014 a recorded over-refusal. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) — a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 8: X1 = -1, X6 = 44, the fold is exact at the default point — a recorded over-refusal. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szc_m1",
@@ -27744,7 +27793,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) \u2014 a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 1: X1 = -1, X6 = 0 (o3 = 0 where the model gave 44). Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) — a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 1: X1 = -1, X6 = 0 (o3 = 0 where the model gave 44). Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szc_m4",
@@ -27771,7 +27820,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) \u2014 a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 4: X1 = -1, X6 = -4 (o3 = 2^64 - 4 where the model gave 44). Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) — a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 4: X1 = -1, X6 = -4 (o3 = 2^64 - 4 where the model gave 44). Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szc_m16",
@@ -27798,7 +27847,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) \u2014 a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 16: X1 = 255, X6 = 300 where the model gave -1 and 44. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) — a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 16: X1 = 255, X6 = 300 where the model gave -1 and 44. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szc_m40",
@@ -27825,7 +27874,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) \u2014 a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 40: X1 = 255, X6 = 300 where the model gave -1 and 44. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) — a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 40: X1 = 255, X6 = 300 where the model gave -1 and 44. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szc_m64",
@@ -27852,7 +27901,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) \u2014 a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 64: X1 = 255, X6 = 300 where the model gave -1 and 44. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szc2): `localparam int X1 = M'(255)`, `X5 = M'(-1)`, `X6 = M'(300)` (default M = 8) — a size cast whose size is a parameter. slang binds the size away, so the operand has no bound name and the extractor emitted slang's DEFAULT-point fold (X1 = -1, X6 = 44) at every M; the model read o1 = -1, o3 = 44 at every M (verifier run4n.log). Icarus 12.0, the Yosys 0.53 netlist and slang's elaboration agree at every row point (slang3b.py: 3-WAY-AGREE): M = 64: X1 = 255, X6 = 300 where the model gave -1 and 44. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szo",
@@ -27875,7 +27924,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) \u2014 slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 8: W = -1 and 45, the fold is exact at the default point \u2014 a recorded over-refusal. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) — slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 8: W = -1 and 45, the fold is exact at the default point — a recorded over-refusal. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szo_m1",
@@ -27901,7 +27950,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) \u2014 slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 1: W2 = 1 (o2 = 1 + a) where the model gave 45 + a. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) — slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 1: W2 = 1 (o2 = 1 + a) where the model gave 45 + a. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szo_m4",
@@ -27927,7 +27976,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) \u2014 slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 4: W2 = -3 (o2 = 2^32 - 3 at a = 0) where the model gave 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) — slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 4: W2 = -3 (o2 = 2^32 - 3 at a = 0) where the model gave 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szo_m16",
@@ -27953,7 +28002,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) \u2014 slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 16: W1 = 255, W2 = 301 where the model gave -1 and 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) — slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 16: W1 = 255, W2 = 301 where the model gave -1 and 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szo_m40",
@@ -27979,7 +28028,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) \u2014 slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 40: W1 = 255, W2 = 301 where the model gave -1 and 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) — slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 40: W1 = 255, W2 = 301 where the model gave -1 and 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_szo_m64",
@@ -28005,7 +28054,7 @@
         }
       ],
       "refusal": "ConversionExpression:default-point-fold",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) \u2014 slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 64: W1 = 255, W2 = 301 where the model gave -1 and 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 1, repro vw_szo): `.W(M'(255))` and `.W(M'(300) + 1)` into an `int W` child parameter (default M = 8) — slang's DEFAULT-point folds -1 and 45 were the overrides at every M (verifier run6n.log: the model's o2 = 45 + a at every M). Icarus 12.0 and the Yosys 0.53 netlist agree at every row point: M = 64: W1 = 255, W2 = 301 where the model gave -1 and 45. Refused at every point (extractor _sym_conversion, _sym_bound_syntax_point_dependent: ConversionExpression:default-point-fold)"
     },
     {
       "name": "fold_enw",
@@ -28157,7 +28206,7 @@
         }
       ],
       "refusal": "EnumValueSymbol:default-point-value",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 2, the base-width class): `typedef enum logic [N-1:0] {SA = 9, SB = 2}` and `{T0, T1, T2}` (default N = 4). The envelope carries the default point's member values and Lean truncates them to the point's base width (Param.lean enumMemberVals). Default: Icarus 12.0 and the Yosys 0.53 netlist agree (SA = 9, T2 = 2) \u2014 a recorded over-refusal. Every member of an enum whose base width depends on the point is refused (extractor _sym_enum_values_point_dependent: EnumValueSymbol:default-point-value)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 2, the base-width class): `typedef enum logic [N-1:0] {SA = 9, SB = 2}` and `{T0, T1, T2}` (default N = 4). The envelope carries the default point's member values and Lean truncates them to the point's base width (Param.lean enumMemberVals). Default: Icarus 12.0 and the Yosys 0.53 netlist agree (SA = 9, T2 = 2) — a recorded over-refusal. Every member of an enum whose base width depends on the point is refused (extractor _sym_enum_values_point_dependent: EnumValueSymbol:default-point-value)"
     },
     {
       "name": "fold_enb_n3",
@@ -28238,7 +28287,7 @@
         }
       ],
       "refusal": "EnumValueSymbol:default-point-value",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 2, the base-width class): `typedef enum logic [N-1:0] {SA = 9, SB = 2}` and `{T0, T1, T2}` (default N = 4). The envelope carries the default point's member values and Lean truncates them to the point's base width (Param.lean enumMemberVals). N = 8: Icarus 12.0 and the Yosys 0.53 netlist agree (SA = 9, T2 = 2) \u2014 a recorded over-refusal. Every member of an enum whose base width depends on the point is refused (extractor _sym_enum_values_point_dependent: EnumValueSymbol:default-point-value)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 2, the base-width class): `typedef enum logic [N-1:0] {SA = 9, SB = 2}` and `{T0, T1, T2}` (default N = 4). The envelope carries the default point's member values and Lean truncates them to the point's base width (Param.lean enumMemberVals). N = 8: Icarus 12.0 and the Yosys 0.53 netlist agree (SA = 9, T2 = 2) — a recorded over-refusal. Every member of an enum whose base width depends on the point is refused (extractor _sym_enum_values_point_dependent: EnumValueSymbol:default-point-value)"
     },
     {
       "name": "fold_enb_n16",
@@ -28265,7 +28314,7 @@
         }
       ],
       "refusal": "EnumValueSymbol:default-point-value",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 2, the base-width class): `typedef enum logic [N-1:0] {SA = 9, SB = 2}` and `{T0, T1, T2}` (default N = 4). The envelope carries the default point's member values and Lean truncates them to the point's base width (Param.lean enumMemberVals). N = 16: Icarus 12.0 and the Yosys 0.53 netlist agree (SA = 9, T2 = 2) \u2014 a recorded over-refusal. Every member of an enum whose base width depends on the point is refused (extractor _sym_enum_values_point_dependent: EnumValueSymbol:default-point-value)"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier blocker 2, the base-width class): `typedef enum logic [N-1:0] {SA = 9, SB = 2}` and `{T0, T1, T2}` (default N = 4). The envelope carries the default point's member values and Lean truncates them to the point's base width (Param.lean enumMemberVals). N = 16: Icarus 12.0 and the Yosys 0.53 netlist agree (SA = 9, T2 = 2) — a recorded over-refusal. Every member of an enum whose base width depends on the point is refused (extractor _sym_enum_values_point_dependent: EnumValueSymbol:default-point-value)"
     },
     {
       "name": "fold_shl",
@@ -28789,7 +28838,7 @@
         }
       ],
       "refusal": "division by zero in a constant context",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier major 4, repro vw_sqd): `localparam shortint H1 = 4'd8 / (U + 1'b1)` (also byte H2 = 4'd9 % (U + 1'b1), bit [15:0] H3), default N = 32. N = 4, U = 15: 4 bits wrap. Where U + 1'b1 wraps to 0 at the operand's own width (max(4, N) bits) but not at the 16-bit target, round 5 refused (division by zero) and round 6's context reading through the Squash2 admitted 0; slang, Icarus 12.0 and the Yosys 0.53 netlist agree on 0 (slang3b.py 3-WAY-AGREE). The round 5 rule admits no shape that was loud: the own-width reading must be defined (Param.lean evalAt, PExpr.isSquash2), so this point is loud again \u2014 a recorded over-refusal"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier major 4, repro vw_sqd): `localparam shortint H1 = 4'd8 / (U + 1'b1)` (also byte H2 = 4'd9 % (U + 1'b1), bit [15:0] H3), default N = 32. N = 4, U = 15: 4 bits wrap. Where U + 1'b1 wraps to 0 at the operand's own width (max(4, N) bits) but not at the 16-bit target, round 5 refused (division by zero) and round 6's context reading through the Squash2 admitted 0; slang, Icarus 12.0 and the Yosys 0.53 netlist agree on 0 (slang3b.py 3-WAY-AGREE). The round 5 rule admits no shape that was loud: the own-width reading must be defined (Param.lean evalAt, PExpr.isSquash2), so this point is loud again — a recorded over-refusal"
     },
     {
       "name": "fold_sqd_n7_u127",
@@ -28817,7 +28866,7 @@
         }
       ],
       "refusal": "division by zero in a constant context",
-      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier major 4, repro vw_sqd): `localparam shortint H1 = 4'd8 / (U + 1'b1)` (also byte H2 = 4'd9 % (U + 1'b1), bit [15:0] H3), default N = 32. N = 7, U = 127: 7 bits wrap. Where U + 1'b1 wraps to 0 at the operand's own width (max(4, N) bits) but not at the 16-bit target, round 5 refused (division by zero) and round 6's context reading through the Squash2 admitted 0; slang, Icarus 12.0 and the Yosys 0.53 netlist agree on 0 (slang3b.py 3-WAY-AGREE). The round 5 rule admits no shape that was loud: the own-width reading must be defined (Param.lean evalAt, PExpr.isSquash2), so this point is loud again \u2014 a recorded over-refusal"
+      "measured": "round 7 folds 2026-10-29 (round 6 FOLDS verifier major 4, repro vw_sqd): `localparam shortint H1 = 4'd8 / (U + 1'b1)` (also byte H2 = 4'd9 % (U + 1'b1), bit [15:0] H3), default N = 32. N = 7, U = 127: 7 bits wrap. Where U + 1'b1 wraps to 0 at the operand's own width (max(4, N) bits) but not at the 16-bit target, round 5 refused (division by zero) and round 6's context reading through the Squash2 admitted 0; slang, Icarus 12.0 and the Yosys 0.53 netlist agree on 0 (slang3b.py 3-WAY-AGREE). The round 5 rule admits no shape that was loud: the own-width reading must be defined (Param.lean evalAt, PExpr.isSquash2), so this point is loud again — a recorded over-refusal"
     },
     {
       "name": "fold_sqd_n2_u3",
@@ -30981,7 +31030,7 @@
           "a": "x00000000000000000000000000000010"
         }
       ],
-      "measured": "Round 6, lane A (Xcelium audit T1, extractor level): v[a] with a 33-bit literal-bounds `a` is a run-time bit-select index wider than 32 bits at the default point. The extractor emits Unsupported `ElementSelectExpression:wide-index`; the model does not truncate (a = 2^32 + 2 is out of range: x in the model and Yosys 0.53 `prep; eval`). Re-measured on this row's own testbench (Xcelium 24.03-s004 via the license gate on the internal Xcelium host, 2026-10-29, and Icarus 12.0): the two traces are identical \u2014 o = v[2] = 1 at a = 2^32 + 2 (cycle 1) and at a = x00...010 (an x bit in the index, cycle 4), where the LRM text gives x; Xcelium warns BIGWBS."
+      "measured": "Round 6, lane A (Xcelium audit T1, extractor level): v[a] with a 33-bit literal-bounds `a` is a run-time bit-select index wider than 32 bits at the default point. The extractor emits Unsupported `ElementSelectExpression:wide-index`; the model does not truncate (a = 2^32 + 2 is out of range: x in the model and Yosys 0.53 `prep; eval`). Re-measured on this row's own testbench (Xcelium 24.03-s004 via the license gate on the internal Xcelium host, 2026-10-29, and Icarus 12.0): the two traces are identical — o = v[2] = 1 at a = 2^32 + 2 (cycle 1) and at a = x00...010 (an x bit in the index, cycle 4), where the LRM text gives x; Xcelium warns BIGWBS."
     },
     {
       "name": "wide_index_const",
@@ -31319,7 +31368,7 @@
           "en": "1"
         }
       ],
-      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED \u2014 `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's \u03c3_src trace cycle for cycle. Cycle 0 (no reset yet): q = x (x + 1 = x). en = x holds the count (`else if (x)` takes no branch), rst = x takes the else branch (the count goes on), reset forgets the count."
+      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED — `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's σ_src trace cycle for cycle. Cycle 0 (no reset yet): q = x (x + 1 = x). en = x holds the count (`else if (x)` takes no branch), rst = x takes the else branch (the count goes on), reset forgets the count."
     },
     {
       "name": "clk_cnt_n2",
@@ -31364,7 +31413,7 @@
           "en": "1"
         }
       ],
-      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED \u2014 `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's \u03c3_src trace cycle for cycle. N = 2: the count wraps 3 -> 0 (the default-point fold is cross-checked at N = 2 by the xcheck sidecar)."
+      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED — `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's σ_src trace cycle for cycle. N = 2: the count wraps 3 -> 0 (the default-point fold is cross-checked at N = 2 by the xcheck sidecar)."
     },
     {
       "name": "clk_shreg",
@@ -31413,7 +31462,7 @@
           "d": "1"
         }
       ],
-      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED \u2014 `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's \u03c3_src trace cycle for cycle. Before the first reset the shifted-in bit lands in an x register (q = xxx1, partially known); d = x shifts an x through the register (101x, 01x0, 1x00, x000) until four known bits are shifted in."
+      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED — `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's σ_src trace cycle for cycle. Before the first reset the shifted-in bit lands in an x register (q = xxx1, partially known); d = x shifts an x through the register (101x, 01x0, 1x00, x000) until four known bits are shifted in."
     },
     {
       "name": "clk_pipe2",
@@ -31470,7 +31519,7 @@
           "b": "0000"
         }
       ],
-      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED \u2014 `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's \u03c3_src trace cycle for cycle. Both stages sampled (`s1`, `y`): y is s1 one cycle later; an x bit in a (1x01) travels through s1 (1x10) to y one cycle later."
+      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED — `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's σ_src trace cycle for cycle. Both stages sampled (`s1`, `y`): y is s1 one cycle later; an x bit in a (1x01) travels through s1 (1x10) to y one cycle later."
     },
     {
       "name": "clk_fsm",
@@ -31528,7 +31577,7 @@
           "go": "1"
         }
       ],
-      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED \u2014 `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's \u03c3_src trace cycle for cycle. Cycle 0: the state is x and the `case` default takes IDLE; IDLE -> RUN -> DONE -> IDLE with `busy`/`done` combinational on the state; go = x (cycle 11) leaves IDLE (the `if (x)` takes no branch)."
+      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED — `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's σ_src trace cycle for cycle. Cycle 0: the state is x and the `case` default takes IDLE; IDLE -> RUN -> DONE -> IDLE with `busy`/`done` combinational on the state; go = x (cycle 11) leaves IDLE (the `if (x)` takes no branch)."
     },
     {
       "name": "clk_arst",
@@ -31583,7 +31632,8 @@
           "d": "0001"
         }
       ],
-      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED \u2014 `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's \u03c3_src trace cycle for cycle. Asynchronous active-low reset (the pinned pin3 ledger): the reset acts the moment `rst_n` falls (cycles 0 and 4, before the edge); rst_n = x (cycle 8, a 1 -> x glitch) is a negedge event too and the register holds 0110 in all tools; en = x holds. `rst_n` is read as data inside the block (allowed); it is not a clock."
+      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED — `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's σ_src trace cycle for cycle. Asynchronous active-low reset (the pinned pin3 ledger): the reset acts the moment `rst_n` falls (cycles 0 and 4, before the edge); rst_n = x (cycle 8, a 1 -> x glitch) is a negedge event too and the register holds 0110 in all tools; en = x holds. `rst_n` is read as data inside the block (allowed); it is not a clock.",
+      "canonical_e": true
     },
     {
       "name": "clk_arst_high",
@@ -31626,7 +31676,8 @@
           "d": "0101"
         }
       ],
-      "measured": "E active-high asynchronous reset (2026-11-04): a 0 -> 1 reset edge with the clock held low runs the reset body before the next clock edge; release does not wake it. The retained source shape matches Icarus over six cycles."
+      "measured": "E active-high asynchronous reset (2026-11-04): a 0 -> 1 reset edge with the clock held low runs the reset body before the next clock edge; release does not wake it. The retained source shape matches Icarus over six cycles.",
+      "canonical_e": true
     },
     {
       "name": "clk_arst_reset_edges",
@@ -31705,7 +31756,7 @@
           "d": "0"
         }
       ],
-      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED \u2014 `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's \u03c3_src trace cycle for cycle. A child register clocked through a bare connection `.ck(clk)` to the parent's input port: the flattened design has the connection copy `u.ck = clk` (a plain copy nothing reads) and the child's edge process on `clk`."
+      "measured": "WP-Q0 clock discipline (2026-10-30): ADMITTED — `clk` is the only clock, a one-bit input port of the top, never read; a clocked design that satisfies the discipline runs under the model's one-edge-per-cycle semantics exactly as under a simulator. Measured: the pinned Xcelium 24.03-s004 trace (internal host via the license gate, `xcelium_golden.json`, XREF-MATCH) and Icarus 12.0 both equal the model's σ_src trace cycle for cycle. A child register clocked through a bare connection `.ck(clk)` to the parent's input port: the flattened design has the connection copy `u.ck = clk` (a plain copy nothing reads) and the child's edge process on `clk`."
     },
     {
       "name": "clk_undriven",
@@ -31735,7 +31786,7 @@
         }
       ],
       "refusal": "Clock:source",
-      "measured": "WP-Q0 clock discipline, `Clock:source` (REFUSED; `LeanModels/Sv/ClockGuard2.lean`, a check beside `name.sem`): the clock `clk` is an internal signal nothing drives \u2014 the undriven-clock exploit of svgolf/design/sequential/README.md. Measured on this row's own generated testbench, 2026-10-30 (Xcelium 24.03-s004 through the license gate on the internal Xcelium host and Icarus 12.0, which agree unless said): y = x x x x (no edge ever occurs, the register stays x); the model WITHOUT the guard captures a & b in every cycle, y = 1 0 0 1."
+      "measured": "WP-Q0 clock discipline, `Clock:source` (REFUSED; `LeanModels/Sv/ClockGuard2.lean`, a check beside `name.sem`): the clock `clk` is an internal signal nothing drives — the undriven-clock exploit of svgolf/design/sequential/README.md. Measured on this row's own generated testbench, 2026-10-30 (Xcelium 24.03-s004 through the license gate on the internal Xcelium host and Icarus 12.0, which agree unless said): y = x x x x (no edge ever occurs, the register stays x); the model WITHOUT the guard captures a & b in every cycle, y = 1 0 0 1."
     },
     {
       "name": "clk_tied",
@@ -31954,26 +32005,54 @@
         }
       ],
       "refusal": "Clock:multiple",
-      "measured": "WP-Q0 clock discipline, `Clock:multiple` (REFUSED): a second clock port. Measured on this row's own generated testbench, 2026-10-30 (Xcelium 24.03-s004 through the license gate on the internal Xcelium host and Icarus 12.0, which agree; the testbench pulses `clk1` only, the row's `clock`): `a` follows d, b stays x because `clk2` never ticks: b = x x x x x; the model without the guard ticks both clocks in every cycle (it runs every edge process once per cycle), b = x 1 0 1 1 (b follows a one cycle later) \u2014 a reading no stimulus of a simulator is bound to produce.",
+      "measured": "WP-Q0 clock discipline, `Clock:multiple` (REFUSED): a second clock port. Measured on this row's own generated testbench, 2026-10-30 (Xcelium 24.03-s004 through the license gate on the internal Xcelium host and Icarus 12.0, which agree; the testbench pulses `clk1` only, the row's `clock`): `a` follows d, b stays x because `clk2` never ticks: b = x x x x x; the model without the guard ticks both clocks in every cycle (it runs every edge process once per cycle), b = x 1 0 1 1 (b follows a one cycle later) — a reading no stimulus of a simulator is bound to produce.",
       "clock": "clk1"
     },
     {
       "name": "negedge_e",
       "example": "sem2/negedge_e",
       "top": "negedge_e",
-      "signals": ["clk", "d", "q"],
+      "signals": [
+        "clk",
+        "d",
+        "q"
+      ],
       "stimulus": [
-        {"clk": "1", "d": "0"},
-        {"clk": "0", "d": "1"},
-        {"clk": "1", "d": "0"},
-        {"clk": "x", "d": "1"},
-        {"clk": "0", "d": "1"},
-        {"clk": "z", "d": "0"},
-        {"clk": "1", "d": "0"},
-        {"clk": "0", "d": "1"}
+        {
+          "d": "0",
+          "clk": "1"
+        },
+        {
+          "d": "1",
+          "clk": "0"
+        },
+        {
+          "d": "0",
+          "clk": "1"
+        },
+        {
+          "d": "1",
+          "clk": "x"
+        },
+        {
+          "d": "1",
+          "clk": "0"
+        },
+        {
+          "d": "0",
+          "clk": "z"
+        },
+        {
+          "d": "0",
+          "clk": "1"
+        },
+        {
+          "d": "1",
+          "clk": "0"
+        }
       ],
       "refusal": "Clock:edge",
-      "measured": "B1 canonical-E negative-edge source rows are retained by the parser but ordinary run2 continues to refuse the edge until its bridge is extended."
+      "measured": "Canonical-E negative-edge backend row; the legacy run2 refusal remains recorded separately, while this row compares the retained negedge semantics against the simulator."
     },
     {
       "name": "clk_implicit",
@@ -71445,13 +71524,26 @@
       "example": "sem2/packed_enum_package",
       "top": "packed_enum_package",
       "params": {},
-      "signals": ["mode", "y"],
+      "signals": [
+        "mode",
+        "y"
+      ],
       "stimulus": [
-        {"mode": "00"},
-        {"mode": "01"},
-        {"mode": "10"},
-        {"mode": "xx"},
-        {"mode": "zz"}
+        {
+          "mode": "00"
+        },
+        {
+          "mode": "01"
+        },
+        {
+          "mode": "10"
+        },
+        {
+          "mode": "xx"
+        },
+        {
+          "mode": "zz"
+        }
       ]
     },
     {
@@ -72029,15 +72121,48 @@
       "example": "sem2/dynamic_nba_target_step11",
       "top": "dynamic_nba_target_step11",
       "clock": "clk",
-      "signals": ["idx", "d", "en", "q"],
+      "signals": [
+        "idx",
+        "d",
+        "en",
+        "q"
+      ],
       "stimulus": [
-        {"idx": "xxx", "d": "x", "en": "x"},
-        {"idx": "000", "d": "1", "en": "1"},
-        {"idx": "011", "d": "0", "en": "1"},
-        {"idx": "x0x", "d": "1", "en": "1"},
-        {"idx": "z01", "d": "0", "en": "1"},
-        {"idx": "100", "d": "1", "en": "1"},
-        {"idx": "001", "d": "0", "en": "0"}
+        {
+          "idx": "xxx",
+          "d": "x",
+          "en": "x"
+        },
+        {
+          "idx": "000",
+          "d": "1",
+          "en": "1"
+        },
+        {
+          "idx": "011",
+          "d": "0",
+          "en": "1"
+        },
+        {
+          "idx": "x0x",
+          "d": "1",
+          "en": "1"
+        },
+        {
+          "idx": "z01",
+          "d": "0",
+          "en": "1"
+        },
+        {
+          "idx": "100",
+          "d": "1",
+          "en": "1"
+        },
+        {
+          "idx": "001",
+          "d": "0",
+          "en": "0"
+        }
       ],
       "measured": "2026-11-10: an always_ff NBA to a runtime packed bit-select retains Lhs2.index; known in-range indices update one bit, x/z and out-of-range indices are no-ops, and Icarus 13.0 and Xcelium 24.03-s004 agree. E-core-1's static-window boundary remains pinned in the fixture proof."
     },
@@ -72046,16 +72171,45 @@
       "example": "sem2/casez_casex_always_ff_step11",
       "top": "casez_casex_always_ff_step11",
       "clock": "clk",
-      "signals": ["sel", "d", "qz", "qx"],
+      "signals": [
+        "sel",
+        "d",
+        "qz",
+        "qx"
+      ],
       "stimulus": [
-        {"sel": "0000", "d": "1001"},
-        {"sel": "0001", "d": "1000"},
-        {"sel": "00z1", "d": "0111"},
-        {"sel": "01xz", "d": "0110"},
-        {"sel": "1x00", "d": "0101"},
-        {"sel": "1z11", "d": "0100"},
-        {"sel": "zzzz", "d": "0011"},
-        {"sel": "xxxx", "d": "0010"}
+        {
+          "sel": "0000",
+          "d": "1001"
+        },
+        {
+          "sel": "0001",
+          "d": "1000"
+        },
+        {
+          "sel": "00z1",
+          "d": "0111"
+        },
+        {
+          "sel": "01xz",
+          "d": "0110"
+        },
+        {
+          "sel": "1x00",
+          "d": "0101"
+        },
+        {
+          "sel": "1z11",
+          "d": "0100"
+        },
+        {
+          "sel": "zzzz",
+          "d": "0011"
+        },
+        {
+          "sel": "xxxx",
+          "d": "0010"
+        }
       ],
       "measured": "2026-11-10: casez and casex in one always_ff retain source-order CaseStmt nodes; wildcard x/z selectors and defaults match Icarus 13.0 and Xcelium 24.03-s004. E-core-1's explicit case boundary remains pinned for review."
     },
@@ -72064,13 +72218,33 @@
       "example": "sem2/plain_always_posedge_step11",
       "top": "plain_always_posedge_step11",
       "clock": "clk",
-      "signals": ["en", "d", "q", "q_copy"],
+      "signals": [
+        "en",
+        "d",
+        "q",
+        "q_copy"
+      ],
       "stimulus": [
-        {"en": "0", "d": "1001"},
-        {"en": "1", "d": "0110"},
-        {"en": "x", "d": "0011"},
-        {"en": "z", "d": "zzzz"},
-        {"en": "1", "d": "xz01"}
+        {
+          "en": "0",
+          "d": "1001"
+        },
+        {
+          "en": "1",
+          "d": "0110"
+        },
+        {
+          "en": "x",
+          "d": "0011"
+        },
+        {
+          "en": "z",
+          "d": "zzzz"
+        },
+        {
+          "en": "1",
+          "d": "xz01"
+        }
       ],
       "measured": "2026-11-10: source-shaped plain always @(posedge clk) retains Process2.alwaysPlain and its NBA-only body; x/z enable/data and the default branch agree between Icarus 13.0 and Xcelium 24.03-s004."
     },
@@ -72828,16 +73002,38 @@
       "name": "memory_edge_loop_e",
       "example": "sem2/memory_edge_loop_e",
       "top": "memory_edge_loop",
-      "params": {"W": 8, "N": 4},
+      "params": {
+        "W": 8,
+        "N": 4
+      },
       "memory": true,
       "clock": "clk",
-      "signals": ["rstn", "d", "q"],
+      "signals": [
+        "rstn",
+        "d",
+        "q"
+      ],
       "stimulus": [
-        {"rstn": "0", "d": "00000011"},
-        {"rstn": "1", "d": "00010001"},
-        {"rstn": "1", "d": "00010001"},
-        {"rstn": "1", "d": "00010001"},
-        {"rstn": "1", "d": "00100010"}
+        {
+          "rstn": "0",
+          "d": "00000011"
+        },
+        {
+          "rstn": "1",
+          "d": "00010001"
+        },
+        {
+          "rstn": "1",
+          "d": "00010001"
+        },
+        {
+          "rstn": "1",
+          "d": "00010001"
+        },
+        {
+          "rstn": "1",
+          "d": "00100010"
+        }
       ],
       "measured": "2026-11-11: canonical parameter-bound for loops in an E memory edge body retain PStmt.forLoop, issue one unpacked-cell NBA per trip, and match the five-row source trace in Icarus and Xcelium."
     },
@@ -72868,9 +73064,22 @@
       "name": "unpacked_generate_array_e_boundary",
       "example": "sem2/unpacked_generate_array",
       "top": "unpacked_generate_array",
-      "params": {"W": 8, "S": 2},
-      "signals": ["x", "y"],
-      "stimulus": [{"x": "00001111"}, {"x": "10100101"}],
+      "params": {
+        "W": 8,
+        "S": 2
+      },
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "00001111"
+        },
+        {
+          "x": "10100101"
+        }
+      ],
       "refusal": "UnpackedDecl:memory",
       "measured": "2026-11-12: the source-shaped parameter-dependent unpacked declaration is retained, while ordinary E refuses `stage` at its canonical memory admission boundary; the existing canonical-memory receipt remains separate."
     },
@@ -72930,10 +73139,17 @@
       "top": "mem_order",
       "memory": true,
       "refusal": "Schedule:comb-source-order",
-      "signals": ["a", "y"],
+      "signals": [
+        "a",
+        "y"
+      ],
       "stimulus": [
-        {"a": "00000101"},
-        {"a": "00000111"}
+        {
+          "a": "00000101"
+        },
+        {
+          "a": "00000111"
+        }
       ],
       "measured": "2026-11-09: IEEE 1800-2023 §10.3/§4.5 permits the later continuous driver to wake the earlier downstream driver; the source-order memory adapter cannot settle this chain in one pass and refuses it before returning a stale value."
     },
@@ -72943,11 +73159,21 @@
       "top": "unsized_xz_ternary_mem",
       "memory": true,
       "clock": "clk",
-      "signals": ["a", "y", "mem_q"],
+      "signals": [
+        "a",
+        "y",
+        "mem_q"
+      ],
       "stimulus": [
-        {"a": "1"},
-        {"a": "0"},
-        {"a": "x"}
+        {
+          "a": "1"
+        },
+        {
+          "a": "0"
+        },
+        {
+          "a": "x"
+        }
       ],
       "measured": "2026-11-10: IEEE 1800-2023 §5.7.1 sizes the retained ConversionExpression:unsized-xz branch at N = 40; the memory route applies the canonical payload at the concrete point, and Icarus 13.0 and Xcelium 24.03-s004 agree."
     },
@@ -72955,14 +73181,26 @@
       "name": "unsized_xz_ternary_mem_n8",
       "example": "sem2/unsized_xz_ternary_mem",
       "top": "unsized_xz_ternary_mem",
-      "params": {"N": 8},
+      "params": {
+        "N": 8
+      },
       "memory": true,
       "clock": "clk",
-      "signals": ["a", "y", "mem_q"],
+      "signals": [
+        "a",
+        "y",
+        "mem_q"
+      ],
       "stimulus": [
-        {"a": "1"},
-        {"a": "0"},
-        {"a": "x"}
+        {
+          "a": "1"
+        },
+        {
+          "a": "0"
+        },
+        {
+          "a": "x"
+        }
       ],
       "measured": "2026-11-10: at N = 8 the same §5.7.1 conversion truncates the 32-bit payload to zzzz0001; Icarus 13.0 and Xcelium 24.03-s004 agree, and the source-shaped memory read remains x."
     },
@@ -73004,11 +73242,26 @@
         "ack"
       ],
       "stimulus": [
-        {"req": "0", "ack": "0"},
-        {"req": "1", "ack": "0"},
-        {"req": "0", "ack": "1"},
-        {"req": "0", "ack": "0"},
-        {"req": "0", "ack": "0"}
+        {
+          "req": "0",
+          "ack": "0"
+        },
+        {
+          "req": "1",
+          "ack": "0"
+        },
+        {
+          "req": "0",
+          "ack": "1"
+        },
+        {
+          "req": "0",
+          "ack": "0"
+        },
+        {
+          "req": "0",
+          "ack": "0"
+        }
       ],
       "verilator_only": true,
       "measured": "2026-11-10: finite assert/cover properties sampled on negedge retain the structured edge and non-overlapped sequence; the E contract proof covers a req at one negedge and ack at the next. Verilator is the assertion-capable differential oracle."
@@ -73086,199 +73339,479 @@
       ],
       "measured": "2026-11-09: signed literal widening into a 16-bit signed expression and mixed unsigned expression; Icarus agrees with the symbolic route under IEEE 1800-2023 §11.8.1–11.8.2."
     },
-
     {
       "name": "always_star_timezero_e",
       "example": "sem2/always_star_timezero_e",
       "top": "always_star_timezero_e",
-      "signals": ["k", "y_star", "y_comb"],
-      "stimulus": [{"a": "0011"}, {"a": "1010"}, {"a": "xz01"}, {"a": "zzzz"}],
+      "signals": [
+        "k",
+        "y_star",
+        "y_comb"
+      ],
+      "stimulus": [
+        {
+          "a": "0011"
+        },
+        {
+          "a": "1010"
+        },
+        {
+          "a": "xz01"
+        },
+        {
+          "a": "zzzz"
+        }
+      ],
       "measured": "2026-11-12: source-shaped always @* remains waiting at time zero and wakes on input changes; E receipt and pinned simulators retain the documented startup split."
     },
-
     {
       "name": "always_star_case_latch_e",
       "example": "sem2/always_star_case_latch_e",
       "top": "always_star_case_latch_e",
-      "signals": ["sel", "d", "q"],
-      "stimulus": [{"sel": "xx", "d": "xxxx"}, {"sel": "00", "d": "0011"}, {"sel": "01", "d": "0011"}, {"sel": "10", "d": "1010"}],
+      "signals": [
+        "sel",
+        "d",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "sel": "xx",
+          "d": "xxxx"
+        },
+        {
+          "sel": "00",
+          "d": "0011"
+        },
+        {
+          "sel": "01",
+          "d": "0011"
+        },
+        {
+          "sel": "10",
+          "d": "1010"
+        }
+      ],
       "measured": "2026-11-12: source-shaped always @* case/latch execution remains waiting at time zero; later input wakes and latch rows are matched."
     },
-
     {
       "name": "untyped_localparam_refuse",
       "example": "sem2/untyped_localparam_refuse",
       "top": "untyped_localparam_refuse",
       "refusal": "Constant:untyped-width",
-      "signals": ["k", "a"],
-      "stimulus": [{}],
+      "signals": [
+        "k",
+        "a"
+      ],
+      "stimulus": [
+        {}
+      ],
       "measured": "2026-11-12: IEEE 1800-2023 §§6.20.2 and 11.6.1 leave the untyped initializer's self-determined width observable; Icarus Verilog 13.0 and Xcelium 24.03-s004 disagree on the lossless intermediate width. E refuses Constant:untyped-width at default and N=8 rather than choose a tool-dependent result."
     },
     {
       "name": "int32_negative_shift_e",
       "example": "sem2/int32_negative_shift_e",
       "top": "int32_negative_shift_e",
-      "signals": ["left_zero", "logical_right", "arithmetic_right", "logical_param", "arithmetic_param"],
-      "stimulus": [{}],
+      "signals": [
+        "left_zero",
+        "logical_right",
+        "arithmetic_right",
+        "logical_param",
+        "arithmetic_param"
+      ],
+      "stimulus": [
+        {}
+      ],
       "measured": "2026-11-12: IEEE 1800-2023 §11.4.10 negative shift count is represented by the finite zero result; logical >> of negative 32-bit ints shifts the bit pattern and >>> sign-fills. E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 at default and N=16 parameter points."
     },
-
     {
       "name": "always_star_memory_read_e_boundary",
       "example": "sem2/always_star_memory_read_e",
       "top": "always_star_memory_read_e",
-      "signals": ["q"],
+      "signals": [
+        "q"
+      ],
       "stimulus": [],
       "refusal": "instantiate2: decl",
       "measured": "2026-11-12: ordinary E refuses the unpacked memory declaration before the implicit-event body; the source-shaped memory receipt remains on the existing canonical memory boundary."
     },
-
-  {
-    "name": "memory_cell_identifier_refuse",
-    "example": "sem2/memory_cell_identifier_refuse",
-    "top": "generated_cell",
-    "file": "memory_cell_identifier_refuse",
-    "signals": [
-      "clk",
-      "d",
-      "q"
-    ],
-    "stimulus": [
-      {
-        "clk": "0",
-        "d": "00000000"
-      }
-    ],
-    "refusal": "EmptyMemberSymbol:EmptyMember"
-  },
-  {
-    "name": "array_index_e",
-    "example": "sem2/array_index_e",
-    "top": "array_index_e",
-    "params": {"N": 4},
-    "signals": ["i", "y"],
-    "stimulus": [{"i": "00"}, {"i": "01"}, {"i": "10"}, {"i": "11"}, {"i": "x0"}],
-    "refusal": "UnpackedDecl:memory",
-    "measured": "2026-11-12: Icarus Verilog 13.0 and Xcelium 24.03-s004 both read xxxxxxxx for i=00,01,10,11,x0; the source-shaped ArraySel is retained, while ordinary E refuses the unpacked memory declaration rather than flattening it."
-  },
-  {
-    "name": "default_point_array_e",
-    "example": "sem2/default_point_array_e",
-    "top": "default_point_array_e",
-    "clock": "clk",
-    "signals": ["d", "q"],
-    "stimulus": [{"d": "00000000"}, {"d": "10100101"}, {"d": "01011010"}, {"d": "11110000"}],
-    "refusal": "Clock:edge",
-    "measured": "2026-11-12: Icarus Verilog 13.0 and Xcelium 24.03-s004 execute the four-cycle fixed-array shift; E names the first wall as Clock:edge before the looped memory update, with no clocked semantics claimed."
-  }
-  ,{
-    "name": "for_loop_e_boundary",
-    "example": "sem2/for_loop_e",
-    "top": "for_loop_e",
-    "clock": "clk",
-    "signals": ["d", "q"],
-    "stimulus": [{"d": "00000000"}, {"d": "10100101"}, {"d": "01011010"}, {"d": "11110000"}],
-    "refusal": "Clock:edge",
-    "measured": "2026-11-12: Icarus Verilog 13.0 and Xcelium 24.03-s004 execute the looped four-cell shift; ordinary E refuses at Clock:edge before the loop target, with no clocked or memory semantics claimed."
-  }
-  ,{
-    "name": "array_select_e_boundary",
-    "example": "sem2/array_select_e",
-    "top": "array_select_e",
-    "signals": ["i", "y"],
-    "stimulus": [{"i": "00"}],
-    "refusal": "ContinuousAssignSymbol:InvalidExpression",
-    "measured": "2026-11-12: Slang rejects the undeclared `missing[i]` source with ContinuousAssignSymbol:InvalidExpression; no simulator oracle is claimed because the approved frontend rejects the design before simulation."
-  }
-  ,{
-    "name": "assign_target_e",
-    "example": "sem2/assign_target_e",
-    "top": "assign_target_e",
-    "signals": ["x", "y"],
-    "stimulus": [{"x": "0"}, {"x": "1"}, {"x": "x"}, {"x": "z"}],
-    "measured": "2026-11-12: Slang elaborates the implicit-net assignment target as a declared one-bit net; E and both pinned simulators propagate x to y and preserve the source-shaped target."
-  }
-  ,{
-    "name": "invalid_continuous_assign_e",
-    "example": "sem2/invalid_continuous_assign_e",
-    "top": "invalid_continuous_assign_e",
-    "signals": ["x", "y"],
-    "stimulus": [{"x": "00000000"}],
-    "refusal": "ContinuousAssignSymbol:InvalidExpression",
-    "measured": "2026-11-12: Slang rejects the undeclared concatenation operand `missing` with ContinuousAssignSymbol:InvalidExpression; no simulator oracle is claimed because the approved frontend rejects the source before simulation."
-  }
-  ,{
-    "name": "typed_array_e_boundary",
-    "example": "sem2/typed_array_e",
-    "top": "typed_array_e",
-    "signals": ["x", "y"],
-    "stimulus": [{"x": "00000000"}, {"x": "10100101"}],
-    "refusal": "NetSymbol:type",
-    "measured": "2026-11-12: Slang retains the typed unpacked net declaration as NetSymbol:type; ordinary E refuses the declaration before evaluating the continuous read."
-  }
-  ,{
-    "name": "wire_output_port_e",
-    "example": "sem2/wire_output_port_e",
-    "top": "wire_output_port_e",
-    "signals": ["a", "y"],
-    "stimulus": [{"a": "0"}, {"a": "1"}, {"a": "x"}, {"a": "z"}],
-    "measured": "2026-11-12: a complete single continuous driver makes the output wire’s resolution identity; E retains `isNet` and matches Icarus Verilog 13.0 and Xcelium 24.03-s004 for 0, 1, x and z."
-  }
-  ,{
-    "name": "timed_event_loop_e",
-    "example": "sem2/timed_event_loop_e",
-    "top": "timed_event_loop_e",
-    "signals": ["x", "y"],
-    "stimulus": [{"x": "00000000"}, {"x": "00000001"}, {"x": "10100100"}, {"x": "11111111"}, {"x": "xxxxxxxx"}],
-    "measured": "2026-11-12: the source loop is elaborated by Slang into eight parser-shaped conditional arms; canonical E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 over known and unknown inputs."
-  }
-  ,{
-    "name": "initial_syscall_e_boundary",
-    "example": "sem2/initial_syscall_e",
-    "top": "initial_syscall_e",
-    "signals": ["x", "y"],
-    "stimulus": [{"x": "x"}, {"x": "0"}, {"x": "1"}],
-    "refusal": "T2:Initial",
-    "measured": "2026-11-12: the parser retains the initial `$fatal` system call; ordinary E refuses the initial process as T2:Initial, while Icarus Verilog 13.0 and Xcelium 24.03-s004 accept the source-level simulation row."
-  }
-  ,{
-    "name": "generate_parameter_e_w8",
-    "example": "sem2/generate_parameter_e",
-    "top": "generate_parameter_e",
-    "params": {"W": 8},
-    "signals": ["x", "y"],
-    "stimulus": [{"x": "0"}, {"x": "1"}, {"x": "x"}, {"x": "z"}],
-    "measured": "2026-11-12: a bound generate parameter W=8 selects the source branch `assign y=x`; E matches Icarus Verilog 13.0 and Xcelium 24.03-s004."
-  },
-  {
-    "name": "generate_parameter_e_w4",
-    "example": "sem2/generate_parameter_e",
-    "top": "generate_parameter_e",
-    "params": {"W": 4},
-    "signals": ["x", "y"],
-    "stimulus": [{"x": "0"}, {"x": "1"}, {"x": "x"}, {"x": "z"}],
-    "measured": "2026-11-12: a bound generate parameter W=4 selects the source branch `assign y=!x`; E matches Icarus Verilog 13.0 and Xcelium 24.03-s004."
-  }
-  ,{
-    "name": "profile_mixed_e_boundary",
-    "example": "sem2/profile_mixed_e",
-    "top": "profile_mixed_e",
-    "signals": ["rst", "d", "q", "y"],
-    "stimulus": [{"rst": "0", "d": "0", "clk": "0"}, {"rst": "1", "d": "1", "clk": "0"}, {"rst": "1", "d": "1", "clk": "1"}, {"rst": "1", "d": "0", "clk": "0"}, {"rst": "1", "d": "0", "clk": "1"}],
-    "refusal": "Clock:async-reset",
-    "measured": "2026-11-12: the source-shaped async-reset edge plus continuous output satisfies ffResetProfileB and ffMixedProfileB but remains outside ordinary E; the runner names Clock:async-reset while Icarus Verilog 13.0 and Xcelium 24.03-s004 provide the source trace."
-  }
-  ,{
-    "name": "memory_edge_incdec_e",
-    "example": "sem2/memory_edge_incdec_e",
-    "top": "memory_edge_incdec_e",
-    "params": {"W": 8, "N": 4},
-    "memory": true,
-    "clock": "clk",
-    "signals": ["rstn", "d", "q"],
-    "stimulus": [{"rstn": "0", "d": "00000011"}, {"rstn": "1", "d": "00010001"}, {"rstn": "1", "d": "00010001"}, {"rstn": "1", "d": "00100010"}],
-    "refusal": "Schedule:preemptive",
-    "measured": "2026-11-12: source-shaped for-loop increment `i++` is retained as UnaryOp.inc in the canonical memory E route; E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 over four rows."
-  }
+    {
+      "name": "memory_cell_identifier_refuse",
+      "example": "sem2/memory_cell_identifier_refuse",
+      "top": "generated_cell",
+      "file": "memory_cell_identifier_refuse",
+      "signals": [
+        "clk",
+        "d",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "clk": "0",
+          "d": "00000000"
+        }
+      ],
+      "refusal": "EmptyMemberSymbol:EmptyMember"
+    },
+    {
+      "name": "array_index_e",
+      "example": "sem2/array_index_e",
+      "top": "array_index_e",
+      "params": {
+        "N": 4
+      },
+      "signals": [
+        "i",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "i": "00"
+        },
+        {
+          "i": "01"
+        },
+        {
+          "i": "10"
+        },
+        {
+          "i": "11"
+        },
+        {
+          "i": "x0"
+        }
+      ],
+      "refusal": "UnpackedDecl:memory",
+      "measured": "2026-11-12: Icarus Verilog 13.0 and Xcelium 24.03-s004 both read xxxxxxxx for i=00,01,10,11,x0; the source-shaped ArraySel is retained, while ordinary E refuses the unpacked memory declaration rather than flattening it."
+    },
+    {
+      "name": "default_point_array_e",
+      "example": "sem2/default_point_array_e",
+      "top": "default_point_array_e",
+      "clock": "clk",
+      "signals": [
+        "d",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "d": "00000000"
+        },
+        {
+          "d": "10100101"
+        },
+        {
+          "d": "01011010"
+        },
+        {
+          "d": "11110000"
+        }
+      ],
+      "refusal": "Clock:edge",
+      "measured": "2026-11-12: Icarus Verilog 13.0 and Xcelium 24.03-s004 execute the four-cycle fixed-array shift; E names the first wall as Clock:edge before the looped memory update, with no clocked semantics claimed."
+    },
+    {
+      "name": "for_loop_e_boundary",
+      "example": "sem2/for_loop_e",
+      "top": "for_loop_e",
+      "clock": "clk",
+      "signals": [
+        "d",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "d": "00000000"
+        },
+        {
+          "d": "10100101"
+        },
+        {
+          "d": "01011010"
+        },
+        {
+          "d": "11110000"
+        }
+      ],
+      "refusal": "Clock:edge",
+      "measured": "2026-11-12: Icarus Verilog 13.0 and Xcelium 24.03-s004 execute the looped four-cell shift; ordinary E refuses at Clock:edge before the loop target, with no clocked or memory semantics claimed."
+    },
+    {
+      "name": "array_select_e_boundary",
+      "example": "sem2/array_select_e",
+      "top": "array_select_e",
+      "signals": [
+        "i",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "i": "00"
+        }
+      ],
+      "refusal": "ContinuousAssignSymbol:InvalidExpression",
+      "measured": "2026-11-12: Slang rejects the undeclared `missing[i]` source with ContinuousAssignSymbol:InvalidExpression; no simulator oracle is claimed because the approved frontend rejects the design before simulation."
+    },
+    {
+      "name": "assign_target_e",
+      "example": "sem2/assign_target_e",
+      "top": "assign_target_e",
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "0"
+        },
+        {
+          "x": "1"
+        },
+        {
+          "x": "x"
+        },
+        {
+          "x": "z"
+        }
+      ],
+      "measured": "2026-11-12: Slang elaborates the implicit-net assignment target as a declared one-bit net; E and both pinned simulators propagate x to y and preserve the source-shaped target."
+    },
+    {
+      "name": "invalid_continuous_assign_e",
+      "example": "sem2/invalid_continuous_assign_e",
+      "top": "invalid_continuous_assign_e",
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "00000000"
+        }
+      ],
+      "refusal": "ContinuousAssignSymbol:InvalidExpression",
+      "measured": "2026-11-12: Slang rejects the undeclared concatenation operand `missing` with ContinuousAssignSymbol:InvalidExpression; no simulator oracle is claimed because the approved frontend rejects the source before simulation."
+    },
+    {
+      "name": "typed_array_e_boundary",
+      "example": "sem2/typed_array_e",
+      "top": "typed_array_e",
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "00000000"
+        },
+        {
+          "x": "10100101"
+        }
+      ],
+      "refusal": "NetSymbol:type",
+      "measured": "2026-11-12: Slang retains the typed unpacked net declaration as NetSymbol:type; ordinary E refuses the declaration before evaluating the continuous read."
+    },
+    {
+      "name": "wire_output_port_e",
+      "example": "sem2/wire_output_port_e",
+      "top": "wire_output_port_e",
+      "signals": [
+        "a",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "a": "0"
+        },
+        {
+          "a": "1"
+        },
+        {
+          "a": "x"
+        },
+        {
+          "a": "z"
+        }
+      ],
+      "measured": "2026-11-12: a complete single continuous driver makes the output wire’s resolution identity; E retains `isNet` and matches Icarus Verilog 13.0 and Xcelium 24.03-s004 for 0, 1, x and z."
+    },
+    {
+      "name": "timed_event_loop_e",
+      "example": "sem2/timed_event_loop_e",
+      "top": "timed_event_loop_e",
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "00000000"
+        },
+        {
+          "x": "00000001"
+        },
+        {
+          "x": "10100100"
+        },
+        {
+          "x": "11111111"
+        },
+        {
+          "x": "xxxxxxxx"
+        }
+      ],
+      "measured": "2026-11-12: the source loop is elaborated by Slang into eight parser-shaped conditional arms; canonical E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 over known and unknown inputs."
+    },
+    {
+      "name": "initial_syscall_e_boundary",
+      "example": "sem2/initial_syscall_e",
+      "top": "initial_syscall_e",
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "x"
+        },
+        {
+          "x": "0"
+        },
+        {
+          "x": "1"
+        }
+      ],
+      "refusal": "T2:Initial",
+      "measured": "2026-11-12: the parser retains the initial `$fatal` system call; ordinary E refuses the initial process as T2:Initial, while Icarus Verilog 13.0 and Xcelium 24.03-s004 accept the source-level simulation row."
+    },
+    {
+      "name": "generate_parameter_e_w8",
+      "example": "sem2/generate_parameter_e",
+      "top": "generate_parameter_e",
+      "params": {
+        "W": 8
+      },
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "0"
+        },
+        {
+          "x": "1"
+        },
+        {
+          "x": "x"
+        },
+        {
+          "x": "z"
+        }
+      ],
+      "measured": "2026-11-12: a bound generate parameter W=8 selects the source branch `assign y=x`; E matches Icarus Verilog 13.0 and Xcelium 24.03-s004."
+    },
+    {
+      "name": "generate_parameter_e_w4",
+      "example": "sem2/generate_parameter_e",
+      "top": "generate_parameter_e",
+      "params": {
+        "W": 4
+      },
+      "signals": [
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "x": "0"
+        },
+        {
+          "x": "1"
+        },
+        {
+          "x": "x"
+        },
+        {
+          "x": "z"
+        }
+      ],
+      "measured": "2026-11-12: a bound generate parameter W=4 selects the source branch `assign y=!x`; E matches Icarus Verilog 13.0 and Xcelium 24.03-s004."
+    },
+    {
+      "name": "profile_mixed_e_boundary",
+      "example": "sem2/profile_mixed_e",
+      "top": "profile_mixed_e",
+      "signals": [
+        "rst",
+        "d",
+        "q",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "rst": "0",
+          "d": "0",
+          "clk": "0"
+        },
+        {
+          "rst": "1",
+          "d": "1",
+          "clk": "0"
+        },
+        {
+          "rst": "1",
+          "d": "1",
+          "clk": "1"
+        },
+        {
+          "rst": "1",
+          "d": "0",
+          "clk": "0"
+        },
+        {
+          "rst": "1",
+          "d": "0",
+          "clk": "1"
+        }
+      ],
+      "refusal": "Clock:async-reset",
+      "measured": "2026-11-12: the source-shaped async-reset edge plus continuous output satisfies ffResetProfileB and ffMixedProfileB but remains outside ordinary E; the runner names Clock:async-reset while Icarus Verilog 13.0 and Xcelium 24.03-s004 provide the source trace."
+    },
+    {
+      "name": "memory_edge_incdec_e",
+      "example": "sem2/memory_edge_incdec_e",
+      "top": "memory_edge_incdec_e",
+      "params": {
+        "W": 8,
+        "N": 4
+      },
+      "memory": true,
+      "clock": "clk",
+      "signals": [
+        "rstn",
+        "d",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "rstn": "0",
+          "d": "00000011"
+        },
+        {
+          "rstn": "1",
+          "d": "00010001"
+        },
+        {
+          "rstn": "1",
+          "d": "00010001"
+        },
+        {
+          "rstn": "1",
+          "d": "00100010"
+        }
+      ],
+      "refusal": "Schedule:preemptive",
+      "measured": "2026-11-12: source-shaped for-loop increment `i++` is retained as UnaryOp.inc in the canonical memory E route; E matches Icarus Verilog 13.0 and Xcelium 24.03-s004 over four rows."
+    }
   ]
 }

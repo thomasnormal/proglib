@@ -540,7 +540,11 @@ def main():
             runner = RUNNER_ECANON
         else:
             runner = RUNNER_MEM if case.get("memory") else RUNNER
-        if "refusal" in case:
+        # Some rows are refusals on the retiring run2 route but are admitted
+        # by canonical E (for example the negedge receipt).  Such a row opts
+        # into the canonical backend explicitly and is then compared as a
+        # normal simulator trace.
+        if "refusal" in case and not (args.backend == "ecanon" and case.get("canonical_e")):
             ok, detail = check_refusal(case, envelope, sigmas[0], xprobe, xout, runner)
             xnote = ""
             if xprobe is not None:
