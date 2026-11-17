@@ -12,7 +12,7 @@ OUT = ROOT / "docs" / "sv-real-designs.md"
 # receipt and rerunning this script.
 ROWS = [
     ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "no", "Constant: $bits argument outside the declared-signal tier (prim_pad_wrapper_pkg::AttrDw)"),
-    ("prim_arbiter_ppc", "OpenTitan 0a6ff685", "6", "no", "LocalDecl: block-local declaration requires scoped procedural storage"),
+    ("prim_arbiter_ppc", "OpenTitan 0a6ff685", "5", "no", "LocalDecl: block-local declaration requires scoped procedural storage"),
     ("prim_packer", "OpenTitan 0a6ff685", "20", "no", "PortSymbol:net-z (ready_o, line 18)"),
     ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "no", "AlwaysPosedge:edge"),
     ("Ibex", "lowRISC d513671d", "396", "no", "AlwaysLatch:unknown process kind"),

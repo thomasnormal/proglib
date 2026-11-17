@@ -251,3 +251,9 @@ The fixed-array index receipt is current:
 `array_index_canonical_e/check.py` regenerates its envelope byte-identically
 and reports eight known/x/z rows matching canonical E, Icarus Verilog 13.0,
 and Xcelium 24.03-s004.
+
+The real-design census was refreshed after the parameterized whole-array copy
+landing. On pinned OpenTitan `prim_arbiter_ppc`, the measured
+`AssignmentExpression:target`/`GenItem.expand` residue moved from 1 to 0;
+the generated real-design row therefore moves from 6 to 5 unsupported nodes,
+while its first remaining wall stays `LocalDecl`.
