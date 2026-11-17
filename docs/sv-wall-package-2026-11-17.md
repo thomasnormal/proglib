@@ -198,6 +198,13 @@ envelope byte-identical; `clk_two/check.py` reports ordinary run2
 `Clock:multiple` refusal and eight x/z rows matching Icarus Verilog 13.0 and
 Xcelium 24.03-s004.
 
+Current-pin multiple-edge-clock receipt (2026-11-17):
+`multi_clock_domain_e/check.py` reports eight rows matching Icarus Verilog
+13.0 and Xcelium 24.03-s004, including separate, coincident, stopped, ratio,
+and x/z clock cases. The ordinary run2 route retains exact `Clock:multiple`;
+canonical E supplies the direct two-clock receipt. The real-design family
+remains present=4, sole=0; no scheduler interleaving is selected.
+
 The event-list refusal receipts are current as well: `event_control_wall` and
 the implicit/signal event fixtures regenerate byte-identically, match all
 Icarus Verilog 13.0 and Xcelium 24.03-s004 x/z rows, and retain the exact
