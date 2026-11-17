@@ -2,11 +2,11 @@
 
 Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manifest.
 
-- verdicts: 1203/2112 MATCH (passed 1203, failed 3, oracle 0)
+- verdicts: 1210/2112 MATCH (passed 1210, failed 3, oracle 0)
 - excluded from denominator: no-entry-point 102
 - manifest SHA-256: `3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4`
 - measured commit: `333e9c076`
-- measured at: `2026-11-17T02:57:41Z`
+- measured at: `2026-11-17T03:03:54Z`
 
 ## Verdict counts
 
@@ -16,10 +16,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `no-entry-point` | 102 |
 | `not-parsed` | 350 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1203 |
+| `passed` | 1210 |
 | `refused-libc` | 21 |
 | `refused-ub` | 86 |
-| `refused-unsupported` | 361 |
+| `refused-unsupported` | 354 |
 | `timeout` | 87 |
 
 ## Counts by corpus
@@ -35,10 +35,10 @@ Generated from the pinned `C1-C3 (gcc torture, c-testsuite, gcc c23-run)` manife
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-parsed` | 321 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 1010 |
+| `gcc.c-torture/execute` | `passed` | 1017 |
 | `gcc.c-torture/execute` | `refused-libc` | 18 |
 | `gcc.c-torture/execute` | `refused-ub` | 78 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 314 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 307 |
 | `gcc.c-torture/execute` | `timeout` | 84 |
 | `gcc.c23-run` | `not-parsed` | 28 |
 | `gcc.c23-run` | `passed` | 8 |
@@ -272,7 +272,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
 | `unsupported:floating cast has incompatible source and destination` | 4 | 4 | 00204.c, 20020413-1.c, 990413-2.c, align-2.c |
 | `unsupported:no layout for declared type 'long double'` | 4 | 4 | 20040208-1.c, ieee/20011123-1.c, ieee/inf-1.c, ieee/pr29302-1.c |
-| `unsupported:no layout for declared type 'struct S'` | 4 | 4 | 20050107-1.c, pr52979-1.c, pr52979-2.c, pr79737-1.c |
 | `libc-call: __builtin_abort` | 3 | 3 | gcc/testsuite/gcc.dg/c23-nullptr-5.c, pr58943.c, pr77767.c |
 | `libc-call: __builtin_setjmp` | 3 | 3 | built-in-setjmp.c, pr64242.c, pr84521.c |
 | `unsupported:ExprWithCleanups` | 3 | 3 | 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
@@ -281,6 +280,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type '_Complex float'` | 3 | 3 | complex-6.c, ieee/cdivchkf.c, pr38969.c |
 | `unsupported:no layout for declared type 'int[n % 1000 + 1]'` | 3 | 3 | 20040811-1.c, pr43220.c, vla-dealloc-1.c |
 | `unsupported:no layout for declared type 'size_t'` | 3 | 3 | strcmp-1.c, strlen-1.c, strncmp-1.c |
+| `unsupported:no layout for declared type 'struct S'` | 3 | 3 | pr52979-1.c, pr52979-2.c, pr79737-1.c |
 | `unsupported:type trait '__alignof'` | 3 | 3 | 20000223-1.c, align-3.c, zerolen-2.c |
 | `cast:FloatingRealToComplex` | 2 | 2 | complex-4.c, pr42248.c |
 | `cast:IntegralComplexCast` | 2 | 2 | 20041124-1.c, 20041201-1.c |
@@ -297,9 +297,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:floating value used as an integer` | 2 | 2 | 20000731-1.c, 20011217-1.c |
 | `unsupported:goto skips a block declaration` | 2 | 2 | 00129.c, gcc/testsuite/gcc.dg/c23-labels-1.c |
 | `unsupported:no layout for declared type 'jmp_buf'` | 2 | 2 | 20210505-1.c, pr56982.c |
-| `unsupported:no layout for declared type 'struct S[2]'` | 2 | 2 | 20050119-1.c, 20050119-2.c |
-| `unsupported:no layout for declared type 'struct packed_ushort'` | 2 | 2 | 20170401-1.c, pr45070.c |
-| `unsupported:no layout for declared type 'struct s'` | 2 | 2 | 20040625-1.c, pr29006.c |
 | `unsupported:no layout for declared type 'v16di'` | 2 | 2 | pr123625-2.c, pr126405-3.c |
 | `unsupported:operator '-' on pointers without array provenance` | 2 | 2 | 980701-1.c, pr36321.c |
 | `unsupported:sprintf` | 2 | 2 | 920501-8.c, struct-ret-1.c |
@@ -362,9 +359,10 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'struct S[21]'` | 1 | 1 | pr70602.c |
 | `unsupported:no layout for declared type 'struct S[6]'` | 1 | 1 | pr58570.c |
 | `unsupported:no layout for declared type 'struct c'` | 1 | 1 | packed-aligned.c |
-| `unsupported:no layout for declared type 'struct event'` | 1 | 1 | 20111212-1.c |
 | `unsupported:no layout for declared type 'struct foo'` | 1 | 1 | bf-pack-1.c |
+| `unsupported:no layout for declared type 'struct packed_ushort'` | 1 | 1 | pr45070.c |
 | `unsupported:no layout for declared type 'struct product_iSfd_'` | 1 | 1 | gcc/testsuite/gcc.dg/c23-tag-5.c |
+| `unsupported:no layout for declared type 'struct s'` | 1 | 1 | pr29006.c |
 | `unsupported:no layout for declared type 'struct tty_driver'` | 1 | 1 | struct-cpy-1.c |
 | `unsupported:no layout for declared type 'struct x'` | 1 | 1 | 20020227-1.c |
 | `unsupported:no layout for declared type 'three_byte_t'` | 1 | 1 | struct-ret-2.c |
@@ -395,7 +393,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:sizeof: no layout for operand type '_Atomic(unsigned char)'` | 1 | 1 | gcc/testsuite/gcc.dg/atomic/c23-stdatomic-lockfree-char8_t.c |
 | `unsupported:sizeof: no layout for operand type 'c'` | 1 | 1 | 20040411-1.c |
 | `unsupported:sizeof: no layout for operand type 'int (*volatile[6])(void)'` | 1 | 1 | bcp-1.c |
-| `unsupported:sizeof: no layout for operand type 'struct S'` | 1 | 1 | 20120105-1.c |
 | `unsupported:sizeof: no layout for operand type 'va_list'` | 1 | 1 | va-arg-21.c |
 | `unsupported:src/20000412-5.c` | 1 | 1 | 20000412-5.c |
 | `unsupported:src/930628-1.c` | 1 | 1 | 930628-1.c |

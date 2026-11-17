@@ -12,10 +12,10 @@
    "failed": 3,
    "not-parsed": 321,
    "oracle-tests-compiler": 1,
-   "passed": 1010,
+   "passed": 1017,
    "refused-libc": 18,
    "refused-ub": 78,
-   "refused-unsupported": 314,
+   "refused-unsupported": 307,
    "timeout": 84
   },
   "gcc.c23-run": {
@@ -32,10 +32,10 @@
   "no-entry-point": 102,
   "not-parsed": 350,
   "oracle-tests-compiler": 1,
-  "passed": 1203,
+  "passed": 1210,
   "refused-libc": 21,
   "refused-ub": 86,
-  "refused-unsupported": 361,
+  "refused-unsupported": 354,
   "timeout": 87
  },
  "dynamic_wall_ranking": [
@@ -877,17 +877,6 @@
   },
   {
    "files": [
-    "20050107-1.c",
-    "pr52979-1.c",
-    "pr52979-2.c",
-    "pr79737-1.c"
-   ],
-   "present": 4,
-   "sole": 4,
-   "wall": "unsupported:no layout for declared type 'struct S'"
-  },
-  {
-   "files": [
     "gcc/testsuite/gcc.dg/c23-nullptr-5.c",
     "pr58943.c",
     "pr77767.c"
@@ -965,6 +954,16 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:no layout for declared type 'size_t'"
+  },
+  {
+   "files": [
+    "pr52979-1.c",
+    "pr52979-2.c",
+    "pr79737-1.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:no layout for declared type 'struct S'"
   },
   {
    "files": [
@@ -1110,33 +1109,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:no layout for declared type 'jmp_buf'"
-  },
-  {
-   "files": [
-    "20050119-1.c",
-    "20050119-2.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:no layout for declared type 'struct S[2]'"
-  },
-  {
-   "files": [
-    "20170401-1.c",
-    "pr45070.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:no layout for declared type 'struct packed_ushort'"
-  },
-  {
-   "files": [
-    "20040625-1.c",
-    "pr29006.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:no layout for declared type 'struct s'"
   },
   {
    "files": [
@@ -1642,14 +1614,6 @@
   },
   {
    "files": [
-    "20111212-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct event'"
-  },
-  {
-   "files": [
     "bf-pack-1.c"
    ],
    "present": 1,
@@ -1658,11 +1622,27 @@
   },
   {
    "files": [
+    "pr45070.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:no layout for declared type 'struct packed_ushort'"
+  },
+  {
+   "files": [
     "gcc/testsuite/gcc.dg/c23-tag-5.c"
    ],
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'struct product_iSfd_'"
+  },
+  {
+   "files": [
+    "pr29006.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:no layout for declared type 'struct s'"
   },
   {
    "files": [
@@ -1903,14 +1883,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:sizeof: no layout for operand type 'int (*volatile[6])(void)'"
-  },
-  {
-   "files": [
-    "20120105-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:sizeof: no layout for operand type 'struct S'"
   },
   {
    "files": [
@@ -2181,7 +2153,7 @@
   "no-entry-point": 102
  },
  "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
- "measured_at_utc": "2026-11-17T02:57:41Z",
+ "measured_at_utc": "2026-11-17T03:03:54Z",
  "measured_commit": "333e9c076",
  "pin": null,
  "rows": [
@@ -8060,8 +8032,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct s'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct s'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20040625-1.c",
    "sha256": "15980df2b77581b5a7bfd83ff644197e536f7202bce7680a35bbd1b879642368",
@@ -8069,7 +8041,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8453,8 +8425,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050107-1.c",
    "sha256": "6d87852f44567f8935cbc519f7b170652fcbfac249dc09c202bf3794c16038b1",
@@ -8462,7 +8434,7 @@
     "type-layout",
     "unsupported:ModeAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8476,8 +8448,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S[2]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S[2]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050119-1.c",
    "sha256": "4c279df792eb5a96540858429ae3686b5d3008cc34075e6d0434a9c014147350",
@@ -8485,12 +8457,12 @@
     "type-layout",
     "unsupported:ModeAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S[2]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S[2]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050119-2.c",
    "sha256": "75fbb2275508bec55ac52616771ac22dbdfd8afa679a5472a9e95b5519d3810b",
@@ -8498,7 +8470,7 @@
     "type-layout",
     "unsupported:ModeAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9781,8 +9753,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct event'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct event'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20111212-1.c",
    "sha256": "2fe0e8876945d6cb65271a41da92289bb89fc4fa8b9d76d9483d924f4003eb79",
@@ -9792,7 +9764,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9806,8 +9778,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sizeof: no layout for operand type 'struct S'",
-   "dynamic_wall": "unsupported:sizeof: no layout for operand type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20120105-1.c",
    "sha256": "e3071a89402ef81e3195825973cbb558d876e54f9eb0649389d702a7a240a50f",
@@ -9817,7 +9789,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10071,8 +10043,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct packed_ushort'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct packed_ushort'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20170401-1.c",
    "sha256": "d17f0e5ebf981b13b90b47f73a7ee690a2e56b09ee4e84929e72374e08dd66e6",
@@ -10080,7 +10052,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
