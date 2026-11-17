@@ -6931,6 +6931,13 @@ theorem pbAllWithDict (htwin : PayloadTwin o₀ o) :
   intro fuel
   exact ⟨pbAll htwin fuel, pbDictAll htwin fuel⟩
 
+/- The named product can feed the existing expression theorem without
+altering any historic `PBAll` projection. -/
+theorem pbEvalExpr_succ_withDict (htwin : PayloadTwin o₀ o)
+    (ih : PBAllWithDict pa o₀ o fuel) :
+    PBEvalExpr pa o₀ o (fuel + 1) :=
+  pbEvalExpr_succ htwin ih.1
+
 end Arms
 
 /-- **THE LOCALITY PROPERTY: the interpreter cannot observe the payload of a
