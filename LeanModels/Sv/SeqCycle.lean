@@ -10,11 +10,17 @@ import LeanModels.Sv.SeqCycleStep
 `CoreMemDesign.step`). Nothing here is a semantics: every definition is a function of the route's own data, and every
 theorem relates it to `CoreMemDesign.step`.
 
-A clock cycle is two slots under the rising-edge clocking discipline (`Core1Disc`, `Core1Obs.slotEntry1`): the LOW slot
-carries the cycle's data inputs with the clock at 0 (`lowEntry`), the HIGH slot raises the clock and changes nothing
-else (`highEntry`). The pre sample is the state after the low slot, the post sample the state after the high slot. An
-asynchronous reset is a data input: its fall in the low slot fires its processes there (§9.4.2), so the pre sample
-already shows the reset.
+A design declares no clock: its EVENTS are computed (`CoreMemDesign.events`: each edge process's clock edge, rising or
+falling, and its asynchronous reset's assertion edge; the route's `CoreMemEdge.fires` is "some event of the process
+occurs"). A run is a list of rows; the input discipline `Separated` reads each as a DATA ROW (no event occurs) or an
+INSTANT ROW (only event sources move, some event occurs, no process sees its clock event while its reset moves). The
+INSTANT FUNCTION `tick` is the mirror's slot on an instant's row, `dataV` on a data row: one view, indexed by events.
+
+Single clock is that view at the one event `posedge clk`: a clock cycle is a data row (the LOW slot: the cycle's data
+inputs with the clock at 0, `lowEntry`) then the instant `{posedge clk}` (the HIGH slot, `highEntry` =
+`(Instant.rise clk).row`). The pre sample is the state after the low slot, the post sample the state after the high
+slot. An asynchronous reset is an event of its own: its fall in the low slot fires its processes there (§9.4.2), so the
+pre sample already shows the reset; the discipline admits that low slot only when no data moves with it.
 
 A clocked state on views is a pair: the scalar VIEW (the name-to-value list `evalPure2` reads) and the MEMORY VIEW
 (`MemV`: each memory's contents as a function of its source label, the route's `MemBlock.read`). A memory is an indexed
@@ -30,16 +36,19 @@ deciding x/z exactly as the route does (`MemShape.index?`: an x/z or out-of-rang
 * `CoreMemDesign.edgesV`: the route's edge pass on views, each process firing by `CoreMemEdge.fires` (the clock's rise or
   the asynchronous reset's fall, x/z rows included); `runEdges_V`.
 * `CoreMemDesign.commitNba_V`: the route's commit of memory records is `commitMemV` on the memory view.
-* `SeqProfile E clk`: the clocked profile: one clock, edge processes on its rising edge whose bodies `execV` mirrors,
-  continuous assigns (a memory read evaluated by the route's evaluator, the rest compiled), one-rank 4-state memories
-  of distinct names that are not ports, no always_comb, always_latch, always @* or initial process, 4-state declarations
-  with distinct names.
+* `SeqProfileI E`: the clocked profile, any number of clocks: edge processes on either edge of any clock whose bodies
+  `execV` mirrors, continuous assigns (a memory read evaluated by the route's evaluator, the rest compiled), one-rank
+  4-state memories of distinct names that are not ports, no always_comb, always_latch, always @* or initial process,
+  4-state declarations with distinct names. `SeqProfile E clk`: its single-clock instance (every edge process on the
+  rising edge of `clk`).
+* `SeqEvent`, `CoreMemDesign.events`, `occurs`; `Instant`, `DataRow`, `InstantRow`, `Separated`, `instOf`; `dataV`,
+  `tick`: the instant view (its theorems in `SeqCycleInstant.lean`).
 * `CoreMemDesign.Coherent`, `MemCoherent`: a state whose store is its cache's, one typed value per declaration; a memory
   state holding every memory's block under its identity.
 * `CoreMemDesign.settleV`, `slotV`, `cycleMV`: the slot and the cycle on views: two continuous-assign passes, the edge
   round, the commit, two passes (the route's slot repeats its passes and its edge round until nothing changes; under the
-  obligations both loops stop after their first round, `SeqCycleObl.lean`); `cycleV`: the cycle of a design without
-  memories (the scalar part of `cycleMV`).
+  obligations both loops stop after their first round, `SeqCycleObl.lean`); `cycleMV` is `dataV` then
+  `tick (Instant.rise clk)`; `cycleV`: the cycle of a design without memories (the scalar part of `cycleMV`).
 
 The obligations, the theorems that use them and the refinement theorems (`CoreMemDesign.step_seq`, `cycleMV_refines`,
 `cycle_of_seqProfile`: from every coherent state, the route's slots exist, stay coherent, and land exactly on the views
@@ -721,13 +730,87 @@ termination_by structural xs => xs
 
 end
 
+/-! ## Events: what a design's edge processes are sensitive to, computed from the design
+
+A design declares no clock. An EVENT is an edge (§9.4.2: the edge of a signal's least significant bit, x and z
+included) some edge process is sensitive to: each edge process's clock edge (rising or falling), and the assertion edge
+of its asynchronous reset (the fall of an active-low reset, the rise of an active-high one). The route's own firing test
+`CoreMemEdge.fires` is "some event of the process occurs" (`CoreMemEdge.fires_eq`), so events are not a parallel notion.
+Level events (`always_latch`, `always @*`) are outside the clocked profile: the scheduler's. -/
+
+/-- An event of a design: an edge of a signal some edge process is sensitive to. -/
+structure SeqEvent where
+  src : String
+  kind : ClockEdge
+deriving DecidableEq, Repr
+
+/-- The §9.4.2 edge table for one edge kind. -/
+def edgeOf : ClockEdge → Logic → Logic → Bool
+  | .posedge, x, y => isPosedge x y
+  | .negedge, x, y => isNegedge x y
+
+/-- The event occurs from the view `a` to the view `b` (bit 0 of its signal, §9.4.2). -/
+def SeqEvent.occursIn (e : SeqEvent) (a b : SvState) : Bool := edgeOf e.kind (a.bit0 e.src) (b.bit0 e.src)
+
+/-- An edge process's clock event. -/
+def CoreMemEdge.clockEvent (f : CoreMemEdge) : SeqEvent := ⟨f.clock, f.edge⟩
+
+/-- An edge process's reset event: the assertion edge of its asynchronous reset. -/
+def CoreMemEdge.resetEvent? (f : CoreMemEdge) : Option SeqEvent :=
+  f.reset.map fun r => ⟨r, if f.resetHigh then .posedge else .negedge⟩
+
+/-- The events an edge process is sensitive to. -/
+def CoreMemEdge.events (f : CoreMemEdge) : List SeqEvent := f.clockEvent :: f.resetEvent?.toList
+
+/-- The events of a process (none for a process that is not an edge process). -/
+def CoreMemProc.events : CoreMemProc → List SeqEvent
+  | .edge f => f.events
+  | _ => []
+
+/-- **The events of a design**, computed from its edge processes. -/
+def CoreMemDesign.events (E : CoreMemDesign) : List SeqEvent := E.processes.toList.flatMap CoreMemProc.events
+
+/-- The event sources of a design: the signals its events are edges of. -/
+def CoreMemDesign.sources (E : CoreMemDesign) : List String := E.events.map SeqEvent.src
+
+/-- The events of the design that occur from the view `a` to the view `b`. -/
+def CoreMemDesign.occurs (E : CoreMemDesign) (a b : SvState) : List SeqEvent := E.events.filter (·.occursIn a b)
+
+/-- **The route's firing test is "some event of the process occurs"**. -/
+theorem CoreMemEdge.fires_eq (f : CoreMemEdge) (a b : SvState) : f.fires a b = f.events.any (·.occursIn a b) := by
+  unfold CoreMemEdge.fires CoreMemEdge.events CoreMemEdge.clockEvent CoreMemEdge.resetEvent?
+  cases f.reset with
+  | none => cases f.edge <;> simp [SeqEvent.occursIn, edgeOf]
+  | some r => cases f.edge <;> cases f.resetHigh <;> simp [SeqEvent.occursIn, edgeOf]
+
+/-- An event of a design is an event of one of its processes. -/
+theorem CoreMemDesign.mem_events {E : CoreMemDesign} {e : SeqEvent} :
+    e ∈ E.events ↔ ∃ f, CoreMemProc.edge f ∈ E.processes.toList ∧ e ∈ f.events := by
+  simp only [CoreMemDesign.events, List.mem_flatMap]
+  constructor
+  · rintro ⟨p, hp, he⟩
+    cases p with
+    | edge f => exact ⟨f, hp, he⟩
+    | _ => simp [CoreMemProc.events] at he
+  · rintro ⟨f, hf, he⟩
+    exact ⟨_, hf, he⟩
+
 /-! ## The clocked profile and coherent states -/
 
-/-- A process of the clocked profile, at index `i` of the design: a continuous assign to a whole declared scalar
-(function-free; a memory read is evaluated by the route's evaluator, anything else by its compiled expression, which
-must be present), or an edge process on the rising edge of `clk` (with or without an asynchronous reset of either
-polarity) whose body the view-level executor mirrors, within the route's statement fuel. A falling-edge process, an
+/-- A process of the clocked profile, at index `i` of the design, for any number of clocks: a continuous assign to a
+whole declared scalar (function-free; a memory read is evaluated by the route's evaluator, anything else by its compiled
+expression, which must be present), or an edge process on either edge of any clock (with or without an asynchronous
+reset of either polarity) whose body the view-level executor mirrors, within the route's statement fuel. An
 `always_comb`, `always_latch`, `always @*` or `initial` process is outside (refused by name by the structure stage). -/
+def CoreMemDesign.ProcOkI (E : CoreMemDesign) (i : Nat) : CoreMemProc → Prop
+  | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
+      (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
+      (E.scalarWidth? n).isSome = true
+  | .edge f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | _ => False
+
+/-- A process of the single-clock profile: `ProcOkI`, and an edge process is on the rising edge of `clk`. A falling-edge
+process is outside it (it is in the instant profile `SeqProfileI`, where `{negedge clk}` is an instant of its own). -/
 def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemProc → Prop
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
@@ -742,14 +825,25 @@ def CoreMemDesign.memOkB (E : CoreMemDesign) : Bool :=
     decide ((E.memories.toList.map fun md => md.shape.id).Nodup) &&
     E.memories.toList.all fun md => !md.source.isInput && !md.source.isOutput && !md.shape.twoState
 
-/-- **The clocked profile** of a canonical-E design: its memories in the profile (`memOkB`), the scalar edge view's
-declarations are the scalar view's, distinct names, every declaration 4-state, every process `ProcOk`. -/
-structure CoreMemDesign.SeqProfile (E : CoreMemDesign) (clk : String) : Prop where
+/-- **The clocked profile**, for any number of clocks (the instant view's profile): its memories in the profile
+(`memOkB`), the scalar edge view's declarations are the scalar view's, distinct names, every declaration 4-state, every
+process `ProcOkI` (edge processes on any clock, either edge). -/
+structure CoreMemDesign.SeqProfileI (E : CoreMemDesign) : Prop where
   mems : E.memOkB = true
   base : E.scalarEdge.base = E.scalar
   names : (E.scalar.decls.toList.map Decl.name).Nodup
   four : AllFour E.scalar
-  procs : ∀ (i : Nat) (p : CoreMemProc), E.processes[i]? = some p → E.ProcOk clk i p
+  procs : ∀ (i : Nat) (p : CoreMemProc), E.processes[i]? = some p → E.ProcOkI i p
+
+/-- An edge process on the rising edge of `clk` (every other process qualifies). -/
+def CoreMemProc.OnRise (clk : String) : CoreMemProc → Prop
+  | .edge f => f.clock = clk ∧ f.edge = .posedge
+  | _ => True
+
+/-- **The single-clock profile**: the instant profile at the one clock event `posedge clk` (every edge process on the
+rising edge of `clk`; asynchronous resets of either polarity, each an event of its own). -/
+structure CoreMemDesign.SeqProfile (E : CoreMemDesign) (clk : String) : Prop extends E.SeqProfileI where
+  rise : ∀ p ∈ E.processes.toList, p.OnRise clk
 
 /-- `ProcOk`, decided (the structure stage decides the profile through it, for any number of processes). -/
 def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemProc → Bool
@@ -805,13 +899,92 @@ theorem CoreMemDesign.procsOkFrom_spec {E : CoreMemDesign} {clk : String} :
           have := CoreMemDesign.procsOkFrom_spec ps (i + 1) h.2 k p hk
           rwa [show i + 1 + k = i + (k + 1) by omega] at this
 
+/-- A single-clock process is a process of the instant profile on the rising edge of `clk`. -/
+theorem CoreMemDesign.ProcOk.toI {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
+    (h : E.ProcOk clk i p) : E.ProcOkI i p ∧ p.OnRise clk := by
+  cases p with
+  | assign t v => cases t <;> first | exact ⟨h, trivial⟩ | exact absurd h (by simp [CoreMemDesign.ProcOk])
+  | edge f => exact ⟨⟨h.2.2.1, h.2.2.2⟩, h.1, h.2.1⟩
+  | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
+
+/-- `ProcOkI`, decided. -/
+def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
+  | .assign (.ident n) v => !LeanModels.Sv.PExpr.hasFunctionCall v &&
+      (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
+        | some (some _) => true
+        | _ => false)) && (E.scalarWidth? n).isSome
+  | .edge f => f.body.edgeOkB && decide (f.body.need ≤ 4096)
+  | _ => false
+
+theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
+    (h : E.procOkIB i p = true) : E.ProcOkI i p := by
+  cases p with
+  | assign t v =>
+      cases t with
+      | ident n =>
+          simp only [CoreMemDesign.procOkIB, Bool.and_eq_true, Bool.not_eq_true', Bool.or_eq_true] at h
+          obtain ⟨⟨h1, h3⟩, h4⟩ := h
+          refine ⟨h1, fun hmr => ?_, h4⟩
+          rcases h3 with h3 | h3
+          · rw [hmr] at h3; exact absurd h3 (by simp)
+          · split at h3
+            · rename_i c hc; exact ⟨c, hc⟩
+            · simp at h3
+      | _ => simp [CoreMemDesign.procOkIB] at h
+  | edge f =>
+      simp only [CoreMemDesign.procOkIB, Bool.and_eq_true, decide_eq_true_eq] at h
+      exact ⟨h.1, h.2⟩
+  | initial _ => simp [CoreMemDesign.procOkIB] at h
+  | comb _ => simp [CoreMemDesign.procOkIB] at h
+  | implicit _ => simp [CoreMemDesign.procOkIB] at h
+  | latch _ => simp [CoreMemDesign.procOkIB] at h
+  | unsupported _ _ => simp [CoreMemDesign.procOkIB] at h
+
+/-- Every process from index `i` on is `ProcOkI`, decided. -/
+def CoreMemDesign.procsOkIFrom (E : CoreMemDesign) : Nat → List CoreMemProc → Bool
+  | _, [] => true
+  | i, p :: ps => E.procOkIB i p && E.procsOkIFrom (i + 1) ps
+
+theorem CoreMemDesign.procsOkIFrom_spec {E : CoreMemDesign} :
+    ∀ (ps : List CoreMemProc) (i : Nat), E.procsOkIFrom i ps = true →
+      ∀ k p, ps[k]? = some p → E.ProcOkI (i + k) p
+  | [], _, _, k, p, hk => by simp at hk
+  | q :: ps, i, h, k, p, hk => by
+      simp only [CoreMemDesign.procsOkIFrom, Bool.and_eq_true] at h
+      cases k with
+      | zero =>
+          simp only [List.getElem?_cons_zero, Option.some.injEq] at hk
+          subst hk
+          simpa using CoreMemDesign.procOkIB_spec h.1
+      | succ k =>
+          simp only [List.getElem?_cons_succ] at hk
+          have := CoreMemDesign.procsOkIFrom_spec ps (i + 1) h.2 k p hk
+          rwa [show i + 1 + k = i + (k + 1) by omega] at this
+
+/-- The instant profile from its decided parts (how the structure stage proves it). -/
+theorem CoreMemDesign.SeqProfileI.of_B {E : CoreMemDesign} (hmo : E.memOkB = true)
+    (hb : E.scalarEdge.base = E.scalar) (hn : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hp : E.procsOkIFrom 0 E.processes.toList = true) : E.SeqProfileI :=
+  ⟨hmo, hb, hn, h4, fun i p hi => by
+    have := CoreMemDesign.procsOkIFrom_spec _ 0 hp i p (by rw [Array.getElem?_toList]; exact hi)
+    simpa using this⟩
+
 /-- The profile from its decided parts (how the structure stage proves it). -/
 theorem CoreMemDesign.SeqProfile.of_B {E : CoreMemDesign} {clk : String} (hmo : E.memOkB = true)
     (hb : E.scalarEdge.base = E.scalar) (hn : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
-    (hp : E.procsOkFrom clk 0 E.processes.toList = true) : E.SeqProfile clk :=
-  ⟨hmo, hb, hn, h4, fun i p hi => by
+    (hp : E.procsOkFrom clk 0 E.processes.toList = true) : E.SeqProfile clk where
+  mems := hmo
+  base := hb
+  names := hn
+  four := h4
+  procs := fun i p hi => by
     have := CoreMemDesign.procsOkFrom_spec _ 0 hp i p (by rw [Array.getElem?_toList]; exact hi)
-    simpa using this⟩
+    simpa using (CoreMemDesign.ProcOk.toI this).1
+  rise := fun p hmem => by
+    obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hmem
+    have hk := CoreMemDesign.procsOkFrom_spec _ 0 hp i p hi
+    rw [Nat.zero_add] at hk
+    exact (CoreMemDesign.ProcOk.toI hk).2
 
 /-- The memory profile's facts: distinct names, distinct identities, 4-state, not ports. -/
 theorem CoreMemDesign.memOkB_spec {E : CoreMemDesign} (h : E.memOkB = true) :
@@ -1117,7 +1290,7 @@ theorem CoreMemDesign.matV_set {E : CoreMemDesign} (hnd : (E.scalar.decls.toList
 
 /-- **`settleAssignAt` on the clocked profile is `settleRaw`**, keeping coherence, the memory and the materialized
 view. -/
-theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk) :
+theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI) :
     ∀ (procs : List CoreMemProc) (idx : Nat), (∀ k p, procs[k]? = some p → E.processes[idx + k]? = some p) →
     ∀ (st : CoreMemState) (raw raw' : SvState), E.Coherent st → E.MemCoherent st.memory →
       E.scalar.view st.scalar = E.matV raw → E.settleRaw (E.memOf st.memory) raw idx procs = .ok raw' →
@@ -1175,17 +1348,17 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} {clk : String} (hP 
                 simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, Bool.or_false, Bool.false_eq_true,
                   ↓reduceIte, hc']
                 exact hx
-          | _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
+          | _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | edge f =>
           simp only [CoreMemDesign.settleRaw] at hs
           obtain ⟨st', hrun, hc', hm', hv'⟩ :=
             CoreMemDesign.settleAssignAt_seq hP rest (idx + 1) hrest st raw raw' hc hmc hv hs
           exact ⟨st', by simpa [CoreMemDesign.settleAssignAt] using hrun, hc', hm', hv'⟩
-      | initial _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
-      | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
-      | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
-      | latch _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
-      | unsupported _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOk])
+      | initial _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
+      | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
+      | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
+      | latch _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
+      | unsupported _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
 
 /-- `compactScalar` after a settle pass: the materialized view, coherent. -/
 theorem CoreMemDesign.compactScalar_spec {E : CoreMemDesign} {st : CoreMemState} (hc : E.Coherent st)
@@ -1199,7 +1372,7 @@ theorem CoreMemDesign.compactScalar_spec {E : CoreMemDesign} {st : CoreMemState}
     rw [E.normalizeScalar_view, E.view_storeFromView]
 
 /-- **One `settleAssign` of the route is `settleV` on the view**, on the clocked profile, from a coherent state. -/
-theorem CoreMemDesign.settleAssign_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
+theorem CoreMemDesign.settleAssign_seq {E : CoreMemDesign} (hP : E.SeqProfileI)
     {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {v' : SvState}
     (hv : E.settleV (E.memOf st.memory) (E.scalar.view st.scalar) = .ok v') :
     ∃ st', E.settleAssign E.env E.elems st E.processes.toList = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
@@ -1874,51 +2047,51 @@ def CoreMemDesign.edgesV (E : CoreMemDesign) (before after : SvState) (v : SvSta
       else E.edgesV before after v mv rest
   | _ :: rest => E.edgesV before after v mv rest
 
-/-- The shape of a process of the clocked profile, without its index. -/
-def CoreMemDesign.ProcShape (clk : String) : CoreMemProc → Prop
+/-- The shape of a process of the clocked profile, without its index (any clock, either edge). -/
+def CoreMemDesign.ProcShapeI : CoreMemProc → Prop
   | .assign _ _ => True
-  | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .edge f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
   | _ => False
 
-theorem CoreMemDesign.ProcOk.shape {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
-    (h : E.ProcOk clk i p) : CoreMemDesign.ProcShape clk p := by
+theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
+    (h : E.ProcOkI i p) : CoreMemDesign.ProcShapeI p := by
   cases p with
   | assign t v => trivial
   | edge f => exact h
-  | initial _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
-  | comb _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
-  | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
-  | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
-  | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
+  | initial _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | comb _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
 
-theorem CoreMemDesign.SeqProfile.shapes {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk) :
-    ∀ p ∈ E.processes.toList, CoreMemDesign.ProcShape clk p := by
+theorem CoreMemDesign.SeqProfileI.shapes {E : CoreMemDesign} (hP : E.SeqProfileI) :
+    ∀ p ∈ E.processes.toList, CoreMemDesign.ProcShapeI p := by
   intro p hp
   obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hp
   rw [Array.getElem?_toList] at hi
   exact (hP.procs i p hi).shape
 
-theorem CoreMemDesign.SeqProfile.hasComb {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk) :
+theorem CoreMemDesign.SeqProfileI.hasComb {E : CoreMemDesign} (hP : E.SeqProfileI) :
     E.hasComb = false := by
   simp only [CoreMemDesign.hasComb, List.any_eq_false]
   intro p hp
   have := hP.shapes p hp
-  cases p <;> simp_all [CoreMemDesign.ProcShape]
+  cases p <;> simp_all [CoreMemDesign.ProcShapeI]
 
-theorem CoreMemDesign.SeqProfile.hasImplicit {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk) :
+theorem CoreMemDesign.SeqProfileI.hasImplicit {E : CoreMemDesign} (hP : E.SeqProfileI) :
     E.hasImplicit = false := by
   simp only [CoreMemDesign.hasImplicit, List.any_eq_false]
   intro p hp
   have := hP.shapes p hp
-  cases p <;> simp_all [CoreMemDesign.ProcShape]
+  cases p <;> simp_all [CoreMemDesign.ProcShapeI]
 
 /-- **The edge pass refinement**: from a coherent state with a coherent memory, when the view-level edge pass gives
 `(v', q, mq)` the route's `runEdges` leaves a coherent state whose view is `v'`, with its memory unchanged, and issues
 exactly `q` and the route's records of `mq`. -/
 theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
-    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar) (clk : String)
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
     (before after : SvState) :
-    ∀ (procs : List CoreMemProc), (∀ p ∈ procs, CoreMemDesign.ProcShape clk p) →
+    ∀ (procs : List CoreMemProc), (∀ p ∈ procs, CoreMemDesign.ProcShapeI p) →
     ∀ (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st → E.MemCoherent st.memory →
       E.edgesV before after (E.scalar.view st.scalar) (E.memOf st.memory) procs = .ok (v', q, mq) →
       ∃ st', E.runEdges E.env E.elems st before after procs = .ok ⟨st', q, mq.map E.memRec⟩ ∧
@@ -1928,11 +2101,11 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       obtain ⟨rfl, rfl, rfl⟩ := hv
       exact ⟨st, rfl, rfl, hc, rfl, by simp⟩
   | p :: rest, h, st, v', q, mq, hc, hmc, hv => by
-      have hrest : ∀ q ∈ rest, CoreMemDesign.ProcShape clk q := fun q hq => h q (by simp [hq])
+      have hrest : ∀ q ∈ rest, CoreMemDesign.ProcShapeI q := fun q hq => h q (by simp [hq])
       have hp := h p (by simp)
       cases p with
       | edge f =>
-          obtain ⟨-, -, hb, hn⟩ := hp
+          obtain ⟨hb, hn⟩ := hp
           simp only [CoreMemDesign.edgesV] at hv
           by_cases hf : f.fires before after = true
           · simp only [hf, ↓reduceIte, Res.bind_eq_ok, Res.ok.injEq] at hv
@@ -1941,7 +2114,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
             obtain ⟨rfl, rfl, rfl⟩ := hq
             obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
               CoreMemDesign.execStmtFuel_V hnd h4 f.body 4096 st v1 a ma hc hmc hb hn h1
-            obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 clk before after rest hrest st1
+            obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
               v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
             refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],
               hv2, hc2, by rw [hm2, hm1], fun r hr => ?_⟩
@@ -1950,18 +2123,18 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
             · exact hr2 r hr
           · simp only [hf, Bool.false_eq_true, ↓reduceIte] at hv
             obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ :=
-              CoreMemDesign.runEdges_V hnd h4 clk before after rest hrest st v' q mq hc hmc hv
+              CoreMemDesign.runEdges_V hnd h4 before after rest hrest st v' q mq hc hmc hv
             exact ⟨st2, by simp [CoreMemDesign.runEdges, hf, hs2], hv2, hc2, hm2, hr2⟩
       | assign t v =>
           simp only [CoreMemDesign.edgesV] at hv
           obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ :=
-            CoreMemDesign.runEdges_V hnd h4 clk before after rest hrest st v' q mq hc hmc hv
+            CoreMemDesign.runEdges_V hnd h4 before after rest hrest st v' q mq hc hmc hv
           exact ⟨st2, by simp [CoreMemDesign.runEdges, hs2], hv2, hc2, hm2, hr2⟩
-      | initial _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
-      | comb _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
-      | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
-      | latch _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
-      | unsupported _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShape])
+      | initial _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | comb _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | latch _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | unsupported _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
 
 /-- **One slot of the route, on views**: the inputs applied, two settle passes (the pre-edge view), the edge pass from
 the slot's start view to the pre-edge view, the commit of its updates (scalar updates on the view it leaves, memory
@@ -1979,15 +2152,98 @@ theorem CoreMemDesign.Coherent.with_memory {E : CoreMemDesign} {st : CoreMemStat
     (m : MemState) : E.Coherent { st with memory := m } :=
   ⟨hc.store, hc.size, hc.typed⟩
 
-/-! ## The cycle -/
+/-! ## Instants, the input discipline, and the instant function
 
-/-- **One clock cycle on views**: the low slot (`clk` = 0 and the data), then the high slot (`clk` raised); the pre
-sample and the post sample, each a view and a memory view. -/
+A run of the route is a list of rows (slot entries: new values for some inputs). The input discipline `Separated`
+classifies each row from the inputs applied before it:
+* a DATA ROW: no event of the design occurs (data inputs move, and event sources in a direction no process watches:
+  the clock's return to 0 for a rising-edge design, an active-low reset's release);
+* an INSTANT ROW: some event occurs, nothing but event sources moves, and no process sees its clock event while its
+  asynchronous reset moves (`ResetStill`).
+It is the general form of the clocking discipline "data while the clock is low, then the clock alone". Under it the
+route's row resolution ("all inputs first") is the standard's only one: no process wakes in a data row; in an instant
+row no data moves, a process woken by its clock reads no moving signal (`oblNoSourceRead`), and a process woken by its
+reset reads the reset that woke it (§4.7: in one slot the stimulus may be suspended between two updates, so a process
+woken by one update could otherwise read the other's old value). An asynchronous reset is an event like a clock edge:
+its assertion is an instant (never with a data change), its release may share a data row.
+
+An INSTANT is written as the levels its moving sources go to (`Instant.rise c` is `{posedge c}` from a low `c`); the
+instant function `tick` is the mirror's slot on the instant's row, derived, never written by hand. A data row's view is
+`dataV`. The cycle of the single-clock view is a data row then `tick (Instant.rise clk)`, by definition (`cycleMV`). -/
+
+/-- **An instant**: the event sources that move in one slot, each with the level its least significant bit moves to.
+The events it carries are the design's events those moves make from the levels before it (§9.4.2): `Instant.rise c` is
+`{posedge c}` from a low (0, x or z) `c`, `[(a, .l1), (b, .l0)]` is `{posedge a, negedge b}` from `a` low and `b` high;
+an edge into x or z is a move to `.lx` or `.lz`. -/
+abbrev Instant := List (String × Logic)
+
+/-- The row an instant makes: each moving source at its new level. -/
+def Instant.row (i : Instant) : SvState := i.map fun m => (m.1, ⟨#[m.2]⟩)
+
+/-- `{posedge c}` (from a low `c`). -/
+def Instant.rise (c : String) : Instant := [(c, .l1)]
+
+/-- `{negedge c}` (from a high `c`). -/
+def Instant.fall (c : String) : Instant := [(c, .l0)]
+
+/-- The single-clock high slot is the instant `{posedge clk}`. -/
+theorem Instant.rise_row (c : String) : (Instant.rise c).row = highEntry c := rfl
+
+/-- The inputs a row applies to the view before it (nothing settles: the inputs a run has applied so far). -/
+def CoreMemDesign.applyRow (E : CoreMemDesign) (v r : SvState) : SvState := applyInputs2 E.scalar.toDesign2 r v
+
+/-- No process sees its clock event while its asynchronous reset moves (the process reads its reset as data; with both
+in one slot the standard lets it run on either value, §4.7). -/
+def CoreMemDesign.ResetStill (E : CoreMemDesign) (v w : SvState) : Prop :=
+  ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.clockEvent.occursIn v w = true →
+    ∀ r, f.reset = some r → SvState.lookup w r = SvState.lookup v r
+
+/-- **A data row** from the view `v`: no event of the design occurs. -/
+def CoreMemDesign.DataRow (E : CoreMemDesign) (v r : SvState) : Prop := E.occurs v (E.applyRow v r) = []
+
+/-- **An instant row** from the view `v`: some event of the design occurs, nothing but event sources moves, and no
+process sees its clock event while its reset moves. -/
+def CoreMemDesign.InstantRow (E : CoreMemDesign) (v r : SvState) : Prop :=
+  E.occurs v (E.applyRow v r) ≠ [] ∧
+    (∀ n, n ∉ E.sources → SvState.lookup (E.applyRow v r) n = SvState.lookup v n) ∧ E.ResetStill v (E.applyRow v r)
+
+/-- **THE INPUT DISCIPLINE**: every row is a data row or an instant row, read from the inputs applied before it (a
+property of the stimulus and the start state's inputs only). -/
+def CoreMemDesign.Separated (E : CoreMemDesign) : SvState → List SvState → Prop
+  | _, [] => True
+  | v, r :: rs => (E.DataRow v r ∨ E.InstantRow v r) ∧ E.Separated (E.applyRow v r) rs
+
+/-- **The instant an instant row makes** from `v`: the event sources it moves, with their new levels. -/
+def CoreMemDesign.instOf (E : CoreMemDesign) (v r : SvState) : Instant :=
+  E.sources.eraseDups.filterMap fun s =>
+    if SvState.lookup (E.applyRow v r) s = SvState.lookup v s then none else some (s, (E.applyRow v r).bit0 s)
+
+/-- **A data row on views**: the mirror's slot on the row. -/
+def CoreMemDesign.dataV (E : CoreMemDesign) (σ : SvState × MemV) (d : SvState) : Res (SvState × MemV) :=
+  E.slotV σ.1 σ.2 d
+
+/-- **THE INSTANT FUNCTION**, derived from the design through the mirror: the slot on the instant's row (the processes
+whose events the instant carries run on the pre-edge view, their updates commit, the region settles). -/
+def CoreMemDesign.tick (E : CoreMemDesign) (i : Instant) (σ : SvState × MemV) : Res (SvState × MemV) :=
+  E.slotV σ.1 σ.2 i.row
+
+/-! ## The cycle: the single-clock view, a data row then the instant `{posedge clk}` -/
+
+/-- **One clock cycle on views**, the one-event instance of the instant view: the low slot (a data row: the cycle's
+data and `clk` at 0), then the instant `{posedge clk}`; the pre sample and the post sample, each a view and a memory
+view. -/
 def CoreMemDesign.cycleMV (E : CoreMemDesign) (clk : String) (σ : SvState × MemV) (data : SvState) :
     Res ((SvState × MemV) × (SvState × MemV)) := do
-  let pre ← E.slotV σ.1 σ.2 (lowEntry clk data)
-  let post ← E.slotV pre.1 pre.2 (highEntry clk)
+  let pre ← E.dataV σ (lowEntry clk data)
+  let post ← E.tick (Instant.rise clk) pre
   .ok (pre, post)
+
+/-- The cycle is the mirror's two slots (the form the evaluation pass computes). -/
+theorem CoreMemDesign.cycleMV_slots (E : CoreMemDesign) (clk : String) (σ : SvState × MemV) (data : SvState) :
+    E.cycleMV clk σ data = (do
+      let pre ← E.slotV σ.1 σ.2 (lowEntry clk data)
+      let post ← E.slotV pre.1 pre.2 (highEntry clk)
+      .ok (pre, post)) := rfl
 
 /-- **One clock cycle of a design without memories**: the scalar part of `cycleMV` (the memory view is never read). -/
 def CoreMemDesign.cycleV (E : CoreMemDesign) (clk : String) (v data : SvState) : Res (SvState × SvState) := do

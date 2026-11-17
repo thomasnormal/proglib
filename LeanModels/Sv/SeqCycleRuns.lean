@@ -7,10 +7,11 @@ import LeanModels.Sv.SeqCycleObl
 
 * `runMV`, `runV`: the view-level runs (cycle after cycle, the next cycle from the post sample), with and without a
   memory view; `runRowsM_seq`, `runRows_seq`: they are the route's own runs (`runCoreMemRows` on `cycleRows`).
-* **`SeqRunsM r clk P`**, the prover's judgment: the instantiation succeeds and, from every coherent state with a
-  coherent memory (the x start and every power-up, memory contents arbitrary), on every typed data list, the route's
-  run exists and its samples (view and memory view, pre and post of each cycle) satisfy `P`. `SeqRuns` is the same
-  judgment for claims about the views only.
+* **`SeqRunsOn`**, the one run judgment: the instantiation succeeds and, from every coherent state with a coherent
+  memory (the x start and every power-up, memory contents arbitrary), for every stimulus whose rows keep the input
+  discipline (`Separated`), the route's run exists and its samples satisfy the claim. Instances: `SeqRunsI` (every
+  sequence of instants and data rows) and the single-clock `SeqRunsM r clk P` (the cycle stimulus; samples two by
+  two, pre and post of each cycle); `SeqRuns` is `SeqRunsM` for claims about the views only.
 * `SeqRunsM.intro`, `SeqRunsM.of_cycleFn` (and the `SeqRuns` forms): how a claim is proved from an invariant and the
   cycle equations, with no trace induction of the prover's own (`runF`, `stF`, `runF_getElem?`, `stF_succ`).
 * `cycleV_applied`, `cycleMV_applied`, `appliedIn_width`: a cycle reads its data entry only through the values it
@@ -117,23 +118,47 @@ cycle. -/
 theorem CoreMemDesign.cycleMV_congr_data (E : CoreMemDesign) (clk : String) (σ : SvState × MemV) (d d' : SvState)
     (h : applyInputs2 E.scalar.toDesign2 (lowEntry clk d) σ.1 = applyInputs2 E.scalar.toDesign2 (lowEntry clk d') σ.1) :
     E.cycleMV clk σ d = E.cycleMV clk σ d' := by
-  simp only [CoreMemDesign.cycleMV, CoreMemDesign.slotV, h]
+  simp only [CoreMemDesign.cycleMV_slots, CoreMemDesign.slotV, h]
 
 theorem CoreMemDesign.cycleV_congr_data (E : CoreMemDesign) (clk : String) (v d d' : SvState)
     (h : applyInputs2 E.scalar.toDesign2 (lowEntry clk d) v = applyInputs2 E.scalar.toDesign2 (lowEntry clk d') v) :
     E.cycleV clk v d = E.cycleV clk v d' := by
   simp only [CoreMemDesign.cycleV, CoreMemDesign.cycleMV_congr_data E clk (v, memNone) d d' h]
 
-/-! ## The prover's judgment: every run of a family member -/
+/-! ## The prover's judgment: every run of a family member
 
-/-- **Every clocked run of a canonical-E family member**: the instantiation succeeds and, from every coherent state with
-a coherent memory (the x start and every power-up included, memory contents arbitrary), on every typed data list, the
-route's own run of the cycles exists and its samples (pre, post; one pair per cycle; each a view and a memory view)
-satisfy `P`. Never vacuous: the run's existence is part of the claim. -/
+ONE judgment, `SeqRunsOn`: for every stimulus of a family whose rows keep the input discipline (`Separated`), from
+every coherent state, the route's own run exists and its samples satisfy the claim. Its instances: `SeqRunsI` (every
+sequence of instants and data rows: any number of clocks, any interleaving, any ratio, stopped clocks, coincident
+edges, x and z on a clock), and the single-clock `SeqRunsM`/`SeqRuns` (the cycle stimulus `cycleRows clk`: a data row,
+then the instant `{posedge clk}`). A relation between clocks (a divided clock, a bound on the ratio, fairness) is a
+hypothesis of a claim, never part of the judgment (`SeqCycleInstant.lean`). -/
+
+/-- **THE RUN JUDGMENT**: the instantiation succeeds and, from every coherent state with a coherent memory (the x start
+and every power-up included, memory contents arbitrary), for every stimulus `x` the family admits (`Ok`) whose rows
+`rowsOf x` keep the input discipline from the state's inputs, the route's own run of the rows exists and `P` holds of
+the stimulus and the samples (one view and memory view per row). Never vacuous: the run's existence is part of the
+claim. -/
+def SeqRunsOn {α : Type} (r : Res CoreMemDesign) (rowsOf : α → List SvState) (Ok : CoreMemDesign → α → Prop)
+    (P : α → List (SvState × MemV) → Prop) : Prop :=
+  ∃ E, r = .ok E ∧ ∀ (st : CoreMemState) (x : α), E.Coherent st → E.MemCoherent st.memory → Ok E x →
+    E.Separated (E.scalar.view st.scalar) (rowsOf x) →
+    ∃ rows, runCoreMemRows E st (rowsOf x) = .ok rows ∧
+      P x (rows.map fun s => (E.scalar.view s.scalar, E.memOf s.memory))
+
+/-- **Every run over every sequence of instants and data rows**: every list of nonempty typed rows keeping the input
+discipline, from every coherent state; the claim reads the rows and one sample per row. -/
+def SeqRunsI (r : Res CoreMemDesign) (P : List SvState → List (SvState × MemV) → Prop) : Prop :=
+  SeqRunsOn r id (fun E rows => ∀ row ∈ rows, row ≠ [] ∧ EntryTyped E.scalar.toDesign2 row) P
+
+/-- **Every clocked run of a canonical-E family member, single clock**: the run judgment at the cycle stimulus (each
+cycle a data row, the low slot, then the instant `{posedge clk}`), the samples two by two (pre, post; each a view and
+a memory view). On a design whose only event is `posedge clk` every cycle stimulus keeps the input discipline
+(`SeqProfile.separated_cycleRows`), so the claim is over every typed data list; with an asynchronous reset it is over
+the data lists whose low slots never assert the reset together with a data change (§4.7, the race the discipline
+excludes). -/
 def SeqRunsM (r : Res CoreMemDesign) (clk : String) (P : List ((SvState × MemV) × (SvState × MemV)) → Prop) : Prop :=
-  ∃ E, r = .ok E ∧ ∀ (st : CoreMemState) (ins : List SvState), E.Coherent st → E.MemCoherent st.memory →
-    (∀ d ∈ ins, E.DataTyped clk d) → ∃ rows, runCoreMemRows E st (cycleRows clk ins) = .ok rows ∧
-      P (cyclePairs (rows.map fun s => (E.scalar.view s.scalar, E.memOf s.memory)))
+  SeqRunsOn r (cycleRows clk) (fun E ins => ∀ d ∈ ins, E.DataTyped clk d) fun _ tr => P (cyclePairs tr)
 
 /-- **Every clocked run, a claim about the views**: `SeqRunsM` for a claim that reads the views of the samples only. -/
 def SeqRuns (r : Res CoreMemDesign) (clk : String) (P : List (SvState × SvState) → Prop) : Prop :=
@@ -143,8 +168,8 @@ def SeqRuns (r : Res CoreMemDesign) (clk : String) (P : List (SvState × SvState
 theorem SeqRunsM.mono {r : Res CoreMemDesign} {clk : String} {P Q : List ((SvState × MemV) × (SvState × MemV)) → Prop}
     (h : SeqRunsM r clk P) (hPQ : ∀ tr, P tr → Q tr) : SeqRunsM r clk Q := by
   obtain ⟨E, hr, hall⟩ := h
-  exact ⟨E, hr, fun st ins hc hmc hd => by
-    obtain ⟨rows, hrows, hp⟩ := hall st ins hc hmc hd
+  exact ⟨E, hr, fun st ins hc hmc hd hs => by
+    obtain ⟨rows, hrows, hp⟩ := hall st ins hc hmc hd hs
     exact ⟨rows, hrows, hPQ _ hp⟩⟩
 
 theorem SeqRuns.mono {r : Res CoreMemDesign} {clk : String} {P Q : List (SvState × SvState) → Prop}
@@ -197,7 +222,7 @@ theorem SeqRunsM.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String
     (hstep : ∀ σ d, Inv σ → E.DataTyped clk d → ∃ pre post, E.cycleMV clk σ d = .ok (pre, post) ∧ Inv post)
     (hrun : ∀ σ ins tr, Inv σ → (∀ d ∈ ins, E.DataTyped clk d) → E.runMV clk σ ins = .ok tr → P tr) :
     SeqRunsM r clk P := by
-  refine ⟨E, hr, fun st ins hc hmc hd => ?_⟩
+  refine ⟨E, hr, fun st ins hc hmc hd _ => ?_⟩
   have hex : ∀ (ins : List SvState) (σ : SvState × MemV), Inv σ → (∀ d ∈ ins, E.DataTyped clk d) →
       ∃ tr, E.runMV clk σ ins = .ok tr := by
     intro ins
@@ -211,7 +236,10 @@ theorem SeqRunsM.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String
   have hσ0 := hinv st hc hmc
   obtain ⟨tr, htr⟩ := hex ins _ hσ0 hd
   obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRowsM_seq hP hO hclk ins st tr hc hmc hd htr
-  exact ⟨rows, hrows, hpairs ▸ hrun _ ins tr hσ0 hd htr⟩
+  refine ⟨rows, hrows, ?_⟩
+  show P (cyclePairs _)
+  rw [hpairs]
+  exact hrun _ ins tr hσ0 hd htr
 
 #print axioms SeqRunsM.intro
 
@@ -225,7 +253,7 @@ theorem SeqRuns.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
     (hstep : ∀ v d, Inv v → E.DataTyped clk d → ∃ pre post, E.cycleV clk v d = .ok (pre, post) ∧ Inv post)
     (hrun : ∀ v ins tr, Inv v → (∀ d ∈ ins, E.DataTyped clk d) → E.runV clk v ins = .ok tr → P tr) :
     SeqRuns r clk P := by
-  refine ⟨E, hr, fun st ins hc _ hd => ?_⟩
+  refine ⟨E, hr, fun st ins hc _ hd _ => ?_⟩
   have hex : ∀ (ins : List SvState) (v : SvState), Inv v → (∀ d ∈ ins, E.DataTyped clk d) →
       ∃ tr, E.runV clk v ins = .ok tr := by
     intro ins

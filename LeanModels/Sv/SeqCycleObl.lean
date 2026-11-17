@@ -6,21 +6,23 @@ import LeanModels.Sv.SeqCycle
 **Status: derived from the ordinary E route** (part of the clocked tactics' theory, `SeqCycle.lean`).
 
 * `SeqPorts`: the interface of a family member.
-* `seqOblB`: the obligations, decided: one driver per signal (a memory counts as one signal: one writer per memory),
-  the continuous assigns in topological source order on what the route evaluates (`topoC`: a compiled expression's
-  identifiers, or for an assign that reads a memory the names `evalV` reads, `readsV`), no process writing an input or
-  the clock, no process reading the clock, an asynchronous reset that is an input port, the clock an input port, the
-  edge order irrelevant, no unconverted expression. `SeqDesign`: the structure judgment (instantiation, profile,
-  obligations).
+* `seqOblI`: the obligations for any number of events, decided: one driver per signal (a memory counts as one signal:
+  one writer per memory), the continuous assigns in topological source order on what the route evaluates (`topoC`: a
+  compiled expression's identifiers, or for an assign that reads a memory the names `evalV` reads, `readsV`), no
+  process writing an input, every event source a one-bit input port, no process reading an event source as data
+  (except an edge process its own reset), the edge order irrelevant, no unconverted expression. `seqOblB clk`: their
+  single-clock instance (with the clock-specific facts). `SeqDesignI` / `SeqDesign`: the structure judgments
+  (instantiation, profile, obligations).
 * The theorems that USE the obligations: `settleV_idem` (one settle pass is the fixpoint: no continuous assignment is
   out of date when a slot closes; the route's quiesce loop returns that pass's view, `settleCanonical_seq`),
   `slot_noFollowup` (no process drives an event source, so a slot's first round causes no further event: the route's
   in-slot iteration stops after one round; the frame lemmas `execV_frame`, `edgesV_frame`, `commitNba2_frame`),
   `slotV_eq_slot1V` (the slot is one pass before the edge and one after), `edgesV_order` (every order of the edge
   processes commits to the same views: rule 4).
-* **`CoreMemDesign.step_seq`, `cycleMV_refines`, `cycle_of_seqProfile`**: the refinement theorems, under the
-  obligations: from every coherent state with a coherent memory, the route's slots exist, stay coherent, and land
-  exactly on the views `cycleMV` computes. The route's slot function is read through `SeqCycleStep.lean` only.
+* **`CoreMemDesign.step_seqI`** (any row, any number of events) and its single-clock corollaries `step_seq`,
+  `cycleMV_refines`, `cycle_of_seqProfile`: the refinement theorems, under the obligations: from every coherent state
+  with a coherent memory, the route's slots exist, stay coherent, and land exactly on the views the mirror computes.
+  The route's slot function is read through `SeqCycleStep.lean` only.
 * `SeqProfile.initialState`: the route's time-zero state on the profile is `CoreMemDesign.initial`.
 -/
 
@@ -643,39 +645,122 @@ def CoreMemDesign.oblConverted (E : CoreMemDesign) : Bool :=
 def CoreMemDesign.oblClockInput (E : CoreMemDesign) (clk : String) : Bool :=
   E.inputNamesL.contains clk
 
-/-- **The obligations of the clocked profile**, decided:
+/-- No process drives an input port. -/
+def CoreMemDesign.oblInputsUndriven (E : CoreMemDesign) : Bool := E.driven.all fun t => !E.inputNamesL.contains t
+
+/-- Every event source is a one-bit input port. -/
+def CoreMemDesign.oblSources (E : CoreMemDesign) : Bool := E.sources.all fun s => E.inputPorts.contains (s, 1)
+
+/-- A process reads no event source as data, except an edge process its own asynchronous reset. -/
+def CoreMemProc.sourceReadOk (srcs : List String) : CoreMemProc → Bool
+  | .assign _ v => (PExpr.sigNames v).all fun x => !srcs.contains x
+  | .edge f => f.body.readNames.all fun x => !srcs.contains x || f.reset == some x
+  | _ => true
+
+/-- No process reads an event source as data, except an edge process its own asynchronous reset. -/
+def CoreMemDesign.oblNoSourceRead (E : CoreMemDesign) : Bool :=
+  E.processes.toList.all (CoreMemProc.sourceReadOk E.sources)
+
+/-- **The obligations of the clocked profile, for any number of events**, decided:
 * one driver per signal: the base names the processes write are pairwise distinct across processes;
 * the continuous assigns in topological source order on the expressions the route evaluates (`topoC`): then one settle
   pass is the fixpoint (`settleV_idem`), so the route's quiesce loop over the region returns that pass's view
   (`settleCanonical_seq`) and no assign is out of date when a slot closes (§4.5, §10.3; the condition U1 violates);
-* every event source is a top-level input port that no process drives: the clock is an input (`oblClockInput`), an
-  asynchronous reset is an input other than the clock (`oblReset`), no process drives an input or the clock
-  (`oblNoInputWrite`), and no process reads the clock (`oblNoClockRead`). So no edge is ever caused inside a slot (not
-  across rounds, not inside one nonblocking commit, not inside one blocking sequence), and the route's in-slot
-  iteration stops after its first round (`slot_noFollowup`). The route no longer refuses an internally driven clock
-  or reset (it iterates the slot instead); these obligations are what keeps the clocked fragment one round;
+* every event source (every clock, either edge, and every asynchronous reset) is a one-bit input port (`oblSources`)
+  and no process drives an input (`oblInputsUndriven`): so no edge is ever caused inside a slot (not across rounds, not
+  inside one nonblocking commit, not inside one blocking sequence) and the route's in-slot iteration stops after its
+  first round (`slot_noFollowup`);
+* no process reads an event source as data, except an edge process its own asynchronous reset (`oblNoSourceRead`):
+  with the input discipline (`Separated`) a process woken in an instant reads no signal that moves in it, except the
+  reset that woke it (the reason the route's row resolution is the standard's only one, §4.7);
 * the edge order is irrelevant: either every edge body writes whole signals with nonblocking assignments only (then
   each body reads the pre-edge view and the queues commit to disjoint signals: `edgesV_perm`) or there is at most one
-  edge process (no order to choose: `edgesV_single`);
+  edge process (no order to choose: `edgesV_single`); this covers coincident events of several clocks;
 * no expression of a process holds a node ingestion kept unconverted (the route refuses it when evaluated).
 Under them the route's choices are proved harmless (rule 4's cheap sufficient conditions): its quiesce loops stop after
 their first round, and its source order of the edge processes does not change the commit (`edgesV_order`). That
 `step` is every legal schedule of a scheduler of §4 is the semantics lane's U3. -/
-def CoreMemDesign.seqOblB (E : CoreMemDesign) (clk : String) : Bool :=
-  E.oblDrivers && E.topoC && E.oblNoInputWrite clk && E.oblNoClockRead clk && E.oblReset clk && E.oblEdgeOrder &&
-    E.oblConverted && E.oblClockInput clk
+def CoreMemDesign.seqOblI (E : CoreMemDesign) : Bool :=
+  E.oblDrivers && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead && E.oblEdgeOrder &&
+    E.oblConverted
 
 /-- The obligations, one by one. -/
-theorem CoreMemDesign.seqOblB_spec {E : CoreMemDesign} {clk : String} (h : E.seqOblB clk = true) :
-    E.oblDrivers = true ∧ E.topoC = true ∧ E.oblNoInputWrite clk = true ∧ E.oblNoClockRead clk = true ∧
-      E.oblReset clk = true ∧ E.oblEdgeOrder = true ∧ E.oblConverted = true ∧ E.oblClockInput clk = true := by
-  simp only [CoreMemDesign.seqOblB, Bool.and_eq_true] at h
-  obtain ⟨⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩, h8⟩ := h
-  exact ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩
+theorem CoreMemDesign.seqOblI_spec {E : CoreMemDesign} (h : E.seqOblI = true) :
+    E.oblDrivers = true ∧ E.topoC = true ∧ E.oblInputsUndriven = true ∧ E.oblSources = true ∧
+      E.oblNoSourceRead = true ∧ E.oblEdgeOrder = true ∧ E.oblConverted = true := by
+  simp only [CoreMemDesign.seqOblI, Bool.and_eq_true] at h
+  obtain ⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩ := h
+  exact ⟨h1, h2, h3, h4, h5, h6, h7⟩
 
-/-- **The structure of a clocked family member**: it instantiates, in the clocked profile, with its obligations. -/
+/-- **The obligations of the single-clock profile**: the instant obligations, and for the one clock `clk`: no process
+drives it or reads it, an asynchronous reset is an input other than it, it is an input port. -/
+def CoreMemDesign.seqOblB (E : CoreMemDesign) (clk : String) : Bool :=
+  E.seqOblI && E.oblNoInputWrite clk && E.oblNoClockRead clk && E.oblReset clk && E.oblClockInput clk
+
+/-- The single-clock obligations include the instant obligations. -/
+theorem CoreMemDesign.seqOblB_I {E : CoreMemDesign} {clk : String} (h : E.seqOblB clk = true) : E.seqOblI = true := by
+  simp only [CoreMemDesign.seqOblB, Bool.and_eq_true] at h
+  exact h.1.1.1.1
+
+/-- The single-clock obligations, one by one. -/
+theorem CoreMemDesign.seqOblB_spec {E : CoreMemDesign} {clk : String} (h : E.seqOblB clk = true) :
+    E.seqOblI = true ∧ E.oblNoInputWrite clk = true ∧ E.oblNoClockRead clk = true ∧ E.oblReset clk = true ∧
+      E.oblClockInput clk = true := by
+  simp only [CoreMemDesign.seqOblB, Bool.and_eq_true] at h
+  obtain ⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩ := h
+  exact ⟨h1, h2, h3, h4, h5⟩
+
+/-- **The structure of a clocked family member**, single clock: it instantiates, in the single-clock profile at `clk`,
+with its obligations. -/
 def SeqDesign (r : Res CoreMemDesign) (clk : String) : Prop :=
   ∃ E, r = .ok E ∧ E.SeqProfile clk ∧ E.seqOblB clk = true
+
+/-- **The structure of a clocked family member, any number of events** (the instant view's): it instantiates, in the
+instant profile, with the instant obligations. -/
+def SeqDesignI (r : Res CoreMemDesign) : Prop :=
+  ∃ E, r = .ok E ∧ E.SeqProfileI ∧ E.seqOblI = true
+
+/-- A single-clock structure is an instant structure. -/
+theorem SeqDesign.toI {r : Res CoreMemDesign} {clk : String} (h : SeqDesign r clk) : SeqDesignI r := by
+  obtain ⟨E, hr, hP, hO⟩ := h
+  exact ⟨E, hr, hP.toSeqProfileI, CoreMemDesign.seqOblB_I hO⟩
+
+/-- An input port's name is an input name. -/
+theorem CoreMemDesign.inputNamesL_of_ports {E : CoreMemDesign} {s : String} {w : Nat}
+    (h : (s, w) ∈ E.inputPorts) : s ∈ E.inputNamesL := by
+  simp only [CoreMemDesign.inputPorts, List.mem_filterMap, Option.ite_none_right_eq_some, Option.some.injEq,
+    Prod.mk.injEq] at h
+  obtain ⟨dc, hdc, hin, rfl, -⟩ := h
+  simp only [CoreMemDesign.inputNamesL, List.mem_filterMap, Option.ite_none_right_eq_some, Option.some.injEq]
+  exact ⟨dc, hdc, hin, rfl⟩
+
+/-- Under the obligations an event source is a one-bit input port. -/
+theorem CoreMemDesign.source_port {E : CoreMemDesign} (hO : E.seqOblI = true) {s : String} (hs : s ∈ E.sources) :
+    (s, 1) ∈ E.inputPorts := by
+  have h := (CoreMemDesign.seqOblI_spec hO).2.2.2.1
+  simp only [CoreMemDesign.oblSources, List.all_eq_true, List.contains_iff_mem] at h
+  exact h s hs
+
+/-- Under the obligations no process drives an event source. -/
+theorem CoreMemDesign.source_undriven {E : CoreMemDesign} (hO : E.seqOblI = true) {s : String}
+    (hs : s ∈ E.sources) : s ∉ E.driven := by
+  intro hd
+  have h := (CoreMemDesign.seqOblI_spec hO).2.2.1
+  simp only [CoreMemDesign.oblInputsUndriven, List.all_eq_true, Bool.not_eq_true', List.contains_eq_any_beq,
+    List.any_eq_false, beq_iff_eq] at h
+  exact h s hd s (CoreMemDesign.inputNamesL_of_ports (CoreMemDesign.source_port hO hs)) rfl
+
+/-- An edge process's clock and reset are event sources. -/
+theorem CoreMemDesign.clock_mem_sources {E : CoreMemDesign} {f : CoreMemEdge}
+    (hf : CoreMemProc.edge f ∈ E.processes.toList) : f.clock ∈ E.sources := by
+  simp only [CoreMemDesign.sources, List.mem_map]
+  exact ⟨f.clockEvent, CoreMemDesign.mem_events.mpr ⟨f, hf, by simp [CoreMemEdge.events]⟩, rfl⟩
+
+theorem CoreMemDesign.reset_mem_sources {E : CoreMemDesign} {f : CoreMemEdge}
+    (hf : CoreMemProc.edge f ∈ E.processes.toList) {r : String} (hr : f.reset = some r) : r ∈ E.sources := by
+  simp only [CoreMemDesign.sources, List.mem_map]
+  refine ⟨⟨r, if f.resetHigh then .posedge else .negedge⟩, CoreMemDesign.mem_events.mpr ⟨f, hf, ?_⟩, rfl⟩
+  simp [CoreMemEdge.events, CoreMemEdge.resetEvent?, hr]
 
 
 /-! ## What the obligations buy: the settle is a fixpoint (§4.5, §10.3; U1 excluded)
@@ -865,7 +950,7 @@ theorem CoreMemDesign.matV_settleV {E : CoreMemDesign} (hnd : (E.scalar.decls.to
   exact CoreMemDesign.matV_view hnd h4 (E.typed_storeFromView r)
 
 /-- The view a slot commits its edge updates on is materialized (it is the view of a typed store). -/
-theorem CoreMemDesign.matV_commit_of_slot {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
+theorem CoreMemDesign.matV_commit_of_slot {E : CoreMemDesign} (hP : E.SeqProfileI)
     {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {entry : SvState}
     (hty : EntryTyped E.scalar.toDesign2 entry) {p : SvState}
     (hp : E.settleV (E.memOf st.memory) (applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar)) = .ok p)
@@ -884,7 +969,7 @@ theorem CoreMemDesign.matV_commit_of_slot {E : CoreMemDesign} {clk : String} (hP
     (by rw [hvi, hmemi]; exact hp)
   rw [hmemi] at hm0
   rcases r with ⟨r1, r2, r3⟩
-  obtain ⟨st2, -, hv2, hc2, -⟩ := CoreMemDesign.runEdges_V hP.names hP.four clk
+  obtain ⟨st2, -, hv2, hc2, -⟩ := CoreMemDesign.runEdges_V hP.names hP.four
     (E.scalar.view st.scalar) p E.processes.toList hP.shapes st0 r1 r2 r3 hc0 (by rw [hm0]; exact hmc)
     (by rw [hv0, hm0]; exact hr)
   have hT2 : E.scalarEdge.base.Typed st2.scalar := by rw [hP.base]; exact hc2.typed
@@ -901,7 +986,7 @@ theorem CoreMemDesign.matV_commit_of_slot {E : CoreMemDesign} {clk : String} (hP
 
 /-- **THE SLOT UNDER THE OBLIGATIONS**: from a coherent state's view and memory view and a typed entry, the route's slot
 (four settle passes) and the one-pass slot agree. -/
-theorem CoreMemDesign.slotV_eq_slot1V {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
+theorem CoreMemDesign.slotV_eq_slot1V {E : CoreMemDesign} (hP : E.SeqProfileI)
     (ht : E.topoC = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {entry : SvState}
     (hty : EntryTyped E.scalar.toDesign2 entry) :
     E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry =
@@ -1285,13 +1370,13 @@ theorem CoreMemDesign.edgesV_single {E : CoreMemDesign} {before after v : SvStat
 
 /-- **THE EDGE ORDER DOES NOT MATTER, under the obligations** (rule 4): for every permutation of the processes, the
 edge pass succeeds when the route's (source order) succeeds and commits to the same views. -/
-theorem CoreMemDesign.edgesV_order {E : CoreMemDesign} {clk : String} (hO : E.seqOblB clk = true)
+theorem CoreMemDesign.edgesV_order {E : CoreMemDesign} (hO : E.seqOblI = true)
     {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList) {before after v : SvState} {mv : MemV}
     (hv : (v.map Prod.fst).Nodup) {r : ExecV}
     (h : E.edgesV before after v mv E.processes.toList = .ok r) :
     ∃ r', E.edgesV before after v mv ps = .ok r' ∧ commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
       commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
-  obtain ⟨hdr, -, -, -, -, hord, -, -⟩ := CoreMemDesign.seqOblB_spec hO
+  obtain ⟨hdr, -, -, -, -, hord, -⟩ := CoreMemDesign.seqOblI_spec hO
   simp only [CoreMemDesign.oblDrivers, CoreMemDesign.driven, decide_eq_true_eq] at hdr
   simp only [CoreMemDesign.oblEdgeOrder, Bool.or_eq_true, decide_eq_true_eq, List.all_eq_true] at hord
   rcases hord with h1 | hw
@@ -1315,7 +1400,7 @@ This also excludes, by the same obligations, every edge produced inside one nonb
 
 /-- **The continuous-assign region on the clocked profile is one `settleV`**, under the topological obligation, from a
 coherent state with a coherent memory; the memory is unchanged. -/
-theorem CoreMemDesign.settleCanonical_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
+theorem CoreMemDesign.settleCanonical_seq {E : CoreMemDesign} (hP : E.SeqProfileI)
     (ht : E.topoC = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {v' : SvState}
     (hv : E.settleV (E.memOf st.memory) (E.scalar.view st.scalar) = .ok v') :
     ∃ st', E.settleCanonical E.env E.elems st E.processes.toList = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
@@ -1873,15 +1958,11 @@ theorem CoreMemEdge.fires_of_agree {f : CoreMemEdge} {a b : SvState}
 on every name no process drives, so no edge process's event occurs between them (no process drives an event source:
 the clock is not driven, a reset is an input port and no input is driven). The route's in-slot iteration therefore
 stops after the first round. -/
-theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hO : E.seqOblB clk = true) {v p s1 s2 : SvState} {mv mv' : MemV} {r : ExecV} (hp : E.matV p = p)
+theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} (hP : E.SeqProfileI)
+    (hO : E.seqOblI = true) {v p s1 s2 : SvState} {mv mv' : MemV} {r : ExecV} (hp : E.matV p = p)
     (hr : E.edgesV v p p mv E.processes.toList = .ok r)
     (h1 : E.settleV mv' (commitNba2 r.1 r.2.1) = .ok s1) (h2 : E.settleV mv' s1 = .ok s2) :
     E.firesAny p s2 = false := by
-  obtain ⟨-, -, hnw, -, hrst, -, -, -⟩ := CoreMemDesign.seqOblB_spec hO
-  simp only [CoreMemDesign.oblNoInputWrite, List.all_eq_true, Bool.and_eq_true, Bool.not_eq_true',
-    bne_iff_ne, ne_eq] at hnw
-  simp only [CoreMemDesign.oblReset, List.all_eq_true] at hrst
   -- the slot changes only driven names
   have hfr := CoreMemDesign.edgesV_frame hP.names hP.four E.processes.toList p mv r hr
   have hfix : ∀ x, x ∉ E.driven → SvState.lookup s2 x = SvState.lookup p x := by
@@ -1905,14 +1986,9 @@ theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} {clk : String} (hP : E
   intro q hq
   cases q with
   | edge f =>
-      have hshape := hP.shapes _ hq
-      simp only [CoreMemDesign.ProcShape] at hshape
-      have hclk : f.clock ∉ E.driven := fun h' => (hnw f.clock h').2 hshape.1
-      have hres : ∀ r, f.reset = some r → r ∉ E.driven := by
-        intro r hr' h'
-        have := hrst _ hq
-        simp only [CoreMemProc.reset?, hr', Bool.and_eq_true, bne_iff_ne, ne_eq] at this
-        exact absurd this.1 (by rw [(hnw r h').1]; exact Bool.false_ne_true)
+      have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven hO (CoreMemDesign.clock_mem_sources hq)
+      have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
+        CoreMemDesign.source_undriven hO (CoreMemDesign.reset_mem_sources hq hr')
       simp only [CoreMemProc.firesIn, Bool.not_eq_true]
       exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' => (hfix r (hres r hr')).symm
   | _ => simp [CoreMemProc.firesIn]
@@ -1921,17 +1997,18 @@ theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} {clk : String} (hP : E
 
 /-! ## The refinement: the route's slot and cycle on views (under the obligations) -/
 
-/-- **THE SLOT REFINEMENT**: for a design of the clocked profile with its obligations, from every coherent state with a
-coherent memory and every typed stimulus entry, when the view-level slot succeeds the route's `step` succeeds, lands on
-exactly that view and memory view, and stays coherent. The obligations are what make the route's in-slot loops stop
+/-- **THE SLOT REFINEMENT, any number of events**: for a design of the clocked profile (any clocks, either edge) with
+its obligations, from every coherent state with a coherent memory and every typed row (a data row or an instant, the
+input discipline is not needed here), when the view-level slot succeeds the route's `step` succeeds, lands on exactly
+that view and memory view, and stays coherent. The obligations are what make the route's in-slot loops stop
 after their first round (`settleCanonical_seq`, `slot_noFollowup`); the step is read through `step_of_onePass` only. -/
-theorem CoreMemDesign.step_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hO : E.seqOblB clk = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+theorem CoreMemDesign.step_seqI {E : CoreMemDesign} (hP : E.SeqProfileI)
+    (hO : E.seqOblI = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
     {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
     (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
     ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' ∧
       E.Coherent st' ∧ E.MemCoherent st'.memory := by
-  have ht : E.topoC = true := (CoreMemDesign.seqOblB_spec hO).2.1
+  have ht : E.topoC = true := (CoreMemDesign.seqOblI_spec hO).2.1
   simp only [CoreMemDesign.slotV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
   obtain ⟨p0, h0, p, h1, ⟨pe, q, mq⟩, hq, s1, h2, s2, h3, rfl, rfl⟩ := hv
   dsimp only at h2 h3
@@ -1954,7 +2031,7 @@ theorem CoreMemDesign.step_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqPro
     (by rw [hv0, hm0]; exact h1)
   rw [hm0] at hm1
   -- the edge round
-  obtain ⟨st2, hedge, hv2, hc2, hm2, hrec⟩ := CoreMemDesign.runEdges_V hP.names hP.four clk
+  obtain ⟨st2, hedge, hv2, hc2, hm2, hrec⟩ := CoreMemDesign.runEdges_V hP.names hP.four
     (E.scalar.view st.scalar) (E.scalar.view st1.scalar) E.processes.toList hP.shapes st1 pe q mq hc1
     (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact hq)
   rw [hm1] at hm2
@@ -1988,6 +2065,17 @@ theorem CoreMemDesign.step_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqPro
   exact CoreMemDesign.step_of_onePass hP.hasComb hP.hasImplicit hs0 hs1 hedge hcm hs3 hs4
     (by rw [hv1, hv4]; exact hnf)
 
+#print axioms CoreMemDesign.step_seqI
+
+/-- **THE SLOT REFINEMENT, single clock**: `step_seqI` at the single-clock profile and obligations. -/
+theorem CoreMemDesign.step_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
+    (hO : E.seqOblB clk = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
+    (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' ∧
+      E.Coherent st' ∧ E.MemCoherent st'.memory :=
+  CoreMemDesign.step_seqI hP.toSeqProfileI (CoreMemDesign.seqOblB_I hO) hc hmc hty hv
+
 #print axioms CoreMemDesign.step_seq
 
 /-- **THE CYCLE REFINEMENT (the cycle model derived from E)**: for a design of the clocked profile with its obligations,
@@ -2002,7 +2090,7 @@ theorem CoreMemDesign.cycleMV_refines {E : CoreMemDesign} {clk : String} (hP : E
     ∃ s1 s2, E.step st (lowEntry clk data) = .ok s1 ∧ E.step s1 (highEntry clk) = .ok s2 ∧
       (E.scalar.view s1.scalar, E.memOf s1.memory) = pre ∧ (E.scalar.view s2.scalar, E.memOf s2.memory) = post ∧
       E.Coherent s1 ∧ E.Coherent s2 ∧ E.MemCoherent s1.memory ∧ E.MemCoherent s2.memory := by
-  simp only [CoreMemDesign.cycleMV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
+  simp only [CoreMemDesign.cycleMV_slots, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
   obtain ⟨⟨v1, m1⟩, h1, ⟨v2, m2⟩, h2, rfl, rfl⟩ := hv
   obtain ⟨s1, hs1, hv1, hm1, hc1, hmc1⟩ := CoreMemDesign.step_seq hP hO hc hmc hlow h1
   obtain ⟨s2, hs2, hv2, hm2, hc2, hmc2⟩ :=
@@ -2035,7 +2123,7 @@ theorem CoreMemDesign.cycle_of_seqProfile {E : CoreMemDesign} {clk : String} (hP
 theorem CoreMemDesign.SeqProfile.initialState {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
     (hrm : E.readmemh = []) : E.initialState = .ok E.initial :=
   CoreMemDesign.initialState_of_quiet (fun p hp b h => by
-    subst h; exact absurd (hP.shapes _ hp) (by simp [CoreMemDesign.ProcShape])) hP.hasComb hrm
+    subst h; exact absurd (hP.shapes _ hp) (by simp [CoreMemDesign.ProcShapeI])) hP.hasComb hrm
 
 #print axioms CoreMemDesign.SeqProfile.initialState
 

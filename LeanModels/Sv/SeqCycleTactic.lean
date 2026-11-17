@@ -324,6 +324,12 @@ macro "sv_seq_profile" : tactic =>
 (the topological order on the compiled expressions: `instExpr2` evaluated, `Expr2.idents` read). -/
 macro "sv_seq_obligations" : tactic =>
   `(tactic| simp (config := {maxSteps := 4000000, decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.seqOblB,
+      LeanModels.Sv.Kernel.CoreMemDesign.seqOblI, LeanModels.Sv.Kernel.CoreMemDesign.oblInputsUndriven,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblSources, LeanModels.Sv.Kernel.CoreMemDesign.oblNoSourceRead,
+      LeanModels.Sv.Kernel.CoreMemProc.sourceReadOk, LeanModels.Sv.Kernel.CoreMemDesign.sources,
+      LeanModels.Sv.Kernel.CoreMemDesign.events, LeanModels.Sv.Kernel.CoreMemProc.events,
+      LeanModels.Sv.Kernel.CoreMemEdge.events, LeanModels.Sv.Kernel.CoreMemEdge.clockEvent,
+      LeanModels.Sv.Kernel.CoreMemEdge.resetEvent?, LeanModels.Sv.Kernel.CoreMemDesign.inputPorts,
       LeanModels.Sv.Kernel.CoreMemDesign.driven, LeanModels.Sv.Kernel.CoreMemDesign.inputNamesL,
       LeanModels.Sv.Kernel.CoreMemDesign.oblDrivers, LeanModels.Sv.Kernel.CoreMemDesign.oblNoInputWrite,
       LeanModels.Sv.Kernel.CoreMemDesign.oblNoClockRead, LeanModels.Sv.Kernel.CoreMemDesign.oblReset,
@@ -406,6 +412,8 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.seqE_resizeU_ite, LeanModels.Sv.Kernel.seqE_width_ite,
       LeanModels.Sv.Kernel.seqE_insertAt_zero, LeanModels.Sv.Kernel.seqE_width_lit,
       LeanModels.Sv.Kernel.seqE_width_add, LeanModels.Sv.Kernel.CoreMemDesign.cycleMV,
+      LeanModels.Sv.Kernel.CoreMemDesign.dataV, LeanModels.Sv.Kernel.CoreMemDesign.tick,
+      LeanModels.Sv.Kernel.Instant.row, LeanModels.Sv.Kernel.Instant.rise, LeanModels.Sv.Kernel.Instant.fall,
       LeanModels.Sv.Kernel.CoreMemDesign.memDecl?, List.find?, LeanModels.Sv.Kernel.CoreMemDecl.readV,
       LeanModels.Sv.Kernel.CoreMemDecl.issueV, LeanModels.Sv.Kernel.memNone, LeanModels.Sv.Kernel.commitMemV_nil,
       LeanModels.Sv.Kernel.commitMemV_memIss, LeanModels.Sv.Kernel.seqE_commitMemV_memIss,
