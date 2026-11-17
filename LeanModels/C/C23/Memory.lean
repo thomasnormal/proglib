@@ -358,6 +358,19 @@ def alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × O
 def allocZeroed (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × ObjId :=
   ({ m with objs := m.objs ++ [⟨dur, true, List.replicate size (.conc 0), ty⟩] }, m.objs.length)
 
+/-- Allocate at an explicit concrete placement.  The caller supplies the
+address choice; provenance remains the returned object id and is what
+`resolve` authorises. -/
+def allocAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) : Mem × Ptr :=
+  let (m', o) := m.alloc dur size ty
+  (m', Ptr.toObjectBoundAt o address size)
+
+def allocZeroedAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) : Mem × Ptr :=
+  let (m', o) := m.allocZeroed dur size ty
+  (m', Ptr.toObjectBoundAt o address size)
+
 /-- C23 §6.2.4p6 / §7.24.3: end an object's lifetime. The object stays in
 the store as a tombstone — see `CObj.live`. -/
 def kill (m : Mem) (o : ObjId) : Mem :=
@@ -818,6 +831,16 @@ theorem resolve_alloc (m : Mem) (dur : Duration) (size n : Nat) (ty : Option CTy
              ⟨dur, true, List.replicate size .indet, ty⟩, 0) := by
   have hn : ¬ size < n := by omega
   simp [resolve, Ptr.toObject, Ptr.toObjectAt, CObj.size, hn]
+
+@[simp] theorem allocAt_ptr (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) :
+    (m.allocAt dur size ty address).2.address = address := by
+  simp [allocAt, Ptr.toObjectBoundAt]
+
+@[simp] theorem allocAt_provenance (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) :
+    (m.allocAt dur size ty address).2.obj = some (m.alloc dur size ty).2 := by
+  simp [allocAt, Ptr.toObjectBoundAt]
 
 /-- INVERSION for `resolve`: everything a successful access establishes.
 
