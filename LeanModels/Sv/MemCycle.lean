@@ -283,6 +283,8 @@ def memExpandItem (env : IEnv) (iterFuel : Nat) (vals : List (String × Int)) :
   | .process p => .ok [memSubstProcess vals p]
   | .decl d => .ok [.unsupported "GenerateDecl:UnpackedDecl"
       s!"generate-local declaration '{d.name}' outside the memory cycle route"]
+  | .localParam p => .ok [.unsupported "GenerateDecl:LocalParam"
+      s!"generate-local parameter '{p.name}' outside the memory cycle route"]
   | .unsupported k t => .ok [.unsupported k t]
   | .inst i => .ok [.unsupported "Instance"
       s!"module instance '{i.name}' of '{i.module}' outside the memory cycle route"]
