@@ -304,6 +304,10 @@ def rvalueValue (s : State) : Rvalue → Option Int
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       pure (if leftValue != rightValue then 1 else 0)
+  | .binaryLe left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (if leftValue ≤ rightValue then 1 else 0)
   | .binaryBitAnd left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -342,6 +346,10 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       pure (.int (if leftValue != rightValue then 1 else 0))
+  | .binaryLe left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (.int (if leftValue ≤ rightValue then 1 else 0))
   | .binaryBitAnd left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -526,8 +534,9 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
           | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")
           | .assign _ (.use _) => .refused (.unsupported "use assignment")
-          | .assign _ (.binaryEq _ _) => .refused (.unsupported "equality assignment")
           | .assign _ (.binaryNe _ _) => .refused (.unsupported "inequality assignment")
+          | .assign _ (.binaryLe _ _) => .refused (.unsupported "less-equal assignment")
+          | .assign _ (.binaryEq _ _) => .refused (.unsupported "equality assignment")
           | .assign _ (.binaryBitAnd _ _) => .refused (.unsupported "bitwise assignment")
           | .assign _ (.zstAggregate) => .refused (.unsupported "zst aggregate assignment")
           | .assign _ (.adtAggregate _ _) => .refused (.unsupported "adt aggregate assignment")
