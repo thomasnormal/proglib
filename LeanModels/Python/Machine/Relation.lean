@@ -214,6 +214,22 @@ def rWriteCell (heap : Heap) (env : REnv) (name : String) (value : RVal) : Optio
       | _ => none
   | _ => none
 
+def rCaptureEnv : Heap → REnv → Heap × REnv
+  | heap, [] => (heap, [])
+  | heap, (name, value) :: rest =>
+      match value with
+      | .ref _ =>
+          let result := rCaptureEnv heap rest
+          (result.1, (name, value) :: result.2)
+      | _ =>
+          let allocated := Heap.alloc heap (.cell (some value))
+          let result := rCaptureEnv allocated.1 rest
+          (result.1, (name, .ref allocated.2) :: result.2)
+
+def rCaptureLocals (heap : Heap) (frame : RFrame) : Heap × RFrame × REnv :=
+  let result := rCaptureEnv heap (frame.locals ++ frame.cells)
+  (result.1, { frame with locals := result.2 }, result.2)
+
 def rCellAssignedFrame (frame : RFrame) (remaining : List RStmt) : RFrame :=
   { frame with control := .statements remaining }
 
@@ -480,9 +496,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
-                  some (.tau, config.defineFunction current tail
+                  let captured := rCaptureLocals config.heap current
+                  let capturedFrame := captured.2.1
+                  let function :=
                     { name := name, params := params, defaults := defaults, body := body,
-                      globals := current.module, captured := current.locals ++ current.cells } rest)
+                      globals := current.module, captured := captured.2.2 }
+                  let defined := config.defineFunction capturedFrame tail function rest
+                  some (.tau, { defined with heap := captured.1 })
               | [] => none
           | .ret none _ => some (.tau, config.setControl (.continueValue .none .returnValue))
           | .ret (some expression) _ =>
@@ -493,17 +513,22 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .evaluate (.constant value _) continuation =>
           some (.tau, config.setControl (.continueValue (rConstValue value) continuation))
       | .evaluate (.name name _) continuation =>
-          match rLookupEnv frame.locals name with
+          match rLookupCaptured config.heap frame.locals name with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none =>
-              match rLookupEnv frame.globals name with
+              match rLookupCaptured config.heap frame.globals name with
               | some value => some (.tau, config.setControl (.continueValue value continuation))
               | none =>
-                  match rLookupModule config.modules frame.module name with
-                  | some value => some (.tau, config.setControl (.continueValue value continuation))
+                  match rLookupCaptured config.heap frame.cells name with
+                  | some value =>
+                      some (.tau, config.setControl (.continueValue value continuation))
                   | none =>
-                      match rLookupCaptured config.heap frame.cells name with
-                      | some value => some (.tau, config.setControl (.continueValue value continuation))
+                      match rLookupModule config.modules frame.module name with
+                      | some value =>
+                          match rReadCell config.heap value with
+                          | some value => some (.tau, config.setControl (.continueValue value continuation))
+                          | none => some (.event (.refuse ("unbound name: " ++ name)),
+                              config.finish (.refuse ("unbound name: " ++ name)))
                       | none =>
                           match rBuiltin config.builtins name with
                           | some value => some (.tau, config.setControl (.continueValue value continuation))
@@ -536,15 +561,27 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue value (.assign name remaining) =>
-          match rWriteCell config.heap frame.cells name value with
+          match rWriteCell config.heap frame.locals name value with
           | some heap =>
-              some (.tau, { config.setTop (rCellAssignedFrame frame remaining) with heap := heap })
-          | none =>
-              let next := config.setTop (rAssignedFrame frame name value remaining)
+              let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
               if config.frames.tail.isEmpty then
                 some (.tau, next.setModules frame.module name value)
               else
                 some (.tau, next)
+          | none =>
+              match rWriteCell config.heap frame.cells name value with
+              | some heap =>
+                  let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
+                  if config.frames.tail.isEmpty then
+                    some (.tau, next.setModules frame.module name value)
+                  else
+                    some (.tau, next)
+              | none =>
+                  let next := config.setTop (rAssignedFrame frame name value remaining)
+                  if config.frames.tail.isEmpty then
+                    some (.tau, next.setModules frame.module name value)
+                  else
+                    some (.tau, next)
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
@@ -795,6 +832,7 @@ private def bClosureModule : RModule :=
         #[.assign (.name "x" testSpan) (.constant (.int 9) testSpan) testSpan,
           .functionDef "inner" #[] #[]
             #[.ret (some (.name "x" testSpan)) testSpan] testSpan,
+          .assign (.name "x" testSpan) (.constant (.int 10) testSpan) testSpan,
           .ret (some (.call (.name "inner" testSpan) #[] #[] none testSpan)) testSpan]
         testSpan,
       .ret (some (.call (.name "outer" testSpan) #[] #[] none testSpan)) testSpan] }
@@ -846,7 +884,7 @@ example :
 
 example :
     (runB1 128 (RConfig.initial bClosureModule)).2.status =
-      .finished (.return (.int 9)) := by
+      .finished (.return (.int 10)) := by
   rfl
 
 example :
