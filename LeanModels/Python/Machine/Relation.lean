@@ -379,12 +379,16 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
   | .callable name =>
       match rFunction config.functions name with
       | some function =>
-          match config.frames, rCallFrame function values keywords with
-          | caller :: tail, some calleeFrame =>
-              some (.tau, { config with frames :=
-                calleeFrame :: { caller with
-                  control := .continueValue .none (.callReturn continuation) } :: tail })
-          | _, _ => some (.event (.refuse "machine call stack"),
+          match config.frames with
+          | caller :: tail =>
+              match rCallFrame function values keywords with
+              | some calleeFrame =>
+                  some (.tau, { config with frames :=
+                    calleeFrame :: { caller with
+                      control := .continueValue .none (.callReturn continuation) } :: tail })
+              | none => some (.event (.refuse "machine argument binder"),
+                  config.finish (.refuse "machine argument binder"))
+          | _ => some (.event (.refuse "machine call stack"),
               config.finish (.refuse "machine call stack"))
       | none => some (.event (.refuse ("unknown function: " ++ name)),
           config.finish (.refuse ("unknown function: " ++ name)))
@@ -977,6 +981,20 @@ private def bKeywordDefaultModule : RModule :=
       .ret (some (.call (.name "keyworded" testSpan)
         #[.constant (.int 1) testSpan] #[] none testSpan)) testSpan] }
 
+private def bPositionalOnlyModule : RModule :=
+  { body := #[
+      .functionDef "positional" #[{ name := "value", positionalOnly := true }] #[]
+        #[.ret (some (.name "value" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "positional" testSpan)
+        #[.constant (.int 5) testSpan] #[] none testSpan)) testSpan] }
+
+private def bPositionalOnlyKeywordModule : RModule :=
+  { body := #[
+      .functionDef "positional" #[{ name := "value", positionalOnly := true }] #[]
+        #[.ret (some (.name "value" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "positional" testSpan) #[]
+        #[("value", Expr.constant (.int 5) testSpan)] none testSpan)) testSpan] }
+
 
 example :
     ((RConfig.initial b1Module).defineFunction
@@ -1034,6 +1052,16 @@ example :
 example :
     (runB1 96 (RConfig.initial bKeywordDefaultModule)).2.status =
       .finished (.return (.int 3)) := by
+  rfl
+
+example :
+    (runB1 96 (RConfig.initial bPositionalOnlyModule)).2.status =
+      .finished (.return (.int 5)) := by
+  rfl
+
+example :
+    (runB1 96 (RConfig.initial bPositionalOnlyKeywordModule)).2.status =
+      .finished (.refuse "machine argument binder") := by
   rfl
 
 example : ∃ c₁ c₂,
