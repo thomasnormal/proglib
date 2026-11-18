@@ -162,6 +162,14 @@ TO an unsigned type has been defined by modulo arithmetic since C89
 (§6.3.1.3p2) and has no J.3 entry at all. Only the conversion back was
 ever in question — and it still is.
 
+The same profile choice applies when an assignment stores an out-of-range
+value in a signed bit-field. C23 §6.3.1.3p3 and J.3.6(3) leave that result
+implementation-defined. The C evaluator uses the pinned Clang choice: it
+stores the low `width` bits and sign-interprets them on the next read. The
+focused layout battery checks both `7` into a signed 3-bit field, which reads
+back as `-1`, and `-5`, which reads back as `3`. A host with a different
+choice must fail the profile before its envelopes are admitted.
+
 ### 4.3 `little_endian` is measured and deliberately NOT depended on
 
 `pos_seal` hashes the board by memcpy'ing it into `uint64_t w[15]` and

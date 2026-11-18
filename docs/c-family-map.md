@@ -228,8 +228,8 @@ anonymous struct and union objects, aggregate copy, designated union
 initialization, nested arrays, postfix-qualified pointers, and an array
 subobject bounds refusal. The layout-backed battery now matches signed and
 unsigned in-range bit-field assignments, a flexible-array-member size and
-scalar access, and a fixed array member, and refuses the out-of-range signed
-conversion as implementation-defined. It also covers a nested record member
+scalar access, a fixed array member, and the profiled low-bit conversion for
+out-of-range signed bit-field assignments. It also covers a nested record member
 whose parser-native size and alignment facts agree with the native run. The
 survey also has refusal rows for packed and aligned records,
 flexible-array initializers, and missing layouts for arrays, vectors, complex
