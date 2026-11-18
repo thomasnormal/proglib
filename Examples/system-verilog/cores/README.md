@@ -645,3 +645,27 @@ LeanModels/Sv/CombHier.lean` on that branch exits successfully.  The named
 module target build is otherwise clean apart from stale `#guard_msgs` replay
 artifacts in the incremental Lake build.  No ls-sv2 semantics or RTL change is
 needed for this cross-lane repair.
+
+## 2026-11-18 source-overlay remeasurement
+
+The pinned DarkRISCV checkout was re-extracted with the current approved
+frontend and its include directory.  The source hash remains
+`46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0` and the
+fresh envelope hash is
+`ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5`.  The
+current census reports 176 admitted, 1 refused, and 0 not reached.  Canonical
+E loads the envelope and reports the exact `FLUSH` non-literal initializer
+refusal.  The pinned simulator witness remains 220/220 on Icarus Verilog 13.0
+and Xcelium 24.03-s004, with normalized row hash
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+
+The pinned Quark checkout was re-extracted with its processor sources.  Its
+source hash is `182e6d13bf5ab165b6eefaa22ae8d6a24ea45db6dd2dbd57dcfc5e81932097b7`
+and the fresh envelope hash is
+`ec5e14623631bce248ff56341e425721cd1242408a3279fd120c694e15fa74c2`.  The
+current census reports 130 admitted, 51 refused, and 0 not reached.  Canonical E
+refuses the envelope at the exact `FETCH_INSTR` untyped-width cross-check.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the unmodified source
+before elaboration because `instr` is used before its declaration, so Quark
+E-RUN is 0/0.  These counts are a source-overlay measurement and do not replace
+the earlier pinned envelope census in the table above.
