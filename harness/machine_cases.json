@@ -125,6 +125,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/function_body_call_assignment.py",
+    "envelope": "harness/scripts/function_body_call_assignment.json",
+    "expect": "unsupported"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"

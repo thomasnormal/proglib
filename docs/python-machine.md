@@ -213,5 +213,7 @@ literal default can be omitted when a later parameter is selected by keyword,
 while
 `harness/scripts/function_keyword_expression.py` checks evaluation of a scalar
 keyword value before binding, while
+`harness/scripts/function_body_call_assignment.py` records the current loud
+refusal for calls inside a function-body assignment, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twenty-three matches, three refusals, and zero divergence.
+current result is twenty-three matches, four refusals, and zero divergence.
