@@ -2599,6 +2599,15 @@ theorem reallocAt_null_storeBytes (m : Mem) (size address : Nat)
   rw [reallocAt_null m size address hsize]
   rfl
 
+theorem reallocAt_null_storeBytes_full (m : Mem) (size address : Nat)
+    (bs : List CByte) (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.storeBytes r.2 bs) =
+      .ok ((m.mallocAt size address).1.storeBytes
+        (m.mallocAt size address).2 bs) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 theorem reallocAt_null_storeIntChecked (m : Mem) (alias : AliasModel)
     (size address : Nat) (t : IntTy) (used : CType) (v : Int)
     (hsize : size ≠ 0) :
