@@ -707,7 +707,6 @@ rows in its census, retains the source-shaped initializer and continuous
 assignment, and settles the cell and output to `11`.  Icarus Verilog 13.0 and
 Xcelium 24.03-s004 both print `q=11`.
 
-The branch `pico-localparam-case` carries this CoreMemExec change and its
-probe.  It is a general-lane review item because the change is in
-`LeanModels/Sv/Kernel/CoreMemExec.lean`.  No PicoRV32 census or E-RUN count
-changes here.
+The change landed on public master as `af38185ce` after general-lane review.
+It remains a general-lane CoreMemExec change, and it leaves the PicoRV32 census
+and E-RUN counts unchanged.
