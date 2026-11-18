@@ -64,6 +64,12 @@ def main() -> int:
         raise RuntimeError("Icarus Verilog 13.0 is required")
     if shutil.which("xrun") is None:
         raise RuntimeError("Xcelium 24.03-s004 is required")
+    iverilog_version = run(["iverilog", "-V"], ROOT)
+    if "Icarus Verilog version 13.0" not in iverilog_version:
+        raise RuntimeError("unexpected Icarus version:\n%s" % iverilog_version)
+    xrun_version = run(["xrun", "-version"], ROOT)
+    if "24.03-s004" not in xrun_version:
+        raise RuntimeError("unexpected Xcelium version:\n%s" % xrun_version)
     source_sha = hashlib.sha256(SOURCE.read_bytes()).hexdigest()
     envelope = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
     envelope_sha = hashlib.sha256(envelope.read_bytes()).hexdigest()
@@ -89,7 +95,7 @@ def main() -> int:
         raise RuntimeError("simulator traces have different lengths")
     check_program(icarus)
     digest = hashlib.sha256("\n".join(icarus).encode()).hexdigest()
-    print("Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on %d/%d cycles" %
+    print("Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on %d/%d cycles" %
           (len(icarus), EXPECTED_CYCLES))
     print("source SHA-256: %s" % source_sha)
     print("envelope SHA-256: %s" % envelope_sha)
