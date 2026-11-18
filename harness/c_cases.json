@@ -513,6 +513,16 @@
     ]
   },
   {
+    "id": "record-nested-member-layout",
+    "source": "struct Inner { short x; char y; }; struct Outer { char tag; struct Inner inner; }; int main(void) { struct Outer o = { 1, {2, 3} }; return sizeof(struct Outer) == 8 && o.inner.x == 2 && o.inner.y == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 1,
+    "layout_envelope_checks": [
+      "record_layout",
+      "type_layout"
+    ]
+  },
+  {
     "id": "pointer-unsigned-int-wall",
     "source": "int main(void) { int x = 3; unsigned int u = (unsigned int)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "refuse",

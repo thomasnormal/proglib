@@ -229,9 +229,11 @@ initialization, nested arrays, postfix-qualified pointers, and an array
 subobject bounds refusal. The layout-backed battery now matches signed and
 unsigned in-range bit-field assignments, a flexible-array-member size and
 scalar access, and a fixed array member, and refuses the out-of-range signed
-conversion as implementation-defined. The survey also has refusal rows for packed and
-aligned records, flexible-array initializers, and missing layouts for arrays,
-vectors, complex types, and function pointers. There is no matching row yet
+conversion as implementation-defined. It also covers a nested record member
+whose parser-native size and alignment facts agree with the native run. The
+survey also has refusal rows for packed and aligned records,
+flexible-array initializers, and missing layouts for arrays, vectors, complex
+types, and function pointers. There is no matching row yet
 for a general `_Alignas` layout rule. F1 exits only after
 these type operations are removed from the semantics and each layout rule is
 decided by the parser-native library with differential coverage.
