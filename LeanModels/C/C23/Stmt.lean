@@ -876,6 +876,16 @@ def hasUnretainedParamArrayEffects : List LeanModels.C.Decl → Bool
       !isPtrType ty && isPtrType pty && !isPtrType ty₂ && isPtrType pty₂
   | _ => false
 
+def hasUnnamedPointerParam (lay : Layout) : List LeanModels.C.Decl → Bool
+  | d :: ps =>
+      match d with
+      | .param (some id) none ty _ _ =>
+          let isPointer := (lay.structuredType id).map LeanModels.Clang.QualType.pointerObject
+            |>.getD (isPtrType ty)
+          isPointer || hasUnnamedPointerParam lay ps
+      | _ => hasUnnamedPointerParam lay ps
+  | [] => false
+
 /-! A call-free body is a sound sufficient effect summary for §6.5.1's
 indeterminate-order check. It is deliberately conservative: any nested call,
 write, aggregate initializer, or unsupported expression makes the summary
@@ -959,9 +969,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
           refuseUnsupported "fewer arguments than parameters"
         if !f.variadic && !extraArgs.isEmpty then
           refuseUnsupported "more arguments than parameters"
-        if f.params.any fun d => match d with
-          | .param _ none ty _ _ => isPtrType ty
-          | _ => false then
+        if hasUnnamedPointerParam prog.layout f.params then
           refuseUnsupported "unnamed pointer parameter (array-bound effects are not retained by clang)"
         if hasUnretainedParamArrayEffects f.params then
           refuseUnsupported "parameter array-bound effects are not retained by clang"

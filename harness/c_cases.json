@@ -666,5 +666,14 @@
     "layout_envelope_checks": [
       "type_layout"
     ]
+  },
+  {
+    "id": "structured-parameter-pointer",
+    "source": "int read(int *p) { return *p; } int main(void) { int x = 9; return read(&x) == 9 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
   }
 ]
