@@ -217,5 +217,7 @@ keyword value before binding, while
 refusal for calls inside a function-body assignment, while
 `harness/scripts/function_dynamic_default.py` records the current loud refusal
 for a non-literal default expression, while
+`harness/scripts/function_keyword_only.py` records the current loud refusal for
+keyword-only parameters, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twenty-three matches, five refusals, and zero divergence.
+current result is twenty-three matches, six refusals, and zero divergence.
