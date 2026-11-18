@@ -1116,3 +1116,18 @@ produce the source row `zzzzzzzzzzzzzzzzzzzzzzzzz0110111`.  No integer
 reinterpretation or package-constant semantic change is claimed.  The trusted
 package binding remains an explicit four-state representation decision for the
 lead.
+
+## Current-head wall ranking — 2026-11-18T21:56Z
+
+The current public admission table remains 3 designs loading and 4 refused,
+with no E-ROWS or REAL-DESIGNS transition in the last three items. The highest
+independent wall is CV32E40P's package parameter default containing z bits,
+which needs an explicit trusted four-state package-binding representation. The
+next source-shaped loader wall is Ibex's packed enum dimension recovery, then
+OpenTitan's scoped procedural `LocalDecl`; both are assigned to the parameter
+and local-storage families. PicoRV32 and DarkRISCV now have source-shaped
+one-rank memory receipts, while their remaining whole-core blockers are
+execution cost and clocked storage targets. The inout and latch target families
+remain explicit canonical-E refusals with matching pinned-simulator rows. This
+ranking is based on the generated `docs/sv-real-designs.md` check and the
+package x/z receipt, not a new real-design count claim.
