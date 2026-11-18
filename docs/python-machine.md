@@ -173,6 +173,7 @@ machine in one batch. `harness/scripts/hello.py` and
 `harness/scripts/scalar_expr.py` are matching scalar-output rows, and
 `harness/scripts/function_call.py` checks a positional module-function call,
 `harness/scripts/function_print.py` checks a direct-return call inside
-`print`, while
+`print`, and `harness/scripts/function_branch.py` checks branch selection in a
+function body, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is four matches, one refusal, and zero divergence.
+current result is five matches, one refusal, and zero divergence.
