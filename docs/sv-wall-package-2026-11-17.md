@@ -796,3 +796,11 @@ parameter remains admitted through canonical E lexical scope under IEEE
 1800-2023 section 27.4. The existing W=8 and W=3 receipts match Icarus
 Verilog 13.0 and Xcelium 24.03-s004, including x/z rows. No count transition
 is claimed.
+
+## Packed-enum dimensions current-head check — 2026-11-18T02:07Z
+
+Fresh Slang extraction and ordinary census of packed_enum_package_repro.sv at
+public master 2ce6e831b report zero refusals. The scalar package enum passes
+the packed-dimension and cross-check boundaries under IEEE 1800-2023 section
+6.19. Its existing eight-row receipt matches Icarus Verilog 13.0 and Xcelium
+24.03-s004 for the 4-state rows. No count transition is claimed.
