@@ -1638,6 +1638,19 @@ theorem allocAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
   exact resolve_address_irrel (m.allocZeroed dur size ty).1
     (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₂ size) n address₁
 
+theorem allocZeroedAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
+    (size : Nat) (ty : Option CType) (address₁ address₂ : Nat)
+    (bs : List CByte) :
+    ((m.allocZeroedAt dur size ty address₁).1.storeBytes
+      (m.allocZeroedAt dur size ty address₁).2 bs).map (fun m' => m'.objs) =
+      ((m.allocZeroedAt dur size ty address₂).1.storeBytes
+        (m.allocZeroedAt dur size ty address₂).2 bs).map (fun m' => m'.objs) := by
+  by_cases hbs : size < bs.length
+  · simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt, storeBytes,
+      resolve, get?, CObj.size, resolve_address_irrel, Except.map, hbs] <;> rfl
+  · simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt, storeBytes,
+      resolve, get?, CObj.size, resolve_address_irrel, Except.map, hbs] <;> rfl
+
 @[simp] theorem mallocAt_resolve_placement_irrel (m : Mem) (size address₁ address₂ n : Nat) :
     (m.mallocAt size address₁).1.resolve (m.mallocAt size address₁).2 n =
       (m.mallocAt size address₂).1.resolve (m.mallocAt size address₂).2 n := by
