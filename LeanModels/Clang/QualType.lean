@@ -75,4 +75,12 @@ def QualType.recordLike : QualType → Bool
   | .qualified _ _ base => base.recordLike
   | _ => false
 
+/-- Whether the declared object itself is an aggregate. Pointer layers are
+objects with scalar pointer representation, even when their pointee is a
+record. -/
+def QualType.aggregateObject : QualType → Bool
+  | .record _ => true
+  | .qualified _ _ base => base.aggregateObject
+  | _ => false
+
 end LeanModels.Clang

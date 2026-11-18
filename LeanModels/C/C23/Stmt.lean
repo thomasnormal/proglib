@@ -732,7 +732,10 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             -- block-scope `static` instead keeps its static lifetime.
             let m ← get
             let dur := if storage == some "static" then Duration.static_ else Duration.automatic
-            let storageTy := if ctx.layout.members ty |>.isSome then none else some ty
+            let storageTy := match id.bind ctx.layout.structuredType with
+              | some structuredType =>
+                  if structuredType.aggregateObject then none else some ty
+              | none => if ctx.layout.members ty |>.isSome then none else some ty
             let (m', o) := m.alloc dur sz storageTy
             set m'
             let idEnv' := match id with
@@ -841,7 +844,10 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
             -- the object is a LEMMA about `Mem`, not a shortcut; it is not
             -- claimed, so it is not taken.)
             let m ← get
-            let storageTy := if lay.members ty |>.isSome then none else some ty
+            let storageTy := match id.bind lay.structuredType with
+              | some structuredType =>
+                  if structuredType.aggregateObject then none else some ty
+              | none => if lay.members ty |>.isSome then none else some ty
             let (m', o) := m.alloc .automatic sz storageTy
             set m'
             liftEval (storeAt Mem.cAliasModel (Ptr.toObject o) (lay.normalizeTy ty) v)

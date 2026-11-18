@@ -622,5 +622,17 @@
     "layout_envelope_checks": [
       "record_layout"
     ]
+  },
+  {
+    "id": "structured-record-pointer-member",
+    "source": "struct S { int x; }; int main(void) { struct S s = {3}; struct S *p = &s; return p->x == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "record_layout"
+    ]
   }
 ]
