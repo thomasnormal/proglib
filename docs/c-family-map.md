@@ -206,6 +206,8 @@ linking whenever it fits.
 
 ## F1 exit state
 
+**F1 exit-state audit (2026-11-18).** `CType` is still an alias of `String`, and type fields, layout interfaces, effective-type metadata, and semantics helpers still perform string operations for qualification stripping, typedef resolution, array and pointer recognition, and record-tag lookup. Parser-native declaration and record identities now join object sizes, member offsets and extents, bit-field facts, flexible-array markers, and nested anonymous records, but the spelling fallback remains in `Torture.lean` and the evaluator still receives string types. Differential rows cover scalar struct padding, profiled `_Alignas`, forward-declared record size, anonymous struct and union objects, aggregate copy, designated union initialization, nested arrays and records, postfix-qualified pointers, fixed array members, signed and unsigned bit-fields, flexible-array size and scalar access, low-bit signed conversion, and subobject bounds, with refusal rows for packed and aligned records, flexible-array initializers, vectors, complex types, function pointers, and missing layouts. The parser-layout battery is 66/84 MATCH and the baseline battery is 57/84 MATCH. A general `_Alignas` rule and the replacement of spelling operations with one shared structured QualType representation remain open, so F1 is not released.
+
 F1 is not released. `LeanModels/C/Ast.lean` still defines `abbrev CType :=
 String`, and type fields, layout interfaces, and memory effective-type fields
 still use that alias. String operations on types remain in `Ast.lean`,
