@@ -49,11 +49,13 @@ def oracle():
     return executable, first
 
 
-def model_env(clang, record_layout_plugin=None):
+def model_env(clang, record_layout_plugin=None, structured_type_plugin=None):
     env = dict(os.environ)
     env["LEAN_C_CLANG"] = clang
     if record_layout_plugin:
         env["LEAN_C_RECORD_LAYOUT_PLUGIN"] = record_layout_plugin
+    if structured_type_plugin:
+        env["LEAN_C_STRUCTURED_TYPE_PLUGIN"] = structured_type_plugin
     return env
 
 
@@ -100,6 +102,14 @@ def check_envelope(payload, checks, name):
         elif check == "type_layout":
             if not payload.get("type_layouts"):
                 return name + ": missing parser-native type layout"
+        elif check == "structured_types":
+            rows = payload.get("structured_types")
+            if not isinstance(rows, list) or not rows:
+                return name + ": missing parser-native structured types"
+            if any(not isinstance(row, dict) or
+                   not isinstance(row.get("decl_id"), str) or
+                   not isinstance(row.get("type"), dict) for row in rows):
+                return name + ": malformed parser-native structured type"
         else:
             return name + ": unknown envelope check " + check
     return None
@@ -112,7 +122,7 @@ def selected(row, key, record_layout_plugin):
     return row.get(key)
 
 
-def classify(row, clang, work, record_layout_plugin=None):
+def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin=None):
     source = work / (row["id"] + ".c")
     source.write_text(row["source"] + "\n", encoding="utf-8")
     native = work / row["id"]
@@ -127,13 +137,15 @@ def classify(row, clang, work, record_layout_plugin=None):
     envelope = work / (row["id"] + ".json")
     extracted = run([sys.executable, "extractors/c/extract.py", str(source),
                      "-o", str(envelope)],
-                     env=model_env(clang, record_layout_plugin))
+                     env=model_env(clang, record_layout_plugin, structured_type_plugin))
     if extracted.returncode:
         return "EXTRACT", extracted.stderr[-800:]
     payload = json.loads(envelope.read_text(encoding="utf-8"))
     checks = list(row.get("envelope_checks", []))
     if record_layout_plugin:
         checks += row.get("layout_envelope_checks", [])
+    if structured_type_plugin:
+        checks += row.get("structured_envelope_checks", [])
     problem = check_envelope(payload, checks, row["id"])
     if problem:
         return "EXTRACT", problem
@@ -144,7 +156,7 @@ def classify(row, clang, work, record_layout_plugin=None):
     runner = ROOT / ".lake" / "build" / "bin" / "c-torture-run"
     command = [str(runner)] if runner.exists() else ["lake", "exe", "c-torture-run"]
     model = run(command + ["--single", str(envelope), "512"],
-                env=model_env(clang, record_layout_plugin), timeout=180)
+                env=model_env(clang, record_layout_plugin, structured_type_plugin), timeout=180)
     expected_kind = selected(row, "expect", record_layout_plugin)
     if expected_kind == "refuse":
         if model.returncode == 3:
@@ -183,12 +195,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--allow-oracle", action="store_true",
                     help="report exploratory ORACLE rows without failing")
+    ap.add_argument("--id", action="append", dest="ids",
+                    help="run only the named case (repeat for several cases)")
     ap.add_argument("--json", type=Path)
     ap.add_argument("--record-layout-plugin", default=os.environ.get(
         "LEAN_C_RECORD_LAYOUT_PLUGIN"),
         help="Clang plugin for parser-native record and object layouts")
+    ap.add_argument("--structured-type-plugin", default=os.environ.get(
+        "LEAN_C_STRUCTURED_TYPE_PLUGIN"),
+        help="Clang plugin for parser-native recursive QualType observations")
     args = ap.parse_args()
     rows = json.loads(CASES.read_text(encoding="utf-8"))
+    if args.ids:
+        wanted = set(args.ids)
+        rows = [row for row in rows if row["id"] in wanted]
+        missing = wanted - {row["id"] for row in rows}
+        if missing:
+            ap.error("unknown case id(s): " + ", ".join(sorted(missing)))
     clang, detail = oracle()
     print("C oracle:", detail)
     if clang is None:
@@ -203,7 +226,8 @@ def main():
     with tempfile.TemporaryDirectory(prefix="c-diff-") as temp:
         work = Path(temp)
         for row in rows:
-            verdict, why = classify(row, clang, work, args.record_layout_plugin)
+            verdict, why = classify(row, clang, work, args.record_layout_plugin,
+                                    args.structured_type_plugin)
             counts[verdict] = counts.get(verdict, 0) + 1
             results[row["id"]] = {"verdict": verdict, "detail": why}
             print(row["id"] + ": " + verdict + " " + why)

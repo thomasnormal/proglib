@@ -1841,8 +1841,14 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
   let off? := if field.isEmpty then
       ctx.layout.fieldOffType base.ty fieldTy
     else
-      (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
-        |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
+      match ctx.layout.structuredTypeAt base with
+      | some structuredType =>
+          if structuredType.recordLike then
+            (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
+          else none
+      | none =>
+          (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
+            |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
   match off? with
   | some off =>
       match (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse

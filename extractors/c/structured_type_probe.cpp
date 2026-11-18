@@ -57,6 +57,8 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
                                     unsigned depth) {
   const clang::Type *type = unqualified.getTypePtrOrNull();
   if (!type) return std::nullopt;
+  if (const auto *elaborated = llvm::dyn_cast<clang::ElaboratedType>(type))
+    return typeTree(elaborated->getNamedType(), context, depth + 1);
   if (const auto *builtin = llvm::dyn_cast<clang::BuiltinType>(type)) {
     std::optional<std::string> name;
     switch (builtin->getKind()) {

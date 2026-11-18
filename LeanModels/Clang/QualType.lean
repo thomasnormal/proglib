@@ -66,4 +66,13 @@ end
 
 instance : BEq QualType := ⟨QualType.beq⟩
 
+/-- Whether clang's structured type denotes an object with record members.
+This follows the parser tree through qualifiers and one or more pointer layers
+without interpreting a flat type spelling. -/
+def QualType.recordLike : QualType → Bool
+  | .record _ => true
+  | .pointer pointee => pointee.recordLike
+  | .qualified _ _ base => base.recordLike
+  | _ => false
+
 end LeanModels.Clang

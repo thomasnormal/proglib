@@ -587,5 +587,28 @@
     "source": "int main(void) { int x = 3; void *q = &x; int *p = q; return *p == 3 ? 0 : 1; }",
     "expect": "match",
     "return_value": 0
+  },
+  {
+    "id": "structured-function-pointer-qualtype",
+    "source": "int add(int x, const int *p) { return x + *p; } int main(void) { int y = 2; return add(3, &y) == 5 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "structured-record-layout",
+    "source": "struct S { int x; }; int main(void) { struct S s = {3}; return s.x == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "record_layout"
+    ]
   }
 ]
