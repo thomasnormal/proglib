@@ -490,6 +490,18 @@ cells have no initializer). This is a measurement only: the generic
 real-design count transition is claimed, and no loop lowering or new scheduler
 meaning was added in this lane.
 
+## Procedural local-iterator wall
+
+The parameterized `proc_local_for_automatic.sv` clean-room source keeps a
+block-local automatic `int` iterator in an `always_comb` procedural loop. The
+canonical-E route retains the loop and returns the named refusal
+`9.2.2.2: procedural loop in always_comb body is outside this slice` at both
+N=4 and N=8. Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on the source
+rows at N=8 but diverge at N=4 on the inactive high bits. No simulator oracle
+result is claimed for that divergent point, and the source remains outside the
+receipt manifest. No loop lowering, E-row admission, or real-design count
+transition is claimed.
+
 ## Memory-cell identifier wall remeasurement
 
 The public clean-room `memory_cell_identifier.sv` fixture uses `cell` as a
