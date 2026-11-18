@@ -2599,6 +2599,17 @@ theorem reallocAt_null_storeBytes (m : Mem) (size address : Nat)
   rw [reallocAt_null m size address hsize]
   rfl
 
+theorem reallocAt_null_storeIntChecked (m : Mem) (alias : AliasModel)
+    (size address : Nat) (t : IntTy) (used : CType) (v : Int)
+    (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => (r.1.storeIntChecked alias r.2 t used v).map
+          (fun m' => m'.objs)) =
+      .ok (((m.mallocAt size address).1.storeIntChecked alias
+        (m.mallocAt size address).2 t used v).map (fun m' => m'.objs)) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 @[simp] theorem mallocAt_pointer_shape (m : Mem) (size address : Nat) :
     (m.mallocAt size address).2 =
       ⟨some (m.objs.length), address, 0, some size⟩ := by
