@@ -1952,7 +1952,7 @@ private def unsupMemberText : String := r#"{
 -- SysCall arity ≠ 1 is representable but loud (unsupported node, not a parse error).
 #guard (Json.parse r#"{"kind": "SysCall", "name": "$size", "args": []}"# >>= parsePExpr).toOption
         == some (.unsupported "SysCall:arity" "$size with 0 args")
-#guard (Json.parse r#"{"kind": "SysCall", "name": "$test$plusargs", "args": [{"kind": "Literal", "value": "flag"}]}"# >>= parsePExpr).isOk
+#guard (Json.parse r#"{"kind": "SysCall", "name": "$test$plusargs", "args": [{"kind": "Literal", "span": null, "width": 32, "bits": "00000000000000000000000000000000"}]}"# >>= parsePExpr).isOk
 #guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "width": {"kind": "PackedType", "packed": [], "resolved": 1}, "init": null}"# >>= parsePStmt).toOption
         == some (.unsupported "LocalDecl" "block-local declaration requires scoped procedural storage")
 #guard (Json.parse r#"{"kind": "CompoundAssign", "span": null, "target": {"kind": "Ident", "name": "v"}, "op": "+", "value": {"kind": "Int", "value": 1}}"# >>= parsePStmt).toOption
