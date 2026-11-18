@@ -2016,6 +2016,9 @@ ADDI and upper-immediate invariants into the unified RV32I cycle obligation.
 `picorv32_progress_bridge` routes the separate bounded next-retirement premise
 into the all-prefix trace result.  These wrappers consume existing generic
 theorems and do not assert that the current RTL has an admitted E invariant.
+The R1 ADDI package also proves envelope-level prerequisites for that consumer.
+It pins the 26-parameter configuration, the RVFI declaration prefix, every
+decoder field, and all 21 decoder widths directly from the loaded envelope.
 
 ## 2026-11-18 W5 kernel-cost measurement
 
