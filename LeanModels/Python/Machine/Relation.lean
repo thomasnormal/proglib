@@ -42,6 +42,7 @@ structure RFunction where
   name : String
   params : Array RParam
   defaults : Array Expr := #[]
+  defaultValues : Array RVal := #[]
   body : Array RStmt
   globals : String
   captured : REnv := []
@@ -247,14 +248,40 @@ def rFunction : List RFunction → String → Option RFunction
 def rBuiltin (builtins : List String) (name : String) : Option RVal :=
   if name ∈ builtins then some (.callable name) else none
 
-def rBindPositional (params : Array RParam) (values : List RVal) : Option REnv :=
+def rConstValue : Const → RVal
+  | .none => .none
+  | .ellipsis => .ellipsis
+  | .bool b => .bool b
+  | .int n => .int n
+  | .float value => .float value
+  | .str s => .str s
+  | .bytes xs => .bytes xs
+
+def rConstValues : List Expr → Option (List RVal)
+  | [] => some []
+  | .constant value _ :: rest =>
+      match rConstValues rest with
+      | some values => some (rConstValue value :: values)
+      | none => none
+  | _ :: _ => none
+
+def rEvalDefaultValues (defaults : Array Expr) : Option (Array RVal) :=
+  (rConstValues defaults.toList).map List.toArray
+
+def rBindPositional (params : Array RParam) (defaults : Array RVal)
+    (values : List RVal) : Option REnv :=
   let names := params.toList.map (fun parameter => parameter.name)
   if params.toList.any (fun parameter => parameter.keywordOnly || parameter.variadic) then none
-  else if names.length != values.length then none
-  else some (names.zip values)
+  else if defaults.size > names.length then none
+  else if values.length < names.length - defaults.size then none
+  else if values.length > names.length then none
+  else
+    let missing := names.length - values.length
+    let usedDefaults := defaults.toList.drop (defaults.size - missing)
+    some (names.zip (values ++ usedDefaults))
 
 def rCallFrame (function : RFunction) (values : List RVal) : Option RFrame :=
-  match rBindPositional function.params values with
+  match rBindPositional function.params function.defaultValues values with
   | none => none
   | some locals =>
       some { control := .statements function.body.toList
@@ -293,15 +320,6 @@ private theorem frame_with_control_eq (frame : RFrame) (control : RControl)
     (h : frame.control = control) : frame = { frame with control := control } := by
   cases frame
   simp_all
-
-def rConstValue : Const → RVal
-  | .none => .none
-  | .ellipsis => .ellipsis
-  | .bool b => .bool b
-  | .int n => .int n
-  | .float value => .float value
-  | .str s => .str s
-  | .bytes xs => .bytes xs
 
 def resourceError : RResourcePoint → RError
   | .framePush => { errorClass := .recursion, args := [] }
@@ -496,13 +514,18 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
-                  let captured := rCaptureLocals config.heap current
-                  let capturedFrame := captured.2.1
-                  let function :=
-                    { name := name, params := params, defaults := defaults, body := body,
-                      globals := current.module, captured := captured.2.2 }
-                  let defined := config.defineFunction capturedFrame tail function rest
-                  some (.tau, { defined with heap := captured.1 })
+                  match rEvalDefaultValues defaults with
+                  | none => some (.event (.refuse "machine default expression"),
+                      config.finish (.refuse "machine default expression"))
+                  | some defaultValues =>
+                      let captured := rCaptureLocals config.heap current
+                      let capturedFrame := captured.2.1
+                      let function :=
+                        { name := name, params := params, defaults := defaults,
+                          defaultValues := defaultValues, body := body,
+                          globals := current.module, captured := captured.2.2 }
+                      let defined := config.defineFunction capturedFrame tail function rest
+                      some (.tau, { defined with heap := captured.1 })
               | [] => none
           | .ret none _ => some (.tau, config.setControl (.continueValue .none .returnValue))
           | .ret (some expression) _ =>
@@ -849,6 +872,13 @@ private def bCellConfig : RConfig :=
     heap := #[.cell (some (.int 11))],
     frames := [{ frame with cells := [("x", RVal.ref 0)] }] }
 
+private def bDefaultModule : RModule :=
+  { body := #[
+      .functionDef "defaulted" #[{ name := "value", defaults := some #[.constant (.int 7) testSpan] }]
+        #[.constant (.int 7) testSpan]
+        #[.ret (some (.name "value" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "defaulted" testSpan) #[] #[] none testSpan)) testSpan] }
+
 example :
     ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
@@ -890,6 +920,11 @@ example :
 example :
     (runB1 12 bCellConfig).2.status =
       .finished (.return (.int 12)) := by
+  rfl
+
+example :
+    (runB1 64 (RConfig.initial bDefaultModule)).2.status =
+      .finished (.return (.int 7)) := by
   rfl
 
 example : ∃ c₁ c₂,
