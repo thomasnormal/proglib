@@ -961,3 +961,12 @@ resolved-net multiple-driver row is now a focused `PortSymbol:net-z` boundary
 with both driver records retained.  No count transition is claimed.  The next
 item is therefore the shared aggregate relation, beginning with the typed
 clean-room state representation and its refinement obligations.
+
+## Generated net-with-z current-head check — 2026-11-18T02:53Z
+
+Fresh extraction of net_z_generated_repro.sv at public master c72eb6bbd
+retains NetSymbol:net-z for the undriven four-state net. Ordinary E reports
+zero refusals, so the generated-net startup metadata is admitted through the
+canonical net representation. Existing ordinary/source rows match Icarus
+Verilog 13.0 and Xcelium 24.03-s004, including z startup and x/z propagation.
+No count transition is claimed.
