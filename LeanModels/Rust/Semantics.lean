@@ -331,7 +331,7 @@ def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
       match block.terminator with
       | .call _ args destination (some target) => do
           let (edge, callee) ← lookupCallBody program body blockId
-          let calleeState ← bindCallArgs firstTrace.state args 1
+          let calleeState ← bindCallArgs { placements := firstTrace.state.placements } args 1
           let calleeTrace ← cfgRun fuel callee 0 calleeState
           let value ← returnValue calleeTrace
           let suffix ← cfgRunProgram fuel program body target
@@ -383,7 +383,7 @@ inductive ProgramSteps (program : Envelope) : Body → Nat → State → Trace �
       (ht : block.terminator = .call func args destination (some target))
       (hl : lookupCallBody program body blockId = some (edge, callee))
       (he : edge.callee = some calleeId)
-      (ha : bindCallArgs first.state args 1 = some calleeState)
+      (ha : bindCallArgs { placements := first.state.placements } args 1 = some calleeState)
       (hc : CfgSteps callee 0 calleeState calleeTrace)
       (hv : returnValue calleeTrace = some value)
       (rest : ProgramSteps program body target
@@ -476,6 +476,10 @@ def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Tra
   | some body => cfgRunProgram 4096 program body 0 (initialState placement)
   | none => none
 
+theorem runWithPlacement_eq_run (placement : Nat → Nat) (program : Envelope) :
+    runWithPlacement placement program = run program := by
+  rfl
+
 def runOutcome (program : Envelope) : Outcome :=
   match run program with
   | some trace => .returned trace
@@ -516,7 +520,7 @@ theorem cfgRunProgram_in_steps {fuel : Nat} {program : Envelope} {body : Body}
                           cases hec : edge.callee with
                           | none => simp_all
                           | some calleeId =>
-                              generalize ha : bindCallArgs firstTrace.state args 1 = calleeState at h
+                              generalize ha : bindCallArgs { placements := firstTrace.state.placements } args 1 = calleeState at h
                               cases calleeState with
                               | none => simp_all
                               | some calleeState =>
