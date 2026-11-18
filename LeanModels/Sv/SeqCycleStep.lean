@@ -22,8 +22,10 @@ The statements (each proved once, below; nothing else in the clocked files unfol
   region settled twice) causes no further edge event (§4.4, §4.5) IS that round.
 * `runCoreMemRows_cons`: the route's run of a nonempty row is the step on that row, then the run of the rest.
 * `CoreMemDesign.initialState_of_quiet`: on a design with no `initial`, `always_comb` or `always_latch` process and no
-  `$readmemh`, the route's time-zero state is its declaration-initialized state `CoreMemDesign.initial` (no process
-  runs at time zero), so the route's two start states coincide there.
+  `$readmemh`, the route's time-zero state is one source-order pass of its continuous assigns (`settleAssign`, §10.3)
+  from its declaration-initialized state `CoreMemDesign.initial` (no process body runs at time zero; the drivers are
+  evaluated, §4.5). It is not `CoreMemDesign.initial` itself as soon as a continuous assign drives a value other than
+  the target's x/z start (`assign y = 1'b1;`, the semantics lane's receipt `sem2/initial_quiet_assign`).
 * `coreMemClockResetViol_none`: the route's clock and reset source check admits every design (the route iterates
   NBA-caused events in the slot instead); so an internally driven clock or reset is excluded by the clocked obligations
   (`oblNoInputWrite`, `oblReset`), not by the instantiation.
@@ -119,13 +121,22 @@ theorem runCoreMemRows_cons {E : CoreMemDesign} {st : CoreMemState} {row : SvSta
 #print axioms runCoreMemRows_cons
 
 /-- **The route's time-zero state** on a design with no `initial`, `always_comb` or `always_latch` process and no
-`$readmemh` is its declaration-initialized state. -/
+`$readmemh` is one source-order pass of its continuous assigns (`settleAssign`, §10.3) from its declaration-initialized
+state `CoreMemDesign.initial`. -/
 theorem CoreMemDesign.initialState_of_quiet {E : CoreMemDesign}
     (hni : ∀ p ∈ E.processes.toList, ∀ b, p ≠ .initial b) (hcomb : E.hasComb = false) (hrm : E.readmemh = []) :
-    E.initialState = .ok E.initial := by
+    E.initialState = E.settleAssign E.env E.elems E.initial E.processes.toList := by
   unfold CoreMemDesign.initialState
   rw [List.filterMap_eq_nil_iff.mpr (fun p hp => ?_)]
-  · simp [hrm, hcomb]
+  · simp only [hrm, List.isEmpty_nil, Bool.not_true, Bool.false_eq_true, ↓reduceIte, Res.ok_bind,
+      CoreMemDesign.settleAssignWithView, CoreMemDesign.settleAssign]
+    cases E.settleAssignAt E.env E.elems (E.resetResolvedNets E.initial)
+        (E.scalar.view (E.resetResolvedNets E.initial).scalar) 0 E.processes.toList with
+    | ok p =>
+        obtain ⟨s, v⟩ := p
+        simp [hcomb]
+    | timeout => rfl
+    | unsupported m => rfl
   · cases p with
     | initial b => exact absurd rfl (hni _ hp b)
     | _ => rfl
