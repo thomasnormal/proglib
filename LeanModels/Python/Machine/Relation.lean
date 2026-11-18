@@ -66,6 +66,7 @@ inductive RErrClass where
   | memory
   | name
   | type
+  | index
   | runtime
 deriving Repr, Inhabited, BEq, DecidableEq
 
@@ -893,7 +894,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | none =>
               match rIndexValue receiver index with
               | some value => some (.tau, config.setControl (.continueValue value continuation))
-              | none => some (.tau, config.setControl (.refusing "machine subscript"))
+              | none =>
+                  match receiver, index with
+                  | .tuple _, (.int _) | .listV _, (.int _) =>
+                      some (.event (.raise { errorClass := .index, args := [] }),
+                        config.finish (.raise { errorClass := .index, args := [] }))
+                  | _, _ => some (.tau, config.setControl (.refusing "machine subscript"))
       | .continueValue value (.tupleElements remaining values continuation) =>
           match remaining with
           | next :: rest =>
