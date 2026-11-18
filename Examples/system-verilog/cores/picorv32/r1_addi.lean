@@ -66,6 +66,28 @@ theorem picorv32_loaded_rvfi_fields_present :
 
 #print axioms picorv32_loaded_rvfi_fields_present
 
+private def loadedPackedWidth? (decl : PDecl) : Option Nat :=
+  match decl.type with
+  | .packed _ width => width
+  | _ => none
+
+theorem picorv32_loaded_rvfi_widths :
+    (picorv32_r2.pdesign.decls.drop 25 |>.take 21).map
+        (fun decl => (decl.name, loadedPackedWidth? decl)) =
+      [("rvfi_valid", some 1), ("rvfi_order", some 64),
+       ("rvfi_insn", some 32), ("rvfi_trap", some 1), ("rvfi_halt", some 1),
+       ("rvfi_intr", some 1), ("rvfi_mode", some 2), ("rvfi_ixl", some 2),
+       ("rvfi_rs1_addr", some 5), ("rvfi_rs2_addr", some 5),
+       ("rvfi_rs1_rdata", some 32), ("rvfi_rs2_rdata", some 32),
+       ("rvfi_rd_addr", some 5), ("rvfi_rd_wdata", some 32),
+       ("rvfi_pc_rdata", some 32), ("rvfi_pc_wdata", some 32),
+       ("rvfi_mem_addr", some 32), ("rvfi_mem_rmask", some 4),
+       ("rvfi_mem_wmask", some 4), ("rvfi_mem_rdata", some 32),
+       ("rvfi_mem_wdata", some 32)] := by
+  decide
+
+#print axioms picorv32_loaded_rvfi_widths
+
 theorem picorv32_addi_class_step (state : ArchState) :
     isaStepMemWith cv32e40pProfile state zeroMem
         (.word addi5Word) 0 =
