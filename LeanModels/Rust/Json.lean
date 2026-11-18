@@ -19,7 +19,9 @@ private def string (j : Json) : Except String String :=
   j.getStr?
 
 private def nat (j : Json) : Except String Nat :=
-  j.getNat?
+  match j.getNat? with
+  | .ok value => pure value
+  | .error _ => .error "Natural number expected"
 
 private def optionalNat (j : Json) : Except String (Option Nat) :=
   match j with
@@ -85,9 +87,27 @@ private def constantProvenance (constant : Json) : Option Nat :=
       | _ => none
   | _ => none
 
+private def natFlexible (j : Json) : Except String Nat :=
+  match nat j with
+  | .ok value => pure value
+  | .error _ => do
+      let text ← string j
+      match text.toNat? with
+      | some value => pure value
+      | none => .error "Natural number expected"
+
 private def bytesToNat : List Nat → Nat → Nat
   | [], _ => 0
   | byte :: rest, shift => byte * 256 ^ shift + bytesToNat rest (shift + 1)
+
+private def allocationBytes (j : Json) : Except String (List Nat × Bool) := do
+  let values ← field j "bytes" >>= array
+  values.foldlM (init := ([], true)) fun (bytes, valid) value =>
+    match value with
+    | .null => pure (bytes ++ [0], false)
+    | _ => do
+        let byte ← nat value
+        pure (bytes ++ [byte], valid)
 
 private def repeatCount (j : Json) : Except String Nat :=
   match nat j with
@@ -103,6 +123,18 @@ private def repeatCount (j : Json) : Except String Nat :=
             let bytes ← field allocation "bytes" >>= array >>= (·.mapM nat)
             pure (bytesToNat bytes 0)
         | _ => .error "MIR Repeat count value is malformed"
+
+private def castKind (j : Json) : Except String CastKind :=
+  match j with
+  | .str "IntToInt" => pure .intToInt
+  | .str "PtrToPtr" => pure .ptrToPtr
+  | .str name => pure (.unsupported name)
+  | .obj _ => do
+      let (name, payload) ← variant j
+      match payload with
+      | .str detail => pure (.unsupported (name ++ "::" ++ detail))
+      | _ => pure (.unsupported name)
+  | _ => .error "MIR Cast kind is malformed"
 
 private def operand (j : Json) : Except String Operand := do
   let (kind, value) ← variant j
@@ -173,6 +205,12 @@ private def rvalue (j : Json) : Except String Rvalue := do
       match values with
       | [operandJson, count] => pure (.repeat (← operand operandJson) (← repeatCount count))
       | _ => .error "MIR Repeat has malformed operands"
+  | "Cast" => do
+      let values ← array value
+      match values with
+      | [kind, operandJson, target] =>
+          pure (.cast (← castKind kind) (← operand operandJson) (← nat target))
+      | _ => .error "MIR Cast has malformed operands"
   | other => pure (.unsupported other)
 
 private def statement (j : Json) : Except String Statement := do
@@ -298,7 +336,7 @@ private def typeLayout (j : Json) : Except String TypeLayout := do
 
 private def allocation (j : Json) : Except String Allocation := do
   let id ← field j "id" >>= string
-  let bytes ← field j "bytes" >>= array >>= (·.mapM nat)
+  let (bytes, bytesValid) ← allocationBytes j
   let align ← field j "align" >>= nat
   let provenance ←
     match j.getObjVal? "provenance" with
@@ -313,10 +351,10 @@ private def allocation (j : Json) : Except String Allocation := do
                 let targetId ←
                   match nat target with
                   | .ok value => pure value
-                  | .error _ => field target "allocation" >>= nat
+                  | .error _ => field target "allocation" >>= natFlexible
                 pure (← nat offset, targetId)
             | _ => .error "allocation provenance entry must contain offset and target")
-  pure { id, bytes, provenance, align }
+  pure { id, bytes, bytesValid, provenance, align }
 
 def parseEnvelope (j : Json) : Except String Envelope := do
   let schema ← field j "schema" >>= string

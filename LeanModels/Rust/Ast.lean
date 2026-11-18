@@ -26,6 +26,12 @@ inductive Operand where
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
+inductive CastKind where
+  | intToInt
+  | ptrToPtr
+  | unsupported (name : String)
+deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+
 inductive Rvalue where
   | use (operand : Operand)
   | binaryEq (left right : Operand)
@@ -33,6 +39,7 @@ inductive Rvalue where
   | binaryBitAnd (left right : Operand)
   | binaryDiv (left right : Operand)
   | binaryRem (left right : Operand)
+  | cast (kind : CastKind) (operand : Operand) (target : Nat)
   | checkedBinary (op : String) (left right : Operand)
   | ref (place : Place)
   | aggregate (tag : String) (fields : List Operand)
@@ -89,6 +96,7 @@ deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 structure Allocation where
   id : String
   bytes : List Nat
+  bytesValid : Bool := true
   provenance : List (Nat × Nat)
   align : Nat
   address : Option Nat := none
