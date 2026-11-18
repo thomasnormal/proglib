@@ -719,3 +719,16 @@ refusals, and its two-row receipt matches Icarus Verilog 13.0 and Xcelium
 24.03-s004. The legacy Design2/run2 initial-process boundary remains a
 separate route refusal; no runtime-initial lowering or new scheduler meaning
 is added here.
+
+## Resolved-net real-design remeasurement
+
+After the canonical IEEE 1800-2023 §6.6 driver-resolution landing, the pinned
+`prim_packer` source overlay retains structured metadata for the two generated
+`ready_o` drivers.  The live net-z boundary is therefore no longer the first
+admission failure in this current envelope.  `load_design_sv2` reaches the
+existing packed-enum check first and refuses with `enum 'flush_st_e':
+unrecoverable packed dimensions`.  Canonical E does not execute this complete
+design, and no real-design count transition is claimed.  The checked-in
+resolved-net receipt remains the executable semantic evidence for the four
+known, conflicting, and x/z driver rows against Icarus Verilog 13.0 and
+Xcelium 24.03-s004.
