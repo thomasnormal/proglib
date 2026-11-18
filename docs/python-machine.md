@@ -223,5 +223,7 @@ keyword-only parameters, while
 parameter supplied positionally, while
 `harness/scripts/function_positional_only_keyword.py` checks the corresponding
 loud refusal when that parameter is supplied by keyword, while
+`harness/scripts/function_varargs.py` records the current loud refusal for
+variadic positional parameters, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twenty-four matches, seven refusals, and zero divergence.
+current result is twenty-four matches, eight refusals, and zero divergence.
