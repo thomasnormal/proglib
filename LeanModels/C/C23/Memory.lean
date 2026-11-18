@@ -2637,20 +2637,6 @@ theorem reallocAt_null_storeFunction (m : Mem) (size address : Nat)
   rw [reallocAt_null m size address hsize]
   rfl
 
-theorem reallocAt_null_loadFloat32 (m : Mem) (size address : Nat)
-    (hsize : size ≠ 0) (hwidth : 4 ≤ size) :
-    (reallocAt m Ptr.null size address).map
-        (fun r => r.1.loadFloat32 r.2) =
-      .ok (.error (.memUB (.nonValueRepresentation m.objs.length 0))) := by
-  rw [reallocAt_null m size address hsize]
-  have hwidth' : ¬ size < 4 := by omega
-  have hwidthInt : ¬ (size : Int) < 4 := by omega
-  change .ok ((m.mallocAt size address).1.loadFloat32
-    (m.mallocAt size address).2) = _
-  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
-    loadFloat32, loadBytes, resolve, get?, CObj.size, Except.map,
-    decodeFloat32, hwidth', hwidthInt]
-
 theorem reallocAt_null_storeFloat32 (m : Mem) (size address : Nat)
     (f : Float32.Model) (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
