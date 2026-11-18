@@ -777,6 +777,21 @@
     ]
   },
   {
+    "id": "structured-typedef-record-sizeof",
+    "source": "typedef struct V { int a; int b; } V; int main(void) { V v = {1, 2}; return sizeof(v) == 8 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "record_layout"
+    ]
+  },
+  {
     "id": "structured-enum-object-layout",
     "source": "enum E { E0 = 0, E1 = 1 }; int main(void) { enum E e = E1; return e == E1 ? 0 : 1; }",
     "expect": "match",

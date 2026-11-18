@@ -1793,7 +1793,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let key := match argTy with
                    | some a => some a
                    | none => sub.map Expr.ty
-        match key.bind ctx.layout.size with
+        let decl := sub.bind directDeclId
+        match decl.bind ctx.layout.declSize |>.orElse (fun _ => key.bind ctx.layout.size) with
         | some n => do let t ← intTyOf (ctx.layout.normalizeTy ty); pure (.int t (n : Int))
         | none => refuseUnsupported s!"sizeof: no layout for operand type '{key.getD ""}'"
 
