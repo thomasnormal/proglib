@@ -1338,6 +1338,10 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
                 else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+@[simp] theorem free_null (m : Mem) :
+    m.free Ptr.null = .ok m := by
+  simp [free, Ptr.null]
+
 /- Concrete placement does not participate in C's successful `free` path:
    object identity, lifetime, and base offset determine the result. -/
 theorem free_valid_address_irrel (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
