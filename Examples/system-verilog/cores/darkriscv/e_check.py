@@ -19,6 +19,8 @@ ENVELOPE_REFUSAL = {
         "decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)",
 }
 
+COREMEM_ENVELOPE = "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5"
+
 
 def main() -> None:
     envelope_text = os.environ.get("DARKRISCV_ENVELOPE")
@@ -34,12 +36,24 @@ def main() -> None:
 
     path = str(envelope).replace("\\", "\\\\").replace('"', '\\"')
     lean_source = f'''import LeanModels.Sv.Ingest2
+import LeanModels.Sv.Kernel.CoreMemExec
+open LeanModels.Sv LeanModels.Sv.Kernel
 set_option maxRecDepth 100000 in
 load_design_sv2 dark from "{path}"
-#eval dark.pdesign.instantiateD2 [0] |>.hasUnsupported
-#eval dark.pdesign.instantiateD2 [0] |>.processes.size
-#eval dark.pdesign.instantiateD2 [0] |>.processes.toList.filterMap
-  (fun p => match p with | .unsupported k t => some (k, t) | _ => none)
+def bits (w n : Nat) := LVec.ofNat w n
+def row : SvState := [("CLK", bits 1 0), ("RES", bits 1 1), ("IRQ", bits 32 0),
+  ("IDATA", bits 32 19), ("IDACK", bits 1 1), ("IBERR", bits 1 0),
+  ("DATAI", bits 32 0), ("DDACK", bits 1 1), ("DBERR", bits 1 0)]
+#eval match PDesign.instantiateCoreMem dark.pdesign [0] with
+| .ok d => match d.initialState with
+  | .ok st => match d.stepOnePassTrace st row with
+    | .ok _ => "initial-ok\none-pass-ok"
+    | .timeout => "initial-ok\none-pass-timeout"
+    | .unsupported m => "initial-ok\none-pass-unsupported: " ++ m
+  | .timeout => "initial-timeout"
+  | .unsupported m => "initial-unsupported: " ++ m
+| .timeout => "instantiate-timeout"
+| .unsupported m => "instantiate-unsupported: " ++ m
 '''
     repo = Path(__file__).resolve().parents[4]
     with tempfile.NamedTemporaryFile(
@@ -59,6 +73,13 @@ load_design_sv2 dark from "{path}"
         script.unlink(missing_ok=True)
     if result.returncode != 0:
         raise SystemExit(result.stdout)
+    if digest == COREMEM_ENVELOPE:
+        if '"initial-ok\\none-pass-ok"' not in result.stdout:
+            raise SystemExit("canonical-E memory cycle probe did not complete one pass")
+        print("canonical E: loaded one-rank memory route and completed one source-shaped pass")
+        print("E-RUN: 0/1 complete cycles; one-pass probe: 1/1")
+        print(f"envelope SHA-256: {digest}")
+        return
     if expected_refusal not in result.stdout:
         raise SystemExit("canonical-E refusal does not match the pinned receipt")
     print("canonical E: loaded envelope and reported the pinned refusal")

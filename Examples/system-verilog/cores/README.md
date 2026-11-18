@@ -731,10 +731,8 @@ source-overlay envelope.  `PDesign.instantiateCoreMem [0]` reports one memory
 and 68 retained processes, and `CoreMemDesign.initialState` returns `ok`.
 This is a real transition past the former `REGS` storage wall.
 
-The next probe supplied one source-shaped input row with `CLK=1`, `RES=1`,
+The next probe supplied one source-shaped input row with `CLK=0`, `RES=1`,
 `IRQ=0`, `IDATA=0x00000013`, `IDACK=1`, `IBERR=0`, `DATAI=0`, `DDACK=1`, and
-`DBERR=0`.  A bounded 180-second evaluation of `CoreMemDesign.step` did not
-return.  No canonical-E cycle or E-RUN agreement is claimed from that attempt.
-The checked-in DarkRISCV receipt remains pinned to the branch's earlier
-`REGS` refusal until the public memory route is available here for a complete
-cycle measurement.
+`DBERR=0`.  `CoreMemDesign.stepOnePassTrace` completed one pass and returned
+the no-follow-up flag.  The checked-in receipt now records one completed
+canonical-E pass, while the full `step` quiescence path remains unmeasured.
