@@ -206,6 +206,17 @@ def rLookupCaptured (heap : Heap) (env : REnv) (name : String) : Option RVal :=
   | some value => rReadCell heap value
   | none => none
 
+def rWriteCell (heap : Heap) (env : REnv) (name : String) (value : RVal) : Option Heap :=
+  match rLookupEnv env name with
+  | some (.ref address) =>
+      match heap.get? address with
+      | some (.cell _) => heap.update address (.cell (some value))
+      | _ => none
+  | _ => none
+
+def rCellAssignedFrame (frame : RFrame) (remaining : List RStmt) : RFrame :=
+  { frame with control := .statements remaining }
+
 def rLookupModule : List (String × REnv) → String → String → Option RVal
   | [], _, _ => none
   | (module, env) :: rest, wantedModule, wantedName =>
@@ -525,11 +536,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue value (.assign name remaining) =>
-          let next := config.setTop (rAssignedFrame frame name value remaining)
-          if config.frames.tail.isEmpty then
-            some (.tau, next.setModules frame.module name value)
-          else
-            some (.tau, next)
+          match rWriteCell config.heap frame.cells name value with
+          | some heap =>
+              some (.tau, { config.setTop (rCellAssignedFrame frame remaining) with heap := heap })
+          | none =>
+              let next := config.setTop (rAssignedFrame frame name value remaining)
+              if config.frames.tail.isEmpty then
+                some (.tau, next.setModules frame.module name value)
+              else
+                some (.tau, next)
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
@@ -785,7 +800,8 @@ private def bClosureModule : RModule :=
       .ret (some (.call (.name "outer" testSpan) #[] #[] none testSpan)) testSpan] }
 
 private def bCellModule : RModule :=
-  { body := #[.ret (some (.name "x" testSpan)) testSpan] }
+  { body := #[.assign (.name "x" testSpan) (.constant (.int 12) testSpan) testSpan,
+      .ret (some (.name "x" testSpan)) testSpan] }
 
 private def bCellConfig : RConfig :=
   let initial := RConfig.initial bCellModule
@@ -834,8 +850,8 @@ example :
   rfl
 
 example :
-    (runB1 8 bCellConfig).2.status =
-      .finished (.return (.int 11)) := by
+    (runB1 12 bCellConfig).2.status =
+      .finished (.return (.int 12)) := by
   rfl
 
 example : ∃ c₁ c₂,
