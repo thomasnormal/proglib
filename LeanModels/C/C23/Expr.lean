@@ -1862,6 +1862,7 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
       | some structuredType =>
           if structuredType.recordLike then
             (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
+              |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
           else none
       | none =>
           (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
@@ -1870,7 +1871,10 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
   | some off =>
       let fieldSize := match ctx.layout.structuredTypeAt base with
         | some structuredType =>
-            if structuredType.recordLike then ctx.layout.fieldSizeAt base field
+            if structuredType.recordLike then
+              (ctx.layout.fieldSizeAt base field).orElse
+                (fun _ => (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
+                  (fun _ => ctx.layout.fieldSize base.ty field))
             else none
         | none =>
             (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
