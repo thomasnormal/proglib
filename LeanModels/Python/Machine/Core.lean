@@ -110,6 +110,11 @@ def bindParams : List Param → List RVal → Option REnv
   | [], [] => some []
   | parameter :: params, value :: values =>
       bindParams params values |>.map (fun env => (parameter.arg, value) :: env)
+  | parameter :: params, [] =>
+      match parameter.default with
+      | some value =>
+          bindParams params [] |>.map (fun env => (parameter.arg, constValue value) :: env)
+      | none => none
   | _, _ => none
 
 def truthy : RVal → Bool
