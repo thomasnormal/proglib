@@ -581,7 +581,7 @@ def truthy (v : CVal) : EvalM Bool :=
   | .float32 f => pure (!Float32.Model.beq f (Float32.Model.ofBits 0))
   | .float64 f => pure (!Float.Model.beq f (Float.Model.ofBits 0))
   | .ptr p => pure (!p.isNull)
-  | .ptrInt _ => refuseUnsupported "pointer-integer value used in a Boolean context"
+  | .ptrInt p => pure (p.exposedAddress != 0)
   | .funPtr _ => refuseUnsupported "function pointer used in a Boolean context"
   | .aggregate _ _ => refuseUnsupported "aggregate used as truth value"
   | .undef => refuseUnsupported "undefined value used where an integer is required (C23 6.3.2.1p2)"
@@ -738,7 +738,7 @@ def asInt (v : CVal) : EvalM (IntTy × Int) :=
   match v with
   | .int t n => pure (t, n)
   | .ptr _ => refuseUnsupported "pointer used as an integer (no ptr↔int cast in tier)"
-  | .ptrInt _ => refuseUnsupported "pointer-integer value used as an ordinary integer"
+  | .ptrInt p => pure (IntTy.ulong, p.exposedAddress)
   | .funPtr _ => refuseUnsupported "function pointer used as an integer"
   | .float32 _ | .float64 _ => refuseUnsupported "floating value used as an integer"
   | .aggregate _ _ => refuseUnsupported "aggregate used as an integer"
@@ -996,9 +996,20 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
       else if op == ">=" then do let c ← readMem (fun _ => Mem.ptrLt a b); pure (ofBool (!c))
       else refuseUnsupported s!"operator '{op}' on two pointers"
   | .ptrInt a, .ptrInt b =>
-      if op == "==" then pure (ofBool (Mem.ptrEq a b))
-      else if op == "!=" then pure (ofBool (!Mem.ptrEq a b))
-      else refuseUnsupported "arithmetic or ordered comparison on pointer-integer values"
+      let rt := match intTyOf? (ctx.layout.normalizeTy ty) with
+        | some t => t
+        | none => IntTy.ulong
+      intBinop op rt a.exposedAddress b.exposedAddress
+  | .ptrInt a, .int _ b =>
+      let rt := match intTyOf? (ctx.layout.normalizeTy ty) with
+        | some t => t
+        | none => IntTy.ulong
+      intBinop op rt a.exposedAddress b
+  | .int _ a, .ptrInt b =>
+      let rt := match intTyOf? (ctx.layout.normalizeTy ty) with
+        | some t => t
+        | none => IntTy.ulong
+      intBinop op rt a b.exposedAddress
   | .int t a, .int _ b =>
       -- Shifts take the LEFT operand's type (§6.5.8p3); every other
       -- operator has already had both operands converted to a common type.
