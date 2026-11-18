@@ -2784,6 +2784,20 @@ theorem reallocAt_null_storeBytes_placement_irrel
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt, loadBytes,
     resolve, get?, resolve_address_irrel]
 
+theorem reallocAt_null_storePtr_objs_irrel
+    (m : Mem) (size address₁ address₂ : Nat) (q : Ptr)
+    (h : size ≠ 0) :
+    (reallocAt m Ptr.null size address₁).map
+        (fun r => (r.1.storePtr r.2 q).map (fun m' => m'.objs)) =
+      (reallocAt m Ptr.null size address₂).map
+        (fun r => (r.1.storePtr r.2 q).map (fun m' => m'.objs)) := by
+  rw [reallocAt_null m size address₁ h, reallocAt_null m size address₂ h]
+  simp only [Except.map]
+  congr 1
+  simpa only [storePtr, Except.map] using
+    (mallocAt_storeBytes_objs_irrel m size address₁ address₂
+      ((List.range 8).map (CByte.ptrByte q)))
+
 theorem reallocAt_null_storeBytes_objs_irrel
     (m : Mem) (size address₁ address₂ : Nat) (bs : List CByte)
     (h : size ≠ 0) :
