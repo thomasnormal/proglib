@@ -33,6 +33,8 @@ inductive RStmt where
   | whileStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | functionDef (name : String) (params : Array RParam) (defaults : Array Expr)
       (body : Array RStmt) (span : Span)
+  | functionDefKw (name : String) (params : Array RParam) (defaults : Array Expr)
+      (keywordDefaults : Array (Option Expr)) (body : Array RStmt) (span : Span)
   | classDef (name : String) (bases : Array Expr) (body : Array RStmt) (span : Span)
   | import (module : String) (alias : Option String) (span : Span)
   | unsupported (kind : String) (text : String) (span : Span)
@@ -43,6 +45,7 @@ structure RFunction where
   params : Array RParam
   defaults : Array Expr := #[]
   defaultValues : Array RVal := #[]
+  keywordDefaultValues : Array (Option RVal) := #[]
   body : Array RStmt
   globals : String
   captured : REnv := []
@@ -108,6 +111,12 @@ inductive RKont where
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
+      (continuation : RKont)
+  | callArgsKeywords (callee : RVal) (remaining : List Expr) (values : List RVal)
+      (remainingKeywords : List (String × Expr)) (keywordValues : List (String × RVal))
+      (continuation : RKont)
+  | callKeyword (callee : RVal) (name : String) (remaining : List (String × Expr))
+      (positionalValues : List RVal) (keywordValues : List (String × RVal))
       (continuation : RKont)
   | callReturn (continuation : RKont)
 deriving Repr, Inhabited, BEq
@@ -268,20 +277,67 @@ def rConstValues : List Expr → Option (List RVal)
 def rEvalDefaultValues (defaults : Array Expr) : Option (Array RVal) :=
   (rConstValues defaults.toList).map List.toArray
 
-def rBindPositional (params : Array RParam) (defaults : Array RVal)
-    (values : List RVal) : Option REnv :=
-  let names := params.toList.map (fun parameter => parameter.name)
-  if params.toList.any (fun parameter => parameter.keywordOnly || parameter.variadic) then none
-  else if defaults.size > names.length then none
-  else if values.length < names.length - defaults.size then none
-  else if values.length > names.length then none
-  else
-    let missing := names.length - values.length
-    let usedDefaults := defaults.toList.drop (defaults.size - missing)
-    some (names.zip (values ++ usedDefaults))
+def rEvalKeywordDefaultValues : List (Option Expr) → Option (List (Option RVal))
+  | [] => some []
+  | none :: rest =>
+      match rEvalKeywordDefaultValues rest with
+      | some values => some (none :: values)
+      | none => none
+  | some expression :: rest =>
+      match rConstValues [expression], rEvalKeywordDefaultValues rest with
+      | some [value], some values => some (some value :: values)
+      | _, _ => none
 
-def rCallFrame (function : RFunction) (values : List RVal) : Option RFrame :=
-  match rBindPositional function.params function.defaultValues values with
+def rBindKeyword : REnv → List RParam → String → RVal → Option REnv
+  | env, [], _, _ => none
+  | env, parameter :: rest, name, value =>
+      if parameter.name == name then
+        if parameter.positionalOnly || Option.isSome (rLookupEnv env name) then none
+        else some ((name, value) :: env)
+      else rBindKeyword env rest name value
+
+def rBindKeywords : REnv → List RParam → List (String × RVal) → Option REnv
+  | env, _, [] => some env
+  | env, params, (name, value) :: rest =>
+      match rBindKeyword env params name value with
+      | some updated => rBindKeywords updated params rest
+      | none => none
+
+def rBindKeywordDefaults : REnv → List RParam → List (Option RVal) → Option REnv
+  | env, [], _ => some env
+  | env, parameter :: rest, default :: defaults =>
+      if parameter.keywordOnly then
+        match rLookupEnv env parameter.name, default with
+        | some _, _ => rBindKeywordDefaults env rest defaults
+        | none, some value =>
+            rBindKeywordDefaults ((parameter.name, value) :: env) rest defaults
+        | none, none => none
+      else rBindKeywordDefaults env rest (default :: defaults)
+  | env, parameter :: rest, [] =>
+      if parameter.keywordOnly then none else rBindKeywordDefaults env rest []
+
+def rBindArguments (params : Array RParam) (defaults : Array RVal)
+    (keywordDefaults : Array (Option RVal)) (values : List RVal)
+    (keywords : List (String × RVal)) : Option REnv :=
+  let parameters := params.toList
+  let positional := parameters.filter (fun parameter => !parameter.keywordOnly)
+  if parameters.any (fun parameter => parameter.variadic) then none
+  else if defaults.size > positional.length then none
+  else if values.length < positional.length - defaults.size then none
+  else if values.length > positional.length then none
+  else
+    let missing := positional.length - values.length
+    let usedDefaults := defaults.toList.drop (defaults.size - missing)
+    let initialEnv := (positional.map (fun parameter => parameter.name)).zip
+      (values ++ usedDefaults)
+    match rBindKeywords initialEnv parameters keywords with
+    | some env => rBindKeywordDefaults env parameters keywordDefaults.toList
+    | none => none
+
+def rCallFrame (function : RFunction) (values : List RVal)
+    (keywords : List (String × RVal)) : Option RFrame :=
+  match rBindArguments function.params function.defaultValues function.keywordDefaultValues
+      values keywords with
   | none => none
   | some locals =>
       some { control := .statements function.body.toList
@@ -315,6 +371,25 @@ def RConfig.withChoice (config : RConfig) (choice : RChoice) : RConfig :=
 
 def RConfig.chooseToken (config : RConfig) (tail : List RChoice) (token : Nat) : RConfig :=
   { config with choices := tail, choiceToken := some token }
+
+def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
+    (keywords : List (String × RVal)) (continuation : RKont) :
+    Option (RLabel × RConfig) :=
+  match callee with
+  | .callable name =>
+      match rFunction config.functions name with
+      | some function =>
+          match config.frames, rCallFrame function values keywords with
+          | caller :: tail, some calleeFrame =>
+              some (.tau, { config with frames :=
+                calleeFrame :: { caller with
+                  control := .continueValue .none (.callReturn continuation) } :: tail })
+          | _, _ => some (.event (.refuse "machine call stack"),
+              config.finish (.refuse "machine call stack"))
+      | none => some (.event (.refuse ("unknown function: " ++ name)),
+          config.finish (.refuse ("unknown function: " ++ name)))
+  | _ => some (.event (.refuse "machine non-callable"),
+      config.finish (.refuse "machine non-callable"))
 
 private theorem frame_with_control_eq (frame : RFrame) (control : RControl)
     (h : frame.control = control) : frame = { frame with control := control } := by
@@ -522,10 +597,27 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                       let capturedFrame := captured.2.1
                       let function :=
                         { name := name, params := params, defaults := defaults,
-                          defaultValues := defaultValues, body := body,
+                          defaultValues := defaultValues, keywordDefaultValues := #[], body := body,
                           globals := current.module, captured := captured.2.2 }
                       let defined := config.defineFunction capturedFrame tail function rest
                       some (.tau, { defined with heap := captured.1 })
+              | [] => none
+          | .functionDefKw name params defaults keywordDefaults body span =>
+              match config.frames with
+              | current :: tail =>
+                  match rEvalDefaultValues defaults, rEvalKeywordDefaultValues keywordDefaults.toList with
+                  | some defaultValues, some keywordDefaultValues =>
+                      let captured := rCaptureLocals config.heap current
+                      let capturedFrame := captured.2.1
+                      let function :=
+                        { name := name, params := params, defaults := defaults,
+                          defaultValues := defaultValues,
+                          keywordDefaultValues := keywordDefaultValues.toArray,
+                          body := body, globals := current.module, captured := captured.2.2 }
+                      let defined := config.defineFunction capturedFrame tail function rest
+                      some (.tau, { defined with heap := captured.1 })
+                  | _, _ => some (.event (.refuse "machine default expression"),
+                      config.finish (.refuse "machine default expression"))
               | [] => none
           | .ret none _ => some (.tau, config.setControl (.continueValue .none .returnValue))
           | .ret (some expression) _ =>
@@ -560,10 +652,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .evaluate (.call function args keywords unsupported _) continuation =>
           match unsupported, keywords.toList with
           | some text, _ => some (.event (.refuse text), config.finish (.refuse text))
-          | none, [] => some (.tau, config.setControl
-              (.evaluate function (.callCallee args.toList [] continuation)))
-          | none, _ :: _ => some (.event (.refuse "machine keyword call"),
-              config.finish (.refuse "machine keyword call"))
+          | none, keywordList => some (.tau, config.setControl
+              (.evaluate function (.callCallee args.toList keywordList continuation)))
       | .evaluate (.binOp left op right _) continuation =>
           some (.tau, config.setControl (.evaluate left (.binOpLeft op right continuation)))
       | .evaluate (.unsupported _ text _) _ =>
@@ -613,53 +703,42 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | _ => some (.event (.refuse "machine binary operator"),
               config.finish (.refuse "machine binary operator"))
       | .continueValue callee (.callCallee args keywords continuation) =>
-          if !keywords.isEmpty then
-            some (.event (.refuse "machine keyword call"),
-              config.finish (.refuse "machine keyword call"))
-          else
-            match args with
-            | [] =>
-                match callee with
-                | .callable name =>
-                    match rFunction config.functions name with
-                    | some function =>
-                        match config.frames, rCallFrame function [] with
-                        | caller :: tail, some calleeFrame =>
-                            some (.tau, { config with frames :=
-                              calleeFrame :: { caller with
-                                control := .continueValue .none (.callReturn continuation) } :: tail })
-                        | _, _ => some (.event (.refuse "machine call stack"),
-                            config.finish (.refuse "machine call stack"))
-                    | none => some (.event (.refuse ("unknown function: " ++ name)),
-                        config.finish (.refuse ("unknown function: " ++ name)))
-                | _ => some (.event (.refuse "machine non-callable"),
-                    config.finish (.refuse "machine non-callable"))
-            | first :: rest =>
-                some (.tau, config.setControl (.evaluate first
-                  (.callArg callee rest [] continuation)))
+          match args, keywords with
+          | [], [] => rStartCall config callee [] [] continuation
+          | [], (name, expression) :: rest =>
+              some (.tau, config.setControl (.evaluate expression
+                (.callKeyword callee name rest [] [] continuation)))
+          | first :: rest, _ =>
+              some (.tau, config.setControl (.evaluate first
+                (.callArgsKeywords callee rest [] keywords [] continuation)))
+      | .continueValue value
+          (.callArgsKeywords callee remaining values remainingKeywords keywordValues continuation) =>
+          match remaining with
+          | next :: rest =>
+              some (.tau, config.setControl (.evaluate next
+                (.callArgsKeywords callee rest (values ++ [value]) remainingKeywords
+                  keywordValues continuation)))
+          | [] =>
+              match remainingKeywords with
+              | (name, expression) :: rest =>
+                  some (.tau, config.setControl (.evaluate expression
+                    (.callKeyword callee name rest (values ++ [value]) keywordValues continuation)))
+              | [] => rStartCall config callee (values ++ [value]) keywordValues continuation
+      | .continueValue value
+          (.callKeyword callee currentName remaining positionalValues keywordValues continuation) =>
+          match remaining with
+          | (nextName, expression) :: rest =>
+              some (.tau, config.setControl (.evaluate expression
+                (.callKeyword callee nextName rest positionalValues
+                  ((currentName, value) :: keywordValues) continuation)))
+          | [] => rStartCall config callee positionalValues
+              ((currentName, value) :: keywordValues) continuation
       | .continueValue value (.callArg callee remaining values continuation) =>
           match remaining with
           | next :: rest =>
               some (.tau, config.setControl (.evaluate next
                 (.callArg callee rest (values ++ [value]) continuation)))
-          | [] =>
-              match callee with
-              | .callable name =>
-                  match rFunction config.functions name, config.frames with
-                  | some function, caller :: tail =>
-                      match rCallFrame function (values ++ [value]) with
-                      | some calleeFrame =>
-                          some (.tau, { config with frames :=
-                            calleeFrame :: { caller with
-                              control := .continueValue .none (.callReturn continuation) } :: tail })
-                      | none => some (.event (.refuse "machine argument binder"),
-                          config.finish (.refuse "machine argument binder"))
-                  | none, _ => some (.event (.refuse "unknown function"),
-                      config.finish (.refuse "unknown function"))
-                  | _, _ => some (.event (.refuse "machine call stack"),
-                      config.finish (.refuse "machine call stack"))
-              | _ => some (.event (.refuse "machine non-callable"),
-                  config.finish (.refuse "machine non-callable"))
+          | [] => rStartCall config callee (values ++ [value]) [] continuation
       | .continueValue _ (.callReturn _) =>
           some (.event (.refuse "machine call return"), config.finish (.refuse "machine call return"))
       | .continueValue _ .printValue => none
@@ -879,6 +958,26 @@ private def bDefaultModule : RModule :=
         #[.ret (some (.name "value" testSpan)) testSpan] testSpan,
       .ret (some (.call (.name "defaulted" testSpan) #[] #[] none testSpan)) testSpan] }
 
+private def bKeywordModule : RModule :=
+  { body := #[
+      .functionDefKw "keyworded"
+        #[{ name := "a" }, { name := "b", keywordOnly := true }] #[]
+        #[some (.constant (.int 3) testSpan)]
+        #[.ret (some (.name "b" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "keyworded" testSpan)
+        #[.constant (.int 1) testSpan]
+        #[("b", Expr.constant (.int 4) testSpan)] none testSpan)) testSpan] }
+
+private def bKeywordDefaultModule : RModule :=
+  { body := #[
+      .functionDefKw "keyworded"
+        #[{ name := "a" }, { name := "b", keywordOnly := true }] #[]
+        #[some (.constant (.int 3) testSpan)]
+        #[.ret (some (.name "b" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "keyworded" testSpan)
+        #[.constant (.int 1) testSpan] #[] none testSpan)) testSpan] }
+
+
 example :
     ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
@@ -925,6 +1024,16 @@ example :
 example :
     (runB1 64 (RConfig.initial bDefaultModule)).2.status =
       .finished (.return (.int 7)) := by
+  rfl
+
+example :
+    (runB1 96 (RConfig.initial bKeywordModule)).2.status =
+      .finished (.return (.int 4)) := by
+  rfl
+
+example :
+    (runB1 96 (RConfig.initial bKeywordDefaultModule)).2.status =
+      .finished (.return (.int 3)) := by
   rfl
 
 example : ∃ c₁ c₂,
