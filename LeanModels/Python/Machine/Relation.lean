@@ -32,6 +32,8 @@ inductive RStmt where
   | assign (target : Expr) (value : Expr) (span : Span)
   | ifStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | whileStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
+  | forStmt (target : Expr) (iter : Expr) (body : Array RStmt) (orelse : Array RStmt)
+      (span : Span)
   | functionDef (name : String) (params : Array RParam) (defaults : Array Expr)
       (body : Array RStmt) (span : Span)
   | functionDefKw (name : String) (params : Array RParam) (defaults : Array Expr)
@@ -126,6 +128,10 @@ inductive RKont where
   | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
   | whileBranch (test : Expr) (body : List RStmt) (orelse : List RStmt)
       (remaining : List RStmt) (span : Span)
+  | forIter (target : String) (body : List RStmt) (orelse : List RStmt)
+      (remaining : List RStmt)
+  | forNext (target : String) (values : List RVal) (body : List RStmt)
+      (orelse : List RStmt) (remaining : List RStmt)
   | ifExpression (body : Expr) (orelse : Expr) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
@@ -162,6 +168,7 @@ structure RFrame where
   globals : REnv
   module : String := "__main__"
   cells : REnv := []
+  completion : Option RKont := none
 deriving Repr, Inhabited, BEq
 
 structure RConfig where
@@ -212,7 +219,8 @@ def rDefinedFrame (frame : RFrame) (name : String) (remaining : List RStmt) : RF
     locals := rSetEnv frame.locals name (.callable name)
     globals := frame.globals
     module := frame.module
-    cells := frame.cells }
+    cells := frame.cells
+    completion := frame.completion }
 
 def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFrame)
     (function : RFunction) (remaining : List RStmt) : RConfig :=
@@ -585,6 +593,16 @@ def rIndexHeapValue (heap : Heap) (receiver index : RVal) : Option RVal :=
       | _ => none
   | _ => none
 
+def rIterValues (heap : Heap) (value : RVal) : Option (List RVal) :=
+  match value with
+  | .tuple values | .listV values => some values.toList
+  | .str text => some (text.toList.map (fun character => .str (String.ofList [character])))
+  | .ref address =>
+      match heap.get? address with
+      | some (.list values) => some values.toList
+      | _ => none
+  | _ => none
+
 def rRenderPrintWithSep (separator : String) : List RVal → Option String
   | [] => some ""
   | value :: rest =>
@@ -622,7 +640,8 @@ def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
   { control := .statements remaining
     locals := rSetEnv frame.locals name value
     globals := frame.globals
-    module := frame.module }
+    module := frame.module
+    completion := frame.completion }
 
 def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   match op, left, right with
@@ -972,9 +991,14 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .resourceChoice _ continuation =>
           some (.tau, config.setControl continuation)
       | .statements [] =>
-          if config.frames.tail.isEmpty then
-            some (.event (.return .none), config.finish (.return .none))
-          else some (.tau, config.setControl (.continueValue .none .returnValue))
+          match frame.completion with
+          | some continuation =>
+              some (.tau, config.setTop
+                { frame with control := .continueValue .none continuation, completion := none })
+          | none =>
+              if config.frames.tail.isEmpty then
+                some (.event (.return .none), config.finish (.return .none))
+              else some (.tau, config.setControl (.continueValue .none .returnValue))
       | .statements (stmt :: rest) =>
           match stmt with
           | .pass _ => some (.tau, config.setControl (.statements rest))
@@ -991,6 +1015,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .whileStmt test body orelse span =>
               some (.tau, config.setControl
                 (.evaluate test (.whileBranch test body.toList orelse.toList rest span)))
+          | .forStmt (.name target _) iter body orelse _ =>
+              some (.tau, config.setControl
+                (.evaluate iter (.forIter target body.toList orelse.toList rest)))
+          | .forStmt _ _ _ _ _ =>
+              some (.event (.refuse "machine for target"),
+                config.finish (.refuse "machine for target"))
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
@@ -1177,6 +1207,20 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               (.statements (body ++ [.whileStmt test body.toArray orelse.toArray span] ++ remaining)))
           else
             some (.tau, config.setControl (.statements (orelse ++ remaining)))
+      | .continueValue value (.forIter target body orelse remaining) =>
+          match rIterValues config.heap value with
+          | some values =>
+              some (.tau, config.setControl
+                (.continueValue .none (.forNext target values body orelse remaining)))
+          | none => some (.tau, config.setControl (.refusing "machine for iterable"))
+      | .continueValue value (.forNext target values body orelse remaining) =>
+          match values with
+          | [] => some (.tau, config.setControl (.statements (orelse ++ remaining)))
+          | next :: restValues =>
+              let nextFrame := rAssignedFrame frame target next []
+              some (.tau, config.setTop { nextFrame with
+                  control := .statements body,
+                  completion := some (.forNext target restValues body orelse remaining) })
       | .continueValue value (.ifExpression body orelse continuation) =>
           some (.tau, config.setControl
             (.evaluate (if rTruthy value then body else orelse) continuation))
@@ -1530,6 +1574,17 @@ private def bWhileModule : RModule :=
         #[] testSpan,
       .ret (some (.name "total" testSpan)) testSpan] }
 
+private def bForModule : RModule :=
+  { body := #[
+      .assign (.name "total" testSpan) (.constant (.int 0) testSpan) testSpan,
+      .forStmt (.name "x" testSpan)
+        (.list #[.constant (.int 1) testSpan, .constant (.int 2) testSpan,
+          .constant (.int 3) testSpan] testSpan)
+        #[.assign (.name "total" testSpan)
+            (.binOp (.name "total" testSpan) .add (.name "x" testSpan) testSpan) testSpan]
+        #[] testSpan,
+      .ret (some (.name "total" testSpan)) testSpan] }
+
 private def bDictModule : RModule :=
   { body := #[.ret (some (.subscript
       (.dict #[.constant (.str "x") testSpan] #[.constant (.int 7) testSpan] testSpan)
@@ -1706,6 +1761,9 @@ example :
 
 #guard (runB1 256 (RConfig.initial bWhileModule)).2.status ==
   .finished (.return (.int 3))
+
+#guard (runB1 256 (RConfig.initial bForModule)).2.status ==
+  .finished (.return (.int 6))
 
 #guard (runB1 32 (RConfig.initial bDictModule)).2.status ==
   .finished (.return (.int 7))
