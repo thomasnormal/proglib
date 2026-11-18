@@ -116,6 +116,10 @@ inductive RKont where
   | subscriptIndex (receiver : RVal) (continuation : RKont)
   | tupleElements (remaining : List Expr) (values : List RVal) (continuation : RKont)
   | listElements (remaining : List Expr) (values : List RVal) (continuation : RKont)
+  | dictKey (value : Expr) (remaining : List (Expr × Expr))
+      (entries : List (RVal × RVal)) (continuation : RKont)
+  | dictValue (key : RVal) (remaining : List (Expr × Expr))
+      (entries : List (RVal × RVal)) (continuation : RKont)
   | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
   | ifExpression (body : Expr) (orelse : Expr) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
@@ -410,6 +414,10 @@ def rBuildKwargs (heap : Heap) (keywords : List (String × RVal)) : Heap × RVal
   let entries := (keywords.map (fun pair =>
     match pair with | (name, value) => (RVal.str name, value))).toArray
   let allocated := Heap.alloc heap (.dict entries 0)
+  (allocated.1, .ref allocated.2)
+
+def rBuildDict (heap : Heap) (entries : List (RVal × RVal)) : Heap × RVal :=
+  let allocated := Heap.alloc heap (.dict entries.toArray 0)
   (allocated.1, .ref allocated.2)
 
 def rLookupDictEntries : List (RVal × RVal) → RVal → Option RVal
@@ -853,6 +861,16 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | first :: rest =>
               some (.tau, config.setControl
                 (.evaluate first (.listElements rest [] continuation)))
+      | .evaluate (.dict keys values _) continuation =>
+          let pairs := keys.toList.zip values.toList
+          match pairs with
+          | [] =>
+              let allocated := rBuildDict config.heap []
+              some (.tau, { config with heap := allocated.1 } |>.setControl
+                (.continueValue allocated.2 continuation))
+          | (key, value) :: rest =>
+              some (.tau, config.setControl
+                (.evaluate key (.dictKey value rest [] continuation)))
       | .evaluate (.ifExp test body orelse _) continuation =>
           some (.tau, config.setControl
             (.evaluate test (.ifExpression body orelse continuation)))
@@ -938,6 +956,19 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | [] =>
               some (.tau, config.setControl
                 (.continueValue (.listV (values.toArray ++ #[value])) continuation))
+      | .continueValue key (.dictKey value remaining entries continuation) =>
+          some (.tau, config.setControl
+            (.evaluate value (.dictValue key remaining entries continuation)))
+      | .continueValue value (.dictValue key remaining entries continuation) =>
+          let updated := entries ++ [(key, value)]
+          match remaining with
+          | (nextKey, nextValue) :: rest =>
+              some (.tau, config.setControl
+                (.evaluate nextKey (.dictKey nextValue rest updated continuation)))
+          | [] =>
+              let allocated := rBuildDict config.heap updated
+              some (.tau, { config with heap := allocated.1 } |>.setControl
+                (.continueValue allocated.2 continuation))
       | .continueValue right (.binOpRight left op continuation) =>
           match rEvalBinOp op left right with
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))
@@ -1213,6 +1244,11 @@ private def bLenModule : RModule :=
         #[.tuple #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] testSpan]
         #[] none testSpan] #[] none testSpan) testSpan] }
 
+private def bDictModule : RModule :=
+  { body := #[.ret (some (.subscript
+      (.dict #[.constant (.str "x") testSpan] #[.constant (.int 7) testSpan] testSpan)
+      (.constant (.str "x") testSpan) testSpan)) testSpan] }
+
 private def bClosureModule : RModule :=
   { body := #[.functionDef "outer" #[] #[]
         #[.assign (.name "x" testSpan) (.constant (.int 9) testSpan) testSpan,
@@ -1368,6 +1404,9 @@ example :
 #guard (runB1 32 (RConfig.initial bLenModule)).1 ==
   [.tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau,
     .event (.output "2"), .tau, .event (.return .none)]
+
+#guard (runB1 32 (RConfig.initial bDictModule)).2.status ==
+  .finished (.return (.int 7))
 
 #guard (runB1 128 (RConfig.initial bMixedDefaultKeywordModule)).2.status ==
   .finished (.return .none)
