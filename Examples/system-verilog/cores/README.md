@@ -689,3 +689,11 @@ existing memory-route probe executes the source-shaped initial process and
 reads the initialized cell, so this row is ready for the general lane's
 canonical one-rank memory Step 12 branch.  No E memory meaning is changed in
 this lane.
+
+## 2026-11-18 R0 differential check
+
+The pinned Sail RISC-V 0.13.1 oracle is not installed in this checkout, so no
+Sail oracle result is claimed.  The RV harness self-test generated the same
+257 cases across hash seeds with fingerprint
+`a0d1ec3e980838c0c1fc997555fde11f25fd91d67687fc6c90a2fea5f4a0bc83`, and the
+Lean-side coverage check covered all 57 decoder rows.
