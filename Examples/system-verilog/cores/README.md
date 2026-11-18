@@ -725,8 +725,8 @@ and E-RUN counts unchanged.
 
 ## 2026-11-18 DarkRISCV current-master cycle probe
 
-The public-master one-rank memory route was audited at commit
-`a62902298766f7fc7a8187f19ef62b416454ba73` with the current DarkRISCV
+The public-master one-rank memory route was re-audited at commit
+`1ffef29732e3d9e2737ab220f1c3364c8d8511ab` with the current DarkRISCV
 source-overlay envelope.  `PDesign.instantiateCoreMem [0]` reports one memory
 and 68 retained processes, and `CoreMemDesign.initialState` returns `ok`.
 This is a real transition past the former `REGS` storage wall.
@@ -737,6 +737,11 @@ The next probe supplied one source-shaped input row with `CLK=0`, `RES=1`,
 and a second pass with `RES=0`, returning the no-follow-up flag both times.
 The checked-in receipt now records two completed canonical-E passes, while the
 full `step` quiescence path remains unmeasured.
+
+The post-audit census remains **177 admitted / 0 refused / 0 not reached**.
+The public-master probe reproduces both successful passes.  Its first clock
+transition remains a non-returning execution path in the bounded probe, so no
+full E-RUN cycle is claimed.
 
 ## 2026-11-18 DarkRISCV first clock transition
 
