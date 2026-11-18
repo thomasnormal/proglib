@@ -122,6 +122,7 @@ private def rvalue (j : Json) : Except String Rvalue := do
       | ["Ne", left, right] => pure (.binaryNe (← operand left) (← operand right))
       | ["BitAnd", left, right] => pure (.binaryBitAnd (← operand left) (← operand right))
       | ["Div", left, right] => pure (.binaryDiv (← operand left) (← operand right))
+      | ["Rem", left, right] => pure (.binaryRem (← operand left) (← operand right))
       | _ => pure (.unsupported "BinaryOp")
   | "CheckedBinaryOp" => do
       let values ← array value

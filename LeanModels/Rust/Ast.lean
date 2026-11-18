@@ -32,6 +32,7 @@ inductive Rvalue where
   | binaryNe (left right : Operand)
   | binaryBitAnd (left right : Operand)
   | binaryDiv (left right : Operand)
+  | binaryRem (left right : Operand)
   | checkedBinary (op : String) (left right : Operand)
   | ref (place : Place)
   | aggregate (tag : String) (fields : List Operand)

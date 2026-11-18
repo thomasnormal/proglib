@@ -242,6 +242,10 @@ def rvalueValue (s : State) : Rvalue → Option Int
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (leftValue / rightValue)
+  | .binaryRem left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      if rightValue == 0 then none else pure (leftValue % rightValue)
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -270,6 +274,10 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (.int (leftValue / rightValue))
+  | .binaryRem left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      if rightValue == 0 then none else pure (.int (leftValue % rightValue))
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -399,9 +407,9 @@ def statementFailure : State → List Statement → Outcome
       | some (state', _) => statementFailure state' rest
       | none =>
           match statement with
-          | .assign _ (.binaryDiv _ right) =>
+          | .assign _ (.binaryDiv _ right) | .assign _ (.binaryRem _ right) =>
               if operandValue state right == some 0 then .panicked
-              else .refused (.unsupported "binary division")
+              else .refused (.unsupported "binary arithmetic")
           | .assign _ (.checkedBinary op left right) =>
               match operandValue state left, operandValue state right with
               | some leftValue, some rightValue =>
