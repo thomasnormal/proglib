@@ -243,6 +243,8 @@ parameter after variadic positional collection, while
 combination with a required keyword-only parameter, while
 `harness/scripts/function_varargs_empty_required_keyword_only.py` checks an
 empty `*args` collection with that required parameter supplied, while
+`harness/scripts/function_varargs_multiple_keyword_only.py` checks multiple
+keyword-only parameters after `*args`, including a literal default, while
 `harness/scripts/function_kwargs.py` records the current loud refusal for
 variadic keyword parameters, while
 `harness/scripts/function_unknown_keyword.py` records the current loud refusal
