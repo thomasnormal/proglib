@@ -130,6 +130,7 @@ structure RConfig where
   heap : Heap
   modules : List (String × REnv)
   functions : List RFunction
+  builtins : List String
   choices : List RChoice
   choiceToken : Option Nat
   status : RStatus
@@ -141,6 +142,7 @@ def RConfig.initial (program : RModule) : RConfig :=
     heap := #[]
     modules := [("__main__", [])]
     functions := []
+    builtins := ["print", "abs", "len"]
     choices := []
     choiceToken := none
     status := .running }
@@ -178,6 +180,7 @@ def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFra
     heap := config.heap
     modules := rSetModule config.modules frame.module function.name (.callable function.name)
     functions := function :: config.functions
+    builtins := config.builtins
     choices := config.choices
     choiceToken := config.choiceToken
     status := config.status }
@@ -197,6 +200,9 @@ def rFunction : List RFunction → String → Option RFunction
   | [], _ => none
   | function :: rest, name =>
       if function.name == name then some function else rFunction rest name
+
+def rBuiltin (builtins : List String) (name : String) : Option RVal :=
+  if name ∈ builtins then some (.callable name) else none
 
 def rBindPositional (params : Array RParam) (values : List RVal) : Option REnv :=
   let names := params.toList.map (fun parameter => parameter.name)
@@ -467,8 +473,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | none =>
                   match rLookupModule config.modules frame.module name with
                   | some value => some (.tau, config.setControl (.continueValue value continuation))
-                  | none => some (.event (.refuse ("unbound name: " ++ name)),
-                      config.finish (.refuse ("unbound name: " ++ name)))
+                  | none =>
+                      match rBuiltin config.builtins name with
+                      | some value => some (.tau, config.setControl (.continueValue value continuation))
+                      | none => some (.event (.refuse ("unbound name: " ++ name)),
+                          config.finish (.refuse ("unbound name: " ++ name)))
       | .evaluate (.call function args keywords unsupported _) continuation =>
           match unsupported, keywords.toList with
           | some text, _ => some (.event (.refuse text), config.finish (.refuse text))
@@ -743,6 +752,9 @@ private def bCallModule : RModule :=
       .ret (some (.call (.name "identity" testSpan)
         #[.constant (.int 7) testSpan] #[] none testSpan)) testSpan] }
 
+private def bBuiltinModule : RModule :=
+  { body := #[.ret (some (.name "print" testSpan)) testSpan] }
+
 example :
     ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
@@ -769,6 +781,11 @@ example :
 example :
     (runB1 64 (RConfig.initial bCallModule)).2.status =
       .finished (.return (.int 7)) := by
+  rfl
+
+example :
+    (runB1 8 (RConfig.initial bBuiltinModule)).2.status =
+      .finished (.return (.callable "print")) := by
   rfl
 
 example : ∃ c₁ c₂,
