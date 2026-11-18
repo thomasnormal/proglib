@@ -1288,7 +1288,11 @@ def LeanModels.Sv.PExpr.hasFunctionCall : PExpr → Bool
   | .arrayElem _ indices => PExpr.hasFunctionCallList indices
   | .arrayPart _ indices _ a b => PExpr.hasFunctionCallList indices ||
       LeanModels.Sv.PExpr.hasFunctionCall a || LeanModels.Sv.PExpr.hasFunctionCall b
-  | .aggregateMember .. => false
+  -- The scalar/memory cycle refinement theorem does not carry the aggregate
+  -- store.  Classify this source-shaped read as outside that theorem's
+  -- function-free fragment, while canonical E evaluates it through
+  -- `evalAggregateMember` above.
+  | .aggregateMember .. => true
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
   | .fill _ | .unsupported .. => false
 

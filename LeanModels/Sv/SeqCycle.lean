@@ -880,6 +880,7 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
   | comb _ => simp [CoreMemDesign.procOkB] at h
   | implicit _ => simp [CoreMemDesign.procOkB] at h
   | latch _ => simp [CoreMemDesign.procOkB] at h
+  | event _ _ => simp [CoreMemDesign.procOkB] at h
   | unsupported _ _ => simp [CoreMemDesign.procOkB] at h
 
 /-- Every process from index `i` on is `ProcOk`, decided. -/
@@ -943,6 +944,7 @@ theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | comb _ => simp [CoreMemDesign.procOkIB] at h
   | implicit _ => simp [CoreMemDesign.procOkIB] at h
   | latch _ => simp [CoreMemDesign.procOkIB] at h
+  | event _ _ => simp [CoreMemDesign.procOkIB] at h
   | unsupported _ _ => simp [CoreMemDesign.procOkIB] at h
 
 /-- Every process from index `i` on is `ProcOkI`, decided. -/
@@ -1131,12 +1133,20 @@ def CoreMemDesign.settleRaw (E : CoreMemDesign) (mv : MemV) (raw : SvState) (idx
         match E.scalarWidth? n with
         | some w => do
             let x ← E.evalV E.env E.elems (E.matV raw) mv (some w) value
+            let x := if E.resolvedNets.contains n then
+                LVec.resolveDrivers [
+                  (SvState.lookup raw n).getD (LVec.replicate w .lz), x]
+              else x
             E.settleRaw mv (SvState.set raw n x) (idx + 1) rest
         | none => .unsupported s!"10.3: continuous target '{n}' is undeclared"
       else
         match E.compiledAssigns[idx]? with
         | some (some c) => do
             let x ← evalPure2 raw c
+            let x := if E.resolvedNets.contains n then
+                LVec.resolveDrivers [
+                  (SvState.lookup raw n).getD (LVec.replicate c.width .lz), x]
+              else x
             E.settleRaw mv (SvState.set raw n x) (idx + 1) rest
         | _ => .unsupported "settleRaw: a continuous assign without its compiled expression"
   | .edge _ :: rest => E.settleRaw mv raw (idx + 1) rest
@@ -1364,6 +1374,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
       | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | latch _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
+      | event _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | unsupported _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
 
 /-- `compactScalar` after a settle pass: the materialized view, coherent. -/
@@ -2069,6 +2080,7 @@ theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | event _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | event _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
 
 theorem CoreMemDesign.SeqProfileI.shapes {E : CoreMemDesign} (hP : E.SeqProfileI) :
@@ -2142,6 +2154,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | event _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | latch _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | event _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | unsupported _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
 
 /-- **One slot of the route, on views**: the inputs applied, two settle passes (the pre-edge view), the edge pass from
