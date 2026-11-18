@@ -809,23 +809,24 @@ def runMachineScriptBatchMode (jobsPath : String) (defaultFuel : Nat) : IO UInt3
         stdout.flush
       return (if hadError then 1 else 0)
 
-def relationEventJson (path : String) (event : Machine.REvent) : String :=
+def relationEventJson (path : String) (stdout : List String) (event : Machine.REvent) : String :=
+  let rendered := "[" ++ String.intercalate "," (stdout.map jsonStr) ++ "]"
   match event with
-  | .return _ => "{\"path\":" ++ jsonStr path ++ ",\"status\":\"ok\",\"exit\":0,\"stdout\":[]}"
+  | .return _ => "{\"path\":" ++ jsonStr path ++ ",\"status\":\"ok\",\"exit\":0,\"stdout\":" ++ rendered ++ "}"
   | .raise error =>
       let cls := match error.errorClass with
         | .recursion => "RecursionError" | .memory => "MemoryError"
         | .name => "NameError" | .type => "TypeError" | .runtime => "RuntimeError"
       "{\"path\":" ++ jsonStr path ++ ",\"status\":\"exn\",\"exit\":1,\"exn\":"
-        ++ jsonStr cls ++ ",\"stdout\":[]}"
+        ++ jsonStr cls ++ ",\"stdout\":" ++ rendered ++ "}"
   | .refuse reason =>
       "{\"path\":" ++ jsonStr path ++ ",\"status\":\"unsupported\",\"exit\":3,\"msg\":"
         ++ jsonStr reason ++ "}"
   | _ => "{\"path\":" ++ jsonStr path ++ ",\"status\":\"unsupported\",\"exit\":3,\"msg\":\"relation event\"}"
 
-def relationConfigJson (path : String) (config : Machine.RConfig) : String :=
+def relationConfigJson (path : String) (stdout : List String) (config : Machine.RConfig) : String :=
   match config.status with
-  | .finished event => relationEventJson path event
+  | .finished event => relationEventJson path stdout event
   | .running => "{\"path\":" ++ jsonStr path ++ ",\"status\":\"unsupported\",\"exit\":3,\"msg\":\"relation frontier\"}"
 
 /- Relation batch entry point.  Envelopes are decoded by the machine-only
@@ -854,7 +855,11 @@ def runRelationScriptBatchMode (jobsPath : String) : IO UInt32 := do
                         let config := LeanModels.Python.Machine.RConfig.initial
                           (LeanModels.Python.Machine.compileMachineModule module)
                         let result := Machine.runB1 (job.fuel.getD 4096) config
-                        stdout.putStrLn (relationConfigJson job.path result.2)
+                        let output := result.1.filterMap fun label =>
+                          match label with
+                          | .event (.output text) => some text
+                          | _ => none
+                        stdout.putStrLn (relationConfigJson job.path output result.2)
       stdout.flush
       return 0
 

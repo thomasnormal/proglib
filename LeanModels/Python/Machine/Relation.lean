@@ -403,6 +403,20 @@ def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
       | _ => none
   | _ => none
 
+def rRenderPrint : List RVal → Option String
+  | [] => some ""
+  | value :: rest =>
+      let rendered := match value with
+        | .none => "None"
+        | .bool true => "True"
+        | .bool false => "False"
+        | .int n => toString n
+        | .str text => text
+        | _ => ""
+      match rRenderPrint rest with
+      | some tail => if tail.isEmpty then some rendered else some (rendered ++ " " ++ tail)
+      | none => none
+
 def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
   { config with modules := rSetModule config.modules module name value }
 
@@ -434,7 +448,12 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     Option (RLabel × RConfig) :=
   match callee with
   | .callable name =>
-      match rFunction config.functions name with
+      if name == "print" then
+        match rRenderPrint values with
+        | some text => some (.event (.output text),
+            config.setControl (.continueValue .none continuation))
+        | none => some (.tau, config.setControl (.refusing "machine print"))
+      else match rFunction config.functions name with
       | some function =>
           let builtKwargs :=
             if keywords.isEmpty then (config.heap, none)
@@ -1046,7 +1065,8 @@ private def bCallModule : RModule :=
         #[.constant (.int 7) testSpan] #[] none testSpan)) testSpan] }
 
 private def bBuiltinModule : RModule :=
-  { body := #[.ret (some (.name "print" testSpan)) testSpan] }
+  { body := #[.expr (.call (.name "print" testSpan)
+      #[.constant (.str "hello") testSpan] #[] none testSpan) testSpan] }
 
 private def bClosureModule : RModule :=
   { body := #[.functionDef "outer" #[] #[]
@@ -1178,8 +1198,12 @@ example :
 
 example :
     (runB1 8 (RConfig.initial bBuiltinModule)).2.status =
-      .finished (.return (.callable "print")) := by
+      .finished (.return .none) := by
   rfl
+
+#guard (runB1 16 (RConfig.initial bBuiltinModule)).1 ==
+  [.tau, .tau, .tau, .tau, .tau, .event (.output "hello"), .tau,
+    .event (.return .none)]
 
 example :
     (runB1 128 (RConfig.initial bClosureModule)).2.status =
