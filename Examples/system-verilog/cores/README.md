@@ -585,6 +585,25 @@ recorded envelope snapshots
 `9a97d6736c30221e580f898673adb6fcaa49931d24eec1494d006e040bdfc1ce` and
 `b26f0bd9ca5cb9a40838bb7719ae9877876d572f02de076d52d4d9dc62c1efdc`.
 
+## 2026-11-18 SERV simulator and E receipts
+
+The pinned SERV source is `olofk/serv` commit
+`f200eb2ed7b69ac1c6b8eddd47654522aeee5ce8`.  The checked-in
+`serv/check.py` compiles the complete 17-file `serv.core` source set with
+`RISCV_FORMAL` and instantiates `serv_rf_top` with `DEBUG=1`, which is the
+configuration that drives SERV's RVFI outputs.  Its fixed instruction image
+and ready memory interfaces produce 220 rows from each approved simulator.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on every row.  The normalized
+row SHA-256 is
+`bbe7e48c24f4748f96beaf097df899183a5c15c0e7f51cad68d4057a034320ad`.
+
+The checked-in `serv/e_check.py` runs `load_design_sv2` against the pinned
+envelope `ea713d68c00b6bc3cc4e892de56bf1ccc74d1ba2dcc9dc30abb9a317c64c7a64`.
+Canonical E refuses at the `RF_WIDTH` untyped-width differential under IEEE
+1800-2023 §6.20.2, so SERV E-RUN is 0/0.  The source and envelope remain
+external inputs, and the simulator and canonical-E receipts keep those inputs
+hash-pinned.
+
 ## 2026-11-18 cross-core follow-up
 
 The next two cores are DarkRISCV and FemtoRV32 Quark. They remain the nearest
