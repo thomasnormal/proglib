@@ -14,10 +14,11 @@ control, locals, and globals. `RControl` includes statement lists,
 expression continuations, sequencing and assignment continuations, and a
 raising state.
 
-`Label.tau` is silent. Event labels carry returns, refusals, choices, and
-raises. Resource raises are ordinary transitions into a raising control state.
-An uncaught raising state produces the corresponding raise event. The
-relation does not count fuel or store a resource point. `Step.choose` requires
+`RLabel.tau` is silent. Event labels carry returns, refusals, choices, and
+raises. Resource points are represented by `RControl.resourceChoice`, which
+has both a proceed transition and an ordinary transition into a raising
+control state. An uncaught raising state produces the corresponding raise
+event. The relation does not count fuel. `Step.choose` requires
 the token to belong to the choice's allowed set and records that token in its
 successor.
 
@@ -36,9 +37,10 @@ keyword arguments, `Global`, `Nonlocal`, `For`, `AugAssign`, `Delete`,
 formatted values, and comprehensions remain explicit nodes. This schema does
 not call `Json.lean`, perform a census, or lower a node.
 
-The decoder from the approved extractor envelope into this schema is the next
-machine task. Until it lands, the relation batch entry point reports a loud
-frontier refusal for compatibility envelopes.
+`parseMachineModule` decodes the approved extractor envelope into this schema.
+`compileMachineModule` is currently a small explicit frontier conversion for
+the relation's admitted scalar and control nodes. Unsupported machine nodes
+remain loud refusals until their relation cases land.
 
 ## Family order
 
@@ -55,12 +57,12 @@ mutates a module global, then calls `read` so the callee observes the new
 value. Keyword arguments, defaults, closures, redefinition identity, and
 class values remain refusals until their own cases land. Rows cover globals,
 definition order, redefinition, shadowing, nested calls, and defaults
-evaluated at definition time. Planned deletion targets are
+evaluated at definition time. The current deletion candidates that exist are
 `LeanModels/Python/Json.lean:parseFunctionDefn`,
-`LeanModels/Python/Script.lean:findFunction`, and
-`LeanModels/Python/Semantics.lean:globalCallEnv`. `scriptForwardName` is in
-`LeanModels/Python/Script.lean` and remains until the machine module system
-replaces it.
+`LeanModels/Python/Semantics.lean:findFunction`,
+`LeanModels/Python/Semantics.lean:globalCallEnv`, and
+`LeanModels/Python/Script.lean:scriptForwardName`. They remain until the
+relation's corresponding scope and module cases replace them.
 
 ### H registry and argument binder
 
@@ -90,8 +92,8 @@ is claimed for an absent symbol.
 
 ## Harness status
 
-`Main.lean` exposes `--relation-script-batch`. It currently emits structured
-refusals until the machine envelope decoder is connected. The harnesses print
+`Main.lean` exposes `--relation-script-batch` and runs the machine decoder and
+relation frontier. The harnesses print
 `MACHINE-REL scripts decided/166` and `MACHINE-REL cases decided/5033`, with
 divergence counts, and fail on divergence or runner and unit expectation
 errors. These are coverage measurements, not parity claims for refused rows.
