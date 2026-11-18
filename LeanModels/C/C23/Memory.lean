@@ -2638,6 +2638,15 @@ theorem reallocAt_null_storePtr (m : Mem) (size address : Nat) (q : Ptr)
   rw [reallocAt_null m size address hsize]
   rfl
 
+theorem reallocAt_null_storePtr_full (m : Mem) (size address : Nat) (q : Ptr)
+    (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.storePtr r.2 q) =
+      .ok ((m.mallocAt size address).1.storePtr
+        (m.mallocAt size address).2 q) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 theorem reallocAt_null_storePtrInt (m : Mem) (size address : Nat) (q : Ptr)
     (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
