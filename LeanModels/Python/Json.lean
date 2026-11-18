@@ -313,9 +313,12 @@ def parseParam (j : Json) : Except String Param :=
     let positionalOnly := match j.getObjVal? "positional_only" with
       | .ok (.bool b) => b
       | _ => false
+    let keywordOnly := match j.getObjVal? "keyword_only" with
+      | .ok (.bool b) => b
+      | _ => false
     return { arg := ← (← getField j "arg").getStr?
              span := ← parseSpan (← getField j "span")
-             default, positionalOnly }
+             default, positionalOnly, keywordOnly }
 
 partial def parseStmt (j : Json) : Except String Stmt := do
   let kind ← (← getField j "kind").getStr?

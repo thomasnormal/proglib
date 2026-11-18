@@ -864,7 +864,7 @@ def _convert_comprehension(node, g, kind=None, elt=None):
     }
 
 
-def convert_param(p, default=None, positional_only=False):
+def convert_param(p, default=None, positional_only=False, keyword_only=False):
     """Schema ``param``. ``default`` (a const payload) is emitted only when
     present, so envelopes of default-free sources are byte-identical to the
     pre-defaults format."""
@@ -873,6 +873,8 @@ def convert_param(p, default=None, positional_only=False):
         d["default"] = default
     if positional_only:
         d["positional_only"] = True
+    if keyword_only:
+        d["keyword_only"] = True
     return d
 
 
@@ -1547,10 +1549,18 @@ def _lambda_nested_def(node, enclosing):
                       positional_only=i < len(a.posonlyargs))
         for i, p in enumerate(plain)
     ]
+    kw_payloads = [literal_const_payload(d) if d is not None else None
+                   for d in a.kw_defaults]
+    if any(d is not None and payload is None
+           for d, payload in zip(a.kw_defaults, kw_payloads)):
+        reasons.append("defaults")
+        kw_payloads = [None] * len(a.kwonlyargs)
+    params.extend(
+        convert_param(p, kw_payloads[i], keyword_only=True)
+        for i, p in enumerate(a.kwonlyargs)
+    )
     if a.vararg is not None:
         reasons.append("*args")
-    if a.kwonlyargs:
-        reasons.append("keyword-only args")
     if a.kwarg is not None:
         reasons.append("**kwargs")
     if enclosing is None:
@@ -1843,10 +1853,18 @@ def convert_stmt(node, enclosing=None, module_scope=False,
                           positional_only=i < len(a.posonlyargs))
             for i, p in enumerate(plain)
         ]
+        kw_payloads = [literal_const_payload(d) if d is not None else None
+                       for d in a.kw_defaults]
+        if any(d is not None and payload is None
+               for d, payload in zip(a.kw_defaults, kw_payloads)):
+            reasons.append("defaults")
+            kw_payloads = [None] * len(a.kwonlyargs)
+        params.extend(
+            convert_param(p, kw_payloads[i], keyword_only=True)
+            for i, p in enumerate(a.kwonlyargs)
+        )
         if a.vararg is not None:
             reasons.append("*args")
-        if a.kwonlyargs:
-            reasons.append("keyword-only args")
         if a.kwarg is not None:
             reasons.append("**kwargs")
         if node.decorator_list:

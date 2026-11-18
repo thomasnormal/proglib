@@ -137,7 +137,7 @@
   {
     "source": "harness/scripts/function_keyword_only.py",
     "envelope": "harness/scripts/function_keyword_only.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_positional_only.py",

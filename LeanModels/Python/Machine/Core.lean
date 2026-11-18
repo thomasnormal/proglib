@@ -109,7 +109,8 @@ def findFunction : List FunctionDefn → String → Option FunctionDefn
 def bindParams : List Param → List RVal → Option REnv
   | [], [] => some []
   | parameter :: params, value :: values =>
-      bindParams params values |>.map (fun env => (parameter.arg, value) :: env)
+      if parameter.keywordOnly then none
+      else bindParams params values |>.map (fun env => (parameter.arg, value) :: env)
   | parameter :: params, [] =>
       match parameter.default with
       | some value =>
@@ -128,7 +129,7 @@ def keywordDrop (name : String) : List (String × RVal) → List (String × RVal
 def bindParamsWithKeywords : List Param → List RVal → List (String × RVal) → Option REnv
   | [], [], [] => some []
   | parameter :: params, value :: values, keywords =>
-      if keywordLookup parameter.arg keywords |>.isSome then none
+      if parameter.keywordOnly || (keywordLookup parameter.arg keywords).isSome then none
       else bindParamsWithKeywords params values keywords
         |>.map (fun env => (parameter.arg, value) :: env)
   | parameter :: params, [], keywords =>

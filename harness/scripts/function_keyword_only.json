@@ -41,8 +41,23 @@
           "end_col_offset": 12
         },
         "name": "answer",
-        "args": [],
-        "args_unsupported": "keyword-only args",
+        "args": [
+          {
+            "arg": "x",
+            "span": {
+              "lineno": 3,
+              "col_offset": 14,
+              "end_lineno": 3,
+              "end_col_offset": 15
+            },
+            "default": {
+              "type": "int",
+              "repr": "7"
+            },
+            "keyword_only": true
+          }
+        ],
+        "args_unsupported": null,
         "locals_unsupported": null,
         "body": [
           {
