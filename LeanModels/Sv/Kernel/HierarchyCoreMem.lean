@@ -15,6 +15,7 @@ namespace LeanModels.Sv.Kernel
 open LeanModels.Sv
 set_option autoImplicit false
 
+mutual
 private def hExpr (pfx : String) : PExpr → PExpr
   | .ident n => .ident (pfx ++ n)
   | .arrayElem n is => .arrayElem (pfx ++ n) (is.map (hExpr pfx))
@@ -33,9 +34,30 @@ private def hExpr (pfx : String) : PExpr → PExpr
   | .cast s a => .cast s (hExpr pfx a)
   | .repl n a => .repl (hExpr pfx n) (hExpr pfx a)
   | .functionCall n xs => .functionCall n (xs.map (hExpr pfx))
-  | .aggregateMember n path => .aggregateMember (pfx ++ n) path
+  | .aggregateMember n path =>
+      .aggregateMember (pfx ++ n)
+        (hExprPath pfx path)
   | e@(.paramRef ..) | e@(.genvarRef ..) | e@(.enumRef ..)
   | e@(.int ..) | e@(.fill ..) | e@(.lit ..) | e@(.unsupported ..) => e
+
+private def hExprPath (pfx : String) : List (Option String × Option PExpr) →
+    List (Option String × Option PExpr)
+  | [] => []
+  | (field, index) :: rest =>
+      (field, hExprOpt pfx index) :: hExprPath pfx rest
+
+private def hExprOpt (pfx : String) : Option PExpr → Option PExpr
+  | none => none
+  | some e => some (hExpr pfx e)
+end
+
+private def aggregateIndexRenameProbe : PExpr :=
+  hExpr "u." (.aggregateMember "state"
+    [(some "value", none), (none, some (.ident "sel_i"))])
+
+#guard aggregateIndexRenameProbe ==
+  .aggregateMember "u.state"
+    [(some "value", none), (none, some (.ident "u.sel_i"))]
 
 /-! A child is elaborated at its own parameter point before the hierarchy
 merger hoists its source nodes into the parent's canonical memory design.
