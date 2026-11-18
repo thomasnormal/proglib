@@ -187,12 +187,6 @@ theorem floor_tenth :
 theorem remainder_tenth :
     float_lab.remainder_tenth() ==> Float64.ofBits 0x3fb9999999999996 := by proofs
 
-theorem floor_infinite :
-    float_lab.floor_infinite() ==> Float64.ofBits 0xbff0000000000000 := by proofs
-
-theorem remainder_infinite :
-    float_lab.remainder_infinite() ==> Float64.ofBits 0xfff0000000000000 := by proofs
-
 theorem floor_augmented :
     float_lab.floor_augmented() ==> Float64.ofBits 0x3ff0000000000000 := by proofs
 
@@ -201,8 +195,6 @@ theorem floor_zero_caught :
 
 #print axioms floor_tenth
 #print axioms remainder_tenth
-#print axioms floor_infinite
-#print axioms remainder_infinite
 #print axioms floor_augmented
 #print axioms floor_zero_caught
 #print axioms infinity_literal

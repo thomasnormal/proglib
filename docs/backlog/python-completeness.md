@@ -17297,3 +17297,18 @@ the normalized pass/constant call subcases are also proved.  The first
 unproved equation is therefore the nonempty call head itself: its argument
 list and body continuation must be related across `K.call`/`callInM` and the
 legacy `callIn`/`execStmts` fuel descent before the tail induction can start.
+## 2026-11-18-pyfoundation-float-lab-floor-infinite — park concrete proof over hosted memory
+
+`float_lab.floor_infinite` and `float_lab.remainder_infinite` keep their unchanged
+statements, source `#py_check` lines, and differential rows. Their proofs are preserved in `docs/parked/float_lab_floor_infinite.lean`
+and is available through the explicit `FloatLabFloorInfiniteParked` Lake target.
+The default example proof target omits only this memory-heavy reduction.
+
+| Measurement | Result |
+|---|---|
+| Worker | exceeded 12 GiB during kernel reduction without producing an object file |
+| Default target | remaining `float_lab` proof modules are split and compile independently |
+| Semantic change | none |
+
+DECIDED: park this theorem at the measured memory wall and keep the exact
+statement until a smaller worker-level proof is available.

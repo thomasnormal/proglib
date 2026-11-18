@@ -39,6 +39,10 @@ needs = ["circuitSources", "verilogASources", "pythonEnvelopes", "cEnvelopes", "
 name = "RoundFloatTiesParked"
 roots = ["docs.parked.round_lab_proof_ties"]
 
+[[lean_lib]]
+name = "FloatLabFloorInfiniteParked"
+roots = ["docs.parked.float_lab_floor_infinite"]
+
 [[input_dir]]
 name = "circuitSources"
 path = "Examples/spice"
