@@ -332,6 +332,14 @@ def rBindKeywordDefaults : REnv → List RParam → List (Option RVal) → Optio
   | env, parameter :: rest, [] =>
       if parameter.keywordOnly then none else rBindKeywordDefaults env rest []
 
+def rBindPositionalDefaults : REnv → List RParam → List RVal → Option REnv
+  | env, [], _ => some env
+  | env, parameter :: rest, value :: values =>
+      if Option.isSome (rLookupEnv env parameter.name) then
+        rBindPositionalDefaults env rest values
+      else rBindPositionalDefaults ((parameter.name, value) :: env) rest values
+  | _, _, [] => none
+
 def rBindArguments (params : Array RParam) (defaults : Array RVal)
     (keywordDefaults : Array (Option RVal)) (values : List RVal)
     (keywords : List (String × RVal)) (kwargsValue : Option RVal) : Option REnv :=
@@ -346,10 +354,8 @@ def rBindArguments (params : Array RParam) (defaults : Array RVal)
   else if variadic.isEmpty && values.length > positional.length then none
   else
     let missing := positional.length - values.length
-    let usedDefaults := defaults.toList.drop (defaults.size - missing)
     let supplied := values.take positional.length
-    let initialEnv := (positional.map (fun parameter => parameter.name)).zip
-      (supplied ++ usedDefaults)
+    let initialEnv := (positional.map (fun parameter => parameter.name)).zip supplied
     let withVariadic :=
       match variadic with
       | [] => initialEnv
@@ -362,7 +368,12 @@ def rBindArguments (params : Array RParam) (defaults : Array RVal)
     match rBindKeywords withKeywordVariadic parameters keywords with
     | some env =>
         if !keywordVariadic.isEmpty && kwargsValue.isNone then none
-        else rBindKeywordDefaults env parameters keywordDefaults.toList
+        else
+          let defaultParameters := positional.drop (positional.length - defaults.size)
+          match rBindPositionalDefaults env defaultParameters defaults.toList with
+          | some withPositionalDefaults =>
+              rBindKeywordDefaults withPositionalDefaults parameters keywordDefaults.toList
+          | none => none
     | none => none
 
 def rCallFrame (function : RFunction) (values : List RVal)
@@ -1122,6 +1133,14 @@ private def bKeywordDefaultModule : RModule :=
       .ret (some (.call (.name "keyworded" testSpan)
         #[.constant (.int 1) testSpan] #[] none testSpan)) testSpan] }
 
+private def bMixedDefaultKeywordModule : RModule :=
+  { body := #[
+      .functionDefKw "show" #[{ name := "left" }, { name := "right" }] #[.constant (.int 0) testSpan]
+        #[] #[.expr (.call (.name "print" testSpan)
+          #[.name "left" testSpan, .name "right" testSpan] #[] none testSpan) testSpan] testSpan,
+      .expr (.call (.name "show" testSpan) #[.constant (.int 1) testSpan]
+        #[("right", Expr.constant (.int 2) testSpan)] none testSpan) testSpan] }
+
 private def bPositionalOnlyModule : RModule :=
   { body := #[
       .functionDef "positional" #[{ name := "value", positionalOnly := true }] #[]
@@ -1210,6 +1229,9 @@ example :
 #guard (runB1 16 (RConfig.initial bBuiltinModule)).1 ==
   [.tau, .tau, .tau, .tau, .tau, .event (.output "hello"), .tau,
     .event (.return .none)]
+
+#guard (runB1 128 (RConfig.initial bMixedDefaultKeywordModule)).2.status ==
+  .finished (.return .none)
 
 example :
     (runB1 128 (RConfig.initial bClosureModule)).2.status =

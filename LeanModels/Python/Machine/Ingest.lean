@@ -48,6 +48,7 @@ deriving Repr, Inhabited, BEq
 structure MArg where
   name : String
   annotation : Option MExpr := none
+  default : Option MExpr := none
 deriving Repr, Inhabited, BEq
 
 structure MArguments where
@@ -184,8 +185,13 @@ partial def mExpr (j : Json) : Except String MExpr := do
   | _ => pure (.unsupported kind span)
 
 private def mArg (j : Json) : Except String MArg := do
+  let default ← match j.getObjVal? "default" with
+    | .ok value =>
+        let span ← mSpan (← mField j "span")
+        some <$> (pure (.constant (← mConst value) span))
+    | .error _ => pure none
   pure { name := ← (← mField j "arg").getStr?
-         annotation := none }
+         annotation := none, default }
 
 private def mArguments (j : Json) : Except String MArguments := do
   let positionalOnly ← (← (← mField j "posonlyargs").getArr?).mapM mArg
@@ -213,7 +219,7 @@ private def mFunctionArguments (j : Json) : Except String MArguments := do
           keywordOnly := #[]
           kwDefaults := #[]
           kwarg := none
-          defaults := #[] }
+          defaults := positional.filterMap MArg.default }
       pure result
   | _ => mArguments j
 
@@ -372,6 +378,24 @@ private def ingestKwargModule : Json :=
 
 #guard match parseMachineModule ingestKwargModule with
   | .ok { body := #[.functionDef _ args _ _ _ _] } => args.kwarg.isSome
+  | _ => false
+
+private def ingestDefaultArguments : Json :=
+  Lean.Json.arr #[Lean.Json.mkObj [("arg", Lean.toJson "left")],
+    Lean.Json.mkObj [("arg", Lean.toJson "right"), ("span", ingestSpan),
+      ("default", Lean.Json.mkObj [("type", Lean.toJson "int"), ("repr", Lean.toJson "0")])]]
+
+private def ingestDefaultModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [("kind", Lean.toJson "Module"),
+    ("body", Lean.Json.arr #[Lean.Json.mkObj [("kind", Lean.toJson "FunctionDef"),
+      ("span", ingestSpan), ("name", Lean.toJson "show"), ("args", ingestDefaultArguments),
+      ("body", Lean.Json.arr #[])]] )])]
+
+#guard match parseMachineModule ingestDefaultModule with
+  | .ok module =>
+      match (compileMachineModule module).body.toList with
+      | [.functionDef _ _ defaults _ _] => defaults.size == 1
+      | _ => false
   | _ => false
 
 #guard match parseMachineModule ingestKwargModule with
