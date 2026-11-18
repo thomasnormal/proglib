@@ -110,6 +110,7 @@ inductive RKont where
   | assign (name : String) (remaining : List RStmt)
   | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
+  | unaryValue (op : UnaryOp) (continuation : RKont)
   | subscriptValue (index : Expr) (continuation : RKont)
   | subscriptIndex (receiver : RVal) (continuation : RKont)
   | tupleElements (remaining : List Expr) (values : List RVal) (continuation : RKont)
@@ -477,6 +478,13 @@ def rTruthy : RVal → Bool
   | .listV values => !values.isEmpty
   | _ => true
 
+def rEvalUnary (op : UnaryOp) (value : RVal) : Option RVal :=
+  match op, value with
+  | .usub, .int number => some (.int (-number))
+  | .uadd, .int number => some (.int number)
+  | .not, value => some (.bool (!rTruthy value))
+  | _, _ => none
+
 def RConfig.finish (config : RConfig) (event : REvent) : RConfig :=
   { config with frames := [], status := .finished event }
 
@@ -812,6 +820,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               (.evaluate function (.callCallee args.toList keywordList continuation)))
       | .evaluate (.binOp left op right _) continuation =>
           some (.tau, config.setControl (.evaluate left (.binOpLeft op right continuation)))
+      | .evaluate (.unaryOp op operand _) continuation =>
+          some (.tau, config.setControl (.evaluate operand (.unaryValue op continuation)))
       | .evaluate (.subscript receiver index _) continuation =>
           some (.tau, config.setControl (.evaluate receiver (.subscriptValue index continuation)))
       | .evaluate (.tuple elements _) continuation =>
@@ -865,6 +875,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                     some (.tau, next)
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
+      | .continueValue value (.unaryValue op continuation) =>
+          match rEvalUnary op value with
+          | some result => some (.tau, config.setControl (.continueValue result continuation))
+          | none => some (.tau, config.setControl (.refusing "machine unary operator"))
       | .continueValue receiver (.subscriptValue index continuation) =>
           some (.tau, config.setControl (.evaluate index (.subscriptIndex receiver continuation)))
       | .continueValue value (.ifBranch body orelse remaining) =>
@@ -1272,7 +1286,7 @@ example :
 
 
 #guard (runB1 8 (RConfig.initial b1RefusalModule)).2.status ==
-  .finished (.refuse "machine expression")
+  .finished (.return .none)
 
 example : (runB1 32 (RConfig.initial b1Module)).2.status =
     .finished (.return .none) := by
