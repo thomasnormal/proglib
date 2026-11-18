@@ -114,6 +114,17 @@ endmodule
 """
 
 
+PACKAGE_ENUM_DIMENSIONS = """
+package ep_dim;
+  parameter int W = 4;
+  typedef enum logic [W-1:0] {PA = 0, PB = 1} p_t;
+endpackage
+module enum_dim_top (input ep_dim::p_t x, output logic [3:0] y);
+  assign y = x;
+endmodule
+"""
+
+
 class EnumMemberValues(unittest.TestCase):
     def test_point_dependent_member_is_refused(self):
         env = extract_sym(ENUMS, "en")
@@ -128,6 +139,17 @@ class EnumMemberValues(unittest.TestCase):
         # over-refusal (FB is 3 wherever it fits; test_sym_folds7.py).
         self.assertEqual(kinds(procs[1]), ["EnumValueSymbol:default-point-value"])
         self.assertEqual(kinds(procs[2]), [])
+
+
+class PackageEnumDimensions(unittest.TestCase):
+    def test_package_parameter_dimension_keeps_symbolic_bound(self):
+        env = extract_sym(PACKAGE_ENUM_DIMENSIONS, "enum_dim_top")
+        base = env["design"]["modules"][0]["types"][0]["base_width"]
+        self.assertEqual(base["packed"][0]["msb"]["kind"], "Binary")
+        left = base["packed"][0]["msb"]["left"]
+        self.assertEqual((left["kind"], left["name"], left["from_package"]),
+                         ("ParamRef", "W", "ep_dim"))
+        self.assertNotIn("VariableSymbol:type", kinds(env))
 
 
 OVERRIDES = """

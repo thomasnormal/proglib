@@ -1147,3 +1147,14 @@ no Icarus oracle result is claimed. The pattern is represented as a four-state
 concat, never as a scalar integer. Parameter-dependent packed widths remain
 loud. This clears the fixed-width row while retaining the exact
 default-point boundary for the unresolved family.
+
+## Package-enum symbolic dimensions — 2026-11-18
+
+The extractor now resolves packed-enum dimension identifiers in the
+parser-owned package scope. A package enum such as
+`typedef enum logic [W-1:0] {PA = 0, PB = 1} p_t` retains `W` as a
+source-shaped `ParamRef` with package provenance, alongside the elaborated
+width as secondary metadata. This removes the earlier
+`Syntax:Identifier:unresolved` ingestion loss without changing the enum's
+four-state value semantics or claiming a canonical-E row. The regression
+covers the parameterized package enum and the existing symbolic enum suite.

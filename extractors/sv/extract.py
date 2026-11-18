@@ -31134,6 +31134,21 @@ class _SymPos:
         return False
 
 
+class _SymScope:
+    """Temporarily resolve syntax-recovered names in another Slang scope."""
+
+    def __init__(self, scope):
+        self.scope = scope
+
+    def __enter__(self):
+        self.saved = _SYM.scope
+        _SYM.scope = self.scope
+
+    def __exit__(self, *exc):
+        _SYM.scope = self.saved
+        return False
+
+
 class _SymDeclInit:
     """with _SymDeclInit(): keep declaration initializers on their own tier."""
 
@@ -31378,6 +31393,15 @@ def _enum_base_node(sm, ct):
                                 "value": 0, "resolved_width": None},
                     }]
             else:
+                package_scope = None
+                try:
+                    for ev in _enum_members(ct):
+                        pkg = _pkg_of(ev)
+                        if pkg is not None:
+                            package_scope = _SYM.comp.getPackage(pkg)
+                        break
+                except Exception:
+                    package_scope = None
                 for c in syn:
                     k = getattr(c, "kind", None)
                     if k not in (SyntaxKind.LogicType, SyntaxKind.RegType,
@@ -31392,8 +31416,12 @@ def _enum_base_node(sm, ct):
                         getattr(child, "kind", None)
                         == SyntaxKind.VariableDimension
                         for child in _syntax_children(c))
-                    packed = (_syntax_packed_dims(sm, c)
-                              if has_dimension else [])
+                    if has_dimension and package_scope is not None:
+                        with _SymScope(package_scope):
+                            packed = _syntax_packed_dims(sm, c)
+                    else:
+                        packed = (_syntax_packed_dims(sm, c)
+                                  if has_dimension else [])
                     break
     except Exception:
         packed = None
