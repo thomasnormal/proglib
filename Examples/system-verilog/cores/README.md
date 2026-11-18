@@ -722,3 +722,19 @@ Xcelium 24.03-s004 both print `q=11`.
 The change landed on public master as `af38185ce` after general-lane review.
 It remains a general-lane CoreMemExec change, and it leaves the PicoRV32 census
 and E-RUN counts unchanged.
+
+## 2026-11-18 DarkRISCV current-master cycle probe
+
+The public-master one-rank memory route was audited at commit
+`a62902298766f7fc7a8187f19ef62b416454ba73` with the current DarkRISCV
+source-overlay envelope.  `PDesign.instantiateCoreMem [0]` reports one memory
+and 68 retained processes, and `CoreMemDesign.initialState` returns `ok`.
+This is a real transition past the former `REGS` storage wall.
+
+The next probe supplied one source-shaped input row with `CLK=1`, `RES=1`,
+`IRQ=0`, `IDATA=0x00000013`, `IDACK=1`, `IBERR=0`, `DATAI=0`, `DDACK=1`, and
+`DBERR=0`.  A bounded 180-second evaluation of `CoreMemDesign.step` did not
+return.  No canonical-E cycle or E-RUN agreement is claimed from that attempt.
+The checked-in DarkRISCV receipt remains pinned to the branch's earlier
+`REGS` refusal until the public memory route is available here for a complete
+cycle measurement.
