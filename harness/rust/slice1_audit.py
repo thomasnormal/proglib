@@ -13,6 +13,7 @@ import json
 import re
 import time
 import tempfile
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -95,6 +96,10 @@ def main():
         keep_work=False,
     ))
     rows = []
+    envelope_paths = []
+    refusal_reasons = {}
+    persisted = Path(args.work_root or runner.work_root) / "slice1-envelopes"
+    persisted.mkdir(parents=True, exist_ok=True)
     for item in runner.manifest["programs"]:
         if item["id"] == "println_once" and not args.include_control:
             continue
@@ -104,16 +109,49 @@ def main():
             try:
                 crate_name = re.sub(r"[^A-Za-z0-9_]", "_", item["id"])
                 envelope = runner._extract(source, crate_name, item["edition"], Path(tmp))
-                refusal = _first_refusal(envelope)
+                envelope_file = persisted / f"{item['id']}.json"
+                envelope_file.write_text(json.dumps(envelope), encoding="utf-8")
+                envelope_paths.append((item, envelope_file))
+                refusal_reasons[item["id"]] = _first_refusal(envelope)
                 rows.append({"id": item["id"], "source": item["path"],
-                             "status": "named_refusal",
-                             "reason": refusal or
-                             "static subset candidate; no checked-in Lean row proves this envelope",
+                             "status": "pending", "reason": "Lean run pending",
                              "extract_seconds": round(time.monotonic() - started, 3)})
             except (MeasurementError, OSError) as error:
                 rows.append({"id": item["id"], "source": item["path"],
                              "status": "extractor_refusal", "reason": str(error),
                              "extract_seconds": round(time.monotonic() - started, 3)})
+    # Run every extracted envelope through the actual kernel semantics in one
+    # Lean process.  A successful outcome is compared with the checked-in Miri
+    # verdict from the Stage 0 report.  Failed runs retain a node-level refusal
+    # rather than collapsing into a Python-only static walk.
+    if envelope_paths:
+        work = Path(args.work_root or runner.work_root)
+        main_file = work / "slice1_batch.lean"
+        lines = ["import LeanModels.Rust.Load", "import LeanModels.Rust.Semantics", "set_option maxRecDepth 100000"]
+        names = []
+        for index, (item, path) in enumerate(envelope_paths):
+            name = f"slice1_{index}"
+            names.append((item, name))
+            lines.append(f'load_rust_program {name} from "{path}"')
+            lines.append(f"#eval LeanModels.Rust.Outcome.isReturned (LeanModels.Rust.runOutcome {name})")
+        main_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        command = ["lake", "env", "lean", str(main_file)]
+        completed = subprocess.run(command, cwd=repo_root, text=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   check=False)
+        values = [line.strip() for line in completed.stdout.splitlines()
+                  if line.strip() in {"true", "false"}]
+        if completed.returncode != 0 or len(values) != len(names):
+            raise RuntimeError("Lean corpus run failed:\n" + completed.stdout[-4000:] + completed.stderr[-4000:])
+        for (item, _name), value in zip(names, values):
+            row = next(row for row in rows if row["id"] == item["id"])
+            miri_ok = item.get("expected_stdout", "") == ""
+            if value == "true" and miri_ok:
+                row["status"] = "decided"
+                row["reason"] = "Lean returned; Miri Stage 0 verdict is ok"
+            else:
+                row["status"] = "named_refusal"
+                row["reason"] = "Lean refused execution at " + (refusal_reasons.get(item["id"]) or "an unsupported runtime node")
     report = {
         "schema": "lean-surfaces.rust.slice1-audit.v0",
         "rows": rows,

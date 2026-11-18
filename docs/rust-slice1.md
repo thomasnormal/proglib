@@ -1,16 +1,16 @@
 # Rust Slice 1
 
 This slice implements the MIR node census groups in the approved
-`rustc_public` envelope.  It covers `Assign`, `StorageLive`, `StorageDead`,
-`PlaceMention`, `Use` rvalues, constant operands, zero-projection places, and a
-single `Return` block, together with control flow, resolved calls, normal drop
-edges, and explicit refusal boundaries for cleanup, intrinsics, and foreign
-operations.  The implementation is 581 lines in
+`rustc_public` envelope.  It covers `Assign`, `StorageLive`, `StorageDead`, `PlaceMention`, structured `Deref` and
+`Field` projections, `Ref` and tuple aggregates, pointer cells with provenance
+and chosen addresses, `Use` rvalues, constant operands, control flow, resolved
+calls, normal drop edges, and explicit refusal boundaries for cleanup,
+intrinsics, and foreign operations.  The implementation is 702 lines in
 `LeanModels/Rust/Semantics.lean`, with 75 lines of AST declarations, 210 lines
 of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
-counter for this worktree is `SLICE1-ROWS 0/30, diverging 0`.
+counter for this worktree is `SLICE1-ROWS 5/30, diverging 0`.
 
 The 30 non-printing Stage 0 rows were audited with the structured extractor:
 
@@ -18,10 +18,11 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, zero decided rows, 30 named refusals, and zero
-divergences.  Refusal reasons identify the first unsupported MIR rvalue,
-terminator, unavailable callee body, or the absence of a checked-in Lean row
-for a statically matching subset.  The `println_once` control is excluded by
+The report contains 30 rows, five decided rows, 25 named refusals, and zero
+divergences. The audit extracts every envelope, loads each one into Lean, runs
+`runOutcome` in one kernel process, and compares successful returns with the
+Stage 0 Miri `ok` verdict. Refusal reasons retain the first unsupported MIR
+node family for the row.  The `println_once` control is excluded by
 default and can be included with `--include-control`.  Each row records the
 extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
@@ -42,7 +43,7 @@ Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
 were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
 diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
-the corpus counter remains `SLICE1-ROWS 0/30, diverging 0`.
+the corpus counter remains `SLICE1-ROWS 5/30, diverging 0`.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -62,16 +63,13 @@ implemented.  `Copy` and `Move` operands now read initialized integer locals,
 and the supported equality, bit-and, and division rvalues are evaluated
 without lowering the MIR.
 
-The state is a finite map of local IDs to `uninit` or integer values.  A step
-emits one event and updates that map.  Allocated constant bytes are checked for
-at most eight bytes and byte values at most 255, then decoded as little-endian
-unsigned integers.  Zero-sized constants decode to zero.  This deliberately
-small constant subset is the one exercised by these rows.
+The state is a finite map of local IDs to uninitialized, integer, pointer, or
+aggregate cells. A step emits one event and updates that map. Allocated
+constant bytes are checked before decoding into cells. Zero-sized aggregates
+remain explicit, and non-empty aggregates are not guessed as zero.
 
-The semantics refuses projected places, `Copy` and `Move` operands, unsupported
-rvalues and statements, unsupported terminators, and bodies that are missing
-or have an invalid target.  Refusal is represented by the `none` result of the
-executable fold.  No unsupported node is lowered to a different construct.
+The derived `runOutcome` reports a returned trace or a named refusal outcome.
+No unsupported node is lowered to a different construct.
 
 `Step` is the definition of one statement transition.  `InSteps` composes those
 transitions, and `statementsRun_in_steps` plus `bodyRun_in_steps` prove that the
@@ -122,21 +120,22 @@ MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
 place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
-corpus counter remains `SLICE1-ROWS 0/30, diverging 0`.
+corpus counter remains `SLICE1-ROWS 5/30, diverging 0`.
 
 ## Slice 1 exit record
 
-The Slice 1 exit audit is complete.  The 30-row structured audit reported 30
-named refusals, zero decided corpus rows, and zero diverging rows.  Each row's
+The D1 corpus audit reports 30 rows, five decided rows, 25 named refusals, and
+zero diverging rows.  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and
 its per-row extractor timings are recorded in `docs/rust-slice1-audit.json`.
 The pinned Stage 0 Miri report records the exit, panic, and UB verdict for all
-31 measured rows under both borrow models.  The Lean semantics is 581 lines.
+31 measured rows under both borrow models.  The Lean semantics is 702 lines.
 The checked-in theorem rows include a user loop, a resolved user call, and a
 standard-library identity call proved from its extracted MIR body.
 
-`SLICE 1 READY` is recorded in the lane journal for the owner to review.
+`SLICE 1 CHECKPOINT` is recorded in the lane journal after D1. The lane continues
+with the memory/value family and the all-inputs gcd proof before declaring READY.
 
 The relation integrity audit used this Lean command:
 

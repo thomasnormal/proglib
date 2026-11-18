@@ -5,214 +5,214 @@
       "id": "study_for_vec",
       "source": "measurement_programs/study/01_for_vec.rs",
       "status": "named_refusal",
-      "reason": "rvalue Cast at _RNvCsd7FEqVnaBj8_13study_for_vec4main:b1:s0",
-      "extract_seconds": 0.557
+      "reason": "Lean refused execution at rvalue Cast at _RNvCsd7FEqVnaBj8_13study_for_vec4main:b1:s0",
+      "extract_seconds": 0.162
     },
     {
       "id": "study_iterator_chain",
       "source": "measurement_programs/study/02_iterator_chain.rs",
       "status": "named_refusal",
-      "reason": "rvalue Aggregate at _RNvCshipe5na9avQ_20study_iterator_chain4main:b0:s4",
-      "extract_seconds": 0.199
+      "reason": "Lean refused execution at rvalue Aggregate at _RNvCshipe5na9avQ_20study_iterator_chain4main:b0:s4",
+      "extract_seconds": 0.149
     },
     {
       "id": "study_match_or_guard",
       "source": "measurement_programs/study/03_match_or_guard.rs",
       "status": "named_refusal",
-      "reason": "rvalue Aggregate at _RNvCsk4M1DTembBn_20study_match_or_guard4main:b0:s5",
-      "extract_seconds": 0.087
+      "reason": "Lean refused execution at rvalue Aggregate at _RNvCsk4M1DTembBn_20study_match_or_guard4main:b0:s5",
+      "extract_seconds": 0.082
     },
     {
       "id": "study_closures",
       "source": "measurement_programs/study/04_closures.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCs5Jnb55tlxKo_14study_closures4main:b0:s4",
-      "extract_seconds": 0.092
+      "reason": "Lean refused execution at rvalue Ref at _RNvCs5Jnb55tlxKo_14study_closures4main:b0:s4",
+      "extract_seconds": 0.091
     },
     {
       "id": "study_drop_struct",
       "source": "measurement_programs/study/05_drop_struct.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCscslY4Dnd5Qk_17study_drop_struct4main:b2:s9",
-      "extract_seconds": 0.127
+      "reason": "Lean refused execution at rvalue Ref at _RNvCscslY4Dnd5Qk_17study_drop_struct4main:b2:s9",
+      "extract_seconds": 0.095
     },
     {
       "id": "study_generic_trait",
       "source": "measurement_programs/study/06_generic_trait.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCs9Jvy7cw42KC_19study_generic_trait4main:b1:s0",
-      "extract_seconds": 0.062
+      "reason": "Lean refused execution at rvalue Ref at _RNvCs9Jvy7cw42KC_19study_generic_trait4main:b1:s0",
+      "extract_seconds": 0.083
     },
     {
       "id": "study_question_mark",
       "source": "measurement_programs/study/07_question_mark.rs",
       "status": "named_refusal",
-      "reason": "rvalue Aggregate at _RNvCskouW2nCaI7F_19study_question_mark4main:b0:s5",
-      "extract_seconds": 0.068
+      "reason": "Lean refused execution at rvalue Aggregate at _RNvCskouW2nCaI7F_19study_question_mark4main:b0:s5",
+      "extract_seconds": 0.107
     },
     {
       "id": "study_async",
       "source": "measurement_programs/study/08_async.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCscfgKIOjA5Ox_11study_async4main:b2:s1",
-      "extract_seconds": 0.129
+      "reason": "Lean refused execution at rvalue Ref at _RNvCscfgKIOjA5Ox_11study_async4main:b2:s1",
+      "extract_seconds": 0.102
     },
     {
       "id": "study_derive",
       "source": "measurement_programs/study/09_derive.rs",
       "status": "named_refusal",
-      "reason": "rvalue Aggregate at _RNvCscItkQonpJJc_12study_derive4main:b0:s1",
-      "extract_seconds": 0.35
+      "reason": "Lean refused execution at rvalue Aggregate at _RNvCscItkQonpJJc_12study_derive4main:b0:s1",
+      "extract_seconds": 0.372
     },
     {
       "id": "study_while_gcd",
       "source": "measurement_programs/study/10_while_gcd.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCsiQfy8kqUaFp_15study_while_gcd4main:b1:s0",
-      "extract_seconds": 0.082
+      "reason": "Lean refused execution at rvalue Ref at _RNvCsiQfy8kqUaFp_15study_while_gcd4main:b1:s0",
+      "extract_seconds": 0.094
     },
     {
       "id": "rustc_ivec-pass-by-value",
       "source": "measurement_programs/rustc_run_pass/01_ivec-pass-by-value.rs",
       "status": "named_refusal",
-      "reason": "rvalue Cast at _RNvCsbZvLFSCT5mK_24rustc_ivec_pass_by_value4main:b1:s0",
-      "extract_seconds": 0.097
+      "reason": "Lean refused execution at rvalue Cast at _RNvCsbZvLFSCT5mK_24rustc_ivec_pass_by_value4main:b1:s0",
+      "extract_seconds": 0.127
     },
     {
       "id": "rustc_vec-repeat-with-cast",
       "source": "measurement_programs/rustc_run_pass/02_vec-repeat-with-cast.rs",
       "status": "named_refusal",
-      "reason": "rvalue Repeat at _RNvCsdEY6uBtOkmT_26rustc_vec_repeat_with_cast4main:b0:s1",
-      "extract_seconds": 0.03
+      "reason": "Lean refused execution at rvalue Repeat at _RNvCsdEY6uBtOkmT_26rustc_vec_repeat_with_cast4main:b0:s1",
+      "extract_seconds": 0.047
     },
     {
       "id": "rustc_nested-closure-call",
       "source": "measurement_programs/rustc_run_pass/03_nested-closure-call.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCslvsOnq4YuF5_25rustc_nested_closure_call4main:b0:s8",
-      "extract_seconds": 0.065
+      "reason": "Lean refused execution at rvalue Ref at _RNvCslvsOnq4YuF5_25rustc_nested_closure_call4main:b0:s8",
+      "extract_seconds": 0.067
     },
     {
       "id": "rustc_closure-returning-closure",
       "source": "measurement_programs/rustc_run_pass/04_closure-returning-closure.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main:b0:s9",
-      "extract_seconds": 0.062
+      "reason": "Lean refused execution at rvalue Ref at _RNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main:b0:s9",
+      "extract_seconds": 0.075
     },
     {
       "id": "rustc_move-arg",
       "source": "measurement_programs/rustc_run_pass/05_move-arg.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCsbFCi5TwATwF_14rustc_move_arg4test:b0:s3",
-      "extract_seconds": 0.065
+      "reason": "Lean refused execution at rvalue Ref at _RNvCsbFCi5TwATwF_14rustc_move_arg4test:b0:s3",
+      "extract_seconds": 0.094
     },
     {
       "id": "rustc_i32-sub",
       "source": "measurement_programs/rustc_run_pass/06_i32-sub.rs",
       "status": "named_refusal",
-      "reason": "rvalue CheckedBinaryOp at _RNvCsiV0uxyM0AAe_13rustc_i32_sub4main:b0:s4",
-      "extract_seconds": 0.064
+      "reason": "Lean refused execution at rvalue CheckedBinaryOp at _RNvCsiV0uxyM0AAe_13rustc_i32_sub4main:b0:s4",
+      "extract_seconds": 0.078
     },
     {
       "id": "rustc_return-nil",
       "source": "measurement_programs/rustc_run_pass/07_return-nil.rs",
       "status": "named_refusal",
-      "reason": "static subset candidate; no checked-in Lean row proves this envelope",
-      "extract_seconds": 0.056
+      "reason": "Lean refused execution at an unsupported runtime node",
+      "extract_seconds": 0.06
     },
     {
       "id": "rustc_match-bot-2",
       "source": "measurement_programs/rustc_run_pass/08_match-bot-2.rs",
-      "status": "named_refusal",
-      "reason": "static subset candidate; no checked-in Lean row proves this envelope",
-      "extract_seconds": 0.058
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
+      "extract_seconds": 0.051
     },
     {
       "id": "rustc_let-destruct-ref",
       "source": "measurement_programs/rustc_run_pass/09_let-destruct-ref.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCs8AEOLMOGifb_22rustc_let_destruct_ref4main:b0:s4",
-      "extract_seconds": 0.06
+      "reason": "Lean refused execution at rvalue Ref at _RNvCs8AEOLMOGifb_22rustc_let_destruct_ref4main:b0:s4",
+      "extract_seconds": 0.081
     },
     {
       "id": "rustc_multi-let",
       "source": "measurement_programs/rustc_run_pass/10_multi-let.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCshb0W9L6Kp5D_15rustc_multi_let4main:b0:s7",
-      "extract_seconds": 0.064
+      "reason": "Lean refused execution at rvalue Ref at _RNvCshb0W9L6Kp5D_15rustc_multi_let4main:b0:s7",
+      "extract_seconds": 0.071
     },
     {
       "id": "rustc_binop-mutate-lhs-in-rhs",
       "source": "measurement_programs/rustc_run_pass/11_binop-mutate-lhs-in-rhs.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCsjbU7n7m7VFy_29rustc_binop_mutate_lhs_in_rhs4main:b0:s3",
-      "extract_seconds": 0.066
+      "reason": "Lean refused execution at rvalue Ref at _RNvCsjbU7n7m7VFy_29rustc_binop_mutate_lhs_in_rhs4main:b0:s3",
+      "extract_seconds": 0.103
     },
     {
       "id": "rustc_const-prop-ice3",
       "source": "measurement_programs/rustc_run_pass/12_const-prop-ice3.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCsg7RhHEwJVML_21rustc_const_prop_ice34main:b0:s7",
-      "extract_seconds": 0.043
+      "reason": "Lean refused execution at rvalue Ref at _RNvCsg7RhHEwJVML_21rustc_const_prop_ice34main:b0:s7",
+      "extract_seconds": 0.057
     },
     {
       "id": "rustc_if-ret",
       "source": "measurement_programs/rustc_run_pass/13_if-ret.rs",
-      "status": "named_refusal",
-      "reason": "static subset candidate; no checked-in Lean row proves this envelope",
-      "extract_seconds": 0.082
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
+      "extract_seconds": 0.048
     },
     {
       "id": "rustc_return-in-block-tuple",
       "source": "measurement_programs/rustc_run_pass/14_return-in-block-tuple.rs",
-      "status": "named_refusal",
-      "reason": "static subset candidate; no checked-in Lean row proves this envelope",
-      "extract_seconds": 0.028
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
+      "extract_seconds": 0.043
     },
     {
       "id": "rustc_vector-no-ann-2",
       "source": "measurement_programs/rustc_run_pass/15_vector-no-ann-2.rs",
       "status": "named_refusal",
-      "reason": "terminator Resume at _RNvCs9qsj18IWarl_21rustc_vector_no_ann_24main:b4",
-      "extract_seconds": 0.085
+      "reason": "Lean refused execution at terminator Resume at _RNvCs9qsj18IWarl_21rustc_vector_no_ann_24main:b4",
+      "extract_seconds": 0.101
     },
     {
       "id": "rustc_generic-newtype-struct",
       "source": "measurement_programs/rustc_run_pass/16_generic-newtype-struct.rs",
-      "status": "named_refusal",
-      "reason": "rvalue Aggregate at _RNvCs2C44RoISYN0_28rustc_generic_newtype_struct4main:b0:s1",
-      "extract_seconds": 0.039
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
+      "extract_seconds": 0.048
     },
     {
       "id": "rustc_match-on-negative-integer-ranges",
       "source": "measurement_programs/rustc_run_pass/17_match-on-negative-integer-ranges.rs",
       "status": "named_refusal",
-      "reason": "rvalue Ref at _RNvCsa3Cr8Mqj8Hq_38rustc_match_on_negative_integer_ranges4main:b0:s4",
-      "extract_seconds": 0.071
+      "reason": "Lean refused execution at rvalue Ref at _RNvCsa3Cr8Mqj8Hq_38rustc_match_on_negative_integer_ranges4main:b0:s4",
+      "extract_seconds": 0.09
     },
     {
       "id": "rustc_by-value-self-method-on-int",
       "source": "measurement_programs/rustc_run_pass/18_by-value-self-method-on-int.rs",
-      "status": "named_refusal",
-      "reason": "static subset candidate; no checked-in Lean row proves this envelope",
-      "extract_seconds": 0.039
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
+      "extract_seconds": 0.063
     },
     {
       "id": "rustc_new-unsafe-pointers",
       "source": "measurement_programs/rustc_run_pass/19_new-unsafe-pointers.rs",
       "status": "named_refusal",
-      "reason": "rvalue Cast at _RNvCs4KA0xizW0U3_25rustc_new_unsafe_pointers4main:b0:s1",
-      "extract_seconds": 0.031
+      "reason": "Lean refused execution at rvalue Cast at _RNvCs4KA0xizW0U3_25rustc_new_unsafe_pointers4main:b0:s1",
+      "extract_seconds": 0.036
     },
     {
       "id": "rustc_empty-mutable-vec",
       "source": "measurement_programs/rustc_run_pass/20_empty-mutable-vec.rs",
       "status": "named_refusal",
-      "reason": "terminator Resume at _RNvCsa4rCQZEVKgX_23rustc_empty_mutable_vec4main:b3",
-      "extract_seconds": 0.052
+      "reason": "Lean refused execution at terminator Resume at _RNvCsa4rCQZEVKgX_23rustc_empty_mutable_vec4main:b3",
+      "extract_seconds": 0.063
     }
   ],
-  "decided_rows": 0,
-  "named_refusals": 30,
+  "decided_rows": 5,
+  "named_refusals": 25,
   "diverging": 0
 }

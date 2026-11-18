@@ -50,8 +50,19 @@ private def place (j : Json) : Except String Place := do
   let projections ← field j "projection" >>= array
   let projection ← projections.mapM fun p =>
     match p with
-    | .str s => .ok s
-    | _ => .error "MIR place projection is not a string"
+    | .str "Deref" => .ok .deref
+    | .str s => .ok (.unsupported s)
+    | .obj _ => do
+        let (kind, value) ← variant p
+        match kind with
+        | "Field" => do
+            let values ← array value
+            match values with
+            | [index, width] => pure (.field (← nat index) (← nat width))
+            | _ => .error "MIR Field projection must contain index and width"
+        | "Downcast" => .map Projection.downcast (nat value)
+        | other => pure (.unsupported other)
+    | _ => .error "MIR place projection must be structured"
   pure { localId, projection }
 
 private def operand (j : Json) : Except String Operand := do
@@ -89,15 +100,24 @@ private def rvalue (j : Json) : Except String Rvalue := do
       | ["BitAnd", left, right] => pure (.binaryBitAnd (← operand left) (← operand right))
       | ["Div", left, right] => pure (.binaryDiv (← operand left) (← operand right))
       | _ => pure (.unsupported "BinaryOp")
+  | "Ref" => do
+      let values ← array value
+      match values with
+      | [_kind, _borrow, placeJson] => .map Rvalue.ref (place placeJson)
+      | _ => .error "MIR Ref rvalue has malformed operands"
   | "Aggregate" => do
       let values ← array value
       match values with
-      | [tag, operands] =>
-          let args ← array operands
-          match tag, args with
-          | .obj _, [] => pure .zstAggregate
-          | _, _ => pure (.unsupported "Aggregate")
-      | _ => pure (.unsupported "Aggregate")
+      | [tag, operands] => do
+          let args ← array operands >>= (·.mapM operand)
+          let tagName ←
+            match tag with
+            | .str name => pure name
+            | .obj _ => pure "Adt"
+            | _ => .error "MIR Aggregate tag is malformed"
+          if args.isEmpty && tagName == "Adt" then pure .zstAggregate
+          else pure (.aggregate tagName args)
+      | _ => .error "MIR Aggregate has malformed operands"
   | other => pure (.unsupported other)
 
 private def statement (j : Json) : Except String Statement := do

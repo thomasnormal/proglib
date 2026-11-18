@@ -6,15 +6,22 @@ namespace LeanModels.Rust
 loader below admits the node families needed by the assignment/storage rows
 and turns every other MIR constructor into an explicit refusal. -/
 
+inductive Projection where
+  | deref
+  | field (index width : Nat)
+  | downcast (variant : Nat)
+  | unsupported (kind : String)
+deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+
 structure Place where
   localId : Nat
-  projection : List String
+  projection : List Projection
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
 inductive Operand where
   | copy (place : Place)
   | move (place : Place)
-  | constant (id : Nat) (bytes : List Nat)
+  | constant (id : Nat) (bytes : List Nat) (signed : Option Bool := none)
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
@@ -24,6 +31,8 @@ inductive Rvalue where
   | binaryNe (left right : Operand)
   | binaryBitAnd (left right : Operand)
   | binaryDiv (left right : Operand)
+  | ref (place : Place)
+  | aggregate (tag : String) (fields : List Operand)
   | zstAggregate
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr

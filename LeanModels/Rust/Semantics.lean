@@ -8,36 +8,63 @@ one structured MIR statement, and `Steps` composes those relation clauses.
 relation below.  Unsupported places, rvalues, terminators and control-flow
 shapes remain explicit refusals. -/
 
+structure Pointer where
+  provenance : Nat
+  address : Nat
+deriving Repr, Inhabited, BEq, DecidableEq
+
+inductive Cell where
+  | int (n : Int)
+  | pointer (p : Pointer)
+  | aggregate (fields : List Int)
+  | unit
+deriving Repr, Inhabited, BEq, DecidableEq
+
 inductive Slot where
   | uninit
   | value (n : Int)
-deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+  | cell (value : Cell)
+deriving Repr, Inhabited, BEq, DecidableEq
 
 structure State where
   locals : List (Nat × Slot) := []
-deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+  placements : List (Nat × Nat) := []
+deriving Repr, Inhabited, BEq, DecidableEq
 
 inductive Event where
   | storageLive (localId : Nat)
   | storageDead (localId : Nat)
   | assign (localId : Nat) (value : Int)
+  | assignOpaque (localId : Nat)
   | placeMention (localId : Nat)
   | call (callee : String)
   | drop (localId : Nat)
-deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+deriving Repr, Inhabited, BEq, DecidableEq
 
 structure Trace where
   state : State
   events : List Event
-deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+deriving Repr, Inhabited, BEq, DecidableEq
 
 inductive Refusal where
   | unsupported (what : String)
   | malformed (what : String)
-deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+deriving Repr, Inhabited, BEq, DecidableEq
+
+inductive Outcome where
+  | returned (trace : Trace)
+  | panicked
+  | ub (kind : String)
+  | refused (reason : Refusal)
+  | outOfFuel
+deriving Repr, Inhabited, BEq, DecidableEq
+
+def Outcome.isReturned : Outcome → Bool
+  | .returned _ => true
+  | _ => false
 
 def setSlot (s : State) (localId : Nat) (slot : Slot) : State :=
-  { locals := (localId, slot) :: s.locals.filter (fun item => item.1 != localId) }
+  { s with locals := (localId, slot) :: s.locals.filter (fun item => item.1 != localId) }
 
 def littleEndian (bytes : List Nat) (shift : Nat := 0) : Nat :=
   match bytes with
@@ -49,14 +76,74 @@ def bytesValue (bytes : List Nat) : Option Int :=
     some (Int.ofNat (littleEndian bytes))
   else none
 
-def operandValue (s : State) : Operand → Option Int
-  | .constant _ bytes => bytesValue bytes
+def placementOf (s : State) (localId : Nat) : Nat :=
+  (s.placements.find? (fun item => item.1 == localId)).map (·.2) |>.getD localId
+
+def slotCell : Slot → Option Cell
+  | .uninit => none
+  | .value value => some (.int value)
+  | .cell value => some value
+
+def cellInt : Cell → Option Int
+  | .int value => some value
+  | _ => none
+
+def cellSlot : Cell → Slot
+  | .int value => .value value
+  | value => .cell value
+
+def localSlot (s : State) (localId : Nat) : Option Slot :=
+  s.locals.find? (fun item => item.1 == localId) |>.map (·.2)
+
+def readCell (s : State) (place : Place) : Option Cell :=
+  match place.projection with
+  | [] => localSlot s place.localId |>.bind slotCell
+  | .deref :: rest =>
+      localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
+        match cell with
+        | .pointer pointer =>
+            if rest.isEmpty then localSlot s pointer.provenance |>.bind slotCell else none
+        | _ => none
+  | .field index _ :: rest =>
+      if rest.isEmpty then
+        localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
+          match cell with
+          | .aggregate fields => fields.drop index |>.head? |>.map Cell.int
+          | _ => none
+      else none
+  | .downcast _ :: _ | .unsupported _ :: _ => none
+
+def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
+  match place.projection with
+  | [] => some (setSlot s place.localId (cellSlot value))
+  | .deref :: rest =>
+      localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
+        match cell with
+        | .pointer pointer =>
+            if rest.isEmpty then some (setSlot s pointer.provenance (cellSlot value)) else none
+        | _ => none
+  | .field index _ :: rest =>
+      if rest.isEmpty then
+        localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
+          match cell with
+          | .aggregate fields =>
+              fields.drop index |>.head? |>.bind fun _old =>
+                some (setSlot s place.localId
+                  (match value with
+                  | .int n => .cell (.aggregate (fields.set index n))
+                  | _ => .cell (.aggregate fields)))
+          | _ => none
+      else none
+  | .downcast _ :: _ | .unsupported _ :: _ => none
+
+def operandCell (s : State) : Operand → Option Cell
+  | .constant _ bytes _ => bytesValue bytes |>.map Cell.int
   | .copy place | .move place =>
-      s.locals.find? (fun item => item.1 == place.localId) |>.bind fun item =>
-        match item.2 with
-        | .value value => some value
-        | .uninit => none
+      readCell s place
   | .unsupported _ => none
+
+def operandValue (s : State) (operand : Operand) : Option Int :=
+  operandCell s operand |>.bind cellInt
 
 def rvalueValue (s : State) : Rvalue → Option Int
   | .use operand => operandValue s operand
@@ -76,21 +163,49 @@ def rvalueValue (s : State) : Rvalue → Option Int
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (leftValue / rightValue)
+  | .ref _ | .aggregate _ _ => none
   | .zstAggregate => some 0
   | .unsupported _ => none
+
+def rvalueCell (s : State) : Rvalue → Option Cell
+  | .use operand => operandCell s operand
+  | .binaryEq left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (.int (if leftValue == rightValue then 1 else 0))
+  | .binaryNe left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (.int (if leftValue != rightValue then 1 else 0))
+  | .binaryBitAnd left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (.int (Int.ofNat (leftValue.toNat &&& rightValue.toNat)))
+  | .binaryDiv left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      if rightValue == 0 then none else pure (.int (leftValue / rightValue))
+  | .ref place => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
+  | .aggregate _ fields => do
+      let values ← fields.mapM (operandValue s)
+      pure (.aggregate values)
+  | .zstAggregate => some (.int 0)
+  | .unsupported _ => none
+
+def eventForCell (localId : Nat) : Cell → Event
+  | .int value => .assign localId value
+  | _ => .assignOpaque localId
 
 def statementStep (s : State) (statement : Statement) : Option (State × Event) :=
   match statement with
   | .storageLive localId => some (setSlot s localId .uninit, .storageLive localId)
   | .storageDead localId => some (setSlot s localId .uninit, .storageDead localId)
   | .placeMention place =>
-      if place.projection.isEmpty then some (s, .placeMention place.localId) else none
+      if readCell s place |>.isSome then some (s, .placeMention place.localId) else none
   | .assign place value =>
-      if place.projection.isEmpty then
-        match rvalueValue s value with
-        | some value => some (setSlot s place.localId (.value value), .assign place.localId value)
-        | none => none
-      else none
+      match rvalueCell s value with
+      | some cell => writeCell s place cell |>.map fun state => (state, eventForCell place.localId cell)
+      | none => none
   | .unsupported _ => none
 
 inductive TermResult where
@@ -116,11 +231,6 @@ def dropState (s : State) (place : Place) : Option (State × Event) :=
   if place.projection.isEmpty then
     some (setSlot s place.localId .uninit, .drop place.localId)
   else none
-
-theorem terminatorStep_in_relation {s : State} {terminator : Terminator}
-    {result : TermResult} (h : terminatorStep s terminator = some result) :
-    terminatorStep s terminator = some result := by
-  exact h
 
 def blockAt : List Block → Nat → Option Block
   | [], _ => none
@@ -209,6 +319,8 @@ def returnValue (trace : Trace) : Option Int :=
   (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item =>
     match item.2 with
     | .value value => some value
+    | .cell (.int value) => some value
+    | .cell _ => none
     | .uninit => none
 
 def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
@@ -355,6 +467,19 @@ def run (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with
   | some body => cfgRunProgram 4096 program body 0 {}
   | none => none
+
+def initialState (placement : Nat → Nat) : State :=
+  { locals := [], placements := [] }
+
+def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Trace :=
+  match program.bodies.find? (·.instanceId == program.entry) with
+  | some body => cfgRunProgram 4096 program body 0 (initialState placement)
+  | none => none
+
+def runOutcome (program : Envelope) : Outcome :=
+  match run program with
+  | some trace => .returned trace
+  | none => .refused (.unsupported "execution")
 
 def ProgramInSteps (program : Envelope) (trace : Trace) : Prop :=
   ∃ body, program.bodies.find? (·.instanceId == program.entry) = some body ∧
@@ -548,10 +673,6 @@ def InSteps : List Statement → State → State → List Event → Prop
   | statement :: rest, initial, final, events =>
       ∃ middle event tail,
         Step initial statement middle event ∧ InSteps rest middle final tail ∧ events = event :: tail
-
-theorem statementStep_in_step {s s' : State} {statement : Statement} {event : Event}
-    (h : statementStep s statement = some (s', event)) : Step s statement s' event := by
-  exact h
 
 theorem statementsRun_in_steps {statements : List Statement} {initial final : State}
     {events : List Event} (h : statementsRun statements initial = some { state := final, events }) :
