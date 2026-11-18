@@ -115,6 +115,7 @@ inductive RKont where
   | subscriptValue (index : Expr) (continuation : RKont)
   | subscriptIndex (receiver : RVal) (continuation : RKont)
   | tupleElements (remaining : List Expr) (values : List RVal) (continuation : RKont)
+  | listElements (remaining : List Expr) (values : List RVal) (continuation : RKont)
   | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
   | ifExpression (body : Expr) (orelse : Expr) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
@@ -453,6 +454,13 @@ def rRenderPrintWithSep (separator : String) : List RVal → Option String
 
 def rRenderPrint : List RVal → Option String := rRenderPrintWithSep " "
 
+def rLen (value : RVal) : Option RVal :=
+  match value with
+  | .str text => some (.int text.length)
+  | .tuple values => some (.int values.size)
+  | .listV values => some (.int values.size)
+  | _ => none
+
 def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
   { config with modules := rSetModule config.modules module name value }
 
@@ -531,6 +539,13 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
             | some text => some (.event (.output text),
                 config.setControl (.continueValue .none continuation))
             | none => some (.tau, config.setControl (.refusing "machine print"))
+          else if name == "len" then
+            match values with
+            | [value] =>
+              match rLen value with
+              | some result => some (.tau, config.setControl (.continueValue result continuation))
+              | none => some (.tau, config.setControl (.refusing "machine len"))
+            | _ => some (.tau, config.setControl (.refusing "machine len"))
           else some (.event (.refuse ("unknown function: " ++ name)),
             config.finish (.refuse ("unknown function: " ++ name)))
   | _ => some (.event (.refuse "machine non-callable"),
@@ -832,6 +847,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | first :: rest =>
               some (.tau, config.setControl
                 (.evaluate first (.tupleElements rest [] continuation)))
+      | .evaluate (.list elements _) continuation =>
+          match elements.toList with
+          | [] => some (.tau, config.setControl (.continueValue (.listV #[]) continuation))
+          | first :: rest =>
+              some (.tau, config.setControl
+                (.evaluate first (.listElements rest [] continuation)))
       | .evaluate (.ifExp test body orelse _) continuation =>
           some (.tau, config.setControl
             (.evaluate test (.ifExpression body orelse continuation)))
@@ -909,6 +930,14 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | [] =>
               some (.tau, config.setControl
                 (.continueValue (.tuple (values.toArray ++ #[value])) continuation))
+      | .continueValue value (.listElements remaining values continuation) =>
+          match remaining with
+          | next :: rest =>
+              some (.tau, config.setControl
+                (.evaluate next (.listElements rest (values ++ [value]) continuation)))
+          | [] =>
+              some (.tau, config.setControl
+                (.continueValue (.listV (values.toArray ++ #[value])) continuation))
       | .continueValue right (.binOpRight left op continuation) =>
           match rEvalBinOp op left right with
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))
@@ -1178,6 +1207,12 @@ private def bTupleModule : RModule :=
       (.tuple #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] testSpan)
       (.constant (.int (-1)) testSpan) testSpan)) testSpan] }
 
+private def bLenModule : RModule :=
+  { body := #[.expr (.call (.name "print" testSpan)
+      #[.call (.name "len" testSpan)
+        #[.tuple #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] testSpan]
+        #[] none testSpan] #[] none testSpan) testSpan] }
+
 private def bClosureModule : RModule :=
   { body := #[.functionDef "outer" #[] #[]
         #[.assign (.name "x" testSpan) (.constant (.int 9) testSpan) testSpan,
@@ -1329,6 +1364,10 @@ example :
 
 #guard (runB1 32 (RConfig.initial bTupleModule)).2.status ==
   .finished (.return (.int 2))
+
+#guard (runB1 32 (RConfig.initial bLenModule)).1 ==
+  [.tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau,
+    .event (.output "2"), .tau, .event (.return .none)]
 
 #guard (runB1 128 (RConfig.initial bMixedDefaultKeywordModule)).2.status ==
   .finished (.return .none)
