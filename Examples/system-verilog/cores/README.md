@@ -556,6 +556,24 @@ this checkout, so the E result is 0/0 and no E trace is claimed.  The separate
 unpacked-memory fixture remains a fixture receipt and is not counted as a
 DarkRISCV whole-core E-RUN.
 
+## 2026-11-18 Quark external E-RUN blocker
+
+The pinned FemtoRV32 Quark source is `BrunoLevy/learn-fpga` commit
+`f5ada24ae6cca67d99889daec2c4ee44a6e59417`, with source SHA-256
+`182e6d13bf5ab165b6eefaa22ae8d6a24ea45db6dd2dbd57dcfc5e81932097b7` and
+envelope SHA-256
+`b26f0bd9ca5cb9a40838bb7719ae9877876d572f02de076d52d4d9dc62c1efdc`.
+Its approved census remains 1 module with 48 static unsupported nodes.  The
+first canonical-E wall is the exact `FETCH_INSTR` untyped-width cross-check
+refusal under IEEE 1800-2023 §6.20.2.
+
+The checked-in `quark/check.py` attempts both pinned simulator compilers on the
+unmodified source.  Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse
+before elaboration because `instr` is used before its declaration at source
+line 63.  Consequently Quark has E-RUN 0/0 and no simulator cycle rows.  No
+source reorder or testbench workaround is admitted.  The existing DarkRISCV
+and unpacked-memory receipts remain independent measurements.
+
 ## 2026-11-18 cross-core follow-up
 
 The next two cores are DarkRISCV and FemtoRV32 Quark. They remain the nearest
@@ -564,4 +582,6 @@ reports 206 admitted, 2 refused, and 0 not reached rows. Quark remains at 1
 module / 48 static unsupported nodes, with its `FETCH_INSTR` untyped-width
 cross-check refusal. DarkRISCV has a simulator-only 220-cycle witness, but no
 canonical-E result because its source and envelope remain external to this
-checkout. Quark remains at E-RUN 0/0 until its pinned inputs are supplied.
+checkout. Quark's pinned inputs are now available externally, but both
+simulators reject the source before elaboration at the use-before-declared
+`instr` wall, so its E-RUN remains 0/0.
