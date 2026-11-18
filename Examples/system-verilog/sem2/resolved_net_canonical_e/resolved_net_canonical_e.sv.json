@@ -1,0 +1,187 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "resolved_net_canonical_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/resolved_net_canonical_e/resolved_net_canonical_e.sv",
+      "sha256": "e13b999785ceb90932d68da6c8d04eff8b8fca165191b4d265d85c4827002cb4"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 3,
+          "col": 1,
+          "end_line": 8,
+          "end_col": 10
+        },
+        "name": "resolved_net_canonical_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 45,
+              "end_line": 3,
+              "end_col": 46
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 60,
+              "end_line": 3,
+              "end_col": 61
+            },
+            "name": "b",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 6,
+              "col": 10,
+              "end_line": 6,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 6,
+                "col": 10,
+                "end_line": 6,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "y"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 6,
+                "col": 14,
+                "end_line": 6,
+                "end_col": 15
+              },
+              "width": 1,
+              "name": "a"
+            },
+            "continuous_net_target": true
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 7,
+              "col": 10,
+              "end_line": 7,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 7,
+                "col": 10,
+                "end_line": 7,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "y"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 7,
+                "col": 14,
+                "end_line": 7,
+                "end_col": 15
+              },
+              "width": 1,
+              "name": "b"
+            },
+            "continuous_net_target": true
+          }
+        ],
+        "generates": [],
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 4,
+              "col": 8,
+              "end_line": 4,
+              "end_col": 9
+            },
+            "sv_kind": "NetSymbol:net-z",
+            "text": "y",
+            "metadata": {
+              "name": "y",
+              "width": {
+                "kind": "PackedType",
+                "packed": [],
+                "resolved": 1
+              },
+              "net_kind": "Wire",
+              "signed": false,
+              "four_state": true,
+              "is_net": true,
+              "driver_reason": "two drivers on a bit",
+              "driver_records": [
+                {
+                  "bounds": [
+                    0,
+                    0
+                  ],
+                  "owner_kind": "ContinuousAssignSymbol",
+                  "owner_name": "",
+                  "generated": true,
+                  "source": "y"
+                },
+                {
+                  "bounds": [
+                    0,
+                    0
+                  ],
+                  "owner_kind": "ContinuousAssignSymbol",
+                  "owner_name": "",
+                  "generated": true,
+                  "source": "y"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

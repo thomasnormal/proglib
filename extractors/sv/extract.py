@@ -28779,6 +28779,15 @@ def convert_continuous_assign(sm, m):
         "target": target,
         "value": value,
     }
+    # A symbolic net declaration is retained as metadata when its driver set
+    # needs live IEEE §6.6 resolution.  Mark the source-shaped assignment so
+    # the overlap pass can recognize that net before the metadata is consumed
+    # by the canonical loader.  Variable drivers remain on the existing
+    # multiple-driver refusal path.
+    if (_SYM is not None and getattr(left_symbol, "kind", None) is not None
+            and str(left_symbol.kind) == "SymbolKind.Net"
+            and target.get("kind") == "Ident"):
+        result["continuous_net_target"] = True
     if (_SYM is None and target.get("kind") in ("Ident", "SelectTarget")
             and (_integral_literal_source(e.right) or bound_literal is not None)):
         result["continuous_literal_source"] = True
@@ -30078,6 +30087,13 @@ def convert_module(sm, inst):
         declaration.get("name") for declaration in decls
         if declaration.get("kind") == "Net"
     }
+    resolvable_nets.update(
+        process.get("target", {}).get("name")
+        for process in processes
+        if (process.get("kind") == "Assign"
+            and process.get("continuous_net_target")
+            and process.get("target", {}).get("kind") == "Ident")
+    )
     _reject_overlapping_symbolic_drivers(processes, resolvable_nets)
 
     module = {
@@ -35791,7 +35807,18 @@ def convert_module_sym(sm, inst):
 
     # Round 5 repair (2026-10-29): x/z literals fixed at the default point.
     others.extend(_sym_xz_literal_scan(sm, body))
-    _reject_overlapping_symbolic_drivers(processes)
+    resolvable_nets = {
+        declaration.get("name") for declaration in decls
+        if declaration.get("kind") == "Net"
+    }
+    resolvable_nets.update(
+        process.get("target", {}).get("name")
+        for process in processes
+        if (process.get("kind") == "Assign"
+            and process.get("continuous_net_target")
+            and process.get("target", {}).get("kind") == "Ident")
+    )
+    _reject_overlapping_symbolic_drivers(processes, resolvable_nets)
     decls.extend(lower_proc.hoisted_decls())                  # WP-PROC L1
 
     package_params = _sym_package_params(sm)

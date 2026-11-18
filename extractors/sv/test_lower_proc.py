@@ -126,6 +126,20 @@ class TypelessDimensions(Base):
         self.assertEqual(packed_null(m), 0)
 
 
+class ResolvedNetDrivers(Base):
+    """Symbolic whole-net drivers stay source-shaped for IEEE §6.6 resolution."""
+
+    def test_dynamic_net_overlap_keeps_each_driver(self):
+        m = self.module(
+            "module t (input logic a, b); wire y; "
+            "assign y = a; assign y = b; endmodule")
+        assigns = [p for p in m["processes"] if p["kind"] == "Assign"]
+        self.assertEqual(len(assigns), 2)
+        self.assertEqual([p["target"]["name"] for p in assigns], ["y", "y"])
+        self.assertTrue(all(p.get("continuous_net_target") for p in assigns))
+        self.assertNotIn("AssignmentExpression:target", sv_kinds(m))
+
+
 class TopModules(Base):
     """N3: the top may be a module that another module of the same sources instantiates."""
 

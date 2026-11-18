@@ -85,7 +85,10 @@ def CoreMemDesign.fastSettleAssignAt (E : CoreMemDesign)
     Res (CoreMemFastState × SvState)
   | [] => .ok (s, view)
   | .assign (.ident name) value :: rest => do
-      if E.fastScalarFlatB s name then
+      if E.resolvedNets.contains name then
+        E.fastSettleFallback env elems s view index
+          (.assign (.ident name) value :: rest)
+      else if E.fastScalarFlatB s name then
         let s' ← E.fastScalarAssignAt s view index name value
         let v ← E.evalScalarAssignAtView env elems s.toState view
           (E.scalarWidth? name |>.map some |>.getD none) index value
@@ -170,6 +173,7 @@ theorem CoreMemDesign.fastSettleAssignAt_single_ident_toState
     (hwidth : E.scalarWidth? name = some width)
     (hresolve : E.scalar.resolve name = some x)
     (hpath : x.path = []) (hbound : x.decl < s.scalar.cells.size)
+    (hnet : name ∉ E.resolvedNets)
     (hflat : E.fastScalarFlatB s name = true)
     (henv : env = E.env) (helems : elems = E.elems)
     (hv : E.evalScalarAssignAtView env elems s.toState view
@@ -180,7 +184,7 @@ theorem CoreMemDesign.fastSettleAssignAt_single_ident_toState
       scalar := E.scalar.setName s.toState.scalar name v
       scalarCache := s'.scalarCache } ∧
       view' = SvState.set view name v := by
-  simp [CoreMemDesign.fastSettleAssignAt, hflat, hwidth, hv] at h
+  simp [CoreMemDesign.fastSettleAssignAt, hflat, hwidth, hv, hnet] at h
   obtain ⟨a, ha, hs⟩ := h
   rcases hs with ⟨rfl, rfl⟩
   have hv' : E.evalScalarAssignAtView E.env E.elems s.toState view
@@ -302,6 +306,7 @@ theorem CoreMemDesign.fastSettleAssignAt_scalar_array_refines
     (hresolve₁ : E.scalar.resolve name₁ = some x₁)
     (hpath₁ : x₁.path = [])
     (hbound₁ : x₁.decl < s.scalar.cells.size)
+    (hnet₁ : name₁ ∉ E.resolvedNets)
     (hmem₂ : E.memDecl? name₂ = some md₂)
     (hv₁ : E.evalScalarAssignAtView E.env E.elems s.toState view
       (some width₁) index value₁ = .ok v₁)
@@ -332,7 +337,8 @@ theorem CoreMemDesign.fastSettleAssignAt_scalar_array_refines
       _ = a₂.toState := congrArg CoreMemFastState.toState hc₂
   have hbc' := hbc
   rw [hstate₁, hbv, hc_to] at hbc'
-  simp [CoreMemDesign.settleAssignAt, hwidth₁, hmem₂, hv₁, hv₂', hstate₁]
+  simp [CoreMemDesign.settleAssignAt, hwidth₁, hmem₂, hv₁, hv₂', hstate₁,
+    hnet₁]
   exact hbc'
 
 theorem CoreMemDesign.fastSettleAssignAt_array_scalar_refines
@@ -344,6 +350,7 @@ theorem CoreMemDesign.fastSettleAssignAt_array_scalar_refines
     (hresolve₂ : E.scalar.resolve name₂ = some x₂)
     (hpath₂ : x₂.path = [])
     (hbound₂ : x₂.decl < a₁.scalar.cells.size)
+    (hnet₂ : name₂ ∉ E.resolvedNets)
     (hv₁ : E.evalExpr E.env E.elems s.toState
       (some md₁.shape.elemWidth) value₁ = .ok v₁)
     (hv₂ : E.evalScalarAssignAtView E.env E.elems a₁.toState view
@@ -368,7 +375,8 @@ theorem CoreMemDesign.fastSettleAssignAt_array_scalar_refines
       _ = a₁.toState := congrArg CoreMemFastState.toState hc₁
   have hc' := hc
   rw [hc_to] at hc'
-  simp [CoreMemDesign.settleAssignAt, hmem₁, hwidth₂, hv₁, hstate₂, hc']
+  simp [CoreMemDesign.settleAssignAt, hmem₁, hwidth₂, hv₁, hstate₂, hc',
+    hnet₂]
   exact ⟨v₂, hv₂, rfl, rfl⟩
 
 theorem CoreMemDesign.settleAssignAt_two_ident_fast_refines
@@ -382,6 +390,8 @@ theorem CoreMemDesign.settleAssignAt_two_ident_fast_refines
     (hpath₁ : x₁.path = []) (hpath₂ : x₂.path = [])
     (hbound₁ : x₁.decl < s.scalar.cells.size)
     (hbound₂ : x₂.decl < a₁.scalar.cells.size)
+    (hnet₁ : name₁ ∉ E.resolvedNets)
+    (hnet₂ : name₂ ∉ E.resolvedNets)
     (hv₁ : E.evalScalarAssignAtView E.env E.elems s.toState view
       (some width₁) index value₁ = .ok v₁)
     (hv₂ : E.evalScalarAssignAtView E.env E.elems a₁.toState
@@ -400,7 +410,8 @@ theorem CoreMemDesign.settleAssignAt_two_ident_fast_refines
     (index + 1) name₂ value₂ width₂ v₂ x₂ hwidth₂ hresolve₂ hpath₂ hbound₂ hv₂ h₂
   have hv₂' := hv₂
   rw [hstate₁] at hv₂'
-  simp [CoreMemDesign.settleAssignAt, hwidth₁, hwidth₂, hv₁, hv₂', hstate₁, hstate₂]
+  simp [CoreMemDesign.settleAssignAt, hwidth₁, hwidth₂, hv₁, hv₂', hstate₁,
+    hstate₂, hnet₁, hnet₂]
 
 /-! ## Direct scalar NBA commit
 

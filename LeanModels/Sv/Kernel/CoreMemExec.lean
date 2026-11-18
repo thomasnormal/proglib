@@ -91,6 +91,10 @@ structure CoreMemDesign where
   compiledCombReads : Array (Option (List Expr2)) := #[]
   /-- Pure raw-read expressions for retained plain `always @*` bodies. -/
   compiledImplicitReads : Array (Option (List Expr2)) := #[]
+  /-- Module nets with several full-width equal-strength continuous drivers.
+      The source-shaped assignment nodes stay in `processes`; this list only
+      records where the §6.6 resolver is applied while those nodes settle. -/
+  resolvedNets : List String := []
 deriving Inhabited
 
 /-! A structural admission predicate for the canonical memory family.  This is
@@ -195,6 +199,15 @@ def CoreMemDesign.compactScalar (E : CoreMemDesign) (st : CoreMemState) (view : 
   else
     let cache := E.scalarCacheOf (E.storeFromView view)
     { st with scalar := E.scalarStore cache, scalarCache := cache }
+
+def CoreMemDesign.resetResolvedNets (E : CoreMemDesign) (st : CoreMemState) : CoreMemState :=
+  E.resolvedNets.foldl (fun acc name =>
+    match E.scalar.resolve name with
+    | some x =>
+        match E.scalar.declOf x with
+        | some dc => E.setScalarState acc name (LVec.replicate dc.width .lz)
+        | none => acc
+    | none => acc) st
 
 theorem CoreMemDesign.compactScalar_of_view_eq
     (E : CoreMemDesign) (st : CoreMemState) (view : SvState)
@@ -517,15 +530,18 @@ def coreMemNetMetadataAllowed (md : PNetMetadata) : Bool :=
     md.driverReason == some "no driver: the net reads z" && md.driverRecords.isEmpty && md.width > 0
 
 def coreMemNetDriverAllowed (md : PNetMetadata) (generated : List PProcess) : Bool :=
-  match md.driverRecords with
-  | [r] =>
+  !md.driverRecords.isEmpty &&
+    md.driverRecords.all (fun r =>
       r.bounds == (0, Int.ofNat md.width - 1) &&
-        r.ownerKind == "ContinuousAssignSymbol" && r.generated && r.source == md.name &&
-        generated.any (fun p => match p with
-          | .assign target _ => target == md.name
-          | .assignL (.ident target) _ => target == md.name
-          | _ => false)
-  | _ => false
+        r.ownerKind == "ContinuousAssignSymbol" && r.generated && r.source == md.name) &&
+    generated.any (fun p => match p with
+      | .assign target _ => target == md.name
+      | .assignL (.ident target) _ => target == md.name
+      | _ => false)
+
+def coreMemResolvedNetNames (d : PDesign) (generated : List PProcess) : List String :=
+  d.netMetadata.filterMap fun md =>
+    if md.driverRecords.length > 1 && coreMemNetDriverAllowed md generated then some md.name else none
 
 def coreMemNetAllowed (d : PDesign) (generated : List PProcess) (kind name : String) : Bool :=
   d.others.any (fun entry => entry.1 == kind && entry.2 == name) &&
@@ -1126,10 +1142,11 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     else
       let env2 := { env2 with dims := dimTable env2 (d.decls ++ generatedDecls) }
       let (generatedRaw, _) ← coreMemExpandList env2 iterFuel {} d.generates
+      let allForNet := d.processes ++ generatedRaw
       let generated := coreMemDropGeneratedNetMarkers d generatedRaw
       let generatedMetadataOk := d.netMetadata.all (fun md =>
         !md.generated || !sourceNames.contains md.name ||
-          coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generatedRaw)
+          coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md allForNet)
       if !generatedMetadataOk then
         .unsupported "NetSymbol:net-z:generate: generated net metadata does not prove a supported §6.6 net shape"
       else match coreMemEventSourceMultiWriteViol d generated with
@@ -1147,12 +1164,12 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
             match coreMemClockResetViol d generated with
             | some (kind, msg) => .unsupported s!"{kind}: {msg}"
             | none =>
-              match coreMemFirstUnsupportedOther d generated d.others with
+              match coreMemFirstUnsupportedOther d allForNet d.others with
           | some (kind, text) =>
               .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
           | none =>
               let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls)
-              let decls := decls0 ++ (coreMemNetDecls d generated).filter
+              let decls := decls0 ++ (coreMemNetDecls d allForNet).filter
                 (fun dc => !sourceNames.contains dc.name)
               let elems ← buildElems env2 sourceDecls
               let envP := { env2 with widths := decls.map (fun dc => (dc.name, dc.width)) }
@@ -1166,10 +1183,11 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
                   { decls := decls.toArray, procs := #[], name := d.name }
                 let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
                   (generated.map (CoreMemProc.ofPProcessAt envP))
+                let resolvedNets := coreMemResolvedNetNames d allForNet
                 let result : CoreMemDesign :=
                     { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
                       memories := memories.toArray, processes := processes.toArray,
-                      readmemh := d.readmemh }
+                      readmemh := d.readmemh, resolvedNets := resolvedNets }
                 .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
@@ -2297,8 +2315,12 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
             | some w => .ok w
             | none => .unsupported s!"10.3: continuous target '{name}' is undeclared"
           let v ← E.evalScalarAssignAtView env elems st view (some width) index value
-          let st' := E.setScalarState st name v
-          E.settleAssignAt env elems st' (SvState.set view name v) (index + 1) rest
+          let resolved := if E.resolvedNets.contains name then
+              LVec.resolveDrivers [
+                (SvState.lookup view name).getD (LVec.replicate width .lz), v]
+            else v
+          let st' := E.setScalarState st name resolved
+          E.settleAssignAt env elems st' (SvState.set view name resolved) (index + 1) rest
       | .bitSel name select =>
           let st' ← E.writeScalarBitAssign env elems st name select value
           let view' := E.scalar.view st'.scalar
@@ -2390,7 +2412,8 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
 def CoreMemDesign.settleAssign (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
   do
-    let (st', view') ← E.settleAssignAt env elems st (E.scalar.view st.scalar) 0 procs
+    let st0 := E.resetResolvedNets st
+    let (st', view') ← E.settleAssignAt env elems st0 (E.scalar.view st0.scalar) 0 procs
     .ok (E.compactScalar st' view')
 
 /-- Re-run the continuous-assignment region until its settled view stops changing.
@@ -2421,7 +2444,9 @@ def CoreMemDesign.settleAssignWithView (E : CoreMemDesign) (env : IEnv)
     (procs : List CoreMemProc) :
     Res (CoreMemState × SvState) :=
   do
-    let (st', view') ← E.settleAssignAt env elems st view 0 procs
+    let st0 := E.resetResolvedNets st
+    let view0 := E.scalar.view st0.scalar
+    let (st', view') ← E.settleAssignAt env elems st0 view0 0 procs
     .ok (E.compactScalar st' view', view')
 
 /-! Structured `$readmemh` initialization (§21.4).  The extractor has already

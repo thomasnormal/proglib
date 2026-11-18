@@ -88,6 +88,33 @@ def not : Logic → Logic
   | l1 => l0
   | _ => lx
 
+/-! ### Resolved-net drivers (§6.6)
+
+The default continuous-assignment strengths are equal. Resolution therefore
+keeps a common known value, produces `x` for opposing known values or an
+unknown driver, and treats an all-`z` driver set as high impedance. Strength
+overrides are not represented by the source envelope and remain outside this
+function's admission contract.
+-/
+def resolveDrivers : List Logic → Logic
+  | [] => .lz
+  | xs =>
+      if xs.any (· == .l0) && xs.any (· == .l1) then .lx
+      else if xs.any (· == .lx) then .lx
+      else if xs.any (· == .l0) then .l0
+      else if xs.any (· == .l1) then .l1
+      else .lz
+
+#guard resolveDrivers [] == .lz
+#guard resolveDrivers [.lz, .lz] == .lz
+#guard resolveDrivers [.lz, .l0] == .l0
+#guard resolveDrivers [.lz, .l1] == .l1
+#guard resolveDrivers [.l0, .l0] == .l0
+#guard resolveDrivers [.l1, .l1] == .l1
+#guard resolveDrivers [.l0, .l1] == .lx
+#guard resolveDrivers [.lx, .l0] == .lx
+#guard resolveDrivers [.lx, .lz] == .lx
+
 /-- Conditional-operator bit merge, IEEE 1800-2017 §11.4.11: when the
 condition of `c ? a : b` is ambiguous both arms are evaluated and combined
 bit by bit — equal *known* bits are kept, every other combination
@@ -586,6 +613,14 @@ def sge (a b : LVec) : Logic := signedRelOp (· ≥ ·) a b
 condition, §11.4.11: per-bit `Logic.merge` (equal known bits kept, all else
 `x`). Width mismatch (out of contract): all-x at the larger width. -/
 def merge (a b : LVec) : LVec := zipWith Logic.merge a b
+
+/-- Resolve equal-strength continuous drivers bit by bit (§6.6). -/
+def resolveDrivers (drivers : List LVec) : LVec :=
+  match drivers with
+  | [] => ⟨#[]⟩
+  | first :: _ =>
+      ⟨Array.ofFn (n := first.width) fun i =>
+        Logic.resolveDrivers (drivers.map fun v => v.bits[i.val]?.getD .lx)⟩
 
 /-- Full conditional `c ? a : b`, §11.4.11 — different from `if`! Some `l1`
 bit in `c`: `a`. All-known-zero `c`: `b`. Ambiguous `c` (no `l1`, some
