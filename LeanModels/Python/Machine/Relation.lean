@@ -126,6 +126,10 @@ inductive RControl where
   | evaluate (expression : Expr) (continuation : RKont)
   | continueValue (value : RVal) (continuation : RKont)
   | raising (error : RError)
+  /-- A configuration reached a construct for which the current machine
+  slice has no rule.  Refusal is represented in the state before its event
+  is emitted, so a stuck state can never silently terminate. -/
+  | refusing (reason : String)
 deriving Repr, Inhabited, BEq
 
 structure RFrame where
@@ -501,6 +505,9 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
   | raiseUncaught {config : RConfig} {error : RError}
       (hcontrol : config.frames.head?.map RFrame.control = some (.raising error)) :
       Step config (.event (.raise error)) (config.finish (.raise error))
+  | refuseControl {config : RConfig} {reason : String}
+      (hcontrol : config.frames.head?.map RFrame.control = some (.refusing reason)) :
+      Step config (.event (.refuse reason)) (config.finish (.refuse reason))
   | refuseStmt {config : RConfig} {frame : RFrame} {tail : List RFrame}
       {kind text : String} {span : Span}
       (hframe : config.frames =
@@ -543,6 +550,7 @@ def resolveAst (config : RConfig) : Option (RLabel × RConfig) :=
   | [] => none
   | frame :: _ =>
       match frame.control with
+      | .refusing reason => some (.event (.refuse reason), config.finish (.refuse reason))
       | .statements [] => none
       | .statements (stmt :: rest) =>
           match stmt, rest with
@@ -585,10 +593,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
   | [] => none
   | frame :: _ =>
       match frame.control with
+      | .refusing reason =>
+          some (.event (.refuse reason), config.finish (.refuse reason))
       | .statements [] =>
           if config.frames.tail.isEmpty then
             some (.event (.return .none), config.finish (.return .none))
-          else none
+          else some (.tau, config.setControl (.continueValue .none .returnValue))
       | .statements (stmt :: rest) =>
           match stmt with
           | .pass _ => some (.tau, config.setControl (.statements rest))
@@ -668,7 +678,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl (.evaluate left (.binOpLeft op right continuation)))
       | .evaluate (.unsupported _ text _) _ =>
           some (.event (.refuse text), config.finish (.refuse text))
-      | .evaluate _ _ => none
+      | .evaluate _ _ =>
+          some (.tau, config.setControl (.refusing "machine expression"))
       | .continueValue value .returnValue =>
           match config.frames with
           | _callee :: caller :: tail =>
@@ -750,8 +761,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                 (.callArg callee rest (values ++ [value]) continuation)))
           | [] => rStartCall config callee (values ++ [value]) [] continuation
       | .continueValue _ (.callReturn _) =>
-          some (.event (.refuse "machine call return"), config.finish (.refuse "machine call return"))
-      | .continueValue _ .printValue => none
+          some (.tau, config.setControl (.refusing "machine call return"))
+      | .continueValue _ .printValue =>
+          some (.tau, config.setControl (.refusing "machine print continuation"))
       | .raising error => some (.event (.raise error), config.finish (.raise error))
 
 def runB1 : Nat → RConfig → List RLabel × RConfig
@@ -785,6 +797,12 @@ theorem resolve_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : R
       | nil => simp [resolveAst, hframes] at h
       | cons frame tail =>
           cases hcontrol : frame.control with
+          | refusing reason =>
+              simp [resolveAst, hframes, hcontrol] at h
+              obtain ⟨rfl, rfl⟩ := h
+              have hhead : config.frames.head?.map RFrame.control =
+                  some (.refusing reason) := by simp [hframes, hcontrol]
+              exact Step.refuseControl hhead
           | statements remaining =>
               cases hremaining : remaining with
               | nil => simp [resolveAst, hframes, hcontrol, hremaining] at h
@@ -918,6 +936,9 @@ private def b1Module : RModule :=
         (.binOp (.name "x" testSpan) .add (.constant (.int 2) testSpan) testSpan) testSpan,
       .expr (.name "y" testSpan) testSpan] }
 
+private def b1RefusalModule : RModule :=
+  { body := #[.expr (.unaryOp .not (.constant (.int 1) testSpan) testSpan) testSpan] }
+
 private def bFunction : RFunction :=
   { name := "identity", params := #[], body := #[.ret none testSpan], globals := "__main__" }
 
@@ -1027,6 +1048,9 @@ example :
 
 #guard (runB1 32 (RConfig.initial b1Module)).2.status ==
   .finished (.return .none)
+
+#guard (runB1 8 (RConfig.initial b1RefusalModule)).2.status ==
+  .finished (.refuse "machine expression")
 
 example : (runB1 32 (RConfig.initial b1Module)).2.status =
     .finished (.return .none) := by
