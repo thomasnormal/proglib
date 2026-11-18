@@ -3,7 +3,7 @@
 This family implements the first MIR node census group in the approved
 `rustc_public` envelope.  It covers `Assign`, `StorageLive`, `StorageDead`,
 `PlaceMention`, `Use` rvalues, constant operands, zero-projection places, and a
-single `Return` block.  The implementation is 156 lines in
+single `Return` block.  The implementation is 225 lines in
 `LeanModels/Rust/Semantics.lean`, with 55 lines of AST declarations, 124 lines
 of JSON decoding, and 38 lines of the literal-envelope loader.
 
@@ -21,9 +21,9 @@ python3 harness/rust/miri_oracle.py Examples/rust/place_mention/main.rs
 
 Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
-were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No row
-diverged and no row diverged by timeout, so this family records
-`SLICE1-ROWS 3/30, diverging 0`.
+were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
+diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
+the corpus counter remains `SLICE1-ROWS 0/30, diverging 0`.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -31,8 +31,8 @@ named refusal because it has no successful trace.  The three control-flow
 rows are `Examples/rust/control/main.rs`, `Examples/rust/assert/main.rs`, and
 `Examples/rust/switch/main.rs`.  Miri returned `ok` with exit status 0 under
 both borrow models for all three.  Two-model invocations measured 0.645 s,
-0.635 s, and 0.622 s respectively, bringing the cumulative count to
-`SLICE1-ROWS 6/30, diverging 0`.
+0.635 s, and 0.622 s respectively.  These local fixtures do not change the
+Stage 0 corpus counter.
 
 The CFG runner consumes one block per fuel unit.  `SwitchInt` resolves an
 integer operand against ordered branch values and otherwise takes the default
@@ -62,10 +62,10 @@ the relation.  The three Lean example proofs check that each loaded envelope
 has a successful run.  They also expose the exact event traces through the
 reducible runner when inspecting a row.
 
-The resolved-call family has a checked refusal row in `Examples/rust/call`.
-The envelope preserves the resolved edge in its `calls` table, while the first
-runner has no call frame or return-place state and therefore refuses a `Call`
-terminator instead of guessing a callee or treating it as a no-op.  Miri still
-returns `ok` with status 0 under both models for this row.  Its two-model
-invocation measured 0.611 s.  The cumulative semantic count remains six because
-this row is an explicit refusal and does not claim a Lean/Miri decision.
+The resolved-call family has a decided row in `Examples/rust/call`.  The
+envelope preserves the resolved edge in its `calls` table.  The runner enters
+the resolved callee body, copies its integer return local into the caller's
+destination, records a call event, and continues at the target block.  Miri
+returned `ok` with status 0 under both models.  The measured two-model command
+completed in 10.023 s on a cold invocation.  This local fixture does not change
+the Stage 0 corpus counter.

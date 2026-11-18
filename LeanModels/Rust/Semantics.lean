@@ -22,6 +22,7 @@ inductive Event where
   | storageDead (localId : Nat)
   | assign (localId : Nat) (value : Int)
   | placeMention (localId : Nat)
+  | call (callee : String)
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
 structure Trace where
@@ -100,7 +101,7 @@ def terminatorStep (s : State) : Terminator → Option TermResult
   | .assert cond expected target => do
       let value ← operandValue s cond
       if value == (if expected then 1 else 0) then some (.jump target) else none
-  | .unreachable | .unsupported _ => none
+  | .call _ _ _ _ | .unreachable | .unsupported _ => none
 
 theorem terminatorStep_in_relation {s : State} {terminator : Terminator}
     {result : TermResult} (h : terminatorStep s terminator = some result) :
@@ -146,8 +147,87 @@ def cfgRun : Nat → Body → Nat → State → Option Trace
           let suffix ← cfgRun fuel body next firstTrace.state
           pure { state := suffix.state, events := firstTrace.events ++ suffix.events }
 
+def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (CallEdge × Body) := do
+  let edge ← program.calls.find? (fun edge => edge.caller == caller.instanceId ∧ edge.block == block)
+  let callee ← program.bodies.find? (fun body => body.instanceId == edge.callee)
+  pure (edge, callee)
+
 def bodyRun (body : Body) : Option Trace :=
   cfgRun 4096 body 0 {}
+
+def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
+  | 0, _, _, _, _ => none
+  | fuel + 1, program, body, blockId, state => do
+      let block ← blockAt body.blocks blockId
+      let firstTrace ← statementsRun block.statements state
+      match block.terminator with
+      | .call _ _ destination target => do
+          let (edge, callee) ← lookupCallBody program body blockId
+          let calleeTrace ← bodyRun callee
+          let result ← calleeTrace.state.locals.find? (fun item => item.1 == 0)
+          let value ← match result.2 with
+            | .value value => some value
+            | .uninit => none
+          let suffix ← cfgRunProgram fuel program body target
+            (setSlot firstTrace.state destination.localId (.value value))
+          let events := firstTrace.events ++ (Event.call edge.callee :: calleeTrace.events)
+          pure { state := suffix.state, events := events ++ suffix.events }
+      | terminator => do
+          let transition ← terminatorStep firstTrace.state terminator
+          match transition with
+          | .ret => pure firstTrace
+          | .jump next =>
+              let suffix ← cfgRunProgram fuel program body next firstTrace.state
+              pure { state := suffix.state, events := firstTrace.events ++ suffix.events }
+
+def resolvedCallRun (program : Envelope) (caller : Body) (block : Nat) (state : State) :
+    Option (State × Trace × String) := do
+  let (edge, callee) ← lookupCallBody program caller block
+  match bodyRun callee with
+  | none => none
+  | some trace =>
+      match trace.state.locals.find? (fun item => item.1 == 0) with
+      | some (_, .value value) =>
+          some (setSlot state 0 (.value value), trace, edge.callee)
+      | _ => none
+
+def ResolvedCallInSteps (program : Envelope) (caller : Body) (block : Nat)
+    (state final : State) (trace : Trace) (callee : String) : Prop :=
+  ∃ edge body,
+    lookupCallBody program caller block = some (edge, body) ∧
+    edge.callee = callee ∧ bodyRun body = some trace ∧
+    final = setSlot state 0 (match trace.state.locals.find? (fun item => item.1 == 0) with
+      | some (_, .value value) => .value value
+      | _ => .uninit)
+
+theorem resolvedCallRun_in_steps {program : Envelope} {caller : Body} {block : Nat}
+    {state final : State} {trace : Trace} {callee : String}
+    (h : resolvedCallRun program caller block state = some (final, trace, callee)) :
+    ResolvedCallInSteps program caller block state final trace callee := by
+  unfold resolvedCallRun at h
+  generalize hl : lookupCallBody program caller block = lookup at h
+  cases lookup with
+  | none => simp_all
+  | some pair =>
+      rcases pair with ⟨edge, body⟩
+      generalize hr : bodyRun body = result at h
+      cases result with
+      | none => simp_all
+      | some bodyTrace =>
+          generalize hv : bodyTrace.state.locals.find? (fun item => item.1 == 0) = value at h
+          cases value with
+          | none => simp_all
+          | some slot =>
+              cases slot with
+              | mk localId slot =>
+                  cases slot with
+                  | uninit => simp_all
+                  | value n =>
+                      simp [Option.bind, hl, hr, hv] at h
+                      rcases h with ⟨hfinal, htrace, hcallee⟩
+                      subst trace
+                      refine ⟨edge, body, hl, hcallee, hr, ?_⟩
+                      simpa [hv] using hfinal.symm
 
 def BodyInSteps (body : Body) (trace : Trace) : Prop :=
   ∃ fuel, CfgInSteps fuel body 0 {} trace
@@ -189,11 +269,12 @@ theorem bodyRun_in_steps {body : Body} {trace : Trace}
 
 def run (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with
-  | some body => bodyRun body
+  | some body => cfgRunProgram 4096 program body 0 {}
   | none => none
 
 def ProgramInSteps (program : Envelope) (trace : Trace) : Prop :=
-  ∃ body, program.bodies.find? (·.instanceId == program.entry) = some body ∧ BodyInSteps body trace
+  ∃ body, program.bodies.find? (·.instanceId == program.entry) = some body ∧
+    ∃ fuel, cfgRunProgram fuel program body 0 {} = some trace
 
 theorem run_in_steps {program : Envelope} {trace : Trace}
     (h : run program = some trace) : ProgramInSteps program trace := by
@@ -202,7 +283,7 @@ theorem run_in_steps {program : Envelope} {trace : Trace}
   | none => simp [hfind] at h
   | some body =>
       simp [hfind] at h
-      exact ⟨body, hfind, bodyRun_in_steps h⟩
+      exact ⟨body, hfind, 4096, h⟩
 
 def InSteps : List Statement → State → State → List Event → Prop
   | [], initial, final, events => final = initial ∧ events = []

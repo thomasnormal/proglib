@@ -127,6 +127,18 @@ private def terminator (j : Json) : Except String Terminator := do
             | _ => (variant unwind).map Prod.fst
           if unwindName == "Continue" then pure (.assert cond expected target)
           else pure (.unsupported "Assert with cleanup unwind")
+      | "Call" => do
+          let func ← field value "func" >>= operand
+          let args ← field value "args" >>= array >>= (·.mapM operand)
+          let destination ← field value "destination" >>= place
+          let target ← field value "target" >>= nat
+          let unwind ← field value "unwind"
+          let unwindName ←
+            match unwind with
+            | .str name => pure name
+            | _ => (variant unwind).map Prod.fst
+          if unwindName == "Continue" then pure (.call func args destination target)
+          else pure (.unsupported "Call with cleanup unwind")
       | "Unreachable" => pure .unreachable
       | other => pure (.unsupported other)
   | .str other => pure (.unsupported other)
@@ -150,7 +162,16 @@ def parseEnvelope (j : Json) : Except String Envelope := do
     let instanceId ← field bodyJson "instance" >>= string
     let bodyJson ← field bodyJson "body"
     withCtx "body" (body instanceId bodyJson)
-  pure { schema, entry, bodies }
+  let calls ←
+    match j.getObjVal? "calls" with
+    | .error _ => pure []
+    | .ok callsJson => array callsJson >>= (·.mapM fun callJson => do
+        let caller ← field callJson "caller" >>= string
+        let block ← field callJson "block" >>= nat
+        let callee ← field callJson "callee" >>= string
+        let resolved ← field callJson "resolved" >>= Lean.Json.getBool?
+        pure { caller, block, callee, resolved })
+  pure { schema, entry, bodies, calls }
 
 def parseEnvelopeString (s : String) : Except String Envelope := do
   let json ← Json.parse s

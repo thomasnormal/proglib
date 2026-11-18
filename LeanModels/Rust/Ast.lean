@@ -39,6 +39,7 @@ inductive Terminator where
   | goto (target : Nat)
   | switchInt (discr : Operand) (branches : List (Int × Nat)) (otherwise : Nat)
   | assert (cond : Operand) (expected : Bool) (target : Nat)
+  | call (func : Operand) (args : List Operand) (destination : Place) (target : Nat)
   | unreachable
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
@@ -53,10 +54,18 @@ structure Body where
   blocks : List Block
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
+structure CallEdge where
+  caller : String
+  block : Nat
+  callee : String
+  resolved : Bool
+deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+
 structure Envelope where
   schema : String
   entry : String
   bodies : List Body
+  calls : List CallEdge := []
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 end LeanModels.Rust
