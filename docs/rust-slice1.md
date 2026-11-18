@@ -74,11 +74,12 @@ or have an invalid target.  Refusal is represented by the `none` result of the
 executable fold.  No unsupported node is lowered to a different construct.
 
 `Step` is the definition of one statement transition.  `InSteps` composes those
-transitions, and `statementsRun_in_steps`, `bodyRun_in_steps`, and
-`run_in_steps` prove that the kernel-reducible executable runner is contained in
-the relation.  The three Lean example proofs check that each loaded envelope
-has a successful run.  They also expose the exact event traces through the
-reducible runner when inspecting a row.
+transitions, and `statementsRun_in_steps` plus `bodyRun_in_steps` prove that the
+kernel-reducible statement and body runners are contained in the relation.  The
+program-level call runner still needs its call-aware relation and containment
+proof.  The three Lean example proofs check that each loaded envelope has a
+successful run.  They also expose the exact event traces through the reducible
+runner when inspecting a row.
 
 The resolved-call family has a decided row in `Examples/rust/call`.  The
 envelope preserves the resolved edge in its `calls` table.  The runner enters
