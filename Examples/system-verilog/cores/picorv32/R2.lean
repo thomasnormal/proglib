@@ -57,6 +57,9 @@ obligation:
 * `r1_mem.lean` and `r1_mem_all.lean` for every load/store width and sign;
 * `r1_fence.lean`, `r1_system.lean`, `r1_csr.lean`, and `r1_illegal.lean` for
   fences, system transfers, implemented Zicsr rows, and illegal outcomes;
+* `r1_muldiv.lean` is intentionally excluded because this pinned design has
+  `ENABLE_MUL = 0` and `ENABLE_DIV = 0`, so the loaded core has no RV32M
+  execution family to consume;
 * `LeanModels.Refine.RvfiAddiProgress` for the packaged ADDI-only invariant
   bridge `Rv32iAddiInvariant.toMixedStep` and its reset-stream refinement;
 * `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
@@ -142,6 +145,13 @@ def PicoRV32Parameters.toArgs (p : PicoRV32Parameters) : List Int :=
 #guard picorv32RISCVFormalParameters.toArgs ==
   [1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
    4294967295, 0, 16, 4294967295]
+
+theorem picorv32_rv32m_disabled :
+    picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
+      picorv32RISCVFormalParameters.ENABLE_DIV = 0 := by
+  decide
+
+#print axioms picorv32_rv32m_disabled
 
 /-- The literal parametric envelope and its explicit pinned instantiation.
 `Design2` may contain the loader's loud refusal while the corresponding E
