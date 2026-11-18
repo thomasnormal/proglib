@@ -1600,6 +1600,12 @@ theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
     p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
   simp [allocAt, alloc, Ptr.toObjectBoundAt]
 
+@[simp] theorem allocAt_pointer_shape (m : Mem) (dur : Duration) (size : Nat)
+    (ty : Option CType) (address : Nat) :
+    (m.allocAt dur size ty address).2 =
+      ⟨some (m.objs.length), address, 0, some size⟩ := by
+  simp [allocAt, alloc, Ptr.toObjectBoundAt]
+
 /-- The resolver observes provenance, offset, lifetime, and bounds, but not
     the concrete placement chosen for a fresh allocation. -/
 @[simp] theorem allocAt_resolve_placement_irrel (m : Mem) (dur : Duration)
@@ -1744,6 +1750,12 @@ theorem allocZeroedAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
     let p₁ := (m.allocZeroedAt dur size ty address₁).2
     let p₂ := (m.allocZeroedAt dur size ty address₂).2
     p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
+  simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt]
+
+@[simp] theorem allocZeroedAt_pointer_shape (m : Mem) (dur : Duration) (size : Nat)
+    (ty : Option CType) (address : Nat) :
+    (m.allocZeroedAt dur size ty address).2 =
+      ⟨some (m.objs.length), address, 0, some size⟩ := by
   simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt]
 
 theorem allocZeroedAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
