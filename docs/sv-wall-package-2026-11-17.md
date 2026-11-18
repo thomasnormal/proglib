@@ -789,6 +789,17 @@ item semantics, so no unrolling is introduced. Existing Icarus Verilog 13.0
 and Xcelium 24.03-s004 rows agree on 00, 11, and xx. No count transition is
 claimed.
 
+## Typed port and variable current-head check — 2026-11-18T02:14Z
+
+Fresh extraction of typed_nested_repro.sv at public master 03009269d retains
+PortSymbol:type, VariableSymbol:type, and the source-shaped assignment target.
+Ordinary E retains those parser-native boundaries and refuses the typed port
+module member at instantiateE2. IEEE 1800-2023 section 6.8 aggregate
+port/member layout remains outside the flat E storage relation, so no field
+flattening or variable lifting is introduced. Existing Xcelium 24.03-s004
+rows report 0->0000, x->xxxx, z->zzzz, and f->1111; Icarus Verilog 13.0
+rejects unpacked structs. No count transition is claimed.
+
 ## Specify-block current-head check — 2026-11-18T02:11Z
 
 Fresh extraction of specify_repro.sv at public master f2377936d retains
