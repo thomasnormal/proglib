@@ -48,6 +48,9 @@ def validate_type(value):
         if (not isinstance(declaration, dict) or
                 type(declaration.get("offset")) is not int or declaration["offset"] < 0):
             raise RuntimeError(f"invalid declaration identity: {value!r}")
+    elif kind == "unsupported":
+        if not isinstance(value.get("reason"), str) or not value["reason"]:
+            raise RuntimeError(f"unsupported type has no reason: {value!r}")
     else:
         raise RuntimeError(f"unsupported structured type kind: {kind!r}")
 

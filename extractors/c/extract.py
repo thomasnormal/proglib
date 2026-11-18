@@ -330,6 +330,9 @@ def structured_type_records(path):
                 type(record.get("offset")) is not int or record["offset"] < 0 or
                 not isinstance(record.get("type"), dict)):
             die("structured type probe returned an invalid record")
+        if record["type"].get("kind") == "unsupported":
+            die("structured type probe refused a QualType: %s" %
+                record["type"].get("reason", "unspecified"))
     return records
 
 

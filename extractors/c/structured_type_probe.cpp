@@ -101,6 +101,9 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
                               {"element", std::move(*element)}, {"extent", nullptr}};
   }
   if (const auto *function = llvm::dyn_cast<clang::FunctionProtoType>(type)) {
+    // C's ordinary calling convention and parameter ABI are represented by
+    // the function node itself. Exotic C++ method/exception/effect metadata
+    // remains an explicit refusal below.
     auto result = typeTree(function->getReturnType(), context, depth + 1);
     if (!result) return std::nullopt;
     llvm::json::Array parameters;
@@ -167,7 +170,13 @@ public:
     else
       return true;
     auto tree = typeTree(qualified, *context, 0);
-    if (!tree) return true;
+    if (!tree) {
+      rows.push_back(llvm::json::Object{
+          {"kind", "StructuredType"}, {"offset", *occurrence},
+          {"type", llvm::json::Object{{"kind", "unsupported"},
+                                       {"reason", "unrepresented Clang QualType"}}}});
+      return true;
+    }
     rows.push_back(llvm::json::Object{{"kind", "StructuredType"},
                                       {"offset", *occurrence},
                                       {"type", std::move(*tree)}});
