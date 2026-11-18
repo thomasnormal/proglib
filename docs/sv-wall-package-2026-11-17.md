@@ -789,6 +789,17 @@ timing scheduler, so the timing construct remains a loud refusal. Functional
 rows match Icarus Verilog 13.0 and Xcelium 24.03-s004 in the existing receipt.
 No count transition is claimed.
 
+## Typed named-value current-head check — 2026-11-18T02:12Z
+
+Fresh extraction of typed_named_unpacked.sv at public master 770931a50 retains
+VariableSymbol:type, NamedValueExpression:type, and PortSymbol:type. Ordinary
+E reports the named value at parsePExpr, the aggregate variable boundary at
+PDesign.instantiate, and then refuses the typed port module member. IEEE
+1800-2023 section 6.8 aggregate named-value and member-layout semantics remain
+outside the flat E storage relation. Existing Xcelium 24.03-s004 rows report
+xxxx; Icarus Verilog 13.0 rejects unpacked structs. No flattening or count
+transition is claimed.
+
 ## Primitive-instance current-head check — 2026-11-18T02:10Z
 
 Fresh extraction of primitive_repro.sv at public master 31561db80 retains
