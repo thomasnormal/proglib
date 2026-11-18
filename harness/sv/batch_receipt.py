@@ -225,6 +225,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("event_generated_repro.sv", "event_generated_repro",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),),
             retain_proc_rewrites=True),
+    Fixture("net_z_generated_repro.sv", "net_z_generated_repro",
+            (Port("x", 1),), (Port("y", 1),), retain_proc_rewrites=True),
     Fixture("member_access_repro.sv", "member_access_repro",
             (Port("source", 5),), (Port("result", 4),),
             retain_proc_rewrites=True),
