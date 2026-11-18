@@ -195,5 +195,7 @@ assignments before return, while
 overriding a literal default, while
 `harness/scripts/function_print_branch_local.py` checks a selected branch with
 a local assignment before return, while
+`harness/scripts/function_print_branch_locals.py` checks several assignments in
+that selected branch, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is fifteen matches, two refusals, and zero divergence.
+current result is sixteen matches, two refusals, and zero divergence.

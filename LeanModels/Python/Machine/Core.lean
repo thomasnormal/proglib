@@ -204,8 +204,8 @@ def evalFunctionBody : REnv → List Stmt → Res RVal
       match evalExpr env test with
       | .ok value =>
           match truthy value with
-          | true => evalReturnBranch env body
-          | false => evalReturnBranch env orelse
+          | true => evalReturnBranch env body.toList
+          | false => evalReturnBranch env orelse.toList
       | .exn error => .exn error
       | .timeout => .timeout
       | .unsupported reason => .unsupported reason
@@ -220,13 +220,12 @@ def evalFunctionBody : REnv → List Stmt → Res RVal
   | _, _ => .unsupported "machine nested function body"
 
 where
-  evalReturnBranch (env : REnv) (body : Array Stmt) : Res RVal :=
-    match body.toList with
+  evalReturnBranch (env : REnv) : List Stmt → Res RVal
     | [.ret (some expression) _] => evalExpr env expression
     | [.ret none _] => .ok .none
-    | [.assign #[target] expression _, .ret (some result) _] =>
+    | .assign #[target] expression _ :: rest =>
         match targetName target, evalExpr env expression with
-        | some name, .ok value => evalExpr (setEnv env name value) result
+        | some name, .ok value => evalReturnBranch (setEnv env name value) rest
         | none, _ => .unsupported "machine function branch assignment target"
         | _, .exn error => .exn error
         | _, .timeout => .timeout
