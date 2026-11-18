@@ -3,6 +3,7 @@ import LeanModels.Refine.RvfiE
 import LeanModels.Refine.RvfiPorts
 import LeanModels.Refine.RvfiProgress
 import LeanModels.Refine.RvfiRv32iProgram
+import LeanModels.Refine.RvfiAddiProgress
 
 /-!
 # PicoRV32 R2 statement
@@ -152,6 +153,18 @@ theorem picorv32_rv32m_disabled :
   decide
 
 #print axioms picorv32_rv32m_disabled
+
+/-! The first loaded-core consumer is the packaged ADDI bridge.  Keeping this
+typed wrapper beside the core statement makes the obligation visible to the
+eventual E-specific invariant without introducing a second ADDI theorem. -/
+theorem picorv32_addi_step_bridge
+    {State : Type} {machine : RvfiCycleMachine State}
+    {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
+    (invariant : Rv32iAddiInvariant machine rel admit) :
+    Rv32iCycleStepRefines machine rel admit := by
+  exact invariant.toMixedStep
+
+#print axioms picorv32_addi_step_bridge
 
 /-- The literal parametric envelope and its explicit pinned instantiation.
 `Design2` may contain the loader's loud refusal while the corresponding E
