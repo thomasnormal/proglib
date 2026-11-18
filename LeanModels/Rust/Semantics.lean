@@ -294,48 +294,6 @@ def operandCell (s : State) : Operand → Option Cell
 def operandValue (s : State) (operand : Operand) : Option Int :=
   operandCell s operand |>.bind cellInt
 
-def rvalueValue (s : State) : Rvalue → Option Int
-  | .use operand => operandValue s operand
-  | .binaryEq left right => do
-      let leftValue ← operandValue s left
-      let rightValue ← operandValue s right
-      pure (if leftValue == rightValue then 1 else 0)
-  | .binaryNe left right => do
-      let leftValue ← operandValue s left
-      let rightValue ← operandValue s right
-      pure (if leftValue != rightValue then 1 else 0)
-  | .binaryLe left right => do
-      let leftValue ← operandValue s left
-      let rightValue ← operandValue s right
-      pure (if leftValue ≤ rightValue then 1 else 0)
-  | .binaryBitAnd left right => do
-      let leftValue ← operandValue s left
-      let rightValue ← operandValue s right
-      pure (Int.ofNat (leftValue.toNat &&& rightValue.toNat))
-  | .binaryDiv left right => do
-      let leftValue ← operandValue s left
-      let rightValue ← operandValue s right
-      if rightValue == 0 then none else pure (leftValue / rightValue)
-  | .binaryRem left right => do
-      let leftValue ← operandValue s left
-      let rightValue ← operandValue s right
-      if rightValue == 0 then none else pure (leftValue % rightValue)
-  | .cast .intToInt operand target => do
-      let value ← operandValue s operand
-      castInt s target value
-  | .cast _ _ _ => none
-  | .checkedBinary op left right => do
-      let leftValue ← operandValue s left
-      let rightValue ← operandValue s right
-      match checkedBinaryOutcome op leftValue rightValue with
-      | .value value => pure value
-      | .overflow | .divideByZero => none
-  | .ref _ | .aggregate _ _ => none
-  | .adtAggregate _ _ | .discriminant _ => none
-  | .repeat _ _ => none
-  | .zstAggregate => none
-  | .unsupported _ => none
-
 def rvalueCell (s : State) : Rvalue → Option Cell
   | .use operand => operandCell s operand
   | .binaryEq left right => do
@@ -403,6 +361,9 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       | some (.enum variant _) => some (.int variant)
       | _ => none
   | .unsupported _ => none
+
+def rvalueValue (s : State) (value : Rvalue) : Option Int :=
+  (rvalueCell s value).bind cellInt
 
 def eventForCell (localId : Nat) : Cell → Event
   | .int value => .assign localId value
