@@ -638,8 +638,8 @@ or a newly reachable real-design wall changes these measurements.
 ## 2026-11-18 aggregate-member red-fix handoff
 
 The general SV lane's aggregate-member landing made master red in exhaustive
-matches.  Its repair branch `fleet/vipng/ls-sv-master-red-fix` now contains
-`4a1b144aa`, which carries aggregate-member paths through the hierarchy rename
+matches.  Its repair branch now contains the aggregate-member hierarchy rename
+repair at commit `4a1b144aa`, which carries paths through the hierarchy rename
 and closes the dependent proof cases.  A direct `lake env lean
 LeanModels/Sv/CombHier.lean` on that branch exits successfully.  The named
 module target build is otherwise clean apart from stale `#guard_msgs` replay

@@ -199,6 +199,23 @@ PC.  Invalid rows carry no instruction meaning. -/
 def fetchProgramTie (program : Memory) (row : RvfiObservation) : Prop :=
   row.valid = false ∨ row.insn = loadVal program .word false row.pcRdata
 
+/-! The generic `TraceRefines` relation deliberately leaves its witnessed
+instruction list existential.  The core statement keeps that list, while
+also recording the independently checked fetch-to-memory fact for every
+decoded row. -/
+
+def PicoRV32TraceRefines (profile : PlatformProfile) (initial : RvMemoryState)
+    (program : Memory) (initialPc : Word) (environmentInhabited : Prop)
+    (decode : CycleObs PortSample → Option RvfiObservation)
+    (samples : List (CycleObs PortSample)) : Prop :=
+  initial.memory = program ∧ initial.arch.pc = initialPc ∧ environmentInhabited ∧
+    ∃ rows instructions,
+      RvfiE.decodeSamples decode samples = some rows ∧
+        (∀ row, row ∈ rows → fetchProgramTie program row) ∧
+        normalizeRvfiTrace? 0 rows =
+          some (trace (rvMemoryMachineWith profile) initial
+            (rv32iProgramInputs initial instructions))
+
 /-- The fetch tie is required on every decoded E cycle. -/
 def PicoRV32FetchTie {E : ESig} (b : PicoRV32Backend E) : Prop :=
   ∀ ch env trace,
@@ -207,6 +224,63 @@ def PicoRV32FetchTie {E : ESig} (b : PicoRV32Backend E) : Prop :=
       ∀ row,
         decodePost "rvfi_" (RvfiE.sample E b.design env trace cycle) = some row →
           fetchProgramTie b.environment.program row
+
+private theorem decodeSamples_cons
+    {decode : CycleObs PortSample → Option RvfiObservation}
+    {sample : CycleObs PortSample} {samples : List (CycleObs PortSample)}
+    {rows : List RvfiObservation}
+    (h : RvfiE.decodeSamples decode (sample :: samples) = some rows) :
+    ∃ row tail,
+      decode sample = some row ∧
+      RvfiE.decodeSamples decode samples = some tail ∧
+      rows = row :: tail := by
+  unfold RvfiE.decodeSamples at h
+  cases hd : decode sample with
+  | none => simp [hd] at h
+  | some row =>
+      cases ht : RvfiE.decodeSamples decode samples with
+      | none => simp [hd, ht] at h
+      | some tail =>
+          rw [hd, ht] at h
+          simp at h
+          refine ⟨row, tail, ?_, ?_, ?_⟩
+          · rfl
+          · rfl
+          · exact h.symm
+
+private theorem rows_fetch_program_tie
+    {E : ESig} {b : PicoRV32Backend E}
+    {env : E.Env} {trace : Nat → E.Config}
+    (hfetch : ∀ cycle, cycle < E.cycles env →
+      ∀ row, decodePost "rvfi_" (RvfiE.sample E b.design env trace cycle) = some row →
+        fetchProgramTie b.environment.program row) :
+    ∀ offset count rows,
+      offset + count ≤ E.cycles env →
+      RvfiE.decodeSamples (decodePost "rvfi_")
+          ((List.range' offset count).map (RvfiE.sample E b.design env trace)) = some rows →
+      ∀ row, row ∈ rows → fetchProgramTie b.environment.program row := by
+  intro offset count
+  induction count generalizing offset with
+  | zero =>
+      intro rows hbound hdecode row hmem
+      simp [RvfiE.decodeSamples] at hdecode
+      subst rows
+      simp at hmem
+  | succ count ih =>
+      intro rows hbound hdecode row hmem
+      have hparts := decodeSamples_cons (decode := decodePost "rvfi_")
+        (sample := RvfiE.sample E b.design env trace offset)
+        (samples := (List.range' (offset + 1) count).map
+          (RvfiE.sample E b.design env trace)) hdecode
+      obtain ⟨head, tail, hhead, htail, rfl⟩ := hparts
+      have hoff : offset < E.cycles env := by omega
+      simp only [List.mem_cons] at hmem
+      cases hmem with
+      | inl hrow =>
+          subst row
+          exact hfetch offset hoff head hhead
+      | inr htailmem =>
+          exact ih (offset := offset + 1) tail (by omega) htail row htailmem
 
 /-! ## Indexed safety invariant and the R2 statement -/
 
@@ -248,9 +322,36 @@ theorem PicoRV32R2Statement.safety {E : ESig} {b : PicoRV32Backend E}
     {rel : Nat → E.Config → RvMemoryState → Prop}
     (s : PicoRV32R2Statement E b profile initial rel) :
     (Obs_E E).SafeOn b.clocking b.design b.admit
-      (fun _ samples => RvfiE.TraceRefines profile initial
-        (decodePost "rvfi_") samples) :=
-  s.invariant.safe
+      (fun _ samples => PicoRV32TraceRefines profile initial
+        b.environment.program 0 (∃ env, b.admit env) (decodePost "rvfi_") samples) := by
+  intro ch env samples hadmit hdisc hbeh
+  have hgeneric := s.invariant.safe ch env samples hadmit hdisc hbeh
+  obtain ⟨rows, instructions, hdecode, htrace⟩ := hgeneric
+  obtain ⟨probes, ⟨trace, hrun, hprobes⟩, hsamples⟩ := hbeh
+  refine ⟨s.initialMemory, s.resetPc, s.environmentInhabited,
+    rows, instructions, hdecode, ?_, htrace⟩
+  subst probes
+  subst samples
+  intro row hrow
+  have hdecode' :
+      RvfiE.decodeSamples (decodePost "rvfi_")
+          ((List.range' 0 (E.cycles env)).map
+            (RvfiE.sample E b.design env trace)) = some rows := by
+    change RvfiE.decodeSamples (decodePost "rvfi_")
+      (((List.range (E.cycles env)).map fun cycle =>
+        CycleObs.mk (E.preponed trace (E.edgeSlot env cycle))
+          (trace (E.edgeSlot env cycle))).map
+        (CycleObs.map ((Obs_E E).sample b.design))) = some rows at hdecode
+    dsimp only [Obs_E] at hdecode
+    rw [List.map_map, List.range_eq_range'] at hdecode
+    change RvfiE.decodeSamples (decodePost "rvfi_")
+      ((List.range' 0 (E.cycles env)).map
+        (RvfiE.sample E b.design env trace)) = some rows at hdecode
+    exact hdecode
+  exact rows_fetch_program_tie
+    (b := b) (env := env) (trace := trace)
+    (s.fetchTie ch env trace hadmit hdisc hrun)
+    0 (E.cycles env) rows (by omega) hdecode' row hrow
 
 /-! ## Separate bounded progress theorem -/
 
