@@ -75,6 +75,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/function_print_branch_local.py",
+    "envelope": "harness/scripts/function_print_branch_local.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"

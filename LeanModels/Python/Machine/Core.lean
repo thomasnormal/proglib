@@ -224,6 +224,13 @@ where
     match body.toList with
     | [.ret (some expression) _] => evalExpr env expression
     | [.ret none _] => .ok .none
+    | [.assign #[target] expression _, .ret (some result) _] =>
+        match targetName target, evalExpr env expression with
+        | some name, .ok value => evalExpr (setEnv env name value) result
+        | none, _ => .unsupported "machine function branch assignment target"
+        | _, .exn error => .exn error
+        | _, .timeout => .timeout
+        | _, .unsupported reason => .unsupported reason
     | _ => .unsupported "machine function branch body"
 
 def evalFunctionReturn (m : Module) (env : REnv) (name : String)
