@@ -2466,6 +2466,12 @@ theorem reallocAt_null_pointer_shape (m : Mem) (size address : Nat) (h : size �
   simp only [Except.map, Except.ok.injEq]
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt]
 
+theorem reallocAt_null_objects (m : Mem) (size address : Nat) (h : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map (fun r => r.1.objs) =
+      .ok (m.mallocAt size address).1.objs := by
+  rw [reallocAt_null m size address h]
+  rfl
+
 @[simp] theorem mallocAt_pointer_shape (m : Mem) (size address : Nat) :
     (m.mallocAt size address).2 =
       ⟨some (m.objs.length), address, 0, some size⟩ := by
