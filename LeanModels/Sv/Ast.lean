@@ -156,28 +156,44 @@ def Design.inputNames (d : Design) : Array String :=
 def Design.outputNames (d : Design) : Array String :=
   d.decls.filterMap fun dc => if dc.isOutput then some dc.name else none
 
+/-- `true` iff some expression node is `unsupported`. -/
+def Expr.hasUnsupported : Expr → Bool
+  | .unsupported _ _ => true
+  | .lit _ | .ident _ => false
+  | .unary _ a | .reduce _ a | .resizeSigned _ a | .squash2 a => a.hasUnsupported
+  | .binary _ a b => a.hasUnsupported || b.hasUnsupported
+  | .ternary c a b => c.hasUnsupported || a.hasUnsupported || b.hasUnsupported
+  | .concat ps => ps.attach.any fun ⟨p, _⟩ => p.hasUnsupported
+
+/-- `true` iff some statement node is `unsupported`. -/
+def Stmt.hasUnsupported : Stmt → Bool
+  | .unsupported _ _ => true
+  | .blockingAssign _ e | .nbaAssign _ e => e.hasUnsupported
+  | .ifStmt c t e => c.hasUnsupported || t.hasUnsupported ||
+      (match e with | some s => s.hasUnsupported | none => false)
+  | .block body => body.attach.any fun ⟨s, _⟩ => s.hasUnsupported
+
 /-- `true` iff some node anywhere in the design is `unsupported` (handy for
 harness-side early warning; the interpreter is loud regardless). -/
 def Design.hasUnsupported (d : Design) : Bool :=
   d.processes.any fun p =>
     match p with
     | .unsupported _ _ => true
-    | .alwaysFF _ s | .alwaysPlain _ s | .alwaysComb s => stmtHas s
-    | .assign _ e => exprHas e
-where
-  exprHas : Expr → Bool
-    | .unsupported _ _ => true
-    | .lit _ | .ident _ => false
-    | .unary _ a | .reduce _ a | .resizeSigned _ a | .squash2 a => exprHas a
-    | .binary _ a b => exprHas a || exprHas b
-    | .ternary c a b => exprHas c || exprHas a || exprHas b
-    | .concat ps => ps.attach.any fun ⟨p, _⟩ => exprHas p
-  stmtHas : Stmt → Bool
-    | .unsupported _ _ => true
-    | .blockingAssign _ e | .nbaAssign _ e => exprHas e
-    | .ifStmt c t e =>
-        exprHas c || stmtHas t || (match e with | some s => stmtHas s | none => false)
-    | .block body => body.attach.any fun ⟨s, _⟩ => stmtHas s
+    | .alwaysFF _ s | .alwaysPlain _ s | .alwaysComb s => s.hasUnsupported
+    | .assign _ e => e.hasUnsupported
+
+/-- Continuous assignments are net drivers.  The M0 scheduler refuses a
+    target with more than one continuous driver until net-resolution semantics
+    is represented explicitly (§10.6.2). -/
+def hasMultipleAssignDrivers (d : Design) : Bool :=
+  let rec hasDuplicate : List String → Bool
+    | [] => false
+    | x :: xs => xs.contains x || hasDuplicate xs
+  let rec assignTargets : List Process → List String
+    | [] => []
+    | .assign target _ :: rest => target :: assignTargets rest
+    | _ :: rest => assignTargets rest
+  hasDuplicate (assignTargets d.processes.toList)
 
 /-! ## Smoke tests: hand-written `counter` and `race_blk` designs -/
 
