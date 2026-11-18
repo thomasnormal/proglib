@@ -778,3 +778,12 @@ items for unconditional_case2.sv. The results match the previously recorded
 IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
+
+## Current-head reconciliation — 2026-11-18T02:05Z
+
+Public master advanced from 2c1750717 to eaa90b1219a6f4453132adbec039b3032f64a722.
+The intervening commit changes only the Python machine implementation and
+does not touch the SystemVerilog extractor, loader, hierarchy, ingestion,
+canonical-E, structure, or equations paths. The twelve-fixture package census
+and the 57-row wall matrix therefore remain current. REAL-BLOCKS remains 41,
+with no SV count transition.
