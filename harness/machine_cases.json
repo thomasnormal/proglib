@@ -155,6 +155,11 @@
     "expect": "unsupported"
   },
   {
+    "source": "harness/scripts/function_kwargs.py",
+    "envelope": "harness/scripts/function_kwargs.json",
+    "expect": "unsupported"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"
