@@ -44,6 +44,7 @@ structure RFunction where
   defaults : Array Expr := #[]
   body : Array RStmt
   globals : String
+  captured : REnv := []
 deriving Repr, Inhabited, BEq
 
 structure RModule where
@@ -122,6 +123,7 @@ structure RFrame where
   locals : REnv
   globals : REnv
   module : String := "__main__"
+  cells : REnv := []
 deriving Repr, Inhabited, BEq
 
 structure RConfig where
@@ -171,7 +173,8 @@ def rDefinedFrame (frame : RFrame) (name : String) (remaining : List RStmt) : RF
   { control := .statements remaining
     locals := rSetEnv frame.locals name (.callable name)
     globals := frame.globals
-    module := frame.module }
+    module := frame.module
+    cells := frame.cells }
 
 def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFrame)
     (function : RFunction) (remaining : List RStmt) : RConfig :=
@@ -217,7 +220,8 @@ def rCallFrame (function : RFunction) (values : List RVal) : Option RFrame :=
       some { control := .statements function.body.toList
              locals := locals
              globals := []
-             module := function.globals }
+             module := function.globals
+             cells := function.captured }
 
 def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
   { config with modules := rSetModule config.modules module name value }
@@ -454,7 +458,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | current :: tail =>
                   some (.tau, config.defineFunction current tail
                     { name := name, params := params, defaults := defaults, body := body,
-                      globals := current.module } rest)
+                      globals := current.module, captured := current.locals ++ current.cells } rest)
               | [] => none
           | .ret none _ => some (.tau, config.setControl (.continueValue .none .returnValue))
           | .ret (some expression) _ =>
@@ -474,10 +478,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   match rLookupModule config.modules frame.module name with
                   | some value => some (.tau, config.setControl (.continueValue value continuation))
                   | none =>
-                      match rBuiltin config.builtins name with
+                      match rLookupEnv frame.cells name with
                       | some value => some (.tau, config.setControl (.continueValue value continuation))
-                      | none => some (.event (.refuse ("unbound name: " ++ name)),
-                          config.finish (.refuse ("unbound name: " ++ name)))
+                      | none =>
+                          match rBuiltin config.builtins name with
+                          | some value => some (.tau, config.setControl (.continueValue value continuation))
+                          | none => some (.event (.refuse ("unbound name: " ++ name)),
+                              config.finish (.refuse ("unbound name: " ++ name)))
       | .evaluate (.call function args keywords unsupported _) continuation =>
           match unsupported, keywords.toList with
           | some text, _ => some (.event (.refuse text), config.finish (.refuse text))
@@ -755,6 +762,15 @@ private def bCallModule : RModule :=
 private def bBuiltinModule : RModule :=
   { body := #[.ret (some (.name "print" testSpan)) testSpan] }
 
+private def bClosureModule : RModule :=
+  { body := #[.functionDef "outer" #[] #[]
+        #[.assign (.name "x" testSpan) (.constant (.int 9) testSpan) testSpan,
+          .functionDef "inner" #[] #[]
+            #[.ret (some (.name "x" testSpan)) testSpan] testSpan,
+          .ret (some (.call (.name "inner" testSpan) #[] #[] none testSpan)) testSpan]
+        testSpan,
+      .ret (some (.call (.name "outer" testSpan) #[] #[] none testSpan)) testSpan] }
+
 example :
     ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
@@ -786,6 +802,11 @@ example :
 example :
     (runB1 8 (RConfig.initial bBuiltinModule)).2.status =
       .finished (.return (.callable "print")) := by
+  rfl
+
+example :
+    (runB1 128 (RConfig.initial bClosureModule)).2.status =
+      .finished (.return (.int 9)) := by
   rfl
 
 example : ∃ c₁ c₂,
