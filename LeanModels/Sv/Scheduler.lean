@@ -75,6 +75,9 @@ structure SchedulerDesign where
   /-- Edge processes must install their event controls before the implicit
       time-zero activation of always_comb (§9.2.2.2). -/
   startupEdges : List Nat := []
+  /-- Admission is explicit so refused designs cannot satisfy a property
+      vacuously through an empty run relation. -/
+  admitted : Bool := true
 deriving Inhabited
 
 def lookupBit (st : SvState) (name : String) : Logic := st.bit0 name
@@ -209,7 +212,7 @@ def Run (d : SchedulerDesign) : List SvState → SlotState → List SvState → 
   | _, _, _ => False
 
 def RunDesign (d : SchedulerDesign) (rows : List SvState) (outs : List SvState) : Prop :=
-  Run d rows d.initial outs
+  d.admitted = true ∧ Run d rows d.initial outs
 
 def nextUpdates (d : SchedulerDesign) (s : SlotState) : List SlotState :=
   s.active.filterMap fun a =>
@@ -241,35 +244,77 @@ def allSlots : Nat → SchedulerDesign → SlotState → List SvState
 
 /-! ## A loaded M0 design view -/
 
-def exprNamesFuel : Nat → Expr → List String
-  | 0, _ => []
-  | n + 1, e => match e with
-    | .lit _ | .unsupported _ _ => []
-    | .ident name => [name]
-    | .unary _ a | .reduce _ a | .resizeSigned _ a | .squash2 a => exprNamesFuel n a
-    | .binary _ a b => exprNamesFuel n a ++ exprNamesFuel n b
-    | .ternary c a b => exprNamesFuel n c ++ exprNamesFuel n a ++ exprNamesFuel n b
-    | .concat es => es.toList.foldl (fun acc a => acc ++ exprNamesFuel n a) []
+/-! These walkers recurse over the parser-shaped AST itself.  The old
+    depth-4096 workers silently turned a real deep expression or block into
+    an empty dependency set or a truncated process body.  The scheduler's
+    only bounded operation is `allSlots`, whose fuel bounds event exploration
+    and therefore retains the stated narrowing that a process runs to its next
+    wait. -/
+mutual
 
-def exprNames (e : Expr) : List String := exprNamesFuel 4096 e
+def exprNames : Expr → List String
+  | .lit _ | .unsupported _ _ => []
+  | .ident name => [name]
+  | .unary _ a | .reduce _ a | .resizeSigned _ a | .squash2 a => exprNames a
+  | .binary _ a b => exprNames a ++ exprNames b
+  | .ternary c a b => exprNames c ++ exprNames a ++ exprNames b
+  | .concat es => exprNamesList es.toList
+termination_by structural e => e
 
-def stmtNamesFuel : Nat → Stmt → List String
-  | 0, _ => []
-  | n + 1, s => match s with
-    | .blockingAssign _ e | .nbaAssign _ e => exprNamesFuel n e
-    | .ifStmt c t e => exprNamesFuel n c ++ stmtNamesFuel n t ++
-        (match e with | some b => stmtNamesFuel n b | none => [])
-    | .block ss => ss.toList.foldl (fun acc b => acc ++ stmtNamesFuel n b) []
-    | .unsupported _ _ => []
+def exprNamesList : List Expr → List String
+  | [] => []
+  | e :: es => exprNames e ++ exprNamesList es
+termination_by structural es => es
 
-def stmtNames (s : Stmt) : List String := stmtNamesFuel 4096 s
+def stmtNames : Stmt → List String
+  | .blockingAssign _ e | .nbaAssign _ e => exprNames e
+  | .ifStmt c t e => exprNames c ++ stmtNames t ++ stmtNamesOpt e
+  | .block ss => stmtNamesList ss.toList
+  | .unsupported _ _ => []
+termination_by structural s => s
 
-def flattenStmtFuel : Nat → Stmt → List Stmt
-  | 0, _ => []
-  | n + 1, .block ss => ss.toList.foldl (fun acc s => acc ++ flattenStmtFuel n s) []
-  | _, s => [s]
+def stmtNamesOpt : Option Stmt → List String
+  | none => []
+  | some s => stmtNames s
+termination_by structural o => o
 
-def flattenStmt (s : Stmt) : List Stmt := flattenStmtFuel 4096 s
+def stmtNamesList : List Stmt → List String
+  | [] => []
+  | s :: ss => stmtNames s ++ stmtNamesList ss
+termination_by structural ss => ss
+
+def flattenStmt : Stmt → List Stmt
+  | .block ss => flattenStmtList ss.toList
+  | s => [s]
+termination_by structural s => s
+
+def flattenStmtList : List Stmt → List Stmt
+  | [] => []
+  | s :: ss => flattenStmt s ++ flattenStmtList ss
+termination_by structural ss => ss
+
+end
+
+mutual
+
+def stmtWrites : Stmt → List String
+  | .blockingAssign target _ | .nbaAssign target _ => [target]
+  | .ifStmt _ t e => stmtWrites t ++ stmtWritesOpt e
+  | .block ss => stmtWritesList ss.toList
+  | .unsupported _ _ => []
+termination_by structural s => s
+
+def stmtWritesOpt : Option Stmt → List String
+  | none => []
+  | some s => stmtWrites s
+termination_by structural o => o
+
+def stmtWritesList : List Stmt → List String
+  | [] => []
+  | s :: ss => stmtWrites s ++ stmtWritesList ss
+termination_by structural ss => ss
+
+end
 
 def waitForProcess (p : Process) : List Sensitivity :=
   match p with
@@ -277,17 +322,58 @@ def waitForProcess (p : Process) : List Sensitivity :=
       -- `0` is reserved for the initial registration action below; a wake
       -- resumes at program counter one, i.e. the first flattened statement.
       [{ process := 0, target := clock, wait := .posedge, resume := 1 }]
-  | .alwaysComb body => (stmtNames body).eraseDups.map fun n =>
-      { process := 0, target := n, wait := .anyChange, resume := 0 }
+  | .alwaysComb body =>
+      let writes := stmtWrites body
+      ((stmtNames body).eraseDups.filter fun n => !writes.contains n).map fun n =>
+        { process := 0, target := n, wait := .anyChange, resume := 0 }
   | .assign _ value => (exprNames value).eraseDups.map fun n =>
       { process := 0, target := n, wait := .anyChange, resume := 0 }
   | .unsupported _ _ => []
 
+mutual
+
+def evalExprStructural : Expr → SvState → Except String LVec
+  | .lit v, _ => .ok v
+  | .ident name, st =>
+      match readSignal st name with
+      | .ok v => .ok v
+      | .timeout => .error "scheduler: expression evaluation timed out"
+      | .unsupported msg => .error msg
+  | .unary op a, st => do
+      return evalUnaryOp op (← evalExprStructural a st)
+  | .reduce op a, st => do
+      return .ofLogic (evalRedOp op (← evalExprStructural a st))
+  | .resizeSigned width operand, st => do
+      return (← evalExprStructural operand st).resizeSigned width
+  | .squash2 operand, st => do
+      return (← evalExprStructural operand st).toTwoState
+  | .binary op l r, st => do
+      let a ← evalExprStructural l st
+      let b ← evalExprStructural r st
+      return evalBinOp op a b
+  | .ternary c t f, st => do
+      let cv ← evalExprStructural c st
+      let tv ← evalExprStructural t st
+      let fv ← evalExprStructural f st
+      return LVec.ternary cv tv fv
+  | .concat parts, st => do
+      let vs ← evalExprStructuralList parts.toList st
+      return LVec.concatMany vs.toArray
+  | .unsupported svKind _, _ => .error s!"unsupported expression '{svKind}'"
+termination_by structural e => e
+
+def evalExprStructuralList : List Expr → SvState → Except String (List LVec)
+  | [], _ => .ok []
+  | e :: rest, st => do
+      let v ← evalExprStructural e st
+      let vs ← evalExprStructuralList rest st
+      return v :: vs
+termination_by structural es => es
+
+end
+
 def evalValue (s : SlotState) (e : Expr) : Except String LVec :=
-  match evalExpr 4096 s.store e with
-  | .ok v => .ok v
-  | .timeout => .error "scheduler: expression fuel exhausted"
-  | .unsupported msg => .error msg
+  evalExprStructural e s.store
 
 def stmtAction (s : SlotState) (p : Nat) (stmt : Stmt) (next : Nat) : EvalAction :=
   match stmt with
@@ -333,6 +419,7 @@ def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalActi
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
     startupEdges := d.edgeIndices
+    admitted := !d.hasUnsupported
     initial :=
       { store := initState d
         active := (List.range d.processes.size).map fun p => .eval p 0 } }
@@ -519,6 +606,16 @@ private def wakeTwoStart : SlotState :=
     sens := [{ process := 4, target := "a", wait := .level, resume := 0 },
       { process := 4, target := "b", wait := .level, resume := 0 }] }
 
+private def selfReadComb : Process :=
+  .alwaysComb (.block #[
+    .blockingAssign "a" (.ident "a"),
+    .blockingAssign "y" (.ident "a")])
+
+/- IEEE 1800-2023 §9.2.2.2.1 excludes every variable written by an
+   `always_comb` procedure from its implicit sensitivity list, even when the
+   variable also occurs on a right-hand side. -/
+#guard waitForProcess selfReadComb == []
+
 private def wakeOnce : SlotState :=
   applyUpdate wakeStart { owner := none, seq := none, target := "v", value := LVec.ofNat 2 1 }
 
@@ -626,6 +723,19 @@ private def timeZeroRun : List SvState :=
   allSlots 8 d (startWithInputs afterLow [("clk", LVec.lit "1")])
 
 #guard timeZeroRun == [[("q", LVec.ofNat 1 0), ("clk", LVec.lit "1")]]
+
+private def refusedDesign : SchedulerDesign :=
+  SchedulerDesign.ofDesign
+    { name := "refused"
+      decls := #[]
+      processes := #[.unsupported "Initial" "initial process"] }
+
+#guard !refusedDesign.admitted
+example : ¬ RunDesign refusedDesign [] [] := by
+  intro h
+  change (!Design.hasUnsupported
+    { name := "refused", decls := #[], processes := #[.unsupported "Initial" "initial process"] }) = true ∧ _ at h
+  simp [Design.hasUnsupported] at h
 
 /- READY FOR AUDIT S1b: A1-A7, B1-B2, and C1-C3 are implemented in this
    additive scheduler file; S2 remains outside this change. -/

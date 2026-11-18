@@ -1,0 +1,154 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_float_truthy.py",
+  "source_sha256": "dbc745388c627c0f491a574b0140c843d263936cee25a7587eb6df9836a0a286",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 63
+        },
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 63
+          },
+          "value": {
+            "type": "str",
+            "value": "Machine wrong-answer row: zero float truthiness is false."
+          }
+        }
+      },
+      {
+        "kind": "If",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 12
+        },
+        "test": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 3,
+            "col_offset": 3,
+            "end_lineno": 3,
+            "end_col_offset": 6
+          },
+          "value": {
+            "type": "float",
+            "bits": "0"
+          }
+        },
+        "body": [
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 12
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 4,
+                "col_offset": 4,
+                "end_lineno": 4,
+                "end_col_offset": 12
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 4,
+                  "end_lineno": 4,
+                  "end_col_offset": 9
+                },
+                "id": "print"
+              },
+              "args": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 4,
+                    "col_offset": 10,
+                    "end_lineno": 4,
+                    "end_col_offset": 11
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          }
+        ],
+        "orelse": [
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 6,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 12
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 6,
+                "col_offset": 4,
+                "end_lineno": 6,
+                "end_col_offset": 12
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 4,
+                  "end_lineno": 6,
+                  "end_col_offset": 9
+                },
+                "id": "print"
+              },
+              "args": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 6,
+                    "col_offset": 10,
+                    "end_lineno": 6,
+                    "end_col_offset": 11
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "lean_blocks": []
+}

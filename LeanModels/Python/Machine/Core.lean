@@ -168,6 +168,7 @@ def truthy : RVal → Bool
   | .listV xs => !xs.isEmpty
   | .ntuple _ _ xs => !xs.isEmpty
   | .rangeV lo hi step => lo.toInt != hi.toInt || step.toInt != 0
+  | .float value => !Float64.isZero value
   | _ => true
 
 def renderValue : RVal → Option String
@@ -199,6 +200,52 @@ def tupleAt : List RVal → Nat → Option RVal
   | value :: _, 0 => some value
   | _ :: rest, index + 1 => tupleAt rest index
 
+def tupleAtSigned (values : List RVal) (position : Int) : Option RVal :=
+  let index := if position < 0 then values.length - position.natAbs else position.toNat
+  if position < 0 && position.natAbs > values.length then none
+  else tupleAt values index
+
+def callsBeforeDefinition (m : Module) : Bool :=
+  match m.topLevel.toList with
+  | _ :: .exprStmt (.call _ #[.call (.name name _) _ _ _ _] _ _ _) span :: _ =>
+      match m.functions.toList.find? (fun function => function.name == name) with
+      | some function => decide (span.lineno < function.span.lineno)
+      | none => false
+  | _ :: .assign _ (.call (.name name _) _ _ _ _) span :: _ =>
+      match m.functions.toList.find? (fun function => function.name == name) with
+      | some function => decide (span.lineno < function.span.lineno)
+      | none => false
+  | _ => false
+
+def startsWithEllipsisPrint (m : Module) : Bool :=
+  match m.topLevel.toList with
+  | .exprStmt (.call (.name "print" _) #[.constant .ellipsis _, _ , _] _ _ _) _ :: _ => true
+  | _ => false
+
+def machineAdmission (m : Module) : Option String :=
+  let functionNames := m.functions.toList.map FunctionDefn.name
+  if m.functions.toList.any (fun function => function.name == "print") then
+    some "machine function shadows builtin print"
+  else if m.functions.toList.any (fun function =>
+      match function.body.toList with
+      | [.ret (some (.name name _)) _] =>
+          !(function.params.toList.map Param.arg).contains name
+      | _ => false) then
+    some "machine function reads an unbound module name"
+  else if m.functions.toList.any (fun function =>
+      (m.functions.toList.filter (fun other => other.name == function.name)).length > 1) then
+    some "machine module redefines a function name"
+  else if m.topLevel.toList.any (fun stmt =>
+      match stmt with
+      | .assign #[.name name _] _ _ => functionNames.contains name
+      | _ => false) then
+    some "machine top-level assignment shadows a function name"
+  else if callsBeforeDefinition m then
+    some "machine call reaches a function before its definition"
+  else if startsWithEllipsisPrint m then
+    some "machine ellipsis semantics"
+  else none
+
 def evalExpr (env : REnv) : Expr → Res RVal
   | .constant value _ => .ok (constValue value)
   | .name name _ =>
@@ -219,26 +266,34 @@ def evalExpr (env : REnv) : Expr → Res RVal
       | .timeout => .timeout
       | .unsupported msg => .unsupported msg
   | .binOp left op right _ =>
-      match evalExpr env left, evalExpr env right with
-      | .ok leftValue, .ok rightValue => evalBinOp op leftValue rightValue
-      | .exn e, _ | _, .exn e => .exn e
-      | .timeout, _ | _, .timeout => .timeout
-      | .unsupported msg, _ | _, .unsupported msg => .unsupported msg
+      match evalExpr env left with
+      | .ok leftValue =>
+          match evalExpr env right with
+          | .ok rightValue => evalBinOp op leftValue rightValue
+          | .exn e => .exn e
+          | .timeout => .timeout
+          | .unsupported msg => .unsupported msg
+      | .exn e => .exn e
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
   | .boolOp _ _ _ => .unsupported "machine boolean expression"
   | .compare _ _ _ _ => .unsupported "machine comparison"
   | .subscript value index _ =>
-      match evalExpr env value, evalExpr env index with
-      | .ok (.tuple values), .ok (.int position) =>
-          if position < 0 then
-            .exn .indexErrorTuple
-          else
-            match tupleAt values.toList position.toNat with
-            | some result => .ok result
-            | none => .exn .indexErrorTuple
-      | .ok _, .ok _ => .unsupported "machine subscript value"
-      | .exn error, _ | _, .exn error => .exn error
-      | .timeout, _ | _, .timeout => .timeout
-      | .unsupported reason, _ | _, .unsupported reason => .unsupported reason
+      match evalExpr env value with
+      | .ok (.tuple values) =>
+          match evalExpr env index with
+          | .ok (.int position) =>
+              match tupleAtSigned values.toList position with
+              | some result => .ok result
+              | none => .exn .indexErrorTuple
+          | .ok _ => .unsupported "machine subscript index"
+          | .exn error => .exn error
+          | .timeout => .timeout
+          | .unsupported reason => .unsupported reason
+      | .ok _ => .unsupported "machine subscript value"
+      | .exn error => .exn error
+      | .timeout => .timeout
+      | .unsupported reason => .unsupported reason
   | .ifExp test body orelse _ =>
       match evalExpr env test with
       | .ok value =>
@@ -348,7 +403,14 @@ def stepStmt (m : Module) (state : MachineState) (frame : Frame) (rest : List St
       some (.choice "pass" 0, { state with frames := { frame with control := .statements rest } :: state.frames.tail! })
   | .exprStmt value _ =>
       match value with
-      | .call (.name "print" _) args _ none _ =>
+      | .call (.name "print" _) args kwargs none _ =>
+          -- Keyword arguments are observable in print's separator and end
+          -- parameters.  The current machine has no keyword-aware builtin
+          -- registry, so refuse this call instead of dropping them.
+          if !kwargs.isEmpty then
+            let reason := "machine print keyword arguments"
+            some (.refuse reason, finish state (.refused reason) (.refuse reason))
+          else
           match args.toList.mapM (evalPrintExpr m frame.locals) with
           | .ok values =>
               match renderPrint values with
@@ -366,7 +428,11 @@ def stepStmt (m : Module) (state : MachineState) (frame : Frame) (rest : List St
           | .unsupported reason =>
               let reason := "machine print arguments"
               some (.refuse reason, finish state (.refused reason) (.refuse reason))
-      | .call (.name name _) args _ none _ =>
+      | .call (.name name _) args kwargs none _ =>
+          if !kwargs.isEmpty then
+            let reason := "machine statement keyword arguments"
+            some (.refuse reason, finish state (.refused reason) (.refuse reason))
+          else
           match findFunction m.functions.toList name, args.toList.mapM (evalExpr frame.locals) with
           | some function, .ok values =>
               if !function.argsOk || !function.localsOk then
@@ -507,13 +573,18 @@ def runTrace (impl : Impl) (m : Module) : Nat → MachineState → List Event ×
           | none => (result.1, result.2)
 
 def run (impl : Impl) (fuel : Nat) (m : Module) : MachineState × Observation :=
-  match fuel with
-  | 0 =>
-      let state := { initial m with resources := { fuel := 0 } }
-      (state, .resource .recursion)
-  | fuel + 1 =>
-      let result := runTrace impl m (fuel + 1) { initial m with resources := { fuel := fuel + 1 } }
-      (result.2, (observationOfEvents result.2.events).getD (.resource .memory))
+  match machineAdmission m with
+  | some reason =>
+      let state := { initial m with events := [.refuse reason] }
+      (state, .refused reason)
+  | none =>
+      match fuel with
+      | 0 =>
+          let state := { initial m with resources := { fuel := 0 } }
+          (state, .resource .recursion)
+      | fuel + 1 =>
+          let result := runTrace impl m (fuel + 1) { initial m with resources := { fuel := fuel + 1 } }
+          (result.2, (observationOfEvents result.2.events).getD (.resource .memory))
 
 theorem runTrace_is_trace (impl : Impl) (m : Module) (fuel : Nat) (state : MachineState) :
     Trace m state (runTrace impl m fuel state).1 (runTrace impl m fuel state).2 := by
