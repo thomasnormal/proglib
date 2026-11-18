@@ -37,6 +37,32 @@ open LeanModels.Refine.RvfiPorts
 
 set_option autoImplicit false
 
+/-! ## R2 consumption map
+
+The loaded-core proof consumes one concrete obligation at each boundary.  The
+`PicoRV32Invariant.init` field supplies reset and initial-memory relation data.
+Its `PicoRV32Invariant.step` field supplies `RvfiE.StepRefines`, whose valid
+row cases consume the exact `Rv32iBoundary` family and whose invalid cases
+must carry the relation across a bubble.  `PicoRV32FetchTie` supplies the
+program-image word equality used by `PicoRV32R2Statement.safety`.  The
+separate `BoundedNextRetirement` premise supplies liveness to
+`picoRV32_progress`; it is not inferred from safety.  The R1 files listed
+below are the currently available boundary families consumed by that step
+obligation:
+
+* `r1_addi.lean`, `r1_alu_imm.lean`, and `r1_alu.lean` for immediate and
+  register ALU rows;
+* `r1_upper.lean`, `r1_branch.lean`, and `r1_jump.lean` for upper-immediate,
+  conditional-branch, and jump rows;
+* `r1_mem.lean` and `r1_mem_all.lean` for every load/store width and sign;
+* `r1_fence.lean`, `r1_system.lean`, `r1_csr.lean`, and `r1_illegal.lean` for
+  fences, system transfers, implemented Zicsr rows, and illegal outcomes;
+* `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
+  for the measured observation witness.
+
+These are boundary consumers for a future loaded-core invariant.  They do not
+assert that the current PicoRV32 envelope executes in canonical E. -/
+
 set_option maxRecDepth 100000 in
 load_design_sv2 picorv32_r2
   from "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
