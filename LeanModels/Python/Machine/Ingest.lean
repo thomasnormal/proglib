@@ -374,4 +374,11 @@ private def ingestKwargModule : Json :=
   | .ok { body := #[.functionDef _ args _ _ _ _] } => args.kwarg.isSome
   | _ => false
 
+#guard match parseMachineModule ingestKwargModule with
+  | .ok module =>
+      match (compileMachineModule module).body.toList with
+      | [.functionDef _ #[parameter] _ _ _] => parameter.keywordVariadic
+      | _ => false
+  | _ => false
+
 end LeanModels.Python.Machine
