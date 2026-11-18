@@ -206,11 +206,11 @@ decoded row. -/
 
 def PicoRV32TraceRefines (profile : PlatformProfile) (initial : RvMemoryState)
     (program : Memory) (initialPc : Word) (programReadOnly : Prop)
-    (environmentInhabited : Prop)
+    (environmentInhabited : Prop) (designPinned : Prop)
     (decode : CycleObs PortSample → Option RvfiObservation)
     (samples : List (CycleObs PortSample)) : Prop :=
   initial.memory = program ∧ initial.arch.pc = initialPc ∧ programReadOnly ∧
-    environmentInhabited ∧
+    environmentInhabited ∧ designPinned ∧
     ∃ rows instructions,
       RvfiE.decodeSamples decode samples = some rows ∧
         (∀ row, row ∈ rows → fetchProgramTie program row) ∧
@@ -329,13 +329,14 @@ theorem PicoRV32R2Statement.safety {E : ESig} {b : PicoRV32Backend E}
         (∀ address width value,
           b.environment.programRegion address = true →
             storeVal b.environment.program width address value = b.environment.program)
-        (∃ env, b.admit env) (decodePost "rvfi_") samples) := by
+        (∃ env, b.admit env) (b.loaded = picorv32RISCVFormalDesign)
+        (decodePost "rvfi_") samples) := by
   intro ch env samples hadmit hdisc hbeh
   have hgeneric := s.invariant.safe ch env samples hadmit hdisc hbeh
   obtain ⟨rows, instructions, hdecode, htrace⟩ := hgeneric
   obtain ⟨probes, ⟨trace, hrun, hprobes⟩, hsamples⟩ := hbeh
   refine ⟨s.initialMemory, s.resetPc, b.environment.programReadOnly,
-    s.environmentInhabited,
+    s.environmentInhabited, b.loadedIsPinned,
     rows, instructions, hdecode, ?_, htrace⟩
   subst probes
   subst samples
