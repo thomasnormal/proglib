@@ -5,7 +5,7 @@ This slice implements the MIR node census groups in the approved
 `PlaceMention`, `Use` rvalues, constant operands, zero-projection places, and a
 single `Return` block, together with control flow, resolved calls, normal drop
 edges, and explicit refusal boundaries for cleanup, intrinsics, and foreign
-operations.  The implementation is 329 lines in
+operations.  The implementation is 582 lines in
 `LeanModels/Rust/Semantics.lean`, with 75 lines of AST declarations, 210 lines
 of JSON decoding, and 38 lines of the literal-envelope loader.
 
@@ -75,9 +75,12 @@ executable fold.  No unsupported node is lowered to a different construct.
 
 `Step` is the definition of one statement transition.  `InSteps` composes those
 transitions, and `statementsRun_in_steps` plus `bodyRun_in_steps` prove that the
-kernel-reducible statement and body runners are contained in the relation.  The
-program-level call runner still needs its call-aware relation and containment
-proof.  The three Lean example proofs check that each loaded envelope has a
+kernel-reducible statement and body runners are contained in the relation.
+`ProgramSteps` is the envelope-level relation.  Its call constructor records the
+resolved edge, argument binding, callee `CfgSteps` trace, return value, and
+caller continuation.  `cfgRunProgram_in_steps` proves that the kernel-reducible
+program runner is contained in `ProgramSteps`, and `ProgramInSteps` exposes that
+fuel-free relation.  The three Lean example proofs check that each loaded envelope has a
 successful run.  They also expose the exact event traces through the reducible
 runner when inspecting a row.
 

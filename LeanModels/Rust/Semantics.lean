@@ -153,6 +153,27 @@ def CfgInSteps : Nat → Body → Nat → State → Trace → Prop
             CfgInSteps fuel body target dropState' suffix ∧
             trace = { state := suffix.state, events := first.events ++ event :: suffix.events })
 
+inductive CfgSteps (body : Body) : Nat → State → Trace → Prop
+  | ret {blockId : Nat} {state : State} {block : Block} {first : Trace}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : terminatorStep first.state block.terminator = some .ret) :
+      CfgSteps body blockId state first
+  | jump {blockId next : Nat} {state : State} {block : Block} {first suffix : Trace}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : terminatorStep first.state block.terminator = some (.jump next))
+      (rest : CfgSteps body next first.state suffix) :
+      CfgSteps body blockId state { state := suffix.state, events := first.events ++ suffix.events }
+  | drop {blockId target cleanup : Nat} {state : State} {block : Block} {first suffix : Trace}
+      {place : Place} {dropState' : State} {event : Event}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : terminatorStep first.state block.terminator = some (.drop place target cleanup))
+      (hd : dropState first.state place = some (dropState', event))
+      (rest : CfgSteps body target dropState' suffix) :
+      CfgSteps body blockId state { state := suffix.state, events := first.events ++ event :: suffix.events }
+
 def cfgRun : Nat → Body → Nat → State → Option Trace
   | 0, _, _, _ => none
   | fuel + 1, body, blockId, state => do
@@ -219,6 +240,46 @@ def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
               let suffix ← cfgRunProgram fuel program body target dropState'
               pure { state := suffix.state, events := firstTrace.events ++ event :: suffix.events }
 
+inductive ProgramSteps (program : Envelope) : Body → Nat → State → Trace → Prop
+  | ret {body : Body} {blockId : Nat} {state : State} {block : Block} {first : Trace}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : terminatorStep first.state block.terminator = some .ret) :
+      ProgramSteps program body blockId state first
+  | jump {body : Body} {blockId next : Nat} {state : State} {block : Block} {first suffix : Trace}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : terminatorStep first.state block.terminator = some (.jump next))
+      (rest : ProgramSteps program body next first.state suffix) :
+      ProgramSteps program body blockId state
+        { state := suffix.state, events := first.events ++ suffix.events }
+  | drop {body : Body} {blockId target cleanup : Nat} {state : State}
+      {block : Block} {first suffix : Trace} {place : Place} {dropState' : State} {event : Event}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : terminatorStep first.state block.terminator = some (.drop place target cleanup))
+      (hd : dropState first.state place = some (dropState', event))
+      (rest : ProgramSteps program body target dropState' suffix) :
+      ProgramSteps program body blockId state
+        { state := suffix.state, events := first.events ++ event :: suffix.events }
+  | call {body : Body} {blockId target : Nat} {state : State}
+      {block : Block} {first calleeTrace suffix : Trace} {calleeState : State}
+      {func : Operand} {args : List Operand} {destination : Place}
+      {edge : CallEdge} {calleeId : String} {callee : Body} {value : Int}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : block.terminator = .call func args destination (some target))
+      (hl : lookupCallBody program body blockId = some (edge, callee))
+      (he : edge.callee = some calleeId)
+      (ha : bindCallArgs first.state args 1 = some calleeState)
+      (hc : CfgSteps callee 0 calleeState calleeTrace)
+      (hv : returnValue calleeTrace = some value)
+      (rest : ProgramSteps program body target
+        (setSlot first.state destination.localId (.value value)) suffix) :
+      ProgramSteps program body blockId state
+        { state := suffix.state,
+          events := first.events ++ (Event.call calleeId :: (calleeTrace.events ++ suffix.events)) }
+
 def BodyInSteps (body : Body) (trace : Trace) : Prop :=
   ∃ fuel, CfgInSteps fuel body 0 {} trace
 
@@ -269,6 +330,23 @@ theorem cfgRun_in_steps {fuel : Nat} {body : Body} {blockId : Nat}
                               simp [hs, ht, hd, hr] at h
                               exact h.symm
 
+theorem cfgInSteps_to_cfgSteps {fuel : Nat} {body : Body} {blockId : Nat}
+    {state : State} {trace : Trace} (h : CfgInSteps fuel body blockId state trace) :
+    CfgSteps body blockId state trace := by
+  induction fuel generalizing blockId state trace with
+  | zero => exact False.elim h
+  | succ fuel ih =>
+      rcases h with ⟨block, first, transition, hb, hs, ht, hrest⟩
+      cases transition with
+      | ret =>
+          simpa [hrest] using CfgSteps.ret hb hs ht
+      | jump next =>
+          rcases hrest with ⟨suffix, hrel, htrace⟩
+          simpa [htrace] using CfgSteps.jump hb hs ht (ih hrel)
+      | drop place target cleanup =>
+          rcases hrest with ⟨dropState', event, suffix, hd, hrel, htrace⟩
+          simpa [htrace] using CfgSteps.drop hb hs ht hd (ih hrel)
+
 theorem bodyRun_in_steps {body : Body} {trace : Trace}
     (h : bodyRun body = some trace) : BodyInSteps body trace := by
   exact ⟨4096, cfgRun_in_steps h⟩
@@ -280,7 +358,181 @@ def run (program : Envelope) : Option Trace :=
 
 def ProgramInSteps (program : Envelope) (trace : Trace) : Prop :=
   ∃ body, program.bodies.find? (·.instanceId == program.entry) = some body ∧
-    ∃ fuel, cfgRunProgram fuel program body 0 {} = some trace
+    ProgramSteps program body 0 {} trace
+
+theorem cfgRunProgram_in_steps {fuel : Nat} {program : Envelope} {body : Body}
+    {blockId : Nat} {state : State} {trace : Trace}
+    (h : cfgRunProgram fuel program body blockId state = some trace) :
+    ProgramSteps program body blockId state trace := by
+  induction fuel generalizing blockId state trace with
+  | zero => simp [cfgRunProgram] at h
+  | succ fuel ih =>
+      simp only [cfgRunProgram] at h
+      generalize hb : blockAt body.blocks blockId = block at h
+      cases block with
+      | none => simp_all
+      | some block =>
+          simp [hb] at h
+          generalize hs : statementsRun block.statements state = first at h
+          cases first with
+          | none => simp_all
+          | some firstTrace =>
+              cases hterm : block.terminator with
+              | call func args destination target =>
+                  simp [hterm] at h
+                  cases target with
+                  | none => simp_all
+                  | some target =>
+                      generalize hl : lookupCallBody program body blockId = lookup at h
+                      cases lookup with
+                      | none => simp_all
+                      | some pair =>
+                          rcases pair with ⟨edge, callee⟩
+                          cases hec : edge.callee with
+                          | none => simp_all
+                          | some calleeId =>
+                              generalize ha : bindCallArgs firstTrace.state args 1 = calleeState at h
+                              cases calleeState with
+                              | none => simp_all
+                              | some calleeState =>
+                                  generalize hc : cfgRun fuel callee 0 calleeState = calleeTrace at h
+                                  cases calleeTrace with
+                                  | none => simp_all
+                                  | some calleeTrace =>
+                                      generalize hv : returnValue calleeTrace = value at h
+                                      cases value with
+                                      | none => simp_all
+                                      | some value =>
+                                          generalize hr : cfgRunProgram fuel program body target
+                                              (setSlot firstTrace.state destination.localId (.value value)) = suffix at h
+                                          cases suffix with
+                                          | none => simp_all
+                                          | some suffixTrace =>
+                                              have hcallee := cfgRun_in_steps hc
+                                              have hcalleeSteps := cfgInSteps_to_cfgSteps hcallee
+                                              have hrest := ih (blockId := target)
+                                                (state := setSlot firstTrace.state destination.localId (.value value)) hr
+                                              have htrace :
+                                                  { state := suffixTrace.state,
+                                                    events := firstTrace.events ++
+                                                      (Event.call calleeId ::
+                                                        (calleeTrace.events ++ suffixTrace.events)) } = trace := by
+                                                simpa [hterm, hl, hec, ha, hc, hv, hr] using h
+                                              rw [← htrace]
+                                              exact ProgramSteps.call hb hs hterm hl hec ha hcalleeSteps hv hrest
+              | ret =>
+                  have htrace : firstTrace = trace := by
+                    simpa [hterm, terminatorStep] using h
+                  rw [← htrace]
+                  exact ProgramSteps.ret hb hs (by simp [hterm, terminatorStep])
+              | goto target =>
+                  simp [hterm, terminatorStep] at h
+                  have ht : terminatorStep firstTrace.state block.terminator = some (.jump target) := by
+                    simp [hterm, terminatorStep]
+                  generalize hr : cfgRunProgram fuel program body target firstTrace.state = suffix at h
+                  cases suffix with
+                  | none => simp_all
+                  | some suffixTrace =>
+                      have hrest := ih (blockId := target) (state := firstTrace.state) hr
+                      have htrace :
+                          { state := suffixTrace.state,
+                            events := firstTrace.events ++ suffixTrace.events } = trace := by
+                        simpa [hr] using h
+                      rw [← htrace]
+                      exact ProgramSteps.jump hb hs ht hrest
+              | switchInt discr branches otherwise =>
+                  simp [hterm] at h
+                  generalize ht0 : terminatorStep firstTrace.state
+                      (Terminator.switchInt discr branches otherwise) = transition at h
+                  cases transition with
+                  | none => simp_all
+                  | some transition =>
+                      cases transition with
+                      | ret =>
+                          cases hv : operandValue firstTrace.state discr with
+                          | none => simp [terminatorStep, hv] at ht0
+                          | some value => simp [terminatorStep, hv] at ht0
+                      | jump target =>
+                          generalize hr : cfgRunProgram fuel program body target firstTrace.state = suffix at h
+                          cases suffix with
+                          | none => simp_all
+                          | some suffixTrace =>
+                              have hrest := ih (blockId := target) (state := firstTrace.state) hr
+                              have ht : terminatorStep firstTrace.state block.terminator = some (.jump target) := by
+                                simpa [hterm] using ht0
+                              have htrace :
+                                  { state := suffixTrace.state,
+                                    events := firstTrace.events ++ suffixTrace.events } = trace := by
+                                simpa [ht, hr] using h
+                              rw [← htrace]
+                              exact ProgramSteps.jump hb hs ht hrest
+                      | drop _ _ _ =>
+                          cases hv : operandValue firstTrace.state discr with
+                          | none => simp [terminatorStep, hv] at ht0
+                          | some value => simp [terminatorStep, hv] at ht0
+              | assert cond expected target =>
+                  simp [hterm] at h
+                  generalize ht0 : terminatorStep firstTrace.state
+                      (Terminator.assert cond expected target) = transition at h
+                  cases transition with
+                  | none => simp_all
+                  | some transition =>
+                      cases transition with
+                      | ret =>
+                          cases hv : operandValue firstTrace.state cond with
+                          | none => simp [terminatorStep, hv] at ht0
+                          | some value => simp [terminatorStep, hv] at ht0
+                      | jump target =>
+                          generalize hr : cfgRunProgram fuel program body target firstTrace.state = suffix at h
+                          cases suffix with
+                          | none => simp_all
+                          | some suffixTrace =>
+                              have hrest := ih (blockId := target) (state := firstTrace.state) hr
+                              have ht : terminatorStep firstTrace.state block.terminator = some (.jump target) := by
+                                simpa [hterm] using ht0
+                              have htrace :
+                                  { state := suffixTrace.state,
+                                    events := firstTrace.events ++ suffixTrace.events } = trace := by
+                                simpa [ht, hr] using h
+                              rw [← htrace]
+                              exact ProgramSteps.jump hb hs ht hrest
+                      | drop _ _ _ =>
+                          cases hv : operandValue firstTrace.state cond with
+                          | none => simp [terminatorStep, hv] at ht0
+                          | some value => simp [terminatorStep, hv] at ht0
+              | drop place target cleanup =>
+                  simp [hterm] at h
+                  generalize ht0 : terminatorStep firstTrace.state
+                      (Terminator.drop place target cleanup) = transition at h
+                  cases transition with
+                  | none => simp_all
+                  | some transition =>
+                      cases transition with
+                      | ret => simp [terminatorStep] at ht0
+                      | jump next => simp [terminatorStep] at ht0
+                      | drop place' target' cleanup' =>
+                          generalize hd : dropState firstTrace.state place' = dropped at h
+                          cases dropped with
+                          | none => simp_all
+                          | some pair =>
+                              rcases pair with ⟨dropState', event⟩
+                              generalize hr : cfgRunProgram fuel program body target' dropState' = suffix at h
+                              cases suffix with
+                              | none => simp [hd, hr] at h
+                              | some suffixTrace =>
+                                  have hrest := ih (blockId := target') (state := dropState') hr
+                                  have ht : terminatorStep firstTrace.state block.terminator =
+                                      some (.drop place' target' cleanup') := by
+                                    simpa [hterm] using ht0
+                                  have htrace :
+                                      { state := suffixTrace.state,
+                                        events := firstTrace.events ++ event :: suffixTrace.events } = trace := by
+                                    simpa [ht, hr, hd] using h
+                                  rw [← htrace]
+                                  exact ProgramSteps.drop hb hs ht hd hrest
+              | resume => simp [hterm, terminatorStep] at h
+              | unreachable => simp [hterm, terminatorStep] at h
+              | unsupported kind => simp [hterm, terminatorStep] at h
 
 theorem run_in_steps {program : Envelope} {trace : Trace}
     (h : run program = some trace) : ProgramInSteps program trace := by
@@ -289,7 +541,7 @@ theorem run_in_steps {program : Envelope} {trace : Trace}
   | none => simp [hfind] at h
   | some body =>
       simp [hfind] at h
-      exact ⟨body, hfind, 4096, h⟩
+      exact ⟨body, hfind, cfgRunProgram_in_steps h⟩
 
 def InSteps : List Statement → State → State → List Event → Prop
   | [], initial, final, events => final = initial ∧ events = []
