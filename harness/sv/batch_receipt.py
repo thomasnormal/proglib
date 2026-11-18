@@ -193,6 +193,10 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clk", 1, clock=True), Port("rst_n", 1, reset_active_low=True),
              Port("en", 1), Port("d", 4)), (Port("q", 4),),
             (Point("N4", (4,)),)),
+    Fixture("clk_arst_comma.sv", "clk_arst_comma",
+            (Port("clk", 1, clock=True), Port("rst_n", 1, reset_active_low=True),
+             Port("en", 1), Port("d", 4)), (Port("q", 4),),
+            (Point("N4", (4,)),)),
     Fixture("preempt_block_refuse.sv", "preemptive_schedule",
             (Port("a", 1), Port("b", 1)),
             (Port("q", 1), Port("r", 1), Port("z", 1))),
@@ -427,6 +431,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "constant_function_top": ("N",),
             "generate_local_top": ("N",),
             "clk_arst": ("N",),
+            "clk_arst_comma": ("N",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []
