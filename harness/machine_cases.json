@@ -170,6 +170,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/function_keyword_only_missing.py",
+    "envelope": "harness/scripts/function_keyword_only_missing.json",
+    "expect": "unsupported"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"
