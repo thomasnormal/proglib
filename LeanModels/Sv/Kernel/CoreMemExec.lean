@@ -1347,6 +1347,35 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
 
 mutual
 
+/-- Whether an expression contains a parser-native aggregate member read.
+This is named separately from `hasFunctionCall`: the clocked and comb scalar
+profiles refuse aggregate storage because their theorem state has no aggregate
+store, even though the legacy function-free gate also classifies it as outside
+its fragment. -/
+def LeanModels.Sv.PExpr.hasAggregateMember : PExpr → Bool
+  | .aggregateMember .. => true
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
+  | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasAggregateMember a
+  | .binary _ a b => LeanModels.Sv.PExpr.hasAggregateMember a ||
+      LeanModels.Sv.PExpr.hasAggregateMember b
+  | .ternary c a b => LeanModels.Sv.PExpr.hasAggregateMember c ||
+      LeanModels.Sv.PExpr.hasAggregateMember a || LeanModels.Sv.PExpr.hasAggregateMember b
+  | .concat xs | .functionCall _ xs => PExpr.hasAggregateMemberList xs
+  | .bitSel a b | .repl a b => LeanModels.Sv.PExpr.hasAggregateMember a ||
+      LeanModels.Sv.PExpr.hasAggregateMember b
+  | .partSel a b c => LeanModels.Sv.PExpr.hasAggregateMember a ||
+      LeanModels.Sv.PExpr.hasAggregateMember b || LeanModels.Sv.PExpr.hasAggregateMember c
+  | .arrayElem _ indices => PExpr.hasAggregateMemberList indices
+  | .arrayPart _ indices _ a b => PExpr.hasAggregateMemberList indices ||
+      LeanModels.Sv.PExpr.hasAggregateMember a || LeanModels.Sv.PExpr.hasAggregateMember b
+  | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
+  | .fill _ | .unsupported .. => false
+
+def LeanModels.Sv.PExpr.hasAggregateMemberList : List PExpr → Bool
+  | [] => false
+  | x :: xs => LeanModels.Sv.PExpr.hasAggregateMember x ||
+      LeanModels.Sv.PExpr.hasAggregateMemberList xs
+
 def LeanModels.Sv.PExpr.hasMemoryRead : PExpr → Bool
   | .arrayElem .. | .arrayPart .. => true
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
@@ -1725,7 +1754,8 @@ read must stay on `evalExpr`, whose source-shaped evaluator threads
 def CoreMemDesign.evalScalarAssignAtView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (ctx : Option Nat) (index : Nat) (value : PExpr) : Res LVec :=
-  if LeanModels.Sv.PExpr.hasMemoryRead value || LeanModels.Sv.PExpr.hasFunctionCall value then
+  if LeanModels.Sv.PExpr.hasMemoryRead value ||
+            LeanModels.Sv.PExpr.hasFunctionCall value || LeanModels.Sv.PExpr.hasAggregateMember value then
     E.evalExpr env elems st ctx value
   else
     match E.compiledAssigns[index]? with
@@ -3046,6 +3076,11 @@ private def aggregateSmokeDesign : PDesign :=
       (.aggregateMember "source"
         [(some "words", none), (none, some (.int 0)), (some "value", none)]))],
     generates := [] }
+
+#guard LeanModels.Sv.PExpr.hasAggregateMember
+    (.aggregateMember "source" [(some "words", none), (none, some (.int 0))])
+#guard LeanModels.Sv.PExpr.hasAggregateMember
+    (.binary (.m0 .add) (.ident "x") (.aggregateMember "source" []))
 
 #guard match PDesign.instantiateCoreMem aggregateSmokeDesign [] with
   | .ok E => match E.initialState with
