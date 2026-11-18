@@ -2590,6 +2590,16 @@ theorem reallocAt_null_loadIntChecked (m : Mem) (alias : AliasModel)
     loadIntChecked, resolve, get?, CObj.size, Except.map, hwidth', hwidthInt,
     hdecode]
 
+theorem reallocAt_null_loadIntChecked_full (m : Mem) (alias : AliasModel)
+    (size address : Nat) (t : IntTy) (used : CType)
+    (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.loadIntChecked alias r.2 t used) =
+      .ok ((m.mallocAt size address).1.loadIntChecked alias
+        (m.mallocAt size address).2 t used) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 theorem reallocAt_null_storeBytes (m : Mem) (size address : Nat)
     (bs : List CByte) (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
