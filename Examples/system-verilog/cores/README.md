@@ -551,10 +551,14 @@ cycle rows from Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium
 SHA-256 is
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
 
-This is not a canonical-E run.  The pinned source and envelope are external to
-this checkout, so the E result is 0/0 and no E trace is claimed.  The separate
-unpacked-memory fixture remains a fixture receipt and is not counted as a
-DarkRISCV whole-core E-RUN.
+The checked-in `darkriscv/e_check.py` also runs `load_design_sv2` against the
+pinned external envelope.  The envelope is accepted, and canonical E reports
+`hasUnsupported = true` with one process carrying the exact `FLUSH` refusal.
+The canonical-E result is therefore E-RUN 0/0.  The separate unpacked-memory
+fixture remains a fixture receipt and is not counted as a DarkRISCV whole-core
+E-RUN.  The checker accepts the two recorded envelope snapshots
+`38b3c3253f79b006aac7a547d9c61fce31c86dfe26994a990ce324bd1ce321cf` and
+`5038a315ae61f44951ed400f61632ee29dfa30d7c1b092d5f5cddbafcd55243b`.
 
 ## 2026-11-18 Quark external E-RUN blocker
 
@@ -574,14 +578,20 @@ line 63.  Consequently Quark has E-RUN 0/0 and no simulator cycle rows.  No
 source reorder or testbench workaround is admitted.  The existing DarkRISCV
 and unpacked-memory receipts remain independent measurements.
 
+The checked-in `quark/e_check.py` runs `load_design_sv2` against the pinned
+external envelope and checks the same `FETCH_INSTR` untyped-width differential
+refusal at elaboration.  It records canonical-E E-RUN 0/0 and accepts the two
+recorded envelope snapshots
+`9a97d6736c30221e580f898673adb6fcaa49931d24eec1494d006e040bdfc1ce` and
+`b26f0bd9ca5cb9a40838bb7719ae9877876d572f02de076d52d4d9dc62c1efdc`.
+
 ## 2026-11-18 cross-core follow-up
 
 The next two cores are DarkRISCV and FemtoRV32 Quark. They remain the nearest
 general follow-ups in the recorded table. The fresh DarkRISCV receipt above
-reports 206 admitted, 2 refused, and 0 not reached rows. Quark remains at 1
-module / 48 static unsupported nodes, with its `FETCH_INSTR` untyped-width
-cross-check refusal. DarkRISCV has a simulator-only 220-cycle witness, but no
-canonical-E result because its source and envelope remain external to this
-checkout. Quark's pinned inputs are now available externally, but both
-simulators reject the source before elaboration at the use-before-declared
-`instr` wall, so its E-RUN remains 0/0.
+reports 206 admitted, 2 refused, and 0 not reached rows. Its canonical-E
+receipt loads the pinned envelope and reports the `FLUSH` refusal, so E-RUN
+remains 0/0. Quark remains at 1 module / 48 static unsupported nodes, with its
+`FETCH_INSTR` untyped-width cross-check refusal. Its canonical-E receipt
+records the same load-gate wall, while both simulators reject the source before
+elaboration at the use-before-declared `instr` wall, so its E-RUN remains 0/0.
