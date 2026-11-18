@@ -979,3 +979,12 @@ zero refusals, so the generated-net startup metadata is admitted through the
 canonical net representation. Existing ordinary/source rows match Icarus
 Verilog 13.0 and Xcelium 24.03-s004, including z startup and x/z propagation.
 No count transition is claimed.
+
+## ls-sv3 package closure audit — 2026-11-18T02:56Z
+
+After rereading the lane inbox, the current OVERVIEW.txt table contains 15
+ADMIT rows owned by ls-sv3. Each has a named fixture and a current measured or
+predicted status, and the package receipts cover all 15 families, including
+the corrected output-net-z and resolved-net cases. No unmeasured ls-sv3-owned
+wall remains. The next broad wall is the shared aggregate/member relation
+owned by the general lane. REAL-BLOCKS remains 41.
