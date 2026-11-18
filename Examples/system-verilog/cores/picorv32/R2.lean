@@ -57,6 +57,8 @@ obligation:
 * `r1_mem.lean` and `r1_mem_all.lean` for every load/store width and sign;
 * `r1_fence.lean`, `r1_system.lean`, `r1_csr.lean`, and `r1_illegal.lean` for
   fences, system transfers, implemented Zicsr rows, and illegal outcomes;
+* `LeanModels.Refine.RvfiAddiProgress` for the packaged ADDI-only invariant
+  bridge `Rv32iAddiInvariant.toMixedStep` and its reset-stream refinement;
 * `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
   for the measured observation witness.
 
