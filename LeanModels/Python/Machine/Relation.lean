@@ -426,6 +426,10 @@ def rBuildDict (heap : Heap) (entries : List (RVal × RVal)) : Heap × RVal :=
   let allocated := Heap.alloc heap (.dict entries.toArray 0)
   (allocated.1, .ref allocated.2)
 
+def rBuildList (heap : Heap) (values : List RVal) : Heap × RVal :=
+  let allocated := Heap.alloc heap (.list values.toArray)
+  (allocated.1, .ref allocated.2)
+
 def rLookupDictEntries : List (RVal × RVal) → RVal → Option RVal
   | [], _ => none
   | (key, value) :: rest, index =>
@@ -443,11 +447,49 @@ def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
 def rDictContains (heap : Heap) (receiver index : RVal) : Bool :=
   Option.isSome (rLookupDict heap receiver index)
 
+def rContains (heap : Heap) (receiver index : RVal) : Bool :=
+  match receiver with
+  | .tuple values | .listV values => values.toList.any (fun value => value == index)
+  | .ref address =>
+      match heap.get? address with
+      | some (.dict entries _) => entries.toList.any (fun entry => entry.1 == index)
+      | some (.list values) => values.toList.any (fun value => value == index)
+      | _ => false
+  | _ => false
+
+def rEqual (heap : Heap) (left right : RVal) : Bool :=
+  match left, right with
+  | .ref a, .ref b =>
+      if a == b then true
+      else
+        match heap.get? a, heap.get? b with
+        | some (.list xs), some (.list ys) => xs.toList == ys.toList
+        | _, _ => false
+  | .ref a, .listV ys =>
+      match heap.get? a with
+      | some (.list xs) => xs.toList == ys.toList
+      | _ => false
+  | .listV xs, .ref b =>
+      match heap.get? b with
+      | some (.list ys) => xs.toList == ys.toList
+      | _ => false
+  | .tuple xs, .tuple ys => xs.toList == ys.toList
+  | .listV xs, .listV ys => xs.toList == ys.toList
+  | _, _ => left == right
+
 def rLookupAttribute (heap : Heap) (receiver : RVal) (attr : String) : Option RVal :=
   match receiver, attr with
   | .ref address, "get" =>
       match heap.get? address with
       | some (.dict _ _) => some (.callable ("__machine_dict_get:" ++ toString address))
+      | _ => none
+  | .ref address, "append" =>
+      match heap.get? address with
+      | some (.list _) => some (.callable ("__machine_list_append:" ++ toString address))
+      | _ => none
+  | .ref address, "pop" =>
+      match heap.get? address with
+      | some (.list _) => some (.callable ("__machine_list_pop:" ++ toString address))
       | _ => none
   | _, _ => none
 
@@ -466,6 +508,35 @@ def rUpdateDict (heap : Heap) (receiver index value : RVal) : Option Heap :=
       | _ => none
   | _ => none
 
+def rUpdateList (heap : Heap) (receiver index value : RVal) : Option Heap :=
+  match receiver with
+  | .ref address =>
+      match heap.get? address, index with
+      | some (.list values), .int position =>
+          let normalized := if position < 0 then position + values.size else position
+          if normalized < 0 then none
+          else
+            let i := normalized.toNat
+            if h : i < values.size then Heap.update heap address (.list (values.set i value h))
+            else none
+      | _, _ => none
+  | _ => none
+
+def rListPop (heap : Heap) (receiver : RVal) : Option (Heap × RVal) :=
+  match receiver with
+  | .ref address =>
+      match heap.get? address with
+      | some (.list values) =>
+          match values.toList.getLast? with
+          | some value =>
+              let shortened := values.extract 0 (values.size - 1)
+              match Heap.update heap address (.list shortened) with
+              | some updated => some (updated, value)
+              | none => none
+          | none => none
+      | _ => none
+  | _ => none
+
 def rIndexValue (receiver index : RVal) : Option RVal :=
   let select (values : Array RVal) (position : Int) : Option RVal :=
     let length := values.size
@@ -476,6 +547,21 @@ def rIndexValue (receiver index : RVal) : Option RVal :=
   | .tuple values, .int position => select values position
   | .listV values, .int position => select values position
   | _, _ => none
+
+def rIndexHeapValue (heap : Heap) (receiver index : RVal) : Option RVal :=
+  match receiver with
+  | .ref address =>
+      match heap.get? address with
+      | some (.list values) =>
+          match index with
+          | .int position =>
+              let length := values.size
+              let normalized := if position < 0 then position + length else position
+              if normalized < 0 then none
+              else GetElem?.getElem? values normalized.toNat
+          | _ => none
+      | _ => none
+  | _ => none
 
 def rRenderPrintWithSep (separator : String) : List RVal → Option String
   | [] => some ""
@@ -502,6 +588,7 @@ def rLen (heap : Heap) (value : RVal) : Option RVal :=
   | .ref address =>
       match heap.get? address with
       | some (.dict entries _) => some (.int entries.size)
+      | some (.list values) => some (.int values.size)
       | _ => none
   | _ => none
 
@@ -524,10 +611,10 @@ def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
 
 def rEvalCompare (heap : Heap) (op : CmpOp) (left right : RVal) : Option RVal :=
   match op with
-  | .eq => some (.bool (left == right))
-  | .notEq => some (.bool (left != right))
-  | .inOp => some (.bool (rDictContains heap right left))
-  | .notIn => some (.bool (!rDictContains heap right left))
+  | .eq => some (.bool (rEqual heap left right))
+  | .notEq => some (.bool (!rEqual heap left right))
+  | .inOp => some (.bool (rContains heap right left))
+  | .notIn => some (.bool (!rContains heap right left))
   | _ => none
 
 def rTruthy : RVal → Bool
@@ -538,6 +625,7 @@ def rTruthy : RVal → Bool
   | .str value => !value.isEmpty
   | .tuple values => !values.isEmpty
   | .listV values => !values.isEmpty
+  | .ref _ => true
   | _ => true
 
 def rEvalUnary (op : UnaryOp) (value : RVal) : Option RVal :=
@@ -571,6 +659,30 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
             some (.tau, config.setControl (.continueValue result continuation))
         | _, _ => some (.event (.refuse "machine dict.get"),
             config.finish (.refuse "machine dict.get"))
+      else if name.startsWith "__machine_list_append:" then
+        match (name.drop "__machine_list_append:".length).toNat?, values with
+        | some address, [value] =>
+            match config.heap.get? address with
+            | some (.list current) =>
+                match Heap.update config.heap address (.list (current.push value)) with
+                | some heap => some (.tau, { config with heap := heap } |>.setControl
+                    (.continueValue .none continuation))
+                | none => some (.event (.refuse "machine list.append"),
+                    config.finish (.refuse "machine list.append"))
+            | _ => some (.event (.refuse "machine list.append"),
+                config.finish (.refuse "machine list.append"))
+        | _, _ => some (.event (.refuse "machine list.append"),
+            config.finish (.refuse "machine list.append"))
+      else if name.startsWith "__machine_list_pop:" then
+        match (name.drop "__machine_list_pop:".length).toNat?, values with
+        | some address, [] =>
+            match rListPop config.heap (.ref address) with
+            | some (heap, value) => some (.tau, { config with heap := heap } |>.setControl
+                (.continueValue value continuation))
+            | none => some (.event (.raise { errorClass := .index, args := [] }),
+                config.finish (.raise { errorClass := .index, args := [] }))
+        | _, _ => some (.event (.refuse "machine list.pop"),
+            config.finish (.refuse "machine list.pop"))
       else match rFunction config.functions name with
       | some function =>
           let builtKwargs :=
@@ -918,7 +1030,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                 (.evaluate first (.tupleElements rest [] continuation)))
       | .evaluate (.list elements _) continuation =>
           match elements.toList with
-          | [] => some (.tau, config.setControl (.continueValue (.listV #[]) continuation))
+          | [] =>
+              let allocated := rBuildList config.heap []
+              some (.tau, { config with heap := allocated.1 } |>.setControl
+                (.continueValue allocated.2 continuation))
           | first :: rest =>
               some (.tau, config.setControl
                 (.evaluate first (.listElements rest [] continuation)))
@@ -962,7 +1077,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue index (.assignSubscriptDone receiver value remaining) =>
           match rUpdateDict config.heap receiver index value with
           | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
-          | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
+          | none =>
+              match rUpdateList config.heap receiver index value with
+              | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
+              | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
       | .continueValue value (.assign name remaining) =>
           match rWriteCell config.heap frame.locals name value with
           | some heap =>
@@ -1013,14 +1131,17 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           match rLookupDict config.heap receiver index with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none =>
-              match rIndexValue receiver index with
+              match rIndexHeapValue config.heap receiver index with
               | some value => some (.tau, config.setControl (.continueValue value continuation))
               | none =>
-                  match receiver, index with
-                  | .tuple _, (.int _) | .listV _, (.int _) =>
-                      some (.event (.raise { errorClass := .index, args := [] }),
-                        config.finish (.raise { errorClass := .index, args := [] }))
-                  | _, _ => some (.tau, config.setControl (.refusing "machine subscript"))
+                  match rIndexValue receiver index with
+                  | some value => some (.tau, config.setControl (.continueValue value continuation))
+                  | none =>
+                      match receiver, index with
+                      | .tuple _, (.int _) | .listV _, (.int _) | .ref _, (.int _) =>
+                          some (.event (.raise { errorClass := .index, args := [] }),
+                            config.finish (.raise { errorClass := .index, args := [] }))
+                      | _, _ => some (.tau, config.setControl (.refusing "machine subscript"))
       | .continueValue value (.tupleElements remaining values continuation) =>
           match remaining with
           | next :: rest =>
@@ -1035,8 +1156,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl
                 (.evaluate next (.listElements rest (values ++ [value]) continuation)))
           | [] =>
-              some (.tau, config.setControl
-                (.continueValue (.listV (values.toArray ++ #[value])) continuation))
+              let allocated := rBuildList config.heap (values ++ [value])
+              some (.tau, { config with heap := allocated.1 } |>.setControl
+                (.continueValue allocated.2 continuation))
       | .continueValue key (.dictKey value remaining entries continuation) =>
           some (.tau, config.setControl
             (.evaluate value (.dictValue key remaining entries continuation)))
