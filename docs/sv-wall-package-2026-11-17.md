@@ -744,3 +744,21 @@ ordinary census of the clean-room `generate_parameter.sv` and
 generate-parameter receipt runs W=8 and W=3 for eight cycles each, with every
 cycle matching Icarus Verilog 13.0 and Xcelium 24.03-s004, including the x/z
 rows.  No real-design count transition is claimed by this remeasurement.
+
+## Typed aggregate/member wall ownership
+
+The current ls-sv3 handoff requests ownership of the shared aggregate relation
+for typed ports, unpacked aggregate storage, typedef-backed records, and nested
+member paths.  Current ordinary census measurements retain the parser-native
+`PortSymbol:type`, `VariableSymbol:type`, `TypeAliasType:TypeAlias`, and
+`MemberAccessExpression` boundaries.  The canonical route then refuses typed
+module members or the reactive dependency order, so no field flattening is
+sound.
+
+The shared relation belongs to the general lane because it changes canonical
+E's state and step judgments.  ls-sv3 remains the owner of its extractor and
+ordinary-route wall fixtures.  The current clean-room rows are `typed_nested_repro.sv`
+with `PortSymbol:type` and `VariableSymbol:type`, `type_alias_nested_repro.sv`
+with `TypeAliasType:TypeAlias` and the dependency-order refusal, and
+`member_nested_repro.sv` with `MemberAccessExpression` followed by the typed
+storage refusal.  No aggregate count transition is claimed.
