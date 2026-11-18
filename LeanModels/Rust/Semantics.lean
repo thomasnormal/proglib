@@ -11,6 +11,8 @@ shapes remain explicit refusals. -/
 structure Pointer where
   provenance : Nat
   address : Nat
+  pointeeType : Option Nat := none
+  isLocal : Bool := true
 deriving Repr, Inhabited, BEq, DecidableEq
 
 inductive FieldValue where
@@ -36,6 +38,7 @@ structure State where
   placements : List (Nat × Nat) := []
   types : List TypeLayout := []
   allocations : List Allocation := []
+  provenance : List (Nat × Nat) := []
 deriving Repr, Inhabited, BEq, DecidableEq
 
 inductive Event where
@@ -181,18 +184,31 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
       else none
     | none => none
 
-def allocationCell (s : State) (provenance : Nat) : Option Cell :=
+def allocationCell (s : State) (provenance : Nat) (pointeeType : Option Nat) : Option Cell :=
   match s.allocations.drop provenance |>.head? with
-  | some _ => none
+  | some allocation =>
+      if allocation.bytesValid then
+        match pointeeType with
+        | some ty => typedBytesValue s ty allocation.bytes |>.map Cell.int
+        | none => none
+      else none
   | none => none
+
+def resolveProvenance (s : State) (raw : Nat) : Nat :=
+  (s.provenance.find? (fun item => item.1 == raw)).map (·.2) |>.getD raw
 
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | [] => some cell
   | .deref :: rest =>
       match cell with
       | .pointer pointer =>
-          let target := (localSlot s pointer.provenance).bind slotCell |>.orElse
-            (fun _ => allocationCell s pointer.provenance)
+          let target :=
+            if pointer.isLocal then
+              (localSlot s pointer.provenance).bind slotCell
+            else
+              match pointer.pointeeType with
+              | some ty => allocationCell s pointer.provenance (some ty)
+              | none => allocationCell s pointer.provenance none
           target.bind (projectCell s · rest)
       | _ => none
   | .field index _ :: rest =>
@@ -212,7 +228,9 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
       localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
         match cell with
         | .pointer pointer =>
-            if rest.isEmpty then some (setSlot s pointer.provenance (cellSlot value)) else none
+            if pointer.isLocal && rest.isEmpty then
+              some (setSlot s pointer.provenance (cellSlot value))
+            else none
         | _ => none
   | .field index _ :: rest =>
       if rest.isEmpty then
@@ -257,7 +275,8 @@ def operandCell (s : State) : Operand → Option Cell
       match s.types.find? (fun item => item.id == toString ty), provenance with
       | some info, some target =>
           if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" then
-            some (.pointer { provenance := target, address := placementOf s target })
+            let resolved := resolveProvenance s target
+            some (.pointer { provenance := resolved, address := placementOf s resolved, pointeeType := info.pointee, isLocal := false })
           else typedBytesValue s ty bytes |>.map Cell.int
       | _, _ => typedBytesValue s ty bytes |>.map Cell.int
   | .copy place | .move place =>
@@ -622,7 +641,8 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                           let callState : State :=
                             { placements := firstTrace.state.placements,
                               types := firstTrace.state.types,
-                              allocations := firstTrace.state.allocations }
+                              allocations := firstTrace.state.allocations,
+                              provenance := firstTrace.state.provenance }
                           match bindCallCellsFresh firstTrace.state callState args 1 with
                           | none => .refused (.unsupported ("call arguments for " ++ calleeId))
                           | some calleeState =>
@@ -784,20 +804,20 @@ def run (program : Envelope) : Option Trace :=
   | none => none
 
 def initialState (placement : Nat → Nat) (types : List TypeLayout)
-    (allocations : List Allocation := []) : State :=
+    (allocations : List Allocation := []) (provenance : List (Nat × Nat) := []) : State :=
   { locals := [], placements := allocationPlacements placement allocations,
-    types := types, allocations := allocations }
+    types := types, allocations := allocations, provenance := provenance }
 
 def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with
   | some body => cfgRunProgram 4096 program body 0
-      (initialState placement program.types program.allocations)
+      (initialState placement program.types program.allocations program.provenance)
   | none => none
 
 def runOutcome (program : Envelope) : Outcome :=
   match program.bodies.find? (·.instanceId == program.entry) with
   | some body => cfgRunProgramOutcome 4096 program body 0
-      (initialState (fun n => n) program.types program.allocations)
+      (initialState (fun n => n) program.types program.allocations program.provenance)
   | none => .refused (.malformed "missing entry body")
 
 def ProgramInSteps (program : Envelope) (trace : Trace) : Prop :=
