@@ -809,6 +809,23 @@ def runMachineScriptBatchMode (jobsPath : String) (defaultFuel : Nat) : IO UInt3
         stdout.flush
       return (if hadError then 1 else 0)
 
+/-- Relation batch entry point.  Until the machine-only envelope decoder is
+available, every compatibility envelope is a loud relation-frontier refusal.
+The harness therefore measures relation coverage without silently consulting
+the deleted compatibility runner. -/
+def runRelationScriptBatchMode (jobsPath : String) : IO UInt32 := do
+  match ← (IO.FS.readFile ⟨jobsPath⟩).toBaseIO with
+  | .error e =>
+      IO.eprintln s!"leanmodels-run --relation-script-batch: cannot read '{jobsPath}': {toString e}"
+      return 1
+  | .ok contents =>
+      let stdout ← IO.getStdout
+      for line in contents.splitOn "\n" do
+        if line.trimAscii.copy.isEmpty then continue
+        stdout.putStrLn "{\"status\":\"unsupported\",\"msg\":\"relation envelope decoder pending\"}"
+      stdout.flush
+      return 0
+
 def main (argv : List String) : IO UInt32 := do
   match argv with
   | "--batch" :: rest =>
@@ -858,6 +875,17 @@ def main (argv : List String) : IO UInt32 := do
       | [jobsPath] => runMachineScriptBatchMode jobsPath (fuel?.getD 4096)
       | _ =>
           IO.eprintln "usage: leanmodels-run --machine-script-batch <jobs.jsonl> [--fuel N]"
+          return 2
+  | "--relation-script-batch" :: rest =>
+    match splitFuel rest with
+    | .error e =>
+        IO.eprintln s!"leanmodels-run --relation-script-batch: {e}"
+        return 2
+    | .ok (positional, _) =>
+      match positional with
+      | [jobsPath] => runRelationScriptBatchMode jobsPath
+      | _ =>
+          IO.eprintln "usage: leanmodels-run --relation-script-batch <jobs.jsonl>"
           return 2
   | "--script" :: rest =>
     -- leanpy: `leanmodels-run --script <envelope.json> [--fuel N] [--clock i,j]`

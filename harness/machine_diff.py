@@ -74,7 +74,7 @@ def run_machine(runner, rows, fuel):
         with os.fdopen(fd, "w", encoding="utf-8") as jobs:
             for row in rows:
                 jobs.write(json.dumps({"path": row["envelope"]}) + "\n")
-        command = list(runner) + ["--machine-script-batch", jobs_path]
+        command = list(runner) + ["--relation-script-batch", jobs_path]
         if fuel is not None:
             command += ["--fuel", str(fuel)]
         proc = subprocess.run(command, cwd=REPO_ROOT,

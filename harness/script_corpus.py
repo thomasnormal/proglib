@@ -175,7 +175,7 @@ def run_machine_batch(runner_cmd, jobs, fuel):
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
             for path in jobs:
                 stream.write(json.dumps({"path": path}) + "\n")
-        command = list(runner_cmd) + ["--machine-script-batch", jobs_path]
+        command = list(runner_cmd) + ["--relation-script-batch", jobs_path]
         if fuel is not None:
             command += ["--fuel", str(fuel)]
         proc = subprocess.run(command, cwd=REPO_ROOT,
