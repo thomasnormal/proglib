@@ -41,13 +41,16 @@ open LeanModels.Sv LeanModels.Sv.Kernel
 set_option maxRecDepth 100000 in
 load_design_sv2 dark from "{path}"
 def bits (w n : Nat) := LVec.ofNat w n
-def row : SvState := [("CLK", bits 1 0), ("RES", bits 1 1), ("IRQ", bits 32 0),
+def row (res : Nat) : SvState := [("CLK", bits 1 0), ("RES", bits 1 res), ("IRQ", bits 32 0),
   ("IDATA", bits 32 19), ("IDACK", bits 1 1), ("IBERR", bits 1 0),
   ("DATAI", bits 32 0), ("DDACK", bits 1 1), ("DBERR", bits 1 0)]
 #eval match PDesign.instantiateCoreMem dark.pdesign [0] with
 | .ok d => match d.initialState with
-  | .ok st => match d.stepOnePassTrace st row with
-    | .ok _ => "initial-ok\none-pass-ok"
+  | .ok st => match d.stepOnePassTrace st (row 1) with
+    | .ok (st1, _) => match d.stepOnePassTrace st1 (row 0) with
+      | .ok _ => "initial-ok\ntwo-pass-ok"
+      | .timeout => "initial-ok\nsecond-pass-timeout"
+      | .unsupported m => "initial-ok\nsecond-pass-unsupported: " ++ m
     | .timeout => "initial-ok\none-pass-timeout"
     | .unsupported m => "initial-ok\none-pass-unsupported: " ++ m
   | .timeout => "initial-timeout"
@@ -74,10 +77,10 @@ def row : SvState := [("CLK", bits 1 0), ("RES", bits 1 1), ("IRQ", bits 32 0),
     if result.returncode != 0:
         raise SystemExit(result.stdout)
     if digest == COREMEM_ENVELOPE:
-        if '"initial-ok\\none-pass-ok"' not in result.stdout:
-            raise SystemExit("canonical-E memory cycle probe did not complete one pass")
-        print("canonical E: loaded one-rank memory route and completed one source-shaped pass")
-        print("E-RUN: 0/1 complete cycles; one-pass probe: 1/1")
+        if '"initial-ok\\ntwo-pass-ok"' not in result.stdout:
+            raise SystemExit("canonical-E memory cycle probe did not complete two passes")
+        print("canonical E: loaded one-rank memory route and completed two source-shaped passes")
+        print("E-RUN: 0/2 complete cycles; one-pass probe: 2/2")
         print(f"envelope SHA-256: {digest}")
         return
     if expected_refusal not in result.stdout:
