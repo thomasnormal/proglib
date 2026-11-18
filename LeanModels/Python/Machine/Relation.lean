@@ -440,15 +440,16 @@ def rRenderPrintWithSep (separator : String) : List RVal → Option String
   | [] => some ""
   | value :: rest =>
       let rendered := match value with
-        | .none => "None"
-        | .bool true => "True"
-        | .bool false => "False"
-        | .int n => toString n
-        | .str text => text
-        | _ => ""
-      match rRenderPrintWithSep separator rest with
-      | some tail => if tail.isEmpty then some rendered else some (rendered ++ separator ++ tail)
-      | none => none
+        | .none => some "None"
+        | .bool true => some "True"
+        | .bool false => some "False"
+        | .int n => some (toString n)
+        | .str text => some text
+        | _ => none
+      match rendered, rRenderPrintWithSep separator rest with
+      | some text, some tail =>
+          if tail.isEmpty then some text else some (text ++ separator ++ tail)
+      | _, _ => none
 
 def rRenderPrint : List RVal → Option String := rRenderPrintWithSep " "
 
