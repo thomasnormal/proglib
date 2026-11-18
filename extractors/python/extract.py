@@ -416,16 +416,18 @@ def unsupported(node, py_kind=None):
 def literal_const_payload(node):
     """The envelope const payload of a LITERAL expression (an ``ast.Constant``
     of int/bool/str/None — the same encoding as ``Constant`` nodes' ``value``
-    field), plus a unary-negative integer literal, else None. A negative
-    integer is normalized to the same integer payload CPython exposes after
-    evaluating the default expression. Other unary expressions remain outside
-    this literal-default subset."""
+    field), plus a unary-signed integer literal, else None. A signed integer
+    is normalized to the same integer payload CPython exposes after evaluating
+    the default expression. Other unary expressions remain outside this
+    literal-default subset."""
     if (isinstance(node, ast.UnaryOp)
-            and isinstance(node.op, ast.USub)
+            and isinstance(node.op, (ast.USub, ast.UAdd))
             and isinstance(node.operand, ast.Constant)
             and isinstance(node.operand.value, int)
             and not isinstance(node.operand.value, bool)):
-        return {"type": "int", "repr": str(-node.operand.value)}
+        value = (-node.operand.value if isinstance(node.op, ast.USub)
+                 else node.operand.value)
+        return {"type": "int", "repr": str(value)}
     if not isinstance(node, ast.Constant):
         return None
     v = node.value
