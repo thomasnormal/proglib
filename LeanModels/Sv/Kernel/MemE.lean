@@ -371,6 +371,8 @@ def memELhsReadExprs : PLhs → List PExpr
   | .arrayElem _ indices => memEReadExprsList indices
   | .arrayPart _ indices _ a b =>
       memEReadExprsList indices ++ memEReadExprs a ++ memEReadExprs b
+  | .aggregateMember _ path =>
+      path.flatMap fun (_, index) => index.toList.flatMap memEReadExprs
 
 def memELhsReadExprsList : List PLhs → List PExpr
   | [] => []
