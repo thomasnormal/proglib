@@ -234,6 +234,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("unconditional_case2.sv", "unconditional_case2",
             (Port("source", 1),), (Port("result", 2),),
             retain_proc_rewrites=True),
+    Fixture("hierarchical_value_repro.sv", "hierarchical_value_repro",
+            (), (Port("result", 1),), retain_proc_rewrites=True),
     Fixture("member_access_repro.sv", "member_access_repro",
             (Port("source", 5),), (Port("result", 4),),
             retain_proc_rewrites=True),

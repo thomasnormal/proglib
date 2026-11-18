@@ -8289,6 +8289,25 @@ def _convert_expr(sm, e):
         return _convert_conversion_expr(sm, e)
     if cname == "NamedValueExpression":
         return _convert_named_value_expr(sm, e)
+    if _SYM is not None and cname == "HierarchicalValueExpression":
+        # Slang has already resolved the hierarchical value to a symbol. Keep
+        # its parser-owned instance-relative path as one structured signal
+        # name. Hier2 hoists the child declaration under the same prefix, so
+        # the ordinary E route can read the flattened source node without
+        # reparsing or lowering the expression.
+        try:
+            full = e.symbol.hierarchicalPath
+            top = _SYM.scope.name
+            prefix = top + "."
+            if not full.startswith(prefix):
+                return unsupported(sm, e, "HierarchicalValueExpression")
+            name = full[len(prefix):]
+            if not name or any(ch in name for ch in "[]"):
+                return unsupported(sm, e, "HierarchicalValueExpression")
+            return {"kind": "Ident", "span": node_span(sm, e),
+                    "width": int(e.type.bitWidth), "name": name}
+        except Exception:
+            return unsupported(sm, e, "HierarchicalValueExpression")
     if (_SYM is None and cname == "HierarchicalValueExpression"
             and (e.symbol in _ELAB_HIER_VALUES or e.symbol in _ELAB_PARAMETERS)):
         node = _convert_named_value_expr(sm, e)
