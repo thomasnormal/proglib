@@ -9,6 +9,29 @@ small executable enumerator beside it.  A scheduler evaluation is one
 source-shaped action at a time, so blocking writes are visible to the next
 action and a wake resumes at the recorded point.  The only nondeterminism is
 the choice of an active update or evaluation event.
+
+## Clause boundary and stated narrowing
+
+The scheduler follows IEEE 1800-2023 §4.6's determinism rule that the
+simulator may choose the order of active events, while preserving the
+source-order rules inside one process.  The relevant clause text is quoted
+here for auditability.  §4.6 says, “The order of execution of events in the
+same region is nondeterministic.”  §4.9.4 says, “The order of execution of
+events in the active region is nondeterministic.”  §10.4.2 says, “The RHS of a
+nonblocking assignment shall be evaluated when the nonblocking assignment is
+executed.  The update of the LHS shall be performed as an update event in the
+NBA region.”  Section §4.9.4 places NBA updates after the active and inactive
+work.  Accordingly, every NBA scheduled by one process
+receives a monotonically increasing per-process sequence number.  The
+sequence relation is intentionally a superset of the standard's concrete
+queue order, so theorems quantify over all admissible readings without
+claiming a particular implementation order.
+
+The scheduler also records the S1 narrowing of §4.7.  A ready process runs
+through its next source-shaped action sequence until it reaches a wait.  It
+is not interrupted between ordinary statements.  Interleavings at waits and
+the choice of ready active event remain explicit in `oneStep`; this narrowing
+is the boundary used by `allSlots` and `BoundedSteps`.
 -/
 
 namespace LeanModels.Sv.Scheduler
