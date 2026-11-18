@@ -78,6 +78,18 @@
     "return_value": 19
   },
   {
+    "id": "switch-case-default",
+    "source": "int main(void) { int x = 2; switch (x) { case 1: return 11; case 2: return 22; default: return 33; } }",
+    "expect": "match",
+    "return_value": 22
+  },
+  {
+    "id": "switch-fallthrough-default",
+    "source": "int main(void) { int x = 1; switch (x) { case 1: x += 4; case 2: x += 8; break; default: x = 99; } return x; }",
+    "expect": "match",
+    "return_value": 13
+  },
+  {
     "id": "local-anonymous-record",
     "source": "int main(void) { struct { int x; int y; } s; s.x = 3; s.y = 5; return s.y - s.x - 2; }",
     "expect": "match",
