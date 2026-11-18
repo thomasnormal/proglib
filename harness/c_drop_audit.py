@@ -43,7 +43,7 @@ GROUPS = {
     },
     "layout/aggregate binding": {
         "boundary": "declaration-identity layout join",
-        "first_commit": "31f216ef733a84f362a90aebadb969cd376aba87",
+        "first_commit": "85dfb142123c65963fbaa344e6ee669a78bd2a32",
         "route": "F1 parser-native layout and aggregate initialization",
         "classification": "regression for 00043.c and 20010116-1.c; old MATCH was wrong for 00124.c",
         "representatives": {
@@ -54,7 +54,7 @@ GROUPS = {
     },
     "declaration binding": {
         "boundary": "frontend declaration identity resolution",
-        "first_commit": "f78ef6a5b",
+        "first_commit": "85dfb142123c65963fbaa344e6ee669a78bd2a32",
         "route": "F1 declaration binding",
         "classification": "regression",
         "representatives": {
