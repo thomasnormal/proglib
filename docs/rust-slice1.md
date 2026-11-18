@@ -137,3 +137,20 @@ The checked-in theorem rows include a user loop, a resolved user call, and a
 standard-library identity call proved from its extracted MIR body.
 
 `SLICE 1 READY` is recorded in the lane journal for the owner to review.
+
+The relation integrity audit used this Lean command:
+
+```console
+cat > /tmp/rust_relation_audit.lean <<'EOF'
+import LeanModels.Rust.Semantics
+#print LeanModels.Rust.ProgramSteps
+#print LeanModels.Rust.ProgramInSteps
+#print axioms LeanModels.Rust.cfgRunProgram_in_steps
+#print axioms LeanModels.Rust.run_in_steps
+EOF
+lake env lean /tmp/rust_relation_audit.lean
+```
+
+The printed signatures show no fuel parameter in either public relation.  The
+two containment theorems report only `propext`, `Classical.choice`, and
+`Quot.sound` in their axiom dependencies.
