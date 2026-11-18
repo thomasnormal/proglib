@@ -80,6 +80,24 @@ def bytesValue (bytes : List Nat) : Option Int :=
 def placementOf (s : State) (localId : Nat) : Nat :=
   (s.placements.find? (fun item => item.1 == localId)).map (·.2) |>.getD localId
 
+def allocationPlacementsFrom (placement : Nat → Nat) (index : Nat) :
+    List Allocation → List (Nat × Nat)
+  | [] => []
+  | _ :: rest => (index, placement index) :: allocationPlacementsFrom placement (index + 1) rest
+
+def allocationPlacements (placement : Nat → Nat) (allocations : List Allocation) :
+    List (Nat × Nat) :=
+  allocationPlacementsFrom placement 0 allocations
+
+def sameProvenance (left right : Pointer) : Prop :=
+  left.provenance = right.provenance
+
+theorem pointer_address_independent (provenance address₁ address₂ : Nat) :
+    sameProvenance
+      { provenance, address := address₁ }
+      { provenance, address := address₂ } := by
+  rfl
+
 def slotCell : Slot → Option Cell
   | .uninit => none
   | .value value => some (.int value)
@@ -491,12 +509,14 @@ def run (program : Envelope) : Option Trace :=
   | some body => cfgRunProgram 4096 program body 0 {}
   | none => none
 
-def initialState (placement : Nat → Nat) (types : List TypeLayout) : State :=
-  { locals := [], placements := [], types := types }
+def initialState (placement : Nat → Nat) (types : List TypeLayout)
+    (allocations : List Allocation := []) : State :=
+  { locals := [], placements := allocationPlacements placement allocations, types := types }
 
 def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with
-  | some body => cfgRunProgram 4096 program body 0 (initialState placement program.types)
+  | some body => cfgRunProgram 4096 program body 0
+      (initialState placement program.types program.allocations)
   | none => none
 
 def runOutcome (program : Envelope) : Outcome :=
