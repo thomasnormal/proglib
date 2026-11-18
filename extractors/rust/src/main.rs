@@ -136,12 +136,25 @@ fn raw_key<T: Serialize + ?Sized>(value: &T) -> String {
     encoded
 }
 
+fn portable_path(path: String) -> String {
+    if let Some(rest) = path.split_once("/rustlib/src/rust/").map(|(_, rest)| rest) {
+        return format!("<rust-std>/{rest}");
+    }
+    if let Some((_, rest)) = path.split_once("/wt/ls-rust/") {
+        return rest.to_owned();
+    }
+    path
+}
+
 fn span_value(span: Span) -> Value {
     let lines = span.get_lines();
+    let file = span.get_filename();
+    let portable_file = portable_path(file.clone());
+    let display = span.diagnostic().replace(&file, &portable_file);
     object([
         ("handle", string(raw_key(&span))),
-        ("file", string(span.get_filename())),
-        ("display", string(span.diagnostic())),
+        ("file", string(portable_file)),
+        ("display", string(display)),
         (
             "start",
             object([
