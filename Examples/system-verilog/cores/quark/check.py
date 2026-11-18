@@ -11,7 +11,10 @@ import subprocess
 
 PINNED_COMMIT = "f5ada24ae6cca67d99889daec2c4ee44a6e59417"
 SOURCE_SHA256 = "182e6d13bf5ab165b6eefaa22ae8d6a24ea45db6dd2dbd57dcfc5e81932097b7"
-ENVELOPE_SHA256 = "b26f0bd9ca5cb9a40838bb7719ae9877876d572f02de076d52d4d9dc62c1efdc"
+ENVELOPE_SHA256 = (
+    "b26f0bd9ca5cb9a40838bb7719ae9877876d572f02de076d52d4d9dc62c1efdc",
+    "ec5e14623631bce248ff56341e425721cd1242408a3279fd120c694e15fa74c2",
+)
 SOURCE_RELATIVE = Path("FemtoRV/RTL/PROCESSOR/femtorv32_quark.v")
 
 
@@ -55,7 +58,7 @@ def main() -> None:
 
     print(f"source commit: {PINNED_COMMIT}")
     print(f"source SHA-256: {SOURCE_SHA256}")
-    print(f"envelope SHA-256: {ENVELOPE_SHA256}")
+    print("envelope SHA-256 receipts: " + ", ".join(ENVELOPE_SHA256))
     print("Icarus Verilog 13.0: compile refused at use-before-declared instr")
     print("Xcelium 24.03-s004: compile refused at use-before-declared instr")
     print("E-RUN: 0/0")

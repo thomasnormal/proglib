@@ -10,11 +10,14 @@ import subprocess
 import tempfile
 
 
-ENVELOPE_SHA256 = {
-    "38b3c3253f79b006aac7a547d9c61fce31c86dfe26994a990ce324bd1ce321cf",
-    "5038a315ae61f44951ed400f61632ee29dfa30d7c1b092d5f5cddbafcd55243b",
+ENVELOPE_REFUSAL = {
+    "38b3c3253f79b006aac7a547d9c61fce31c86dfe26994a990ce324bd1ce321cf":
+        "decl 'FLUSH': non-literal initializer outside the M0 tier",
+    "5038a315ae61f44951ed400f61632ee29dfa30d7c1b092d5f5cddbafcd55243b":
+        "decl 'FLUSH': non-literal initializer outside the M0 tier",
+    "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5":
+        "decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)",
 }
-EXPECTED_REFUSAL = "decl 'FLUSH': non-literal initializer outside the M0 tier"
 
 
 def main() -> None:
@@ -25,7 +28,8 @@ def main() -> None:
     if not envelope.is_file():
         raise SystemExit(f"missing pinned envelope: {envelope.name}")
     digest = hashlib.sha256(envelope.read_bytes()).hexdigest()
-    if digest not in ENVELOPE_SHA256:
+    expected_refusal = ENVELOPE_REFUSAL.get(digest)
+    if expected_refusal is None:
         raise SystemExit(f"envelope SHA-256 {digest} is not a pinned receipt")
 
     path = str(envelope).replace("\\", "\\\\").replace('"', '\\"')
@@ -55,7 +59,7 @@ load_design_sv2 dark from "{path}"
         script.unlink(missing_ok=True)
     if result.returncode != 0:
         raise SystemExit(result.stdout)
-    if EXPECTED_REFUSAL not in result.stdout:
+    if expected_refusal not in result.stdout:
         raise SystemExit("canonical-E refusal does not match the pinned receipt")
     print("canonical E: loaded envelope and reported the pinned refusal")
     print("E-RUN: 0/0")

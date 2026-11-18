@@ -678,6 +678,18 @@ after this landing moves it to 177 admitted, 0 refused, and 0 not reached.
 The canonical-E source run advances to the next exact wall, the one-rank
 unpacked `REGS` storage refusal.
 
+The checked-in `darkriscv/e_check.py` accepts both the pre-landing envelope
+receipts and the current source-overlay envelope
+`ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5`.  The
+current receipt reports canonical-E E-RUN `0/0` at
+`decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)`.  The
+checked-in `quark/e_check.py` likewise accepts the current source-overlay
+envelope `ec5e14623631bce248ff56341e425721cd1242408a3279fd120c694e15fa74c2`
+and reports canonical-E E-RUN `0/0` at the unchanged `FETCH_INSTR`
+untyped-width wall.  The pinned simulator receipts remain DarkRISCV `220/220`
+on both approved simulators and Quark `0/0` because both simulators reject its
+unmodified source before elaboration.
+
 ## 2026-11-18 one-rank memory wall handoff
 
 The clean-room `darkriscv/walls/initial_memory.sv` has the same one-rank
