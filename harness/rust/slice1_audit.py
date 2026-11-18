@@ -84,6 +84,8 @@ def main():
     parser.add_argument("--work-root")
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--oracle", default="docs/rust-stage0-measurement.json",
+                        help="checked-in Stage 0 Miri verdicts")
     parser.add_argument("--include-control", action="store_true",
                         help="include the println_once control row")
     args = parser.parse_args()
@@ -97,7 +99,10 @@ def main():
     ))
     rows = []
     envelope_paths = []
-    refusal_reasons = {}
+    oracle_rows = {
+        row["id"]: row["oracle"]
+        for row in json.loads(Path(args.oracle).read_text(encoding="utf-8"))["rows"]
+    }
     persisted = Path(args.work_root or runner.work_root) / "slice1-envelopes"
     persisted.mkdir(parents=True, exist_ok=True)
     for item in runner.manifest["programs"]:
@@ -112,9 +117,9 @@ def main():
                 envelope_file = persisted / f"{item['id']}.json"
                 envelope_file.write_text(json.dumps(envelope), encoding="utf-8")
                 envelope_paths.append((item, envelope_file))
-                refusal_reasons[item["id"]] = _first_refusal(envelope)
                 rows.append({"id": item["id"], "source": item["path"],
                              "status": "pending", "reason": "Lean run pending",
+                             "oracle": oracle_rows.get(item["id"], {}),
                              "extract_seconds": round(time.monotonic() - started, 3)})
             except (MeasurementError, OSError) as error:
                 rows.append({"id": item["id"], "source": item["path"],
@@ -133,35 +138,45 @@ def main():
             name = f"slice1_{index}"
             names.append((item, name))
             lines.append(f'load_rust_program {name} from "{path}"')
-            lines.append(f"#eval LeanModels.Rust.Outcome.isReturned (LeanModels.Rust.runOutcome {name})")
+            lines.append(f"#eval LeanModels.Rust.Outcome.label (LeanModels.Rust.runOutcome {name})")
         main_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
         command = ["lake", "env", "lean", str(main_file)]
         completed = subprocess.run(command, cwd=repo_root, text=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    check=False)
-        values = [line.strip() for line in completed.stdout.splitlines()
-                  if line.strip() in {"true", "false"}]
+        values = []
+        for line in completed.stdout.splitlines():
+            line = line.strip()
+            if line.startswith('"') and line.endswith('"'):
+                values.append(json.loads(line))
         if completed.returncode != 0 or len(values) != len(names):
             raise RuntimeError("Lean corpus run failed:\n" + completed.stdout[-4000:] + completed.stderr[-4000:])
         for (item, _name), value in zip(names, values):
             row = next(row for row in rows if row["id"] == item["id"])
-            miri_ok = item.get("expected_stdout", "") == ""
-            if value == "true" and miri_ok:
+            oracle = oracle_rows[item["id"]]
+            miri_verdicts = {model["verdict"] for model in oracle["models"].values()}
+            miri_ok = miri_verdicts == {"ok"}
+            row["lean_outcome"] = value
+            if value == "returned" and miri_ok:
                 row["status"] = "decided"
                 row["reason"] = "Lean returned; Miri Stage 0 verdict is ok"
+            elif value == "returned" and not miri_ok:
+                row["status"] = "diverging"
+                row["reason"] = "Lean returned but Miri verdict is " + ",".join(sorted(miri_verdicts))
             else:
                 row["status"] = "named_refusal"
-                row["reason"] = "Lean refused execution at " + (refusal_reasons.get(item["id"]) or "an unsupported runtime node")
+                row["reason"] = "Lean outcome " + value
     report = {
         "schema": "lean-surfaces.rust.slice1-audit.v0",
         "rows": rows,
         "decided_rows": sum(row["status"] == "decided" for row in rows),
         "named_refusals": sum(row["status"] != "decided" for row in rows),
-        "diverging": 0,
+        "diverging": sum(row["status"] == "diverging" for row in rows),
     }
     Path(args.output).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"rows": len(rows), "decided": report["decided_rows"],
-                      "named_refusals": report["named_refusals"], "diverging": 0}))
+                      "named_refusals": report["named_refusals"],
+                      "diverging": report["diverging"]}))
 
 
 if __name__ == "__main__":
