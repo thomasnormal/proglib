@@ -135,6 +135,9 @@ inductive RKont where
       (positionalValues : List RVal) (keywordValues : List (String × RVal))
       (continuation : RKont)
   | callReturn (continuation : RKont)
+  | attributeValue (attr : String) (continuation : RKont)
+  | compareLeft (op : CmpOp) (right : Expr) (continuation : RKont)
+  | compareRight (left : RVal) (op : CmpOp) (continuation : RKont)
 deriving Repr, Inhabited, BEq
 
 inductive RControl where
@@ -437,6 +440,17 @@ def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
       | _ => none
   | _ => none
 
+def rDictContains (heap : Heap) (receiver index : RVal) : Bool :=
+  Option.isSome (rLookupDict heap receiver index)
+
+def rLookupAttribute (heap : Heap) (receiver : RVal) (attr : String) : Option RVal :=
+  match receiver, attr with
+  | .ref address, "get" =>
+      match heap.get? address with
+      | some (.dict _ _) => some (.callable ("__machine_dict_get:" ++ toString address))
+      | _ => none
+  | _, _ => none
+
 def rUpdateDictEntries : List (RVal × RVal) → RVal → RVal → List (RVal × RVal)
   | [], key, value => [(key, value)]
   | (currentKey, currentValue) :: rest, key, value =>
@@ -480,11 +494,15 @@ def rRenderPrintWithSep (separator : String) : List RVal → Option String
 
 def rRenderPrint : List RVal → Option String := rRenderPrintWithSep " "
 
-def rLen (value : RVal) : Option RVal :=
+def rLen (heap : Heap) (value : RVal) : Option RVal :=
   match value with
   | .str text => some (.int text.length)
   | .tuple values => some (.int values.size)
   | .listV values => some (.int values.size)
+  | .ref address =>
+      match heap.get? address with
+      | some (.dict entries _) => some (.int entries.size)
+      | _ => none
   | _ => none
 
 def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
@@ -503,6 +521,14 @@ def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   | .sub, .int a, .int b => .ok (.int (a - b))
   | .mult, .int a, .int b => .ok (.int (a * b))
   | _, _, _ => .unsupported "machine binary operator"
+
+def rEvalCompare (heap : Heap) (op : CmpOp) (left right : RVal) : Option RVal :=
+  match op with
+  | .eq => some (.bool (left == right))
+  | .notEq => some (.bool (left != right))
+  | .inOp => some (.bool (rDictContains heap right left))
+  | .notIn => some (.bool (!rDictContains heap right left))
+  | _ => none
 
 def rTruthy : RVal → Bool
   | .none => false
@@ -535,7 +561,17 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     Option (RLabel × RConfig) :=
   match callee with
   | .callable name =>
-      match rFunction config.functions name with
+      if name.startsWith "__machine_dict_get:" then
+        match (name.drop "__machine_dict_get:".length).toNat?, values with
+        | some address, [key] =>
+            let result := (rLookupDict config.heap (.ref address) key).getD .none
+            some (.tau, config.setControl (.continueValue result continuation))
+        | some address, [key, default] =>
+            let result := (rLookupDict config.heap (.ref address) key).getD default
+            some (.tau, config.setControl (.continueValue result continuation))
+        | _, _ => some (.event (.refuse "machine dict.get"),
+            config.finish (.refuse "machine dict.get"))
+      else match rFunction config.functions name with
       | some function =>
           let builtKwargs :=
             if keywords.isEmpty then (config.heap, none)
@@ -568,7 +604,7 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
           else if name == "len" then
             match values with
             | [value] =>
-              match rLen value with
+              match rLen config.heap value with
               | some result => some (.tau, config.setControl (.continueValue result continuation))
               | none => some (.tau, config.setControl (.refusing "machine len"))
             | _ => some (.tau, config.setControl (.refusing "machine len"))
@@ -870,6 +906,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl (.evaluate operand (.unaryValue op continuation)))
       | .evaluate (.subscript receiver index _) continuation =>
           some (.tau, config.setControl (.evaluate receiver (.subscriptValue index continuation)))
+      | .evaluate (.attribute value attr _) continuation =>
+          some (.tau, config.setControl (.evaluate value (.attributeValue attr continuation)))
+      | .evaluate (.compare left #[op] #[right] _) continuation =>
+          some (.tau, config.setControl (.evaluate left (.compareLeft op right continuation)))
       | .evaluate (.tuple elements _) continuation =>
           match elements.toList with
           | [] => some (.tau, config.setControl (.continueValue (.tuple #[]) continuation))
@@ -953,6 +993,16 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | none => some (.tau, config.setControl (.refusing "machine unary operator"))
       | .continueValue receiver (.subscriptValue index continuation) =>
           some (.tau, config.setControl (.evaluate index (.subscriptIndex receiver continuation)))
+      | .continueValue receiver (.attributeValue attr continuation) =>
+          match rLookupAttribute config.heap receiver attr with
+          | some value => some (.tau, config.setControl (.continueValue value continuation))
+          | none => some (.tau, config.setControl (.refusing "machine attribute"))
+      | .continueValue left (.compareLeft op right continuation) =>
+          some (.tau, config.setControl (.evaluate right (.compareRight left op continuation)))
+      | .continueValue right (.compareRight left op continuation) =>
+          match rEvalCompare config.heap op left right with
+          | some value => some (.tau, config.setControl (.continueValue value continuation))
+          | none => some (.tau, config.setControl (.refusing "machine comparison"))
       | .continueValue value (.ifBranch body orelse remaining) =>
           let selected := if rTruthy value then body else orelse
           some (.tau, config.setControl (.statements (selected ++ remaining)))
@@ -1297,6 +1347,16 @@ private def bDictModule : RModule :=
       (.dict #[.constant (.str "x") testSpan] #[.constant (.int 7) testSpan] testSpan)
       (.constant (.str "x") testSpan) testSpan)) testSpan] }
 
+private def bDictMethodModule : RModule :=
+  { body := #[
+      .assign (.name "d" testSpan)
+        (.dict #[.constant (.str "x") testSpan] #[.constant (.int 7) testSpan] testSpan) testSpan,
+      .ret (some (.tuple #[
+        .call (.attribute (.name "d" testSpan) "get" testSpan)
+          #[.constant (.str "x") testSpan] #[] none testSpan,
+        .compare (.constant (.int 3) testSpan) #[.inOp]
+          #[.name "d" testSpan] testSpan] testSpan)) testSpan] }
+
 private def bClosureModule : RModule :=
   { body := #[.functionDef "outer" #[] #[]
         #[.assign (.name "x" testSpan) (.constant (.int 9) testSpan) testSpan,
@@ -1458,6 +1518,9 @@ example :
 
 #guard (runB1 32 (RConfig.initial bDictModule)).2.status ==
   .finished (.return (.int 7))
+
+#guard (runB1 64 (RConfig.initial bDictMethodModule)).2.status ==
+  .finished (.return (.tuple #[.int 7, .bool false]))
 
 #guard (runB1 128 (RConfig.initial bMixedDefaultKeywordModule)).2.status ==
   .finished (.return .none)
