@@ -848,6 +848,15 @@ timing scheduler, so the timing construct remains a loud refusal. Functional
 rows match Icarus Verilog 13.0 and Xcelium 24.03-s004 in the existing receipt.
 No count transition is claimed.
 
+## Generate-variable current-head check — 2026-11-18T02:55Z
+
+Fresh extraction and ordinary census of generate_local_hierarchy.sv at public
+master 604d35553 report zero refusals. The source-shaped generate-scope
+variable remains admitted through canonical E lexical scope under IEEE
+1800-2023 section 27.4. Existing N=1 and N=4 eight-cycle receipts match
+Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z rows. No count
+transition is claimed.
+
 ## Resolved net-with-z current-head check — 2026-11-18T02:17Z
 
 Fresh extraction of resolved_net_multiple_driver.sv at public master 2907217f2
