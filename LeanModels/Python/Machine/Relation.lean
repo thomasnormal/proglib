@@ -1008,6 +1008,16 @@ private def bVarargModule : RModule :=
       .ret (some (.call (.name "collect" testSpan)
         #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] #[] none testSpan)) testSpan] }
 
+private def bDuplicateKeywordModule : RModule :=
+  { body := #[
+      .functionDefKw "keyworded" #[{ name := "a" }, { name := "b", keywordOnly := true }] #[]
+        #[some (.constant (.int 3) testSpan)]
+        #[.ret (some (.name "b" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "keyworded" testSpan)
+        #[.constant (.int 1) testSpan]
+        #[("b", Expr.constant (.int 4) testSpan),
+          ("b", Expr.constant (.int 5) testSpan)] none testSpan)) testSpan] }
+
 
 example :
     ((RConfig.initial b1Module).defineFunction
@@ -1080,6 +1090,11 @@ example :
 example :
     (runB1 96 (RConfig.initial bVarargModule)).2.status =
       .finished (.return (.tuple #[.int 1, .int 2])) := by
+  rfl
+
+example :
+    (runB1 96 (RConfig.initial bDuplicateKeywordModule)).2.status =
+      .finished (.refuse "machine argument binder") := by
   rfl
 
 example : ∃ c₁ c₂,
