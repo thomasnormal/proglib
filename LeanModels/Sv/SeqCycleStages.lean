@@ -161,8 +161,7 @@ def runProfile (g : MVarId) : TacticM Unit := do
   let clkE ← if single then whnf (ty.getArg! 1) else pure (ty.getArg! 0)
   let clk? : Option String := if single then some ((strLit? clkE).getD "?") else none
   let gm ← mkFreshExprMVar (← mkEq (mkApp (mkConst ``CoreMemDesign.memOkB) E) (toExpr true))
-  unless ← closes gm.mvarId! (← `(tactic| simp (config := {decide := true})
-      [LeanModels.Sv.Kernel.CoreMemDesign.memOkB])) do
+  unless ← closes gm.mvarId! (← `(tactic| sv_seq_prof_mems)) do
     throwError "sv_structure: a memory is outside the clocked profile (memories of distinct names and identities, 4-state elements, none a port), refused"
   let some ps ← arrayElems (← whnf (mkApp (mkConst ``CoreMemDesign.processes) E))
     | throwError "sv_structure: the clocked profile does not hold (the processes are not a literal list at these parameters)"
@@ -192,9 +191,37 @@ def runProfile (g : MVarId) : TacticM Unit := do
     i := i + 1
   let gr ← mkFreshExprMVar (← mkEq (mkApp (mkConst ``CoreMemDesign.resolvedNets) E)
     (← mkAppOptM ``List.nil #[mkConst ``String]))
-  unless ← closes gr.mvarId! (← `(tactic| simp)) do
+  unless ← closes gr.mvarId! (← `(tactic| sv_seq_prof_resolved)) do
     throwError "sv_structure: the design has a net with several continuous drivers ({String.intercalate ", " resolved}): the clocked views do not model the §6.6 driver resolution (`resolvedNets` is not empty), refused"
-  throwError "sv_structure: the clocked profile does not hold: the declarations are not distinct and 4-state, the scalar and edge views differ, or a memory is outside the profile (memories of distinct names, 4-state elements, none a port)"
+  -- The memories, every process and the resolved nets pass: name the conjunct of the profile that does not close.
+  let ofB ← if single then
+      `(tactic| refine LeanModels.Sv.Kernel.CoreMemDesign.SeqProfile.of_B ?_ ?_ ?_ ?_ ?_ ?_)
+    else `(tactic| refine LeanModels.Sv.Kernel.CoreMemDesign.SeqProfileI.of_B ?_ ?_ ?_ ?_ ?_ ?_)
+  let procs ← if single then `(tactic| sv_seq_prof_procs) else `(tactic| sv_seq_prof_procsI)
+  let procsName := if single then "procsOkFrom" else "procsOkIFrom"
+  let s ← saveState
+  let tRfl ← `(tactic| rfl)
+  let tNames ← `(tactic| sv_seq_prof_names)
+  let tFour ← `(tactic| sv_seq_prof_four)
+  let reason : String ← tryCatch (do
+      setGoals [g]
+      evalTactic ofB
+      match ← getGoals with
+      | [_, gb, gn, g4, _, gp] =>
+          if !(← closes gb tRfl) then
+            pure "the edge view's declarations are not the scalar view's (`scalarEdge.base = scalar` does not hold by `rfl`)"
+          else if !(← closes gn tNames) then
+            pure "two declarations of the scalar view share a name"
+          else if !(← closes g4 tFour) then
+            pure "a declaration is 2-state (`bit`, `int`, …): the clocked views are 4-state (`AllFour`)"
+          else if !(← closes gp procs) then
+            pure s!"every process passes its own check, but the whole-list check (`{procsName}`) does not close on the normal form: a limit of the tactic, not a property of the design; report it"
+          else
+            pure "each conjunct closes alone, but not together: report it"
+      | _ => pure "the profile's conjuncts could not be separated: report it")
+    (fun _ => pure "the profile's conjuncts could not be separated: report it")
+  s.restore
+  throwError "sv_structure: the clocked profile does not hold: {reason}, refused"
 
 /-- The named obligations, in the order they are checked, with the reason each refuses (`true`: the obligation takes
 the clock: single clock only). -/

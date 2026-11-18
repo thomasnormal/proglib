@@ -313,36 +313,56 @@ macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : 
     sv_seq_inst_pass [$ls,*] at $h:ident
     (try sv_seq_arith_pass at $h:ident)))
 
+/-! The profile's conjuncts on a normal form (the arguments of `SeqProfile.of_B` / `SeqProfileI.of_B` after the edge
+view's `rfl`), one tactic each: `sv_seq_profile`, `sv_seq_profileI` and the structure stage's diagnosis
+(`SeqCycleStages.runProfile`, which names the conjunct that fails) use the same ones. -/
+
+/-- The memories of the profile (`memOkB`). -/
+macro "sv_seq_prof_mems" : tactic =>
+  `(tactic| simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB])
+
+/-- Distinct declaration names. -/
+macro "sv_seq_prof_names" : tactic => `(tactic| simp)
+
+/-- Every declaration 4-state (`AllFour`). -/
+macro "sv_seq_prof_four" : tactic => `(tactic| simp [LeanModels.Sv.Kernel.AllFour])
+
+/-- No resolved net (`resolvedNets = []`). -/
+macro "sv_seq_prof_resolved" : tactic => `(tactic| simp [LeanModels.Sv.Kernel.coreMemResolvedNetNames])
+
+/-- Every process in the single-clock profile (`procsOkFrom`). -/
+macro "sv_seq_prof_procs" : tactic =>
+  `(tactic| simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
+      LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
+      LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
+      LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
+      LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
+      LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])
+
+/-- Every process in the instant profile (`procsOkIFrom`). -/
+macro "sv_seq_prof_procsI" : tactic =>
+  `(tactic| simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkIFrom,
+      LeanModels.Sv.Kernel.CoreMemDesign.procOkIB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
+      LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
+      LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
+      LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
+      LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])
+
 /-- **`sv_seq_profile`**: the clocked profile of a normal form, decided by `simp` (any number of processes). -/
 macro "sv_seq_profile" : tactic =>
-  `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfile.of_B
-      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB]) rfl (by simp)
-      (by simp [LeanModels.Sv.Kernel.AllFour])
-      (by simp [LeanModels.Sv.Kernel.coreMemResolvedNetNames])
-      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
-        LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
-        LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
-        LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
-        LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
-        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
-        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
-        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
-        LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf]))
+  `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfile.of_B (by sv_seq_prof_mems) rfl
+      (by sv_seq_prof_names) (by sv_seq_prof_four) (by sv_seq_prof_resolved) (by sv_seq_prof_procs))
 
 /-- **`sv_seq_profileI`**: the instant profile (any clocks, either edge) of a normal form, decided by `simp`. -/
 macro "sv_seq_profileI" : tactic =>
-  `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfileI.of_B
-      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB]) rfl (by simp)
-      (by simp [LeanModels.Sv.Kernel.AllFour]) (by simp)
-      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkIFrom,
-        LeanModels.Sv.Kernel.CoreMemDesign.procOkIB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
-        LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
-        LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
-        LeanModels.Sv.PStmt.optNeed, LeanModels.Sv.PStmt.listNeed, LeanModels.Sv.PStmt.itemsNeed,
-        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
-        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
-        LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
-        LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf]))
+  `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfileI.of_B (by sv_seq_prof_mems) rfl
+      (by sv_seq_prof_names) (by sv_seq_prof_four) (by sv_seq_prof_resolved) (by sv_seq_prof_procsI))
 
 /-- **`sv_seq_obligations`**: the obligations of the clocked profile (`seqOblB`) on a normal form, decided by `simp`
 (the topological order on the compiled expressions: `instExpr2` evaluated, `Expr2.idents` read). -/

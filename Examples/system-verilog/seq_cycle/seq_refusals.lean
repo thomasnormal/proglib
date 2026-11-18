@@ -19,6 +19,10 @@ profile hypothesis:
 The structure stage refuses each with its reason; the two designs below are fixtures of the semantics lane, loaded as
 they are (`event_control_repro`: `always @(a or b)` beside a flip-flop; `resolved_net_canonical_e`: two continuous
 drivers of one wire).
+
+When every process, the memories and the resolved nets pass but the profile still does not hold, the stage names the
+conjunct that fails (the edge view, distinct names, 4-state declarations, or the whole-list process check) instead of
+one generic message; `seq_neg/two_state_reg` (a flip-flop on `bit` data) pins the 4-state one.
 -/
 
 open LeanModels.Sv LeanModels.Sv.Kernel
@@ -28,6 +32,7 @@ namespace Examples.«system-verilog».seq_cycle.seq_refusals
 load_design_sv2 ev from "Examples/system-verilog/event_control_repro/event_control_repro.sv.json"
 set_option maxRecDepth 100000 in
 load_design_sv2 rn from "Examples/system-verilog/sem2/resolved_net_canonical_e/resolved_net_canonical_e.sv.json"
+load_design_sv2 ts from "Examples/system-verilog/seq_neg/two_state_reg.sv.json"
 
 /-! ## The definitions' boundary -/
 
@@ -68,6 +73,13 @@ error: sv_structure: process 0 (a continuous assign) drives `y`, a net with seve
 -/
 #guard_msgs (whitespace := lax) in
 example : SeqDesignI rn.e := by
+  sv_structure
+
+/--
+error: sv_structure: the clocked profile does not hold: a declaration is 2-state (`bit`, `int`, …): the clocked views are 4-state (`AllFour`), refused
+-/
+#guard_msgs (whitespace := lax) in
+example : SeqDesign ts.e "clk" := by
   sv_structure
 
 end Examples.«system-verilog».seq_cycle.seq_refusals
