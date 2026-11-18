@@ -124,6 +124,8 @@ inductive RKont where
   | dictValue (key : RVal) (remaining : List (Expr × Expr))
       (entries : List (RVal × RVal)) (continuation : RKont)
   | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
+  | whileBranch (test : Expr) (body : List RStmt) (orelse : List RStmt)
+      (remaining : List RStmt) (span : Span)
   | ifExpression (body : Expr) (orelse : Expr) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
@@ -633,6 +635,18 @@ def rEvalCompare (heap : Heap) (op : CmpOp) (left right : RVal) : Option RVal :=
   match op with
   | .eq => some (.bool (rEqual heap left right))
   | .notEq => some (.bool (!rEqual heap left right))
+  | .lt => match left, right with
+      | .int a, .int b => some (.bool (a < b))
+      | _, _ => none
+  | .ltE => match left, right with
+      | .int a, .int b => some (.bool (a ≤ b))
+      | _, _ => none
+  | .gt => match left, right with
+      | .int a, .int b => some (.bool (a > b))
+      | _, _ => none
+  | .gtE => match left, right with
+      | .int a, .int b => some (.bool (a ≥ b))
+      | _, _ => none
   | .inOp => some (.bool (rContains heap right left))
   | .notIn => some (.bool (!rContains heap right left))
   | _ => none
@@ -974,6 +988,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .ifStmt test body orelse _ =>
               some (.tau, config.setControl
                 (.evaluate test (.ifBranch body.toList orelse.toList rest)))
+          | .whileStmt test body orelse span =>
+              some (.tau, config.setControl
+                (.evaluate test (.whileBranch test body.toList orelse.toList rest span)))
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
@@ -1154,6 +1171,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue value (.ifBranch body orelse remaining) =>
           let selected := if rTruthy value then body else orelse
           some (.tau, config.setControl (.statements (selected ++ remaining)))
+      | .continueValue value (.whileBranch test body orelse remaining span) =>
+          if rTruthy value then
+            some (.tau, config.setControl
+              (.statements (body ++ [.whileStmt test body.toArray orelse.toArray span] ++ remaining)))
+          else
+            some (.tau, config.setControl (.statements (orelse ++ remaining)))
       | .continueValue value (.ifExpression body orelse continuation) =>
           some (.tau, config.setControl
             (.evaluate (if rTruthy value then body else orelse) continuation))
@@ -1494,6 +1517,19 @@ private def bLenModule : RModule :=
         #[.tuple #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] testSpan]
         #[] none testSpan] #[] none testSpan) testSpan] }
 
+private def bWhileModule : RModule :=
+  { body := #[
+      .assign (.name "total" testSpan) (.constant (.int 0) testSpan) testSpan,
+      .assign (.name "i" testSpan) (.constant (.int 0) testSpan) testSpan,
+      .whileStmt
+        (.compare (.name "i" testSpan) #[.lt] #[.constant (.int 3) testSpan] testSpan)
+        #[.assign (.name "total" testSpan)
+            (.binOp (.name "total" testSpan) .add (.name "i" testSpan) testSpan) testSpan,
+          .assign (.name "i" testSpan)
+            (.binOp (.name "i" testSpan) .add (.constant (.int 1) testSpan) testSpan) testSpan]
+        #[] testSpan,
+      .ret (some (.name "total" testSpan)) testSpan] }
+
 private def bDictModule : RModule :=
   { body := #[.ret (some (.subscript
       (.dict #[.constant (.str "x") testSpan] #[.constant (.int 7) testSpan] testSpan)
@@ -1667,6 +1703,9 @@ example :
 #guard (runB1 32 (RConfig.initial bLenModule)).1 ==
   [.tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau,
     .event (.output "2"), .tau, .event (.return .none)]
+
+#guard (runB1 256 (RConfig.initial bWhileModule)).2.status ==
+  .finished (.return (.int 3))
 
 #guard (runB1 32 (RConfig.initial bDictModule)).2.status ==
   .finished (.return (.int 7))
