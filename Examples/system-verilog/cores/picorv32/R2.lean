@@ -148,6 +148,14 @@ def PicoRV32Parameters.toArgs (p : PicoRV32Parameters) : List Int :=
   [1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
    4294967295, 0, 16, 4294967295]
 
+theorem picorv32_riscv_formal_args_pinned :
+    picorv32RISCVFormalParameters.toArgs =
+      [1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
+       4294967295, 0, 16, 4294967295] := by
+  decide
+
+#print axioms picorv32_riscv_formal_args_pinned
+
 theorem picorv32_rv32m_disabled :
     picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
       picorv32RISCVFormalParameters.ENABLE_DIV = 0 := by
