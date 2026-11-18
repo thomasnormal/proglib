@@ -76,6 +76,17 @@ def Outcome.isReturned : Outcome → Bool
   | .returned _ => true
   | _ => false
 
+def Refusal.label : Refusal → String
+  | .unsupported what => "unsupported:" ++ what
+  | .malformed what => "malformed:" ++ what
+
+def Outcome.label : Outcome → String
+  | .returned _ => "returned"
+  | .panicked => "panicked"
+  | .ub kind => "ub:" ++ kind
+  | .refused reason => "refused:" ++ reason.label
+  | .outOfFuel => "out_of_fuel"
+
 def setSlot (s : State) (localId : Nat) (slot : Slot) : State :=
   { s with locals := (localId, slot) :: s.locals.filter (fun item => item.1 != localId) }
 
@@ -150,9 +161,29 @@ def cellSlot : Cell → Slot
 def localSlot (s : State) (localId : Nat) : Option Slot :=
   s.locals.find? (fun item => item.1 == localId) |>.map (·.2)
 
+def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
+  let layout := s.types.find? (fun item => item.id == toString ty)
+  match layout with
+  | none => if s.types.isEmpty then bytesValue bytes else none
+  | some info =>
+    match info.sizeBits with
+    | some 0 => some 0
+    | some sizeBits =>
+      if bytes.length ≤ 8 ∧ bytes.all (· ≤ 255) then
+        let raw := Int.ofNat (littleEndian bytes)
+        match info.signed with
+        | some true =>
+            if sizeBits ≤ 64 ∧ raw ≥ 2 ^ (sizeBits - 1) then
+              some (raw - 2 ^ sizeBits)
+            else some raw
+        | some false => some raw
+        | none => none
+      else none
+    | none => none
+
 def allocationCell (s : State) (provenance : Nat) : Option Cell :=
   match s.allocations.drop provenance |>.head? with
-  | some allocation => if allocation.bytesValid then bytesValue allocation.bytes |>.map Cell.int else none
+  | some _ => none
   | none => none
 
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
@@ -197,28 +228,8 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
       else none
   | .downcast _ :: _ | .unsupported _ :: _ => none
 
-def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
-  let layout := s.types.find? (fun item => item.id == "t" ++ toString ty || item.id == toString ty)
-  match layout with
-  | none => if s.types.isEmpty then bytesValue bytes else none
-  | some info =>
-    match info.sizeBits with
-    | some 0 => some 0
-    | some sizeBits =>
-      if bytes.length ≤ 8 ∧ bytes.all (· ≤ 255) then
-        let raw := Int.ofNat (littleEndian bytes)
-        match info.signed with
-        | some true =>
-            if sizeBits ≤ 64 ∧ raw ≥ 2 ^ (sizeBits - 1) then
-              some (raw - 2 ^ sizeBits)
-            else some raw
-        | some false => some raw
-        | none => none
-      else none
-    | none => none
-
 def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
-  match s.types.find? (fun item => item.id == "t" ++ toString target || item.id == toString target) with
+  match s.types.find? (fun item => item.id == toString target) with
   | some info =>
       if !(info.kind.startsWith "RigidTy(Int(") &&
           !(info.kind.startsWith "RigidTy(Uint(") then none else
@@ -236,14 +247,14 @@ def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
   | none => none
 
 def pointerType (s : State) (target : Nat) : Bool :=
-  match s.types.find? (fun item => item.id == "t" ++ toString target || item.id == toString target) with
+  match s.types.find? (fun item => item.id == toString target) with
   | some info => info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref"
   | none => false
 
 def operandCell (s : State) : Operand → Option Cell
   | .constant _ bytes ty provenance zeroSized =>
       if zeroSized then some (.int 0) else
-      match s.types.find? (fun item => item.id == "t" ++ toString ty || item.id == toString ty), provenance with
+      match s.types.find? (fun item => item.id == toString ty), provenance with
       | some info, some target =>
           if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" then
             some (.pointer { provenance := target, address := placementOf s target })
@@ -332,7 +343,14 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       | .value value => pure (.aggregate [.int value, .int 0])
       | .overflow => pure (.aggregate [.int 0, .int 1])
       | .divideByZero => none
-  | .ref place => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
+  | .ref place =>
+      match place.projection with
+      | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
+      | .deref :: rest =>
+          match localSlot s place.localId |>.bind slotCell with
+          | some (.pointer pointer) => if rest.isEmpty then some (.pointer pointer) else none
+          | _ => none
+      | .field _ _ :: _ | .downcast _ :: _ | .unsupported _ :: _ => none
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
@@ -472,7 +490,12 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
           | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
           | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")
-          | .assign _ _ => .refused (.unsupported "assignment")
+          | .assign _ (.use _) => .refused (.unsupported "use assignment")
+          | .assign _ (.binaryEq _ _) => .refused (.unsupported "equality assignment")
+          | .assign _ (.binaryNe _ _) => .refused (.unsupported "inequality assignment")
+          | .assign _ (.binaryBitAnd _ _) => .refused (.unsupported "bitwise assignment")
+          | .assign _ (.zstAggregate) => .refused (.unsupported "zst aggregate assignment")
+          | .assign _ (.unsupported kind) => .refused (.unsupported ("assignment " ++ kind))
           | .placeMention _ => .refused (.unsupported "place mention")
           | .storageLive _ | .storageDead _ | .unsupported _ =>
               .refused (.unsupported "statement")

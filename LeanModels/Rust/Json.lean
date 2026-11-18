@@ -197,7 +197,19 @@ private def rvalue (j : Json) : Except String Rvalue := do
             | .str name => pure name
             | .obj _ => pure "Adt"
             | _ => .error "MIR Aggregate tag is malformed"
-          if args.isEmpty && tagName == "Adt" then pure (.unsupported "fieldless Aggregate")
+          if args.isEmpty && tagName == "Adt" then
+            match tag with
+            | .obj _ =>
+                let (_, payload) ← variant tag
+                match payload with
+                | .arr values =>
+                    match values.toList.drop 1 |>.head? with
+                    | some (.num value) =>
+                        if value == 0 then pure .zstAggregate
+                        else pure (.unsupported "fieldless Aggregate")
+                    | _ => pure (.unsupported "fieldless Aggregate")
+                | _ => pure (.unsupported "fieldless Aggregate")
+            | _ => pure (.unsupported "fieldless Aggregate")
           else pure (.aggregate tagName args)
       | _ => .error "MIR Aggregate has malformed operands"
   | "Repeat" => do
