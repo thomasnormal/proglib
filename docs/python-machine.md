@@ -253,6 +253,8 @@ positional binding together with `*args` and a keyword-only default, while
 binding before variadic positional collection, while
 `harness/scripts/function_positional_only_varargs_keyword_only.py` checks that
 combination with a keyword-only default, while
+`harness/scripts/function_scalar_defaults.py` checks boolean, string, and
+`None` literal defaults, while
 `harness/scripts/function_kwargs.py` records the current loud refusal for
 variadic keyword parameters, while
 `harness/scripts/function_unknown_keyword.py` records the current loud refusal
