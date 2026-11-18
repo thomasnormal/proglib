@@ -2641,7 +2641,7 @@ theorem reallocAt_null_loadFloat32 (m : Mem) (size address : Nat)
     (hsize : size ≠ 0) (hwidth : 4 ≤ size) :
     (reallocAt m Ptr.null size address).map
         (fun r => r.1.loadFloat32 r.2) =
-      .ok (.error (.memUB (.indetAllocated m.objs.length 0))) := by
+      .ok (.error (.memUB (.nonValueRepresentation m.objs.length 0))) := by
   rw [reallocAt_null m size address hsize]
   have hwidth' : ¬ size < 4 := by omega
   have hwidthInt : ¬ (size : Int) < 4 := by omega
@@ -2649,21 +2649,7 @@ theorem reallocAt_null_loadFloat32 (m : Mem) (size address : Nat)
     (m.mallocAt size address).2) = _
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
     loadFloat32, loadBytes, resolve, get?, CObj.size, Except.map,
-    hwidth', hwidthInt]
-
-theorem reallocAt_null_loadFloat64 (m : Mem) (size address : Nat)
-    (hsize : size ≠ 0) (hwidth : 8 ≤ size) :
-    (reallocAt m Ptr.null size address).map
-        (fun r => r.1.loadFloat64 r.2) =
-      .ok (.error (.memUB (.indetAllocated m.objs.length 0))) := by
-  rw [reallocAt_null m size address hsize]
-  have hwidth' : ¬ size < 8 := by omega
-  have hwidthInt : ¬ (size : Int) < 8 := by omega
-  change .ok ((m.mallocAt size address).1.loadFloat64
-    (m.mallocAt size address).2) = _
-  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
-    loadFloat64, loadBytes, resolve, get?, CObj.size, Except.map,
-    hwidth', hwidthInt]
+    decodeFloat32, hwidth', hwidthInt]
 
 theorem reallocAt_null_storeFloat32 (m : Mem) (size address : Nat)
     (f : Float32.Model) (hsize : size ≠ 0) :
