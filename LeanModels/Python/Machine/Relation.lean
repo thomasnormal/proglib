@@ -292,7 +292,7 @@ def rBindKeyword : REnv → List RParam → String → RVal → Option REnv
   | env, [], _, _ => none
   | env, parameter :: rest, name, value =>
       if parameter.name == name then
-        if parameter.positionalOnly || Option.isSome (rLookupEnv env name) then none
+        if parameter.positionalOnly || parameter.variadic || Option.isSome (rLookupEnv env name) then none
         else some ((name, value) :: env)
       else rBindKeyword env rest name value
 
@@ -320,17 +320,23 @@ def rBindArguments (params : Array RParam) (defaults : Array RVal)
     (keywordDefaults : Array (Option RVal)) (values : List RVal)
     (keywords : List (String × RVal)) : Option REnv :=
   let parameters := params.toList
-  let positional := parameters.filter (fun parameter => !parameter.keywordOnly)
-  if parameters.any (fun parameter => parameter.variadic) then none
+  let positional := parameters.filter (fun parameter => !parameter.keywordOnly && !parameter.variadic)
+  let variadic := parameters.filter (fun parameter => parameter.variadic)
+  if variadic.length > 1 then none
   else if defaults.size > positional.length then none
   else if values.length < positional.length - defaults.size then none
-  else if values.length > positional.length then none
+  else if variadic.isEmpty && values.length > positional.length then none
   else
     let missing := positional.length - values.length
     let usedDefaults := defaults.toList.drop (defaults.size - missing)
+    let supplied := values.take positional.length
     let initialEnv := (positional.map (fun parameter => parameter.name)).zip
-      (values ++ usedDefaults)
-    match rBindKeywords initialEnv parameters keywords with
+      (supplied ++ usedDefaults)
+    let withVariadic :=
+      match variadic with
+      | [] => initialEnv
+      | parameter :: _ => (parameter.name, .tuple (values.drop positional.length).toArray) :: initialEnv
+    match rBindKeywords withVariadic parameters keywords with
     | some env => rBindKeywordDefaults env parameters keywordDefaults.toList
     | none => none
 
@@ -995,6 +1001,13 @@ private def bPositionalOnlyKeywordModule : RModule :=
       .ret (some (.call (.name "positional" testSpan) #[]
         #[("value", Expr.constant (.int 5) testSpan)] none testSpan)) testSpan] }
 
+private def bVarargModule : RModule :=
+  { body := #[
+      .functionDef "collect" #[{ name := "items", variadic := true }] #[]
+        #[.ret (some (.name "items" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "collect" testSpan)
+        #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] #[] none testSpan)) testSpan] }
+
 
 example :
     ((RConfig.initial b1Module).defineFunction
@@ -1062,6 +1075,11 @@ example :
 example :
     (runB1 96 (RConfig.initial bPositionalOnlyKeywordModule)).2.status =
       .finished (.refuse "machine argument binder") := by
+  rfl
+
+example :
+    (runB1 96 (RConfig.initial bVarargModule)).2.status =
+      .finished (.return (.tuple #[.int 1, .int 2])) := by
   rfl
 
 example : ∃ c₁ c₂,
