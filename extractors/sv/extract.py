@@ -27608,7 +27608,7 @@ def convert_procedural_block(sm, m, module_level=False):
                     retained = _event_list_process(sm, m, body, timing, "always")
                     if retained is not None:
                         return retained
-                elif type(timing).__name__ == "SignalEventControl":
+                if type(timing).__name__ == "SignalEventControl":
                     retained = _single_event_process(sm, m, body, timing)
                     if retained is not None:
                         return retained
@@ -28062,9 +28062,10 @@ def _event_list_process(sm, m, body, timing, style):
     statement = body.stmt
     if type(statement).__name__ == "EmptyStatement":
         return None
-    if (type(statement).__name__ == "BlockStatement"
-            and len(getattr(getattr(statement, "body", None), "list", ())) == 0):
-        return None
+    if type(statement).__name__ == "BlockStatement":
+        block_list = getattr(getattr(statement, "body", None), "list", None)
+        if block_list is not None and len(block_list) == 0:
+            return None
     result = {
         "kind": "AlwaysEvent",
         "span": sym_span(sm, m),
@@ -28104,9 +28105,10 @@ def _single_event_process(sm, m, body, timing):
     statement = body.stmt
     if type(statement).__name__ == "EmptyStatement":
         return None
-    if (type(statement).__name__ == "BlockStatement"
-            and len(getattr(getattr(statement, "body", None), "list", ())) == 0):
-        return None
+    if type(statement).__name__ == "BlockStatement":
+        block_list = getattr(getattr(statement, "body", None), "list", None)
+        if block_list is not None and len(block_list) == 0:
+            return None
     event = {"edge": edge}
     if signal.get("kind") == "Ident" and signal.get("width") == 1:
         event["signal"] = signal["name"]
