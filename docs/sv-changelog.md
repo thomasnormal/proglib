@@ -1,5 +1,14 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Wall ranking after the aggregate boundary — 2026-11-18
+
+The current clean-room matrix was re-ranked after the typed aggregate/member
+metadata landing. Event-controlled procedural blocks remain the broadest
+general-lane wall at eight real-module closures. Aggregate storage/member
+steps, hierarchy, interface paths, initial and delay processes, and clock
+boundaries are recorded in descending breadth and ownership. No E-ROWS or
+REAL-DESIGNS transition is claimed.
+
 ## Parameter-sized casts in sampled SVA values — 2026-11-11
 
 The finite SVA value tree now retains a parameter-sized integral cast such as

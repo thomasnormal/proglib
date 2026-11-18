@@ -1013,3 +1013,17 @@ predicted status, and the package receipts cover all 15 families, including
 the corrected output-net-z and resolved-net cases. No unmeasured ls-sv3-owned
 wall remains. The next broad wall is the shared aggregate/member relation
 owned by the general lane. REAL-BLOCKS remains 41.
+
+## Stall-rule wall ranking after aggregate-boundary landing — 2026-11-18T04:02Z
+
+The aggregate/member packet added parser-native field and bound metadata but
+did not move E-ROWS or REAL-DESIGNS, so the remaining matrix was re-ranked by
+breadth and ownership. Event-controlled procedural blocks remain the broadest
+general-lane wall at eight real-module closures. The aggregate storage and
+member-step semantics are the next general-lane dependency after the landed
+metadata boundary, followed by hierarchical value expressions at seven,
+interface ports and connections at six, initial processes and delay controls at
+five, child instances and multiple clocks at four, and derived internal clocks
+at three. Net-z members and packed-enum dimensions remain ls-sv3-owned. No
+count transition is claimed; the next implementation item is the
+event-controlled scheduler boundary.
