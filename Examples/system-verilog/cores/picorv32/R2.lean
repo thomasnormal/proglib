@@ -367,6 +367,8 @@ theorem PicoRV32Invariant.safe {E : ESig} {b : PicoRV32Backend E}
   exact RvfiE.safe_of_invariant E b.design b.clocking b.admit profile initial
     (decodePost "rvfi_") rel h.init h.step
 
+#print axioms PicoRV32Invariant.safe
+
 /-- The core-specific R2 claim.  Its safety conclusion is the stateful ISA
 trace for the loaded program's initial memory; `fetchTie` supplies the missing
 word-to-memory link that the generic `TraceRefines` theorem intentionally
@@ -421,6 +423,8 @@ theorem PicoRV32R2Statement.safety {E : ESig} {b : PicoRV32Backend E}
     (b := b) (env := env) (trace := trace)
     (s.fetchTie ch env trace hadmit hdisc hrun)
     0 (E.cycles env) rows (by omega) hdecode' row hrow
+
+#print axioms PicoRV32R2Statement.safety
 
 /-! ## Separate bounded progress theorem -/
 
@@ -484,6 +488,8 @@ theorem picoRV32_progress {State : Type}
     rv32i_progress_trace_refines profile machine rel admit hstep start
       coreState memoryState hrel hschedule htarget k
   exact ⟨n, program, certificate, htrace⟩
+
+#print axioms picoRV32_progress
 
 theorem picorv32_progress_bridge {State : Type}
     (profile : PlatformProfile) (machine : RvfiCycleMachine State)
