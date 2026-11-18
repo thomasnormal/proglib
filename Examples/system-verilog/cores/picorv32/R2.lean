@@ -67,6 +67,10 @@ obligation:
 * `r1_addi.lean` for the loaded-envelope ADDI configuration, resolved
   parameter vector, declaration prefix, field-presence, and exact RVFI-width
   facts that feed that decoder;
+* `picorv32_loaded_cpuregs_one_rank_unpacked`,
+  `picorv32_loaded_cpuregs_cell_shape`, and `picorv32_loaded_regfile_size` for
+  the concrete register-file geometry consumed by the canonical one-rank
+  memory relation;
 * `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
   for the measured observation witness.
 
