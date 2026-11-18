@@ -184,6 +184,16 @@ theorem picorv32_loaded_cpuregs_one_rank_unpacked :
 
 #print axioms picorv32_loaded_cpuregs_one_rank_unpacked
 
+theorem picorv32_loaded_cpuregs_cell_shape :
+    picorv32_r2.pdesign.decls.filterMap
+      (fun d => if d.name == "cpuregs" then
+        some ((match d.type with | .packed _ r => r | _ => none),
+          d.unpackedDims.length) else none) =
+      [(some 32, 1)] := by
+  decide
+
+#print axioms picorv32_loaded_cpuregs_cell_shape
+
 theorem picorv32_rv32m_disabled :
     picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
       picorv32RISCVFormalParameters.ENABLE_DIV = 0 := by
