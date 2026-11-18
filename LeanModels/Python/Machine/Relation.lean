@@ -1572,6 +1572,14 @@ private def bResourceConfig : RConfig :=
       locals := [], globals := [] }
   { initial with frames := [frame] }
 
+private def bAllocationConfig : RConfig :=
+  let initial := RConfig.initial b1Module
+  let frame : RFrame :=
+    { control := .resourceChoice .allocation
+        (.allocateList [.int 1] .discardValue)
+      locals := [], globals := [] }
+  { initial with frames := [frame] }
+
 private def bStuckConfig : RConfig :=
   { RConfig.initial b1Module with frames := [] }
 
@@ -1909,6 +1917,14 @@ example : ∃ next,
   refine ⟨bResourceConfig.setControl (.raising (resourceError .framePush)),
     Step.resourceRaise (by rfl), ?_⟩
   rfl
+
+example : ∃ c₁ c₂,
+    Step bAllocationConfig .tau c₁ ∧ Step bAllocationConfig .tau c₂ ∧ c₁ ≠ c₂ := by
+  refine ⟨bAllocationConfig.setControl (.allocateList [.int 1] .discardValue),
+    bAllocationConfig.setControl (.raising (resourceError .allocation)), ?_, ?_, ?_⟩
+  · exact Step.resourceProceed (by rfl)
+  · exact Step.resourceRaise (by rfl)
+  · simp [bAllocationConfig, RConfig.setControl, resourceError]
 
 #guard (runRelation RImpl.cpython39 3 (RConfig.initial testModule)).1 ==
   [.tau, .tau, .event (.return (.int 7))]
