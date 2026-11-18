@@ -1,0 +1,209 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "package_param_xz_wall",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/package_param_xz_wall/package_param_xz_wall.sv",
+      "sha256": "dc389cb96ebc8e3f5feb75e90bf2f25c41036a5701ffe84dc101141e78da1bc1"
+    }
+  ],
+  "packages": [
+    "package_param_xz_wall_pkg"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 5,
+          "col": 1,
+          "end_line": 8,
+          "end_col": 10
+        },
+        "name": "package_param_xz_wall",
+        "imports": [
+          {
+            "kind": "Import",
+            "span": {
+              "line": 6,
+              "col": 10,
+              "end_line": 6,
+              "end_col": 38
+            },
+            "package": "package_param_xz_wall_pkg",
+            "name": "*"
+          }
+        ],
+        "params": [],
+        "package_params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 26,
+              "end_line": 2,
+              "end_col": 57
+            },
+            "name": "INSTR_LUI",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 20,
+                      "end_line": 2,
+                      "end_col": 22
+                    },
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 23,
+                      "end_line": 2,
+                      "end_col": 24
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "resolved": 0,
+            "signed": false,
+            "default": {
+              "kind": "Concat",
+              "span": {
+                "line": 2,
+                "col": 38,
+                "end_line": 2,
+                "end_col": 57
+              },
+              "width": 32,
+              "parts": [
+                {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 2,
+                    "col": 39,
+                    "end_line": 2,
+                    "end_col": 44
+                  },
+                  "width": 25,
+                  "bits": "zzzzzzzzzzzzzzzzzzzzzzzzz"
+                },
+                {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 2,
+                    "col": 46,
+                    "end_line": 2,
+                    "end_col": 56
+                  },
+                  "width": 7,
+                  "bits": "0110111"
+                }
+              ]
+            },
+            "package": "package_param_xz_wall_pkg"
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 50,
+              "end_line": 5,
+              "end_col": 51
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 44,
+                      "end_line": 5,
+                      "end_col": 46
+                    },
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 47,
+                      "end_line": 5,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 7,
+              "col": 10,
+              "end_line": 7,
+              "end_col": 23
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 7,
+                "col": 10,
+                "end_line": 7,
+                "end_col": 11
+              },
+              "width": 32,
+              "name": "y"
+            },
+            "value": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 7,
+                "col": 14,
+                "end_line": 7,
+                "end_col": 23
+              },
+              "name": "INSTR_LUI",
+              "from_package": "package_param_xz_wall_pkg"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

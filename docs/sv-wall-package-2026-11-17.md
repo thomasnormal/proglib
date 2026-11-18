@@ -1103,3 +1103,16 @@ covering all-known, high-impedance, and conflicting drivers. No aliasing,
 flattening, or scalar x/z approximation is claimed. The parser-native landing
 is public in `0f7f84270`, and the aggregate-member red-fix ancestry was pushed
 without waiting for the asynchronous-memory profile wall.
+
+## CV32E40P package x/z constant wall — 2026-11-18
+
+The next CV32E40P load wall is a parser-native package parameter default with
+25 `z` bits and the `INSTR_LUI` opcode.  The clean-room receipt
+`Examples/system-verilog/sem2/package_param_xz_wall/check.py` regenerates its
+envelope byte-identically, and the canonical loader records the exact refusal
+`defaults: package parameter 'package_param_xz_wall_pkg::INSTR_LUI': x/z literal
+in a constant context`.  Icarus Verilog 13.0 and Xcelium 24.03-s004 both
+produce the source row `zzzzzzzzzzzzzzzzzzzzzzzzz0110111`.  No integer
+reinterpretation or package-constant semantic change is claimed.  The trusted
+package binding remains an explicit four-state representation decision for the
+lead.
