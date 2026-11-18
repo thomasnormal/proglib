@@ -80,6 +80,7 @@ objects with scalar pointer representation, even when their pointee is a
 record. -/
 def QualType.aggregateObject : QualType → Bool
   | .record _ => true
+  | .array _ _ => true
   | .qualified _ _ base => base.aggregateObject
   | _ => false
 

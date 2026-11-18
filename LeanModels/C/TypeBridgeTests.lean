@@ -38,6 +38,10 @@ private def isError : Except String α → Bool
   (.ok (.array (.cBuiltin "int") (some 4)))
 #guard same qualifiedRecord.toQualType
   (.ok (.qualified true false (.record {value := "record-1"})))
+#guard (LeanModels.Clang.QualType.aggregateObject
+  (.array (.cBuiltin "int") (some 4)))
+#guard !(LeanModels.Clang.QualType.aggregateObject
+  (.pointer (.record {value := "record-1"})))
 #guard isError (TypeNode.typedefRef none "T" |>.toQualType)
 #guard isError (TypeNode.enumeration none "enum E" |>.toQualType)
 
