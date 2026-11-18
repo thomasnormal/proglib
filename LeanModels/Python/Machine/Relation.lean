@@ -21,6 +21,7 @@ structure RParam where
   positionalOnly : Bool := false
   keywordOnly : Bool := false
   variadic : Bool := false
+  keywordVariadic : Bool := false
   defaults : Option (Array Expr) := none
 deriving Repr, Inhabited, BEq
 
@@ -215,7 +216,8 @@ def rReadCell (heap : Heap) (value : RVal) : Option RVal :=
   | .ref address =>
       match heap.get? address with
       | some (.cell (some contents)) => some contents
-      | _ => none
+      | some _ => some value
+      | none => none
   | _ => some value
 
 def rLookupCaptured (heap : Heap) (env : REnv) (name : String) : Option RVal :=
@@ -299,7 +301,9 @@ def rBindKeyword : REnv → List RParam → String → RVal → Option REnv
   | env, [], _, _ => none
   | env, parameter :: rest, name, value =>
       if parameter.name == name then
-        if parameter.positionalOnly || parameter.variadic || Option.isSome (rLookupEnv env name) then none
+        if parameter.keywordVariadic then rBindKeyword env rest name value
+        else if parameter.positionalOnly || parameter.variadic
+            || Option.isSome (rLookupEnv env name) then none
         else some ((name, value) :: env)
       else rBindKeyword env rest name value
 
@@ -308,7 +312,10 @@ def rBindKeywords : REnv → List RParam → List (String × RVal) → Option RE
   | env, params, (name, value) :: rest =>
       match rBindKeyword env params name value with
       | some updated => rBindKeywords updated params rest
-      | none => none
+      | none =>
+          if params.any (fun parameter => parameter.keywordVariadic) then
+            rBindKeywords env params rest
+          else none
 
 def rBindKeywordDefaults : REnv → List RParam → List (Option RVal) → Option REnv
   | env, [], _ => some env
@@ -325,11 +332,13 @@ def rBindKeywordDefaults : REnv → List RParam → List (Option RVal) → Optio
 
 def rBindArguments (params : Array RParam) (defaults : Array RVal)
     (keywordDefaults : Array (Option RVal)) (values : List RVal)
-    (keywords : List (String × RVal)) : Option REnv :=
+    (keywords : List (String × RVal)) (kwargsValue : Option RVal) : Option REnv :=
   let parameters := params.toList
-  let positional := parameters.filter (fun parameter => !parameter.keywordOnly && !parameter.variadic)
-  let variadic := parameters.filter (fun parameter => parameter.variadic)
-  if variadic.length > 1 then none
+  let positional := parameters.filter
+    (fun parameter => !parameter.keywordOnly && !parameter.variadic && !parameter.keywordVariadic)
+  let variadic := parameters.filter (fun parameter => parameter.variadic && !parameter.keywordVariadic)
+  let keywordVariadic := parameters.filter (fun parameter => parameter.keywordVariadic)
+  if variadic.length > 1 || keywordVariadic.length > 1 then none
   else if defaults.size > positional.length then none
   else if values.length < positional.length - defaults.size then none
   else if variadic.isEmpty && values.length > positional.length then none
@@ -343,14 +352,21 @@ def rBindArguments (params : Array RParam) (defaults : Array RVal)
       match variadic with
       | [] => initialEnv
       | parameter :: _ => (parameter.name, .tuple (values.drop positional.length).toArray) :: initialEnv
-    match rBindKeywords withVariadic parameters keywords with
-    | some env => rBindKeywordDefaults env parameters keywordDefaults.toList
+    let withKeywordVariadic :=
+      match keywordVariadic, kwargsValue with
+      | [], _ => withVariadic
+      | parameter :: _, some value => (parameter.name, value) :: withVariadic
+      | _, none => withVariadic
+    match rBindKeywords withKeywordVariadic parameters keywords with
+    | some env =>
+        if !keywordVariadic.isEmpty && kwargsValue.isNone then none
+        else rBindKeywordDefaults env parameters keywordDefaults.toList
     | none => none
 
 def rCallFrame (function : RFunction) (values : List RVal)
-    (keywords : List (String × RVal)) : Option RFrame :=
+    (keywords : List (String × RVal)) (kwargsValue : Option RVal) : Option RFrame :=
   match rBindArguments function.params function.defaultValues function.keywordDefaultValues
-      values keywords with
+      values keywords kwargsValue with
   | none => none
   | some locals =>
       some { control := .statements function.body.toList
@@ -358,6 +374,18 @@ def rCallFrame (function : RFunction) (values : List RVal)
              globals := []
              module := function.globals
              cells := function.captured }
+
+def rKeywordVariadicName : List RParam → Option String
+  | [] => none
+  | parameter :: rest =>
+      if parameter.keywordVariadic then some parameter.name
+      else rKeywordVariadicName rest
+
+def rBuildKwargs (heap : Heap) (keywords : List (String × RVal)) : Heap × RVal :=
+  let entries := (keywords.map (fun pair =>
+    match pair with | (name, value) => (RVal.str name, value))).toArray
+  let allocated := Heap.alloc heap (.dict entries 0)
+  (allocated.1, .ref allocated.2)
 
 def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
   { config with modules := rSetModule config.modules module name value }
@@ -392,11 +420,19 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
   | .callable name =>
       match rFunction config.functions name with
       | some function =>
+          let builtKwargs :=
+            if keywords.isEmpty then (config.heap, none)
+            else
+              match rKeywordVariadicName function.params.toList with
+              | some _ =>
+                  let allocated := rBuildKwargs config.heap keywords
+                  (allocated.1, some allocated.2)
+              | none => (config.heap, none)
           match config.frames with
           | caller :: tail =>
-              match rCallFrame function values keywords with
+              match rCallFrame function values keywords builtKwargs.2 with
               | some calleeFrame =>
-                  some (.tau, { config with frames :=
+                  some (.tau, { config with heap := builtKwargs.1, frames :=
                     calleeFrame :: { caller with
                       control := .continueValue .none (.callReturn continuation) } :: tail })
               | none => some (.event (.refuse "machine argument binder"),
@@ -1057,6 +1093,14 @@ private def bVarargModule : RModule :=
       .ret (some (.call (.name "collect" testSpan)
         #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] #[] none testSpan)) testSpan] }
 
+private def bKwargModule : RModule :=
+  { body := #[
+      .functionDef "collectKw" #[{ name := "items", keywordVariadic := true }] #[]
+        #[.ret (some (.name "items" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "collectKw" testSpan) #[]
+        #[("a", Expr.constant (.int 1) testSpan),
+          ("b", Expr.constant (.int 2) testSpan)] none testSpan)) testSpan] }
+
 private def bDuplicateKeywordModule : RModule :=
   { body := #[
       .functionDefKw "keyworded" #[{ name := "a" }, { name := "b", keywordOnly := true }] #[]
@@ -1076,6 +1120,7 @@ example :
 
 #guard (runB1 32 (RConfig.initial b1Module)).2.status ==
   .finished (.return .none)
+
 
 #guard (runB1 8 (RConfig.initial b1RefusalModule)).2.status ==
   .finished (.refuse "machine expression")
@@ -1142,6 +1187,11 @@ example :
 example :
     (runB1 96 (RConfig.initial bVarargModule)).2.status =
       .finished (.return (.tuple #[.int 1, .int 2])) := by
+  rfl
+
+example :
+    (runB1 96 (RConfig.initial bKwargModule)).2.status =
+      .finished (.return (.ref 0)) := by
   rfl
 
 example :
