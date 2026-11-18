@@ -87,13 +87,51 @@ theorem qa_not_initial : ∃ E, qa.e = .ok E ∧ E.initialState ≠ .ok E.initia
 /-! ## A clocked example's runs from both start states
 
 The examples' run claims hold from every coherent start state, so from the time-zero state too, and their concrete runs
-start from the x start. On `seq_mem/async_mem_fifo` (`amem_proof.lean`; `assign q = mem[0]`, `q` a net) the two start
-states differ (`q` is z at the x start and x at time zero), and the route's samples of a run are the same from both
-(compiled, at `W = N = 4`: reset, load 9, load 3). -/
+start from the x start. For each clocked example whose design has a continuous assign (`shreg_proof`, `rf_proof`,
+`valid_proof`, `amem_proof`), the route's samples of that example's own concrete run are the same from the time-zero
+state as from the x start (compiled checks, at the examples' parameter points). On `seq_mem/async_mem_fifo`
+(`amem_proof.lean`; `assign q = mem[0]`, `q` a net) the two start states differ (`q` is z at the x start and x at time
+zero). -/
 
+/-- The route's samples of `rows` from the time-zero state are those from the x start. -/
+def sameFromBoth (r : Res CoreMemDesign) (rows : List SvState) : Bool :=
+  match r with
+  | .ok E => match E.initialState with
+    | .ok st0 => match runCoreMemRows E st0 rows, runCoreMemRows E E.initial rows with
+      | .ok a, .ok b => a.map (CoreMemState.view E) == b.map (CoreMemState.view E)
+      | _, _ => false
+    | _ => false
+  | _ => false
+
+set_option maxRecDepth 100000 in
+load_design_sv2 shreg from "Examples/system-verilog/sem2/packed_shift_canonical_e/packed_shift_canonical_e.sv.json"
+set_option maxRecDepth 100000 in
+load_design_sv2 rf from "Examples/system-verilog/sem2/unpacked_cpuregs_e/unpacked_cpuregs_e.sv.json"
+set_option maxRecDepth 100000 in
+load_design_sv2 vc from "Examples/system-verilog/seq_valid_chain/valid_chain_profile.sv.json"
 set_option maxRecDepth 100000 in
 load_design_sv2 am from "Examples/system-verilog/seq_mem/async_mem_fifo.sv.json"
 
+-- `shreg_proof`'s run at `N = 4`.
+#guard sameFromBoth (shreg.e 4) (cycleRows "clk" [[("v", .ofNat 1 1)], [("v", .ofNat 1 0)]])
+
+-- `rf_proof`'s run at `N = 4`.
+#guard sameFromBoth (rf.e 4) (cycleRows "clk"
+  [[("raddr", .ofNat 5 1), ("waddr", .ofNat 5 1), ("wdata", .ofNat 32 5), ("we", .ofNat 1 1)],
+   [("raddr", .ofNat 5 1), ("waddr", .ofNat 5 7), ("wdata", .ofNat 32 9), ("we", .ofNat 1 1)],
+   [("raddr", .ofNat 5 1), ("waddr", LVec.lit "x0000"), ("wdata", .ofNat 32 3), ("we", .ofNat 1 1)],
+   [("raddr", .ofNat 5 1), ("waddr", .ofNat 5 1), ("wdata", .ofNat 32 3), ("we", .ofNat 1 0)]])
+
+-- `valid_proof`'s run at `W = 8`.
+#guard sameFromBoth (vc.e 8) (cycleRows "clk"
+  [[("rst", .ofNat 1 1), ("valid_i", .ofNat 1 0), ("ready_i", .ofNat 1 0), ("data_i", .ofNat 8 0)],
+   [("rst", .ofNat 1 0), ("valid_i", .ofNat 1 1), ("ready_i", .ofNat 1 1), ("data_i", .ofNat 8 0x5a)],
+   [("rst", .ofNat 1 0), ("valid_i", .ofNat 1 0), ("ready_i", .ofNat 1 0), ("data_i", .ofNat 8 0xff)],
+   [("rst", .ofNat 1 0), ("valid_i", .ofNat 1 1), ("ready_i", .ofNat 1 1), ("data_i", .ofNat 8 0x3c)]])
+
+-- `amem_proof`'s design at `W = N = 4` (reset, load 9, load 3): the start states differ, the samples do not.
+#guard sameFromBoth (am.e 4 4) (cycleRows "clk" [[("rstn", .ofNat 1 0), ("d", .ofNat 4 5)],
+  [("rstn", .ofNat 1 1), ("d", .ofNat 4 9)], [("rstn", .ofNat 1 1), ("d", .ofNat 4 3)]])
 #guard (match am.e 4 4 with
   | .ok E => match E.initialState with
     | .ok st0 =>
