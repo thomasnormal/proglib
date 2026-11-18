@@ -204,5 +204,7 @@ parameter order, while
 a keyword, while
 `harness/scripts/function_keyword_conflict.py` checks duplicate positional and
 keyword binding as a loud refusal, while
+`harness/scripts/function_keyword_default.py` checks a keyword selecting a
+literal-defaulted parameter, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is nineteen matches, three refusals, and zero divergence.
+current result is twenty matches, three refusals, and zero divergence.
