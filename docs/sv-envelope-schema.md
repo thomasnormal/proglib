@@ -2120,11 +2120,14 @@ no default (slang cannot elaborate it alone: it is listed in
 `design.others` as `ModuleDefinition:elaboration`, its definition is absent
 from the library, and the instance is loud), an instance inside a
 generate branch not taken at the DEFAULT parameters (slang does not bind it:
-`UninstantiatedDefSymbol:UninstantiatedDef`, loud only where that branch is
-taken) — the extractor binds each generate-for body from its FIRST
-iteration, so this includes an instance in a branch inside a generate-for
-that the first iteration does not take (`if (i % 2 == 1) inv u … else buf u
-…` is loud at every `N ≥ 2`), escaped identifiers containing `.`, `[`
+`UninstantiatedDefSymbol:UninstantiatedDef`, retained as a branch refusal
+while a parser-resolved child definition is still added to the module
+library — an unknown child remains loud in `design.others` as
+`ModuleDefinition:elaboration`). The extractor binds each generate-for body
+from its FIRST iteration, so this includes an instance in a branch inside a
+generate-for that the first iteration does not take (`if (i % 2 == 1) inv u
+… else buf u …` is loud at every `N ≥ 2`), escaped identifiers containing `.`,
+`[`
 or `]` on an instance path (`InstanceSymbol:name`/`:path` — the hierarchical
 names must stay collision-free; the load gate and the differential runner
 re-check `Design2.namesNodup`), `defparam` and `bind` (out-of-tier module

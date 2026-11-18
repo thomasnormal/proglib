@@ -221,7 +221,7 @@ endmodule
         self.assertEqual([p["expr" if p["dir"] == "in" else "target"]["name"] for p in m["ports"]],
                          ["a", "y"])
 
-    def test_untaken_branch_and_inout_are_loud(self):
+    def test_untaken_branch_and_inout(self):
         env = self.extract("""
 module leaf (input logic a, output logic y);
   assign y = a;
@@ -235,6 +235,8 @@ module top #(parameter bit E = 1) (input logic a, output logic q);
 endmodule
 """)
         self.assertIn("UninstantiatedDefSymbol:UninstantiatedDef", sv_kinds(env))
+        self.assertEqual([m["name"] for m in env["design"]["modules"]],
+                         ["top", "leaf"])
         env = self.extract("""
 module io (inout wire p, output logic y);
   assign y = p;
@@ -243,7 +245,24 @@ module top (inout wire p, output logic y);
   io u (.p(p), .y(y));
 endmodule
 """)
-        self.assertIn("PortConnection:InOut", sv_kinds(env["design"]["modules"][0]))
+        instance = env["design"]["modules"][0]["generates"][0]
+        self.assertEqual(instance["ports"][0]["dir"], "inout")
+
+    def test_untaken_branch_unknown_definition_stays_loud(self):
+        env = self.extract("""
+module top #(parameter bit E = 0) (input logic a, output logic y);
+  if (E) begin : g
+    missing u (.a(a), .y(y));
+  end else begin : e
+    assign y = 1'b0;
+  end
+endmodule
+""")
+        self.assertEqual([m["name"] for m in env["design"]["modules"]], ["top"])
+        self.assertEqual(
+            [(o["sv_kind"], o["text"]) for o in env["design"]["others"]],
+            [("ModuleDefinition:elaboration", "missing")],
+        )
 
     def test_integer_actuals_are_emitted_unconverted(self):
         # slang binds an input actual converted to the port type of the

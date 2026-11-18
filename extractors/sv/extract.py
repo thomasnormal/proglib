@@ -31096,6 +31096,32 @@ class SymCtx:
         self.decl_init = False
 
 
+def _sym_uninstantiated_definition_names(inst):
+    """Names of parser-resolved module definitions below inactive branches.
+
+    Slang still retains an ``UninstantiatedDefSymbol`` for a module instance
+    in a generate branch that the default parameter point does not select.
+    Keep those resolved definition names in the symbolic module library so a
+    later parameter-point expansion has the child definition available.  An
+    unknown name remains loud when the library builder cannot elaborate it.
+    """
+    names = []
+
+    def visit(symbol):
+        if type(symbol).__name__ == "UninstantiatedDefSymbol":
+            name = getattr(symbol, "definitionName", None)
+            if (isinstance(name, str) and _SYM_HIER_NAME.match(name)
+                    and name not in names):
+                names.append(name)
+        return VisitAction.Advance
+
+    try:
+        inst.visit(visit)
+    except Exception:
+        return []
+    return names
+
+
 class _SymPos:
     """with _SymPos(): mark a symbolic expression position."""
 
@@ -36048,6 +36074,12 @@ def convert_module_sym(sm, inst):
     _SYM_READMEMH_PENDING = []
     body = inst.body
     _SYM.scope = body
+    # An inactive generate branch still has a parser-resolved definition
+    # symbol.  Retain that child in the source-shaped module library even
+    # though its branch body remains the explicit UninstantiatedDef refusal.
+    for name in _sym_uninstantiated_definition_names(inst):
+        if name not in _SYM.instance_modules:
+            _SYM.instance_modules.append(name)
     lower_proc.begin_module(sys.modules[__name__], body)      # WP-PROC L1: hoisted block-local declarations
     span = sym_span(sm, body) or sym_span(sm, inst)
 
