@@ -2005,6 +2005,13 @@ reactive dependency-order refusal.  No additional class theorem is added until
 that E boundary becomes reachable or the R2 statement names a concrete missing
 consumer.
 
+The core-specific statement now exposes three typed consumers in `R2.lean`.
+`picorv32_addi_step_bridge` and `picorv32_upper_step_bridge` route packaged
+ADDI and upper-immediate invariants into the unified RV32I cycle obligation.
+`picorv32_progress_bridge` routes the separate bounded next-retirement premise
+into the all-prefix trace result.  These wrappers consume existing generic
+theorems and do not assert that the current RTL has an admitted E invariant.
+
 ## 2026-11-18 W5 kernel-cost measurement
 
 The 3,442,095-byte `picorv32_r2.sv.json` envelope was elaborated through the
