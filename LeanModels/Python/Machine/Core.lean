@@ -117,6 +117,32 @@ def bindParams : List Param → List RVal → Option REnv
       | none => none
   | _, _ => none
 
+def keywordLookup (name : String) : List (String × RVal) → Option RVal
+  | [] => none
+  | (key, value) :: rest => if key == name then some value else keywordLookup name rest
+
+def keywordDrop (name : String) : List (String × RVal) → List (String × RVal)
+  | [] => []
+  | pair :: rest => if pair.1 == name then rest else pair :: keywordDrop name rest
+
+def bindParamsWithKeywords : List Param → List RVal → List (String × RVal) → Option REnv
+  | [], [], [] => some []
+  | parameter :: params, value :: values, keywords =>
+      if keywordLookup parameter.arg keywords |>.isSome then none
+      else bindParamsWithKeywords params values keywords
+        |>.map (fun env => (parameter.arg, value) :: env)
+  | parameter :: params, [], keywords =>
+      match keywordLookup parameter.arg keywords with
+      | some value =>
+          bindParamsWithKeywords params [] (keywordDrop parameter.arg keywords)
+            |>.map (fun env => (parameter.arg, value) :: env)
+      | none =>
+          match parameter.default with
+          | some value => bindParamsWithKeywords params [] keywords
+              |>.map (fun env => (parameter.arg, constValue value) :: env)
+          | none => none
+  | _, _, _ => none
+
 def truthy : RVal → Bool
   | .none => false
   | .bool b => b
@@ -193,6 +219,15 @@ def evalExpr (env : REnv) : Expr → Res RVal
   | .unsupported kind _ _ => .unsupported ("machine AST node: " ++ kind)
   | _ => .unsupported "machine expression"
 
+def evalKeywordArgs (env : REnv) : List (String × Expr) → Res (List (String × RVal))
+  | [] => .ok []
+  | (name, expression) :: rest =>
+      match evalExpr env expression, evalKeywordArgs env rest with
+      | .ok value, .ok values => .ok ((name, value) :: values)
+      | .exn error, _ | _, .exn error => .exn error
+      | .timeout, _ | _, .timeout => .timeout
+      | .unsupported reason, _ | _, .unsupported reason => .unsupported reason
+
 def targetName : Expr → Option String
   | .name name _ => some name
   | _ => none
@@ -233,24 +268,24 @@ where
     | _ => .unsupported "machine function branch body"
 
 def evalFunctionReturn (m : Module) (env : REnv) (name : String)
-    (args : Array Expr) : Res RVal :=
-  match findFunction m.functions.toList name, args.toList.mapM (evalExpr env) with
-  | some function, .ok values =>
+    (args : Array Expr) (kwargs : Array (String × Expr)) : Res RVal :=
+  match findFunction m.functions.toList name,
+      args.toList.mapM (evalExpr env), evalKeywordArgs env kwargs.toList with
+  | some function, .ok values, .ok keywords =>
       if !function.argsOk || !function.localsOk then
         .unsupported "machine function admission"
       else
-        match bindParams function.params.toList values with
+        match bindParamsWithKeywords function.params.toList values keywords with
         | some locals => evalFunctionBody locals function.body.toList
         | none => .unsupported "machine function arity"
-  | none, _ => .unsupported "machine function lookup"
-  | _, .exn error => .exn error
-  | _, .timeout => .timeout
-  | _, .unsupported reason => .unsupported reason
+  | none, _, _ => .unsupported "machine function lookup"
+  | _, .exn error, _ | _, _, .exn error => .exn error
+  | _, .timeout, _ | _, _, .timeout => .timeout
+  | _, .unsupported reason, _ | _, _, .unsupported reason => .unsupported reason
 
 def evalPrintExpr (m : Module) (env : REnv) : Expr → Res RVal
   | .call (.name name _) args kwargs none _ =>
-      if kwargs.isEmpty then evalFunctionReturn m env name args
-      else .unsupported "machine nested function keywords"
+      evalFunctionReturn m env name args kwargs
   | expression => evalExpr env expression
 
 def finish : MachineState → Observation → Event → MachineState

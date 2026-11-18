@@ -197,5 +197,6 @@ overriding a literal default, while
 a local assignment before return, while
 `harness/scripts/function_print_branch_locals.py` checks several assignments in
 that selected branch, while
+`harness/scripts/function_keyword.py` checks a simple keyword argument, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is sixteen matches, two refusals, and zero divergence.
+current result is seventeen matches, two refusals, and zero divergence.
