@@ -17,7 +17,7 @@ ROWS = [
     ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "no", "AlwaysPosedge:edge"),
     ("Ibex", "lowRISC d513671d", "396", "no", "AlwaysLatch:unknown process kind"),
     ("PicoRV32", "YosysHQ ef203c2b", "0", "yes", "time-zero initialState + 8 empty E cycles: PASS; input-driven RVFI E-RUN: no result within 180 s; census 360 admitted, 0 refused, 4 not reached"),
-    ("DarkRISCV", "darklife bb6b483c", "1", "no", "Constant: non-literal FLUSH initializer"),
+    ("DarkRISCV", "darklife bb6b483c", "0", "yes", "E-RUN: AssignmentExpression:target (REGS[DPTR])"),
 ]
 
 lines = [
