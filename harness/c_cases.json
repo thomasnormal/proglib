@@ -457,5 +457,11 @@
     "source": "int main(void) { int x = 3; unsigned int u = (unsigned int)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "refuse",
     "error": "pointer-to-integer conversion outside uintptr_t/intptr_t"
+  },
+  {
+    "id": "void-pointer-roundtrip",
+    "source": "int main(void) { int x = 3; void *q = &x; int *p = q; return *p == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
   }
 ]
