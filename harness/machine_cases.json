@@ -95,6 +95,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/function_mixed_args.py",
+    "envelope": "harness/scripts/function_mixed_args.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"

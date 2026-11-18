@@ -200,5 +200,7 @@ that selected branch, while
 `harness/scripts/function_keyword.py` checks a simple keyword argument, while
 `harness/scripts/function_keywords.py` checks keyword order independent of
 parameter order, while
+`harness/scripts/function_mixed_args.py` checks positional binding followed by
+a keyword, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is eighteen matches, two refusals, and zero divergence.
+current result is nineteen matches, two refusals, and zero divergence.
