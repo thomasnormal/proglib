@@ -205,10 +205,12 @@ also recording the independently checked fetch-to-memory fact for every
 decoded row. -/
 
 def PicoRV32TraceRefines (profile : PlatformProfile) (initial : RvMemoryState)
-    (program : Memory) (initialPc : Word) (environmentInhabited : Prop)
+    (program : Memory) (initialPc : Word) (programReadOnly : Prop)
+    (environmentInhabited : Prop)
     (decode : CycleObs PortSample → Option RvfiObservation)
     (samples : List (CycleObs PortSample)) : Prop :=
-  initial.memory = program ∧ initial.arch.pc = initialPc ∧ environmentInhabited ∧
+  initial.memory = program ∧ initial.arch.pc = initialPc ∧ programReadOnly ∧
+    environmentInhabited ∧
     ∃ rows instructions,
       RvfiE.decodeSamples decode samples = some rows ∧
         (∀ row, row ∈ rows → fetchProgramTie program row) ∧
@@ -323,12 +325,17 @@ theorem PicoRV32R2Statement.safety {E : ESig} {b : PicoRV32Backend E}
     (s : PicoRV32R2Statement E b profile initial rel) :
     (Obs_E E).SafeOn b.clocking b.design b.admit
       (fun _ samples => PicoRV32TraceRefines profile initial
-        b.environment.program 0 (∃ env, b.admit env) (decodePost "rvfi_") samples) := by
+        b.environment.program 0
+        (∀ address width value,
+          b.environment.programRegion address = true →
+            storeVal b.environment.program width address value = b.environment.program)
+        (∃ env, b.admit env) (decodePost "rvfi_") samples) := by
   intro ch env samples hadmit hdisc hbeh
   have hgeneric := s.invariant.safe ch env samples hadmit hdisc hbeh
   obtain ⟨rows, instructions, hdecode, htrace⟩ := hgeneric
   obtain ⟨probes, ⟨trace, hrun, hprobes⟩, hsamples⟩ := hbeh
-  refine ⟨s.initialMemory, s.resetPc, s.environmentInhabited,
+  refine ⟨s.initialMemory, s.resetPc, b.environment.programReadOnly,
+    s.environmentInhabited,
     rows, instructions, hdecode, ?_, htrace⟩
   subst probes
   subst samples
