@@ -733,6 +733,7 @@ This is a real transition past the former `REGS` storage wall.
 
 The next probe supplied one source-shaped input row with `CLK=0`, `RES=1`,
 `IRQ=0`, `IDATA=0x00000013`, `IDACK=1`, `IBERR=0`, `DATAI=0`, `DDACK=1`, and
-`DBERR=0`.  `CoreMemDesign.stepOnePassTrace` completed one pass and returned
-the no-follow-up flag.  The checked-in receipt now records one completed
-canonical-E pass, while the full `step` quiescence path remains unmeasured.
+`DBERR=0`.  `CoreMemDesign.stepOnePassTrace` completed the reset-held pass
+and a second pass with `RES=0`, returning the no-follow-up flag both times.
+The checked-in receipt now records two completed canonical-E passes, while the
+full `step` quiescence path remains unmeasured.
