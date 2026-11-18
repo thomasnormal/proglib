@@ -72,10 +72,10 @@ deriving Repr, Inhabited, BEq, DecidableEq
 
 /-- A function parameter: schema `param` = `{"arg": …, "span": …}`, plus an
 optional `"default"` const payload (F1). `default` is `some c` iff the
-source gave this parameter a LITERAL default (int/bool/str/None) — the only
-defaults in tier; a function with any non-literal default (a `Name`, a
-negative number, `[]`, a call, …) instead keeps `argsOk = false` with no
-per-param defaults, and calling it stays `unsupported`. -/
+source gave this parameter a supported literal default (int/bool/str/None,
+including a unary-negative integer) — the only defaults in tier; a function
+with any other non-literal default (a `Name`, `[]`, a call, …) instead keeps
+`argsOk = false` with no per-param defaults, and calling it stays `unsupported`. -/
 structure Param where
   arg : String
   span : Span

@@ -416,9 +416,16 @@ def unsupported(node, py_kind=None):
 def literal_const_payload(node):
     """The envelope const payload of a LITERAL expression (an ``ast.Constant``
     of int/bool/str/None — the same encoding as ``Constant`` nodes' ``value``
-    field), else None. Note a negative-number default (``lo=-1``) parses as
-    ``UnaryOp(USub, Constant)``, NOT a ``Constant`` — non-literal by this
-    rule, matching the Lean tier's literals-only defaults decision."""
+    field), plus a unary-negative integer literal, else None. A negative
+    integer is normalized to the same integer payload CPython exposes after
+    evaluating the default expression. Other unary expressions remain outside
+    this literal-default subset."""
+    if (isinstance(node, ast.UnaryOp)
+            and isinstance(node.op, ast.USub)
+            and isinstance(node.operand, ast.Constant)
+            and isinstance(node.operand.value, int)
+            and not isinstance(node.operand.value, bool)):
+        return {"type": "int", "repr": str(-node.operand.value)}
     if not isinstance(node, ast.Constant):
         return None
     v = node.value
@@ -1839,7 +1846,7 @@ def convert_stmt(node, enclosing=None, module_scope=False,
         # are in-tier — emitted as a "default" const payload on the trailing
         # params (a.defaults aligns with the tail of posonly+args, per
         # CPython). Any NON-literal default (a Name like easter's
-        # EASTER_WESTERN, a negative number, a call, a mutable [] / {}) keeps
+        # EASTER_WESTERN, a call, a mutable [] / {}) keeps
         # the whole function at args_unsupported: "defaults" with no
         # "default" keys emitted — refused loudly at call time, as before.
         payloads = [literal_const_payload(d) for d in a.defaults]
