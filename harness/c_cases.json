@@ -114,6 +114,40 @@
     "return_value": 0
   },
   {
+    "id": "string-literal-static-lifetime",
+    "source": "const char *f(void) { return \"ok\"; } int main(void) { const char *p = f(); return p[1] == 'k' ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "putchar-output",
+    "source": "int putchar(int); int main(void) { putchar('A'); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "A"
+  },
+  {
+    "id": "puts-output",
+    "source": "int puts(const char *); int main(void) { puts(\"hello\"); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "hello\n"
+  },
+  {
+    "id": "printf-format-subset",
+    "source": "int printf(const char *, ...); int main(void) { printf(\"%d %i %u %x %c %s %%\", -3, 4, 5u, 10u, 'Z', \"ok\"); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "-3 4 5 a Z ok %"
+  },
+  {
+    "id": "printf-length-subset",
+    "source": "int printf(const char *, ...); int main(void) { printf(\"%ld %lld %lu %llx\", -3L, 4LL, 5UL, 255ULL); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "-3 4 5 ff"
+  },
+  {
     "id": "tu-definition-shadows-strlen",
     "source": "int strlen(const char *s) { return 7; } int main(void) { return strlen(\"x\") == 7 ? 0 : 1; }",
     "expect": "match",

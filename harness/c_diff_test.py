@@ -138,8 +138,8 @@ def classify(row, clang, work):
     if model.returncode != 0:
         return "DIVERGE", "model refused: " + (model.stderr or model.stdout)[-800:]
     try:
-        line = next((x for x in reversed(model.stdout.splitlines())
-                     if x.startswith("ok\t")), "")
+        marker = model.stdout.rfind("ok\t")
+        line = model.stdout[marker:].splitlines()[0] if marker >= 0 else ""
         value = int(line.split("\t", 1)[1])
     except (ValueError, IndexError):
         return "DIVERGE", "model did not print an integer: %r" % model.stdout
@@ -147,6 +147,13 @@ def classify(row, clang, work):
     native_value = native_run.returncode if native_run.returncode >= 0 else None
     if value != expected or native_value != (expected % 256):
         return "DIVERGE", "model=%d native_exit=%r expected=%d" % (value, native_value, expected)
+    if "expected_stdout" in row:
+        marker = model.stdout.rfind("ok\t")
+        model_stdout = model.stdout[:marker] if marker >= 0 else ""
+        expected_stdout = row["expected_stdout"]
+        if model_stdout != expected_stdout or native_run.stdout != expected_stdout:
+            return "DIVERGE", "stdout model=%r native=%r expected=%r" % (
+                model_stdout, native_run.stdout, expected_stdout)
     return "MATCH", "model=%d native_exit=%d" % (value, native_value)
 
 

@@ -1021,6 +1021,32 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                     pure (.ptr dp)
                 | none => refuseUnsupported "strncpy: non-concrete source range"
           | _ => refuseUnsupported "strncpy: wrong argument count"
+        let runPutchar : List CVal → ExecM CVal := fun vs =>
+          match vs with
+          | [v] => do
+              let (_, n) ← asInt v
+              let byte := CByte.conc (UInt8.ofNat n.toNat)
+              modify (fun mem => mem.emitStdout [byte])
+              pure (.int IntTy.int_ (UInt8.ofNat n.toNat).toNat)
+          | _ => refuseUnsupported "putchar: wrong argument count"
+        let runPuts : List CVal → ExecM CVal := fun vs =>
+          match vs with
+          | [v] => do
+              let p ← asPtr v
+              let m ← get
+              let (_, source, off) ← liftEval (m.resolve p 0)
+              let rec takePutsString : List CByte → Option (List CByte)
+                | [] => none
+                | .conc x :: rest =>
+                    if x == 0 then some []
+                    else (takePutsString rest).map (fun tail => CByte.conc x :: tail)
+                | _ => none
+              let chars ← match takePutsString (source.bytes.drop off) with
+                | some bytes => pure bytes
+                | none => refuseUnsupported "puts: non-concrete or unterminated string"
+              modify (fun mem => mem.emitStdout (chars ++ [CByte.conc 10]))
+              pure (.int IntTy.int_ 0)
+          | _ => refuseUnsupported "puts: wrong argument count"
         let runSprintf : List CVal → ExecM CVal := fun vs =>
           match vs with
           | dst :: fmt :: args => do
@@ -1117,6 +1143,9 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
               let pattern ← match takePrintfString (source.bytes.drop off) with
                 | some bytes => pure bytes
                 | none => refuseUnsupported "printf: non-concrete or unterminated format"
+              let hexDigits (n : Nat) : List CByte :=
+                if n == 0 then [CByte.conc 48]
+                else (Nat.toDigits 16 n).map (fun d => CByte.conc (UInt8.ofNat d.toNat))
               let rec format : List CByte → List CVal → ExecM (List CByte)
                 | [], _ => pure []
                 | .conc 37 :: .conc 37 :: rest, as => do
@@ -1126,6 +1155,51 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                     let (_, n) ← asInt a
                     let tail ← format rest as
                     pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 105 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 117 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 120 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let rendered := hexDigits n.toNat
+                    let tail ← format rest as
+                    pure (rendered ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 100 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 105 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 117 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 120 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure (hexDigits n.toNat ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 108 :: .conc 100 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 108 :: .conc 105 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 108 :: .conc 117 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 108 :: .conc 108 :: .conc 120 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let tail ← format rest as
+                    pure (hexDigits n.toNat ++ tail)
                 | .conc 37 :: .conc 99 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let tail ← format rest as
@@ -1773,6 +1847,10 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
             runStrrchr vs
           else if nm == "printf" || nm == "__builtin_printf" then
             runPrintf vs
+          else if nm == "putchar" || nm == "__builtin_putchar" then
+            runPutchar vs
+          else if nm == "puts" || nm == "__builtin_puts" then
+            runPuts vs
           else if nm == "fprintf" || nm == "__builtin_fprintf" then
             runFprintf vs
           else if nm == "vprintf" || nm == "__builtin_vprintf" then
