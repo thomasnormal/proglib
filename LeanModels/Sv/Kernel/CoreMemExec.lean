@@ -1090,6 +1090,70 @@ def coreMemLhsReadNamesList : List PLhs → List String
 
 end
 
+/-! A reactive body may read a signal that it assigned earlier in the same
+process.  That sequential source order is defined by IEEE 1800-2023 §9.2.2.2
+and does not create an inter-process scheduling cycle.  Keep only reads that
+occur before the body's first write to the same name when checking the
+cross-process dependency guard. -/
+
+mutual
+
+def coreMemStmtReadBeforeWritesFrom (written : List String) : PStmt → List String × List String
+  | .blockingAssign name value | .nbaAssign name value =>
+      ((coreMemSignalNames value).filter (fun n => !written.contains n), name :: written)
+  | .blockingAssignL target value | .nbaAssignL target value =>
+      let reads := coreMemLhsReadNames target ++ coreMemSignalNames value
+      (reads.filter (fun n => !written.contains n), target.name :: written)
+  | .ifStmt cond yes none =>
+      let condReads := (coreMemSignalNames cond).filter (fun n => !written.contains n)
+      let (yesReads, yesWrites) := coreMemStmtReadBeforeWritesFrom written yes
+      (condReads ++ yesReads, yesWrites)
+  | .ifStmt cond yes (some no) =>
+      let condReads := (coreMemSignalNames cond).filter (fun n => !written.contains n)
+      let (yesReads, yesWrites) := coreMemStmtReadBeforeWritesFrom written yes
+      let (noReads, noWrites) := coreMemStmtReadBeforeWritesFrom written no
+      (condReads ++ yesReads ++ noReads, yesWrites ++ noWrites)
+  | .block body => coreMemStmtReadBeforeWritesListFrom written body
+  | .forLoop _ initE condition step body =>
+      let initReads := (coreMemSignalNames initE).filter (fun n => !written.contains n)
+      let condReads := (coreMemSignalNames condition).filter (fun n => !written.contains n)
+      let stepReads := (coreMemSignalNames step).filter (fun n => !written.contains n)
+      let (bodyReads, bodyWrites) := coreMemStmtReadBeforeWritesFrom written body
+      (initReads ++ condReads ++ stepReads ++ bodyReads, bodyWrites)
+  | .caseStmt subject items none _ _ =>
+      let subjectReads := (coreMemSignalNames subject).filter (fun n => !written.contains n)
+      let itemReads := coreMemCaseReadBeforeWritesFrom written items
+      (subjectReads ++ itemReads.1, itemReads.2)
+  | .caseStmt subject items (some defaultBody) _ _ =>
+      let subjectReads := (coreMemSignalNames subject).filter (fun n => !written.contains n)
+      let itemReads := coreMemCaseReadBeforeWritesFrom written items
+      let (defaultReads, defaultWrites) := coreMemStmtReadBeforeWritesFrom written defaultBody
+      (subjectReads ++ itemReads.1 ++ defaultReads, itemReads.2 ++ defaultWrites)
+  | .unsupported _ _ => ([], written)
+
+def coreMemStmtReadBeforeWritesListFrom (written : List String) : List PStmt → List String × List String
+  | [] => ([], written)
+  | stmt :: rest =>
+      let (reads, written') := coreMemStmtReadBeforeWritesFrom written stmt
+      let (restReads, restWritten) := coreMemStmtReadBeforeWritesListFrom written' rest
+      (reads ++ restReads, restWritten)
+
+def coreMemCaseReadBeforeWritesFrom (written : List String) :
+    List (List PExpr × PStmt) → List String × List String
+  | [] => ([], written)
+  | item :: rest =>
+      let patternReads := (coreMemSignalNamesList item.1).filter (fun n => !written.contains n)
+      let (bodyReads, bodyWrites) := coreMemStmtReadBeforeWritesFrom written item.2
+      let (restReads, restWrites) := coreMemCaseReadBeforeWritesFrom written rest
+      (patternReads ++ bodyReads ++ restReads, bodyWrites ++ restWrites)
+
+end
+
+def coreMemReactiveReadBeforeWrites : PProcess → List String
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body =>
+      (coreMemStmtReadBeforeWritesFrom [] body).1
+  | _ => []
+
 def coreMemReactiveProc : PProcess → Bool
   | .alwaysComb _ | .alwaysLatch _ | .alwaysImplicit _ => true
   | _ => false
@@ -1118,7 +1182,7 @@ def coreMemReactiveDependencyViol : List PProcess → Option String
   | p :: rest =>
       if coreMemReactiveProc p then
         let targets := coreMemReactiveWrites p ++ coreMemReactiveLaterWrites rest
-        match coreMemFirstReadIn (coreMemReactiveReads p) targets with
+        match coreMemFirstReadIn (coreMemReactiveReadBeforeWrites p) targets with
         | some name => some name
         | none => coreMemReactiveDependencyViol rest
       else coreMemReactiveDependencyViol rest

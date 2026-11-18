@@ -32156,6 +32156,15 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False):
     scalar/packed four-state ports and variables use the same retained
     signedness metadata; aggregate signed shapes remain loud."""
     try:
+        # A declaration that uses a typedef has no dimensions on its own
+        # syntax node. Slang keeps the source-shaped target declaration on
+        # the alias, so recover that parser node before projecting packed
+        # dimensions.
+        if type_syntax is None or type(type_syntax).__name__ == "NamedTypeSyntax":
+            target = getattr(t, "targetType", None)
+            target_syntax = getattr(target, "typeSyntax", None)
+            if target_syntax is not None:
+                type_syntax = target_syntax
         ct = t.canonicalType
         if type(ct).__name__ == "EnumType":
             if t.isSigned:
@@ -32219,7 +32228,7 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False):
             # (they used to be `packed: null`, which the Lean loader refuses).
             if type_syntax is not None and type_syntax.kind in (
                     SyntaxKind.BitType, SyntaxKind.LogicType, SyntaxKind.RegType,
-                    SyntaxKind.ImplicitType):
+                    SyntaxKind.ImplicitType, SyntaxKind.IntegerType):
                 packed = _syntax_packed_dims(sm, type_syntax)
                 if packed is not None and len(packed) != ndims:
                     packed = None

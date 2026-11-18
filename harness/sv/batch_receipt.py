@@ -205,6 +205,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("mode", 2),), (Port("result", 2),)),
     Fixture("typed_variable_repro.sv", "typed_variable_repro",
             (Port("d", 4),), (Port("q", 4),)),
+    Fixture("typed_value_repro.sv", "typed_value_repro",
+            (Port("source", 4),), (Port("result", 4),)),
     Fixture("packed_enum_integer_repro.sv", "packed_enum_integer_repro",
             (Port("x", 32),), (Port("y", 32),)),
     Fixture("packed_enum_package_repro.sv", "packed_enum_package_repro",
