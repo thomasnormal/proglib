@@ -492,6 +492,17 @@
     ]
   },
   {
+    "id": "flexible-array-member-layout",
+    "source": "struct F { int n; int tail[]; }; int main(void) { struct F f = { .n = 7 }; return sizeof(struct F) == 4 && f.n == 7 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "no layout for declared type",
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "layout_envelope_checks": [
+      "record_layout"
+    ]
+  },
+  {
     "id": "pointer-unsigned-int-wall",
     "source": "int main(void) { int x = 3; unsigned int u = (unsigned int)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "refuse",
