@@ -1038,3 +1038,13 @@ aggregate member marker and reaches the typed variable E refusal. The named
 value and nested member fixtures retain their typed aggregate boundaries. The
 canonical E route still refuses PortSymbol:type or VariableSymbol:type, so
 REAL-BLOCKS remains 41 and no aggregate admission transition is claimed.
+
+## Typed aggregate store landing remeasurement — 2026-11-18T05:30Z
+
+After public landing 5fcf45f6f, the four aggregate fixtures were rerun through
+the approved extractor and ordinary census. The new aggregate store relation
+preserves `MemberAccessExpression:aggregate` and the source-shaped typed
+declarations. `typed_nested_repro.sv` and `typed_named_unpacked.sv` still end
+at the `PortSymbol:type` E refusal. `member_nested_repro.sv` and
+`type_alias_nested_repro.sv` still end at the `VariableSymbol:type` E refusal.
+No fixture crosses the aggregate storage boundary, so REAL-BLOCKS remains 41.
