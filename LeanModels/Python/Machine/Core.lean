@@ -209,10 +209,10 @@ def evalFunctionBody : REnv → List Stmt → Res RVal
       | .exn error => .exn error
       | .timeout => .timeout
       | .unsupported reason => .unsupported reason
-  | env, [.assign #[target] expression _, .ret (some returnValue) span] =>
+  | env, .assign #[target] expression _ :: rest =>
       match targetName target, evalExpr env expression with
       | some name, .ok value =>
-          evalFunctionBody (setEnv env name value) [.ret (some returnValue) span]
+          evalFunctionBody (setEnv env name value) rest
       | none, _ => .unsupported "machine function assignment target"
       | _, .exn error => .exn error
       | _, .timeout => .timeout

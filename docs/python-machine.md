@@ -189,5 +189,7 @@ assigns a local before returning, while
 parameter, while
 `harness/scripts/function_print_branch.py` checks branch-selected returns in an
 expression callee, while
+`harness/scripts/function_print_locals.py` checks several structural local
+assignments before return, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twelve matches, two refusals, and zero divergence.
+current result is thirteen matches, two refusals, and zero divergence.
