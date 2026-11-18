@@ -255,8 +255,11 @@ def Run (d : SchedulerDesign) : List SvState → SlotState → List SvState → 
       ∃ t, Slot d (startWithInputs d s row) t ∧ out = t.store ∧ Run d rows t outs
   | _, _, _ => False
 
+/- A design starts with its time-zero processes active.  Settle that initial
+   slot before consuming external rows, so an empty stimulus still denotes a
+   completed time-zero run. -/
 def RunDesign (d : SchedulerDesign) (rows : List SvState) (outs : List SvState) : Prop :=
-  d.admitted = true ∧ Run d rows d.initial outs
+  d.admitted = true ∧ ∃ s, Slot d d.initial s ∧ Run d rows s outs
 
 def nextUpdates (d : SchedulerDesign) (s : SlotState) : List SlotState :=
   s.active.filterMap fun a =>
@@ -829,6 +832,29 @@ private def timeZeroDesign : Design :=
 #guard (allSlots 8 (SchedulerDesign.ofDesign timeZeroDesign)
   (SchedulerDesign.ofDesign timeZeroDesign).initial).all
   (fun st => st.lookup "q" == some (LVec.ofNat 1 1))
+
+example : RunDesign (SchedulerDesign.ofDesign timeZeroDesign) [] [] := by
+  refine ⟨by simp [SchedulerDesign.ofDesign, timeZeroDesign, Design.hasUnsupported,
+    Stmt.hasUnsupported, Expr.hasUnsupported]
+    <;> decide, ?_⟩
+  let d := SchedulerDesign.ofDesign timeZeroDesign
+  let s : SlotState :=
+    { store := d.initial.store
+      sens := [{ process := 0, target := "clk", wait := .posedge, resume := 1 }] }
+  refine ⟨s, ?_, ?_⟩
+  · constructor
+    · exact Steps.tail (Steps.refl d.initial) (by
+        apply Or.inr
+        left
+        refine ⟨0, 0, ?_, ?_, ?_⟩
+        · simp [d, SchedulerDesign.ofDesign, timeZeroDesign]
+        · simp [d, SchedulerDesign.ofDesign, timeZeroDesign, evalAllowed,
+            Design.edgeIndices, Process.isEdgePhase]
+        · simp [s, d, SchedulerDesign.ofDesign, timeZeroDesign, actionStep,
+            processEval, waitForProcess, quietB, quiet, hasMultipleAssignDrivers]
+          <;> decide)
+    · simp [s, quietB, quiet]
+  · simp [Run, s, quietB, quiet]
 
 private def timeZeroRun : List SvState :=
   let d := SchedulerDesign.ofDesign timeZeroDesign
