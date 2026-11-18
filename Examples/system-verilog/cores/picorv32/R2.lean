@@ -64,8 +64,9 @@ obligation:
   execution family to consume;
 * `LeanModels.Refine.RvfiAddiProgress` for the packaged ADDI-only invariant
   bridge `Rv32iAddiInvariant.toMixedStep` and its reset-stream refinement;
-* `r1_addi.lean` for the loaded-envelope ADDI configuration, declaration
-  prefix, field-presence, and exact RVFI-width facts that feed that decoder;
+* `r1_addi.lean` for the loaded-envelope ADDI configuration, resolved
+  parameter vector, declaration prefix, field-presence, and exact RVFI-width
+  facts that feed that decoder;
 * `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
   for the measured observation witness.
 
