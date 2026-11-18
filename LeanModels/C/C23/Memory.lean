@@ -1951,6 +1951,21 @@ theorem reallocAt_valid_old_storePtrInt (m : Mem) (p : Ptr) (size address : Nat)
     List.getElem?_append_left ho]
   rfl
 
+theorem reallocAt_valid_old_loadFunction (m : Mem) (p : Ptr) (size address : Nat)
+    (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
+    (hc : m.get? o = some c) (hdur : c.dur = .allocated)
+    (hlive : c.live = true) (hoff : p.off = 0) :
+    (reallocAt m p size address).map
+        (fun r => r.1.loadFunction p) =
+      .ok (.error (.memUB (.deadObject o c.dur))) := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  change m.objs[o]? = some c at hc
+  have ho : o < m.objs.length := (List.getElem?_eq_some_iff.mp hc).choose
+  simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq,
+    kill, Ptr.toObjectBoundAt, loadFunction, resolve, get?, Except.map,
+    List.getElem?_append_left ho]
+  rfl
+
 theorem reallocAt_valid_placement (m : Mem) (p : Ptr) (size address : Nat)
     (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
     (hc : m.get? o = some c) (hdur : c.dur = .allocated)
