@@ -7024,3 +7024,9 @@ the defined sampling and NBA rules.
   members through the source-shaped memory route, while frozen scalar and
   MemE routes refuse them loudly.  Added parser guards and an Icarus/Xcelium
   clean-room differential row.
+
+- Extended the source-shaped aggregate relation with `AggStore` cells keyed by
+  E `VarId`.  Member paths now have explicit aggregate read/write operations,
+  a root read-back theorem, a noninterference theorem for other cells, and a
+  type-preservation theorem.  Scalar E expression admission remains pending
+  the parser-native member-path node.
