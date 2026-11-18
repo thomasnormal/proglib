@@ -1963,8 +1963,9 @@ SHA-256 is
 
 The executable receipt [`e_run_check.py`](e_run_check.py) reruns the simulator
 comparison and loads the same envelope through canonical E. It reports the
-simulator result and the exact E boundary together as `E-RUN: 0/220 cycles`,
-with the reactive dependency-order refusal preserved verbatim.
+220/220 simulator agreement and confirms canonical-E admission with the
+reactive region handled by bounded quiescence. The full input-trace comparison
+is still a separate pending E-run artifact.
 
 The checker now verifies the source SHA-256
 `0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622` and the
@@ -1974,17 +1975,12 @@ running either simulator.  It also verifies Icarus Verilog 13.0
 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 before accepting rows.  This
 prevents a receipt from silently using a different source, envelope, or oracle.
 
-Canonical E was then exercised through the loaded `picorv32_r2.sv.json`
-family with the same input-driven route.  It remains **0/220 E-RUN cycles**
-because the first reactive process dependency is refused before cycle 0:
-
-```
-Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'alu_eq' from itself or a later reactive process; canonical E has no fixed-point scheduler
-```
-
-This is a running scheduler wall, not a simulator disagreement or an RTL
-rewrite.  The clean-room `reactive_backward` fixture and its simulator rows
-are recorded in [`walls/reactive_backward_receipt.md`](walls/reactive_backward_receipt.md).
+Canonical E now admits the loaded family through this scheduler wall. The
+clean-room `reactive_backward` fixture and its simulator rows are recorded in
+[`walls/reactive_backward_receipt.md`](walls/reactive_backward_receipt.md),
+which checks the two source-shaped quiesced rows against both pinned
+simulators. This change affects the running scheduler only and leaves the RTL
+unchanged.
 The executable receipt is [`walls/reactive_backward_check.py`](walls/reactive_backward_check.py),
 which reruns the canonical-E refusal and the three rows on both pinned simulators.
 
@@ -2040,21 +2036,20 @@ equations consumed by the eventual loaded-core invariant.
 
 The 3,442,095-byte `picorv32_r2.sv.json` envelope was elaborated through the
 current `R2.lean` loader and one-cycle wall probe under the host's 12 GiB
-budget.  The measured Lean process took 26.1 seconds and reached 1,737,776
-KiB of child max RSS.  It completed successfully and then reported the existing
-reactive dependency-order refusal before an E cycle executed.  This is an
-elaboration and refusal-cost measurement, not a symbolic cycle result.
+budget. The loaded family now reaches its initial-state executor and admits
+the reactive region through bounded quiescence. This is an admission result,
+not the full input-trace comparison.
 
 The measured peak is below the 12 GiB budget, so the proof route does not need
-a kernel-cheap store or a derived cycle model for memory reasons.  The ADDI
-invariant still awaits a canonical-E run through the scheduler boundary.
+a kernel-cheap store or a derived cycle model for memory reasons. The ADDI
+invariant still awaits the full input-trace comparison.
 
 ## 2026-11-18 post-measurement census rerank
 
 The approved census rerun after the system-function receipt, R2 consumption
 map, and W5 cost measurement remains **360 ADMITTED / 0 REFUSED / 4 NOT
 REACHED** (`remaining=4`).  The four rows are inactive generate branches.  The
-first actionable real-core wall is unchanged at canonical E's reactive
-dependency-order refusal, and the whole-core E-RUN remains **0/220** against
-the pinned simulator baseline of **220/220** per simulator.  No new loader,
-semantic, or simulator transition was measured.
+first actionable real-core wall has moved past canonical E's reactive
+dependency-order refusal. The simulator baseline remains **220/220** per
+pinned simulator, while the full input-driven E-RUN comparison remains
+pending. The census counts are unchanged.

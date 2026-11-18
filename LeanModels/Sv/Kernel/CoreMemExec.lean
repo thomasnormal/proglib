@@ -1345,8 +1345,9 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
             let allProcesses := d.processes ++ generated
             if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
             .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
-            else match coreMemCombDependencyViol d generated with
-          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+            else match coreMemAssignReactiveChainViol (d.processes ++ generated) with
+          | some name =>
+              .unsupported s!"Comb:dependency-order: 9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler"
           | none =>
             match coreMemClockResetViol d generated with
             | some (kind, msg) => .unsupported s!"{kind}: {msg}"
@@ -2439,10 +2440,32 @@ def CoreMemDesign.runImplicitAt (E : CoreMemDesign) (before current : CoreMemSta
   | .latch _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .unsupported kind text :: _ => .unsupported s!"{kind}: {text}"
 
-def CoreMemDesign.runImplicit (E : CoreMemDesign) (before current : CoreMemState) :
+def CoreMemDesign.runImplicitPass (E : CoreMemDesign) (before current : CoreMemState) :
     List CoreMemProc → Res CoreMemState := fun procs =>
   E.runImplicitAt before current (E.scalar.view before.scalar)
     (E.scalar.view current.scalar) 0 procs
+
+/-! Plain `always @*` processes are scheduled in the active region.  A
+source-order pass can wake a process that appeared earlier in the source, as
+in `y = t;` followed by `t = a;`.  Re-run the retained processes until the
+scalar view is unchanged.  The bound is a loud guard for oscillating reactive
+regions, so no simulator-specific fixed point is selected. -/
+def CoreMemDesign.runImplicitQuiesce (E : CoreMemDesign) (limit : Nat)
+    (before current : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
+  match limit with
+  | 0 => .unsupported "4.5: implicit event region did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let next ← E.runImplicitPass before current procs
+      let beforeView := E.scalar.view before.scalar
+      let nextView := E.scalar.view next.scalar
+      if beforeView == nextView then
+        .ok next
+      else
+        E.runImplicitQuiesce n current next procs
+
+def CoreMemDesign.runImplicit (E : CoreMemDesign) (before current : CoreMemState) :
+    List CoreMemProc → Res CoreMemState := fun procs =>
+  E.runImplicitQuiesce 4096 before current procs
 
 def CoreMemDesign.runCombInitialWithView (E : CoreMemDesign) (current : CoreMemState)
     (view : SvState) : List CoreMemProc → Res (CoreMemState × SvState)
@@ -2460,6 +2483,19 @@ def CoreMemDesign.runCombInitial (E : CoreMemDesign) (current : CoreMemState) :
     List CoreMemProc → Res CoreMemState := fun procs => do
   let (after, _) ← E.runCombInitialWithView current (E.scalar.view current.scalar) procs
   .ok after
+
+def CoreMemDesign.runCombInitialQuiesce (E : CoreMemDesign) (limit : Nat)
+    (current : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
+  match limit with
+  | 0 => .unsupported "4.5: always_comb startup region did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let next ← E.runCombInitial current procs
+      let beforeView := E.scalar.view current.scalar
+      let nextView := E.scalar.view next.scalar
+      if beforeView == nextView then
+        .ok next
+      else
+        E.runCombInitialQuiesce n next procs
 
 def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
     (beforeView : SvState) (current : CoreMemState) (currentView : SvState)
@@ -2492,10 +2528,27 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
         E.runCombAt before beforeView after afterView (index + 1) rest
   | .unsupported kind text :: _ => .unsupported s!"{kind}: {text}"
 
-def CoreMemDesign.runComb (E : CoreMemDesign) (before current : CoreMemState) :
+def CoreMemDesign.runCombPass (E : CoreMemDesign) (before current : CoreMemState) :
     List CoreMemProc → Res CoreMemState := fun procs =>
   E.runCombAt before (E.scalar.view before.scalar) current
     (E.scalar.view current.scalar) 0 procs
+
+def CoreMemDesign.runCombQuiesce (E : CoreMemDesign) (limit : Nat)
+    (before current : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
+  match limit with
+  | 0 => .unsupported "4.5: always_comb region did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let next ← E.runCombPass before current procs
+      let beforeView := E.scalar.view before.scalar
+      let nextView := E.scalar.view next.scalar
+      if beforeView == nextView then
+        .ok next
+      else
+        E.runCombQuiesce n current next procs
+
+def CoreMemDesign.runComb (E : CoreMemDesign) (before current : CoreMemState) :
+    List CoreMemProc → Res CoreMemState := fun procs =>
+  E.runCombQuiesce 4096 before current procs
 
 /- A blocking edge write updates the retained state immediately.  The same
 one-rank source-shaped memory target used by the initializer and combinational
@@ -2917,10 +2970,11 @@ def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
   if !E.hasComb then
     .ok settled
   else
-    let settledView := E.scalar.view settled.scalar
-    let (combed, _) ←
-      E.runCombInitialWithView settled settledView E.processes.toList
-    let final ← E.settleCanonical E.env E.elems combed E.processes.toList
+    let (settled, settledView) ←
+      E.settleAssignWithView E.env E.elems base (E.scalar.view base.scalar) E.processes.toList
+    let combed ← E.runCombInitialQuiesce 4096 settled E.processes.toList
+    let combedView := E.scalar.view combed.scalar
+    let (final, _) ← E.settleAssignWithView E.env E.elems combed combedView E.processes.toList
     .ok final
 
 def CoreMemDesign.runEdges (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
