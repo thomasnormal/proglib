@@ -646,6 +646,7 @@ def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
 def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   match op, left, right with
   | .add, .int a, .int b => .ok (.int (a + b))
+  | .add, .str a, .str b => .ok (.str (a ++ b))
   | .sub, .int a, .int b => .ok (.int (a - b))
   | .mult, .int a, .int b => .ok (.int (a * b))
   | _, _, _ => .unsupported "machine binary operator"
