@@ -94,16 +94,17 @@ private def operand (j : Json) : Except String Operand := do
       let constant ← field value "const_"
       let id ← field constant "id" >>= nat
       let ty ← field constant "ty" >>= nat
-      let bytes ←
-        match constant.getObjVal? "kind" with
-        | .ok (.obj fields) =>
-            match fields.toList with
-            | [("Allocated", allocated)] => field allocated "bytes" >>= array >>= (·.mapM nat)
-            | [("ZeroSized", _)] => pure []
-            | _ => pure []
-        | .ok _ | .error _ => pure []
-      let provenance := constantProvenance constant
-      pure (.constant id bytes ty provenance)
+      match constant.getObjVal? "kind" with
+      | .ok (.obj fields) =>
+          match fields.toList with
+          | [("Allocated", allocated)] =>
+              let bytes ← field allocated "bytes" >>= array >>= (·.mapM nat)
+              let provenance := constantProvenance constant
+              pure (.constant id bytes ty provenance false)
+          | [("ZeroSized", _)] => pure (.constant id [] ty none true)
+          | _ => pure (.unsupported "Constant kind")
+      | .ok (.str "ZeroSized") => pure (.constant id [] ty none true)
+      | .ok _ | .error _ => pure (.unsupported "Constant kind")
   | other => pure (.unsupported other)
 
 private def rvalue (j : Json) : Except String Rvalue := do
@@ -144,7 +145,7 @@ private def rvalue (j : Json) : Except String Rvalue := do
             | .str name => pure name
             | .obj _ => pure "Adt"
             | _ => .error "MIR Aggregate tag is malformed"
-          if args.isEmpty && tagName == "Adt" then pure .zstAggregate
+          if args.isEmpty && tagName == "Adt" then pure (.unsupported "fieldless Aggregate")
           else pure (.aggregate tagName args)
       | _ => .error "MIR Aggregate has malformed operands"
   | other => pure (.unsupported other)

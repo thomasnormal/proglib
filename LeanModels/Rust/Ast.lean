@@ -22,6 +22,7 @@ inductive Operand where
   | copy (place : Place)
   | move (place : Place)
   | constant (id : Nat) (bytes : List Nat) (ty : Nat) (provenance : Option Nat := none)
+      (zeroSized : Bool := false)
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 

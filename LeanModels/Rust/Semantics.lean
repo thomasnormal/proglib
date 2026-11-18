@@ -191,7 +191,7 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
 def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
   let layout := s.types.find? (fun item => item.id == toString ty)
   match layout with
-  | none => bytesValue bytes
+  | none => none
   | some info =>
     match info.sizeBits with
     | some 0 => some 0
@@ -209,7 +209,8 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
     | none => none
 
 def operandCell (s : State) : Operand → Option Cell
-  | .constant _ bytes ty provenance =>
+  | .constant _ bytes ty provenance zeroSized =>
+      if zeroSized then some (.int 0) else
       match s.types.find? (fun item => item.id == toString ty), provenance with
       | some info, some target =>
           if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" then
@@ -248,7 +249,7 @@ def rvalueValue (s : State) : Rvalue → Option Int
       | .value value => pure value
       | .overflow | .divideByZero => none
   | .ref _ | .aggregate _ _ => none
-  | .zstAggregate => some 0
+  | .zstAggregate => none
   | .unsupported _ => none
 
 def rvalueCell (s : State) : Rvalue → Option Cell
@@ -280,7 +281,7 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
-  | .zstAggregate => some (.int 0)
+  | .zstAggregate => some .unit
   | .unsupported _ => none
 
 def eventForCell (localId : Nat) : Cell → Event
