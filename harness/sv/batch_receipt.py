@@ -244,6 +244,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("a", 1),), (Port("y", 1),), retain_proc_rewrites=True),
     Fixture("port_connection_target_repro.sv", "port_target_parent",
             (Port("d", 1),), (Port("y", 1),), retain_proc_rewrites=True),
+    Fixture("port_connection_target_struct.sv", "struct_parent",
+            (Port("d", 1),), (Port("y", 5),), retain_proc_rewrites=True),
     Fixture("unconditional_case2.sv", "unconditional_case2",
             (Port("source", 1),), (Port("result", 2),),
             retain_proc_rewrites=True),
