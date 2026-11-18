@@ -752,8 +752,15 @@ def isPtrType (ty : CType) : Bool :=
   ty.endsWith "*" || LeanModels.C.isConstPointerToArray ty
 
 def isPtrIntType (ty : CType) : Bool :=
-  let t := ty.trimAscii
-  t == "uintptr_t" || t == "intptr_t"
+  let t := ty.trimAscii.toString
+  -- The pinned profile has 64-bit object pointers.  A 64-bit integer type
+  -- can represent every exposed address produced by this memory model, so
+  -- C23's pointer/integer conversion boundary includes the profile's long
+  -- and long-long spellings as well as the exact-width typedefs.
+  t == "uintptr_t" || t == "intptr_t" ||
+    match intTyOf? t with
+    | some it => it.bits >= 64
+    | none => false
 
 def checkVaType (ctx : Ctx) (ty : CType) (v : CVal) : EvalM CVal :=
   match v with

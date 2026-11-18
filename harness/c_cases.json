@@ -427,5 +427,11 @@
     "expect": "match",
     "return_value": 0,
     "envelope_checks": []
+  },
+  {
+    "id": "pointer-long-roundtrip",
+    "source": "int main(void) { int x = 3; unsigned long u = (unsigned long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
   }
 ]
