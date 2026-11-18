@@ -610,5 +610,17 @@
     "layout_envelope_checks": [
       "record_layout"
     ]
+  },
+  {
+    "id": "structured-qualified-record-member",
+    "source": "struct S { int x; }; int main(void) { const struct S s = {3}; return s.x == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "record_layout"
+    ]
   }
 ]

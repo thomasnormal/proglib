@@ -511,6 +511,14 @@ def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
   (directDeclId base).bind (fun did => layout.fieldBitsDecl did field)
     |>.orElse (fun _ => layout.fieldBits base.ty field)
 
+/-- Resolve a member extent through the parser declaration identity before the
+spelling fallback. A structured record observation makes the declaration
+identity authoritative for both offset and extent. -/
+def Layout.fieldSizeAt (layout : Layout) (base : Expr) (field : String) :
+    Option Nat :=
+  (directDeclId base).bind (fun did => layout.fieldSizeDecl did field)
+    |>.orElse (fun _ => layout.fieldSize base.ty field)
+
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
   (directDeclId base).bind layout.structuredType
@@ -1851,9 +1859,14 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
             |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
   match off? with
   | some off =>
-      match (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
-          (fun _ => (directDeclId base).bind (fun did => ctx.layout.fieldSizeDecl did field))
-          |>.orElse (fun _ => ctx.layout.fieldSize base.ty field) with
+      let fieldSize := match ctx.layout.structuredTypeAt base with
+        | some structuredType =>
+            if structuredType.recordLike then ctx.layout.fieldSizeAt base field
+            else none
+        | none =>
+            (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
+              (fun _ => ctx.layout.fieldSizeAt base field)
+      match fieldSize with
       | some sz => pure (Mem.memberRange basePtr off sz)
       | none => refuseUnsupported s!"no layout for field '{field}'"
   | none => refuseUnsupported s!"no layout for field '{field}'"
