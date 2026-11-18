@@ -1439,6 +1439,18 @@ theorem reallocAt_valid_address (m : Mem) (p : Ptr) (size address : Nat)
   simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq, allocAt,
     alloc, Ptr.toObjectBoundAt] <;> rfl
 
+theorem reallocAt_valid_pointer_shape (m : Mem) (p : Ptr) (size address : Nat)
+    (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
+    (hc : m.get? o = some c) (hdur : c.dur = .allocated)
+    (hlive : c.live = true) (hoff : p.off = 0) :
+    (reallocAt m p size address).map
+        (fun r => (r.2.obj, r.2.address, r.2.off, r.2.bound)) =
+      .ok (some m.objs.length, address, 0, some size) := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  change m.objs[o]? = some c at hc
+  simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq,
+    kill, allocAt, alloc, Ptr.toObjectBoundAt, get?, Except.map]
+
 theorem reallocAt_valid_placement (m : Mem) (p : Ptr) (size address : Nat)
     (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
     (hc : m.get? o = some c) (hdur : c.dur = .allocated)
