@@ -160,6 +160,11 @@
     "expect": "unsupported"
   },
   {
+    "source": "harness/scripts/function_unknown_keyword.py",
+    "envelope": "harness/scripts/function_unknown_keyword.json",
+    "expect": "unsupported"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"
