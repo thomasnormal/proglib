@@ -70,6 +70,9 @@ structure SchedulerDesign where
   eval : Nat → Nat → SlotState → EvalAction
   /-- Time-zero state: declaration initializers plus all initially active processes. -/
   initial : SlotState := {}
+  /-- Edge processes must install their event controls before the implicit
+      time-zero activation of always_comb (§9.2.2.2). -/
+  startupEdges : List Nat := []
 deriving Inhabited
 
 def lookupBit (st : SvState) (name : String) : Logic := st.bit0 name
@@ -118,6 +121,10 @@ def applyUpdate (s : SlotState) (u : Update) : SlotState :=
   let (kept, wakes) := wakeSens old now s.sens
   { s with store := now, sens := kept, active := s.active ++ wakes }
 
+def evalAllowed (d : SchedulerDesign) (s : SlotState) (p : Nat) : Bool :=
+  p ∈ d.startupEdges ||
+    !(d.startupEdges.any (fun q => Active.eval q 0 ∈ s.active))
+
 def actionStep (s : SlotState) (p : Nat) : EvalAction → SlotState
   | .blocking target value next =>
       let u : Update := { owner := some p, seq := none, target, value }
@@ -138,6 +145,7 @@ def oneStep (d : SchedulerDesign) (s t : SlotState) : Prop :=
   (∃ u, Active.update u ∈ s.active ∧ canConsume u s.active ∧
     t = applyUpdate { s with active := removeActive (.update u) s.active } u) ∨
   (∃ p resume, Active.eval p resume ∈ s.active ∧
+    evalAllowed d s p ∧
     t = actionStep { s with active := removeActive (.eval p resume) s.active }
       p (d.eval p resume s)) ∨
   (s.active = [] ∧ s.nba ≠ [] ∧ t = moveNba s)
@@ -189,8 +197,10 @@ def nextEvals (d : SchedulerDesign) (s : SlotState) : List SlotState :=
   s.active.filterMap fun a =>
     match a with
     | .eval p resume =>
-        some (actionStep { s with active := removeActive a s.active }
-          p (d.eval p resume s))
+        if evalAllowed d s p then
+          some (actionStep { s with active := removeActive a s.active }
+            p (d.eval p resume s))
+        else none
     | _ => none
 
 def nextNba (s : SlotState) : List SlotState :=
@@ -297,6 +307,7 @@ def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalActi
 
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
+    startupEdges := d.edgeIndices
     initial :=
       { store := initState d
         active := (List.range d.processes.size).map fun p => .eval p 0 } }
@@ -323,6 +334,7 @@ theorem mem_nextStates_iff (d : SchedulerDesign) (s t : SlotState) :
       rw [List.mem_filterMap]
       exact ⟨.update u, hu, by simp [hc]⟩
   have he : t ∈ nextEvals d s ↔ ∃ p resume, Active.eval p resume ∈ s.active ∧
+      evalAllowed d s p ∧
       t = actionStep { s with active := removeActive (.eval p resume) s.active }
         p (d.eval p resume s) := by
     unfold nextEvals
@@ -334,10 +346,10 @@ theorem mem_nextStates_iff (d : SchedulerDesign) (s t : SlotState) :
       | update u => simp at hm
       | eval p r =>
           simp at hm
-          exact ⟨p, r, ha, hm.symm⟩
-    · rintro ⟨p, r, hp, rfl⟩
+          exact ⟨p, r, ha, by simpa using hm.1, hm.2.symm⟩
+    · rintro ⟨p, r, hp, ha, rfl⟩
       rw [List.mem_filterMap]
-      exact ⟨.eval p r, hp, rfl⟩
+      exact ⟨.eval p r, hp, by simp [ha]⟩
   by_cases hn : s.active.isEmpty && !s.nba.isEmpty
   · simp only [nextStates, List.mem_append, hu, he, nextNba, hn, List.mem_cons,
       List.not_mem_nil, or_false]
@@ -495,6 +507,20 @@ private def readAfterWriteResult : List SvState :=
   allSlots 8 readAfterWrite { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)], active := [.eval 0 0] }
 
 #guard readAfterWriteResult.any (fun s => s.lookup "b" == some (LVec.ofNat 1 1))
+
+private def timeZeroEdgeDesign : Design :=
+  { name := "time_zero_edge"
+    decls := #[
+      { name := "k", width := 1, init := some (LVec.ofNat 1 0) },
+      { name := "g", width := 1 },
+      { name := "seen", width := 1 }]
+    processes := #[
+      .alwaysComb (.blockingAssign "g" (.unary .bnot (.ident "k"))),
+      .alwaysPlain "g" (.nbaAssign "seen" (.lit (LVec.ofNat 1 1)))] }
+
+#guard (allSlots 16 (SchedulerDesign.ofDesign timeZeroEdgeDesign)
+  (SchedulerDesign.ofDesign timeZeroEdgeDesign).initial).all
+  (fun st => st.lookup "seen" == some (LVec.ofNat 1 1))
 
 private def ifWithoutElseContinues : SchedulerDesign :=
   { eval := fun _ resume s =>
