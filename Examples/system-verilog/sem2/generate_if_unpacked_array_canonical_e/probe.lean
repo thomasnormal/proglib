@@ -10,6 +10,7 @@ def kinds : CoreMemProc → String
   | .latch _ => "latch"
   | .edge _ => "edge"
   | .assign _ _ => "assign"
+  | .event _ _ => "event"
   | .initial _ => "initial"
   | .implicit _ => "implicit"
   | .unsupported k _ => k
