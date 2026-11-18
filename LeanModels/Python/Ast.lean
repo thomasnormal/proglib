@@ -80,6 +80,7 @@ structure Param where
   arg : String
   span : Span
   default : Option Const := Option.none
+  positionalOnly : Bool := false
 deriving Repr, Inhabited, BEq, DecidableEq
 
 /-- Expressions. Constructor ↔ schema `kind` mapping:

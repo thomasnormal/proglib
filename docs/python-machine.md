@@ -221,5 +221,7 @@ for a non-literal default expression, while
 keyword-only parameters, while
 `harness/scripts/function_positional_only.py` checks a positional-only
 parameter supplied positionally, while
+`harness/scripts/function_positional_only_keyword.py` checks the corresponding
+loud refusal when that parameter is supplied by keyword, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twenty-four matches, six refusals, and zero divergence.
+current result is twenty-four matches, seven refusals, and zero divergence.

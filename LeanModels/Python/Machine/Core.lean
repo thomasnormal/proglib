@@ -132,7 +132,9 @@ def bindParamsWithKeywords : List Param → List RVal → List (String × RVal) 
       else bindParamsWithKeywords params values keywords
         |>.map (fun env => (parameter.arg, value) :: env)
   | parameter :: params, [], keywords =>
-      match keywordLookup parameter.arg keywords with
+      if parameter.positionalOnly then
+        none
+      else match keywordLookup parameter.arg keywords with
       | some value =>
           bindParamsWithKeywords params [] (keywordDrop parameter.arg keywords)
             |>.map (fun env => (parameter.arg, value) :: env)

@@ -310,9 +310,12 @@ def parseParam (j : Json) : Except String Param :=
       | .error _ => pure (Option.none : Option Const)  -- absent: no default
       | .ok .null => pure Option.none
       | .ok v => do pure (some (← parseConst v))
+    let positionalOnly := match j.getObjVal? "positional_only" with
+      | .ok (.bool b) => b
+      | _ => false
     return { arg := ← (← getField j "arg").getStr?
              span := ← parseSpan (← getField j "span")
-             default }
+             default, positionalOnly }
 
 partial def parseStmt (j : Json) : Except String Stmt := do
   let kind ← (← getField j "kind").getStr?

@@ -864,13 +864,15 @@ def _convert_comprehension(node, g, kind=None, elt=None):
     }
 
 
-def convert_param(p, default=None):
+def convert_param(p, default=None, positional_only=False):
     """Schema ``param``. ``default`` (a const payload) is emitted only when
     present, so envelopes of default-free sources are byte-identical to the
     pre-defaults format."""
     d = {"arg": p.arg, "span": span(p)}
     if default is not None:
         d["default"] = default
+    if positional_only:
+        d["positional_only"] = True
     return d
 
 
@@ -1541,7 +1543,8 @@ def _lambda_nested_def(node, enclosing):
     first_defaulted = len(plain) - len(payloads)
     params = [
         convert_param(p, payloads[i - first_defaulted]
-                      if i >= first_defaulted else None)
+                      if i >= first_defaulted else None,
+                      positional_only=i < len(a.posonlyargs))
         for i, p in enumerate(plain)
     ]
     if a.vararg is not None:
@@ -1836,7 +1839,8 @@ def convert_stmt(node, enclosing=None, module_scope=False,
         first_defaulted = len(plain) - len(payloads)
         params = [
             convert_param(p, payloads[i - first_defaulted]
-                          if i >= first_defaulted else None)
+                          if i >= first_defaulted else None,
+                          positional_only=i < len(a.posonlyargs))
             for i, p in enumerate(plain)
         ]
         if a.vararg is not None:
