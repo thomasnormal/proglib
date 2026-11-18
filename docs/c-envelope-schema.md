@@ -98,7 +98,9 @@ The recursive `type` tree carries builtin, pointer, array, qualified,
 function, record, enumeration and typedef cases. Record-like references carry
 their parser declaration identity. An unrepresented Clang type or a missing
 identity is rejected by the probe or the extractor, and never reconstructed
-from `qualType` text.
+from `qualType` text. Clang's adjusted and parenthesized declaration wrappers
+are unwrapped by the probe. Variable, dependent-sized and incomplete arrays
+carry `"extent": null`, preserving the absence of a bound as frontend data.
 
 ## 2 Spans
 

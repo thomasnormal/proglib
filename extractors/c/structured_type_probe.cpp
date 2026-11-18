@@ -57,6 +57,13 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
                                     unsigned depth) {
   const clang::Type *type = unqualified.getTypePtrOrNull();
   if (!type) return std::nullopt;
+  // Clang keeps source array/function types in an adjusted wrapper while
+  // exposing the ABI-facing child type.  Observe that child directly so the
+  // evaluator can classify the declaration without parsing a spelling.
+  if (const auto *adjusted = llvm::dyn_cast<clang::AdjustedType>(type))
+    return typeTree(adjusted->getAdjustedType(), context, depth + 1);
+  if (const auto *paren = llvm::dyn_cast<clang::ParenType>(type))
+    return typeTree(paren->getInnerType(), context, depth + 1);
   if (const auto *elaborated = llvm::dyn_cast<clang::ElaboratedType>(type))
     return typeTree(elaborated->getNamedType(), context, depth + 1);
   if (const auto *builtin = llvm::dyn_cast<clang::BuiltinType>(type)) {
@@ -101,6 +108,20 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
     if (!element) return std::nullopt;
     return llvm::json::Object{{"kind", "array"},
                               {"element", std::move(*element)}, {"extent", nullptr}};
+  }
+  if (const auto *array = llvm::dyn_cast<clang::VariableArrayType>(type)) {
+    auto element = typeTree(array->getElementType(), context, depth + 1);
+    if (!element) return std::nullopt;
+    return llvm::json::Object{{"kind", "array"},
+                              {"element", std::move(*element)},
+                              {"extent", nullptr}};
+  }
+  if (const auto *array = llvm::dyn_cast<clang::DependentSizedArrayType>(type)) {
+    auto element = typeTree(array->getElementType(), context, depth + 1);
+    if (!element) return std::nullopt;
+    return llvm::json::Object{{"kind", "array"},
+                              {"element", std::move(*element)},
+                              {"extent", nullptr}};
   }
   if (const auto *function = llvm::dyn_cast<clang::FunctionProtoType>(type)) {
     // C's ordinary calling convention and parameter ABI are represented by

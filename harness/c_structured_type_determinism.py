@@ -84,6 +84,9 @@ def self_test():
         {"kind": "StructuredType", "offset": 4,
          "type": {"kind": "pointer", "pointee": {"kind": "array",
              "element": {"kind": "builtin", "name": "char"}, "extent": 4}}},
+        {"kind": "StructuredType", "offset": 6,
+         "type": {"kind": "array",
+             "element": {"kind": "builtin", "name": "int"}, "extent": None}},
         {"kind": "StructuredType", "offset": 8,
          "type": {"kind": "record", "declaration": {"offset": 12}}},
     ]

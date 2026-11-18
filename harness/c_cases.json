@@ -675,5 +675,14 @@
     "structured_envelope_checks": [
       "structured_types"
     ]
+  },
+  {
+    "id": "structured-unnamed-array-parameter",
+    "source": "int first(int a, int []) { return a; } int main(void) { int x[1]; return first(9, x) == 9 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "unnamed pointer parameter",
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
   }
 ]
