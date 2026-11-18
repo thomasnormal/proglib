@@ -210,6 +210,28 @@ confirmed order is H1--H5, this map, F1, F2, proof surface, evaluator shape/F3,
 F6+F5, F4, with F7 on shared SoftFloat after F1 and F8 translation-unit
 linking whenever it fits.
 
+## F1 exit state
+
+F1 is not released. `LeanModels/C/Ast.lean` still defines `abbrev CType :=
+String`, and type fields, layout interfaces, and memory effective-type fields
+still use that alias. String operations on types remain in `Ast.lean`,
+`Torture.lean`, `C23/Expr.lean`, `C23/Stmt.lean`, and `C23/Memory.lean`,
+including qualification stripping, array splitting, pointer suffix tests, and
+record-tag extraction. The extractor carries parser-native record-layout
+facts, but the evaluator still has spelling-based fallback code, so the D1
+shared `QualType` representation and library-owned layout join are incomplete.
+The differential rows currently cover scalar struct padding and `_Alignas`
+through the refusing `record-attributes` case, forward-declared record size,
+anonymous struct and union objects, aggregate copy, designated union
+initialization, nested arrays, postfix-qualified pointers, and an array
+subobject bounds refusal. The survey also has refusal rows for packed and
+aligned records, bit-field conversion, flexible-array initializers, and
+missing layouts for arrays, vectors, complex types, and function pointers.
+There are no matching rows yet for a completed bit-field layout, flexible
+array-member layout, or a general `_Alignas` layout rule. F1 exits only after
+these type operations are removed from the semantics and each layout rule is
+decided by the parser-native library with differential coverage.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
