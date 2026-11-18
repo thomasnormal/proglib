@@ -20,6 +20,8 @@ ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.v"
 TB = ROOT / "Examples/system-verilog/cores/picorv32/rvfi_long_probe.v"
 EXPECTED_CYCLES = 220
+SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
+ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
 
 
 def run(command: list[str], cwd: Path) -> str:
@@ -62,6 +64,13 @@ def main() -> int:
         raise RuntimeError("Icarus Verilog 13.0 is required")
     if shutil.which("xrun") is None:
         raise RuntimeError("Xcelium 24.03-s004 is required")
+    source_sha = hashlib.sha256(SOURCE.read_bytes()).hexdigest()
+    envelope = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
+    envelope_sha = hashlib.sha256(envelope.read_bytes()).hexdigest()
+    if source_sha != SOURCE_SHA256:
+        raise RuntimeError("RISCV_FORMAL source SHA-256 does not match the pinned receipt")
+    if envelope_sha != ENVELOPE_SHA256:
+        raise RuntimeError("RISCV_FORMAL envelope SHA-256 does not match the pinned receipt")
     with tempfile.TemporaryDirectory(prefix="picorv32-rvfi-long-") as work:
         directory = Path(work)
         ivvp = directory / "ivvp"
@@ -82,6 +91,8 @@ def main() -> int:
     digest = hashlib.sha256("\n".join(icarus).encode()).hexdigest()
     print("Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on %d/%d cycles" %
           (len(icarus), EXPECTED_CYCLES))
+    print("source SHA-256: %s" % source_sha)
+    print("envelope SHA-256: %s" % envelope_sha)
     print("normalized cycle-row SHA-256: %s" % digest)
     print("program rows include ALU, BEQ, SW, and LW; mem_ready is held high")
     return 0
