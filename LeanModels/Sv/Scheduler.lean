@@ -50,6 +50,8 @@ structure SlotState where
   active : List Active := []
   /-- NBA events are held in scheduling order until Active is empty. -/
   nba : List Update := []
+  /-- Next per-process NBA sequence number for the current time slot. -/
+  nbaNext : List (Nat × Nat) := []
   sens : List Sensitivity := []
   /-- A refusal is a terminal loud outcome, never a fabricated value. -/
   refusal : Option String := none
@@ -115,6 +117,14 @@ def updateOwnerBlocked (u : Update) : List Active → Bool
 def canConsume (u : Update) (active : List Active) : Bool :=
   !updateOwnerBlocked u active
 
+def nbaSeq (s : SlotState) (p : Nat) : Nat :=
+  (s.nbaNext.find? (fun x => x.1 == p)).map (·.2) |>.getD 0
+
+def bumpNbaSeq (s : SlotState) (p : Nat) : SlotState :=
+  let next := nbaSeq s p + 1
+  let rest := s.nbaNext.filter (fun x => x.1 != p)
+  { s with nbaNext := rest ++ [(p, next)] }
+
 def applyUpdate (s : SlotState) (u : Update) : SlotState :=
   let old := s.store
   let now := SvState.set old u.target u.value
@@ -130,9 +140,11 @@ def actionStep (s : SlotState) (p : Nat) : EvalAction → SlotState
       let u : Update := { owner := some p, seq := none, target, value }
       let s' := applyUpdate s u
       if s'.refusal.isSome then s' else { s' with active := s'.active ++ [.eval p next] }
-  | .nonblocking seq target value next =>
+  | .nonblocking _ target value next =>
+      let seq := nbaSeq s p
       let u : Update := { owner := some p, seq := some seq, target, value }
-      { s with nba := s.nba ++ [u], active := s.active ++ [.eval p next] }
+      let s' := bumpNbaSeq s p
+      { s' with nba := s'.nba ++ [u], active := s'.active ++ [.eval p next] }
   | .continue next => { s with active := s.active ++ [.eval p next] }
   | .wait ws => { s with sens := (s.sens ++ ws).eraseDups }
   | .done => s
@@ -175,7 +187,7 @@ def inputUpdatesFrom : SvState → List Update
 def inputUpdates (row : SvState) : List Update := inputUpdatesFrom row
 
 def startWithInputs (s : SlotState) (row : SvState) : SlotState :=
-  { s with active := (inputUpdates row).map Active.update ++ s.active }
+  { s with active := (inputUpdates row).map Active.update ++ s.active, nbaNext := [] }
 
 def Run (d : SchedulerDesign) : List SvState → SlotState → List SvState → Prop
   | [], s, [] => quiet s
@@ -507,6 +519,13 @@ private def readAfterWriteResult : List SvState :=
   allSlots 8 readAfterWrite { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)], active := [.eval 0 0] }
 
 #guard readAfterWriteResult.any (fun s => s.lookup "b" == some (LVec.ofNat 1 1))
+
+#guard updateOwnerBlocked
+  { owner := some 0, seq := some 1, target := "q", value := LVec.ofNat 1 1 }
+  [.update { owner := some 0, seq := some 0, target := "q", value := LVec.ofNat 1 0 }]
+#guard !updateOwnerBlocked
+  { owner := some 0, seq := some 0, target := "q", value := LVec.ofNat 1 0 }
+  [.update { owner := some 0, seq := some 1, target := "q", value := LVec.ofNat 1 1 }]
 
 private def timeZeroEdgeDesign : Design :=
   { name := "time_zero_edge"
