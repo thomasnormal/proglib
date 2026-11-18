@@ -60,7 +60,9 @@ does not execute a program.
 This family covers records, unions, arrays, bit-fields, aggregates,
 compound literals, `sizeof`, and parameter/object layout. The one mechanism
 is a declaration-identity keyed object layout and byte-region memory model,
-with clang's `RecordLayout`/array facts carried in the envelope. The current
+with clang's `RecordLayout`/array facts carried in the envelope. The focused
+differential harness now injects the pinned record-layout plugin and checks the
+declaration-identity join on plain scalar records. The current
 pieces are `LeanModels/C/Torture.lean` (`observedRecordLayout?`, `layoutFor`),
 `LeanModels/C/C23/Memory.lean`, and `Expr.loadAt`/`storeAt`; missing pieces
 are complete anonymous/nested/vector/VLA/parameter layouts and aggregate

@@ -49,9 +49,11 @@ def oracle():
     return executable, first
 
 
-def model_env(clang):
+def model_env(clang, record_layout_plugin=None):
     env = dict(os.environ)
     env["LEAN_C_CLANG"] = clang
+    if record_layout_plugin:
+        env["LEAN_C_RECORD_LAYOUT_PLUGIN"] = record_layout_plugin
     return env
 
 
@@ -90,12 +92,27 @@ def check_envelope(payload, checks, name):
                          if f.get("kind") == "Unsupported"}
                 if attr not in found:
                     return name + ": attribute was dropped: " + record
+        elif check == "record_layout":
+            if not any(n.get("kind") == "RecordDecl" and
+                       isinstance(n.get("record_layout"), dict)
+                       for n in nodes):
+                return name + ": missing parser-native record layout"
+        elif check == "type_layout":
+            if not payload.get("type_layouts"):
+                return name + ": missing parser-native type layout"
         else:
             return name + ": unknown envelope check " + check
     return None
 
 
-def classify(row, clang, work):
+def selected(row, key, record_layout_plugin):
+    """Use the layout-backed expectation only for a layout-backed run."""
+    if record_layout_plugin:
+        return row.get("layout_" + key, row.get(key))
+    return row.get(key)
+
+
+def classify(row, clang, work, record_layout_plugin=None):
     source = work / (row["id"] + ".c")
     source.write_text(row["source"] + "\n", encoding="utf-8")
     native = work / row["id"]
@@ -109,11 +126,15 @@ def classify(row, clang, work):
 
     envelope = work / (row["id"] + ".json")
     extracted = run([sys.executable, "extractors/c/extract.py", str(source),
-                     "-o", str(envelope)], env=model_env(clang))
+                     "-o", str(envelope)],
+                     env=model_env(clang, record_layout_plugin))
     if extracted.returncode:
         return "EXTRACT", extracted.stderr[-800:]
     payload = json.loads(envelope.read_text(encoding="utf-8"))
-    problem = check_envelope(payload, row.get("envelope_checks", []), row["id"])
+    checks = list(row.get("envelope_checks", []))
+    if record_layout_plugin:
+        checks += row.get("layout_envelope_checks", [])
+    problem = check_envelope(payload, checks, row["id"])
     if problem:
         return "EXTRACT", problem
     version = payload.get("frontend", {}).get("version")
@@ -123,11 +144,12 @@ def classify(row, clang, work):
     runner = ROOT / ".lake" / "build" / "bin" / "c-torture-run"
     command = [str(runner)] if runner.exists() else ["lake", "exe", "c-torture-run"]
     model = run(command + ["--single", str(envelope), "512"],
-                env=model_env(clang), timeout=180)
-    if row["expect"] == "refuse":
+                env=model_env(clang, record_layout_plugin), timeout=180)
+    expected_kind = selected(row, "expect", record_layout_plugin)
+    if expected_kind == "refuse":
         if model.returncode == 3:
             detail = model.stderr.strip() or "native exit %d" % native_run.returncode
-            expected_error = row.get("error")
+            expected_error = selected(row, "error", record_layout_plugin)
             if expected_error and expected_error not in detail:
                 return "DIVERGE", "expected refusal %r, got %r" % (expected_error, detail)
             return "REFUSE", detail
@@ -143,7 +165,7 @@ def classify(row, clang, work):
         value = int(line.split("\t", 1)[1])
     except (ValueError, IndexError):
         return "DIVERGE", "model did not print an integer: %r" % model.stdout
-    expected = int(row["return_value"])
+    expected = int(selected(row, "return_value", record_layout_plugin))
     native_value = native_run.returncode if native_run.returncode >= 0 else None
     if value != expected or native_value != (expected % 256):
         return "DIVERGE", "model=%d native_exit=%r expected=%d" % (value, native_value, expected)
@@ -162,6 +184,9 @@ def main():
     ap.add_argument("--allow-oracle", action="store_true",
                     help="report exploratory ORACLE rows without failing")
     ap.add_argument("--json", type=Path)
+    ap.add_argument("--record-layout-plugin", default=os.environ.get(
+        "LEAN_C_RECORD_LAYOUT_PLUGIN"),
+        help="Clang plugin for parser-native record and object layouts")
     args = ap.parse_args()
     rows = json.loads(CASES.read_text(encoding="utf-8"))
     clang, detail = oracle()
@@ -178,7 +203,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="c-diff-") as temp:
         work = Path(temp)
         for row in rows:
-            verdict, why = classify(row, clang, work)
+            verdict, why = classify(row, clang, work, args.record_layout_plugin)
             counts[verdict] = counts.get(verdict, 0) + 1
             results[row["id"]] = {"verdict": verdict, "detail": why}
             print(row["id"] + ": " + verdict + " " + why)
