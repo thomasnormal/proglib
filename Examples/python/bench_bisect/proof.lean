@@ -909,7 +909,7 @@ private theorem bisect_right_core (a : List Int) (x : Int)
   · py_begin [bench_bisect]
     refine CallsTo.intro (fl + 32) ?_
     rw [hentry]
-    try rw [callIn.eq_2]
+    try simp only [callIn.eq_2]
     have hh := hthresh (fl + 26) (by omega)
     have hh' := hh
     try simp only [pw, bench_bisect, BR.testE, BR.bodyE, BR.toEnv] at hh'
@@ -945,7 +945,7 @@ private theorem bisect_right_terminates_core (a : List Int) (x : Int)
   py_begin [bench_bisect]
   refine CallsTo.intro (fl + 32) ?_
   rw [hentry]
-  try rw [callIn.eq_2]
+  try simp only [callIn.eq_2]
   have hh := hthresh (fl + 26) (by omega)
   have hh' := hh
   try simp only [pw, bench_bisect, BR.testE, BR.bodyE, BR.toEnv] at hh'

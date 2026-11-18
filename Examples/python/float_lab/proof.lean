@@ -8,6 +8,7 @@ open LeanModels LeanModels.Python
 load_program float_lab from "Examples/python/float_lab/float_lab.json"
 
 set_option maxRecDepth 8192
+set_option maxHeartbeats 2000000
 set_option exponentiation.threshold 2048
 
 private theorem initial_world :
@@ -32,33 +33,144 @@ private theorem divmod_ne_starList : ("divmod" == starListBuiltinName) = false :
 
 theorem tenth :
     float_lab.tenth() ==> Float64.ofBits 0x3fb999999999999a := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem integer_true :
     float_lab.integer_true() ==> Float64.ofBits 0x4004000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem default_passthrough (value : PyFloat) :
     float_lab.default(value) ==> value := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
 
 theorem addition :
     float_lab.addition() ==> Float64.ofBits 0x4008000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem finite_keys :
     float_lab.finite_keys() ==>
       Val.tuple #[.str "one", .str "one", .str "one", .int 2] := by
-  exact ⟨64, rfl⟩
+  refine ⟨64, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem nested_finite_keys :
     float_lab.nested_finite_keys() ==>
       Val.tuple #[.str "one", .str "one", .int 1] := by
-  exact ⟨64, rfl⟩
+  refine ⟨64, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem nan_equality :
     float_lab.nan_equality_still_loud(Float64.ofBits 0x7ff8000000000000) ==> false := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [-valEq, float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 /- The list-ordering NaN case is now an explicit loud boundary: CPython's
    RichCompareBool identity shortcut is not represented for container elements.
@@ -87,7 +199,7 @@ theorem augmented :
   have negateStep : (⟨0x4000000000000000⟩ : Float64).neg = ⟨0xc000000000000000⟩ := rfl
   refine ⟨32, ?_⟩
   unfold callFunction
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, evalBinOpH, setLikeRefH, evalFloatArithmetic, floatNumber,
@@ -96,7 +208,23 @@ theorem augmented :
 
 theorem mixed_rounding :
     float_lab.mixed_rounding() ==> Float64.ofBits 0x4340000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem cancel (value : PyFloat) (finite : value.exponent ≠ 2047) :
     float_lab.cancel(value) ==> Float64.ofBits 0 := by
@@ -107,7 +235,7 @@ theorem cancel (value : PyFloat) (finite : value.exponent ≠ 2047) :
     simp [floatArithmeticInvalid, Float64.isInf, finite]
   refine ⟨32, ?_⟩
   unfold callFunction
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, evalBinOpH, setLikeRefH, evalFloatArithmetic, floatNumber,
@@ -115,15 +243,63 @@ theorem cancel (value : PyFloat) (finite : value.exponent ≠ 2047) :
 
 theorem constructor_identity (value : PyFloat) :
     float_lab.constructor(value) ==> value := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem constructor_zero :
     float_lab.constructor_zero() ==> Float64.ofBits 0 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem constructor_tenth :
     float_lab.constructor_tenth() ==> Float64.ofBits 0x3fb999999999999a := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem constructor_unicode :
     float_lab.constructor_unicode() ==> Float64.ofBits 0x3fb999999999999a := by
@@ -132,7 +308,7 @@ theorem constructor_unicode :
   refine ⟨32, ?_⟩
   unfold callFunction
   rw [initial_world]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, floatCastArgs, floatCastVal, floatCastArgsH_str, parsed,
@@ -146,11 +322,28 @@ theorem constructor_unicode :
     isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
     flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
     Run.toPublic, RVal.freezeB]
+  rfl
 
 
 theorem constructor_rounding :
     float_lab.constructor_rounding() ==> Float64.ofBits 0x4340000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem constructor_invalid_caught :
     float_lab.constructor_invalid_caught() ==> (17 : PyInt) := by
@@ -163,7 +356,7 @@ theorem constructor_invalid_caught :
   refine ⟨64, ?_⟩
   unfold callFunction
   rw [initial_world]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, failure, floatCastArgsH_str,
@@ -179,53 +372,214 @@ theorem constructor_invalid_caught :
     Run.toPublic, RVal.freezeB, excHandlerNames, excHandlerTuple, excHandlerBare,
     excHandlerPrimary, excHandlerAdmitted, excHandlerMatches, dynamicShadowHandlerName,
     userExcCatches, classAtExc, builtinExcNameCatches, builtinExcCatches]
+  rfl
 
 
 theorem infinity_literal :
     float_lab.nonfinite_division_still_loud() ==> Float64.ofBits 0x7ff0000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem infinite_quotient :
     float_lab.infinite_quotient() ==> Float64.ofBits 0xfff0000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem infinite_denominator :
     float_lab.infinite_denominator() ==> Float64.ofBits 0x8000000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem infinite_augmented :
     float_lab.infinite_augmented() ==> Float64.ofBits 0 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem infinite_zero_caught :
     float_lab.infinite_zero_caught() ==> (19 : PyInt) := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 set_option maxHeartbeats 400000 in
 theorem count_nan_head :
     float_lab.count_head(Float64.ofBits 0x7ff8000000000000,
       Float64.ofBits 0x3ff0000000000000) ==> Float64.ofBits 0x7ff8000000000000 := by
-  exact ⟨64, rfl⟩
+  refine ⟨64, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 set_option maxHeartbeats 400000 in
 theorem count_infinity_head :
     float_lab.count_head(Float64.ofBits 0x7ff0000000000000,
       Float64.ofBits 0x3ff0000000000000) ==> Float64.ofBits 0x7ff0000000000000 := by
-  exact ⟨64, rfl⟩
+  refine ⟨64, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem division_nan_left :
     float_lab.divide(Float64.ofBits 0x7ff0000000000001,
       Float64.ofBits 0x3ff0000000000000) ==> Float64.ofBits 0x7ff8000000000001 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem division_nan_right :
     float_lab.divide(Float64.ofBits 0x3ff0000000000000,
       Float64.ofBits 0xfff0000000000001) ==> Float64.ofBits 0xfff8000000000001 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem indeterminate_division :
     float_lab.indeterminate_division_still_loud() ==> Float64.ofBits 0xfff8000000000000 := by
-  exact ⟨32, rfl⟩
+  refine ⟨32, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 theorem floor_tenth :
     float_lab.floor_tenth() ==> Float64.ofBits 0x4022000000000000 := by
@@ -234,10 +588,11 @@ theorem floor_tenth :
     rfl
   refine ⟨32, ?_⟩
   unfold callFunction
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber, Float64.ofBits, floorStep]
+  rfl
 
 theorem remainder_tenth :
     float_lab.remainder_tenth() ==> Float64.ofBits 0x3fb9999999999996 := by
@@ -246,10 +601,11 @@ theorem remainder_tenth :
     rfl
   refine ⟨32, ?_⟩
   unfold callFunction
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber, Float64.ofBits, floorStep]
+  rfl
 
 theorem floor_infinite :
     float_lab.floor_infinite() ==> Float64.ofBits 0xbff0000000000000 := by
@@ -259,7 +615,7 @@ theorem floor_infinite :
   refine ⟨32, ?_⟩
   unfold callFunction
   rw [initial_world]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, evalBinOpH, setLikeRefH, floatCastArgsH_str,
@@ -275,6 +631,7 @@ theorem floor_infinite :
     isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
     flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
     Run.toPublic, RVal.freezeB]
+  rfl
 
 
 theorem remainder_infinite :
@@ -285,7 +642,7 @@ theorem remainder_infinite :
   refine ⟨32, ?_⟩
   unfold callFunction
   rw [initial_world]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, evalBinOpH, setLikeRefH, floatCastArgsH_str,
@@ -301,6 +658,7 @@ theorem remainder_infinite :
     isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
     flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
     Run.toPublic, RVal.freezeB]
+  rfl
 
 
 theorem floor_nan_pair :
@@ -317,7 +675,7 @@ theorem floor_nan_pair :
   refine ⟨64, ?_⟩
   unfold callFunction
   rw [initial_world]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   have nanStep : Float64.floorRemWithNaN ⟨0x7ff8000000000001⟩ ⟨0x3ff0000000000000⟩ =
       .ok (⟨0x7ff8000000000001⟩, ⟨0x7ff8000000000001⟩) := rfl
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
@@ -334,6 +692,7 @@ theorem floor_nan_pair :
     hasUnboundLocal, unboundLocalMarker, isLoweredBuiltinName,
     isPyBuiltinName, flattenStarRun, flattenStarCallArgs, Env.lookup,
     lookupG, Run.bind, Run.liftRes, Run.toPublic, RVal.freezeB]
+  rfl
 
 
 private theorem remainder_nine_four :
@@ -350,14 +709,30 @@ theorem floor_augmented :
       .ok (⟨0x4000000000000000⟩, ⟨0x3ff0000000000000⟩) := by rfl
   refine ⟨32, ?_⟩
   unfold callFunction
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt, Run.leaveCallDepth,
     benignImportBindsStructured,
     float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber, Float64.ofBits, floorStep, remainderStep]
 
 theorem floor_zero_caught :
     float_lab.floor_zero_caught(2) ==> (23 : PyInt) := by
-  exact ⟨64, rfl⟩
+  refine ⟨64, ?_⟩
+  unfold callFunction
+  simp only [initial_world, publicThawArgs]
+  rw [callIn.eq_2]
+  py_simp [float_lab, evalBinOpH, setLikeRefH, evalFloatDivmod, floatNumber,
+    float_ne_fstring, float_ne_lenMult, float_ne_starArg, float_ne_starTuple,
+    float_ne_starList, funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,
+    Stmt.heapFree, Expr.heapFreeList, Expr.heapFree, moduleGenFree,
+    funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+    topLevelDefFree, Stmt.defFreeList, Stmt.defFree, starArgBuiltinName,
+    starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
+    lenMultBuiltinName, hasUnboundLocal, unboundLocalMarker,
+    isLoweredBuiltinName, isPyBuiltinName, flattenStarRun,
+    flattenStarCallArgs, Env.lookup, lookupG, Run.bind, Run.liftRes,
+    pythonRecursionLimit, pythonTopCallDepth, Run.finishCallAt,
+    Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
+  rfl
 
 
 #print axioms floor_tenth

@@ -360,7 +360,7 @@ theorem extended_gcd_zero (a : PyInt) (ha : 0 ≤ a) :
     rsa_inverse.extended_gcd(a, 0) ==> ((a, 1, 0) : PyInt × PyInt × PyInt) := by
   refine ⟨32, ?_⟩
   unfold callFunction
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [rsa_inverse]
   rw [execWhile.eq_2]
   py_simp [rsa_inverse]
@@ -413,7 +413,7 @@ private theorem inverse_core (x n : Int) (hx : 0 < x) (hn : 1 < n)
   simp [rsa_inverse, RVal.thawArgs, RVal.thawList_eq_map] at hcallU
   refine CallsTo.intro (f₀ + 16) ?_
   unfold callFunction
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [rsa_inverse, evalBinOpH, PyVCGen.binOpBeqBitAnd,
     PyVCGen.binOpBeqMult, setLikeRefH, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFreeList, Stmt.heapFree, Expr.heapFreeList, Expr.heapFree,

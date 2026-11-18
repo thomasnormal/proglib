@@ -30,7 +30,7 @@ theorem string_start_preserves_generator (start : PyStr) :
   refine ⟨11, ?_⟩
   unfold callFunction
   rw [initial_world]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [sum_order_lab, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFree, Stmt.heapFreeList, Expr.heapFree, hasUnboundLocal,
     unboundLocalMarker, flattenStarRun, flattenStarCallArgs, Run.bind, Run.liftRes,
@@ -46,7 +46,7 @@ theorem string_start_preserves_generator (start : PyStr) :
   py_simp [sum_order_lab, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFree, Stmt.heapFreeList, Expr.heapFree, hasUnboundLocal,
     unboundLocalMarker, flattenStarRun, flattenStarCallArgs, Run.bind, Run.liftRes]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [sum_order_lab, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFree, Stmt.heapFreeList, Expr.heapFree, hasUnboundLocal,
     unboundLocalMarker, flattenStarRun, flattenStarCallArgs, Run.bind, Run.liftRes,
@@ -67,7 +67,7 @@ theorem bytes_start_preserves_generator (start : PyBytes) :
   refine ⟨11, ?_⟩
   unfold callFunction
   rw [initial_world]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [sum_order_lab, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFree, Stmt.heapFreeList, Expr.heapFree, hasUnboundLocal,
     unboundLocalMarker, flattenStarRun, flattenStarCallArgs, Run.bind, Run.liftRes,
@@ -83,7 +83,7 @@ theorem bytes_start_preserves_generator (start : PyBytes) :
   py_simp [sum_order_lab, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFree, Stmt.heapFreeList, Expr.heapFree, hasUnboundLocal,
     unboundLocalMarker, flattenStarRun, flattenStarCallArgs, Run.bind, Run.liftRes]
-  rw [callIn.eq_2]
+  simp only [callIn.eq_2]
   py_simp [sum_order_lab, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFree, Stmt.heapFreeList, Expr.heapFree, hasUnboundLocal,
     unboundLocalMarker, flattenStarRun, flattenStarCallArgs, Run.bind, Run.liftRes,
