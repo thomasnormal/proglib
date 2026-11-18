@@ -270,6 +270,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_for_scalar_iter.py",
+    "envelope": "harness/scripts/machine_for_scalar_iter.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "match"
