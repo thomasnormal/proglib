@@ -743,46 +743,51 @@ theorem declOf?_hren (pfx : String) {pd : PDecl} {dt : DeclT} (h : declOf? pd = 
   have ht : (PDecl.hren pfx pd).twoState = pd.twoState := rfl
   have hty : (PDecl.hren pfx pd).type = pd.type.hren pfx := rfl
   rw [hu, hi, ht, hty]
-  by_cases h0 : pd.unpackedDims.isEmpty = true
-  · simp only [h0, Bool.not_true, Bool.false_eq_true, if_false] at h ⊢
-    rcases hinit : pd.init with _ | e
-    · simp only [hinit, Option.map_none] at h ⊢
-      by_cases h2 : pd.twoState = true
-      · simp [h2] at h
-      · simp only [h2, Bool.false_eq_true, if_false] at h ⊢
-        cases hty' : pd.type with
-        | typeRef _ _ _ => simp [hty'] at h
-        | unrecoverable _ => simp [hty'] at h
-        | packed ds r =>
-          simp only [hty'] at h
-          rcases ds with _ | ⟨d1, _ | ⟨d2, _ | ⟨d3, _ | ⟨d4, rest⟩⟩⟩⟩
-          · simp only [Except.ok.injEq] at h; subst h
-            simp [PType.hren, DeclT.hren, PDecl.hren]
-          · rcases hd : dimOf? pd.name d1 with e | p1 <;> simp only [hd] at h
+  by_cases hio : pd.isInout = true
+  · simp [hio] at h ⊢
+  · have hio' : pd.isInout = false := by cases hval : pd.isInout <;> simp_all
+    simp [hio'] at h ⊢
+    by_cases h0 : pd.unpackedDims.isEmpty = true
+    · have hnil : pd.unpackedDims = [] := List.isEmpty_iff.mp h0
+      simp [hnil] at h ⊢
+      rcases hinit : pd.init with _ | e
+      · simp only [hinit, Option.map_none] at h ⊢
+        by_cases h2 : pd.twoState = true
+        · simp [h2] at h
+        · simp only [h2, Bool.false_eq_true, if_false] at h ⊢
+          cases hty' : pd.type with
+          | typeRef _ _ _ => simp [hty'] at h
+          | unrecoverable _ => simp [hty'] at h
+          | packed ds r =>
+            simp only [hty'] at h
+            rcases ds with _ | ⟨d1, _ | ⟨d2, _ | ⟨d3, _ | ⟨d4, rest⟩⟩⟩⟩
+            · simp only [Except.ok.injEq] at h; subst h
+              simp [PType.hren, DeclT.hren, PDecl.hren, hio']
+            · rcases hd : dimOf? pd.name d1 with e | p1 <;> simp only [hd] at h
+              · simp at h
+              simp only [Except.ok.injEq] at h; subst h
+              simp [PType.hren, DeclT.hren, PDecl.hren, hio', dimOf?_hren pfx pd.name _ hd]
+            · rcases hd1 : dimOf? pd.name d1 with e | p1 <;> simp only [hd1] at h
+              · simp at h
+              rcases hd2 : dimOf? pd.name d2 with e | p2 <;> simp only [hd2] at h
+              · simp at h
+              simp only [Except.ok.injEq] at h; subst h
+              simp [PType.hren, DeclT.hren, PDecl.hren, hio', dimOf?_hren pfx pd.name _ hd1,
+                dimOf?_hren pfx pd.name _ hd2]
+            · -- a 3-D declaration
+              rcases hd1 : dimOf? pd.name d1 with e | p1 <;> simp only [hd1] at h
+              · simp at h
+              rcases hd2 : dimOf? pd.name d2 with e | p2 <;> simp only [hd2] at h
+              · simp at h
+              rcases hd3 : dimOf? pd.name d3 with e | p3 <;> simp only [hd3] at h
+              · simp at h
+              simp only [Except.ok.injEq] at h; subst h
+              simp [PType.hren, DeclT.hren, PDecl.hren, hio', dimOf?_hren pfx pd.name _ hd1,
+                dimOf?_hren pfx pd.name _ hd2, dimOf?_hren pfx pd.name _ hd3]
             · simp at h
-            simp only [Except.ok.injEq] at h; subst h
-            simp [PType.hren, DeclT.hren, PDecl.hren, dimOf?_hren pfx pd.name _ hd]
-          · rcases hd1 : dimOf? pd.name d1 with e | p1 <;> simp only [hd1] at h
-            · simp at h
-            rcases hd2 : dimOf? pd.name d2 with e | p2 <;> simp only [hd2] at h
-            · simp at h
-            simp only [Except.ok.injEq] at h; subst h
-            simp [PType.hren, DeclT.hren, PDecl.hren, dimOf?_hren pfx pd.name _ hd1,
-              dimOf?_hren pfx pd.name _ hd2]
-          · -- a 3-D declaration
-            rcases hd1 : dimOf? pd.name d1 with e | p1 <;> simp only [hd1] at h
-            · simp at h
-            rcases hd2 : dimOf? pd.name d2 with e | p2 <;> simp only [hd2] at h
-            · simp at h
-            rcases hd3 : dimOf? pd.name d3 with e | p3 <;> simp only [hd3] at h
-            · simp at h
-            simp only [Except.ok.injEq] at h; subst h
-            simp [PType.hren, DeclT.hren, PDecl.hren, dimOf?_hren pfx pd.name _ hd1,
-              dimOf?_hren pfx pd.name _ hd2, dimOf?_hren pfx pd.name _ hd3]
-          · simp at h
-    · simp [hinit] at h
-  · simp [h0] at h
-
+      · simp [hinit] at h
+    · have hne : pd.unpackedDims ≠ [] := fun hnil => h0 (List.isEmpty_iff.mpr hnil)
+      simp [hne] at h ⊢
 theorem declsOf?_append : ∀ {l1 l2 : List PDecl} {s1 s2 : List DeclT},
     declsOf? l1 = .ok s1 → declsOf? l2 = .ok s2 → declsOf? (l1 ++ l2) = .ok (s1 ++ s2)
   | [], l2, s1, s2, h1, h2 => by simp only [declsOf?, Except.ok.injEq] at h1; subst h1; simpa using h2
@@ -1410,6 +1415,7 @@ theorem connPP_ok {i : PInst} {pd : PDecl} {p : PProcess} (h : connPP i pd = .ok
         p = .assignL t (.ident (hpfx i ++ pd.name))) := by
   unfold connPP at h
   split at h
+  · simp at h
   · simp at h
   · simp at h
   · rename_i q e net hf
