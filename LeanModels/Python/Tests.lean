@@ -57,7 +57,7 @@ private def boom : Expr := bo (iL 1) .floorDiv (iL 0)
 private def M0 : Module := { functions := #[], topLevel := #[] }
 
 private def fnIdent : FunctionDefn :=
-  { name := "ident", params := #[⟨"x", sp, Option.none⟩], argsOk := true,
+  { name := "ident", params := #[⟨"x", sp, Option.none, false, false, false⟩], argsOk := true,
     body := #[.ret (some (nm "x")) sp], span := sp }
 private def fnLoopForever : FunctionDefn :=
   { name := "loopForever", params := #[], argsOk := true,
@@ -71,7 +71,7 @@ private def fnBareRet : FunctionDefn :=
     body := #[.ret Option.none sp], span := sp }
 /-- `def cd(n): if n <= 0: return 0 \n return cd(n - 1)` — recursion depth n. -/
 private def fnCountdown : FunctionDefn :=
-  { name := "cd", params := #[⟨"n", sp, Option.none⟩], argsOk := true,
+  { name := "cd", params := #[⟨"n", sp, Option.none, false, false, false⟩], argsOk := true,
     body := #[.ifStmt (cmp1 (nm "n") .ltE (iL 0)) #[.ret (some (iL 0)) sp] #[] sp,
               .ret (some (.call (nm "cd") #[bo (nm "n") .sub (iL 1)] #[] Option.none sp)) sp],
     span := sp }
@@ -79,8 +79,8 @@ private def fnCountdown : FunctionDefn :=
 F1 (int and None literal defaults) + F2 (`is None`) in one body. -/
 private def fnOpt : FunctionDefn :=
   { name := "opt",
-    params := #[⟨"x", sp, Option.none⟩, ⟨"d", sp, some (.int 10)⟩,
-                ⟨"h", sp, some .none⟩],
+    params := #[⟨"x", sp, Option.none, false, false, false⟩, ⟨"d", sp, some (.int 10), false, false, false⟩,
+                ⟨"h", sp, some .none, false, false, false⟩],
     argsOk := true,
     body := #[.ifStmt (cmp1 (nm "h") .is noneL)
                 #[.assign #[nm "h"] (iL 0) sp] #[] sp,
@@ -96,7 +96,7 @@ private def M1 : Module :=
 the builtin (`findFunction` is consulted before the builtin branch, exactly
 as CPython's module globals shadow builtins). -/
 private def fnSortedShadow : FunctionDefn :=
-  { name := "sorted", params := #[⟨"xs", sp, Option.none⟩], argsOk := true,
+  { name := "sorted", params := #[⟨"xs", sp, Option.none, false, false, false⟩], argsOk := true,
     body := #[.ret (some (iL 99)) sp], span := sp }
 
 private def M2 : Module := { functions := #[fnSortedShadow], topLevel := #[] }
@@ -461,12 +461,12 @@ private def sortedC (args : Array Expr) : Expr := .call (nm "sorted") args #[] O
 #guard isTypeError (callFunction M1 "opt" #[] 100)                  -- x has no default
 #guard isTypeError (callFunction M1 "opt" #[.int 1, .int 2, .int 3, .int 4] 100)
 -- The env-shape helpers themselves:
-#guard arityOk #[⟨"x", sp, Option.none⟩, ⟨"d", sp, some (.int 10)⟩] 1 == true
-#guard arityOk #[⟨"x", sp, Option.none⟩, ⟨"d", sp, some (.int 10)⟩] 0 == false
-#guard arityOk #[⟨"x", sp, Option.none⟩, ⟨"d", sp, some (.int 10)⟩] 3 == false
-#guard mkCallEnv #[⟨"x", sp, Option.none⟩, ⟨"d", sp, some (.int 10)⟩] #[.int 1]
+#guard arityOk #[⟨"x", sp, Option.none, false, false, false⟩, ⟨"d", sp, some (.int 10), false, false, false⟩] 1 == true
+#guard arityOk #[⟨"x", sp, Option.none, false, false, false⟩, ⟨"d", sp, some (.int 10), false, false, false⟩] 0 == false
+#guard arityOk #[⟨"x", sp, Option.none, false, false, false⟩, ⟨"d", sp, some (.int 10), false, false, false⟩] 3 == false
+#guard mkCallEnv #[⟨"x", sp, Option.none, false, false, false⟩, ⟨"d", sp, some (.int 10), false, false, false⟩] #[.int 1]
     == [("x", .int 1), ("d", .int 10)]
-#guard mkCallEnv #[⟨"x", sp, Option.none⟩, ⟨"d", sp, some (.int 10)⟩] #[.int 1, .int 2]
+#guard mkCallEnv #[⟨"x", sp, Option.none, false, false, false⟩, ⟨"d", sp, some (.int 10), false, false, false⟩] #[.int 1, .int 2]
     == [("x", .int 1), ("d", .int 2)]
 
 /-! ## Timeout / fuel discipline -/

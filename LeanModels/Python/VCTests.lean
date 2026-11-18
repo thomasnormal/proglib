@@ -47,7 +47,7 @@ the minimal recursive function with the recursive call in `x = f(e)`
 position (what `PyStmtTriple.call` matches). -/
 private def factFn : FunctionDefn where
   name := "fact"
-  params := #[⟨"n", sp, Option.none⟩]
+  params := #[⟨"n", sp, Option.none, false, false, false⟩]
   argsOk := true
   body := #[
     .ifStmt (.compare (.name "n" sp) #[.ltE] #[.constant (.int 0) sp] sp)
@@ -62,7 +62,7 @@ private def factFn : FunctionDefn where
 caller whose callee spec comes from the `@[py_spec]` registry. -/
 private def factPlusOneFn : FunctionDefn where
   name := "fact_plus_one"
-  params := #[⟨"n", sp, Option.none⟩]
+  params := #[⟨"n", sp, Option.none, false, false, false⟩]
   argsOk := true
   body := #[
     .assign #[.name "y" sp]
@@ -112,8 +112,8 @@ literal defaults during the captured symbolic run. -/
 
 private def scaleFn : FunctionDefn where
   name := "scale"
-  params := #[⟨"x", sp, Option.none⟩, ⟨"k", sp, some (.int 3)⟩,
-              ⟨"b", sp, some .none⟩]
+  params := #[⟨"x", sp, Option.none, false, false, false⟩, ⟨"k", sp, some (.int 3), false, false, false⟩,
+              ⟨"b", sp, some .none, false, false, false⟩]
   argsOk := true
   body := #[
     .ifStmt (.compare (.name "b" sp) #[.is] #[.constant .none sp] sp)
@@ -162,7 +162,7 @@ unfolded. -/
 
 private def sortedLenFn : FunctionDefn where
   name := "sorted_len"
-  params := #[⟨"data", sp, Option.none⟩]
+  params := #[⟨"data", sp, Option.none, false, false, false⟩]
   argsOk := true
   body := #[
     .assign #[.name "xs" sp]
