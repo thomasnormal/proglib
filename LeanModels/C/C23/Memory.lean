@@ -1819,6 +1819,13 @@ theorem reallocAt_null_placement_lookup (m : Mem) (size address : Nat) (h : size
   simp only [Except.map, Except.ok.injEq]
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt]
 
+@[simp] theorem reallocAt_null_offset_bound (m : Mem) (size address : Nat) (h : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map (fun r => (r.2.off, r.2.bound)) =
+      .ok (0, some size) := by
+  rw [reallocAt_null m size address h]
+  simp only [Except.map, Except.ok.injEq]
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt]
+
 @[simp] theorem reallocAt_null_placement_irrel (m : Mem) (size address₁ address₂ : Nat)
     (h : size ≠ 0) :
     (reallocAt m Ptr.null size address₁).map
