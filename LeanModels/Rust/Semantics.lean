@@ -64,6 +64,10 @@ def rvalueValue (s : State) : Rvalue → Option Int
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       pure (if leftValue == rightValue then 1 else 0)
+  | .binaryNe left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (if leftValue != rightValue then 1 else 0)
   | .binaryBitAnd left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -174,19 +178,29 @@ def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (
 def bodyRun (body : Body) : Option Trace :=
   cfgRun 4096 body 0 {}
 
+def bindCallArgs : State → List Operand → Nat → Option State
+  | state, [], _ => some state
+  | state, operand :: rest, localId => do
+      let value ← operandValue state operand
+      bindCallArgs (setSlot state localId (.value value)) rest (localId + 1)
+
+def returnValue (trace : Trace) : Option Int :=
+  (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item =>
+    match item.2 with
+    | .value value => some value
+    | .uninit => none
+
 def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
   | 0, _, _, _, _ => none
   | fuel + 1, program, body, blockId, state => do
       let block ← blockAt body.blocks blockId
       let firstTrace ← statementsRun block.statements state
       match block.terminator with
-      | .call _ _ destination (some target) => do
+      | .call _ args destination (some target) => do
           let (edge, callee) ← lookupCallBody program body blockId
-          let calleeTrace ← bodyRun callee
-          let result ← calleeTrace.state.locals.find? (fun item => item.1 == 0)
-          let value ← match result.2 with
-            | .value value => some value
-            | .uninit => none
+          let calleeState ← bindCallArgs firstTrace.state args 1
+          let calleeTrace ← cfgRun fuel callee 0 calleeState
+          let value ← returnValue calleeTrace
           let suffix ← cfgRunProgram fuel program body target
             (setSlot firstTrace.state destination.localId (.value value))
           let calleeId ← edge.callee

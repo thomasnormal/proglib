@@ -1,10 +1,12 @@
-# Rust Slice 1, family 1
+# Rust Slice 1
 
-This family implements the first MIR node census group in the approved
+This slice implements the MIR node census groups in the approved
 `rustc_public` envelope.  It covers `Assign`, `StorageLive`, `StorageDead`,
 `PlaceMention`, `Use` rvalues, constant operands, zero-projection places, and a
-single `Return` block.  The implementation is 315 lines in
-`LeanModels/Rust/Semantics.lean`, with 74 lines of AST declarations, 209 lines
+single `Return` block, together with control flow, resolved calls, normal drop
+edges, and explicit refusal boundaries for cleanup, intrinsics, and foreign
+operations.  The implementation is 329 lines in
+`LeanModels/Rust/Semantics.lean`, with 75 lines of AST declarations, 210 lines
 of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
@@ -21,8 +23,8 @@ divergences.  Refusal reasons identify the first unsupported MIR rvalue,
 terminator, unavailable callee body, or the absence of a checked-in Lean row
 for a statically matching subset.  The `println_once` control is excluded by
 default and can be included with `--include-control`.  Each row records the
-extractor wall time.  The 30-row audit took 2.557 s in total, with row times
-from 0.034 s to 0.345 s.
+extractor wall time.  The 30-row audit took 2.910 s in total, with row times
+from 0.028 s to 0.557 s.
 
 The three rows are the checked-in sources
 `Examples/rust/assign/main.rs`, `Examples/rust/storage/main.rs`, and
@@ -102,3 +104,17 @@ Miri returned `exit`, status 7, under both borrow models.  The two-model
 invocation measured 2.828 s.  Intrinsics, foreign calls without a registry
 entry, calls with a missing body, calls with cleanup unwind, and calls with no
 normal continuation are named refusals in this slice.
+
+The required theorem rows are checked-in user functions.  `Examples/rust/loop`
+proves the exact executable trace of a countdown loop and proves that the
+successful run belongs to `ProgramInSteps`.  Its Miri oracle invocation took
+15.299 s and returned `ok` with status 0 under both borrow models.  The extra
+time is the cold compilation of the loop's extracted program.
+
+`Examples/rust/call` proves the resolved user call trace, including argument
+binding, the callee return-local copy, the call event, and the caller's
+continuation.  `Examples/rust/std_identity` proves the analogous trace for
+`std::convert::identity::<i32>` directly from its extracted standard-library
+MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
+status 0 under both borrow models.  These are three local theorem rows, and
+the Stage 0 corpus counter remains `SLICE1-ROWS 0/30, diverging 0`.

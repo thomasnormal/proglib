@@ -43,7 +43,7 @@ def _first_refusal(envelope):
                 if rvalue_kind == "Use":
                     continue
                 if rvalue_kind == "BinaryOp" and isinstance(rvalue_value, list):
-                    if rvalue_value and rvalue_value[0] in {"Eq", "BitAnd", "Div"}:
+                    if rvalue_value and rvalue_value[0] in {"Eq", "Ne", "BitAnd", "Div"}:
                         continue
                 if rvalue_kind == "Aggregate" and isinstance(rvalue_value, list):
                     if len(rvalue_value) == 2 and rvalue_value[1] == []:

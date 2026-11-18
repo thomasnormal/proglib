@@ -21,6 +21,7 @@ deriving Repr, Inhabited, BEq, Lean.ToExpr
 inductive Rvalue where
   | use (operand : Operand)
   | binaryEq (left right : Operand)
+  | binaryNe (left right : Operand)
   | binaryBitAnd (left right : Operand)
   | binaryDiv (left right : Operand)
   | zstAggregate
