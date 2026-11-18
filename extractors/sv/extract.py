@@ -34395,6 +34395,20 @@ def convert_generate_ifs(sm, members, path=()):
     return [emit(k) for k in order if k not in chained]
 
 
+def _case_generate_item(sm, syntax):
+    """Return the source case item and its CaseGenerate owner for a
+    generated case arm. Slang represents each arm as a GenerateBlockSymbol
+    whose syntax is the arm's clause node, so retain the case selection as a
+    source-shaped GenerateIf instead of emitting every arm as a driver."""
+    p = getattr(syntax, "parent", None)
+    if p is None or type(p).__name__ != "StandardCaseItemSyntax":
+        return None
+    owner = getattr(p, "parent", None)
+    if owner is None or type(owner).__name__ != "CaseGenerateSyntax":
+        return None
+    return p, owner
+
+
 # --- symbolic member routing ----------------------------------------------
 
 def convert_members_sym(sm, scope, path=()):
@@ -34411,6 +34425,27 @@ def convert_members_sym(sm, scope, path=()):
                 i += 1
                 continue
             if k == "GenerateBlock":
+                case_arm = _case_generate_item(sm, getattr(m, "syntax", None))
+                if case_arm is not None and _SYM.genvars:
+                    item, _owner = case_arm
+                    body = convert_members_sym(sm, m, path)
+                    arms = list(getattr(item, "expressions", []))
+                    if len(arms) == 1:
+                        pattern = _syntax_expr(sm, arms[0])
+                        cond = {
+                            "kind": "Binary", "span": _syntax_span(sm, item),
+                            "width": 1, "op": "===",
+                            "left": {"kind": "GenvarRef", "span": None,
+                                     "name": _SYM.genvars[-1]},
+                            "right": pattern,
+                        }
+                        out.append({"kind": "GenerateIf", "span": _syntax_span(sm, item),
+                                    "label": None, "else_label": None,
+                                    "cond": cond, "then": body, "else": []})
+                    else:
+                        out.append(unsupported(sm, m, "CaseGenerate:pattern"))
+                    i += 1
+                    continue
                 run = []
                 j = i
                 while j < len(members) and \
@@ -34432,7 +34467,8 @@ def convert_members_sym(sm, scope, path=()):
                 wrapper_path = tuple(path) + ((m.name,) if m.name else ())
                 body = convert_members_sym(sm, m, wrapper_path)
                 if body and all(item.get("kind") in (
-                        "GenerateFor", "GenerateIf", "Instance")
+                        "GenerateFor", "GenerateIf", "Instance", "Assign",
+                        "AlwaysPosedge", "AlwaysComb", "AlwaysEvent", "Initial")
                         for item in body if isinstance(item, dict)):
                     out.extend(body)
                 else:
@@ -36000,7 +36036,8 @@ def convert_module_sym(sm, inst):
                     continue
                 wrapped = convert_members_sym(sm, m)
                 if wrapped and all(item.get("kind") in (
-                        "GenerateFor", "GenerateIf", "Instance")
+                        "GenerateFor", "GenerateIf", "Instance", "Assign",
+                        "AlwaysPosedge", "AlwaysComb", "AlwaysEvent", "Initial")
                         for item in wrapped if isinstance(item, dict)):
                     generates.extend(wrapped)
                 else:
