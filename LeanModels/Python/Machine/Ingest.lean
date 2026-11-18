@@ -1,3 +1,4 @@
+import Lean
 import LeanModels.Python.Ast
 
 namespace LeanModels.Python.Machine
@@ -39,6 +40,7 @@ inductive MExpr where
   | dictComp (key : MExpr) (value : MExpr) (generators : Array MExpr) (span : Span)
   | genExp (elt : MExpr) (generators : Array MExpr) (span : Span)
   | namedExpr (target : String) (value : MExpr) (span : Span)
+  | starred (value : MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
 deriving Repr, Inhabited, BEq
 
@@ -61,6 +63,8 @@ inductive MStmt where
   | pass (span : Span)
   | expr (value : MExpr) (span : Span)
   | assign (targets : Array MExpr) (value : MExpr) (span : Span)
+  | annAssign (target : MExpr) (annotation : MExpr) (value : Option MExpr)
+      (simple : Bool) (span : Span)
   | augAssign (target : MExpr) (op : BinOp) (value : MExpr) (span : Span)
   | ret (value : Option MExpr) (span : Span)
   | delete (targets : Array MExpr) (span : Span)
@@ -90,5 +94,181 @@ deriving Repr, Inhabited, BEq
 structure MModule where
   body : Array MStmt
 deriving Repr, Inhabited, BEq
+
+/-! The machine decoder reads the extractor's AST envelope directly.  It is
+kept here instead of calling `Json.lean`: unsupported nodes remain explicit
+machine nodes, and no compatibility lowering or census flag is consulted. -/
+
+open Lean (Json)
+
+private def mField (j : Json) (name : String) : Except String Json :=
+  j.getObjVal? name
+
+private def mSpan (j : Json) : Except String Span := do
+  let getNat := fun name => do (← mField j name).getNat?
+  return { lineno := ← getNat "lineno"
+           colOffset := ← getNat "col_offset"
+           endLineno := ← getNat "end_lineno"
+           endColOffset := ← getNat "end_col_offset" }
+
+private def mBinOp : String → Option BinOp
+  | "Add" => some .add | "Sub" => some .sub | "Mult" => some .mult
+  | "Div" => some .div | "FloorDiv" => some .floorDiv | "Mod" => some .mod
+  | "Pow" => some .pow | "LShift" => some .lshift | "RShift" => some .rshift
+  | "BitOr" => some .bitOr | "BitXor" => some .bitXor | "BitAnd" => some .bitAnd
+  | "MatMult" => some .matMult | _ => none
+
+private def mUnaryOp : String → Option UnaryOp
+  | "USub" => some .usub | "Not" => some .not | "UAdd" => some .uadd
+  | "Invert" => some .invert | _ => none
+
+private def mConst (j : Json) : Except String Const := do
+  let ty ← (← mField j "type").getStr?
+  match ty with
+  | "none" => pure .none
+  | "ellipsis" => pure .ellipsis
+  | "bool" => pure (.bool (← (← mField j "value").getBool?))
+  | "str" => pure (.str (← (← mField j "value").getStr?))
+  | "int" =>
+      let text ← (← mField j "repr").getStr?
+      match text.toInt? with
+      | some n => pure (.int n)
+      | none => throw s!"invalid machine integer {text}"
+  | "float" =>
+      let text ← (← mField j "bits").getStr?
+      match text.toNat? with
+      | some bits => pure (.float (Float64.ofBits bits))
+      | none => throw s!"invalid machine float bits {text}"
+  | _ => throw s!"unsupported machine constant {ty}"
+
+partial def mExpr (j : Json) : Except String MExpr := do
+  let kind ← (← mField j "kind").getStr?
+  let span ← mSpan (← mField j "span")
+  match kind with
+  | "Constant" => pure (.constant (← mConst (← mField j "value")) span)
+  | "Name" => pure (.name (← (← mField j "id").getStr?) span)
+  | "BinOp" =>
+      let opName ← (← mField j "op").getStr?
+      match mBinOp opName with
+      | some op => pure (.binOp (← mExpr (← mField j "left")) op
+          (← mExpr (← mField j "right")) span)
+      | none => pure (.unsupported kind span)
+  | "UnaryOp" =>
+      let opName ← (← mField j "op").getStr?
+      match mUnaryOp opName with
+      | some op => pure (.unaryOp op (← mExpr (← mField j "operand")) span)
+      | none => pure (.unsupported kind span)
+  | "Call" =>
+      let func ← mExpr (← mField j "func")
+      let args ← (← (← mField j "args").getArr?).mapM mExpr
+      let keywords ← (← (← mField j "keywords").getArr?).mapM fun kw => do
+        let name ← (← mField kw "arg").getStr?
+        pure (name, ← mExpr (← mField kw "value"))
+      pure (.call func args keywords #[] #[] span)
+  | "List" => pure (.list (← (← (← mField j "elts").getArr?).mapM mExpr) span)
+  | "Tuple" => pure (.tuple (← (← (← mField j "elts").getArr?).mapM mExpr) span)
+  | "Set" => pure (.set (← (← (← mField j "elts").getArr?).mapM mExpr) span)
+  | "Dict" =>
+      let keys ← (← (← mField j "keys").getArr?).mapM fun key =>
+        match key with | .null => pure none | _ => some <$> mExpr key
+      let values ← (← (← mField j "values").getArr?).mapM mExpr
+      pure (.dict keys values span)
+  | "Attribute" => pure (.attribute (← mExpr (← mField j "value"))
+      (← (← mField j "attr").getStr?) span)
+  | "Subscript" => pure (.subscript (← mExpr (← mField j "value"))
+      (← mExpr (← mField j "index")) span)
+  | "NamedExpr" => pure (.namedExpr (← (← mField j "target").getStr?)
+      (← mExpr (← mField j "value")) span)
+  | "Starred" => pure (.starred (← mExpr (← mField j "value")) span)
+  | _ => pure (.unsupported kind span)
+
+private def mArg (j : Json) : Except String MArg := do
+  pure { name := ← (← mField j "arg").getStr?
+         annotation := none }
+
+private def mArguments (j : Json) : Except String MArguments := do
+  let positionalOnly ← (← (← mField j "posonlyargs").getArr?).mapM mArg
+  let positional ← (← (← mField j "args").getArr?).mapM mArg
+  let vararg ← match j.getObjVal? "vararg" with
+    | .ok .null | .error _ => pure none
+    | .ok value => some <$> mArg value
+  let keywordOnly ← (← (← mField j "kwonlyargs").getArr?).mapM mArg
+  let kwDefaults ← (← (← mField j "kw_defaults").getArr?).mapM fun value =>
+    match value with | .null => pure none | _ => some <$> mExpr value
+  let kwarg ← match j.getObjVal? "kwarg" with
+    | .ok .null | .error _ => pure none
+    | .ok value => some <$> mArg value
+  let defaults ← (← (← mField j "defaults").getArr?).mapM mExpr
+  pure { positionalOnly, positional, vararg, keywordOnly, kwDefaults, kwarg, defaults }
+
+partial def mStmt (j : Json) : Except String MStmt := do
+  let kind ← (← mField j "kind").getStr?
+  let span ← mSpan (← mField j "span")
+  match kind with
+  | "Pass" => pure (.pass span)
+  | "Expr" => pure (.expr (← mExpr (← mField j "value")) span)
+  | "Assign" => pure (.assign (← (← (← mField j "targets").getArr?).mapM mExpr)
+      (← mExpr (← mField j "value")) span)
+  | "AnnAssign" =>
+      let value ← match ← mField j "value" with
+        | .null => pure none
+        | expression => some <$> mExpr expression
+      let simple := match j.getObjVal? "simple" with
+        | .ok (.bool b) => b
+        | _ => false
+      pure (.annAssign (← mExpr (← mField j "target"))
+        (← mExpr (← mField j "annotation")) value simple span)
+  | "AugAssign" =>
+      let opName ← (← mField j "op").getStr?
+      match mBinOp opName with
+      | some op => pure (.augAssign (← mExpr (← mField j "target")) op
+          (← mExpr (← mField j "value")) span)
+      | none => pure (.unsupported kind span)
+  | "Return" =>
+      let value ← match ← mField j "value" with
+        | .null => pure none
+        | expression => some <$> mExpr expression
+      pure (.ret value span)
+  | "If" => pure (.ifStmt (← mExpr (← mField j "test"))
+      (← (← (← mField j "body").getArr?).mapM mStmt)
+      (← (← (← mField j "orelse").getArr?).mapM mStmt) span)
+  | "While" => pure (.whileStmt (← mExpr (← mField j "test"))
+      (← (← (← mField j "body").getArr?).mapM mStmt)
+      (← (← (← mField j "orelse").getArr?).mapM mStmt) span)
+  | "FunctionDef" => pure (.functionDef (← (← mField j "name").getStr?)
+      (← mArguments (← mField j "args")) #[] none
+      (← (← (← mField j "body").getArr?).mapM mStmt) span)
+  | "Global" => pure (.global (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
+  | "Nonlocal" => pure (.nonlocal (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
+  | "Break" => pure (.brk span)
+  | "Continue" => pure (.cont span)
+  | _ => pure (.unsupported kind span)
+
+def parseMachineModule (j : Json) : Except String MModule := do
+  let module ← mField j "module"
+  let body ← (← (← mField module "body").getArr?).mapM mStmt
+  pure { body }
+
+private def ingestSpan : Json :=
+  Lean.Json.mkObj [("lineno", Lean.toJson (1 : Nat)), ("col_offset", Lean.toJson (0 : Nat)),
+    ("end_lineno", Lean.toJson (1 : Nat)), ("end_col_offset", Lean.toJson (1 : Nat))]
+
+private def ingestName (name : String) : Json :=
+  Lean.Json.mkObj [("kind", Lean.toJson "Name"), ("span", ingestSpan),
+    ("id", Lean.toJson name)]
+
+private def ingestModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [("kind", Lean.toJson "Module"),
+    ("body", Lean.toJson #[
+      Lean.Json.mkObj [("kind", Lean.toJson "Global"), ("span", ingestSpan),
+        ("names", Lean.toJson #[("counter" : String)])],
+      Lean.Json.mkObj [("kind", Lean.toJson "Assign"), ("span", ingestSpan),
+        ("targets", Lean.toJson #[ingestName "value"]),
+        ("value", Lean.Json.mkObj [("kind", Lean.toJson "Constant"), ("span", ingestSpan),
+          ("value", Lean.Json.mkObj [("type", Lean.toJson "int"), ("repr", Lean.toJson "1")])])]])])]
+
+#guard match parseMachineModule ingestModule with
+  | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _] _ _] } => true
+  | _ => false
 
 end LeanModels.Python.Machine
