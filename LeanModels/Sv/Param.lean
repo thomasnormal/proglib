@@ -249,13 +249,18 @@ inductive SymUnaryOp where
   | dec   -- `--` (generate step only)
 deriving Repr, BEq, DecidableEq, Inhabited
 
-/-- The four sv-0.2 system functions (expression position, one argument). -/
+/-- The sv-0.2 system functions (expression position, one argument). -/
 inductive SysFn where
   | clog2 | bits | high | size
+  /-- `$test$plusargs` reads the simulator's plus-argument environment
+  (IEEE 1800-2023 §20.2.2).  The source node is retained, while the current
+  value tier keeps this external environment-dependent result loud. -/
+  | testPlusargs
 deriving Repr, BEq, DecidableEq, Inhabited
 
 def SysFn.sym : SysFn → String
   | .clog2 => "$clog2" | .bits => "$bits" | .high => "$high" | .size => "$size"
+  | .testPlusargs => "$test$plusargs"
 
 /-- Trailing part-select form of a packed-array select path
 (`PExpr.arrayPart` / `PLhs.arrayPart`): `[a:b]` (`range` — `a`/`b` the msb/
