@@ -3263,6 +3263,16 @@ private def PType.resolved? : PType → Option Nat
 private def checkDecls (env : IEnv) : List PDecl → List String
   | [] => []
   | pd :: rest =>
+      -- A parser-retained aggregate declaration carries its source-shaped
+      -- `PAggType` in `aggregate?`; its packed `PType` is deliberately
+      -- unrecoverable because the scalar width is not the declaration's
+      -- aggregate layout.  The aggregate bridge performs the exact
+      -- structure check when E instantiates the declaration, so the scalar
+      -- defaults cross-check must leave this node to that bridge rather than
+      -- reporting a false `unrecoverable packed dimensions` mismatch.
+      if pd.aggregate?.isSome then
+        checkDecls env rest
+      else
       -- A one-rank unpacked declaration is retained for the E memory route.
       -- The legacy flat store still cannot turn it into a `Decl`, but its
       -- packed element width is a real elaboration fact and must participate

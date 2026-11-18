@@ -1833,6 +1833,35 @@ private def netOutputPortText : String := r#"{
         SvState.lookup (initState2 m) dc.name == some (LVec.lit "z")) == some true
   | none => false
 
+/- A parser-retained typed aggregate port crosses the ordinary E loader with
+   its source-shaped `PAggType`.  Its scalar `PType` is intentionally
+   unrecoverable, so the defaults cross-check must defer to the aggregate
+   bridge instead of rejecting the declaration before E sees it. -/
+private def aggregatePortText : String := r#"{
+  "schema_version":"sv-0.2", "language":"systemverilog",
+  "frontend":{"name":"pyslang","version":"11.0.0"}, "mode":"symbolic", "top":"agg_p",
+  "source_files":[], "packages":[], "design":{"kind":"Design","modules":[
+    {"kind":"Module","name":"agg_p","imports":[],"params":[],"types":[],
+     "ports":[
+       {"kind":"Unsupported","name":"source","sv_kind":"PortSymbol:type","text":"source",
+        "metadata":{"name":"source","dir":"in","signed":false,"two_state":false,
+          "aggregate":{"kind":"struct","fields":[{"name":"value","type":{"kind":"scalar",
+            "type":{"kind":"PackedType","packed":[{"msb":{"kind":"Int","value":1},"lsb":{"kind":"Int","value":0}}],"resolved":2},
+            "signed":false,"two_state":false}}]}}},
+       {"kind":"Port","name":"result","dir":"out",
+        "width":{"kind":"PackedType","packed":[{"msb":{"kind":"Int","value":1},"lsb":{"kind":"Int","value":0}}],"resolved":2}}],
+     "decls":[],"processes":[{"kind":"AlwaysComb","body":{"kind":"BlockingAssign",
+       "target":{"kind":"Ident","name":"result"},
+       "value":{"kind":"AggregateMember","base":"source","path":[{"field":"value"}]}}}],
+     "generates":[],"others":[]}],"others":[]},"lean_blocks":[]}"#
+
+#guard match loadPDesignString aggregatePortText with
+  | .ok d => d.crossCheck == [] &&
+      match LeanModels.Sv.Kernel.PDesign.instantiateCoreMem d [] with
+      | .ok E => E.aggregates.size == 1
+      | _ => false
+  | _ => false
+
 -- The metadata cross-check at defaults is clean (what `load_design_sv2`
 -- gates on).
 #guard miniExpected.crossCheck == []
