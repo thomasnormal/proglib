@@ -43,7 +43,9 @@ inductive Rvalue where
   | checkedBinary (op : String) (left right : Operand)
   | ref (place : Place)
   | aggregate (tag : String) (fields : List Operand)
+  | adtAggregate (variant : Nat) (fields : List Operand)
   | repeat (operand : Operand) (count : Nat)
+  | discriminant (place : Place)
   | zstAggregate
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr

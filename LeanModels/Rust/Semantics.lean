@@ -24,6 +24,7 @@ inductive Cell where
   | int (n : Int)
   | pointer (p : Pointer)
   | aggregate (fields : List FieldValue)
+  | enum (variant : Nat) (fields : List FieldValue)
   | unit
 deriving Repr, Inhabited, BEq, DecidableEq
 
@@ -151,6 +152,7 @@ def cellInt : Cell → Option Int
 def cellField : Cell → Option FieldValue
   | .int value => some (.int value)
   | .pointer pointer => some (.pointer pointer)
+  | .enum _ _ => none
   | _ => none
 
 def fieldCell : FieldValue → Cell
@@ -215,8 +217,14 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
       match cell with
       | .aggregate fields =>
           fields.drop index |>.head? |>.map fieldCell |>.bind (projectCell s · rest)
+      | .enum _ fields =>
+          fields.drop index |>.head? |>.map fieldCell |>.bind (projectCell s · rest)
       | _ => none
-  | .downcast _ :: _ | .unsupported _ :: _ => none
+  | .downcast variant :: rest =>
+      match cell with
+      | .enum actual _ => if actual == variant then projectCell s cell rest else none
+      | _ => none
+  | .unsupported _ :: _ => none
 
 def readCell (s : State) (place : Place) : Option Cell :=
   localSlot s place.localId |>.bind slotCell |>.bind (projectCell s · place.projection)
@@ -319,6 +327,7 @@ def rvalueValue (s : State) : Rvalue → Option Int
       | .value value => pure value
       | .overflow | .divideByZero => none
   | .ref _ | .aggregate _ _ => none
+  | .adtAggregate _ _ | .discriminant _ => none
   | .repeat _ _ => none
   | .zstAggregate => none
   | .unsupported _ => none
@@ -373,11 +382,18 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
+  | .adtAggregate variant fields => do
+      let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
+      pure (.enum variant values)
   | .repeat operand count => do
       let value ← operandCell s operand
       let field ← cellField value
       pure (.aggregate (List.replicate count field))
-  | .zstAggregate => some .unit
+  | .zstAggregate => some (.enum 0 [])
+  | .discriminant place =>
+      match readCell s place with
+      | some (.enum variant _) => some (.int variant)
+      | _ => none
   | .unsupported _ => none
 
 def eventForCell (localId : Nat) : Cell → Event
@@ -514,6 +530,8 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.binaryNe _ _) => .refused (.unsupported "inequality assignment")
           | .assign _ (.binaryBitAnd _ _) => .refused (.unsupported "bitwise assignment")
           | .assign _ (.zstAggregate) => .refused (.unsupported "zst aggregate assignment")
+          | .assign _ (.adtAggregate _ _) => .refused (.unsupported "adt aggregate assignment")
+          | .assign _ (.discriminant _) => .refused (.unsupported "discriminant assignment")
           | .assign _ (.unsupported kind) => .refused (.unsupported ("assignment " ++ kind))
           | .placeMention _ => .refused (.unsupported "place mention")
           | .storageLive _ | .storageDead _ | .unsupported _ =>
