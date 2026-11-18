@@ -109,6 +109,9 @@ inductive RKont where
   | discardValue
   | sequence (remaining : List RStmt)
   | assign (name : String) (remaining : List RStmt)
+  | assignSubscriptReceiver (receiver : Expr) (index : Expr) (remaining : List RStmt)
+  | assignSubscriptIndex (value : RVal) (index : Expr) (remaining : List RStmt)
+  | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
   | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
   | unaryValue (op : UnaryOp) (continuation : RKont)
@@ -431,6 +434,21 @@ def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
       match heap.get? address with
       | some (.dict entries _) =>
           rLookupDictEntries entries.toList index
+      | _ => none
+  | _ => none
+
+def rUpdateDictEntries : List (RVal × RVal) → RVal → RVal → List (RVal × RVal)
+  | [], key, value => [(key, value)]
+  | (currentKey, currentValue) :: rest, key, value =>
+      if currentKey == key then (key, value) :: rest
+      else (currentKey, currentValue) :: rUpdateDictEntries rest key value
+
+def rUpdateDict (heap : Heap) (receiver index value : RVal) : Option Heap :=
+  match receiver with
+  | .ref address =>
+      match heap.get? address with
+      | some (.dict entries version) =>
+          Heap.update heap address (.dict (rUpdateDictEntries entries.toList index value).toArray (version + 1))
       | _ => none
   | _ => none
 
@@ -772,6 +790,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl (.evaluate expression (.sequence rest)))
           | .assign (.name name _) value _ =>
               some (.tau, config.setControl (.evaluate value (.assign name rest)))
+          | .assign (.subscript receiver index _) value _ =>
+              some (.tau, config.setControl
+                (.evaluate value (.assignSubscriptReceiver receiver index rest)))
           | .ifStmt test body orelse _ =>
               some (.tau, config.setControl
                 (.evaluate test (.ifBranch body.toList orelse.toList rest)))
@@ -892,6 +913,16 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue _ .discardValue => some (.tau, config.setControl (.statements []))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
+      | .continueValue value (.assignSubscriptReceiver receiver index remaining) =>
+          some (.tau, config.setControl
+            (.evaluate receiver (.assignSubscriptIndex value index remaining)))
+      | .continueValue receiver (.assignSubscriptIndex originalValue index remaining) =>
+          some (.tau, config.setControl
+            (.evaluate index (.assignSubscriptDone receiver originalValue remaining)))
+      | .continueValue index (.assignSubscriptDone receiver value remaining) =>
+          match rUpdateDict config.heap receiver index value with
+          | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
+          | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
       | .continueValue value (.assign name remaining) =>
           match rWriteCell config.heap frame.locals name value with
           | some heap =>
