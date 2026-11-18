@@ -615,12 +615,7 @@ partial def parseTargetL (j : Json) : Except String (Except String PLhs) := do
       | .partSel (.ident n) msb lsb => return .ok (.partSel n msb lsb)
       | .arrayElem n is => return .ok (.arrayElem n is)
       | .arrayPart n is mode a b => return .ok (.arrayPart n is mode a b)
-      | .aggregateMember .. =>
-          -- Keep the parser-native aggregate target visible in the envelope,
-          -- but refuse before constructing a scalar PLhs. Aggregate writes
-          -- need their own storage relation and must not be flattened into a
-          -- field name (IEEE 1800-2023 §§6.8, 6.18, 11.8).
-          return .error "MemberAccessExpression:aggregate target"
+      | .aggregateMember base path => return .ok (.aggregateMember base path)
       | _ => return .error "AssignmentExpression:target"
 
 partial def parsePStmt (j : Json) : Except String PStmt := do

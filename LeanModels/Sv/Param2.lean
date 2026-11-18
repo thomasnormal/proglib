@@ -1343,6 +1343,7 @@ def instLhsLeaf2 (env : IEnv) (elems : List (String × Nat)) :
   | .concat _ => .error "nested continuous concatenation target"
   | .arrayElem n is => arrayElemTarget env n is
   | .arrayPart n is mode a b => arrayPartTarget env n is mode a b
+  | .aggregateMember .. => .error "MemberAccessExpression:aggregate target is outside scalar Lhs2"
 
 /-- A concatenation-target leaf whose lowered window writes exactly its
 declared width `w` (a whole signal, an in-range slice, an element select). -/

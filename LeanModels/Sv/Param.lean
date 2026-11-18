@@ -496,11 +496,14 @@ inductive PLhs where
   | arrayElem (name : String) (indices : List PExpr)
   /-- … with a trailing part select (`PExpr.arrayPart`'s shape). -/
   | arrayPart (name : String) (indices : List PExpr) (mode : PartMode) (a b : PExpr)
+  /-- Source-shaped aggregate member path target. -/
+  | aggregateMember (base : String) (path : List (Option String × Option PExpr))
 deriving Repr, BEq, Inhabited
 
 /-- The targeted signal's name. -/
 def PLhs.name : PLhs → String
-  | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n .. => n
+  | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n ..
+  | .aggregateMember n _ => n
   | .concat (part :: _) => part.name
   | .concat [] => ""
 

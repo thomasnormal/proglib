@@ -62,6 +62,17 @@ inductive AggValue where
   | unknown (ty : AggType)
 deriving Inhabited
 
+/-! An untouched aggregate is represented compactly as `.unknown ty`.  A
+member write materializes that type-shaped value so the write preserves the
+unknown value of every sibling field.  The source-shaped aggregate remains a
+single cell throughout this operation. -/
+
+def AggType.rangeValues (msb lsb : Int) : List Int :=
+  if lsb ≤ msb then
+    (List.range ((msb - lsb + 1).toNat)).map (fun (n : Nat) => lsb + (n : Int))
+  else
+    (List.range ((lsb - msb + 1).toNat)).map (fun (n : Nat) => lsb - (n : Int))
+
 def AggValue.read? : AggValue → AggPath → Option Val
   | .scalar value, [] => some value
   | .unknown ty, path => (ty.resolve? path).map fun valueTy =>
@@ -90,9 +101,29 @@ def AggValue.replaceCell (index : Int) (value : AggValue) :
       if label == index then some ((label, value) :: rest)
       else replaceCell index value rest |>.map fun tail => (label, old) :: tail
 
+def AggValue.writeUnknown : AggType → AggPath → Val → Option AggValue
+  | .scalar _, [], value => some (.scalar value)
+  | .scalar _, _ :: _, _ => none
+  | .struct fields, .field name :: rest, value => do
+      let (_, fieldTy) ← fields.find? (fun p => p.1 == name)
+      let updated ← AggValue.writeUnknown fieldTy rest value
+      let unknowns := fields.map fun (field, ty) => (field, AggValue.unknown ty)
+      return .struct (← AggValue.replaceField name updated unknowns)
+  | .struct _, _ :: _, _ => none
+  | .struct _, [], _ => none
+  | .array msb lsb elem, .index index :: rest, value => do
+      if !AggType.inRange msb lsb index then none
+      else
+        let updated ← AggValue.writeUnknown elem rest value
+        let unknowns := (AggType.rangeValues msb lsb).map
+          (fun cell => (cell, AggValue.unknown elem))
+        return .array (← AggValue.replaceCell index updated unknowns)
+  | .array _ _ _, _ :: _, _ => none
+  | .array _ _ _, [], _ => none
+
 def AggValue.write? : AggValue → AggPath → Val → Option AggValue
   | .scalar _, [], value => some (.scalar value)
-  | .unknown _, _, _ => none
+  | .unknown ty, path, value => AggValue.writeUnknown ty path value
   | .scalar _, _ :: _, _ => none
   | .struct fields, .field name :: rest, value => do
       let (field, old) ← fields.find? (fun p => p.1 == name)
@@ -161,7 +192,14 @@ theorem AggStore.read_write_root {s : AggStore} {id : VarId}
               simp [AggStore.read?, AggValue.read?]
           | struct fields => simp [AggValue.write?, hv] at hu
           | array cells => simp [AggValue.write?, hv] at hu
-          | unknown ty => simp [AggValue.write?, hv] at hu
+          | unknown ty =>
+              cases ty with
+              | scalar scalarTy =>
+                  simp [AggValue.write?, AggValue.writeUnknown, hv] at hu
+                  cases hu
+                  simp [AggStore.read?, AggValue.read?]
+              | struct fields => simp [AggValue.write?, AggValue.writeUnknown, hv] at hu
+              | array msb lsb elem => simp [AggValue.write?, AggValue.writeUnknown, hv] at hu
 
 theorem AggStore.read_write_other {s : AggStore} {id other : VarId} {path : AggPath}
     {new : Val} {s' : AggStore} (hne : other ≠ id)

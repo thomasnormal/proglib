@@ -945,6 +945,7 @@ end
 
 def coreMemLhsTargets : PLhs → List String
   | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n .. => [n]
+  | .aggregateMember n _ => [n]
   | .concat xs => xs.flatMap coreMemLhsTargets
 
 def coreMemAssignTargets : List CoreMemProc → List String
@@ -987,6 +988,7 @@ end
 mutual
 def coreMemPLhsHasMemory : PLhs → Bool
   | .arrayElem .. | .arrayPart .. => true
+  | .aggregateMember .. => true
   | .bitSel _ i => coreMemPExprHasMemory i
   | .partSel _ msb lsb => coreMemPExprHasMemory msb || coreMemPExprHasMemory lsb
   | .concat xs => coreMemPLhsHasMemoryList xs
@@ -1079,6 +1081,8 @@ def coreMemLhsReadNames : PLhs → List String
   | .partSel _ msb lsb => coreMemSignalNames msb ++ coreMemSignalNames lsb
   | .concat parts => coreMemLhsReadNamesList parts
   | .arrayElem _ indices | .arrayPart _ indices .. => coreMemSignalNamesList indices
+  | .aggregateMember _ path =>
+      (path.filterMap (fun step => step.2)).flatMap coreMemSignalNames
 
 def coreMemLhsReadNamesList : List PLhs → List String
   | [] => []
@@ -1340,6 +1344,8 @@ def coreMemLhsReadExprs : PLhs → List PExpr
   | .arrayElem _ indices => coreMemReadExprsList indices
   | .arrayPart _ indices _ a b =>
       coreMemReadExprsList indices ++ coreMemReadExprs a ++ coreMemReadExprs b
+  | .aggregateMember _ path =>
+      (path.filterMap (fun step => step.2)).flatMap coreMemReadExprs
 
 def coreMemLhsReadExprsList : List PLhs → List PExpr
   | [] => []
@@ -2118,6 +2124,29 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
               .ok (st', view)
       | .arrayElem name _ =>
           .unsupported s!"9.2.2.2: memory always_comb target '{name}' is not one-rank"
+      | .partSel name msb lsb => do
+          let hi ← E.evalIndex env elems st msb
+          let lo ← E.evalIndex env elems st lsb
+          let some hi := hi.toNat? | .unsupported "9.2.2.2: packed part-select bound is unknown"
+          let some lo := lo.toNat? | .unsupported "9.2.2.2: packed part-select bound is unknown"
+          if hi < lo then
+            .unsupported "9.2.2.2: packed part-select has descending runtime bounds"
+          else
+            let v ← E.evalCombExpr env elems st view (some (hi - lo + 1)) value
+            let st' ← E.writeScalarPartAssign env elems st name msb lsb v
+            .ok (st', E.scalar.view st'.scalar)
+      | .aggregateMember base path =>
+          match E.aggregateDecl? base with
+          | none => .unsupported s!"9.2.2.2: aggregate always_comb target '{base}' is undeclared"
+          | some decl => do
+              let steps ← E.evalAggPath env elems st view path
+              match decl.ty.resolve? steps with
+              | none => .unsupported "9.2.2.2: aggregate always_comb target path is invalid"
+              | some ty => do
+                  let v ← E.evalCombExpr env elems st view (some ty.width) value
+                  match st.aggregates.write? decl.id steps (Val.ofLVec ty v) with
+                  | none => .unsupported "9.2.2.2: aggregate always_comb target path is not writable"
+                  | some aggregates' => .ok ({ st with aggregates := aggregates' }, view)
       | _ => .unsupported "9.2.2.2: packed or concatenated always_comb target is outside this slice"
   | fuel + 1, .ifStmt cond yes no => do
       let cv ← E.evalCombExpr env elems st view (some 1) cond
