@@ -614,3 +614,23 @@ remains 0/0. Quark remains at 1 module / 48 static unsupported nodes, with its
 `FETCH_INSTR` untyped-width cross-check refusal. Its canonical-E receipt
 records the same load-gate wall, while both simulators reject the source before
 elaboration at the use-before-declared `instr` wall, so its E-RUN remains 0/0.
+
+## 2026-11-18 census rerank after the R1 family
+
+The required stall-rule rerank was rerun after the three theorem-only R1
+families.  The approved core census reports the following current rows.
+
+| core | census | canonical-E E-RUN | pinned simulator receipt | first actionable wall |
+| --- | --- | --- | --- | --- |
+| PicoRV32 | 360 admitted / 0 refused / 4 not reached | 0/220 cycles | Icarus 13.0 and Xcelium 24.03-s004: 220/220 | reactive dependency-order scheduler before cycle 0 |
+| DarkRISCV | 206 admitted / 2 refused / 0 not reached | 0/0 cycles | Icarus 13.0 and Xcelium 24.03-s004: 220/220 | `FLUSH` non-literal initializer, then `REGS[DPTR]` target |
+| FemtoRV32 Quark | 1 module / 48 static unsupported nodes | 0/0 cycles | both pinned simulators refuse before elaboration at use-before-declared `instr` | `FETCH_INSTR` untyped-width cross-check |
+| SERV | 877 admitted / 74 refused / 48 not reached | 0/0 cycles | Icarus 13.0 and Xcelium 24.03-s004: 220/220 | `RF_WIDTH` untyped-width cross-check |
+
+PicoRV32 remains the only loaded core with an input-driven canonical-E
+execution attempt.  Its simulator rows are a source witness, while the
+canonical-E run is still stopped by the exact scheduler refusal.  DarkRISCV,
+Quark, and SERV have simulator or loader receipts but no canonical-E cycles.
+The rerank therefore sends the next work to the highest safe ladder item,
+the next complete PicoRV32 R1 family, until a general-lane scheduler landing
+or a newly reachable real-design wall changes these measurements.
