@@ -52,7 +52,7 @@ theorem false_antecedent (left right : LVec) (width fuel : Nat)
       .ok (.ofLogic .l1) := by
   rw [source_instantiation]
   simp [evalExpr, evalUnaryOp, evalBinOp, readSignal, SvState.lookup,
-    Bind.bind, Pure.pure, falseLeft, LVec.lor, truthy_one, one_or]
+    Bind.bind, Pure.pure, falseLeft, LVec.lor, truthy_one, one_or, LVec.truthy, LVec.hasKnownOne, LVec.ofLogic]
 
 /-- A true consequent dominates even an unknown antecedent. -/
 theorem true_consequent (left right : LVec) (width fuel : Nat)
