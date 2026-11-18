@@ -249,6 +249,18 @@
     "error": "unsequenced side effects"
   },
   {
+    "id": "order-binary-write-read",
+    "source": "int main(void) { int i = 0; i++ + i; return i; }",
+    "expect": "refuse",
+    "error": "unsequenced side effects"
+  },
+  {
+    "id": "order-binary-two-assignments",
+    "source": "int main(void) { int i = 0; (i = 1) + (i = 2); return i; }",
+    "expect": "refuse",
+    "error": "unsequenced side effects"
+  },
+  {
     "id": "order-assignment-write",
     "source": "int main(void) { int i = 0; i = i++ + 1; return i; }",
     "expect": "refuse",

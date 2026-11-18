@@ -1089,6 +1089,33 @@ def hasTwoImpure (ctx : Ctx) : List Expr → Bool
       if mayWrite ctx e then es.any (mayWrite ctx) || hasTwoImpure ctx es
       else hasTwoImpure ctx es
 
+/-! For an unsequenced binary operator, a modification in one operand may
+conflict with a read in the other even when only one operand is impure.
+The check is deliberately conservative. An unknown write target conflicts
+with the other operand's reads, and a known target conflicts when its key is
+read or written there. This is the sufficient refusal condition from
+§6.5.1p2-3 and J.2 for the scalar cases represented by the envelope. -/
+def writesKeyIn (writes : List (Option String)) (reads : List String) : Bool :=
+  writes.any fun written =>
+    match written with
+    | none => !reads.isEmpty
+    | some key => reads.any (· == key)
+
+def writesOverlap (left right : List (Option String)) : Bool :=
+  left.any fun a => right.any fun b =>
+    match a, b with
+    | some x, some y => x == y
+    | none, _ | _, none => true
+
+def binaryHasUnsequencedWrite (lhs rhs : Expr) : Bool :=
+  let leftWrites := directWriteTargets lhs
+  let rightWrites := directWriteTargets rhs
+  let leftReads := readKeys lhs
+  let rightReads := readKeys rhs
+  writesOverlap leftWrites rightWrites ||
+    writesKeyIn leftWrites rightReads ||
+    writesKeyIn rightWrites leftReads
+
 /-! ### C23 §6.7.2.1p11 — bit-field object representation
 
 Bit-fields share the record's storage bytes.  The offset and width below are
@@ -1390,7 +1417,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- precisely what the amendment forbids concluding. 181 sites in all.
   | .binop op l r ty _ =>
       if op != "&&" && op != "||" && op != "," && op != "=" &&
-          mayWrite ctx l && mayWrite ctx r then
+          binaryHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in binary operands"
       else
       if op == "&&" then do
