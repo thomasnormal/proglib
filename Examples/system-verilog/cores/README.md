@@ -530,14 +530,38 @@ schedule walls `Schedule:preemptive` (processes 0/26) and
 `Schedule:comb-source-order` (comb processes 9/25).  A guard-bypassed
 diagnostic run returns 80 low-level states, but it is unvalidated until the E
 scheduler closes those reports; no `MemCycle` change is made here.
+
+## 2026-11-18 DarkRISCV external receipt
+
+The fresh receipt for the pinned DarkRISCV source at
+`darklife/darkriscv` commit `bb6b483cc61a2886a0602c7e62b14f5995ddfbb9`
+records source SHA-256
+`46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0` and
+envelope SHA-256
+`5038a315ae61f44951ed400f61632ee29dfa30d7c1b092d5f5cddbafcd55243b`.
+The approved `harness/rv/core_census.py` reports 206 admitted, 2 refused, and
+0 not reached rows.  The refusals are the non-literal `FLUSH` initializer at
+source line 247 and the `REGS[DPTR]` assignment target at source line 592.
+
+The checked-in `darkriscv/check.py` and `darkriscv/nop_tb.sv` provide a
+reproducible simulator-only witness for the unmodified source.  It drives the
+core's instruction and data interfaces with a fixed NOP image and compares 220
+cycle rows from Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium
+24.03-s004.  Both simulators agree on all 220 rows.  The normalized row
+SHA-256 is
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+
+This is not a canonical-E run.  The pinned source and envelope are external to
+this checkout, so the E result is 0/0 and no E trace is claimed.  The separate
+unpacked-memory fixture remains a fixture receipt and is not counted as a
+DarkRISCV whole-core E-RUN.
+
 ## 2026-11-18 cross-core follow-up
 
 The next two cores are DarkRISCV and FemtoRV32 Quark. They remain the nearest
-general follow-ups in the recorded table. The pinned-envelope census is
-unchanged at 1 module / 1 static unsupported node for DarkRISCV and 1 module /
-48 static unsupported nodes for Quark. Their first loader walls remain
-DarkRISCV's non-literal `FLUSH` initializer and Quark's `FETCH_INSTR`
-untyped-width cross-check refusal. The pinned source trees and envelopes are
-not present in this checkout, so an input-driven E-RUN was not executed and no
-simulator cycle result is claimed for either core. The item remains a census
-measurement, with E-RUN at 0/0 until those pinned inputs are supplied.
+general follow-ups in the recorded table. The fresh DarkRISCV receipt above
+reports 206 admitted, 2 refused, and 0 not reached rows. Quark remains at 1
+module / 48 static unsupported nodes, with its `FETCH_INSTR` untyped-width
+cross-check refusal. DarkRISCV has a simulator-only 220-cycle witness, but no
+canonical-E result because its source and envelope remain external to this
+checkout. Quark remains at E-RUN 0/0 until its pinned inputs are supplied.
