@@ -6,8 +6,6 @@ namespace Examples.rust.drop
 load_rust_program drop from "Examples/rust/drop/drop.json"
 
 #guard drop.schema == LeanModels.Rust.acceptedSchema
-#guard (match LeanModels.Rust.runOutcome drop with
-  | .refused (.unsupported "zst aggregate assignment") => true
-  | _ => false)
+#guard LeanModels.Rust.Outcome.isReturned (LeanModels.Rust.runOutcome drop)
 
 end Examples.rust.drop

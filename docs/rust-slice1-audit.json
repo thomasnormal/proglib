@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.218,
+      "extract_seconds": 0.16,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.143,
+      "extract_seconds": 0.107,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.081,
+      "extract_seconds": 0.075,
       "lean_outcome": "refused:unsupported:assignment Discriminant"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.081,
+      "extract_seconds": 0.068,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.104,
+      "extract_seconds": 0.081,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.078,
+      "extract_seconds": 0.067,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.097,
+      "extract_seconds": 0.073,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.1,
+      "extract_seconds": 0.095,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -394,14 +394,14 @@
           }
         }
       },
-      "extract_seconds": 0.449,
+      "extract_seconds": 0.35,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
       "id": "study_while_gcd",
       "source": "measurement_programs/study/10_while_gcd.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use assignment",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -438,8 +438,8 @@
           }
         }
       },
-      "extract_seconds": 0.091,
-      "lean_outcome": "refused:unsupported:use assignment"
+      "extract_seconds": 0.087,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_ivec-pass-by-value",
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.129,
+      "extract_seconds": 0.12,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.043,
+      "extract_seconds": 0.036,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.074,
+      "extract_seconds": 0.08,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -614,14 +614,14 @@
           }
         }
       },
-      "extract_seconds": 0.08,
+      "extract_seconds": 0.07,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
       "id": "rustc_move-arg",
       "source": "measurement_programs/rustc_run_pass/05_move-arg.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use assignment",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -658,14 +658,14 @@
           }
         }
       },
-      "extract_seconds": 0.077,
-      "lean_outcome": "refused:unsupported:use assignment"
+      "extract_seconds": 0.063,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_i32-sub",
       "source": "measurement_programs/rustc_run_pass/06_i32-sub.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use assignment",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -702,8 +702,8 @@
           }
         }
       },
-      "extract_seconds": 0.078,
-      "lean_outcome": "refused:unsupported:use assignment"
+      "extract_seconds": 0.065,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_return-nil",
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.047,
+      "extract_seconds": 0.038,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.045,
+      "extract_seconds": 0.036,
       "lean_outcome": "returned"
     },
     {
@@ -834,14 +834,14 @@
           }
         }
       },
-      "extract_seconds": 0.077,
+      "extract_seconds": 0.066,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_multi-let",
       "source": "measurement_programs/rustc_run_pass/10_multi-let.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use assignment",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -878,14 +878,14 @@
           }
         }
       },
-      "extract_seconds": 0.072,
-      "lean_outcome": "refused:unsupported:use assignment"
+      "extract_seconds": 0.07,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_binop-mutate-lhs-in-rhs",
       "source": "measurement_programs/rustc_run_pass/11_binop-mutate-lhs-in-rhs.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use assignment",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -922,8 +922,8 @@
           }
         }
       },
-      "extract_seconds": 0.077,
-      "lean_outcome": "refused:unsupported:use assignment"
+      "extract_seconds": 0.071,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_const-prop-ice3",
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.053,
+      "extract_seconds": 0.045,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.049,
+      "extract_seconds": 0.041,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.035,
+      "extract_seconds": 0.028,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.107,
+      "extract_seconds": 0.091,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.045,
+      "extract_seconds": 0.038,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.074,
+      "extract_seconds": 0.067,
       "lean_outcome": "refused:unsupported:assignment BinaryOp"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.05,
+      "extract_seconds": 0.04,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.039,
+      "extract_seconds": 0.029,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1318,11 +1318,11 @@
           }
         }
       },
-      "extract_seconds": 0.052,
+      "extract_seconds": 0.05,
       "lean_outcome": "refused:unsupported:terminator"
     }
   ],
-  "decided_rows": 8,
-  "named_refusals": 22,
+  "decided_rows": 13,
+  "named_refusals": 17,
   "diverging": 0
 }
