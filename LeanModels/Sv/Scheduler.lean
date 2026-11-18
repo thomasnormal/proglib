@@ -244,35 +244,56 @@ def allSlots : Nat → SchedulerDesign → SlotState → List SvState
 
 /-! ## A loaded M0 design view -/
 
-def exprNamesFuel : Nat → Expr → List String
-  | 0, _ => []
-  | n + 1, e => match e with
-    | .lit _ | .unsupported _ _ => []
-    | .ident name => [name]
-    | .unary _ a | .reduce _ a | .resizeSigned _ a | .squash2 a => exprNamesFuel n a
-    | .binary _ a b => exprNamesFuel n a ++ exprNamesFuel n b
-    | .ternary c a b => exprNamesFuel n c ++ exprNamesFuel n a ++ exprNamesFuel n b
-    | .concat es => es.toList.foldl (fun acc a => acc ++ exprNamesFuel n a) []
+/-! These walkers recurse over the parser-shaped AST itself.  The old
+    depth-4096 workers silently turned a real deep expression or block into
+    an empty dependency set or a truncated process body.  The scheduler's
+    only bounded operation is `allSlots`, whose fuel bounds event exploration
+    and therefore retains the stated narrowing that a process runs to its next
+    wait. -/
+mutual
 
-def exprNames (e : Expr) : List String := exprNamesFuel 4096 e
+def exprNames : Expr → List String
+  | .lit _ | .unsupported _ _ => []
+  | .ident name => [name]
+  | .unary _ a | .reduce _ a | .resizeSigned _ a | .squash2 a => exprNames a
+  | .binary _ a b => exprNames a ++ exprNames b
+  | .ternary c a b => exprNames c ++ exprNames a ++ exprNames b
+  | .concat es => exprNamesList es.toList
+termination_by structural e => e
 
-def stmtNamesFuel : Nat → Stmt → List String
-  | 0, _ => []
-  | n + 1, s => match s with
-    | .blockingAssign _ e | .nbaAssign _ e => exprNamesFuel n e
-    | .ifStmt c t e => exprNamesFuel n c ++ stmtNamesFuel n t ++
-        (match e with | some b => stmtNamesFuel n b | none => [])
-    | .block ss => ss.toList.foldl (fun acc b => acc ++ stmtNamesFuel n b) []
-    | .unsupported _ _ => []
+def exprNamesList : List Expr → List String
+  | [] => []
+  | e :: es => exprNames e ++ exprNamesList es
+termination_by structural es => es
 
-def stmtNames (s : Stmt) : List String := stmtNamesFuel 4096 s
+def stmtNames : Stmt → List String
+  | .blockingAssign _ e | .nbaAssign _ e => exprNames e
+  | .ifStmt c t e => exprNames c ++ stmtNames t ++ stmtNamesOpt e
+  | .block ss => stmtNamesList ss.toList
+  | .unsupported _ _ => []
+termination_by structural s => s
 
-def flattenStmtFuel : Nat → Stmt → List Stmt
-  | 0, _ => []
-  | n + 1, .block ss => ss.toList.foldl (fun acc s => acc ++ flattenStmtFuel n s) []
-  | _, s => [s]
+def stmtNamesOpt : Option Stmt → List String
+  | none => []
+  | some s => stmtNames s
+termination_by structural o => o
 
-def flattenStmt (s : Stmt) : List Stmt := flattenStmtFuel 4096 s
+def stmtNamesList : List Stmt → List String
+  | [] => []
+  | s :: ss => stmtNames s ++ stmtNamesList ss
+termination_by structural ss => ss
+
+def flattenStmt : Stmt → List Stmt
+  | .block ss => flattenStmtList ss.toList
+  | s => [s]
+termination_by structural s => s
+
+def flattenStmtList : List Stmt → List Stmt
+  | [] => []
+  | s :: ss => flattenStmt s ++ flattenStmtList ss
+termination_by structural ss => ss
+
+end
 
 def waitForProcess (p : Process) : List Sensitivity :=
   match p with
@@ -286,11 +307,50 @@ def waitForProcess (p : Process) : List Sensitivity :=
       { process := 0, target := n, wait := .anyChange, resume := 0 }
   | .unsupported _ _ => []
 
+mutual
+
+def evalExprStructural : Expr → SvState → Except String LVec
+  | .lit v, _ => .ok v
+  | .ident name, st =>
+      match readSignal st name with
+      | .ok v => .ok v
+      | .timeout => .error "scheduler: expression evaluation timed out"
+      | .unsupported msg => .error msg
+  | .unary op a, st => do
+      return evalUnaryOp op (← evalExprStructural a st)
+  | .reduce op a, st => do
+      return .ofLogic (evalRedOp op (← evalExprStructural a st))
+  | .resizeSigned width operand, st => do
+      return (← evalExprStructural operand st).resizeSigned width
+  | .squash2 operand, st => do
+      return (← evalExprStructural operand st).toTwoState
+  | .binary op l r, st => do
+      let a ← evalExprStructural l st
+      let b ← evalExprStructural r st
+      return evalBinOp op a b
+  | .ternary c t f, st => do
+      let cv ← evalExprStructural c st
+      let tv ← evalExprStructural t st
+      let fv ← evalExprStructural f st
+      return LVec.ternary cv tv fv
+  | .concat parts, st => do
+      let vs ← evalExprStructuralList parts.toList st
+      return LVec.concatMany vs.toArray
+  | .unsupported svKind _, _ => .error s!"unsupported expression '{svKind}'"
+termination_by structural e => e
+
+def evalExprStructuralList : List Expr → SvState → Except String (List LVec)
+  | [], _ => .ok []
+  | e :: rest, st => do
+      let v ← evalExprStructural e st
+      let vs ← evalExprStructuralList rest st
+      return v :: vs
+termination_by structural es => es
+
+end
+
 def evalValue (s : SlotState) (e : Expr) : Except String LVec :=
-  match evalExpr 4096 s.store e with
-  | .ok v => .ok v
-  | .timeout => .error "scheduler: expression fuel exhausted"
-  | .unsupported msg => .error msg
+  evalExprStructural e s.store
 
 def stmtAction (s : SlotState) (p : Nat) (stmt : Stmt) (next : Nat) : EvalAction :=
   match stmt with
