@@ -329,6 +329,10 @@ private def signedField (shape : Json) : Option Bool :=
 private def typeLayout (j : Json) : Except String TypeLayout := do
   let id ← field j "handle" >>= string
   let kind ← field j "kind" >>= string
+  let pointee :=
+    match j.getObjVal? "pointee" with
+    | .ok (.str value) => value.toNat?
+    | _ => none
   let layout ←
     match ← field j "layout" with
     | layout =>
@@ -343,8 +347,8 @@ private def typeLayout (j : Json) : Except String TypeLayout := do
             pure (some (sizeBits, align, signedField shape))
         | .error _ => pure none
   match layout with
-  | some (sizeBits, align, signed) => pure { id, kind, sizeBits, align, signed }
-  | none => pure { id, kind, sizeBits := none, align := none, signed := none }
+  | some (sizeBits, align, signed) => pure { id, kind, pointee, sizeBits, align, signed }
+  | none => pure { id, kind, pointee, sizeBits := none, align := none, signed := none }
 
 private def allocation (j : Json) : Except String Allocation := do
   let id ← field j "id" >>= string
@@ -367,6 +371,24 @@ private def allocation (j : Json) : Except String Allocation := do
                 pure (← nat offset, targetId)
             | _ => .error "allocation provenance entry must contain offset and target")
   pure { id, bytes, bytesValid, provenance, align }
+
+private def allocationIndex : List Allocation → String → Option Nat
+  | [], _ => none
+  | allocation :: rest, id =>
+      if allocation.id == id then some 0
+      else allocationIndex rest id |>.map (· + 1)
+
+private def provenanceMap (j : Json) (allocations : List Allocation) : Except String (List (Nat × Nat)) := do
+  let values ← array j
+  values.foldlM (init := []) fun result item => do
+    let kind ← field item "kind" >>= string
+    if kind != "memory" then pure result
+    else
+      let raw ← field item "id" >>= natFlexible
+      let allocationId ← field item "allocation" >>= string
+      match allocationIndex allocations allocationId with
+      | some index => pure ((raw, index) :: result)
+      | none => .error "global memory allocation is missing from the allocation table"
 
 def parseEnvelope (j : Json) : Except String Envelope := do
   let schema ← field j "schema" >>= string
@@ -402,7 +424,14 @@ def parseEnvelope (j : Json) : Except String Envelope := do
         match tables.getObjVal? "allocations" with
         | .error _ => pure []
         | .ok values => array values >>= (·.mapM allocation)
-  pure { schema, entry, bodies, calls, types, allocations }
+  let provenance ←
+    match j.getObjVal? "tables" with
+    | .error _ => pure []
+    | .ok tables =>
+        match tables.getObjVal? "globals" with
+        | .error _ => pure []
+        | .ok values => provenanceMap values allocations
+  pure { schema, entry, bodies, calls, types, allocations, provenance }
 
 def parseEnvelopeString (s : String) : Except String Envelope := do
   let json ← Json.parse s

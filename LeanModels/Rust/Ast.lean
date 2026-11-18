@@ -88,6 +88,7 @@ deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 structure TypeLayout where
   id : String
   kind : String
+  pointee : Option Nat := none
   sizeBits : Option Nat
   align : Option Nat
   signed : Option Bool := none
@@ -109,6 +110,7 @@ structure Envelope where
   calls : List CallEdge := []
   types : List TypeLayout := []
   allocations : List Allocation := []
+  provenance : List (Nat × Nat) := []
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 end LeanModels.Rust

@@ -330,6 +330,11 @@ impl Metadata {
         self.type_values.push(null());
         let kind = ty.kind();
         self.add_ty_kind(&kind);
+        let pointee = match &kind {
+            TyKind::RigidTy(RigidTy::Ref(_, inner, _))
+            | TyKind::RigidTy(RigidTy::RawPtr(inner, _)) => Some(string(raw_key(inner))),
+            _ => None,
+        };
         let layout = if has_dynamic_type(ty, &mut HashSet::new()) {
             object([( "error", string("layout refused: type contains a dynamic trait object") )])
         } else {
@@ -347,6 +352,7 @@ impl Metadata {
             ("id", string(id)),
             ("handle", string(raw_key(&ty))),
             ("kind", string(format!("{kind:?}"))),
+            ("pointee", pointee.unwrap_or_else(null)),
             ("layout", layout),
         ]);
     }
