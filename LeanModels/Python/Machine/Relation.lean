@@ -110,6 +110,8 @@ inductive RKont where
   | assign (name : String) (remaining : List RStmt)
   | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
+  | subscriptValue (index : Expr) (continuation : RKont)
+  | subscriptIndex (receiver : RVal) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
       (continuation : RKont)
@@ -386,6 +388,20 @@ def rBuildKwargs (heap : Heap) (keywords : List (String × RVal)) : Heap × RVal
     match pair with | (name, value) => (RVal.str name, value))).toArray
   let allocated := Heap.alloc heap (.dict entries 0)
   (allocated.1, .ref allocated.2)
+
+def rLookupDictEntries : List (RVal × RVal) → RVal → Option RVal
+  | [], _ => none
+  | (key, value) :: rest, index =>
+      if key == index then some value else rLookupDictEntries rest index
+
+def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
+  match receiver with
+  | .ref address =>
+      match heap.get? address with
+      | some (.dict entries _) =>
+          rLookupDictEntries entries.toList index
+      | _ => none
+  | _ => none
 
 def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
   { config with modules := rSetModule config.modules module name value }
@@ -727,6 +743,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               (.evaluate function (.callCallee args.toList keywordList continuation)))
       | .evaluate (.binOp left op right _) continuation =>
           some (.tau, config.setControl (.evaluate left (.binOpLeft op right continuation)))
+      | .evaluate (.subscript receiver index _) continuation =>
+          some (.tau, config.setControl (.evaluate receiver (.subscriptValue index continuation)))
       | .evaluate (.unsupported _ text _) _ =>
           some (.event (.refuse text), config.finish (.refuse text))
       | .evaluate _ _ =>
@@ -769,6 +787,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                     some (.tau, next)
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
+      | .continueValue receiver (.subscriptValue index continuation) =>
+          some (.tau, config.setControl (.evaluate index (.subscriptIndex receiver continuation)))
+      | .continueValue index (.subscriptIndex receiver continuation) =>
+          match rLookupDict config.heap receiver index with
+          | some value => some (.tau, config.setControl (.continueValue value continuation))
+          | none => some (.tau, config.setControl (.refusing "machine dictionary lookup"))
       | .continueValue right (.binOpRight left op continuation) =>
           match rEvalBinOp op left right with
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))
@@ -1101,6 +1125,14 @@ private def bKwargModule : RModule :=
         #[("a", Expr.constant (.int 1) testSpan),
           ("b", Expr.constant (.int 2) testSpan)] none testSpan)) testSpan] }
 
+private def bKwargLookupModule : RModule :=
+  { body := #[
+      .functionDef "pickKw" #[{ name := "items", keywordVariadic := true }] #[]
+        #[.ret (some (.subscript (.name "items" testSpan)
+          (.constant (.str "a") testSpan) testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "pickKw" testSpan) #[]
+        #[("a", Expr.constant (.int 9) testSpan)] none testSpan)) testSpan] }
+
 private def bDuplicateKeywordModule : RModule :=
   { body := #[
       .functionDefKw "keyworded" #[{ name := "a" }, { name := "b", keywordOnly := true }] #[]
@@ -1193,6 +1225,9 @@ example :
     (runB1 96 (RConfig.initial bKwargModule)).2.status =
       .finished (.return (.ref 0)) := by
   rfl
+
+#guard (runB1 128 (RConfig.initial bKwargLookupModule)).2.status ==
+  .finished (.return (.int 9))
 
 example :
     (runB1 96 (RConfig.initial bDuplicateKeywordModule)).2.status =
