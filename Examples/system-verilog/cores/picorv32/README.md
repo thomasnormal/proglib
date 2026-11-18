@@ -250,7 +250,9 @@ iverilog -g2012 -DRISCV_FORMAL -s tb_picorv32_rvfi \
 vvp picorv32_rvfi_tb
 ```
 
-Icarus Verilog 13.0 and Verilator 5.052 produced the same five RVFI rows.  The
+Icarus Verilog 13.0 and Xcelium 24.03-s004 produced the same five RVFI rows.
+The normalized row SHA-256 is
+`d9c92e4fba8938233fb0e56d9e19d38a5c3ecf4fd9be8e110f06d90f18d27833`.  The
 first four are the non-trapping RV32I stream (orders 0 through 3); the fifth is
 the `ebreak` row with `trap=1`.  The rows include `sw`'s `wmask=f` and data 5,
 then `lw`'s `rmask=f`, address `0x100`, and data 5.  The Lean witness
@@ -261,7 +263,9 @@ proof-side annotation is refused.  This validates the RVFI observation
 boundary against two simulators; it does not bypass the loader's
 unpacked-memory/generate wall or claim a core refinement theorem.  The same
 Lean witness also checks that all five observed instruction words decode to
-the expected RV32I/system constructors in `LeanModels.Rv`.
+the expected RV32I/system constructors in `LeanModels.Rv`.  The probe names
+all 26 RISCV_FORMAL parameter values from the loaded envelope, matching the
+R2 design point.
 
 The witness also feeds the complete list to `normalizeRvfiTrace? 0`.  This
 order-aware checker treats `valid = false` rows as bubbles, requires each valid
