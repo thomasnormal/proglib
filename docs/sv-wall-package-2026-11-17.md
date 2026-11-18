@@ -879,16 +879,16 @@ drivers, so canonical E keeps a loud refusal rather than collapsing drivers.
 Existing Icarus Verilog 13.0 and Xcelium 24.03-s004 rows agree on y=x. No
 count transition is claimed.
 
-## Output net-with-z current-head check — 2026-11-18T02:18Z
+## Output net-with-z current-head check — corrected 2026-11-18T03:40Z
 
-Fresh extraction of wire_output_port.sv at public master 39f95ff6a retains
-PortSymbol:net-z for y. Ordinary E reaches PDesign.instantiate and reports the
-same net-z boundary. The earlier package batch's refusal-free line for this
-fixture was stale and is superseded by this direct current-head result. IEEE
-1800-2023 section 6.6 requires four-state net startup and resolution, so the
-current route remains loud at this wall. Existing eight-bit undriven-output
-rows match Icarus Verilog 13.0 and Xcelium 24.03-s004 with z on every bit. No
-count transition is claimed.
+Fresh extraction of wire_output_port.sv retains PortSymbol:net-z for y. The
+ordinary census always prints retained parser-native design rows through
+PDesign.instantiate, even when canonical E admits the design. The authoritative
+batch receipt reports ordinary=8 for this fixture, with all eight undriven
+output bits reading z and matching Icarus Verilog 13.0 and Xcelium 24.03-s004.
+IEEE 1800-2023 section 6.6 is therefore admitted for this complete undriven
+output-net shape. The earlier refusal classification was a census-reading
+error and is superseded. No count transition is claimed.
 
 ## Typed named-value current-head check — 2026-11-18T02:12Z
 
