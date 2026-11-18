@@ -1,5 +1,6 @@
 import LeanModels.Sv.Json
 import LeanModels.Sv.Semantics
+import LeanModels.Sv.Scheduler
 import LeanModels.Sv.Surface
 
 /-!
