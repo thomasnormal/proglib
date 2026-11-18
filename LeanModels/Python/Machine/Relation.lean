@@ -38,6 +38,13 @@ inductive RStmt where
   | unsupported (kind : String) (text : String) (span : Span)
 deriving Repr, Inhabited, BEq
 
+structure RFunction where
+  name : String
+  params : Array RParam
+  body : Array RStmt
+  globals : String
+deriving Repr, Inhabited, BEq
+
 structure RModule where
   body : Array RStmt
 deriving Repr, Inhabited, BEq
@@ -115,6 +122,8 @@ structure RConfig where
   program : RModule
   frames : List RFrame
   heap : Heap
+  modules : List (String × REnv)
+  functions : List RFunction
   choices : List RChoice
   choiceToken : Option Nat
   status : RStatus
@@ -124,6 +133,8 @@ def RConfig.initial (program : RModule) : RConfig :=
   { program := program
     frames := [{ control := .statements program.body.toList, locals := [], globals := [] }]
     heap := #[]
+    modules := [("__main__", [])]
+    functions := []
     choices := []
     choiceToken := none
     status := .running }
@@ -138,13 +149,29 @@ def RConfig.setTop (config : RConfig) (frame : RFrame) : RConfig :=
   | [] => config
   | _ :: tail => { config with frames := frame :: tail }
 
+def rSetEnv (env : REnv) (name : String) (value : RVal) : REnv :=
+  (name, value) :: env.filter (fun binding => binding.1 != name)
+
+def rDefinedFrame (frame : RFrame) (name : String) (remaining : List RStmt) : RFrame :=
+  { control := .statements remaining
+    locals := rSetEnv frame.locals name (.callable name)
+    globals := frame.globals }
+
+def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFrame)
+    (function : RFunction) (remaining : List RStmt) : RConfig :=
+  { program := config.program
+    frames := rDefinedFrame frame function.name remaining :: tail
+    heap := config.heap
+    modules := config.modules
+    functions := function :: config.functions
+    choices := config.choices
+    choiceToken := config.choiceToken
+    status := config.status }
+
 def rLookupEnv : REnv → String → Option RVal
   | [], _ => none
   | (name, value) :: rest, wanted =>
       if name == wanted then some value else rLookupEnv rest wanted
-
-def rSetEnv (env : REnv) (name : String) (value : RVal) : REnv :=
-  (name, value) :: env.filter (fun binding => binding.1 != name)
 
 def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
     (remaining : List RStmt) : RFrame :=
@@ -210,6 +237,14 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
       (hframe : config.frames =
         { frame with control := .statements (.assign (.name name span) value span :: rest) } :: tail) :
       Step config .tau (config.setControl (.evaluate value (.assign name rest)))
+  | defineFunction {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      {name : String} {params : Array RParam} {defaults : Array Expr}
+      {body : Array RStmt} {rest : List RStmt} {span : Span}
+      (hframe : config.frames =
+        { frame with control := .statements (.functionDef name params defaults body span :: rest) } :: tail) :
+      Step config .tau
+        (config.defineFunction frame tail
+          { name := name, params := params, body := body, globals := "__main__" } rest)
   | evaluateConstant {config : RConfig} {frame : RFrame} {tail : List RFrame}
       {value : Const} {span : Span} {continuation : RKont}
       (hframe : config.frames =
@@ -364,6 +399,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl (.evaluate expression (.sequence rest)))
           | .assign (.name name _) value _ =>
               some (.tau, config.setControl (.evaluate value (.assign name rest)))
+          | .functionDef name params defaults body span =>
+              match config.frames with
+              | current :: tail =>
+                  some (.tau, config.defineFunction current tail
+                    { name := name, params := params, body := body, globals := "__main__" } rest)
+              | [] => none
           | .ret none _ => some (.event (.return .none), config.finish (.return .none))
           | .ret (some expression) _ =>
               some (.tau, config.setControl (.evaluate expression .returnValue))
@@ -562,6 +603,15 @@ private def b1Module : RModule :=
       .assign (.name "y" testSpan)
         (.binOp (.name "x" testSpan) .add (.constant (.int 2) testSpan) testSpan) testSpan,
       .expr (.name "y" testSpan) testSpan] }
+
+private def bFunction : RFunction :=
+  { name := "identity", params := #[], body := #[.ret none testSpan], globals := "__main__" }
+
+example :
+    (RConfig.initial b1Module).defineFunction
+      { control := .statements b1Module.body.toList, locals := [], globals := [] } []
+      bFunction [] |>.functions.length = 1 := by
+  rfl
 
 #guard (runB1 32 (RConfig.initial b1Module)).2.status ==
   .finished (.return .none)
