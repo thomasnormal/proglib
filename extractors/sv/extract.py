@@ -35847,7 +35847,32 @@ def _sym_instance_definitions(tree, source_map, top, module):
     modules, others, packages = [], [], set()
     if module.get("kind") != "Module":
         return modules, others, packages
+    # Keep every parser-resolved module definition from this compilation unit
+    # available to source-shaped generate expansion.  Slang's default top
+    # elaboration omits definitions referenced only from an inactive
+    # parameterized branch, although those definitions remain part of the
+    # source library and may become active at another parameter point.
+    source_modules = []
+    referenced_modules = []
+    def collect_module(node):
+        if str(getattr(node, "kind", "")).split(".")[-1] == "ModuleDeclaration":
+            header = getattr(node, "header", None)
+            name = str(getattr(header, "name", "")).strip()
+            if name and name not in source_modules:
+                source_modules.append(name)
+        elif str(getattr(node, "kind", "")).split(".")[-1] == "HierarchyInstantiation":
+            token = getattr(node, "type", None)
+            name = str(getattr(token, "valueText", "")).strip()
+            if name and name not in referenced_modules:
+                referenced_modules.append(name)
+        return VisitAction.Advance
+    try:
+        tree.root.visit(collect_module)
+    except Exception:
+        source_modules = []
     pending = list(_SYM.instance_modules)
+    pending.extend(name for name in referenced_modules
+                   if name in source_modules and name != top)
     seen = {top}
     while pending:
         name = pending.pop(0)
