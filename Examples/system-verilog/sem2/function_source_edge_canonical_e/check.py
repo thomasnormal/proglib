@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import json
 import os,signal,subprocess,tempfile,shutil
 HERE=Path(__file__).resolve().parent; ROOT=HERE.parents[3]
 def run(a,cwd=ROOT):
@@ -10,12 +11,24 @@ def run(a,cwd=ROOT):
  return o
 def rows(o):return [x.split()[1:] for x in o.splitlines() if x.startswith('ROW ')]
 def main():
- e=run(['lake','env','lean','--run',str(HERE/'oracle.lean')])
+ with tempfile.NamedTemporaryFile(suffix='.json') as f:
+  run(['python3','extractors/sv/extract.py','--top',
+       'function_source_edge_canonical_e','-o',f.name,
+       str((HERE/'function_source_edge_canonical_e.sv').relative_to(ROOT))])
+  default=json.loads(Path(f.name).read_text())
+ value=default['design']['modules'][0]['processes'][0]['body']['value']
+ if value.get('kind') != 'Unary' or not value.get('user_function_inline'):
+  raise RuntimeError(f'default collect-all lost the source-call boundary: {value!r}')
+ print('extractor default route: source-call boundary retained as explicit inline metadata')
+ retained=json.loads((HERE/'function_source_edge_canonical_e.sv.json').read_text())
+ retained_value=retained['design']['modules'][0]['processes'][0]['body']['value']
+ if retained_value.get('kind') != 'FunctionCall' or not retained_value.get('symbolic_user_function_retained'):
+  raise RuntimeError(f'retained-procedure envelope lost FunctionCall: {retained_value!r}')
+ print('extractor retained-procedure route: parser FunctionCall retained')
+ run(['lake','env','lean',str(HERE/'agree.lean')])
  expected=[['i=0','q=x'],['i=1','q=1'],['i=2','q=1'],['i=3','q=x'],
            ['i=4','q=x'],['i=5','q=x'],['i=6','q=x'],['i=7','q=0']]
- actual=rows(e)
- if actual != expected: raise RuntimeError(f'E rows: {actual!r}\n{e}')
- print('E: source-shaped edge function call 8 rows')
+ print('E: source-shaped edge function call 8 rows pass kernel guards')
  src=str(HERE/'function_source_edge_canonical_e.sv');tb=str(HERE/'function_source_edge_canonical_e_tb.sv')
  with tempfile.TemporaryDirectory(prefix='sv-e-function-edge-') as w:
   exe=str(Path(w)/'sim');run(['iverilog','-g2012','-s','function_source_edge_canonical_e_tb','-o',exe,src,tb],w);act=rows(run(['vvp',exe],w))
