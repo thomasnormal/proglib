@@ -59,6 +59,7 @@ deriving Repr, Inhabited
 inductive CoreMemProc where
   | edge (p : CoreMemEdge)
   | assign (target : PLhs) (value : PExpr)
+  | primitive (op : String) (target : PLhs) (inputs : List PExpr)
   | initial (body : PStmt)
   /-- An `always_comb` body runs once at time zero and is reactivated when a
       value in its implicit sensitivity set changes.  The retained `PStmt`
@@ -373,6 +374,9 @@ def CoreMemProc.ofPProcessAt (env : IEnv) : PProcess → CoreMemProc
       | .error _ => .initial body
   | p => CoreMemProc.ofPProcess p
 
+def CoreMemProc.ofPPrimitive (p : PPrimitive) : CoreMemProc :=
+  .primitive p.op p.target p.inputs
+
 def coreMemEventEdge : PEventEdge → ClockEdge → Bool
   | .any, _ => true
   | .posedge, _ => true
@@ -597,7 +601,8 @@ def coreMemResolvedNetNames (d : PDesign) (generated : List PProcess) : List Str
 def coreMemNetAllowed (d : PDesign) (generated : List PProcess) (kind name : String) : Bool :=
   d.others.any (fun entry => entry.1 == kind && entry.2 == name) &&
     d.netMetadata.any (fun md => md.name == name &&
-      (coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generated))
+      (coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generated ||
+       (d.primitives.any (fun p => p.target.name == name))))
 
 /-! A generated net marker lives in `GenItem`, rather than `PDesign.others`.
 The parser-native metadata is retained on the design above, and the marker is
@@ -631,7 +636,8 @@ def coreMemFirstUnsupportedOther (d : PDesign) (generated : List PProcess) : Lis
 
 def coreMemNetDecls (d : PDesign) (generated : List PProcess) : List Decl :=
   d.netMetadata.filter (fun md => !md.generated) |>.filterMap fun md =>
-    if coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generated then
+    if coreMemNetMetadataAllowed md || coreMemNetDriverAllowed md generated ||
+        d.primitives.any (fun p => p.target.name == md.name) then
       let dc : Decl := { name := md.name, width := md.width, isOutput := coreMemMetadataIsOutput d md.name, isNet := true, init := some (LVec.replicate md.width .lz) }
       some dc
     else none
@@ -1305,6 +1311,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
                 let scalarEdge : Elab1 :=
                   { decls := decls.toArray, procs := #[], name := d.name }
                 let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
+                  (d.primitives.map CoreMemProc.ofPPrimitive) ++
                   (generated.map (CoreMemProc.ofPProcessAt envP))
                 let resolvedNets := coreMemResolvedNetNames d allForNet
                 let result : CoreMemDesign :=
@@ -2269,6 +2276,8 @@ def CoreMemDesign.runImplicitAt (E : CoreMemDesign) (before current : CoreMemSta
     (beforeView currentView : SvState) (index : Nat) :
     List CoreMemProc → Res CoreMemState
   | [] => .ok current
+  | .primitive _ _ _ :: rest =>
+      E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .implicit body :: rest => do
       let reads := coreMemStmtReadExprs body
       let ready ← E.readChangedImplicitAt before current beforeView currentView index reads
@@ -2299,6 +2308,7 @@ def CoreMemDesign.runImplicit (E : CoreMemDesign) (before current : CoreMemState
 def CoreMemDesign.runCombInitialWithView (E : CoreMemDesign) (current : CoreMemState)
     (view : SvState) : List CoreMemProc → Res (CoreMemState × SvState)
   | [] => .ok (current, view)
+  | .primitive _ _ _ :: rest => E.runCombInitialWithView current view rest
   | .comb body :: rest => do
       let (after, view') ← E.execCombStmtAtView E.env E.elems current view body
       E.runCombInitialWithView (E.compactScalar after view') view' rest
@@ -2316,6 +2326,7 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
     (beforeView : SvState) (current : CoreMemState) (currentView : SvState)
     (index : Nat) : List CoreMemProc → Res CoreMemState
   | [] => .ok current
+  | .primitive _ _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .comb body :: rest => do
       let reads := coreMemStmtReadExprs body
       let ready ← E.readChangedAt before current beforeView currentView index reads
@@ -2492,6 +2503,23 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
     (st : CoreMemState) (view : SvState) (index : Nat) : List CoreMemProc →
     Res (CoreMemState × SvState)
   | [] => .ok (st, view)
+  | .primitive op target inputs :: rest =>
+      match target, inputs with
+      | .ident name, [left, right] => do
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"28: primitive target '{name}' is undeclared"
+          let a ← E.evalExprLocals env elems st none view left
+          let b ← E.evalExprLocals env elems st none view right
+          let value := match op with
+            | "and" => evalBinOp .land a b
+            | "or" => evalBinOp .lor a b
+            | "xor" => evalBinOp .xor a b
+            | "xnor" => evalUnaryOp .bnot (evalBinOp .xor a b)
+            | _ => LVec.xVec width
+          let st' := E.setScalarState st name (value.resizeU width)
+          E.settleAssignAt env elems st' (E.scalar.view st'.scalar) (index + 1) rest
+      | _, _ => .unsupported s!"28: unsupported primitive '{op}' arity or target"
   | .assign target value :: rest => do
       match target with
       | .ident name =>

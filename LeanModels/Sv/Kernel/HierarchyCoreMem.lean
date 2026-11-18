@@ -91,6 +91,8 @@ private def hParamLhs (vals : List (String × Int)) : PLhs → PLhs
   | .arrayElem n xs => .arrayElem n (xs.map (hParamExpr vals))
   | .arrayPart n xs mode a b =>
       .arrayPart n (xs.map (hParamExpr vals)) mode (hParamExpr vals a) (hParamExpr vals b)
+  | .aggregateMember n path =>
+      .aggregateMember n (path.map fun (field, ix) => (field, ix.map (hParamExpr vals)))
   | l => l
 
 private partial def hParamStmt (vals : List (String × Int)) : PStmt → PStmt
@@ -161,6 +163,8 @@ private def hLhs (pfx : String) : PLhs → PLhs
   | .partSel n a b => .partSel (pfx ++ n) (hExpr pfx a) (hExpr pfx b)
   | .arrayElem n is => .arrayElem (pfx ++ n) (is.map (hExpr pfx))
   | .arrayPart n is m a b => .arrayPart (pfx ++ n) (is.map (hExpr pfx)) m (hExpr pfx a) (hExpr pfx b)
+  | .aggregateMember n path =>
+      .aggregateMember (pfx ++ n) (path.map fun (field, ix) => (field, ix.map (hExpr pfx)))
   | .concat xs => .concat (xs.map (hLhs pfx))
 
 private partial def hStmt (pfx : String) : PStmt → PStmt

@@ -111,6 +111,7 @@ deriving instance Lean.ToExpr for PNetMetadata
 deriving instance Lean.ToExpr for PPathSeg
 deriving instance Lean.ToExpr for PConn
 deriving instance Lean.ToExpr for PInst
+deriving instance Lean.ToExpr for PPrimitive
 deriving instance Lean.ToExpr for GenItem
 deriving instance Lean.ToExpr for PDesign
 
@@ -833,6 +834,16 @@ def parsePInst (j : Json) : Except String PInst := do
     let conns ← (← (← getField j "ports").getArr?).toList.mapM parsePConn
     return { name, module, path, params, conns }
 
+private def parsePPrimitive (j : Json) : Except String PPrimitive := do
+  let name ← getStrField j "name"
+  let op ← getStrField j "op"
+  let target ← parseTargetL (← getField j "target")
+  let target ← match target with
+    | .ok t => pure t
+    | .error e => throw e
+  let inputs ← (← (← getField j "inputs").getArr?).toList.mapM parsePExpr
+  return { name, op, target, inputs }
+
 /-! ## Module and envelope -/
 
 /-- Parse a `Port`/`Var`/`Net` declaration (symbolic `width` type object). -/
@@ -1015,6 +1026,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
     let mut decls : List PDecl := []
     let mut processes : List PProcess := []
     let mut functions : List PFunction := []
+    let mut primitives : List PPrimitive := []
     let mut generates : List GenItem := []
     let mut others : List (String × String) := []
     let mut netMetadata : List PNetMetadata := []
@@ -1101,6 +1113,10 @@ def parseModule2 (j : Json) : Except String PDesign :=
       functions := functions ++ [{ name := fname, formals, returnType, body, isSigned, automatic }]
     for pj in (← (← getField j "processes").getArr?) do
       processes := processes ++ [← parsePProcess pj]
+    for pj in (← match getOptField j "primitives" with
+      | none => pure #[]
+      | some pj => pj.getArr? |>.mapError (fun _ => "field 'primitives' is not an array")) do
+      primitives := primitives ++ [← parsePPrimitive pj]
     for gj in (← (← getField j "generates").getArr?) do
       generates := generates ++ [← parseGenItem gj]
       netMetadata := netMetadata ++ (← parseGenerateNetMetadata gj)
@@ -1145,7 +1161,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
           others := others ++ [← parseUnsupportedFields oj]
           match ← parseNetMetadata? oj with | some md => netMetadata := netMetadata ++ [md] | none => pure ()
       | other => throw s!"unknown module member kind {other.quote}"
-    return { name := name, params := params, localParams := localParams, packageParams := packageParams, enums := enums, decls := decls, functions := functions, processes := processes, generates := generates, others := others, netMetadata := netMetadata, properties := properties, readmemh := readmemh, cellRefs := cellRefs }
+    return { name := name, params := params, localParams := localParams, packageParams := packageParams, enums := enums, decls := decls, functions := functions, primitives := primitives, processes := processes, generates := generates, others := others, netMetadata := netMetadata, properties := properties, readmemh := readmemh, cellRefs := cellRefs }
 
 /-- An sv-0.2 envelope: parametric design + provenance metadata. -/
 structure Envelope2 where
@@ -1964,7 +1980,7 @@ private def unsupMemberText : String := r#"{
   | some (.aggregateMember "state" [(some "words", none), (none, some (.int 1)), (some "value", none)]) => true
   | _ => false
 #guard match (Json.parse r#"{"kind":"BlockingAssign","target":{"kind":"AggregateMember","base":"sink","path":[{"field":"value"}]},"value":{"kind":"Int","value":1}}"# >>= parsePStmt).toOption with
-  | some (.unsupported "MemberAccessExpression:aggregate target" _) => true
+  | some (.blockingAssignL (.aggregateMember "sink" [(some "value", none)]) (.int 1)) => true
   | _ => false
 #guard match (Json.parse r#"{"kind":"AlwaysEvent","events":[],"body":{"kind":"Empty"}}"# >>= parsePProcess) with
   | .error _ => true

@@ -30034,6 +30034,7 @@ def convert_module(sm, inst):
     decls = _convert_static_procedural_storage(sm, members)
     processes = []
     functions = []
+    primitives = []
     others = []
     global _ELAB_CURRENT_SCOPE
     for m, route in members:
@@ -34458,6 +34459,8 @@ def _convert_member_sym(sm, m, k, path=()):
     """One non-if-generate member -> node or None (silently skipped)."""
     if k == "Instance":
         return convert_instance_sym(sm, m)
+    if k == "PrimitiveInstance":
+        return _convert_primitive_sym(sm, m)
     if k == "Parameter":
         return convert_param_sym(sm, m)
     if k == "Genvar":
@@ -34528,6 +34531,27 @@ def _convert_member_sym(sm, m, k, path=()):
             pass
         return unsupported(sm, m, type(m).__name__ + ":" + k)
     return unsupported(sm, m, type(m).__name__ + ":" + k)
+
+
+def _convert_primitive_sym(sm, primitive):
+    """Retain a built-in gate primitive as its own source-shaped node."""
+    try:
+        conns = list(primitive.portConnections)
+        if len(conns) < 2:
+            return unsupported(sm, primitive, "PrimitiveInstanceSymbol:PrimitiveInstance")
+        first = conns[0]
+        if type(first).__name__ != "AssignmentExpression":
+            return unsupported(sm, primitive, "PrimitiveInstanceSymbol:PrimitiveInstance")
+        target = _convert_expr(sm, first.left)
+        inputs = [_convert_expr(sm, conn) for conn in conns[1:]]
+        if target.get("kind") == "Unsupported" or any(x.get("kind") == "Unsupported" for x in inputs):
+            return unsupported(sm, primitive, "PrimitiveInstanceSymbol:PrimitiveInstance")
+        return {"kind": "Primitive", "span": sym_span(sm, primitive),
+                "name": primitive.name,
+                "op": primitive.primitiveType.name,
+                "target": target, "inputs": inputs}
+    except Exception:
+        return unsupported(sm, primitive, "PrimitiveInstanceSymbol:PrimitiveInstance")
 
 
 # --- module instances (F3, 2026-10-28) --------------------------------------
@@ -35896,6 +35920,7 @@ def convert_module_sym(sm, inst):
     decls = []
     processes = []
     functions = []
+    primitives = []
     generates = []
     others = []
     properties = []
@@ -35948,6 +35973,12 @@ def convert_module_sym(sm, inst):
                 generates.append(convert_generate_for(sm, m))
             elif k == "Instance":
                 generates.append(convert_instance_sym(sm, m))
+            elif k == "PrimitiveInstance":
+                primitive = _convert_primitive_sym(sm, m)
+                if isinstance(primitive, dict) and primitive.get("kind") == "Primitive":
+                    primitives.append(primitive)
+                else:
+                    others.append(primitive)
             elif k == "Subroutine" and _RETAIN_PROC_REWRITES:
                 retained = _sym_function_node(sm, m)
                 if isinstance(retained, dict) and retained.get("kind") == "Function":
@@ -36056,6 +36087,7 @@ def convert_module_sym(sm, inst):
         **({"functions": package_functions + functions}
            if package_functions or functions else {}),
         "processes": processes,
+        **({"primitives": primitives} if primitives else {}),
         "generates": generates,
         "others": others,
         **({"readmemh": list(_SYM_READMEMH_PENDING)}

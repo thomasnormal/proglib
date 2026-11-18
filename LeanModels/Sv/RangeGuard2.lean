@@ -129,6 +129,7 @@ def PLhs.legacySelNames : PLhs → List String
   | .concat ps => PLhs.legacySelNamesList ps
   | .arrayElem _ is => PExpr.legacySelNamesList is
   | .arrayPart _ is _ a b => PExpr.legacySelNamesList is ++ a.legacySelNames ++ b.legacySelNames
+  | .aggregateMember _ path => path.flatMap fun (_, ix) => ix.map PExpr.legacySelNames |>.getD []
 
 /-- `PLhs.legacySelNames` over a list. -/
 def PLhs.legacySelNamesList : List PLhs → List String
@@ -284,6 +285,7 @@ def PLhs.bitIdxs : PLhs → List PExpr
   | .concat ps => PLhs.bitIdxsList ps
   | .arrayElem _ is => PExpr.bitIdxsList is
   | .arrayPart _ is _ a b => PExpr.bitIdxsList is ++ a.bitIdxs ++ b.bitIdxs
+  | .aggregateMember _ path => path.flatMap fun (_, ix) => ix.toList.flatMap fun e => e :: e.bitIdxs
 
 /-- `PLhs.bitIdxs` over a list. -/
 def PLhs.bitIdxsList : List PLhs → List PExpr

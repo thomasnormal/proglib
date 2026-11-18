@@ -229,6 +229,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("x", 1),), (Port("y", 1),), retain_proc_rewrites=True),
     Fixture("unsupported_instantiation_repro.sv", "unsupported_instantiation_repro",
             (Port("d", 1),), (Port("q", 1),), retain_proc_rewrites=True),
+    Fixture("primitive_wire_repro.sv", "primitive_wire_repro",
+            (Port("left", 1), Port("right", 1)), (Port("result", 1),)),
     Fixture("member_access_repro.sv", "member_access_repro",
             (Port("source", 5),), (Port("result", 4),),
             retain_proc_rewrites=True),

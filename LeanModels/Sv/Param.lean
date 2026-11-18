@@ -612,6 +612,16 @@ structure PInst where
   conns : List PConn := []
 deriving Repr, BEq, Inhabited
 
+/-- Source-shaped built-in gate primitive instance (IEEE 1800-2023 §28).
+The first port is the primitive output target, followed by input expressions.
+The node remains distinct from continuous assignment semantics. -/
+structure PPrimitive where
+  name : String
+  op : String
+  target : PLhs
+  inputs : List PExpr
+deriving Repr, BEq, Inhabited
+
 /-- Generate items. `genFor` is ONE structural node — genvar, symbolic
 `init`/`bound`/`step`, body **template** (never unrolled in the data);
 `genIf` keeps its symbolic condition (`elseB = []` when there is no else
@@ -749,6 +759,7 @@ structure PDesign where
   enums : List PEnumType
   decls : List PDecl
   functions : List PFunction := []
+  primitives : List PPrimitive := []
   processes : List PProcess
   generates : List GenItem
   others : List (String × String) := []
