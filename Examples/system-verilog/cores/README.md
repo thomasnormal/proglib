@@ -743,6 +743,29 @@ The public-master probe reproduces both successful passes.  Its first clock
 transition remains a non-returning execution path in the bounded probe, so no
 full E-RUN cycle is claimed.
 
+## 2026-11-18 current source-overlay rerun
+
+The two assigned follow-up inputs were fetched again at their pinned public
+revisions and re-extracted with the approved Slang frontend.  DarkRISCV's
+source SHA-256 is unchanged at
+`46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0`; the new
+envelope is `a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7`.
+The census is **177 admitted / 0 refused / 0 not reached**.  Canonical E loads
+the one-rank memory route and completes two passes, clock preparation, edge
+execution, and NBA commit construction.  Its staged receipt is **4/4**, while
+the first complete clock run remains unmeasured.  The pinned simulator receipt
+remains **220/220** on both Icarus Verilog 13.0 and Xcelium 24.03-s004, with row digest
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+
+Quark's source SHA-256 is unchanged at
+`182e6d13bf5ab165b6eefaa22ae8d6a24ea45db6dd2dbd57dcfc5e81932097b7`; the new
+envelope is `19e757d78a76214d9b4e56a3fbfcd7ee98c303936d7d9f8a1a4dcdd8db72c519`.
+The census is **130 admitted / 51 refused / 0 not reached**, while canonical E
+refuses at the `FETCH_INSTR` untyped-width cross-check.  Both pinned simulators
+still refuse before elaboration at the source's use-before-declared `instr`, so
+Quark remains **E-RUN 0/0**.  The checker accepts these fresh envelope hashes
+and preserves the exact refusal receipts.
+
 The stage probe narrows that wall.  `prepareStep` succeeds for the first
 `CLK=1, RES=0` row, `runEdges` succeeds across all 68 retained processes, and
 the scalar plus memory NBA commit construction succeeds.  Settling the
