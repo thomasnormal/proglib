@@ -206,5 +206,8 @@ a keyword, while
 keyword binding as a loud refusal, while
 `harness/scripts/function_keyword_default.py` checks a keyword selecting a
 literal-defaulted parameter, while
+`harness/scripts/function_keyword_omitted_default.py` checks that an earlier
+literal default can be omitted when a later parameter is selected by keyword,
+while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twenty matches, three refusals, and zero divergence.
+current result is twenty-one matches, three refusals, and zero divergence.
