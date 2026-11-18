@@ -779,6 +779,16 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Specify-block current-head check — 2026-11-18T02:11Z
+
+Fresh extraction of specify_repro.sv at public master f2377936d retains
+SpecifyBlockSymbol:SpecifyBlock. Ordinary E reports the node at
+PDesign.instantiate and refuses it in instantiateE2. IEEE 1800-2023 section
+30 defines timing paths and checks, while canonical E is zero-delay and has no
+timing scheduler, so the timing construct remains a loud refusal. Functional
+rows match Icarus Verilog 13.0 and Xcelium 24.03-s004 in the existing receipt.
+No count transition is claimed.
+
 ## Primitive-instance current-head check — 2026-11-18T02:10Z
 
 Fresh extraction of primitive_repro.sv at public master 31561db80 retains
