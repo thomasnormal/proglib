@@ -1846,6 +1846,11 @@ theorem reallocAt_null_pointer_shape (m : Mem) (size address : Nat) (h : size �
   simp only [Except.map, Except.ok.injEq]
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt]
 
+@[simp] theorem mallocAt_pointer_shape (m : Mem) (size address : Nat) :
+    (m.mallocAt size address).2 =
+      ⟨some (m.objs.length), address, 0, some size⟩ := by
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt]
+
 @[simp] theorem reallocAt_null_placement_irrel (m : Mem) (size address₁ address₂ : Nat)
     (h : size ≠ 0) :
     (reallocAt m Ptr.null size address₁).map
