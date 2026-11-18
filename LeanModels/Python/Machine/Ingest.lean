@@ -302,7 +302,12 @@ private def mParams (args : MArguments) : Array RParam :=
     | some arg => #[mParam arg (false, false, true)]
     | none => #[]
   let keywordOnly := args.keywordOnly.map (fun arg => mParam arg (false, true, false))
-  positionalOnly ++ positional ++ vararg ++ keywordOnly
+  let kwarg := match args.kwarg with
+    | some arg => #[(
+        { name := arg.name, positionalOnly := false, keywordOnly := false,
+          variadic := false, keywordVariadic := true } : RParam)]
+    | none => #[]
+  positionalOnly ++ positional ++ vararg ++ keywordOnly ++ kwarg
 
 partial def mStmtToStmt : MStmt → RStmt
   | .pass span => .pass span
@@ -346,8 +351,27 @@ private def ingestModule : Json :=
         ("value", Lean.Json.mkObj [("kind", Lean.toJson "Constant"), ("span", ingestSpan),
           ("value", Lean.Json.mkObj [("type", Lean.toJson "int"), ("repr", Lean.toJson "1")])])]])])]
 
+private def ingestKwargArguments : Json :=
+  Lean.Json.mkObj [
+    ("posonlyargs", Lean.Json.arr #[]), ("args", Lean.Json.arr #[]),
+    ("vararg", Lean.Json.null), ("kwonlyargs", Lean.Json.arr #[]),
+    ("kw_defaults", Lean.Json.arr #[]),
+    ("kwarg", Lean.Json.mkObj [("arg", Lean.toJson "items")]),
+    ("defaults", Lean.Json.arr #[])]
+
+private def ingestKwargModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [("kind", Lean.toJson "Module"),
+    ("body", Lean.toJson #[Lean.Json.mkObj [
+      ("kind", Lean.toJson "FunctionDef"), ("span", ingestSpan),
+      ("name", Lean.toJson "collectKw"), ("args", ingestKwargArguments),
+      ("body", Lean.Json.arr #[])]] )])]
+
 #guard match parseMachineModule ingestModule with
   | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _] _ _] } => true
+  | _ => false
+
+#guard match parseMachineModule ingestKwargModule with
+  | .ok { body := #[.functionDef _ args _ _ _ _] } => args.kwarg.isSome
   | _ => false
 
 end LeanModels.Python.Machine
