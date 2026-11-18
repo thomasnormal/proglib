@@ -2734,6 +2734,46 @@ def CoreMemDesign.writeReadmemhList (E : CoreMemDesign) (st : CoreMemState) :
       let st' ← E.writeReadmemh st task
       E.writeReadmemhList st' rest
 
+/-! A runtime initial task cannot be selected by a two-valued branch test.
+Unknown inputs leave the branch outcome open under IEEE 1800-2023 §6.3.1, so
+the zero-delay E entry refuses a source-shaped system task before evaluating
+the body instead of choosing the simulator's x-optimistic branch. -/
+mutual
+
+def initialRuntimeTask : PStmt → Option String
+  | .unsupported kind text =>
+      if kind.startsWith "SysCall:" then some s!"{kind}: {text}" else none
+  | .block body => initialRuntimeTaskList body
+  | .ifStmt _ yes no =>
+      match initialRuntimeTask yes with
+      | some msg => some msg
+      | none => match no with
+          | some branch => initialRuntimeTask branch
+          | none => none
+  | .caseStmt _ items default? _ _ =>
+      match initialRuntimeTaskCases items with
+      | some msg => some msg
+      | none => match default? with
+          | some branch => initialRuntimeTask branch
+          | none => none
+  | _ => none
+
+def initialRuntimeTaskList : List PStmt → Option String
+  | [] => none
+  | stmt :: rest =>
+      match initialRuntimeTask stmt with
+      | some msg => some msg
+      | none => initialRuntimeTaskList rest
+
+def initialRuntimeTaskCases : List (List PExpr × PStmt) → Option String
+  | [] => none
+  | (_, body) :: rest =>
+      match initialRuntimeTask body with
+      | some msg => some msg
+      | none => initialRuntimeTaskCases rest
+
+end
+
 def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
   let bodies := E.processes.toList.filterMap fun p =>
     match p with
@@ -2746,7 +2786,10 @@ def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
     | _ => .unsupported "SystemTask:readmemh: multiple initial processes are outside this cycle entry"
   else match bodies with
     | [] => .ok E.initial
-    | [body] => E.execInitialStmt E.env E.elems E.initial 4096 body
+    | [body] =>
+        match initialRuntimeTask body with
+        | some msg => .unsupported s!"Initial:runtime: {msg}"
+        | none => E.execInitialStmt E.env E.elems E.initial 4096 body
     | _ => .unsupported "T2:Initial: multiple initial processes are outside this cycle entry"
   let (settled, settledView) ←
     E.settleAssignWithView E.env E.elems base (E.scalar.view base.scalar) E.processes.toList
