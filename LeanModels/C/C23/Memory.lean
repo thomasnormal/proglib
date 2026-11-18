@@ -2569,6 +2569,27 @@ theorem reallocAt_null_loadFunction (m : Mem) (size address : Nat)
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
     loadFunction, resolve, get?, CObj.size, Except.map, hwidth', hwidthInt]
 
+theorem reallocAt_null_loadIntChecked (m : Mem) (alias : AliasModel)
+    (size address : Nat) (t : IntTy) (used : CType)
+    (hsize : size ≠ 0)
+    (hwidth : max 1 (t.bits / 8) ≤ size) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.loadIntChecked alias r.2 t used) =
+      .ok (.error (.memUB (.indetAllocated m.objs.length 0))) := by
+  rw [reallocAt_null m size address hsize]
+  have hwidth' : ¬ size < max 1 (t.bits / 8) := by omega
+  have hwidthInt : ¬ (size : Int) < (max 1 (t.bits / 8) : Int) := by omega
+  have hdecode :
+      decodeInt t (List.take (max 1 (t.bits / 8))
+        (List.drop 0 (List.replicate size CByte.indet))) = none := by
+    apply decodeInt_indet
+    simp [hwidth]
+  change .ok ((m.mallocAt size address).1.loadIntChecked alias
+    (m.mallocAt size address).2 t used) = _
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
+    loadIntChecked, resolve, get?, CObj.size, Except.map, hwidth', hwidthInt,
+    hdecode]
+
 theorem reallocAt_null_storeBytes (m : Mem) (size address : Nat)
     (bs : List CByte) (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
