@@ -2665,6 +2665,15 @@ theorem reallocAt_null_loadFloat64 (m : Mem) (size address : Nat)
     loadFloat64, loadBytes, resolve, get?, CObj.size, Except.map,
     hwidth', hwidthInt]
 
+theorem reallocAt_null_storeFloat32 (m : Mem) (size address : Nat)
+    (f : Float32.Model) (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => (r.1.storeFloat32 r.2 f).map (fun m' => m'.objs)) =
+      .ok (((m.mallocAt size address).1.storeFloat32
+        (m.mallocAt size address).2 f).map (fun m' => m'.objs)) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 @[simp] theorem mallocAt_pointer_shape (m : Mem) (size address : Nat) :
     (m.mallocAt size address).2 =
       ⟨some (m.objs.length), address, 0, some size⟩ := by
