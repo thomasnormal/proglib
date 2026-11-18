@@ -2010,3 +2010,13 @@ elaboration and refusal-cost measurement, not a symbolic cycle result.
 The measured peak is below the 12 GiB budget, so the proof route does not need
 a kernel-cheap store or a derived cycle model for memory reasons.  The ADDI
 invariant still awaits a canonical-E run through the scheduler boundary.
+
+## 2026-11-18 post-measurement census rerank
+
+The approved census rerun after the system-function receipt, R2 consumption
+map, and W5 cost measurement remains **360 ADMITTED / 0 REFUSED / 4 NOT
+REACHED** (`remaining=4`).  The four rows are inactive generate branches.  The
+first actionable real-core wall is unchanged at canonical E's reactive
+dependency-order refusal, and the whole-core E-RUN remains **0/220** against
+the pinned simulator baseline of **220/220** per simulator.  No new loader,
+semantic, or simulator transition was measured.
