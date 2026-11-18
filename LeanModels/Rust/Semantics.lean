@@ -253,6 +253,7 @@ def rvalueValue (s : State) : Rvalue → Option Int
       | .value value => pure value
       | .overflow | .divideByZero => none
   | .ref _ | .aggregate _ _ => none
+  | .repeat _ _ => none
   | .zstAggregate => none
   | .unsupported _ => none
 
@@ -289,6 +290,10 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
+  | .repeat operand count => do
+      let value ← operandCell s operand
+      let field ← cellField value
+      pure (.aggregate (List.replicate count field))
   | .zstAggregate => some .unit
   | .unsupported _ => none
 
@@ -419,6 +424,7 @@ def statementFailure : State → List Statement → Outcome
               | _, _ => .refused (.unsupported "checked arithmetic operands")
           | .assign _ (.ref _ ) => .refused (.unsupported "reference write")
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
+          | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
           | .assign _ _ => .refused (.unsupported "assignment")
           | .placeMention _ => .refused (.unsupported "place mention")
           | .storageLive _ | .storageDead _ | .unsupported _ =>

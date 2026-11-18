@@ -85,6 +85,25 @@ private def constantProvenance (constant : Json) : Option Nat :=
       | _ => none
   | _ => none
 
+private def bytesToNat : List Nat → Nat → Nat
+  | [], _ => 0
+  | byte :: rest, shift => byte * 256 ^ shift + bytesToNat rest (shift + 1)
+
+private def repeatCount (j : Json) : Except String Nat :=
+  match nat j with
+  | .ok count => pure count
+  | .error _ => do
+      let kind ← field j "kind"
+      let (name, payload) ← variant kind
+      if name != "Value" then .error "MIR Repeat count is not a value"
+      else
+        let values ← array payload
+        match values with
+        | [_ty, allocation] =>
+            let bytes ← field allocation "bytes" >>= array >>= (·.mapM nat)
+            pure (bytesToNat bytes 0)
+        | _ => .error "MIR Repeat count value is malformed"
+
 private def operand (j : Json) : Except String Operand := do
   let (kind, value) ← variant j
   match kind with
@@ -149,6 +168,11 @@ private def rvalue (j : Json) : Except String Rvalue := do
           if args.isEmpty && tagName == "Adt" then pure (.unsupported "fieldless Aggregate")
           else pure (.aggregate tagName args)
       | _ => .error "MIR Aggregate has malformed operands"
+  | "Repeat" => do
+      let values ← array value
+      match values with
+      | [operandJson, count] => pure (.repeat (← operand operandJson) (← repeatCount count))
+      | _ => .error "MIR Repeat has malformed operands"
   | other => pure (.unsupported other)
 
 private def statement (j : Json) : Except String Statement := do
