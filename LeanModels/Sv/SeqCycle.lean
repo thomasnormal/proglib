@@ -855,6 +855,7 @@ def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMem
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome
   | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need ≤ 4096)
+  | .event _ _ => false
   | _ => false
 
 theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
@@ -917,6 +918,7 @@ def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome
   | .edge f => f.body.edgeOkB && decide (f.body.need ≤ 4096)
+  | .event _ _ => false
   | _ => false
 
 theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
@@ -1357,6 +1359,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
           obtain ⟨st', hrun, hc', hm', hv'⟩ :=
             CoreMemDesign.settleAssignAt_seq hP rest (idx + 1) hrest st raw raw' hc hmc hv hs
           exact ⟨st', by simpa [CoreMemDesign.settleAssignAt] using hrun, hc', hm', hv'⟩
+      | event _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | initial _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
