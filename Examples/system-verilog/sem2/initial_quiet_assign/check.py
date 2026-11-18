@@ -9,10 +9,15 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 SOURCE = HERE / "initial_quiet_assign.sv"
 ENV = HERE / "initial_quiet_assign.sv.json"
-EXPECTED = ["1"]
+EXPECTED = ["1", "1"]
 TB = """module tb; wire y;
 initial_quiet_assign dut(.y(y));
-initial begin #1 $display("ROW y=%b", y); $finish; end
+initial begin
+  $display("ACTIVE y=%b", y);
+  #0 $display("ROW delta0=%b", y);
+  #1 $display("ROW t1=%b", y);
+  $finish;
+end
 endmodule
 """
 
@@ -25,6 +30,11 @@ def run(args, cwd=ROOT):
 def rows(output):
     return [line.split()[1].split("=", 1)[1] for line in output.splitlines()
             if line.startswith("ROW ")]
+
+
+def active_row(output):
+    return [line.split()[1].split("=", 1)[1] for line in output.splitlines()
+            if line.startswith("ACTIVE ")]
 
 
 def main():
@@ -46,14 +56,15 @@ def main():
                 exe = Path(work) / "sim"
                 run(["iverilog", "-g2012", "-s", "tb", "-o", str(exe),
                      str(SOURCE), str(tb)], Path(work))
-                actual = rows(run(["vvp", str(exe)], Path(work)))
+                output = run(["vvp", str(exe)], Path(work))
             else:
-                actual = rows(run(["xrun", "-sv", "-q", "-timescale", "1ns/1ps",
-                                   "-top", "tb", str(SOURCE), str(tb)], Path(work)))
+                output = run(["xrun", "-sv", "-q", "-timescale", "1ns/1ps",
+                              "-top", "tb", str(SOURCE), str(tb)], Path(work))
+            actual = rows(output)
         if actual != EXPECTED:
             raise RuntimeError(f"{simulator}: {actual} != {EXPECTED}")
-        print(f"{simulator}: 1 row MATCH y=1")
-    print("E: initialState differs from declaration-initialized state after settle")
+        print(f"{simulator}: 2 settled rows MATCH y=1,1; active row {active_row(output)}")
+    print("E old: initial y=x; E new: initialState y=1; settled start is conservative when y was already stable")
 
 
 if __name__ == "__main__":

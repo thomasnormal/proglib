@@ -10,6 +10,9 @@ def d : Res CoreMemDesign := PDesign.instantiateE2 q.pdesign []
   | .ok e => e.hasComb = false && e.readmemh = []
   | _ => false
 #guard match d with
+  | .ok e => (CoreMemState.view e e.initial).lookup "y" == some (LVec.lit "x")
+  | _ => false
+#guard match d with
   | .ok e => match e.initialState with
     | .ok st => CoreMemState.view e st != CoreMemState.view e e.initial
     | _ => false
