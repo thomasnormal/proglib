@@ -33,7 +33,7 @@ def main():
         lean = run(["lake", "env", "lean", str(HERE / "probe.lean")], ROOT, timeout=120)
         if lean is None:
             raise RuntimeError("ordinary E timed out at the 120-second receipt bound")
-    print("E ordinary route: canonical dependency-order refusal for N=1 and N=2")
+    print("E ordinary route: loud Comb:dependency-order refusal (N=1 and N=2)")
 
     expected_one = [["y=00000000"], ["y=00000001"], ["y=00010000"],
                     ["y=10100101"], ["y=11111111"], ["y=xxxxxxxx"],
