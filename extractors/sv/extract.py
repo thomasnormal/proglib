@@ -27612,6 +27612,22 @@ def convert_procedural_block(sm, m, module_level=False):
                 "`always` procedure)" % (style, written[1], style))
 
     body = m.body
+    # A source-level plain ``always @(...)`` is an event-controlled process,
+    # not an ``always @*`` approximation.  Preserve Slang's event list in
+    # symbolic envelopes so canonical E can apply §9.4.2 wake-up semantics.
+    # The sensitivity-completeness rules in ``lower_proc`` belong only to the
+    # separate implicit/comb-like lowering path.
+    if (_SYM is not None and pk == ProceduralBlockKind.Always
+            and type(body).__name__ == "TimedStatement"):
+        timing = body.timing
+        if type(timing).__name__ == "EventListControl":
+            retained = _event_list_process(sm, m, body, timing, "always")
+            if retained is not None:
+                return retained
+        if type(timing).__name__ == "SignalEventControl":
+            retained = _single_event_process(sm, m, body, timing)
+            if retained is not None:
+                return retained
     if _SYM is not None and pk == ProceduralBlockKind.Always:
         if _RETAIN_PROC_REWRITES:
             # Preserve the event-controlled process until the retained

@@ -82,15 +82,50 @@
         "decls": [],
         "processes": [
           {
-            "kind": "Unsupported",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 3,
               "col": 3,
               "end_line": 3,
               "end_col": 22
             },
-            "sv_kind": "SignalEventControl:None_",
-            "text": "always @(list): R2: the event list does not name `d`, which the body reads -- always @(en) q = d;"
+            "events": [
+              {
+                "edge": "any",
+                "signal": "en"
+              }
+            ],
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 3,
+                "col": 16,
+                "end_line": 3,
+                "end_col": 22
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 3,
+                  "col": 16,
+                  "end_line": 3,
+                  "end_col": 17
+                },
+                "width": 1,
+                "name": "q"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 3,
+                  "col": 20,
+                  "end_line": 3,
+                  "end_col": 21
+                },
+                "width": 1,
+                "name": "d"
+              }
+            }
           }
         ],
         "generates": [],
