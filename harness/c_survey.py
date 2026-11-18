@@ -172,6 +172,26 @@ def load_manifest(path):
     return data, hashlib.sha256(raw).hexdigest()
 
 
+def extractor_sha256():
+    """Return the digest whose envelopes must carry this survey's parser."""
+    return hashlib.sha256((ROOT / "extractors" / "c" / "extract.py").read_bytes()).hexdigest()
+
+
+def envelope_error(entry, env):
+    """Reject an envelope that cannot be tied to this manifest and parser."""
+    if not isinstance(env, dict):
+        return "envelope is not an object"
+    if env.get("schema_version") != "c-0.1":
+        return "stale envelope schema"
+    if env.get("language") != "c":
+        return "envelope language is not C"
+    if env.get("source_sha256") != entry.get("sha256"):
+        return "envelope source hash does not match manifest"
+    if env.get("extractor_sha256") != extractor_sha256():
+        return "envelope extractor hash does not match current parser"
+    return None
+
+
 def build(manifest_path, log_path, commit=None, measured_at=None):
     manifest, manifest_hash = load_manifest(manifest_path)
     by_name = {x["name"]: x for x in manifest.get("tests", [])}
@@ -185,6 +205,9 @@ def build(manifest_path, log_path, commit=None, measured_at=None):
         env = None
         if rec.get("status") == "parsed" and env_path:
             env = json.loads(Path(env_path).read_text())
+            reason = envelope_error(rec, env)
+            if reason:
+                raise ValueError(f"{name}: {reason}")
         rows.append({
             "name": name,
             "corpus": rec.get("corpus", manifest.get("corpus", "gcc.c-torture/execute")),
@@ -348,6 +371,20 @@ def selftest():
     if dynamic_wall("refused-unsupported", "no definition for 'main'") != "missing-main":
         print("c_survey --self-test: missing-main class was not separated", file=sys.stderr)
         return 1
+    current_digest = extractor_sha256()
+    valid = {"schema_version": "c-0.1", "language": "c",
+             "source_sha256": "source", "extractor_sha256": current_digest}
+    if envelope_error({"sha256": "other"}, valid) != "envelope source hash does not match manifest":
+        print("c_survey --self-test: source provenance was not checked", file=sys.stderr)
+        return 1
+    valid["source_sha256"] = "source"
+    if envelope_error({"sha256": "source"}, valid) is not None:
+        print("c_survey --self-test: current envelope was rejected", file=sys.stderr)
+        return 1
+    valid["extractor_sha256"] = "old"
+    if envelope_error({"sha256": "source"}, valid) != "envelope extractor hash does not match current parser":
+        print("c_survey --self-test: extractor provenance was not checked", file=sys.stderr)
+        return 1
     sample = {"rows": [{"verdict": "refused-unsupported",
                          "detail": "no definition for 'main'",
                          "static_walls": [], "dynamic_wall": "missing-main"}],
@@ -386,7 +423,11 @@ def main():
         return 0
     if not args.manifest or not args.log:
         ap.error("--manifest and --log are required unless --check or --self-test is used")
-    data = build(args.manifest, args.log, args.commit, args.date)
+    try:
+        data = build(args.manifest, args.log, args.commit, args.date)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        print(f"c_survey: {exc}", file=sys.stderr)
+        return 2
     jp.write_text(json.dumps(data, indent=1, sort_keys=True) + "\n")
     pp.write_text(render(data))
     print("c_survey: wrote %s and %s" % (jp, pp))

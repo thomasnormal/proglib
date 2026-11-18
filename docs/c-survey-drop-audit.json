@@ -1,0 +1,3431 @@
+{
+ "fresh_replay": {
+  "counts": {
+   "passed": 189,
+   "refused-ub": 20,
+   "refused-unsupported": 116
+  },
+  "manifest_hash": "b2cc57be75cfb8eb5c39710aee9c5b10e58b92861c99122c02940474346aa8a1",
+  "rows": 325
+ },
+ "groups": [
+  {
+   "boundary": "fresh parser-native envelope replay",
+   "examples": [
+    "00025.c",
+    "00047.c",
+    "00053.c",
+    "00054.c",
+    "00055.c",
+    "00056.c",
+    "00058.c",
+    "00087.c"
+   ],
+   "first_commit": null,
+   "group": "fresh-parser-envelope recovery",
+   "receipt_vs_fresh": [
+    {
+     "fresh": "passed",
+     "receipt": "refused-ub",
+     "rows": 9
+    },
+    {
+     "fresh": "passed",
+     "receipt": "refused-unsupported",
+     "rows": 180
+    }
+   ],
+   "route": "instrument: stale receipt/envelope path",
+   "rows": 189
+  },
+  {
+   "boundary": "floating literal frontend price",
+   "examples": [
+    "00123.c",
+    "20000603-1.c",
+    "20001017-1.c",
+    "20020213-1.c",
+    "20020720-1.c",
+    "20030216-1.c",
+    "20031214-1.c",
+    "20040831-1.c"
+   ],
+   "first_commit": "329189a93cbf8883b89170734a4a700b6f21248e",
+   "group": "floating parser-native bits",
+   "receipt_vs_fresh": [
+    {
+     "fresh": "refused-unsupported",
+     "receipt": "refused-unsupported",
+     "rows": 67
+    }
+   ],
+   "route": "F7 shared floating-value/parser-bit work",
+   "rows": 67
+  },
+  {
+   "boundary": "declaration-identity layout join",
+   "examples": [
+    "00043.c",
+    "00046.c",
+    "00050.c",
+    "00124.c",
+    "00153.c",
+    "20010116-1.c",
+    "20010118-1.c",
+    "20011113-1.c"
+   ],
+   "first_commit": "31f216ef733a84f362a90aebadb969cd376aba87",
+   "group": "layout/aggregate binding",
+   "receipt_vs_fresh": [
+    {
+     "fresh": "refused-unsupported",
+     "receipt": "refused-unsupported",
+     "rows": 43
+    }
+   ],
+   "route": "F1 parser-native layout and aggregate initialization",
+   "rows": 43
+  },
+  {
+   "boundary": "frontend declaration identity resolution",
+   "examples": [
+    "00024.c",
+    "00091.c",
+    "20000801-3.c",
+    "20020402-2.c",
+    "20031215-1.c",
+    "920625-1.c"
+   ],
+   "first_commit": "f78ef6a5b",
+   "group": "declaration binding",
+   "receipt_vs_fresh": [
+    {
+     "fresh": "refused-unsupported",
+     "receipt": "refused-unsupported",
+     "rows": 6
+    }
+   ],
+   "route": "F1 declaration binding",
+   "rows": 6
+  },
+  {
+   "boundary": "scalar effective-type check at access",
+   "examples": [
+    "20030903-1.c",
+    "20050218-1.c",
+    "20090113-2.c",
+    "20090113-3.c",
+    "20120105-1.c",
+    "20181120-1.c",
+    "minmaxcmp-1.c",
+    "postmod-1.c"
+   ],
+   "first_commit": "f6d5df37a86e8fe0e47802d86c69184318abc610",
+   "group": "effective-type UB",
+   "receipt_vs_fresh": [
+    {
+     "fresh": "refused-ub",
+     "receipt": "refused-ub",
+     "rows": 1
+    },
+    {
+     "fresh": "refused-ub",
+     "receipt": "refused-unsupported",
+     "rows": 17
+    },
+    {
+     "fresh": "refused-ub",
+     "receipt": "timeout",
+     "rows": 1
+    }
+   ],
+   "route": "F2 effective-type compatibility",
+   "rows": 19
+  },
+  {
+   "boundary": "subobject pointer bounds check",
+   "examples": [
+    "ptr-arith-1.c"
+   ],
+   "first_commit": "47568eb922eb36b7c1f9712bdb316152aabbf5e2",
+   "group": "bounds UB",
+   "receipt_vs_fresh": [
+    {
+     "fresh": "refused-ub",
+     "receipt": "refused-ub",
+     "rows": 1
+    }
+   ],
+   "route": "F2 object bounds",
+   "rows": 1
+  }
+ ],
+ "old_receipt": {
+  "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
+  "matched": 1211,
+  "measured_commit": "3faf427a1",
+  "path_role": "committed survey",
+  "rows": 2214
+ },
+ "receipt": {
+  "manifest_hash": "1de1a60c299d5bb51dae7ca001b0a008010cad0b25670cde2090c08bfc1a84ce",
+  "matched": 888,
+  "measured_commit": "c7148851a45e0cd8844a248b2e3ab920c712f9cd",
+  "path_role": "post-push survey",
+  "rows": 2214
+ },
+ "rows": [
+  {
+   "fresh_detail": "unbound declaration 'id21' (name 'v')",
+   "fresh_verdict": "refused-unsupported",
+   "group": "declaration binding",
+   "name": "00024.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "unbound declaration 'id21' (name 'v')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00025.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strlen: no concrete NUL in object",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for field 'y'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "00043.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct s'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 's'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "00046.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 's'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00047.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id19' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "union initializer has no member",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "00050.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id28' (name 'v')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00053.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for field 'y'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00054.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unknown enum declaration 'id16' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00055.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unknown enum declaration 'id16' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00056.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00058.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 2 6 1 6",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00087.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00089.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id21' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "unbound declaration 'id21' (name 'a')",
+   "fresh_verdict": "refused-unsupported",
+   "group": "declaration binding",
+   "name": "00091.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "unbound declaration 'id21' (name 'a')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00120.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unknown enum declaration 'id17' (name 'X')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "00123.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'int (*(*)(int, int))(int, int)'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "00124.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'int (*(*)(int, int))(int, int)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00125.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00131.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00132.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00140.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'S'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "00153.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00154.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00156.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00157.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00158.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00159.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00160.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00161.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00163.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00164.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00165.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00166.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00167.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00168.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00169.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00171.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00172.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00173.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00176.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00177.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00178.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00179.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "__builtin_strcpy: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00180.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "__builtin_strcpy: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00181.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00182.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00183.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00184.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00185.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00186.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sprintf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00188.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00190.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00191.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00192.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00193.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00194.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00196.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00197.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00201.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00202.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00203.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00206.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00211.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00212.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "00217.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20000113-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct x'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20000412-5.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/20000412-5.c:5:5)[1]'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20000519-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20000603-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "unbound declaration 'id38' (name 's')",
+   "fresh_verdict": "refused-unsupported",
+   "group": "declaration binding",
+   "name": "20000801-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "unbound declaration 'id38' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20001017-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20001024-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for parameter type 'const struct b *restrict'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'Data[4]'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20010116-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'Data[4]'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'A'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20010118-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'A'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20010325-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "string literal with escape or non-ASCII spelling",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20010915-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20011019-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id30' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20011024-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 2 0 4 3",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'U'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20011113-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id197' (name 't')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20011219-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unknown enum declaration 'id41' (name 'N')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for compound literal type 'A'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20020206-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for compound literal type 'A'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20020213-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "unbound declaration 'id487' (name 'MyPte')",
+   "fresh_verdict": "refused-unsupported",
+   "group": "declaration binding",
+   "name": "20020402-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "unbound declaration 'id487' (name 'MyPte')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20020720-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20021011-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "__builtin_strcpy: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20021120-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sprintf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20030216-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20030626-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sprintf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20030715-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 1 0 \"enum X\" \"volatile enum X\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "20030903-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unknown enum declaration 'id25' (name 'X2')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20030920-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 4 2 1 2",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'io'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20031201-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'io'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20031211-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct a'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20031214-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id18' (name 'g')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "unbound declaration 'id22' (name 'ao')",
+   "fresh_verdict": "refused-unsupported",
+   "group": "declaration binding",
+   "name": "20031215-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "unbound declaration 'id22' (name 'ao')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20040307-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/20040307-1.c:7:3)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20040331-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/20040331-1.c:9:3)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20040625-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct s'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20040831-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20041113-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'struct S'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20050107-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'struct S[2]'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20050119-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'struct S[2]'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'struct S[2]'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20050119-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'struct S[2]'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 9 0 \"unsigned long\" \"size_t\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "20050218-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strlen: no concrete NUL in object",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20050502-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20050502-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 4 0 11 10",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20050613-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct D'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20051104-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id18' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20070201-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sprintf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for compound literal type 'T'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20071029-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for compound literal type 'T'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20071213-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "cannot initialize aggregate 'struct (unnamed struct at src/20080117-1.c:2:3)'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20080117-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'const gs_imager_state'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20080529-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20081117-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id45' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 2 16 \"unsigned int\" \"bitmap_element\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "20090113-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'bitmap_iterator'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 2 16 \"unsigned int\" \"bitmap_element\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "20090113-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'bitmap_iterator'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20100316-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id23' (name 'f')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no size for element type 'struct (unnamed struct at src/20100708-1.c:7:3)'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20100708-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20100827-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 1 1 1 1",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'struct event'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20111212-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'struct event'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 1 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "20120105-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sizeof: no layout for operand type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20120207-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "__builtin_strcpy: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "20120919-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "20170401-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct packed_ushort'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'U'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20180131-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'U'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'mp_int'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20180226-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'mp_int'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 6 0 \"unsigned int\" \"volatile union U1\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "20181120-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'union U1'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for field 'exp'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "20190901-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'union ieee_double_extract'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "920618-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "unbound declaration 'id37' (name 'pts')",
+   "fresh_verdict": "refused-unsupported",
+   "group": "declaration binding",
+   "name": "920625-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "unbound declaration 'id37' (name 'pts')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "920710-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 't'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "920810-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 't'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'T'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "920908-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'T'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "921006-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "921007-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "921019-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'struct_list'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "921113-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'struct_list'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "921117-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "__builtin_strcpy: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'four_quarters'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "921123-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'four_quarters'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'bu'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "921204-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'bu'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "930126-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct s'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "930408-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id36' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "930429-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 2 1 1 0",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "930614-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "930614-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "930725-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "931004-10.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "931004-12.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "931004-14.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "931004-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "931004-4.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "931004-6.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "931004-8.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no size for element type 'small'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "931110-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id37' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'Point'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "950607-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'Point'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "960301-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id34' (name 'foo')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "960327-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sprintf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 't_be'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "960416-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 't_be'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "961223-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "980205.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'object'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "980223.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'object'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "980602-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id31' (name 't')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "980605-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "980608-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "980707-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "__builtin_strcpy: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "980716-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "990127-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'Test1'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "990525-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'Test1'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "990628-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id356' (name 'sqlca')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "990826-0.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "990829-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'material_type'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "991019-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'material_type'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "991030-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "991216-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for field ''",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "anon-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id32' (name 'foo')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bf-layout-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/bf-layout-1.c:4:1)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bf-sign-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/bf-sign-1.c:7:3)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bf-sign-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id52' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct x'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-10.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct f'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sizeof: no layout for operand type 'struct A'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-4.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id28' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-6.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'union U'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-7.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'union U'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-8.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct mouse_button_str'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-9.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct mouse_button_str'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "bitfld-signed1-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id19' (name 'b')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "builtin-prefetch-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unknown enum declaration 'id27' (name 'read')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "complex-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 't1'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "divconst-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 't1'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "enum-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unknown enum declaration 'id29' (name 'BAR')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "extzvsi.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id40' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "float-floor.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "fprintf-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "string literal with escape or non-ASCII spelling",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "gcc/testsuite/gcc.dg/c23-digit-separators-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "out of tier: DesignatedInitUpdateExpr",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-17.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "out of tier: DesignatedInitUpdateExpr",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "out of tier: DesignatedInitUpdateExpr",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-4.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "out of tier: DesignatedInitUpdateExpr",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "gcc/testsuite/gcc.dg/c23-empty-init-warn-9.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "out of tier: DesignatedInitUpdateExpr",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "gofast.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/20010114-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/20030331-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/920518-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/930529-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/980619-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/acc1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/acc2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/compare-fp-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/fp-cmp-7.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/mzero3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/mzero5.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/mzero6.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr108540-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr108540-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr109008.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr119002.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr28634.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr30704.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr67218.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/pr72824.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/unsafe-fp-assoc-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "ieee/unsafe-fp-assoc.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "loop-ivopts-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "memset-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/memset-2.c:27:8)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "memset-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/memset-3.c:27:8)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 8 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "minmaxcmp-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "per-file wall timeout (2s)",
+   "receipt_verdict": "timeout"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "p18298.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 13 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "postmod-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr100453.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'const struct a'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr103417.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id22' (name 'c')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr107879.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr108498-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr110166-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct s'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr110914.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strlen: no concrete NUL in object",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr111613.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sizeof: no layout for operand type 'struct bitfield'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr111863-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "printf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr114965.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 1 1 1 1",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr116799.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strlen: no concrete NUL in object",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr117432.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr15262-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr15262.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'aun'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "pr19515.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'aun'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr19689.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id25' (name 'f')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr20601-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 10 2 1 2",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr23941.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr29798.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr31136.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id28' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr31169.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct tree_type'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "union initializer has no member",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "pr33631.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/pr33631.c:10:5)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr35456.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr37882.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id19' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr38048-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr38422.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id32' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr39100.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for field 'n'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr39501.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr40404.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id25' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for field 'reg16'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "pr40493.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'i386_operand_type'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 2 0 \"unsigned int\" \"uint32_t\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "pr42833.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'neon_s8'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr44575.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr44683.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 8 0 \"unsigned long\" \"const unsigned long\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "pr47538.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr49768.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "src/pr49768.c:8:10)'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr52209.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id25' (name 'c')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr53084.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 2 3 1 3",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'S'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "pr56799.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr58574.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr58726.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id22' (name 'b')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr58984.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr59388.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id20' (name 'b')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr59643.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr60017.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S1'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr60062.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strcmp: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr64979.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr65215-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr65215-4.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 2 0 \"unsigned int\" \"uint32_t\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "pr67781.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id22' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr67929_1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr70127.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr70566.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct mystruct'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 5 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "pr71631.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 16 2 1 2",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr71700.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S[2]'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr78170.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S0'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr78436.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id22' (name 's')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr78586.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sprintf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 1 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "pr79327.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "sprintf: non-concrete or unterminated format",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr80153.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strlen: no concrete NUL in object",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr82192.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id21' (name 'b')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr86492.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'union U'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr86528.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strlen: no concrete NUL in object",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'struct1'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "pr86659-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'struct1'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'struct1'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "pr86659-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'struct1'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 1 0 \"unsigned int\" \"volatile union U\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "pr88739.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'union U'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr89195.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "pr93434.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr93908.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id43' (name 'buf')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr97764.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'struct S'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "pr98366.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id30' (name 'f')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "printf-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "string literal with escape or non-ASCII spelling",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.outOfBounds 2 14 1 13",
+   "fresh_verdict": "refused-ub",
+   "group": "bounds UB",
+   "name": "ptr-arith-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "LeanModels.C.C23.MemFault.outOfBounds 2 14 1 12",
+   "receipt_verdict": "refused-ub"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'A'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "restrict-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'A'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "strct-stdarg-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "strct-varg-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 1 0 \"unsigned long\" \"size_t\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "string-opt-17.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "__builtin_strcpy: non-concrete or unterminated string",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "cannot initialize aggregate 'struct (unnamed struct at src/strlen-5.c:590:3)'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "strlen-5.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id16139' (name 'cu')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 2 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "strlen-6.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "strlen: no concrete NUL in object",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "struct-ini-2.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id40' (name 'x')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "struct-ini-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "unbound declaration 'id49' (name 'result')",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "va-arg-11.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'ScanfState'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "va-arg-13.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "va-arg-15.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "va-arg-18.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "va-arg-19.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "va-arg-23.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "va-arg-24.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "va-arg-26.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "no layout for declared type 'big'",
+   "fresh_verdict": "refused-unsupported",
+   "group": "layout/aggregate binding",
+   "name": "va-arg-4.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "no layout for declared type 'big'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "floating literal lacks parser-native bits",
+   "fresh_verdict": "refused-unsupported",
+   "group": "floating parser-native bits",
+   "name": "va-arg-7.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": true,
+   "receipt_detail": "floating literal lacks parser-native bits",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "va-arg-8.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "more arguments than parameters",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "vfprintf-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'va_list'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 1 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "vfprintf-chk-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'va_list'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "vprintf-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'va_list'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 1 0 \"int\" \"volatile int\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "vprintf-chk-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "no layout for declared type 'va_list'",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "LeanModels.C.C23.MemFault.effectiveType 2 0 \"int\" \"wchar_t\"",
+   "fresh_verdict": "refused-ub",
+   "group": "effective-type UB",
+   "name": "wchar_t-1.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "string literal with escape or non-ASCII spelling",
+   "receipt_verdict": "refused-unsupported"
+  },
+  {
+   "fresh_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "fresh_verdict": "passed",
+   "group": "fresh-parser-envelope recovery",
+   "name": "widechar-3.c",
+   "old_verdict": "passed",
+   "receipt_agrees_with_fresh": false,
+   "receipt_detail": "string literal with escape or non-ASCII spelling",
+   "receipt_verdict": "refused-unsupported"
+  }
+ ],
+ "schema": "c-drop-audit-0.1",
+ "shared_old_match_losses": 325
+}

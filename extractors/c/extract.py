@@ -1000,9 +1000,14 @@ def extract(path, source_name=None, standard="c23"):
             rel = os.path.basename(path)
         if rel.startswith(".."):
             rel = os.path.basename(path)
+    # Keep parser provenance explicit.  A source hash alone cannot detect an
+    # envelope produced by an older extractor with the same Clang frontend.
+    with open(__file__, "rb") as extractor_file:
+        extractor_sha256 = hashlib.sha256(extractor_file.read()).hexdigest()
     return {
         "schema_version": SCHEMA_VERSION,
         "language": "c",
+        "extractor_sha256": extractor_sha256,
         "frontend": {"name": "clang-ast-json", "version": frontend_version()},
         "profile_id": PROFILE_ID + ("-c17" if standard == "c17" else ""),
         "profile_flags": PROFILE_FLAGS,

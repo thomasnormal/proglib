@@ -43,6 +43,7 @@ census or the profile forced it:
 {
   "schema_version": "c-0.1",
   "language": "c",
+  "extractor_sha256": "<hex sha256 of extract.py>",
   "frontend": {"name": "clang-ast-json", "version": "clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)"},
   "profile_id": "c-profile-0.1",
   "profile_flags": ["-std=c23", "-D_FORTIFY_SOURCE=0"],
@@ -59,6 +60,10 @@ census or the profile forced it:
 the build revision. The extractor refuses a different compiler and the Lean
 ingester refuses an envelope with a different value; a family-only stamp would
 let point-release AST changes pass as the same program.
+
+`extractor_sha256` binds the envelope to the exact approved extractor source.
+The survey and batch runner refuse an envelope whose source or extractor hash
+does not match the manifest and current parser.
 
 `profile_id` names the schema in `docs/c-profile.json` — the ABSTRACT
 profile, a set of facts every host must satisfy, not a machine

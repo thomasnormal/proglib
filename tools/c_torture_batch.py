@@ -12,10 +12,14 @@ output becomes ``runner-error``.  Rows are emitted in manifest order.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+EXTRACTOR = ROOT / "extractors" / "c" / "extract.py"
 
 
 def _why(entry: dict) -> str:
@@ -35,6 +39,19 @@ def _static_row(entry: dict) -> tuple[str, str, str]:
         return entry.get("name", ""), "not-parsed", _why(entry)
     if not entry.get("envelope"):
         return entry.get("name", ""), "runner-error", "manifest says parsed but names no envelope"
+    envelope = Path(entry["envelope"])
+    if envelope.is_file():
+        try:
+            data = json.loads(envelope.read_text())
+        except (OSError, json.JSONDecodeError):
+            return entry.get("name", ""), "not-ingested", "malformed parser envelope"
+        if data.get("schema_version") != "c-0.1":
+            return entry.get("name", ""), "not-ingested", "stale envelope schema"
+        if data.get("source_sha256") != entry.get("sha256"):
+            return entry.get("name", ""), "not-ingested", "stale envelope source hash"
+        expected = hashlib.sha256(EXTRACTOR.read_bytes()).hexdigest()
+        if data.get("extractor_sha256") != expected:
+            return entry.get("name", ""), "not-ingested", "stale envelope extractor hash"
     return "", "", ""
 
 

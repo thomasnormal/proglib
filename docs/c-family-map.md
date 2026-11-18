@@ -12,35 +12,21 @@ known.
 
 ## Drop table: 1,211 → 888 MATCH
 
-The old receipt (`docs/c-survey.md`, 1,211 MATCH out of 2,112 scored files)
-and the post-push receipt (888 MATCH out of 2,214 files) were joined by the
-stable manifest row name. The old receipt covers 2,112 rows, while the new
-manifest adds 102 rows, so the denominator change is reported separately.
-Among rows present in both receipts, **325 old `passed` rows** now have a
-refusal or timeout. The table assigns every one of those rows to its new
-first runtime wall. It explains the measurement change without claiming that
-an old accidental MATCH was correct.
+The old receipt and the post-push receipt share **325 old `passed` rows** that
+are no longer MATCH. A wall label is an observation, not a cause, so those
+rows are treated as regressions until they are replayed on fresh
+parser-native envelopes or closed by a standard-mandated refusal. The
+stable-name join, fresh replay, group split, row names, and history boundary
+for each group are recorded in
+[`docs/c-survey-drop-audit.md`](c-survey-drop-audit.md) and its machine-readable
+[`docs/c-survey-drop-audit.json`](c-survey-drop-audit.json).
 
-| cause in the new first wall | rows | evidence / route |
-| --- | ---: | --- |
-| H2 undefined-value refusals | 0 | H2 reclassified non-MATCH undefined-value cases; no old MATCH row first refused there |
-| H4 fuel and fixed-wall change | 1 | `minmaxcmp-1.c` is now the fixed per-file timeout |
-| H5 own-definition precedence | 0 | the full receipt predates the H5 landing; the focused `strlen` and `printf` rows now MATCH |
-| denominator change | 0 old MATCH drops; +102 rows scored | the old denominator excluded 102 no-entry-point rows; the new receipt scores the 2,214-row manifest |
-| structured layout and object binding | 128 | `no layout`, `unbound declaration`, and `unknown enum declaration`; F1/F2 route |
-| floating parser-native bits | 69 | `floating literal lacks parser-native bits`; shared SoftFloat route after F1 |
-| library and string behavior | 79 | `printf`, `sprintf`, `strcmp`, `strlen`, `strcpy`, and string-literal refusals; F6 route |
-| calls and variadics | 23 | `more arguments than parameters`; calls/`va_list` route |
-| UB, lifetime, and bounds | 11 | named `MemFault.outOfBounds` refusals; memory-model route |
-| parser-node refusal | 5 | `DesignatedInitUpdateExpr`; node-level ingestion/semantics route |
-| other named semantic walls | 9 | the remaining named first refusals, retained for their family routes |
-| **total shared rows whose old MATCH is no longer MATCH** | **325** | stable-name join of the two receipts |
-
-This is a measurement explanation, not permission to preserve a wrong old
-answer: any row whose old MATCH was correct must return to MATCH or become a
-standard-mandated loud refusal. The denominator and H2/H4/H5 rows are
-instrument effects; the remaining rows are the semantic walls the family plan
-already names.
+The current fresh replay recovers **189** rows. The remaining **136** rows
+stop at 67 floating parser-bit refusals, 43 layout or aggregate-binding
+refusals, 6 declaration-binding refusals, 19 effective-type UB refusals, and
+1 bounds UB refusal. These are measured groups, not explanations: each group
+has a bisect boundary and a named route in the audit artifact. The denominator
+addition is tracked separately from the 325 shared rows.
 
 ## 1. Parser, dialect, and entry-point boundary
 
