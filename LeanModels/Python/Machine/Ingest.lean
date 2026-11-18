@@ -1,5 +1,6 @@
 import Lean
 import LeanModels.Python.Ast
+import LeanModels.Python.Machine.Relation
 
 namespace LeanModels.Python.Machine
 
@@ -201,6 +202,21 @@ private def mArguments (j : Json) : Except String MArguments := do
   let defaults ← (← (← mField j "defaults").getArr?).mapM mExpr
   pure { positionalOnly, positional, vararg, keywordOnly, kwDefaults, kwarg, defaults }
 
+private def mFunctionArguments (j : Json) : Except String MArguments := do
+  match j with
+  | .arr values =>
+      let positional ← values.mapM mArg
+      let result : MArguments :=
+        { positionalOnly := #[]
+          positional := positional
+          vararg := none
+          keywordOnly := #[]
+          kwDefaults := #[]
+          kwarg := none
+          defaults := #[] }
+      pure result
+  | _ => mArguments j
+
 partial def mStmt (j : Json) : Except String MStmt := do
   let kind ← (← mField j "kind").getStr?
   let span ← mSpan (← mField j "span")
@@ -236,7 +252,7 @@ partial def mStmt (j : Json) : Except String MStmt := do
       (← (← (← mField j "body").getArr?).mapM mStmt)
       (← (← (← mField j "orelse").getArr?).mapM mStmt) span)
   | "FunctionDef" => pure (.functionDef (← (← mField j "name").getStr?)
-      (← mArguments (← mField j "args")) #[] none
+      (← mFunctionArguments (← mField j "args")) #[] none
       (← (← (← mField j "body").getArr?).mapM mStmt) span)
   | "Global" => pure (.global (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Nonlocal" => pure (.nonlocal (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
@@ -248,6 +264,69 @@ def parseMachineModule (j : Json) : Except String MModule := do
   let module ← mField j "module"
   let body ← (← (← mField module "body").getArr?).mapM mStmt
   pure { body }
+
+partial def mExprToExpr : MExpr → Expr
+  | .constant value span => .constant value span
+  | .name id span => .name id span
+  | .binOp left op right span => .binOp (mExprToExpr left) op (mExprToExpr right) span
+  | .unaryOp op operand span => .unaryOp op (mExprToExpr operand) span
+  | .boolOp op values span => .boolOp op (values.map mExprToExpr) span
+  | .compare left ops comparators span => .compare (mExprToExpr left) ops
+      (comparators.map mExprToExpr) span
+  | .call func args keywords _ _ span => .call (mExprToExpr func) (args.map mExprToExpr)
+      (keywords.map fun (name, value) => (name, mExprToExpr value)) none span
+  | .attribute value attr span => .attribute (mExprToExpr value) attr span
+  | .subscript value slice span => .subscript (mExprToExpr value) (mExprToExpr slice) span
+  | .slice lower upper step span =>
+      let missing := Expr.constant .none span
+      .slice missing (lower.map mExprToExpr |>.getD missing)
+        (upper.map mExprToExpr |>.getD missing) (step.map mExprToExpr |>.getD missing) span
+  | .list elts span => .list (elts.map mExprToExpr) span
+  | .tuple elts span => .tuple (elts.map mExprToExpr) span
+  | .dict keys values span => .dict (keys.map (fun key =>
+      key.map mExprToExpr |>.getD (.constant .none span))) (values.map mExprToExpr) span
+  | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
+  | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
+  | .set _ span | .joinedStr _ span | .formattedValue _ _ _ span
+  | .listComp _ _ span | .setComp _ _ span | .dictComp _ _ _ span
+  | .genExp _ _ span | .starred _ span => .unsupported "machine node" "" span
+
+private def mParam (arg : MArg) (flags : Bool × Bool × Bool) : RParam :=
+  { name := arg.name, positionalOnly := flags.1, keywordOnly := flags.2.1,
+    variadic := flags.2.2 }
+
+private def mParams (args : MArguments) : Array RParam :=
+  let positionalOnly := args.positionalOnly.map (fun arg => mParam arg (true, false, false))
+  let positional := args.positional.map (fun arg => mParam arg (false, false, false))
+  let vararg := match args.vararg with
+    | some arg => #[mParam arg (false, false, true)]
+    | none => #[]
+  let keywordOnly := args.keywordOnly.map (fun arg => mParam arg (false, true, false))
+  positionalOnly ++ positional ++ vararg ++ keywordOnly
+
+partial def mStmtToStmt : MStmt → RStmt
+  | .pass span => .pass span
+  | .expr value span => .expr (mExprToExpr value) span
+  | .assign targets value span =>
+      match targets.toList with
+      | [target] => .assign (mExprToExpr target) (mExprToExpr value) span
+      | _ => .unsupported "Assign" "machine multiple-target assignment" span
+  | .ret value span => .ret (mExprToExpr <$> value) span
+  | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
+      (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
+  | .whileStmt test body orelse span => .whileStmt (mExprToExpr test)
+      (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
+  | .functionDef name args _ _ body span => .functionDef name (mParams args)
+      (args.defaults.map mExprToExpr) (body.map mStmtToStmt) span
+  | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
+  | .augAssign _ _ _ span | .annAssign _ _ _ _ span | .delete _ span
+  | .forStmt _ _ _ _ _ span | .classDef _ _ _ _ _ span | .import _ span
+  | .importFrom _ _ _ span | .global _ span | .nonlocal _ span | .raise _ _ span
+  | .tryStmt _ _ _ _ span | .withStmt _ _ _ span | .brk span | .cont span =>
+      .unsupported "machine statement" "machine ingestion frontier" span
+
+def compileMachineModule (module : MModule) : RModule :=
+  { body := module.body.map mStmtToStmt }
 
 private def ingestSpan : Json :=
   Lean.Json.mkObj [("lineno", Lean.toJson (1 : Nat)), ("col_offset", Lean.toJson (0 : Nat)),

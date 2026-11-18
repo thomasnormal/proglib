@@ -809,10 +809,27 @@ def runMachineScriptBatchMode (jobsPath : String) (defaultFuel : Nat) : IO UInt3
         stdout.flush
       return (if hadError then 1 else 0)
 
-/-- Relation batch entry point.  Until the machine-only envelope decoder is
-available, every compatibility envelope is a loud relation-frontier refusal.
-The harness therefore measures relation coverage without silently consulting
-the deleted compatibility runner. -/
+def relationEventJson (path : String) (event : Machine.REvent) : String :=
+  match event with
+  | .return _ => "{\"path\":" ++ jsonStr path ++ ",\"status\":\"ok\",\"exit\":0,\"stdout\":[]}"
+  | .raise error =>
+      let cls := match error.errorClass with
+        | .recursion => "RecursionError" | .memory => "MemoryError"
+        | .name => "NameError" | .type => "TypeError" | .runtime => "RuntimeError"
+      "{\"path\":" ++ jsonStr path ++ ",\"status\":\"exn\",\"exit\":1,\"exn\":"
+        ++ jsonStr cls ++ ",\"stdout\":[]}"
+  | .refuse reason =>
+      "{\"path\":" ++ jsonStr path ++ ",\"status\":\"unsupported\",\"exit\":3,\"msg\":"
+        ++ jsonStr reason ++ "}"
+  | _ => "{\"path\":" ++ jsonStr path ++ ",\"status\":\"unsupported\",\"exit\":3,\"msg\":\"relation event\"}"
+
+def relationConfigJson (path : String) (config : Machine.RConfig) : String :=
+  match config.status with
+  | .finished event => relationEventJson path event
+  | .running => "{\"path\":" ++ jsonStr path ++ ",\"status\":\"unsupported\",\"exit\":3,\"msg\":\"relation frontier\"}"
+
+/- Relation batch entry point.  Envelopes are decoded by the machine-only
+decoder and executed by the relation resolver. -/
 def runRelationScriptBatchMode (jobsPath : String) : IO UInt32 := do
   match ← (IO.FS.readFile ⟨jobsPath⟩).toBaseIO with
   | .error e =>
@@ -822,7 +839,22 @@ def runRelationScriptBatchMode (jobsPath : String) : IO UInt32 := do
       let stdout ← IO.getStdout
       for line in contents.splitOn "\n" do
         if line.trimAscii.copy.isEmpty then continue
-        stdout.putStrLn "{\"status\":\"unsupported\",\"msg\":\"relation envelope decoder pending\"}"
+        match parseScriptJob line with
+        | .error e => stdout.putStrLn ("{\"status\":\"runner-error\",\"exit\":1,\"msg\":" ++ jsonStr e ++ "}")
+        | .ok job =>
+            match ← (IO.FS.readFile ⟨job.path⟩).toBaseIO with
+            | .error e => stdout.putStrLn ("{\"path\":" ++ jsonStr job.path ++ ",\"status\":\"runner-error\",\"exit\":1,\"msg\":" ++ jsonStr (toString e) ++ "}")
+            | .ok raw =>
+                match Lean.Json.parse raw with
+                | .error e => stdout.putStrLn ("{\"path\":" ++ jsonStr job.path ++ ",\"status\":\"runner-error\",\"exit\":1,\"msg\":" ++ jsonStr e ++ "}")
+                | .ok json =>
+                    match LeanModels.Python.Machine.parseMachineModule json with
+                    | .error e => stdout.putStrLn ("{\"path\":" ++ jsonStr job.path ++ ",\"status\":\"runner-error\",\"exit\":1,\"msg\":" ++ jsonStr e ++ "}")
+                    | .ok module =>
+                        let config := LeanModels.Python.Machine.RConfig.initial
+                          (LeanModels.Python.Machine.compileMachineModule module)
+                        let result := Machine.runB1 (job.fuel.getD 4096) config
+                        stdout.putStrLn (relationConfigJson job.path result.2)
       stdout.flush
       return 0
 
