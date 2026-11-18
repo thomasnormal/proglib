@@ -107,6 +107,7 @@ theorem siteOfP?_cases {ds : List DeclT} {pos : Nat} {p : PProcess} {st : TSite}
   | alwaysLatch _ => left; exact h
   | alwaysPlain _ _ => left; exact h
   | alwaysImplicit _ => left; exact h
+  | alwaysEvent _ _ => left; exact h
   | alwaysFFR _ _ _ _ => left; exact h
   | initial _ => left; exact h
   | unsupported _ _ => left; exact h
