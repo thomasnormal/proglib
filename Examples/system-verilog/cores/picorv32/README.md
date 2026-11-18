@@ -1959,6 +1959,11 @@ The measured simulator result is **220/220 rows** for Icarus Verilog 13.0
 SHA-256 is
 `0e40f0c58688397cba7d033d92ac9d62d66088cdb92fc731b9b232f90a9af108`.
 
+The executable receipt [`e_run_check.py`](e_run_check.py) reruns the simulator
+comparison and loads the same envelope through canonical E. It reports the
+simulator result and the exact E boundary together as `E-RUN: 0/220 cycles`,
+with the reactive dependency-order refusal preserved verbatim.
+
 The checker now verifies the source SHA-256
 `0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622` and the
 RISCV_FORMAL envelope SHA-256
