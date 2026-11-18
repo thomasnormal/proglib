@@ -779,6 +779,16 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Type-alias current-head check — 2026-11-18T02:15Z
+
+Fresh extraction of type_alias_nested_repro.sv at public master 40426e6f6
+retains VariableSymbol:type and TypeAliasType:TypeAlias. Ordinary E retains
+both parser-native nodes and refuses at the reactive dependency-order boundary
+for state.field.value. IEEE 1800-2023 sections 9.2.2.2 and 9.4.2.2 require
+scheduling semantics that canonical E does not model, so no alias lowering or
+fixed-point approximation is introduced. Existing four-state source receipts
+remain the simulator evidence. No count transition is claimed.
+
 ## Unconditional-generate current-head check — 2026-11-18T02:13Z
 
 Fresh extraction of unconditional_case2.sv at public master bc8059b74 retains
