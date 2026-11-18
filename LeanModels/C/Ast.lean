@@ -171,6 +171,12 @@ structure TypeLayout where
   pointeeSizeBytes : Option Nat := none
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
+/-! A recursive `QualType` observation joined to a parser declaration ID. -/
+structure StructuredType where
+  declaration : DeclarationId
+  type : LeanModels.Clang.QualType
+deriving Repr, Inhabited, BEq, Lean.ToExpr
+
 /-! ## The three layers
 
 C's grammar makes the layering, not us: a function DEFINITION is the only
@@ -352,6 +358,7 @@ structure Envelope where
   unit : TranslationUnit
   externals : List External
   typeLayouts : List TypeLayout := []
+  structuredTypes : List StructuredType := []
 deriving Repr, Inhabited
 
 /-! ## Structural queries

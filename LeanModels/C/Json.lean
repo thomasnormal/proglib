@@ -419,6 +419,36 @@ def parseTypeLayout (j : Json) : Except String TypeLayout := withCtx "type_layou
            alignmentBytes := ← getNat j "alignment_bytes"
            pointeeSizeBytes := ← getOptNat j "pointee_size_bytes" }
 
+partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.QualType := do
+  let kind ← getStr j "kind"
+  withCtx s!"structured type {kind}" do
+    match kind with
+    | "builtin" => .ok (.cBuiltin (← getStr j "name"))
+    | "pointer" => .ok (.pointer (← parseStructuredQualType (← getField j "pointee")))
+    | "array" =>
+        .ok (.array (← parseStructuredQualType (← getField j "element"))
+          (← getOptNat j "extent"))
+    | "qualified" =>
+        .ok (.qualified (← getBool j "const") (← getBool j "volatile")
+          (← parseStructuredQualType (← getField j "base")))
+    | "function" =>
+        let params ← (← getArr j "parameters").mapM parseStructuredQualType
+        .ok (.function (← parseStructuredQualType (← getField j "result"))
+          params (← getBool j "variadic"))
+    | "record" => .ok (.record (← structuredDeclaration j))
+    | "enumeration" => .ok (.enumeration (← structuredDeclaration j))
+    | "typedef" => .ok (.typedefRef (← structuredDeclaration j))
+    | other => .error s!"unknown structured QualType kind {other.quote}"
+where
+  structuredDeclaration (j : Json) : Except String LeanModels.Clang.DeclarationHandle := do
+    let raw ← getField j "declaration"
+    let id ← getStr raw "id"
+    pure {value := id}
+
+def parseStructuredType (j : Json) : Except String StructuredType := withCtx "structured_type" do
+  return { declaration := DeclarationId.mk (← getStr j "decl_id")
+           type := ← parseStructuredQualType (← getField j "type") }
+
 def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
   let ver ← getStr j "schema_version"
   unless ver == "c-0.1" do
@@ -440,7 +470,12 @@ def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
              | none => pure []
              | some a => do
                  let xs ← a.getArr?
-                 xs.toList.mapM parseTypeLayout }
+                 xs.toList.mapM parseTypeLayout
+           structuredTypes := ← match getOptNode j "structured_types" with
+             | none => pure []
+             | some a => do
+                 let xs ← a.getArr?
+                 xs.toList.mapM parseStructuredType }
 
 def parseEnvelopeString (s : String) : Except String Envelope := do
   match Json.parse s with

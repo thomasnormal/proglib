@@ -1,4 +1,5 @@
 import LeanModels.Cpp.Integral
+import Lean.ToExpr
 
 namespace LeanModels.Cpp
 
@@ -15,7 +16,7 @@ inductive CppIntType where
   | unsignedLong
   | longLong
   | unsignedLongLong
-  deriving Repr, BEq, Inhabited
+  deriving Repr, BEq, Inhabited, Lean.ToExpr
 
 inductive TypeResolutionError where
   | invalidProfile

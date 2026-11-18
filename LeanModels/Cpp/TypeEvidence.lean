@@ -64,7 +64,7 @@ partial def parseCppTypeEvidence (raw : Raw) : Except String CppTypeEvidence := 
   | _ => .error s!"unsupported structured C++ type kind: {kind}"
 
 private def CppTypeEvidence.referencedHandles : CppTypeEvidence → List FrontendHandle
-  | .void | .builtin _ => []
+  | .void | .builtin _ | .cBuiltin _ => []
   | .array element _ => CppTypeEvidence.referencedHandles element
   | .pointer pointee | .lvalueReference pointee | .rvalueReference pointee =>
       CppTypeEvidence.referencedHandles pointee

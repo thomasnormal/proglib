@@ -52,6 +52,10 @@ census or the profile forced it:
   "translation_unit": {"kind": "TranslationUnit", "decls": [ <decl>... ]},
   "externals": [ {"name": "memcpy", "type": "void *(void *, const void *, unsigned long)"} ],
   "type_layouts": [ {"type": "int (*)(int)", "size_bytes": 8, "alignment_bytes": 8} ],
+  "structured_types": [
+    {"decl_id": "id17", "type": {"kind": "pointer",
+      "pointee": {"kind": "builtin", "name": "int"}}}
+  ],
   "lean_blocks": []
 }
 ```
@@ -87,6 +91,14 @@ layout refusal. For a declared pointer-to-array object, the optional
 `pointee_size_bytes` field carries Clang's exact byte extent for the pointee;
 pointer arithmetic consumes that parser fact without parsing the flat type
 spelling.
+
+`structured_types` is an optional list emitted by the pinned Clang QualType
+probe. Each row is joined to the declaration identity from the same AST dump.
+The recursive `type` tree carries builtin, pointer, array, qualified,
+function, record, enumeration and typedef cases. Record-like references carry
+their parser declaration identity. An unrepresented Clang type or a missing
+identity is rejected by the probe or the extractor, and never reconstructed
+from `qualType` text.
 
 ## 2 Spans
 

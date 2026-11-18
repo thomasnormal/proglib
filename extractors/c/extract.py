@@ -61,6 +61,7 @@ CLANG_ENV = "LEAN_C_CLANG"
 STRING_BYTES_PLUGIN_ENV = "LEAN_C_STRING_BYTES_PLUGIN"
 FLOATING_BITS_PLUGIN_ENV = "LEAN_C_FLOATING_BITS_PLUGIN"
 RECORD_LAYOUT_PLUGIN_ENV = "LEAN_C_RECORD_LAYOUT_PLUGIN"
+STRUCTURED_TYPE_PLUGIN_ENV = "LEAN_C_STRUCTURED_TYPE_PLUGIN"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -296,6 +297,40 @@ def record_layout_records(path):
         by_offset.setdefault(offset, []).append(record)
     return {"layouts": by_offset, "enum_values": enum_values,
             "type_layouts": type_layouts}
+
+
+def structured_type_records(path):
+    """Observe Clang's recursive QualType tree through the pinned plugin.
+
+    The plugin reports only parser-native source offsets.  The extractor
+    joins those offsets to declaration IDs in the approved AST dump below,
+    so no address or type spelling crosses the frontend boundary.
+    """
+    plugin = os.environ.get(STRUCTURED_TYPE_PLUGIN_ENV)
+    if not plugin:
+        return None
+    if not os.path.isfile(plugin):
+        die("%s does not name a plugin file" % STRUCTURED_TYPE_PLUGIN_ENV)
+    command = ([clang_executable()] + PROFILE_FLAGS + ["-fsyntax-only",
+               "-Xclang", "-load", "-Xclang", plugin,
+               "-Xclang", "-plugin", "-Xclang", "lean-c-structured-types",
+               path])
+    out = subprocess.run(command, capture_output=True)
+    if out.returncode:
+        die("structured type probe rejected %s: %s" %
+            (path, out.stderr.decode(errors="replace")[:2000]))
+    try:
+        records = json.loads(out.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        die("structured type probe returned invalid JSON: %s" % error)
+    if not isinstance(records, list):
+        die("structured type probe returned a non-array")
+    for record in records:
+        if (not isinstance(record, dict) or record.get("kind") != "StructuredType" or
+                type(record.get("offset")) is not int or record["offset"] < 0 or
+                not isinstance(record.get("type"), dict)):
+            die("structured type probe returned an invalid record")
+    return records
 
 
 def check_profile():
@@ -917,6 +952,7 @@ def extract(path, source_name=None, standard="c23"):
     string_bytes = string_byte_records(path)
     floating_bits = floating_bit_records(path)
     record_layouts = record_layout_records(path)
+    structured_types = structured_type_records(path)
     ex = Extractor(target, src.decode(), string_bytes, floating_bits, record_layouts)
     ex.collect_labels(tu)
 
@@ -971,12 +1007,15 @@ def extract(path, source_name=None, standard="c23"):
     # clang's AST declaration identity. The probe reports the same source
     # offset; this join is over parser nodes, never over a type spelling.
     decl_ids_by_offset = {}
+    var_decl_ids_by_offset = {}
     def collect_decl_offsets(node):
         if isinstance(node, dict):
-            if node.get("kind") == "VarDecl" and node.get("id"):
+            if node.get("id") and node.get("kind", "").endswith("Decl"):
                 begin = (node.get("range") or {}).get("begin") or {}
                 if begin.get("offset") is not None:
                     decl_ids_by_offset.setdefault(begin["offset"], node["id"])
+                    if node.get("kind") == "VarDecl":
+                        var_decl_ids_by_offset.setdefault(begin["offset"], node["id"])
             for child in kids(node):
                 collect_decl_offsets(child)
         elif isinstance(node, list):
@@ -984,8 +1023,33 @@ def extract(path, source_name=None, standard="c23"):
                 collect_decl_offsets(child)
     collect_decl_offsets(tu)
     for record in ex.type_layouts:
-        if record.get("offset") in decl_ids_by_offset:
-            record["decl_id"] = decl_ids_by_offset[record["offset"]]
+        if record.get("offset") in var_decl_ids_by_offset:
+            record["decl_id"] = var_decl_ids_by_offset[record["offset"]]
+
+    # Join structured QualType observations by the parser's declaration
+    # offsets.  The tree itself remains a frontend observation.  Missing
+    # identity is a loud refusal in the ingester, never a spelling fallback.
+    structured_rows = []
+    if structured_types is not None:
+        def join_type(value):
+            if isinstance(value, dict):
+                out = {key: join_type(item) for key, item in value.items()}
+                if value.get("kind") in ("record", "enumeration", "typedef"):
+                    declaration = value.get("declaration") or {}
+                    offset = declaration.get("offset")
+                    if offset not in decl_ids_by_offset:
+                        die("structured type declaration offset has no AST identity")
+                    out["declaration"] = {"id": decl_ids_by_offset[offset]}
+                return out
+            if isinstance(value, list):
+                return [join_type(item) for item in value]
+            return value
+        for record in structured_types:
+            decl_id = decl_ids_by_offset.get(record["offset"])
+            if decl_id is None:
+                die("structured type occurrence offset has no AST identity")
+            structured_rows.append({"decl_id": decl_id,
+                                    "type": join_type(record["type"])})
 
     # The corpus lives in ANOTHER repository (tools/ctwin/ in sunfish), so a
     # path relative to this root would be a fiction.  `--source-name` records
@@ -1021,6 +1085,7 @@ def extract(path, source_name=None, standard="c23"):
                           **({"pointee_size_bytes": r["pointee_size_bytes"]}
                              if r.get("pointee_size_bytes") is not None else {})}
                          for r in ex.type_layouts],
+        "structured_types": structured_rows,
         "lean_blocks": [],
     }, ex.unsupported
 

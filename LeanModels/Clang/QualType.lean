@@ -33,7 +33,7 @@ inductive QualType where
   | record (declaration : DeclarationHandle)
   | enumeration (declaration : DeclarationHandle)
   | typedefRef (declaration : DeclarationHandle)
-  deriving Repr, Inhabited
+  deriving Repr, Inhabited, Lean.ToExpr
 
 mutual
   def QualType.beq (left right : QualType) : Bool :=

@@ -110,7 +110,7 @@ private def rawChildren (raw : Raw) : List Raw :=
 private partial def knownTypeReferences (type : CppTypeEvidence)
     (declarations : List DeclarationEvidenceRow) : Bool :=
   match type with
-  | .void | .builtin _ => true
+  | .void | .builtin _ | .cBuiltin _ => true
   | .array element _ => knownTypeReferences element declarations
   | .pointer pointee | .lvalueReference pointee | .rvalueReference pointee =>
       knownTypeReferences pointee declarations
