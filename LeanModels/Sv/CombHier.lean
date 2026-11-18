@@ -95,15 +95,36 @@ def PExpr.hren (pfx : String) : PExpr → PExpr
   | .cast s a => .cast s (a.hren pfx)
   | .arrayElem n is => .arrayElem (pfx ++ n) (PExpr.hrenL pfx is)
   | .arrayPart n is m a b => .arrayPart (pfx ++ n) (PExpr.hrenL pfx is) m (a.hren pfx) (b.hren pfx)
-  | .aggregateMember n path => .aggregateMember (pfx ++ n) path
   | .unsupported k t => .unsupported k t
   -- a call of a function (no summary reads one: the comb fragment refuses it); its arguments are of the child's scope
   | .functionCall n as => .functionCall n (PExpr.hrenL pfx as)
+  -- an unpacked aggregate member (no summary reads one: `instExpr2` keeps it loud): the aggregate is a signal of the
+  -- child's scope, and so are the index expressions of its path; the field names are members of its type
+  | .aggregateMember n path => .aggregateMember (pfx ++ n) (PExpr.hrenPath pfx path)
+termination_by structural e => e
 
 /-- `PExpr.hren`, elementwise. -/
 def PExpr.hrenL (pfx : String) : List PExpr → List PExpr
   | [] => []
   | e :: es => e.hren pfx :: PExpr.hrenL pfx es
+termination_by structural es => es
+
+/-- `PExpr.hren` on an aggregate member path, step by step. -/
+def PExpr.hrenPath (pfx : String) : List (Option String × Option PExpr) → List (Option String × Option PExpr)
+  | [] => []
+  | s :: ss => PExpr.hrenStep pfx s :: PExpr.hrenPath pfx ss
+termination_by structural ss => ss
+
+/-- One step of an aggregate member path: a field name stays, an index expression is renamed. -/
+def PExpr.hrenStep (pfx : String) : Option String × Option PExpr → Option String × Option PExpr
+  | (f, i) => (f, PExpr.hrenOpt pfx i)
+termination_by structural s => s
+
+/-- `PExpr.hren` of an optional index expression. -/
+def PExpr.hrenOpt (pfx : String) : Option PExpr → Option PExpr
+  | none => none
+  | some i => some (i.hren pfx)
+termination_by structural o => o
 end
 
 mutual
