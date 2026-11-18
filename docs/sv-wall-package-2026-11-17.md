@@ -513,6 +513,16 @@ Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all six source rows,
 including reset, known, x, and z data. No nested-memory E execution or
 real-design count transition is claimed.
 
+## Parameterized packed-enum literal wall
+
+The parameterized `packed_enum_dimension_repro.sv` clean-room source keeps the
+unsized enum member literal `MODE_A = '0` inside a packed enum whose width is
+set by `W`. Slang retains the parser-native
+`EnumValueSymbol:unsized-literal-member` expression, and the ordinary route
+refuses that expression before canonical E execution. Icarus Verilog 13.0 and
+Xcelium 24.03-s004 agree on six source rows for `0`, `1`, `x`, and `z` values.
+No parameterized enum E execution or real-design count transition is claimed.
+
 ## Memory-cell identifier wall remeasurement
 
 The public clean-room `memory_cell_identifier.sv` fixture uses `cell` as a
