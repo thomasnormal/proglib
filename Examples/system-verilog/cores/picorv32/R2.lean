@@ -72,7 +72,9 @@ obligation:
   the concrete register-file geometry consumed by the canonical one-rank
   memory relation;
 * `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
-  for the measured observation witness.
+  for the measured observation witness;
+* `rvfi_addi_boundary.lean` for the measured raw ADDI row and its
+  `addiBoundary`-to-ISA step and memory-machine commit bridges.
 
 These are boundary consumers for a future loaded-core invariant.  They do not
 assert that the current PicoRV32 envelope executes in canonical E. -/
