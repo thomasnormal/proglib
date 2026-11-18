@@ -779,6 +779,13 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Package-head reconciliation — 2026-11-18T02:19Z
+
+The current public head remains 9f0f4cbf5 after the output-net-z
+remeasurement. No newer inbox handoff or SystemVerilog implementation commit
+is present. The package's current fixture receipts and corrected output-net-z
+classification are therefore authoritative, with REAL-BLOCKS unchanged at 41.
+
 ## Member-access current-head check — 2026-11-18T02:16Z
 
 Fresh extraction of member_nested_repro.sv at public master 2ef87c779 retains
