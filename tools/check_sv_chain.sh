@@ -266,6 +266,17 @@ run_lake() {
   fi
 }
 
+# The ordinary refusal census is a user-facing SV entry point and must compile
+# whenever the SV chain is checked.  Keep one checked-in envelope as its smoke
+# input so a constructor drift such as GenItem.localParam fails this gate.
+check_refusal_census() {
+  command -v lake >/dev/null 2>&1 || { echo "check_sv_chain: no \`lake\` on PATH" >&2; return 2; }
+  local envelope="Examples/system-verilog/event_control_repro/event_control_repro.sv.json"
+  [ -f "$envelope" ] || { echo "check_sv_chain: missing refusal-census smoke envelope: $envelope" >&2; return 2; }
+  echo "=== [sv-chain] refusal census smoke"
+  run_lake env lean --run harness/sv/refusal_census.lean "$envelope" >/dev/null
+}
+
 build_all() {
   command -v lake >/dev/null 2>&1 || { echo "check_sv_chain: no \`lake\` on PATH" >&2; return 2; }
   collect
@@ -274,6 +285,10 @@ build_all() {
   echo "=== [sv-chain] E import closure (no Lean)"
   if ! check_e_import_closure; then
     echo "=== [sv-chain] FAILED: E import closure (nothing was built)" >&2
+    return 3
+  fi
+  if ! check_refusal_census; then
+    echo "=== [sv-chain] FAILED: refusal census smoke (nothing was built)" >&2
     return 3
   fi
   echo "=== [sv-chain] the run2 ratchet (tools/check_run2_ratchet.sh; no Lean)"
