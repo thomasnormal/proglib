@@ -43,6 +43,18 @@ theorem picorv32_loaded_addi_shape :
 
 #print axioms picorv32_loaded_addi_shape
 
+theorem picorv32_loaded_rvfi_prefix :
+    (picorv32_r2.pdesign.decls.take 31).map PDecl.name =
+      ["clk", "resetn", "trap", "mem_valid", "mem_instr", "mem_ready",
+       "mem_addr", "mem_wdata", "mem_wstrb", "mem_rdata", "mem_la_read",
+       "mem_la_write", "mem_la_addr", "mem_la_wdata", "mem_la_wstrb",
+       "pcpi_valid", "pcpi_insn", "pcpi_rs1", "pcpi_rs2", "pcpi_wr",
+       "pcpi_rd", "pcpi_wait", "pcpi_ready", "irq", "eoi", "rvfi_valid",
+       "rvfi_order", "rvfi_insn", "rvfi_trap", "rvfi_halt", "rvfi_intr"] := by
+  decide
+
+#print axioms picorv32_loaded_rvfi_prefix
+
 theorem picorv32_addi_class_step (state : ArchState) :
     isaStepMemWith cv32e40pProfile state zeroMem
         (.word addi5Word) 0 =
