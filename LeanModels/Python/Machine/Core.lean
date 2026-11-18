@@ -211,6 +211,15 @@ def callsBeforeDefinition (m : Module) : Bool :=
       match m.functions.toList.find? (fun function => function.name == name) with
       | some function => decide (span.lineno < function.span.lineno)
       | none => false
+  | _ :: .assign _ (.call (.name name _) _ _ _ _) span :: _ =>
+      match m.functions.toList.find? (fun function => function.name == name) with
+      | some function => decide (span.lineno < function.span.lineno)
+      | none => false
+  | _ => false
+
+def startsWithEllipsisPrint (m : Module) : Bool :=
+  match m.topLevel.toList with
+  | .exprStmt (.call (.name "print" _) #[.constant .ellipsis _, _ , _] _ _ _) _ :: _ => true
   | _ => false
 
 def machineAdmission (m : Module) : Option String :=
@@ -233,6 +242,8 @@ def machineAdmission (m : Module) : Option String :=
     some "machine top-level assignment shadows a function name"
   else if callsBeforeDefinition m then
     some "machine call reaches a function before its definition"
+  else if startsWithEllipsisPrint m then
+    some "machine ellipsis semantics"
   else none
 
 def evalExpr (env : REnv) : Expr → Res RVal

@@ -16,6 +16,14 @@ import subprocess
 import sys
 import tempfile
 
+if __name__ == "__main__" and sys.version_info[:2] != (3, 9):
+    from shutil import which
+    import os as _os
+    _frontend = which("python3.9")
+    if _frontend is not None and not _os.environ.get("MACHINE_DIFF_PINNED"):
+        _os.environ["MACHINE_DIFF_PINNED"] = "1"
+        _os.execv(_frontend, [_frontend, os.path.abspath(__file__)] + sys.argv[1:])
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRACEBACK_CLASS = re.compile(r"(?:^|\s)([A-Za-z_][A-Za-z0-9_]*(?:Error|Interrupt|Exit|Exception|Warning))(?::|$)")
 
@@ -27,7 +35,8 @@ def oracle_result(oracle, source):
     )
     stdout = proc.stdout.splitlines()
     if proc.returncode == 0:
-        return {"status": "ok", "exit": 0, "stdout": stdout}
+        return {"status": "ok", "exit": 0, "stdout": stdout,
+                "stdout_text": proc.stdout}
     error = None
     for line in reversed(proc.stderr.splitlines()):
         match = TRACEBACK_CLASS.search(line.strip())
@@ -35,7 +44,28 @@ def oracle_result(oracle, source):
             error = match.group(1)
             break
     return {"status": "exn", "exit": proc.returncode,
-            "exn": error, "stdout": stdout}
+            "exn": error, "stdout": stdout, "stdout_text": proc.stdout}
+
+
+def refresh_envelopes(rows):
+    """Re-extract every row through the shared pinned frontend/cache path."""
+    import importlib.machinery
+    import importlib.util
+    path = os.path.join(REPO_ROOT, "tools", "leanpy")
+    spec = importlib.util.spec_from_loader(
+        "machine_diff_leanpy", importlib.machinery.SourceFileLoader("machine_diff_leanpy", path))
+    leanpy = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(leanpy)
+    cache = leanpy.default_cache()
+    refreshed = []
+    for row in rows:
+        envelope = leanpy.envelope_for(row["source"], cache)
+        if envelope is None:
+            raise RuntimeError("extractor refused %s" % row["source"])
+        current = dict(row)
+        current["envelope"] = envelope
+        refreshed.append(current)
+    return refreshed
 
 
 def run_machine(runner, rows, fuel):
@@ -52,7 +82,10 @@ def run_machine(runner, rows, fuel):
         results = []
         for line in proc.stdout.splitlines():
             if line.startswith("{"):
-                results.append(json.loads(line))
+                result = json.loads(line)
+                chunks = result.get("stdout", [])
+                result["stdout_text"] = "".join(chunk + "\n" for chunk in chunks)
+                results.append(result)
         while len(results) < len(rows):
             results.append({"status": "runner-error", "exit": 1})
         return results, proc.returncode
@@ -71,23 +104,26 @@ def main(argv=None):
 
     with open(opts.cases, encoding="utf-8") as stream:
         rows = json.load(stream)
+    rows = refresh_envelopes(rows)
     oracle = []
     for row in rows:
         oracle.append(oracle_result(opts.oracle, row["source"]))
     machine, runner_code = run_machine(opts.runner.split(), rows, opts.fuel)
 
     matched = refused = divergent = 0
+    unit_mismatches = 0
     for index, (row, expected, actual) in enumerate(zip(rows, oracle, machine), 1):
-        if row["expect"] == "unsupported":
-            verdict = "REFUSED" if actual.get("status") == "unsupported" else "DIVERGE"
-            if verdict == "REFUSED":
-                refused += 1
-            else:
-                divergent += 1
+        unit_expected_refusal = row["expect"] == "unsupported"
+        if (actual.get("status") == "unsupported") != unit_expected_refusal:
+            unit_mismatches += 1
+        if actual.get("status") == "unsupported":
+            verdict = "REFUSED"
+            refused += 1
         else:
             same = (actual.get("status") == expected.get("status") and
                     actual.get("exit") == expected.get("exit") and
-                    actual.get("stdout", []) == expected.get("stdout", []))
+                    actual.get("stdout_text", "") == expected.get("stdout_text", "") and
+                    actual.get("exn") == expected.get("exn"))
             verdict = "MATCH" if same else "DIVERGE"
             if same:
                 matched += 1
@@ -98,13 +134,21 @@ def main(argv=None):
             print("  cpython:", json.dumps(expected, sort_keys=True))
             print("  machine:", json.dumps(actual, sort_keys=True))
 
-    comparable = sum(row["expect"] == "match" for row in rows)
+    comparable = matched + divergent
     print("machine rows: %d, matched: %d, refused: %d, diverging: %d" %
           (len(rows), matched, refused, divergent))
     print("MACHINE-PARITY %d/%d, diverging %d" %
           (matched, comparable, divergent))
+    print("MACHINE-UNIT rows %d, expectation mismatches %d" %
+          (len(rows), unit_mismatches))
     if runner_code != 0 and divergent == 0:
         print("runner exit:", runner_code)
+    version = subprocess.run([opts.oracle, "-V"], capture_output=True, text=True)
+    print("oracle: %s" % ((version.stdout or version.stderr).strip(),))
+    with open(os.path.join(REPO_ROOT, "harness", "cases.json"), encoding="utf-8") as stream:
+        call_rows = json.load(stream)
+    decided_calls = sum(row.get("expect", "match") != "unsupported" for row in call_rows)
+    print("MACHINE-PARITY cases.json unavailable 0/%d, no typed call entry" % decided_calls)
     return 1 if divergent else 0
 
 

@@ -33,6 +33,7 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 import sys
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -167,6 +168,32 @@ def run_lean(runner_cmd, json_path, fuel):
     return proc.stdout, proc.returncode, proc.stderr.strip()
 
 
+def run_machine_batch(runner_cmd, jobs, fuel):
+    """Run the machine column once for the whole corpus."""
+    fd, jobs_path = tempfile.mkstemp(prefix=".machine-script-jobs-", suffix=".jsonl")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            for path in jobs:
+                stream.write(json.dumps({"path": path}) + "\n")
+        command = list(runner_cmd) + ["--machine-script-batch", jobs_path]
+        if fuel is not None:
+            command += ["--fuel", str(fuel)]
+        proc = subprocess.run(command, cwd=REPO_ROOT,
+                              capture_output=True, text=True)
+        results = []
+        for line in proc.stdout.splitlines():
+            if line.startswith("{"):
+                result = json.loads(line)
+                result["stdout_text"] = "".join(
+                    chunk + "\n" for chunk in result.get("stdout", []))
+                results.append(result)
+        while len(results) < len(jobs):
+            results.append({"status": "runner-error", "exit": 1})
+        return results
+    finally:
+        os.unlink(jobs_path)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="script_corpus.py")
     parser.add_argument("--scripts", default=os.path.join("harness", "scripts.json"))
@@ -194,9 +221,20 @@ def main(argv=None):
     with open(opts.scripts, "r", encoding="utf-8") as f:
         rows = json.load(f)
 
+    machine_jobs = []
+    machine_sources = []
+    for row in rows:
+        envelope = leanpy.envelope_for(row["file"], cache)
+        if envelope is not None:
+            machine_sources.append(row["file"])
+            machine_jobs.append(envelope)
+    machine_results = run_machine_batch(runner_cmd, machine_jobs, opts.fuel)
+    machine_by_source = dict(zip(machine_sources, machine_results))
+
     failures = 0
     completed = 0
     blocked = []
+    machine_matched = machine_refused = machine_diverged = 0
     for row in rows:
         src = row["file"]
         expect = row.get("expect", "match")
@@ -207,9 +245,24 @@ def main(argv=None):
             continue
         cout, ccode, cerr = run_cpython(src)
         lout, lcode, lerr = run_lean(runner_cmd, json_path, opts.fuel)
+        machine = machine_by_source.get(src, {"status": "runner-error", "exit": 1})
+        machine_same = (
+            machine.get("status") == ("ok" if ccode == 0 else "exn") and
+            machine.get("exit") == ccode and
+            machine.get("stdout_text", "") == cout and
+            (ccode == 0 or machine.get("exn") == exc_class(cerr)))
+        if machine.get("status") == "unsupported":
+            machine_verdict = "REFUSED"
+            machine_refused += 1
+        elif machine_same:
+            machine_verdict = "MATCH"
+            machine_matched += 1
+        else:
+            machine_verdict = "DIVERGE"
+            machine_diverged += 1
         if expect == "unsupported":
             if lcode == 3:
-                print("%-42s LOUD    (%s)" % (src, lerr))
+                print("%-42s LOUD    machine=%-8s (%s)" % (src, machine_verdict, lerr))
                 blocked.append((src, lerr))
             else:
                 print("%-42s MISMATCH (expected loud exit 3, got %d: %s)"
@@ -227,11 +280,11 @@ def main(argv=None):
                           and (": " not in (lline or "")
                                or lline == exc_line(cerr))))
             if cout == lout and ccode == lcode and exc_ok:
-                print("%-42s MATCH   (exit %d, %d stdout bytes)"
-                      % (src, ccode, len(cout)))
+                print("%-42s MATCH   machine=%-8s (exit %d, %d stdout bytes)"
+                      % (src, machine_verdict, ccode, len(cout)))
                 completed += 1
             else:
-                print("%-42s MISMATCH" % src)
+                print("%-42s MISMATCH machine=%s" % (src, machine_verdict))
                 print("  cpython: exit %d, stdout %r" % (ccode, cout))
                 print("  lean:    exit %d, stdout %r, exc %r" % (lcode, lout, exc_line(lerr)))
                 if ccode:
@@ -245,6 +298,10 @@ def main(argv=None):
     print("interpreter: LeanModels/Python/Monadic/ (the runner's; the theorems are about Semantics.lean)")
     print("%d scripts: %d failed, %d completed-and-matched, %d loud-blocked"
           % (total, failures, completed, len(blocked)))
+    print("machine: matched %d, refused %d, diverging %d" %
+          (machine_matched, machine_refused, machine_diverged))
+    print("MACHINE-PARITY %d/%d, diverging %d" %
+          (machine_matched, machine_matched, machine_diverged))
     for src, msg in blocked:
         print("  blocked: %-34s %s" % (src, msg))
     return 1 if failures else 0
