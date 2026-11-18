@@ -48,7 +48,16 @@ def row (res : Nat) : SvState := [("CLK", bits 1 0), ("RES", bits 1 res), ("IRQ"
 | .ok d => match d.initialState with
   | .ok st => match d.stepOnePassTrace st (row 1) with
     | .ok (st1, _) => match d.stepOnePassTrace st1 (row 0) with
-      | .ok _ => "initial-ok\ntwo-pass-ok"
+      | .ok (st2, _) => match d.prepareStep st2 (SvState.set (row 0) "CLK" (bits 1 1)) with
+        | .ok (pre, before, after) => match d.runEdges d.env d.elems pre before after d.processes.toList with
+          | .ok edge => match d.settleCanonical d.env d.elems edge.state d.processes.toList with
+            | .ok _ => "initial-ok\ntwo-pass-ok\nclock-prepare-ok\nclock-edges-ok\nclock-settle-ok"
+            | .timeout => "initial-ok\ntwo-pass-ok\nclock-settle-timeout"
+            | .unsupported m => "initial-ok\ntwo-pass-ok\nclock-settle-unsupported: " ++ m
+          | .timeout => "initial-ok\ntwo-pass-ok\nclock-edges-timeout"
+          | .unsupported m => "initial-ok\ntwo-pass-ok\nclock-edges-unsupported: " ++ m
+        | .timeout => "initial-ok\ntwo-pass-ok\nclock-prepare-timeout"
+        | .unsupported m => "initial-ok\ntwo-pass-ok\nclock-prepare-unsupported: " ++ m
       | .timeout => "initial-ok\nsecond-pass-timeout"
       | .unsupported m => "initial-ok\nsecond-pass-unsupported: " ++ m
     | .timeout => "initial-ok\none-pass-timeout"
@@ -77,10 +86,10 @@ def row (res : Nat) : SvState := [("CLK", bits 1 0), ("RES", bits 1 res), ("IRQ"
     if result.returncode != 0:
         raise SystemExit(result.stdout)
     if digest == COREMEM_ENVELOPE:
-        if '"initial-ok\\ntwo-pass-ok"' not in result.stdout:
-            raise SystemExit("canonical-E memory cycle probe did not complete two passes")
-        print("canonical E: loaded one-rank memory route and completed two source-shaped passes")
-        print("E-RUN: 0/2 complete cycles; one-pass probe: 2/2")
+        if 'initial-ok\\ntwo-pass-ok\\nclock-prepare-ok\\nclock-edges-ok\\nclock-settle-ok' not in result.stdout:
+            raise SystemExit("canonical-E staged clock probe did not complete")
+        print("canonical E: loaded one-rank memory route and completed two passes plus clock preparation, edge execution, and settle")
+        print("E-RUN: 0/2 complete cycles; staged clock probe: 3/3 stages")
         print(f"envelope SHA-256: {digest}")
         return
     if expected_refusal not in result.stdout:
