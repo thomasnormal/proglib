@@ -205,6 +205,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("latch_multi_e.sv", "latch_multi_e",
             (Port("en", 1), Port("a", 4), Port("b", 4)),
             (Port("q", 4), Port("r", 4))),
+    Fixture("latch_cond_e.sv", "latch_cond_e",
+            (Port("en", 1), Port("mode", 1), Port("d", 4)), (Port("q", 4),)),
     Fixture("preempt_block_refuse.sv", "preemptive_schedule",
             (Port("a", 1), Port("b", 1)),
             (Port("q", 1), Port("r", 1), Port("z", 1))),
