@@ -102,6 +102,12 @@ are debt. Current ranking examples are 24 effective-type bit-cast rows, 14
 pointer-to-integer rows, and 13 integer-to-pointer rows. A row needs this
 family plus layout or calls when its pointer targets those mechanisms.
 
+The focused battery now includes the C23 §6.5.1p7 character-type exception
+with a parser-derived `unsigned char *` access to an `int` object. It matches
+the pinned little-endian oracle, while the incompatible `short *` pun remains
+a loud refusal with `MemFault.effectiveType` semantics reserved for the
+future general aliasing model.
+
 ## 5. Evaluation order, control flow, and termination
 
 This family covers sequencing, calls with effects, gotos, labels, computed
