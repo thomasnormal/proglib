@@ -183,6 +183,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("typed_variable_unpacked_scalar_repro.sv", "typed_variable_unpacked_scalar_repro",
             (Port("source", 4),), (Port("result", 4),),
             expected_source_refusals=("iverilog",)),
+    Fixture("negedge_e.sv", "negedge_e",
+            (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),)),
     Fixture("preempt_block_refuse.sv", "preemptive_schedule",
             (Port("a", 1), Port("b", 1)),
             (Port("q", 1), Port("r", 1), Port("z", 1))),
