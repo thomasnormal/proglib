@@ -876,3 +876,18 @@ evidence for the current extractor.  The ordinary census reaches the intended
 `PortSymbol:net-z` boundary for output `y`, where structured metadata keeps
 both generated driver records.  No canonical-E execution or real-design count
 transition is claimed by this correction.
+
+## Stall-rule wall ranking after the current-head remeasurement
+
+The three preceding items changed no E-ROWS or REAL-DESIGNS count, so the
+current clean-room matrix was re-ranked by breadth and ownership.  The next
+general-lane wall is the shared aggregate/member relation, whose typed ports,
+typed variables, aliases, named values, and member paths cover six to seven
+real-module closures and change canonical E state and step judgments.  The
+event-controlled procedural block is the next broad scheduler wall at eight
+closures, followed by child-instance hierarchy at four closures, while net-z
+module members and packed-enum dimensions remain ls-sv3-owned boundaries.  The
+resolved-net multiple-driver row is now a focused `PortSymbol:net-z` boundary
+with both driver records retained.  No count transition is claimed.  The next
+item is therefore the shared aggregate relation, beginning with the typed
+clean-room state representation and its refinement obligations.
