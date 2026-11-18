@@ -187,6 +187,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),)),
     Fixture("negedge_plain_e.sv", "negedge_plain_e",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),)),
+    Fixture("always_latch_e.sv", "always_latch_e",
+            (Port("en", 1), Port("d", 1)), (Port("q", 1),)),
     Fixture("preempt_block_refuse.sv", "preemptive_schedule",
             (Port("a", 1), Port("b", 1)),
             (Port("q", 1), Port("r", 1), Port("z", 1))),
