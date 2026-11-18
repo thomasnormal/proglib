@@ -123,3 +123,17 @@ status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
 place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
 corpus counter remains `SLICE1-ROWS 0/30, diverging 0`.
+
+## Slice 1 exit record
+
+The Slice 1 exit audit is complete.  The 30-row structured audit reported 30
+named refusals, zero decided corpus rows, and zero diverging rows.  Each row's
+refusal is tied to the first unsupported rvalue or terminator, an unavailable
+callee, or the absence of a checked-in relation row.  The audit command and
+its per-row extractor timings are recorded in `docs/rust-slice1-audit.json`.
+The pinned Stage 0 Miri report records the exit, panic, and UB verdict for all
+31 measured rows under both borrow models.  The Lean semantics is 581 lines.
+The checked-in theorem rows include a user loop, a resolved user call, and a
+standard-library identity call proved from its extracted MIR body.
+
+`SLICE 1 READY` is recorded in the lane journal for the owner to review.
