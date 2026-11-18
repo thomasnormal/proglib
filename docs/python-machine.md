@@ -239,6 +239,8 @@ before collecting the remaining `*args`, while
 error from an omitted variadic argument, while
 `harness/scripts/function_varargs_keyword_only.py` checks a keyword-only
 parameter after variadic positional collection, while
+`harness/scripts/function_varargs_required_keyword_only.py` checks the same
+combination with a required keyword-only parameter, while
 `harness/scripts/function_kwargs.py` records the current loud refusal for
 variadic keyword parameters, while
 `harness/scripts/function_unknown_keyword.py` records the current loud refusal
