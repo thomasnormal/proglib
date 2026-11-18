@@ -193,6 +193,19 @@ def rLookupEnv : REnv → String → Option RVal
   | (name, value) :: rest, wanted =>
       if name == wanted then some value else rLookupEnv rest wanted
 
+def rReadCell (heap : Heap) (value : RVal) : Option RVal :=
+  match value with
+  | .ref address =>
+      match heap.get? address with
+      | some (.cell (some contents)) => some contents
+      | _ => none
+  | _ => some value
+
+def rLookupCaptured (heap : Heap) (env : REnv) (name : String) : Option RVal :=
+  match rLookupEnv env name with
+  | some value => rReadCell heap value
+  | none => none
+
 def rLookupModule : List (String × REnv) → String → String → Option RVal
   | [], _, _ => none
   | (module, env) :: rest, wantedModule, wantedName =>
@@ -478,7 +491,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   match rLookupModule config.modules frame.module name with
                   | some value => some (.tau, config.setControl (.continueValue value continuation))
                   | none =>
-                      match rLookupEnv frame.cells name with
+                      match rLookupCaptured config.heap frame.cells name with
                       | some value => some (.tau, config.setControl (.continueValue value continuation))
                       | none =>
                           match rBuiltin config.builtins name with
@@ -771,6 +784,17 @@ private def bClosureModule : RModule :=
         testSpan,
       .ret (some (.call (.name "outer" testSpan) #[] #[] none testSpan)) testSpan] }
 
+private def bCellModule : RModule :=
+  { body := #[.ret (some (.name "x" testSpan)) testSpan] }
+
+private def bCellConfig : RConfig :=
+  let initial := RConfig.initial bCellModule
+  let frame : RFrame :=
+    { control := .statements bCellModule.body.toList, locals := [], globals := [] }
+  { initial with
+    heap := #[.cell (some (.int 11))],
+    frames := [{ frame with cells := [("x", RVal.ref 0)] }] }
+
 example :
     ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
@@ -807,6 +831,11 @@ example :
 example :
     (runB1 128 (RConfig.initial bClosureModule)).2.status =
       .finished (.return (.int 9)) := by
+  rfl
+
+example :
+    (runB1 8 bCellConfig).2.status =
+      .finished (.return (.int 11)) := by
   rfl
 
 example : ∃ c₁ c₂,
