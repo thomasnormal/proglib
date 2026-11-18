@@ -78,6 +78,8 @@ structure SchedulerDesign where
   /-- Edge processes must install their event controls before the implicit
       time-zero activation of always_comb (§9.2.2.2). -/
   startupEdges : List Nat := []
+  /-- Declared input ports and their two-state conversion bit. -/
+  inputInfo : List (String × Bool) := []
   /-- Admission is explicit so refused designs cannot satisfy a property
       vacuously through an empty run relation. -/
   admitted : Bool := true
@@ -202,20 +204,32 @@ theorem Steps.trans {r : SlotState → SlotState → Prop} {s t u : SlotState} :
 def Slot (d : SchedulerDesign) (s t : SlotState) : Prop :=
   Steps (oneStep d) s t ∧ quiet t
 
-def inputUpdatesFrom : SvState → List Update
+def inputUpdatesFrom (info : List (String × Bool)) : SvState → List Update
   | [] => []
   | (name, value) :: rest =>
-      { owner := none, seq := none, target := name, value } :: inputUpdatesFrom rest
+      match info with
+      | [] =>
+          { owner := none, seq := none, target := name, value } ::
+            inputUpdatesFrom [] rest
+      | _ => match info.find? (fun x => x.1 == name) with
+        | some (_, twoState) =>
+          { owner := none, seq := none, target := name,
+            value := if twoState then value.toTwoState else value } ::
+            inputUpdatesFrom info rest
+        | none => inputUpdatesFrom info rest
 
-def inputUpdates (row : SvState) : List Update := inputUpdatesFrom row
+def inputUpdates (row : SvState) : List Update := inputUpdatesFrom [] row
 
-def startWithInputs (s : SlotState) (row : SvState) : SlotState :=
-  { s with active := (inputUpdates row).map Active.update ++ s.active, nbaNext := [] }
+def inputUpdatesFor (info : List (String × Bool)) (row : SvState) : List Update :=
+  inputUpdatesFrom info row
+
+def startWithInputs (d : SchedulerDesign) (s : SlotState) (row : SvState) : SlotState :=
+  { s with active := (inputUpdatesFor (SchedulerDesign.inputInfo d) row).map Active.update ++ s.active, nbaNext := [] }
 
 def Run (d : SchedulerDesign) : List SvState → SlotState → List SvState → Prop
   | [], s, [] => quiet s
   | row :: rows, s, out :: outs =>
-      ∃ t, Slot d (startWithInputs s row) t ∧ out = t.store ∧ Run d rows t outs
+      ∃ t, Slot d (startWithInputs d s row) t ∧ out = t.store ∧ Run d rows t outs
   | _, _, _ => False
 
 def RunDesign (d : SchedulerDesign) (rows : List SvState) (outs : List SvState) : Prop :=
@@ -435,6 +449,8 @@ def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalActi
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
     startupEdges := d.edgeIndices
+    inputInfo := d.decls.toList.filterMap fun dc =>
+      if dc.isInput then some (dc.name, dc.twoState) else none
     admitted := !d.hasUnsupported && !hasMultipleAssignDrivers d
     initial :=
       { store := initState d
@@ -739,9 +755,22 @@ private def timeZeroRun : List SvState :=
   let afterLow : SlotState :=
     { store := [("q", LVec.ofNat 1 1), ("clk", LVec.lit "0")]
       sens := [{ process := 0, target := "clk", wait := .posedge, resume := 1 }] }
-  allSlots 8 d (startWithInputs afterLow [("clk", LVec.lit "1")])
+  allSlots 8 d (startWithInputs d afterLow [("clk", LVec.lit "1")])
 
 #guard timeZeroRun == [[("q", LVec.ofNat 1 0), ("clk", LVec.lit "1")]]
+
+private def inputBoundaryDesign : Design :=
+  { name := "input_boundary"
+    decls := #[
+      { name := "in2", width := 2, isInput := true, twoState := true },
+      { name := "out", width := 2, isOutput := true }]
+    processes := #[] }
+
+private def inputBoundaryScheduler := SchedulerDesign.ofDesign inputBoundaryDesign
+#guard (inputBoundaryScheduler.inputInfo == [("in2", true)])
+#guard (startWithInputs inputBoundaryScheduler inputBoundaryScheduler.initial
+    [("in2", LVec.lit "xz"), ("out", LVec.lit "11")]).active ==
+  [.update { owner := none, seq := none, target := "in2", value := LVec.lit "00" }]
 
 private def multiAssignDesign : Design :=
   { name := "multi_assign"
