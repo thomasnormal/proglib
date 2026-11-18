@@ -2724,7 +2724,19 @@ def instDecl (env : IEnv) (pd : PDecl) : Res Decl :=
                     isNet := pd.isNet, twoState := pd.twoState,
                     isInput := pd.isInput, isOutput := pd.isOutput, init := some v }
           | _ =>
-              .unsupported s!"decl '{pd.name}': non-literal initializer outside the M0 tier"
+              -- A constant expression such as `reg [1:0] r = -1` is
+              -- evaluated by the declaration's context width (§6.8,
+              -- §11.8).  Keep signal-dependent initializers loud, while
+              -- admitting the exact INT-class constant path already used
+              -- for parameters and localparams.
+              match evalInt env ie with
+              | .ok v =>
+                  .ok { name := pd.name, width := w, isSigned := pd.isSigned,
+                        isNet := pd.isNet, twoState := pd.twoState,
+                        isInput := pd.isInput, isOutput := pd.isOutput,
+                        init := some (LVec.ofInt w v) }
+              | .error _ =>
+                  .unsupported s!"decl '{pd.name}': non-literal initializer outside the M0 tier"
 
 /-- Instantiate the declarations in order, threading each new width into
 the environment. -/
@@ -3602,7 +3614,10 @@ theorem instDecl_sig {env : IEnv} {pd : PDecl} {dc : Decl}
       · split at h
         · cases h
           exact ⟨rfl, rfl, rfl⟩
-        · cases h
+        · split at h
+          · cases h
+            exact ⟨rfl, rfl, rfl⟩
+          · cases h
 
 theorem buildDecls_sig {l : List PDecl} :
     ∀ {env : IEnv} {r : List Decl}, buildDecls env l = .ok r →
