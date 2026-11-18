@@ -219,6 +219,8 @@ FIXTURES: tuple[Fixture, ...] = (
             expected_source_refusals=("iverilog", "xrun")),
     Fixture("latch_else_e.sv", "latch_else_e",
             (Port("en", 1), Port("d", 1)), (Port("q", 1),)),
+    Fixture("latch_case_e.sv", "latch_case_e",
+            (Port("sel", 2), Port("a", 4), Port("b", 4)), (Port("q", 4),)),
     Fixture("negedge_e.sv", "negedge_e",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),)),
     Fixture("negedge_plain_e.sv", "negedge_plain_e",
