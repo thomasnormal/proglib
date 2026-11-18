@@ -21,6 +21,9 @@ private def string (j : Json) : Except String String :=
 private def nat (j : Json) : Except String Nat :=
   j.getNat?
 
+private def int (j : Json) : Except String Int :=
+  j.getInt?
+
 private def array (j : Json) : Except String (List Json) :=
   match j with
   | .arr values => .ok values.toList
@@ -73,6 +76,13 @@ private def rvalue (j : Json) : Except String Rvalue := do
       match values with
       | operandJson :: _ => .map Rvalue.use (operand operandJson)
       | _ => .error "MIR Use rvalue has no operand"
+  | "BinaryOp" => do
+      let values ← array value
+      match values with
+      | ["Eq", left, right] => pure (.binaryEq (← operand left) (← operand right))
+      | ["BitAnd", left, right] => pure (.binaryBitAnd (← operand left) (← operand right))
+      | ["Div", left, right] => pure (.binaryDiv (← operand left) (← operand right))
+      | _ => pure (.unsupported "BinaryOp")
   | other => pure (.unsupported other)
 
 private def statement (j : Json) : Except String Statement := do
@@ -89,13 +99,38 @@ private def statement (j : Json) : Except String Statement := do
   | other => pure (.unsupported other)
 
 private def terminator (j : Json) : Except String Terminator := do
-  let kind ←
-    match j with
-    | .str name => pure name
-    | _ => (variant j).map Prod.fst
-  match kind with
-  | "Return" => pure .ret
-  | other => pure (.unsupported other)
+  match j with
+  | .str "Return" => pure .ret
+  | .obj _ => do
+      let (kind, value) ← variant j
+      match kind with
+      | "Return" => pure .ret
+      | "Goto" => .map Terminator.goto (field value "target" >>= nat)
+      | "SwitchInt" => do
+          let discr ← field value "discr" >>= operand
+          let targets ← field value "targets"
+          let branches ← field targets "branches" >>= array >>= (·.mapM fun branch => do
+            let values ← array branch
+            match values with
+            | [value, target] => pure (← int value, ← nat target)
+            | _ => .error "MIR SwitchInt branch must contain a value and target")
+          let otherwise ← field targets "otherwise" >>= nat
+          pure (.switchInt discr branches otherwise)
+      | "Assert" => do
+          let cond ← field value "cond" >>= operand
+          let expected ← field value "expected" >>= Lean.Json.getBool?
+          let target ← field value "target" >>= nat
+          let unwind ← field value "unwind"
+          let unwindName ←
+            match unwind with
+            | .str name => pure name
+            | _ => (variant unwind).map Prod.fst
+          if unwindName == "Continue" then pure (.assert cond expected target)
+          else pure (.unsupported "Assert with cleanup unwind")
+      | "Unreachable" => pure .unreachable
+      | other => pure (.unsupported other)
+  | .str other => pure (.unsupported other)
+  | _ => .error "MIR terminator must be a string or single-variant object"
 
 private def block (j : Json) : Except String Block := do
   let statements ← field j "statements" >>= array >>= (·.mapM fun item =>

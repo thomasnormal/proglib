@@ -20,6 +20,9 @@ deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 inductive Rvalue where
   | use (operand : Operand)
+  | binaryEq (left right : Operand)
+  | binaryBitAnd (left right : Operand)
+  | binaryDiv (left right : Operand)
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
@@ -33,6 +36,10 @@ deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 inductive Terminator where
   | ret
+  | goto (target : Nat)
+  | switchInt (discr : Operand) (branches : List (Int × Nat)) (otherwise : Nat)
+  | assert (cond : Operand) (expected : Bool) (target : Nat)
+  | unreachable
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 

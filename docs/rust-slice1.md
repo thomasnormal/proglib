@@ -25,6 +25,24 @@ were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No row
 diverged and no row diverged by timeout, so this family records
 `SLICE1-ROWS 3/30, diverging 0`.
 
+The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
+`Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
+named refusal because it has no successful trace.  The three control-flow
+rows are `Examples/rust/control/main.rs`, `Examples/rust/assert/main.rs`, and
+`Examples/rust/switch/main.rs`.  Miri returned `ok` with exit status 0 under
+both borrow models for all three.  Two-model invocations measured 0.645 s,
+0.635 s, and 0.622 s respectively, bringing the cumulative count to
+`SLICE1-ROWS 6/30, diverging 0`.
+
+The CFG runner consumes one block per fuel unit.  `SwitchInt` resolves an
+integer operand against ordered branch values and otherwise takes the default
+target.  The supported assertion transition reaches its target exactly when
+the condition equals `expected`; division-by-zero and overflow assertions are
+therefore explicit refusals until their checked arithmetic and panic paths are
+implemented.  `Copy` and `Move` operands now read initialized integer locals,
+and the supported equality, bit-and, and division rvalues are evaluated
+without lowering the MIR.
+
 The state is a finite map of local IDs to `uninit` or integer values.  A step
 emits one event and updates that map.  Allocated constant bytes are checked for
 at most eight bytes and byte values at most 255, then decoded as little-endian
