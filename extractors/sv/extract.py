@@ -8306,6 +8306,9 @@ def _convert_expr(sm, e):
             return _convert_packed_pattern(sm, e)
         return unsupported(sm, e, "AssignmentPattern:default-point")
     if cname == "MemberAccessExpression":
+        if _SYM is not None and _has_unpacked_aggregate_path(e):
+            return unsupported(sm, e, "MemberAccessExpression:aggregate",
+                               "source-shaped aggregate member path is retained until the E aggregate relation")
         unpacked_member = _unpacked_struct_member(sm, e)
         if unpacked_member is not None:
             return signed_metadata({
@@ -8357,6 +8360,9 @@ def _convert_expr(sm, e):
     if _SYM is not None and cname in (
         "ElementSelectExpression", "RangeSelectExpression", "ReplicationExpression"
     ):
+        if cname != "ReplicationExpression" and _has_unpacked_aggregate_path(e):
+            return unsupported(sm, e, "MemberAccessExpression:aggregate",
+                               "source-shaped aggregate member path is retained until the E aggregate relation")
         return _sym_select_checked(sm, e, cname,
                                    _convert_sym_select_expr(sm, e, cname))
     return unsupported(sm, e)
@@ -32185,6 +32191,110 @@ def _decl_type_syntax(sym):
         return None
 
 
+def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0):
+    """Project Slang's canonical aggregate tree into envelope metadata."""
+    if depth > 32:
+        return None
+    try:
+        ct = t.canonicalType
+        cname = type(ct).__name__
+        if cname == "UnpackedStructType":
+            fields = []
+            for field in ct:
+                fsyntax = getattr(getattr(field, "declaredType", None), "typeSyntax", None)
+                shape = _aggregate_shape_sym(sm, field.type, fsyntax,
+                                             getattr(field, "syntax", None), depth + 1)
+                if shape is None:
+                    return None
+                fields.append({"name": field.name, "type": shape})
+            return {"kind": "struct", "fields": fields}
+        if cname == "UnpackedUnionType":
+            return None
+        if cname == "FixedSizeUnpackedArrayType":
+            dims = _syntax_unpacked_dims(sm, declarator)
+            current = ct
+            numeric = []
+            while type(current).__name__ == "FixedSizeUnpackedArrayType":
+                numeric.append({
+                    "msb": {"kind": "Int", "span": None, "value": int(current.range.left)},
+                    "lsb": {"kind": "Int", "span": None, "value": int(current.range.right)},
+                })
+                current = current.elementType.canonicalType
+            if dims is None or len(dims) != len(numeric):
+                dims = numeric
+            elem = _aggregate_shape_sym(sm, current, type_syntax, None, depth + 1)
+            if elem is None:
+                return None
+            for dim in reversed(dims):
+                elem = {"kind": "array", "msb": dim["msb"],
+                        "lsb": dim["lsb"], "elem": elem}
+            return elem
+        dtype, reason = _dtype_sym(sm, t, type_syntax, allow_signed=True)
+        if dtype is None or reason is not None:
+            return None
+        return {"kind": "scalar", "type": dtype,
+                "signed": bool(getattr(t, "isSigned", False)),
+                "two_state": not bool(getattr(t, "isFourState", True))}
+    except Exception:
+        return None
+
+
+def _aggregate_decl_metadata_sym(sm, m, direction=None, isym=None):
+    """Return structured metadata for an unpacked struct declaration."""
+    try:
+        current = m.type.canonicalType
+        while type(current).__name__ == "FixedSizeUnpackedArrayType":
+            current = current.elementType.canonicalType
+        if type(current).__name__ not in ("UnpackedStructType", "UnpackedUnionType"):
+            return None
+        symbol = isym or m
+        shape = _aggregate_shape_sym(sm, m.type, _decl_type_syntax(symbol),
+                                     getattr(m, "syntax", None))
+        if shape is None:
+            return None
+        def contains_struct(node):
+            return (node.get("kind") == "struct" or
+                    (node.get("kind") == "array" and contains_struct(node["elem"])))
+        if not contains_struct(shape):
+            return None
+        return {
+            "name": m.name,
+            "aggregate": shape,
+            **({"dir": direction} if direction is not None else {}),
+            "signed": bool(getattr(m.type, "isSigned", False)),
+            "two_state": not bool(getattr(m.type, "isFourState", True)),
+            **({"net": True} if str(getattr(symbol, "kind", "")).split(".")[-1] == "Net" else {}),
+        }
+    except Exception:
+        return None
+
+
+def _is_unpacked_aggregate_type(t):
+    try:
+        current = t.canonicalType
+        while type(current).__name__ == "FixedSizeUnpackedArrayType":
+            current = current.elementType.canonicalType
+        return type(current).__name__ in ("UnpackedStructType", "UnpackedUnionType")
+    except Exception:
+        return False
+
+
+def _has_unpacked_aggregate_path(e):
+    """Whether a source expression walks through an unpacked aggregate."""
+    try:
+        current = e
+        while type(current).__name__ in (
+                "MemberAccessExpression", "ElementSelectExpression",
+                "RangeSelectExpression"):
+            if type(current).__name__ == "MemberAccessExpression" \
+                    and _is_unpacked_aggregate_type(current.value.type):
+                return True
+            current = current.value
+        return _is_unpacked_aggregate_type(current.type)
+    except Exception:
+        return True
+
+
 def convert_port_sym(sm, m):
     d = str(m.direction).split(".")[-1]
     direction = DIRECTION_MAP.get(d)
@@ -32218,6 +32328,9 @@ def convert_port_sym(sm, m):
         # still resolves, the Yosys 0.53 netlist keeps the constant,
         # Verilator 5.042 the input (rows `pi_in_*`). Loud.
         return unsupported(sm, m, "PortSymbol:initialized-input")
+    aggregate = _aggregate_decl_metadata_sym(sm, m, direction, isym)
+    if aggregate is not None:
+        return unsupported(sm, m, "PortSymbol:type", metadata=aggregate)
     retained = _convert_unpacked_decl_sym(sm, m, direction, isym)
     if retained is not None:
         return retained
@@ -33000,6 +33113,9 @@ def _sym_unsized_xz_widening(sm, e, op, tw):
 def convert_var_sym(sm, m):
     if is_inert_2state_floating_decl(m):
         return {"kind": "Empty", "span": sym_span(sm, m)}
+    aggregate = _aggregate_decl_metadata_sym(sm, m)
+    if aggregate is not None:
+        return unsupported(sm, m, "VariableSymbol:type", metadata=aggregate)
     retain_fixed = _sym_source_shaped_fixed_array(m)
     if _RETAIN_PROC_REWRITES:
         try:

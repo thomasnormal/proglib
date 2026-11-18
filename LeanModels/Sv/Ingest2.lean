@@ -85,6 +85,7 @@ deriving instance Lean.ToExpr for PExpr
 deriving instance Lean.ToExpr for PLhs
 deriving instance Lean.ToExpr for PDim
 deriving instance Lean.ToExpr for PType
+deriving instance Lean.ToExpr for PAggType
 deriving instance Lean.ToExpr for PParam
 deriving instance Lean.ToExpr for PLocalParam
 deriving instance Lean.ToExpr for EnumVal
@@ -515,6 +516,43 @@ def parsePType (j : Json) : Except String PType := do
         return .typeRef (← getStrField j "name") (getOptStr j "from_package")
           (getOptNat j "resolved")
     | other => throw s!"unknown type kind {other.quote}"
+
+partial def parsePAggType (j : Json) : Except String PAggType := do
+  let kind ← getKind j
+  withCtx kind do
+    match kind with
+    | "scalar" =>
+        let ty ← parsePType (← getField j "type")
+        let signed := (getOptField j "signed").bind (·.getBool?.toOption) |>.getD false
+        let twoState := (getOptField j "two_state").bind (·.getBool?.toOption) |>.getD false
+        return PAggType.scalar ty signed twoState
+    | "struct" =>
+        let fields ← (← (← getField j "fields").getArr?).toList.mapM fun fj => do
+          let name ← getStrField fj "name"
+          return (name, ← parsePAggType (← getField fj "type"))
+        return PAggType.struct fields
+    | "array" =>
+        return PAggType.array (← parsePExpr (← getField j "msb"))
+          (← parsePExpr (← getField j "lsb"))
+          (← parsePAggType (← getField j "elem"))
+    | other => throw s!"unknown aggregate type kind {other.quote}"
+
+private def parseAggregateDecl? (j : Json) : Except String (Option PDecl) := do
+  if (← getKind j) != "Unsupported" then return none
+  let some md := getOptField j "metadata"
+    | return none
+  let some aggregateJson := getOptField md "aggregate"
+    | return none
+  let name ← getStrField md "name"
+  let aggregate ← parsePAggType aggregateJson
+  let dir? := getOptStr md "dir"
+  let signed := (getOptField md "signed").bind (·.getBool?.toOption) |>.getD false
+  let twoState := (getOptField md "two_state").bind (·.getBool?.toOption) |>.getD false
+  let isNet := (getOptField md "net").bind (·.getBool?.toOption) |>.getD false
+  return some {
+    name, type := .unrecoverable none, isSigned := signed, twoState, isNet,
+    isInput := dir? == some "in", isOutput := dir? == some "out",
+    aggregate? := some aggregate }
 
 /-! ## Statements and processes -/
 
@@ -1014,8 +1052,13 @@ def parseModule2 (j : Json) : Except String PDesign :=
     for dj in (← (← getField j "ports").getArr?) ++ (← (← getField j "decls").getArr?) do
       match ← getKind dj with
       | "Unsupported" =>
-          others := others ++ [← parseUnsupportedFields dj]
-          match ← parseNetMetadata? dj with | some md => netMetadata := netMetadata ++ [md] | none => pure ()
+          match ← parseAggregateDecl? dj with
+          | some aggregate => decls := decls ++ [aggregate]
+          | none =>
+              others := others ++ [← parseUnsupportedFields dj]
+              match ← parseNetMetadata? dj with
+              | some md => netMetadata := netMetadata ++ [md]
+              | none => pure ()
       | _ => decls := decls ++ [← parsePDecl dj]
     for fj in (← match getOptField j "functions" with
       | none => pure #[]

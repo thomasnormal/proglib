@@ -27,7 +27,24 @@ def PType.aggregateScalar? (env : IEnv) (pd : PDecl) : Except String AggType := 
     throw s!"decl '{pd.name}': zero-width aggregate element"
   return .scalar { width, signed := pd.isSigned, fourState := !pd.twoState }
 
+partial def PAggType.toAggType? (env : IEnv) : PAggType → Except String AggType
+  | .scalar ty signed twoState => do
+      let width ← ty.width env
+      if width == 0 then throw "zero-width aggregate element"
+      return .scalar { width, signed, fourState := !twoState }
+  | .struct fields => do
+      let fields ← fields.mapM fun (name, ty) => do
+        return (name, ← PAggType.toAggType? env ty)
+      return .struct fields
+  | .array msb lsb elem => do
+      let msb ← evalInt env msb
+      let lsb ← evalInt env lsb
+      return .array msb lsb (← PAggType.toAggType? env elem)
+
 def PDecl.aggregateType? (env : IEnv) (pd : PDecl) : Except String AggType := do
+  match pd.aggregate? with
+  | some aggregate => return ← PAggType.toAggType? env aggregate
+  | none => pure ()
   let scalar ← PType.aggregateScalar? env pd
   let rec wrap : List PDim → AggType → Except String AggType
     | [], current => .ok current

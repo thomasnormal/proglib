@@ -407,6 +407,17 @@ structure PEnumType where
   members : List PEnumMember
 deriving Repr, BEq, Inhabited
 
+/-- Source-shaped aggregate declaration metadata retained by the symbolic
+frontend.  Aggregate values are kept as named fields and fixed index ranges
+until the E aggregate relation consumes them.  This metadata is deliberately
+separate from `PType`: a declaration can have an aggregate leaf whose packed
+type is still symbolic. -/
+inductive PAggType where
+  | scalar (type : PType) (isSigned : Bool := false) (twoState : Bool := false)
+  | struct (fields : List (String × PAggType))
+  | array (msb lsb : PExpr) (elem : PAggType)
+deriving Repr, BEq, Inhabited
+
 /-- A port / variable / net declaration with a symbolic type. Ports come
 first (port-list order), then module-body declarations — the M0 decl
 order. -/
@@ -432,6 +443,10 @@ structure PDecl where
   flatBase : Option String := none
   /-- Constant unpacked index of a flattened one-rank cell. -/
   flatIndex : Option Int := none
+  /-- Parser-native aggregate shape.  Aggregate declarations remain loud in
+  the scalar E store, but their fields and fixed ranges are retained here so
+  the source-shaped relation can admit them without flattening. -/
+  aggregate? : Option PAggType := none
 deriving Repr, BEq, Inhabited
 
 /-! A narrow source-shaped function declaration.  The first E function rung

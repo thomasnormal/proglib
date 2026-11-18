@@ -84,6 +84,14 @@ synthesized/degenerate nodes; never on the M0 examples).
 {"kind": "Unsupported", "span": {...}, "sv_kind": "<tag>", "text": "<source text, <= 200 chars>"}
 ```
 
+Typed unpacked struct declarations may carry a parser-native
+`metadata.aggregate` tree alongside this refusal.  The tree contains Slang's
+canonical field names, recursive fixed-array bounds, and packed leaf type
+metadata.  Ingestion stores it on `PDecl.aggregate?` for the source-shaped E
+aggregate relation.  Aggregate member reads remain loud
+`MemberAccessExpression:aggregate` nodes until that relation handles their
+paths.  Field names and indices are never reconstructed from display text.
+
 May appear anywhere a module member, port, decl, process, statement, or
 expression is expected. `text` is the exact source slice of the offending
 construct (whitespace-stripped, truncated to 200 chars, possibly `""`).

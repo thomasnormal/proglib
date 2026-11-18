@@ -108,6 +108,34 @@ class SymbolicUnpackedPorts(unittest.TestCase):
                          ["a[0]", "a[1]", "y"])
         self.assertTrue(all(p["kind"] == "Port" for p in module["ports"]))
 
+    def test_unpacked_struct_metadata_retains_canonical_fields(self):
+        module = self.extract(
+            "typedef struct { logic [3:0] value; } word_t;"
+            " typedef struct { word_t words [0:1]; } bundle_t;"
+            " module top(input bundle_t source, output logic [3:0] y);"
+            " bundle_t state; always_comb begin state = source;"
+            " y = source.words[0].value; end endmodule")
+        source = next(p for p in module["ports"]
+                      if p.get("sv_kind") == "PortSymbol:type")
+        aggregate = source["metadata"]["aggregate"]
+        self.assertEqual(aggregate["kind"], "struct")
+        self.assertEqual(aggregate["fields"][0]["name"], "words")
+        self.assertEqual(aggregate["fields"][0]["type"]["kind"], "array")
+        self.assertEqual(aggregate["fields"][0]["type"]["elem"]["kind"], "struct")
+        members = find(module, lambda n: n.get("sv_kind") == "MemberAccessExpression:aggregate")
+        self.assertTrue(members)
+
+    def test_unpacked_struct_member_is_not_flattened(self):
+        module = self.extract(
+            "typedef struct { logic [3:0] value; } word_t;"
+            " module top(input word_t source, output logic [3:0] y);"
+            " always_comb y = source.value; endmodule")
+        values = find(module, lambda n: n.get("kind") == "Unsupported")
+        self.assertTrue(any(n.get("sv_kind") == "MemberAccessExpression:aggregate"
+                            for n in values))
+        self.assertFalse(any(n.get("kind") == "Ident" and n.get("name") == "source.value"
+                             for n in values))
+
     def test_fixed_output_net_array_with_one_driver_per_cell_flattens(self):
         module = self.extract(
             "module top(input logic [3:0] a, output wire logic [3:0] y [0:1]);"
