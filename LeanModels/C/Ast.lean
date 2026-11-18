@@ -361,6 +361,11 @@ structure Envelope where
   structuredTypes : List StructuredType := []
 deriving Repr, Inhabited
 
+/-- Parser-native structured type for a declaration occurrence. -/
+def Envelope.structuredTypeFor (envl : Envelope) (id : DeclarationId) :
+    Option LeanModels.Clang.QualType :=
+  envl.structuredTypes.find? (fun row => row.declaration == id) |>.map (·.type)
+
 /-! ## Structural queries
 
 These exist so the ingester can be checked against

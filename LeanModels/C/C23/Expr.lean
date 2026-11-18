@@ -431,6 +431,8 @@ structure Layout where
   size : CType → Option Nat
   /-- Parser-native size keyed by the declaration that owns the object. -/
   declSize : DeclarationId → Option Nat := fun _ => none
+  /-- Parser-native structured clang type keyed by declaration identity. -/
+  structuredType : DeclarationId → Option LeanModels.Clang.QualType := fun _ => none
   /-- Frontend-observed sizes for declarator-shaped types. -/
   typeSize : CType → Option Nat := fun _ => none
   /-- Frontend-observed byte stride for a declared pointer-to-array object. -/
@@ -508,6 +510,10 @@ def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
     Option (Nat × Nat) :=
   (directDeclId base).bind (fun did => layout.fieldBitsDecl did field)
     |>.orElse (fun _ => layout.fieldBits base.ty field)
+
+def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
+    Option LeanModels.Clang.QualType :=
+  (directDeclId base).bind layout.structuredType
 
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/

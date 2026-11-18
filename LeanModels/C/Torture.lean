@@ -732,6 +732,7 @@ def layoutFor (envl : Envelope) : Layout :=
             (observedArrayElem t).orElse
               (fun _ => (sizeAlign tds recsWithObserved 16 t).map (·.1))
     declSize := observedDeclSize
+    structuredType := fun id => envl.structuredTypeFor id
     typeSize := observedTypeSize
     pointeeSize := observedPointeeSize
     fieldSize := observedFieldSizeFor
