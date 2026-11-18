@@ -787,3 +787,12 @@ does not touch the SystemVerilog extractor, loader, hierarchy, ingestion,
 canonical-E, structure, or equations paths. The twelve-fixture package census
 and the 57-row wall matrix therefore remain current. REAL-BLOCKS remains 41,
 with no SV count transition.
+
+## Generate-local parameter current-head check — 2026-11-18T02:06Z
+
+Fresh Slang extraction and ordinary census of generate_parameter.sv at public
+master a97604716 report zero refusals. The source-shaped generate-local
+parameter remains admitted through canonical E lexical scope under IEEE
+1800-2023 section 27.4. The existing W=8 and W=3 receipts match Icarus
+Verilog 13.0 and Xcelium 24.03-s004, including x/z rows. No count transition
+is claimed.
