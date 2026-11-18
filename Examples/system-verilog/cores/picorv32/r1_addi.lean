@@ -43,6 +43,29 @@ theorem picorv32_loaded_addi_shape :
 
 #print axioms picorv32_loaded_addi_shape
 
+/-! The envelope's defaults-elaborated parameter metadata is the concrete
+configuration consumed by the named RISCV_FORMAL instantiation.  Keeping the
+resolved values in declaration order makes the link between the loaded design
+and `PicoRV32Parameters.toArgs` explicit. -/
+
+theorem picorv32_loaded_resolved_params :
+    picorv32_r2.pdesign.params.map PParam.resolved? =
+      [some 1, some 1, some 1, some 1, some 0, some 1, some 0, some 0,
+       some 0, some 0, some 1, some 1, some 0, some 0, some 0, some 0,
+       some 0, some 1, some 1, some 0, some 0, some 0, some 4294967295,
+       some 0, some 16, some 4294967295] := by
+  decide
+
+#print axioms picorv32_loaded_resolved_params
+
+theorem picorv32_loaded_resolved_params_eq_formal_args :
+    picorv32_r2.pdesign.params.map PParam.resolved? =
+      picorv32RISCVFormalParameters.toArgs.map some := by
+  rw [picorv32_loaded_resolved_params]
+  decide
+
+#print axioms picorv32_loaded_resolved_params_eq_formal_args
+
 theorem picorv32_loaded_rvfi_prefix :
     (picorv32_r2.pdesign.decls.take 31).map PDecl.name =
       ["clk", "resetn", "trap", "mem_valid", "mem_instr", "mem_ready",
