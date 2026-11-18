@@ -737,3 +737,12 @@ The next probe supplied one source-shaped input row with `CLK=0`, `RES=1`,
 and a second pass with `RES=0`, returning the no-follow-up flag both times.
 The checked-in receipt now records two completed canonical-E passes, while the
 full `step` quiescence path remains unmeasured.
+
+## 2026-11-18 DarkRISCV first clock transition
+
+The next source-shaped probe threaded those two successful states into a third
+row with `CLK=1`, `RES=0`, and the same ready instruction and data inputs.
+`CoreMemDesign.stepOnePassTrace` did not return within a 180-second bounded
+evaluation.  The reset-held and reset-released passes remain measured as 2/2,
+while the first clock transition is an execution wall.  No canonical-E cycle
+agreement is claimed for that transition.
