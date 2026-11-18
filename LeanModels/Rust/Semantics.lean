@@ -13,10 +13,15 @@ structure Pointer where
   address : Nat
 deriving Repr, Inhabited, BEq, DecidableEq
 
+inductive FieldValue where
+  | int (n : Int)
+  | pointer (p : Pointer)
+deriving Repr, Inhabited, BEq, DecidableEq
+
 inductive Cell where
   | int (n : Int)
   | pointer (p : Pointer)
-  | aggregate (fields : List Int)
+  | aggregate (fields : List FieldValue)
   | unit
 deriving Repr, Inhabited, BEq, DecidableEq
 
@@ -107,6 +112,15 @@ def cellInt : Cell → Option Int
   | .int value => some value
   | _ => none
 
+def cellField : Cell → Option FieldValue
+  | .int value => some (.int value)
+  | .pointer pointer => some (.pointer pointer)
+  | _ => none
+
+def fieldCell : FieldValue → Cell
+  | .int value => .int value
+  | .pointer pointer => .pointer pointer
+
 def cellSlot : Cell → Slot
   | .int value => .value value
   | value => .cell value
@@ -127,7 +141,7 @@ def readCell (s : State) (place : Place) : Option Cell :=
       if rest.isEmpty then
         localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
           match cell with
-          | .aggregate fields => fields.drop index |>.head? |>.map Cell.int
+          | .aggregate fields => fields.drop index |>.head? |>.map fieldCell
           | _ => none
       else none
   | .downcast _ :: _ | .unsupported _ :: _ => none
@@ -149,7 +163,7 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
               fields.drop index |>.head? |>.bind fun _old =>
                 some (setSlot s place.localId
                   (match value with
-                  | .int n => .cell (.aggregate (fields.set index n))
+                  | .int n => .cell (.aggregate (fields.set index (.int n)))
                   | _ => .cell (.aggregate fields)))
           | _ => none
       else none
@@ -226,7 +240,7 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       if rightValue == 0 then none else pure (.int (leftValue / rightValue))
   | .ref place => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
   | .aggregate _ fields => do
-      let values ← fields.mapM (operandValue s)
+      let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
   | .zstAggregate => some (.int 0)
   | .unsupported _ => none
