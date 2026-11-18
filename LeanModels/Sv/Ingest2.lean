@@ -813,6 +813,10 @@ def parsePConn (j : Json) : Except String PConn := do
                 match ← parseTargetL tj with
                 | .ok t => return .output port (some t)
                 | .error k => return .unsupported port k "output port connection target"
+        | "inout" =>
+            match getOptField j "expr" with
+            | none => return .inout port none
+            | some ej => return .inout port (some (← parsePExpr ej))
         | d => throw s!"unknown port connection dir {d.quote}"
   | "Unsupported" =>
       let (svKind, text) ← parseUnsupportedFields j
@@ -887,6 +891,9 @@ def parsePDecl (j : Json) : Except String PDecl := do
               -- variable merely because the hierarchy adapter writes it.
               let isNet := (getOptField j "net_as_variable").bind (·.getBool?.toOption) |>.getD false
               return { name := name, type := ty, unpackedDims := unpacked, isSigned := isSigned, twoState := twoState, isOutput := true, isNet := isNet, init := init, flatBase := flatBase, flatIndex := flatIndex }
+          | "inout" =>
+              if init.isSome then throw "inout port with an initializer is outside the tier"
+              return { name := name, type := ty, unpackedDims := unpacked, isSigned := isSigned, twoState := twoState, isInout := true, isNet := true }
           | d => throw s!"unknown port dir {d.quote}"
       | "UnpackedDecl" =>
           let init ← match getOptField j "init" with

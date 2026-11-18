@@ -1126,6 +1126,7 @@ def connPP (i : PInst) (pd : PDecl) : Except String PProcess :=
   match i.conns.find? (·.port == pd.name) with
   | none => .error s!"instance `{i.name}`: port `{pd.name}` has no connection"
   | some (.unsupported _ k t) => .error s!"instance `{i.name}`: port `{pd.name}`: {t} ({k})"
+  | some (.inout _ _) => .error s!"instance `{i.name}`: port `{pd.name}`: bidirectional inout connection requires IEEE 1800-2023 §6.6 net-driver resolution (PortConn:InOut)"
   | some (.input _ (some e) _) =>
       if pd.isInput && !pd.isOutput then .ok (.assign (hpfx i ++ pd.name) e.unsign)
       else .error s!"instance `{i.name}`: port `{pd.name}` is connected as an input but is not one"

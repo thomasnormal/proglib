@@ -47,15 +47,20 @@
             }
           },
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 5,
               "col": 49,
               "end_line": 5,
               "end_col": 52
             },
-            "sv_kind": "PortSymbol:InOut",
-            "text": "pad"
+            "name": "pad",
+            "dir": "inout",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
           },
           {
             "kind": "Port",
@@ -92,15 +97,26 @@
             "params": [],
             "ports": [
               {
-                "kind": "Unsupported",
+                "kind": "PortConn",
                 "span": {
                   "line": 6,
-                  "col": 14,
+                  "col": 25,
                   "end_line": 6,
-                  "end_col": 58
+                  "end_col": 28
                 },
-                "sv_kind": "PortConnection:InOut",
-                "text": "pad"
+                "port": "pad",
+                "dir": "inout",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 6,
+                    "col": 25,
+                    "end_line": 6,
+                    "end_col": 28
+                  },
+                  "width": 1,
+                  "name": "pad"
+                }
               },
               {
                 "kind": "PortConn",
@@ -165,15 +181,20 @@
         "types": [],
         "ports": [
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 1,
               "col": 30,
               "end_line": 1,
               "end_col": 33
             },
-            "sv_kind": "PortSymbol:InOut",
-            "text": "pad"
+            "name": "pad",
+            "dir": "inout",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
           },
           {
             "kind": "Port",
@@ -272,7 +293,8 @@
                 "width": 1,
                 "bits": "z"
               }
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",
@@ -303,7 +325,8 @@
               },
               "width": 1,
               "name": "pad"
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

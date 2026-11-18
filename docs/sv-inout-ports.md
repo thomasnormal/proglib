@@ -7,15 +7,18 @@ also reset or retain type and unpacked-dimension information according to the
 preceding port declaration. Generic interface ports require ANSI syntax, and
 interconnect ports have their own initializer and type restrictions.
 
-## Why inout ports remain loud
+## Why canonical E remains loud
 
 IEEE 1800-2023 §§23.2.2.2–23.2.2.4 and 25.3 require bidirectional aliasing,
 net resolution, declaration-order rules and frontend diagnostics. The legacy
 envelope has no port map, bidirectional driver set or generic-interface and
 interconnect declaration state. A one-way input or output would change the
 source, and copying a prior port's dimensions would violate ANSI reset rules.
-No port is rewritten, no initializer is accepted on an illegal port, and no
-second hierarchy or scheduler is introduced.
+The symbolic envelope retains parser-native `inout` ports and bidirectional
+port connections. Canonical E still refuses the declaration because its scalar
+store has no driver-set resolution relation. No port is rewritten, no
+initializer is accepted on an illegal port, and no second hierarchy or
+scheduler is introduced.
 
 ## 2026-10-22 census and decision
 

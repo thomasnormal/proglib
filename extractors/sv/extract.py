@@ -28897,14 +28897,20 @@ def convert_continuous_assign(sm, m):
 # Declarations and ports
 # ---------------------------------------------------------------------------
 
-DIRECTION_MAP = {"In": "in", "Out": "out"}
+DIRECTION_MAP = {"In": "in", "Out": "out", "InOut": "inout"}
 
 
 def convert_port(sm, m):
     d = str(m.direction).split(".")[-1]
     direction = DIRECTION_MAP.get(d)
-    if direction is None:  # InOut / Ref
+    if direction is None:  # Ref and other non-port directions
         return unsupported(sm, m, "PortSymbol:" + d)
+    if direction == "inout":
+        # IEEE 1800-2023 §23.2.2 requires an inout to be a bidirectional net.
+        # Retain the parser-native direction in the envelope.  Canonical E's
+        # scalar store still refuses driver-set resolution explicitly.
+        if getattr(m, "initializer", None) is not None:
+            return unsupported(sm, m, "PortSymbol:InOut:initializer")
     if (_SYM is None
             and type(getattr(m, "internalSymbol", None)).__name__ == "VariableSymbol"):
         w, two, reason = type_width_2s(m.type)
@@ -35283,6 +35289,18 @@ def _sym_port_conn(sm, m, pc):
                 # Round 6 (H1): the net-to-net shape Xcelium binds bit for
                 # bit; absent (= false) on every other connected input.
                 node["net"] = True
+        return node
+    if direction == "inout":
+        if e is None:
+            node["expr"] = None
+        else:
+            # Slang represents a bidirectional connection as an assignment
+            # expression whose left operand is the connected net.  Retain
+            # that parser node's value expression directly, without
+            # recovering the name from source text.
+            actual = e.left if type(e).__name__ == "AssignmentExpression" else e
+            with _SymUnsizedXZLoud("PortConnection:unsized-xz"):
+                node["expr"] = _sym_port_actual(sm, actual)
         return node
     if e is None:
         node["target"] = None

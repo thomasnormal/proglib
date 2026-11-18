@@ -180,6 +180,7 @@ instantiating scope, output actuals its targets). -/
 def PConn.legacySelNames : PConn → List String
   | .input _ (some e) _ => e.legacySelNames
   | .output _ (some t) => t.legacySelNames
+  | .inout _ (some e) => e.legacySelNames
   | _ => []
 
 mutual
@@ -334,6 +335,7 @@ def PProcess.bitIdxs : PProcess → List PExpr
 def PConn.bitIdxs : PConn → List PExpr
   | .input _ (some e) _ => e.bitIdxs
   | .output _ (some t) => t.bitIdxs
+  | .inout _ (some e) => e.bitIdxs
   | _ => []
 
 mutual

@@ -465,6 +465,9 @@ def connProcs (env : IEnv) (elems : List (String × Nat)) (pfx : String)
             match instLhs2 env elems t with
             | .ok (l2, wt) => [.assign l2 (portOut n dc.width wt)]
             | .error e => [.unsupported "PortConn:target" e]
+  | some (.inout port _) =>
+      [.unsupported "PortConn:InOut"
+        s!"port '{port}' is bidirectional and requires IEEE 1800-2023 §6.6 net-driver resolution"]
 
 /-- The bare-signal connections of a child's input ports: `(port, parent
 signal)` when the actual is a parent identifier of the port's width (the

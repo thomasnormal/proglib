@@ -441,6 +441,10 @@ structure PDecl where
   twoState : Bool := false
   isInput : Bool := false
   isOutput : Bool := false
+  /-- Parser-native bidirectional net port (`inout`, IEEE 1800-2023 §23.2.2).
+  The ordinary scalar store does not resolve multiple net drivers yet, so
+  this flag is retained source-shaped and remains loud at that boundary. -/
+  isInout : Bool := false
   isNet : Bool := false
   init : Option PExpr := none
   /-- Base array name when this declaration is one flattened cell. -/
@@ -590,12 +594,16 @@ instantiating scope (`none` = unconnected).
 inductive PConn where
   | input (port : String) (actual : Option PExpr) (net : Bool)
   | output (port : String) (actual : Option PLhs)
+  /-- Bidirectional net connection, retained as a source-shaped relation.
+  Resolution is handled only by a future net-driver route, so the current
+  scalar hierarchy route refuses it explicitly. -/
+  | inout (port : String) (actual : Option PExpr)
   | unsupported (port : String) (svKind text : String)
 deriving Repr, BEq, Inhabited
 
 /-- The connected port's name (`""` for a loud connection without one). -/
 def PConn.port : PConn → String
-  | .input p _ _ | .output p _ | .unsupported p _ _ => p
+  | .input p _ _ | .output p _ | .inout p _ | .unsupported p _ _ => p
 
 /-- A module instance (F3): instance name, definition name (looked up in
 the envelope's module library at instantiation), lexical generate path,
@@ -2572,8 +2580,10 @@ def instProcess (env : IEnv) : PProcess → Process
 `env` — `$bits`/`$high` may look back, never forward). A non-literal
 initializer is outside the M0 ingestion tier (loud). -/
 def instDecl (env : IEnv) (pd : PDecl) : Res Decl :=
-  if !pd.unpackedDims.isEmpty then
-    .unsupported s!"decl '{pd.name}': unpacked array storage outside E (UnpackedDecl:memory)"
+  if !pd.unpackedDims.isEmpty || pd.isInout then
+    .unsupported (if pd.isInout then
+      s!"decl '{pd.name}': bidirectional inout net requires IEEE 1800-2023 §6.6 driver resolution (PortSymbol:InOut)"
+      else s!"decl '{pd.name}': unpacked array storage outside E (UnpackedDecl:memory)")
   else match pd.type.width env with
   | .error e => .unsupported s!"decl '{pd.name}': {e}"
   | .ok w =>

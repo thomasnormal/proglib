@@ -57,6 +57,8 @@ def specializeConn (env : IEnv) : PConn → Res PConn
       .ok (.input port (some (← specializeConnExpr env e)) net)
   | .output port (some l) => do
       .ok (.output port (some (← specializeConnLhs env l)))
+  | .inout port (some e) => do
+      .ok (.inout port (some (← specializeConnExpr env e)))
   | c => .ok c
 
 def hierarchyInsts (env : IEnv) (lib : List PDesign) : List GenItem → Res (List HierInstance2)
@@ -123,6 +125,7 @@ def directInput (parent : SvState) : PConn → Res (Option (String × LVec))
       | none => .unsupported "Instance:hierarchy: input actual is not in the parent state"
   | .input port none _ => .ok none
   | .input _ _ _ => .unsupported "Instance:hierarchy: non-identifier input connection"
+  | .inout _ _ => .unsupported "Instance:hierarchy: inout connection requires net-driver resolution"
   | .output _ _ | .unsupported _ _ _ => .ok none
 
 def directOutput : PConn → Option (String × String)
