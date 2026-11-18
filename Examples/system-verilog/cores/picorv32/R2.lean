@@ -4,6 +4,7 @@ import LeanModels.Refine.RvfiPorts
 import LeanModels.Refine.RvfiProgress
 import LeanModels.Refine.RvfiRv32iProgram
 import LeanModels.Refine.RvfiAddiProgress
+import LeanModels.Refine.RvfiUpperProgress
 
 /-!
 # PicoRV32 R2 statement
@@ -165,6 +166,15 @@ theorem picorv32_addi_step_bridge
   exact invariant.toMixedStep
 
 #print axioms picorv32_addi_step_bridge
+
+theorem picorv32_upper_step_bridge
+    {State : Type} {machine : RvfiCycleMachine State}
+    {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
+    (invariant : Rv32iUpperInvariant machine rel admit) :
+    Rv32iCycleStepRefines machine rel admit := by
+  exact invariant.toMixedStep
+
+#print axioms picorv32_upper_step_bridge
 
 /-- The literal parametric envelope and its explicit pinned instantiation.
 `Design2` may contain the loader's loud refusal while the corresponding E
