@@ -762,3 +762,19 @@ with `PortSymbol:type` and `VariableSymbol:type`, `type_alias_nested_repro.sv`
 with `TypeAliasType:TypeAlias` and the dependency-order refusal, and
 `member_nested_repro.sv` with `MemberAccessExpression` followed by the typed
 storage refusal.  No aggregate count transition is claimed.
+
+## Current-head package remeasurement — 2026-11-18T02:00Z
+
+At public master d97c9b19e9836c1aaff4524eb39f02281d5bc4b, the approved
+ordinary-route census was rerun for the twelve fixtures in this package. The
+refusal-free fixtures are net_z_generated_repro.sv, wire_output_port.sv,
+generate_parameter.sv, generate_local_hierarchy.sv, constant_width_conversion.sv,
+packed_enum_package_repro.sv, and typed_unpacked_net.sv. The retained loud
+boundaries are PortSymbol:InOut and PortConnection:InOut for inout_repro.sv,
+PrimitiveInstanceSymbol:PrimitiveInstance for primitive_repro.sv,
+SpecifyBlockSymbol:SpecifyBlock for specify_repro.sv, the typed named-value
+aggregate chain for typed_named_unpacked.sv, and the unconditional generate
+items for unconditional_case2.sv. The results match the previously recorded
+IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
+package landing and this head, so REAL-BLOCKS remains 41 and no count
+transition is claimed.
