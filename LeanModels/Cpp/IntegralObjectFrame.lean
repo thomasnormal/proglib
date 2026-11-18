@@ -876,7 +876,9 @@ def executeOpen (fuel : Nat) (frame : IntegralObjectFrame)
 
 private theorem handle_beq_self (handle : FrontendHandle) : (handle == handle) = true := by
   cases handle with
-  | mk value => simp [BEq.beq, instBEqFrontendHandle.beq]
+  | mk value =>
+      change (value == value) = true
+      simp
 
 private theorem addBinding_lookup (frame : IntegralObjectFrame) (binding : FrameBinding)
     (h : (addBinding frame binding).result = .ok binding.object) :

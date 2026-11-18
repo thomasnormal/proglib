@@ -111,13 +111,14 @@ private partial def knownTypeReferences (type : CppTypeEvidence)
     (declarations : List DeclarationEvidenceRow) : Bool :=
   match type with
   | .void | .builtin _ => true
+  | .array element _ => knownTypeReferences element declarations
   | .pointer pointee | .lvalueReference pointee | .rvalueReference pointee =>
       knownTypeReferences pointee declarations
   | .qualified _ _ base => knownTypeReferences base declarations
   | .function result parameters _ =>
       knownTypeReferences result declarations &&
         parameters.all (fun parameter => knownTypeReferences parameter declarations)
-  | .record declaration | .enumeration declaration =>
+  | .record declaration | .enumeration declaration | .typedefRef declaration =>
       declarations.any (fun row => row.id == declaration)
 
 private def sameExpression (left right : CppBinaryExpressionEvidence) : Bool :=

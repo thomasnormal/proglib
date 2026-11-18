@@ -286,7 +286,9 @@ theorem callableSingleParameterStartAgreement (fuel : Nat) (profile : TargetProf
     simp [integralFormatOfEvidence, integralTypeOfEvidence, htype, hformat]
   have heq : (parameter.declaration == parameter.declaration) = true := by
     cases parameter.declaration with
-    | mk v => simp [BEq.beq, instBEqFrontendHandle.beq]
+    | mk v =>
+        change (v == v) = true
+        simp
   have hidx : [parameter].findIdx? (fun p => p.declaration == parameter.declaration) = some 0 := by
     simp only [List.findIdx?_singleton, heq, ↓reduceIte]
   exact callableParameterExpressionAgreement fuel profile [parameter] [argument] callable.frame
@@ -317,7 +319,9 @@ theorem callableSingleParameterConvertedStartAgreement (fuel : Nat) (profile : T
     parameter callable kind fmt hparams htype hformat hconvert hstart
   have heq : (parameter.declaration == parameter.declaration) = true := by
     cases parameter.declaration with
-    | mk v => simp [BEq.beq, instBEqFrontendHandle.beq]
+    | mk v =>
+        change (v == v) = true
+        simp
   have hidx : [parameter].findIdx? (fun p => p.declaration == parameter.declaration) = some 0 := by
     simp only [List.findIdx?_singleton, heq, ↓reduceIte]
   refine ⟨convertCallableArguments_single profile parameter argument converted fmt hparam hconvert, ?_⟩
