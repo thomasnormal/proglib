@@ -1876,6 +1876,11 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
 /-- §6.5.3.2p2 — the ADDRESS of `base[idx]`. Same discipline: the parts,
 never the rebuilt node. -/
 def indexAddr (ctx : Ctx) (base idx : Expr) (ty : CType) : EvalM Ptr := do
+  match ctx.layout.structuredTypeAt base with
+  | some structuredType =>
+      if !structuredType.indexable then
+        refuseUnsupported "subscript base is not an array or pointer type"
+  | none => pure ()
   let bv ← evalExpr ctx base
   let bp ← asPtr bv
   let iv ← evalExpr ctx idx

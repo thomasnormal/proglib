@@ -634,5 +634,14 @@
     "layout_envelope_checks": [
       "record_layout"
     ]
+  },
+  {
+    "id": "structured-array-index",
+    "source": "int main(void) { int a[2] = {4, 5}; return a[1] == 5 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
   }
 ]

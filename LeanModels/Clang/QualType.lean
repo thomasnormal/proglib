@@ -83,4 +83,10 @@ def QualType.aggregateObject : QualType → Bool
   | .qualified _ _ base => base.aggregateObject
   | _ => false
 
+/-- Whether a parser-native type can be the base of C subscripting. -/
+def QualType.indexable : QualType → Bool
+  | .pointer _ | .array _ _ => true
+  | .qualified _ _ base => base.indexable
+  | _ => false
+
 end LeanModels.Clang
