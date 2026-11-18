@@ -217,6 +217,7 @@ def memSubstExpr (vals : List (String × Int)) : PExpr → PExpr
   | .arrayElem n xs => .arrayElem n (xs.map (memSubstExpr vals))
   | .arrayPart n xs mode a b => .arrayPart n (xs.map (memSubstExpr vals)) mode
       (memSubstExpr vals a) (memSubstExpr vals b)
+  | .aggregateMember n path => .aggregateMember n path
   | e => e
 
 def memSubstLhs (vals : List (String × Int)) : PLhs → PLhs
@@ -226,6 +227,7 @@ def memSubstLhs (vals : List (String × Int)) : PLhs → PLhs
   | .arrayElem n xs => .arrayElem n (xs.map (memSubstExpr vals))
   | .arrayPart n xs mode a b => .arrayPart n (xs.map (memSubstExpr vals)) mode
       (memSubstExpr vals a) (memSubstExpr vals b)
+  | .aggregateMember n path => .aggregateMember n path
   | l => l
 
 mutual

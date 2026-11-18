@@ -2726,11 +2726,11 @@ def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
     | [] => .ok E.initial
     | [body] => E.execInitialStmt E.env E.elems E.initial 4096 body
     | _ => .unsupported "T2:Initial: multiple initial processes are outside this cycle entry"
+  let (settled, settledView) ←
+    E.settleAssignWithView E.env E.elems base (E.scalar.view base.scalar) E.processes.toList
   if !E.hasComb then
-    .ok base
+    .ok settled
   else
-    let (settled, settledView) ←
-      E.settleAssignWithView E.env E.elems base (E.scalar.view base.scalar) E.processes.toList
     let (combed, combedView) ←
       E.runCombInitialWithView settled settledView E.processes.toList
     let (final, _) ← E.settleAssignWithView E.env E.elems combed combedView E.processes.toList
