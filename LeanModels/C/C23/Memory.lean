@@ -1342,6 +1342,11 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
     m.free Ptr.null = .ok m := by
   simp [free, Ptr.null]
 
+@[simp] theorem free_null_placement_lookup (m : Mem) (q : ObjId) :
+    (m.free Ptr.null).map (fun m' => m'.placement? q) =
+      .ok (m.placement? q) := by
+  simp [Except.map]
+
 /- Concrete placement does not participate in C's successful `free` path:
    object identity, lifetime, and base offset determine the result. -/
 theorem free_valid_address_irrel (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
