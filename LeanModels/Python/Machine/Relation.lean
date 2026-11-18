@@ -342,6 +342,11 @@ def rBindPositionalDefaults : REnv → List RParam → List RVal → Option REnv
       else rBindPositionalDefaults ((parameter.name, value) :: env) rest values
   | _, _, [] => none
 
+def rAllBound : REnv → List RParam → Bool
+  | _, [] => true
+  | env, parameter :: rest =>
+      Option.isSome (rLookupEnv env parameter.name) && rAllBound env rest
+
 def rBindArguments (params : Array RParam) (defaults : Array RVal)
     (keywordDefaults : Array (Option RVal)) (values : List RVal)
     (keywords : List (String × RVal)) (kwargsValue : Option RVal) : Option REnv :=
@@ -352,7 +357,6 @@ def rBindArguments (params : Array RParam) (defaults : Array RVal)
   let keywordVariadic := parameters.filter (fun parameter => parameter.keywordVariadic)
   if variadic.length > 1 || keywordVariadic.length > 1 then none
   else if defaults.size > positional.length then none
-  else if values.length < positional.length - defaults.size then none
   else if variadic.isEmpty && values.length > positional.length then none
   else
     let missing := positional.length - values.length
@@ -374,7 +378,9 @@ def rBindArguments (params : Array RParam) (defaults : Array RVal)
           let defaultParameters := positional.drop (positional.length - defaults.size)
           match rBindPositionalDefaults env defaultParameters defaults.toList with
           | some withPositionalDefaults =>
-              rBindKeywordDefaults withPositionalDefaults parameters keywordDefaults.toList
+              if rAllBound withPositionalDefaults positional then
+                rBindKeywordDefaults withPositionalDefaults parameters keywordDefaults.toList
+              else none
           | none => none
     | none => none
 

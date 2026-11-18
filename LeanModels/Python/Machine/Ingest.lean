@@ -49,6 +49,10 @@ structure MArg where
   name : String
   annotation : Option MExpr := none
   default : Option MExpr := none
+  positionalOnly : Bool := false
+  keywordOnly : Bool := false
+  variadic : Bool := false
+  keywordVariadic : Bool := false
 deriving Repr, Inhabited, BEq
 
 structure MArguments where
@@ -190,8 +194,16 @@ private def mArg (j : Json) : Except String MArg := do
         let span ← mSpan (← mField j "span")
         some <$> (pure (.constant (← mConst value) span))
     | .error _ => pure none
+  let flag := fun name =>
+    match j.getObjVal? name with
+    | .ok (.bool value) => value
+    | _ => false
   pure { name := ← (← mField j "arg").getStr?
-         annotation := none, default }
+         annotation := none, default
+         positionalOnly := flag "positional_only"
+         keywordOnly := flag "keyword_only"
+         variadic := flag "variadic"
+         keywordVariadic := flag "keyword_variadic" }
 
 private def mArguments (j : Json) : Except String MArguments := do
   let positionalOnly ← (← (← mField j "posonlyargs").getArr?).mapM mArg
@@ -211,14 +223,20 @@ private def mArguments (j : Json) : Except String MArguments := do
 private def mFunctionArguments (j : Json) : Except String MArguments := do
   match j with
   | .arr values =>
-      let positional ← values.mapM mArg
+      let all ← values.mapM mArg
+      let positionalOnly := all.filter (·.positionalOnly)
+      let positional := all.filter (fun arg =>
+        !arg.positionalOnly && !arg.keywordOnly && !arg.variadic && !arg.keywordVariadic)
+      let vararg := all.find? (·.variadic)
+      let keywordOnly := all.filter (·.keywordOnly)
+      let kwarg := all.find? (·.keywordVariadic)
       let result : MArguments :=
-        { positionalOnly := #[]
+        { positionalOnly
           positional := positional
-          vararg := none
-          keywordOnly := #[]
-          kwDefaults := #[]
-          kwarg := none
+          vararg
+          keywordOnly
+          kwDefaults := keywordOnly.map (·.default)
+          kwarg
           defaults := positional.filterMap MArg.default }
       pure result
   | _ => mArguments j
