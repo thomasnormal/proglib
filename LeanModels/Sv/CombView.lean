@@ -1957,7 +1957,7 @@ def dimOf? (name : String) (d : PDim) : Except String (PDim × Aff × Aff) :=
   | _, _ => .error s!"declaration `{name}`: packed bounds are not affine in the parameters"
 
 def declOf? (pd : PDecl) : Except String DeclT :=
-  if !pd.unpackedDims.isEmpty then
+  if !pd.unpackedDims.isEmpty || pd.isInout then
     .error s!"declaration `{pd.name}`: unpacked array storage whose shape depends on a parameter (UnpackedDecl:memory), which the semantic-tier family `X.sem` does not model: its instantiation refuses the declaration (`instDecl`: unpacked array storage outside E), so the whole family is one loud process; the cells live only on the source-shaped memory route (`instantiateMemD2`, `runMem2`), which has no proof layer the tactics could be sound against (a FIXED-size unpacked array reaches `X.sem` as one declaration per cell, `{pd.name}[0]`, …, which the tactics read)"
   else match pd.init with
   | some _ => .error s!"declaration `{pd.name}` has an initializer"
@@ -4713,8 +4713,11 @@ theorem buildDecls_summary {σ : String → Int} :
         split at hd'
         · simp at hd'
         · simp_all
+      have hinout : pd.isInout = false := by
+        unfold declOf? at hd
+        split at hd <;> simp_all
       have hdecl : instDecl env pd = .ok (dt.toDecl σ) := by
-        simp [instDecl, hw, hun, hinit, DeclT.toDecl, hn, hi, ho, hnet, hsg, hts]
+        simp [instDecl, hw, hun, hinout, hinit, DeclT.toDecl, hn, hi, ho, hnet, hsg, hts]
       simp only [buildDecls, hdecl, Res.ok_bind]
       have : ({ name := pd.name, width := dt.width σ, isSigned := pd.isSigned, isInput := pd.isInput, isOutput := pd.isOutput, isNet := pd.isNet } : Decl) = dt.toDecl σ := by
         simp [DeclT.toDecl, hn, hi, ho, hnet, hsg]
