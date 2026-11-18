@@ -874,7 +874,7 @@ def _convert_comprehension(node, g, kind=None, elt=None):
 
 
 def convert_param(p, default=None, positional_only=False, keyword_only=False,
-                  variadic=False):
+                  variadic=False, keyword_variadic=False):
     """Schema ``param``. ``default`` (a const payload) is emitted only when
     present, so envelopes of default-free sources are byte-identical to the
     pre-defaults format."""
@@ -887,6 +887,8 @@ def convert_param(p, default=None, positional_only=False, keyword_only=False,
         d["keyword_only"] = True
     if variadic:
         d["variadic"] = True
+    if keyword_variadic:
+        d["keyword_variadic"] = True
     return d
 
 
@@ -1889,6 +1891,7 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             reasons.append("keyword-only")
         if a.kwarg is not None:
             reasons.append("**kwargs")
+            params.append(convert_param(a.kwarg, keyword_variadic=True))
         if node.decorator_list:
             reasons.append("decorators")
         body = _hoist_ann_no_value(

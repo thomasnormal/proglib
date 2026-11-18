@@ -41,7 +41,18 @@
           "end_col_offset": 22
         },
         "name": "answer",
-        "args": [],
+        "args": [
+          {
+            "arg": "kwargs",
+            "span": {
+              "lineno": 3,
+              "col_offset": 13,
+              "end_lineno": 3,
+              "end_col_offset": 19
+            },
+            "keyword_variadic": true
+          }
+        ],
         "args_unsupported": "**kwargs",
         "locals_unsupported": null,
         "body": [

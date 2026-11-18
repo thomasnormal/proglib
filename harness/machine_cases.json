@@ -157,7 +157,7 @@
   {
     "source": "harness/scripts/function_kwargs.py",
     "envelope": "harness/scripts/function_kwargs.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_unknown_keyword.py",
