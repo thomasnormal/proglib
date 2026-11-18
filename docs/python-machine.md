@@ -191,5 +191,7 @@ parameter, while
 expression callee, while
 `harness/scripts/function_print_locals.py` checks several structural local
 assignments before return, while
+`harness/scripts/function_default_explicit.py` checks an explicit argument
+overriding a literal default, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is thirteen matches, two refusals, and zero divergence.
+current result is fourteen matches, two refusals, and zero divergence.

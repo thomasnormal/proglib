@@ -70,6 +70,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/function_default_explicit.py",
+    "envelope": "harness/scripts/function_default_explicit.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"
