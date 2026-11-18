@@ -6,3 +6,6 @@ ordinary census keep the exact `parsePExpr` refusal under IEEE 1800-2023 §23.6.
 Canonical E does not reparse or flatten this expression into an identifier.
 Both pinned simulators produce `result=1` for the four-state source rows; the
 receipt claims simulator behavior while the expression remains loud in E.
+
+The Lean receipt in `agree.lean` checks that the retained process contains the
+exact parser-native refusal and no lowered child path.
