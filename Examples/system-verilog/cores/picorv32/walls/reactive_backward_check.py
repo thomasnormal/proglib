@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
 import shutil
 import subprocess
 import tempfile
@@ -17,6 +18,9 @@ EXPECTED = [
     "ROW t=2 a=1 y=1",
     "ROW t=3 a=1 y=1",
 ]
+SOURCE_SHA256 = "96b39580c3a89453c4a910af6550bf54670d9af2e26aaa92ff9a9f720d78d7a8"
+ENVELOPE = HERE / "reactive_backward.sv.json"
+ENVELOPE_SHA256 = "05eb311317802d4f4ab3ee3591998ea2cc63bf8236e79cb2e73c3bb4c216dbe2"
 REFUSAL = (
     "Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 't' "
     "from itself or a later reactive process; canonical E has no fixed-point scheduler"
@@ -42,7 +46,17 @@ def rows(output: str) -> list[str]:
     return [line.strip() for line in output.splitlines() if line.startswith("ROW ")]
 
 
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def main() -> int:
+    if sha256(SOURCE) != SOURCE_SHA256:
+        raise RuntimeError("reactive wall source hash does not match the pinned fixture")
+    if sha256(ENVELOPE) != ENVELOPE_SHA256:
+        raise RuntimeError("reactive wall envelope hash does not match the pinned fixture")
+    print("source SHA-256: " + SOURCE_SHA256)
+    print("envelope SHA-256: " + ENVELOPE_SHA256)
     e_output = run(["lake", "env", "lean", str(HERE / "reactive_backward_probe.lean")], ROOT)
     if "reactive_backward_probe" not in e_output and e_output.strip():
         raise RuntimeError("unexpected canonical-E probe output:\n" + e_output)
