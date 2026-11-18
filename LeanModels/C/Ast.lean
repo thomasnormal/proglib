@@ -178,10 +178,12 @@ structure TypeLayout where
   ty : CType
   sizeBytes : Nat
   alignmentBytes : Nat
-  /-- For a declared pointer-to-array object, Clang's exact byte extent of
-  the pointee array.  This avoids parsing the flat pointer spelling when
-  pointer arithmetic needs its stride. -/
+  /-- For a declared pointer object, Clang's exact byte size of its pointee.
+  This avoids parsing the flat pointer spelling when pointer arithmetic or
+  subscripting needs its stride. -/
   pointeeSizeBytes : Option Nat := none
+  /-- For a declared array object, Clang's exact byte size of one element. -/
+  elementSizeBytes : Option Nat := none
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 /-! A recursive `QualType` observation joined to a parser declaration ID. -/

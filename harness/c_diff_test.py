@@ -102,6 +102,13 @@ def check_envelope(payload, checks, name):
         elif check == "type_layout":
             if not payload.get("type_layouts"):
                 return name + ": missing parser-native type layout"
+        elif check == "type_layout_sizes":
+            layouts = payload.get("type_layouts")
+            if not isinstance(layouts, list) or not any(
+                    row.get("element_size_bytes") == 4 for row in layouts):
+                return name + ": missing parser-native array element size"
+            if not any(row.get("pointee_size_bytes") == 4 for row in layouts):
+                return name + ": missing parser-native pointer pointee size"
         elif check == "structured_types":
             rows = payload.get("structured_types")
             if not isinstance(rows, list) or not rows:

@@ -62,7 +62,7 @@ def self_test(clang, plugin):
     fixture = ("struct S { char c; int i; unsigned b : 3; };\n"
                "union U { int i; char c; };\n"
                "struct F { int n; int tail[]; };\n"
-               "int main(void) { struct S s; return (int)sizeof(s); }\n")
+               "int main(void) { struct S s; int a[3]; int *p = a; return (int)sizeof(s) + p[0]; }\n")
     with tempfile.NamedTemporaryFile("w", suffix=".c", delete=False) as handle:
         handle.write(fixture)
         source = Path(handle.name)
@@ -79,8 +79,14 @@ def self_test(clang, plugin):
         raise RuntimeError(f"self-test layout values were not parser-native: {records!r}")
     if record_layouts[2]["fields"][1].get("incomplete_array") is not True:
         raise RuntimeError(f"self-test flexible-array marker was not parser-native: {records!r}")
-    if len(type_layouts) != 1 or type_layouts[0]["type"] != "struct S":
+    if len(type_layouts) != 3 or type_layouts[0]["type"] != "struct S":
         raise RuntimeError(f"self-test type layout was not parser-native: {records!r}")
+    array = next((r for r in type_layouts if r["type"] == "int[3]"), None)
+    pointer = next((r for r in type_layouts if r["type"] == "int *"), None)
+    if not array or array.get("element_size_bytes") != 4:
+        raise RuntimeError(f"self-test array element size was not parser-native: {records!r}")
+    if not pointer or pointer.get("pointee_size_bytes") != 4:
+        raise RuntimeError(f"self-test pointer pointee size was not parser-native: {records!r}")
     print("c_record_layout_determinism: self-test ok")
     return 0
 

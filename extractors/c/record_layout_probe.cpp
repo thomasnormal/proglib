@@ -105,10 +105,18 @@ public:
         {"alignment_bytes", static_cast<int64_t>(align.getQuantity())}};
     if (decl->getType()->isPointerType()) {
       const auto pointee = decl->getType()->getPointeeType();
-      if (pointee->isArrayType()) {
+      if (!pointee->isIncompleteType()) {
         const auto pointeeSize = context->getTypeSizeInChars(pointee);
         item["pointee_size_bytes"] =
             static_cast<int64_t>(pointeeSize.getQuantity());
+      }
+    }
+    if (decl->getType()->isArrayType()) {
+      const auto element = decl->getType()->getArrayElementTypeNoTypeQual();
+      if (!element->isIncompleteType()) {
+        const auto elementSize = context->getTypeSizeInChars(element);
+        item["element_size_bytes"] =
+            static_cast<int64_t>(elementSize.getQuantity());
       }
     }
     records.push_back(std::move(item));
