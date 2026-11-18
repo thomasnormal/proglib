@@ -813,3 +813,14 @@ admitted by the canonical storage representation under IEEE 1800-2023 section
 6.8. Existing eight-cycle ordinary/source rows match Icarus Verilog 13.0 and
 Xcelium 24.03-s004, including x/z inputs. The former NetSymbol:type wall is
 cleared and no count transition is claimed.
+
+## Inout port and connection current-head check — 2026-11-18T02:09Z
+
+Fresh extraction of inout_repro.sv at public master 8a18aed91 retains
+PortSymbol:InOut on both ports and PortConnection:InOut at the child
+connection. Ordinary E reports parsePConn and PDesign.instantiate boundaries,
+then refuses the PortSymbol:InOut module member. IEEE 1800-2023 sections 6.6
+and 23.2.2 require resolved bidirectional driver semantics, including x/z and
+conflicts, which canonical E does not model. The existing source receipt
+matches Icarus Verilog 13.0 and Xcelium 24.03-s004. No lowering or count
+transition is claimed.
