@@ -1158,3 +1158,17 @@ width as secondary metadata. This removes the earlier
 `Syntax:Identifier:unresolved` ingestion loss without changing the enum's
 four-state value semantics or claiming a canonical-E row. The regression
 covers the parameterized package enum and the existing symbolic enum suite.
+
+## Stall-rule ranking after public-head remeasurement — 2026-11-19
+
+The checked-in REAL-DESIGNS generator remains consistent at the current public
+head. The seven pinned designs still have three loader successes and four
+refusals. The first walls are `Constant: $bits` for `prim_fifo_sync`, scoped
+procedural `LocalDecl` for `prim_arbiter_ppc`, packed-enum dimensions for
+`prim_packer`, retained edge semantics for CV32E40P, and `AlwaysLatch` for
+Ibex. PicoRV32 still reaches its bounded input-driven E-RUN limit after the
+time-zero pass, while DarkRISCV still reaches the dynamic register-memory
+target wall. The next independent implementation wall is the OpenTitan
+`$bits` constant-context case, followed by scoped local storage. The package
+enum change is parser-side only, so no REAL-DESIGNS transition is claimed from
+it without a fresh pinned-source envelope and loader receipt.
