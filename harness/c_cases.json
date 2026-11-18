@@ -178,6 +178,24 @@
     "return_value": 0
   },
   {
+    "id": "aggregate-assignment-copy",
+    "source": "struct S { int a; int b; }; int main(void) { struct S a = {3, 4}; struct S b = {0, 0}; b = a; return (b.a == 3 && b.b == 4) ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "aggregate-pointer-provenance-copy",
+    "source": "struct S { int *p; }; int main(void) { int x = 7; struct S a = {&x}; struct S b = a; return *b.p == 7 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "aggregate-return-copy",
+    "source": "struct S { int a; int b; }; struct S f(void) { struct S x = {5, 6}; return x; } int main(void) { struct S y = f(); return (y.a == 5 && y.b == 6) ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
     "id": "compound-signed-char",
     "source": "int main(void) { signed char s = 127; s += 1; return s; }",
     "expect": "match",
