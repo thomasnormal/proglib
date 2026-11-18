@@ -17,3 +17,7 @@ Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 't' from itself o
 
 No E trace is claimed for this row. The refusal is the first running wall after
 PicoRV32's 360 admitted, 0 refused, 4 inactive census.
+
+The executable checker `reactive_backward_check.py` reruns the same rows and
+the canonical-E probe.  It reports the exact refusal above, three matching
+rows from Icarus Verilog 13.0, and three matching rows from Xcelium 24.03-s004.
