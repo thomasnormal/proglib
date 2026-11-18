@@ -1971,6 +1971,21 @@ This is a running scheduler wall, not a simulator disagreement or an RTL
 rewrite.  The clean-room `reactive_backward` fixture and its simulator rows
 are recorded in [`walls/reactive_backward_receipt.md`](walls/reactive_backward_receipt.md).
 
+## 2026-11-18 system-function call wall
+
+The clean-room fixture
+[`walls/function_call_expression_repro/`](walls/function_call_expression_repro/)
+retains `$test$plusargs("flag")` as the parser's `SysCall` expression under
+IEEE 1800-2023 §20.2.2.  The canonical-E probe keeps that node in the loaded
+design and reports the exact execution refusal
+`unsupported expression 'SysCall'`.  No plus-argument result is claimed for
+E because the value is supplied by the simulator invocation.
+
+The pinned simulators agree on both source rows without `+flag` (`y=0,0`) and
+with `+flag` (`y=0,1`).  The receipt reports Icarus Verilog 13.0 and Xcelium
+24.03-s004 separately.  It does not lower the system function or infer a
+value for canonical E.
+
 ## 2026-11-18 R1 boundary inventory and routing
 
 The checked-in R1 package now covers the complete RV32I boundary used by the
