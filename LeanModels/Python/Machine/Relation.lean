@@ -102,6 +102,7 @@ inductive RControl where
   | statements (remaining : List RStmt)
   | evaluate (expression : Expr) (continuation : RKont)
   | continueValue (value : RVal) (continuation : RKont)
+  | raising (error : RError)
 deriving Repr, Inhabited, BEq
 
 structure RFrame where
@@ -115,8 +116,7 @@ structure RConfig where
   frames : List RFrame
   heap : Heap
   choices : List RChoice
-  pending : List RError
-  resourcePoint : Option RResourcePoint
+  choiceToken : Option Nat
   status : RStatus
 deriving Repr, Inhabited, BEq
 
@@ -125,8 +125,7 @@ def RConfig.initial (program : RModule) : RConfig :=
     frames := [{ control := .statements program.body.toList, locals := [], globals := [] }]
     heap := #[]
     choices := []
-    pending := []
-    resourcePoint := none
+    choiceToken := none
     status := .running }
 
 def RConfig.setControl (config : RConfig) (control : RControl) : RConfig :=
@@ -166,8 +165,8 @@ def RConfig.finish (config : RConfig) (event : REvent) : RConfig :=
 def RConfig.withChoice (config : RConfig) (choice : RChoice) : RConfig :=
   { config with choices := choice :: config.choices }
 
-def RConfig.withResourcePoint (config : RConfig) (point : RResourcePoint) : RConfig :=
-  { config with resourcePoint := some point }
+def RConfig.chooseToken (config : RConfig) (tail : List RChoice) (token : Nat) : RConfig :=
+  { config with choices := tail, choiceToken := some token }
 
 private theorem frame_with_control_eq (frame : RFrame) (control : RControl)
     (h : frame.control = control) : frame = { frame with control := control } := by
@@ -261,6 +260,15 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
   | moduleEnd {config : RConfig} {frame : RFrame}
       (hframes : config.frames = [ { frame with control := .statements [] } ]) :
       Step config (.event (.return .none)) (config.finish (.return .none))
+  | raiseRecursion {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      (hframes : config.frames = frame :: tail) :
+      Step config .tau (config.setControl (.raising (resourceError .framePush)))
+  | raiseMemory {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      (hframes : config.frames = frame :: tail) :
+      Step config .tau (config.setControl (.raising (resourceError .allocation)))
+  | raiseUncaught {config : RConfig} {error : RError}
+      (hcontrol : config.frames.head?.map RFrame.control = some (.raising error)) :
+      Step config (.event (.raise error)) (config.finish (.raise error))
   | refuseStmt {config : RConfig} {frame : RFrame} {tail : List RFrame}
       {kind text : String} {span : Span}
       (hframe : config.frames =
@@ -275,11 +283,7 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
       (hchoices : config.choices = choice :: tail)
       (hmembership : token ∈ choice.allowed) :
       Step config (.event (.choice choice.kind token))
-        { config with choices := tail }
-  | raiseResource {config : RConfig} {point : RResourcePoint}
-      (hpoint : config.resourcePoint = some point) :
-      Step config (.event (.raise (resourceError point)))
-        { config with pending := (resourceError point :: config.pending), resourcePoint := none }
+        (config.chooseToken tail token)
 
 inductive RTrace : RConfig → List RLabel → RConfig → Prop where
   | nil (config : RConfig) : RTrace config [] config
@@ -299,7 +303,7 @@ def resolveChoice (impl : RImpl) (config : RConfig) : Option (RLabel × RConfig)
   | choice :: tail =>
       let token := impl.choose choice.kind
       if token ∈ choice.allowed then
-        some (.event (.choice choice.kind token), { config with choices := tail })
+        some (.event (.choice choice.kind token), config.chooseToken tail token)
       else none
 
 def resolveAst (config : RConfig) : Option (RLabel × RConfig) :=
@@ -330,6 +334,11 @@ def resolveAst (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl (.statements []))
       | .continueValue _ .printValue => none
       | .continueValue _ _ => none
+      | .raising _ =>
+          match frame.control with
+          | .raising error =>
+              some (.event (.raise error), config.finish (.raise error))
+          | _ => none
 
 def resolve (impl : RImpl) (config : RConfig) : Option (RLabel × RConfig) :=
   match config.choices with
@@ -388,6 +397,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | _ => some (.event (.refuse "machine binary operator"),
               config.finish (.refuse "machine binary operator"))
       | .continueValue _ .printValue => none
+      | .raising error => some (.event (.raise error), config.finish (.raise error))
 
 def runB1 : Nat → RConfig → List RLabel × RConfig
   | 0, config => ([], config)
@@ -523,6 +533,12 @@ theorem resolve_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : R
                   exact Step.discardValue hhead
               | printValue => simp [resolveAst, hframes, hcontrol] at h
               | _ => simp [resolveAst, hframes, hcontrol] at h
+          | raising error =>
+              simp [resolveAst, hframes, hcontrol] at h
+              obtain ⟨rfl, rfl⟩ := h
+              have hhead : config.frames.head?.map RFrame.control =
+                  some (.raising error) := by simp [hframes, hcontrol]
+              exact Step.raiseUncaught hhead
 
 def runRelation (impl : RImpl) : Nat → RConfig → List RLabel × RConfig
   | 0, config => ([], config)
@@ -553,6 +569,18 @@ private def b1Module : RModule :=
 example : (runB1 32 (RConfig.initial b1Module)).2.status =
     .finished (.return .none) := by
   rfl
+
+example : ∃ c₁ c₂,
+    Step (RConfig.initial b1Module) .tau c₁ ∧
+    Step (RConfig.initial b1Module) .tau c₂ ∧ c₁ ≠ c₂ := by
+  let frame : RFrame :=
+    { control := .statements b1Module.body.toList, locals := [], globals := [] }
+  refine ⟨(RConfig.initial b1Module).setControl (.raising (resourceError .framePush)),
+    (RConfig.initial b1Module).setControl (.raising (resourceError .allocation)), ?_, ?_, ?_⟩
+  · exact Step.raiseRecursion (frame := frame) (tail := []) (by rfl)
+  · exact Step.raiseMemory (frame := frame) (tail := []) (by rfl)
+  · intro h
+    simp [RConfig.initial, RConfig.setControl, resourceError] at h
 
 #guard (runRelation RImpl.cpython39 3 (RConfig.initial testModule)).1 ==
   [.tau, .tau, .event (.return (.int 7))]
