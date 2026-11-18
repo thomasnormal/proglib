@@ -73,6 +73,7 @@ private def operand (j : Json) : Except String Operand := do
   | "Constant" => do
       let constant ← field value "const_"
       let id ← field constant "id" >>= nat
+      let ty ← field constant "ty" >>= nat
       let bytes ←
         match constant.getObjVal? "kind" with
         | .ok (.obj fields) =>
@@ -81,7 +82,7 @@ private def operand (j : Json) : Except String Operand := do
             | [("ZeroSized", _)] => pure []
             | _ => pure []
         | .ok _ | .error _ => pure []
-      pure (.constant id bytes)
+      pure (.constant id bytes ty)
   | other => pure (.unsupported other)
 
 private def rvalue (j : Json) : Except String Rvalue := do
@@ -201,14 +202,45 @@ private def body (instanceId : String) (j : Json) : Except String Body := do
   let blocks ← field j "blocks" >>= array >>= (·.mapM (withCtx "block" ∘ block))
   pure { instanceId, blocks }
 
+private def signedField (shape : Json) : Option Bool :=
+  match shape.getObjVal? "value_repr" with
+  | .ok repr =>
+      match variant repr with
+      | .ok ("Scalar", scalar) =>
+          match scalar.getObjVal? "Initialized" with
+          | .ok initialized =>
+              match initialized.getObjVal? "value" with
+              | .ok value =>
+                  match value.getObjVal? "Int" with
+                  | .ok intValue =>
+                      match intValue.getObjVal? "signed" with
+                      | .ok (.bool signed) => some signed
+                      | _ => none
+                  | _ => none
+              | _ => none
+          | _ => none
+      | _ => none
+  | _ => none
+
 private def typeLayout (j : Json) : Except String TypeLayout := do
-  let id ← field j "id" >>= string
+  let id ← field j "handle" >>= string
   let kind ← field j "kind" >>= string
-  let layout ← field j "layout"
-  let size ← field layout "size"
-  let sizeBits ← field size "num_bits" >>= nat
-  let align ← field layout "abi_align" >>= nat
-  pure { id, kind, sizeBits, align }
+  let layout ←
+    match ← field j "layout" with
+    | layout =>
+        match layout.getObjVal? "shape" with
+        | .ok shape =>
+            let sizeBits := match shape.getObjVal? "size" with
+              | .ok size => (field size "num_bits" >>= nat).toOption
+              | .error _ => none
+            let align := match shape.getObjVal? "abi_align" with
+              | .ok value => (nat value).toOption
+              | .error _ => none
+            pure (some (sizeBits, align, signedField shape))
+        | .error _ => pure none
+  match layout with
+  | some (sizeBits, align, signed) => pure { id, kind, sizeBits, align, signed }
+  | none => pure { id, kind, sizeBits := none, align := none, signed := none }
 
 private def allocation (j : Json) : Except String Allocation := do
   let id ← field j "id" >>= string

@@ -21,7 +21,7 @@ deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 inductive Operand where
   | copy (place : Place)
   | move (place : Place)
-  | constant (id : Nat) (bytes : List Nat) (signed : Option Bool := none)
+  | constant (id : Nat) (bytes : List Nat) (ty : Nat)
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
@@ -77,8 +77,9 @@ deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 structure TypeLayout where
   id : String
   kind : String
-  sizeBits : Nat
-  align : Nat
+  sizeBits : Option Nat
+  align : Option Nat
+  signed : Option Bool := none
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
 structure Allocation where

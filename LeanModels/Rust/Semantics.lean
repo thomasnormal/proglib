@@ -29,6 +29,7 @@ deriving Repr, Inhabited, BEq, DecidableEq
 structure State where
   locals : List (Nat × Slot) := []
   placements : List (Nat × Nat) := []
+  types : List TypeLayout := []
 deriving Repr, Inhabited, BEq, DecidableEq
 
 inductive Event where
@@ -136,8 +137,28 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
       else none
   | .downcast _ :: _ | .unsupported _ :: _ => none
 
+def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
+  let layout := s.types.find? (fun item => item.id == toString ty)
+  match layout with
+  | none => bytesValue bytes
+  | some info =>
+    match info.sizeBits with
+    | some 0 => some 0
+    | some sizeBits =>
+      if bytes.length ≤ 8 ∧ bytes.all (· ≤ 255) then
+        let raw := Int.ofNat (littleEndian bytes)
+        match info.signed with
+        | some true =>
+            if sizeBits ≤ 64 ∧ raw ≥ 2 ^ (sizeBits - 1) then
+              some (raw - 2 ^ sizeBits)
+            else some raw
+        | some false => some raw
+        | none => none
+      else none
+    | none => none
+
 def operandCell (s : State) : Operand → Option Cell
-  | .constant _ bytes _ => bytesValue bytes |>.map Cell.int
+  | .constant _ bytes ty => typedBytesValue s ty bytes |>.map Cell.int
   | .copy place | .move place =>
       readCell s place
   | .unsupported _ => none
@@ -331,7 +352,8 @@ def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
       match block.terminator with
       | .call _ args destination (some target) => do
           let (edge, callee) ← lookupCallBody program body blockId
-          let calleeState ← bindCallArgs { placements := firstTrace.state.placements } args 1
+          let calleeState ← bindCallArgs
+            { placements := firstTrace.state.placements, types := firstTrace.state.types } args 1
           let calleeTrace ← cfgRun fuel callee 0 calleeState
           let value ← returnValue calleeTrace
           let suffix ← cfgRunProgram fuel program body target
@@ -383,7 +405,8 @@ inductive ProgramSteps (program : Envelope) : Body → Nat → State → Trace �
       (ht : block.terminator = .call func args destination (some target))
       (hl : lookupCallBody program body blockId = some (edge, callee))
       (he : edge.callee = some calleeId)
-      (ha : bindCallArgs { placements := first.state.placements } args 1 = some calleeState)
+      (ha : bindCallArgs
+        { placements := first.state.placements, types := first.state.types } args 1 = some calleeState)
       (hc : CfgSteps callee 0 calleeState calleeTrace)
       (hv : returnValue calleeTrace = some value)
       (rest : ProgramSteps program body target
@@ -468,20 +491,16 @@ def run (program : Envelope) : Option Trace :=
   | some body => cfgRunProgram 4096 program body 0 {}
   | none => none
 
-def initialState (placement : Nat → Nat) : State :=
-  { locals := [], placements := [] }
+def initialState (placement : Nat → Nat) (types : List TypeLayout) : State :=
+  { locals := [], placements := [], types := types }
 
 def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with
-  | some body => cfgRunProgram 4096 program body 0 (initialState placement)
+  | some body => cfgRunProgram 4096 program body 0 (initialState placement program.types)
   | none => none
 
-theorem runWithPlacement_eq_run (placement : Nat → Nat) (program : Envelope) :
-    runWithPlacement placement program = run program := by
-  rfl
-
 def runOutcome (program : Envelope) : Outcome :=
-  match run program with
+  match runWithPlacement (fun n => n) program with
   | some trace => .returned trace
   | none => .refused (.unsupported "execution")
 
@@ -520,7 +539,9 @@ theorem cfgRunProgram_in_steps {fuel : Nat} {program : Envelope} {body : Body}
                           cases hec : edge.callee with
                           | none => simp_all
                           | some calleeId =>
-                              generalize ha : bindCallArgs { placements := firstTrace.state.placements } args 1 = calleeState at h
+                              generalize ha : bindCallArgs
+                                { placements := firstTrace.state.placements,
+                                  types := firstTrace.state.types } args 1 = calleeState at h
                               cases calleeState with
                               | none => simp_all
                               | some calleeState =>
