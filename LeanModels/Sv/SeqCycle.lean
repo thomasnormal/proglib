@@ -391,9 +391,8 @@ theorem CoreMemDesign.evalExprLocals_eq_evalV {E : CoreMemDesign} {st : CoreMemS
       unfold CoreMemDesign.evalExprLocals CoreMemDesign.evalV
       cases hmd : E.memDecl? name <;>
         simp [hmd, CoreMemDesign.evalScalarLocals, CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
-  | ctx, .aggregateMember base path, _ => by
-      simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV,
-        CoreMemDesign.evalScalarLocals, CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
+  | ctx, .aggregateMember base path, h => by
+      simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
   | ctx, .bitSel base index, h => by
       simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
       unfold CoreMemDesign.evalExprLocals CoreMemDesign.evalV
@@ -808,7 +807,7 @@ reset of either polarity) whose body the view-level executor mirrors, within the
 def CoreMemDesign.ProcOkI (E : CoreMemDesign) (i : Nat) : CoreMemProc → Prop
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
-      (E.scalarWidth? n).isSome = true
+      (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
   | .edge f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
   | _ => False
 
@@ -817,7 +816,7 @@ process is outside it (it is in the instant profile `SeqProfileI`, where `{neged
 def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemProc → Prop
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
-      (E.scalarWidth? n).isSome = true
+      (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
   | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
   | _ => False
 
@@ -836,6 +835,7 @@ structure CoreMemDesign.SeqProfileI (E : CoreMemDesign) : Prop where
   base : E.scalarEdge.base = E.scalar
   names : (E.scalar.decls.toList.map Decl.name).Nodup
   four : AllFour E.scalar
+  noResolved : E.resolvedNets = []
   procs : ∀ (i : Nat) (p : CoreMemProc), E.processes[i]? = some p → E.ProcOkI i p
 
 /-- An edge process on the rising edge of `clk` (every other process qualifies). -/
@@ -853,7 +853,7 @@ def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMem
   | .assign (.ident n) v => !LeanModels.Sv.PExpr.hasFunctionCall v &&
       (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
         | some (some _) => true
-        | _ => false)) && (E.scalarWidth? n).isSome
+        | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
   | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need ≤ 4096)
   | .event _ _ => false
   | _ => false
@@ -865,13 +865,14 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
       cases t with
       | ident n =>
           simp only [CoreMemDesign.procOkB, Bool.and_eq_true, Bool.not_eq_true', Bool.or_eq_true] at h
-          obtain ⟨⟨h1, h3⟩, h4⟩ := h
-          refine ⟨h1, fun hmr => ?_, h4⟩
+          obtain ⟨⟨⟨h1, h3⟩, h4⟩, h5⟩ := h
+          refine And.intro h1 (And.intro (fun hmr => ?_) (And.intro h4 ?_))
           rcases h3 with h3 | h3
           · rw [hmr] at h3; exact absurd h3 (by simp)
           · split at h3
             · rename_i c hc; exact ⟨c, hc⟩
             · simp at h3
+          · simpa using h5
       | _ => simp [CoreMemDesign.procOkB] at h
   | edge f =>
       simp only [CoreMemDesign.procOkB, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
@@ -908,7 +909,10 @@ theorem CoreMemDesign.procsOkFrom_spec {E : CoreMemDesign} {clk : String} :
 theorem CoreMemDesign.ProcOk.toI {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
     (h : E.ProcOk clk i p) : E.ProcOkI i p ∧ p.OnRise clk := by
   cases p with
-  | assign t v => cases t <;> first | exact ⟨h, trivial⟩ | exact absurd h (by simp [CoreMemDesign.ProcOk])
+  | assign t v =>
+      cases t with
+      | ident n => exact ⟨⟨h.1, h.2.1, h.2.2.1, h.2.2.2⟩, trivial⟩
+      | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
   | edge f => exact ⟨⟨h.2.2.1, h.2.2.2⟩, h.1, h.2.1⟩
   | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
 
@@ -917,7 +921,7 @@ def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
   | .assign (.ident n) v => !LeanModels.Sv.PExpr.hasFunctionCall v &&
       (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
         | some (some _) => true
-        | _ => false)) && (E.scalarWidth? n).isSome
+        | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
   | .edge f => f.body.edgeOkB && decide (f.body.need ≤ 4096)
   | .event _ _ => false
   | _ => false
@@ -929,13 +933,17 @@ theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
       cases t with
       | ident n =>
           simp only [CoreMemDesign.procOkIB, Bool.and_eq_true, Bool.not_eq_true', Bool.or_eq_true] at h
-          obtain ⟨⟨h1, h3⟩, h4⟩ := h
-          refine ⟨h1, fun hmr => ?_, h4⟩
-          rcases h3 with h3 | h3
-          · rw [hmr] at h3; exact absurd h3 (by simp)
-          · split at h3
+          have hfc := h.1.1.1
+          have hor := h.1.1.2
+          have hw := h.1.2
+          have hnet := h.2
+          refine And.intro hfc (And.intro (fun hmr => ?_) (And.intro hw ?_))
+          rcases hor with hor | hor
+          · rw [hmr] at hor; exact absurd hor (by simp)
+          · split at hor
             · rename_i c hc; exact ⟨c, hc⟩
-            · simp at h3
+            · simp at hor
+          · simpa using hnet
       | _ => simp [CoreMemDesign.procOkIB] at h
   | edge f =>
       simp only [CoreMemDesign.procOkIB, Bool.and_eq_true, decide_eq_true_eq] at h
@@ -971,19 +979,20 @@ theorem CoreMemDesign.procsOkIFrom_spec {E : CoreMemDesign} :
 /-- The instant profile from its decided parts (how the structure stage proves it). -/
 theorem CoreMemDesign.SeqProfileI.of_B {E : CoreMemDesign} (hmo : E.memOkB = true)
     (hb : E.scalarEdge.base = E.scalar) (hn : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
-    (hp : E.procsOkIFrom 0 E.processes.toList = true) : E.SeqProfileI :=
-  ⟨hmo, hb, hn, h4, fun i p hi => by
+    (hnr : E.resolvedNets = []) (hp : E.procsOkIFrom 0 E.processes.toList = true) : E.SeqProfileI :=
+  ⟨hmo, hb, hn, h4, hnr, fun i p hi => by
     have := CoreMemDesign.procsOkIFrom_spec _ 0 hp i p (by rw [Array.getElem?_toList]; exact hi)
     simpa using this⟩
 
 /-- The profile from its decided parts (how the structure stage proves it). -/
 theorem CoreMemDesign.SeqProfile.of_B {E : CoreMemDesign} {clk : String} (hmo : E.memOkB = true)
     (hb : E.scalarEdge.base = E.scalar) (hn : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
-    (hp : E.procsOkFrom clk 0 E.processes.toList = true) : E.SeqProfile clk where
+    (hnr : E.resolvedNets = []) (hp : E.procsOkFrom clk 0 E.processes.toList = true) : E.SeqProfile clk where
   mems := hmo
   base := hb
   names := hn
   four := h4
+  noResolved := hnr
   procs := fun i p hi => by
     have := CoreMemDesign.procsOkFrom_spec _ 0 hp i p (by rw [Array.getElem?_toList]; exact hi)
     simpa using (CoreMemDesign.ProcOk.toI this).1
@@ -1318,7 +1327,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
       | assign target value =>
           cases target with
           | ident n =>
-              obtain ⟨hfc, hcomp, hw⟩ := hok
+              obtain ⟨hfc, hcomp, hw, hnet⟩ := hok
               obtain ⟨xid, hxid⟩ := CoreMemDesign.scalarWidth?_some hw
               obtain ⟨dc, hdc, hname, -, -⟩ := Elab.resolve_some hxid
               have hsw : E.scalarWidth? n = some dc.width := by
@@ -1338,7 +1347,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
                   hset.2 (by rw [hmem]; exact hmc) hv' (by rw [hmem]; exact hs')
                 refine ⟨st', ?_, hc', by rw [hm', hmem], hv''⟩
                 simp only [CoreMemDesign.settleAssignAt, hsw, Res.ok_bind, hx]
-                exact hrun
+                simpa [hnet] using hrun
               by_cases hmr : LeanModels.Sv.PExpr.hasMemoryRead value = true
               · simp only [CoreMemDesign.settleRaw, hmr, Bool.true_or, ↓reduceIte, hsw, Res.bind_eq_ok] at hs
                 obtain ⟨x, hx, hs⟩ := hs
@@ -1361,7 +1370,6 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
           obtain ⟨st', hrun, hc', hm', hv'⟩ :=
             CoreMemDesign.settleAssignAt_seq hP rest (idx + 1) hrest st raw raw' hc hmc hv hs
           exact ⟨st', by simpa [CoreMemDesign.settleAssignAt] using hrun, hc', hm', hv'⟩
-      | event _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | initial _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
@@ -1391,7 +1399,13 @@ theorem CoreMemDesign.settleAssign_seq {E : CoreMemDesign} (hP : E.SeqProfileI)
   obtain ⟨st', hrun, hc', hm', hv'⟩ := CoreMemDesign.settleAssignAt_seq hP E.processes.toList 0
     (fun k p hk => by simpa using hk) st _ raw' hc hmc (CoreMemDesign.matV_view hP.names hP.four hc.typed).symm hs
   obtain ⟨hvc, hcc⟩ := CoreMemDesign.compactScalar_spec hc' hv'
-  exact ⟨_, by simp [CoreMemDesign.settleAssign, hrun], hvc, hcc, by rw [E.compactScalar_memory, hm']⟩
+  have hreset : E.resetResolvedNets st = st := by
+    simp [CoreMemDesign.resetResolvedNets, hP.noResolved]
+  have hsettle : E.settleAssign E.env E.elems st E.processes.toList =
+      .ok (E.compactScalar st' raw') := by
+    simp [CoreMemDesign.settleAssign, hreset, hrun]
+  refine ⟨E.compactScalar st' raw', hsettle, hvc, hcc, ?_⟩
+  rw [E.compactScalar_memory, hm']
 
 #print axioms CoreMemDesign.settleAssign_seq
 
@@ -2072,7 +2086,6 @@ theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | event _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
-  | event _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
 
 theorem CoreMemDesign.SeqProfileI.shapes {E : CoreMemDesign} (hP : E.SeqProfileI) :
@@ -2146,7 +2159,6 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | event _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | latch _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
-      | event _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | unsupported _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
 
 /-- **One slot of the route, on views**: the inputs applied, two settle passes (the pre-edge view), the edge pass from

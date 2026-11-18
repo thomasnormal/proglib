@@ -56,6 +56,7 @@ def _root_.LeanModels.Sv.PExpr.sigNames : PExpr → List String
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a | .sysCall _ a | .reduce _ a | .cast _ a =>
       PExpr.sigNames a
   | .binary _ a b | .bitSel a b | .repl a b => PExpr.sigNames a ++ PExpr.sigNames b
+  | .aggregateMember base _ => [base]
   | .ternary c a b | .partSel c a b => PExpr.sigNames c ++ PExpr.sigNames a ++ PExpr.sigNames b
   | .concat xs | .functionCall _ xs => PExpr.sigNamesList xs
   | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .unsupported _ _ => []
@@ -213,6 +214,7 @@ def _root_.LeanModels.Sv.PExpr.unconverted : PExpr → List String
   | .binary _ a b | .bitSel a b | .repl a b => PExpr.unconverted a ++ PExpr.unconverted b
   | .ternary c a b | .partSel c a b => PExpr.unconverted c ++ PExpr.unconverted a ++ PExpr.unconverted b
   | .concat xs | .functionCall _ xs => PExpr.unconvertedList xs
+  | .aggregateMember .. => []
   | .ident _ | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ => []
 
 /-- `unconverted` of a list. -/
@@ -313,6 +315,7 @@ def CoreMemDesign.readsV (E : CoreMemDesign) (env : IEnv) (elems : List (String 
       | none => (instExpr2 env (E.widthsOf elems) ctx e).idents
   | e@(.arrayElem _ _) => (instExpr2 env (E.widthsOf elems) ctx e).idents
   | e@(.arrayPart _ _ _ _ _) => (instExpr2 env (E.widthsOf elems) ctx e).idents
+  | .aggregateMember .. => []
   | e@(.bitSel base index) =>
       if LeanModels.Sv.PExpr.hasMemoryRead e then E.readsV env elems none base ++ E.readsIdxV env elems index
       else (instExpr2 env (E.widthsOf elems) ctx e).idents
@@ -416,6 +419,8 @@ theorem CoreMemDesign.evalV_congr {E : CoreMemDesign} {env : IEnv} {elems : List
       simp only [CoreMemDesign.readsV] at h; simp only [CoreMemDesign.evalV]
       exact CoreMemDesign.evalScalarV_congr h
   | ctx, .functionCall _ _, _ => by simp only [CoreMemDesign.evalV]
+  | ctx, .aggregateMember _ _, _ => by
+      simp [CoreMemDesign.evalV, CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf, instExpr2]
   | ctx, .arrayElem name indices, h => by
       cases indices with
       | nil =>
@@ -806,6 +811,7 @@ theorem CoreMemDesign.settleRaw_frame {E : CoreMemDesign} {mv : MemV} :
       | comb _ => simp [CoreMemDesign.settleRaw] at h
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
       | latch _ => simp [CoreMemDesign.settleRaw] at h
+      | event _ _ => simp [CoreMemDesign.settleRaw] at h
       | unsupported _ _ => simp [CoreMemDesign.settleRaw] at h
 
 /-- The materialization reads a raw view only through its lookups. -/
@@ -906,6 +912,7 @@ theorem CoreMemDesign.settleRaw_agree {E : CoreMemDesign} {mv : MemV} :
       | comb _ => simp [CoreMemDesign.settleRaw] at h
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
       | latch _ => simp [CoreMemDesign.settleRaw] at h
+      | event _ _ => simp [CoreMemDesign.settleRaw] at h
       | unsupported _ _ => simp [CoreMemDesign.settleRaw] at h
 
 /-- **THE SETTLE IS A FIXPOINT**: under the topological obligation, from a materialized view (every view of a coherent
@@ -1210,6 +1217,7 @@ theorem CoreMemDesign.edgesV_cons_inv {E : CoreMemDesign} {before after v : SvSt
   | comb b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
   | implicit b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
   | latch b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
+  | event _ _ => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
   | unsupported k t => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
 
 /-- The converse of `edgesV_cons_inv`. -/
@@ -1237,6 +1245,7 @@ theorem CoreMemDesign.edgesV_cons_mk {E : CoreMemDesign} {before after v : SvSta
   | comb b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
   | implicit b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
   | latch b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
+  | event _ _ => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
   | unsupported k t =>
       simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
 
@@ -1305,6 +1314,9 @@ theorem CoreMemDesign.edgesV_perm {E : CoreMemDesign} {before after v : SvState}
       | latch b =>
           simp only [CoreMemDesign.edgesV] at h ⊢
           exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      | event _ _ =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
       | unsupported k t =>
           simp only [CoreMemDesign.edgesV] at h ⊢
           exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
@@ -1349,6 +1361,8 @@ theorem CoreMemDesign.edgesV_filter {E : CoreMemDesign} {before after : SvState}
   | .implicit b :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
   | .latch b :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .event _ _ :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
   | .unsupported k t :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
@@ -1916,6 +1930,9 @@ theorem CoreMemDesign.edgesV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.to
           simp only [CoreMemDesign.edgesV] at h
           exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
       | latch b =>
+          simp only [CoreMemDesign.edgesV] at h
+          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
+      | event _ _ =>
           simp only [CoreMemDesign.edgesV] at h
           exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
       | unsupported k t =>

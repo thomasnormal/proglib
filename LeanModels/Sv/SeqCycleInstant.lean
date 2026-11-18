@@ -699,6 +699,7 @@ def dedupL {α : Type} [DecidableEq α] (l : List α) : List α :=
 def CoreMemProc.domain? : CoreMemProc → Option SeqEvent
   | .edge f => some f.clockEvent
   | .assign _ _ => none
+  | .event _ _ => none
   | .initial _ => none
   | .comb _ => none
   | .implicit _ => none

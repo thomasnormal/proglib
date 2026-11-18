@@ -313,7 +313,7 @@ macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : 
 macro "sv_seq_profile" : tactic =>
   `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfile.of_B
       (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB]) rfl (by simp)
-      (by simp [LeanModels.Sv.Kernel.AllFour])
+      (by simp [LeanModels.Sv.Kernel.AllFour]) (by simp)
       (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
         LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
         LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
@@ -328,7 +328,7 @@ macro "sv_seq_profile" : tactic =>
 macro "sv_seq_profileI" : tactic =>
   `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfileI.of_B
       (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB]) rfl (by simp)
-      (by simp [LeanModels.Sv.Kernel.AllFour])
+      (by simp [LeanModels.Sv.Kernel.AllFour]) (by simp)
       (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkIFrom,
         LeanModels.Sv.Kernel.CoreMemDesign.procOkIB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
         LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,

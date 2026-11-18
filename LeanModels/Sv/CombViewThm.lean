@@ -3217,7 +3217,7 @@ theorem rd_shAmt (C : Ctx σ E elems DW DG EW ns) {ds : List DeclT} {e : PExpr} 
 theorem dow_peel : ∀ p : PExpr, divOperandWidth2 E elems p.peelMk = divOperandWidth2 E elems p
   | .resize _ e => by simp only [PExpr.peelMk, divOperandWidth2]; exact dow_peel e
   | .signedResize _ e => by simp only [PExpr.peelMk, divOperandWidth2]; exact dow_peel e
-  | .lit _ | .fill _ | .ident _ | .bitSel .. | .partSel .. | .arrayElem .. | .arrayPart .. | .paramRef .. | .genvarRef _
+  | .lit _ | .fill _ | .ident _ | .bitSel .. | .partSel .. | .arrayElem .. | .arrayPart .. | .aggregateMember .. | .paramRef .. | .genvarRef _
   | .enumRef .. | .int _ | .sysCall .. | .cast .. | .squash2 .. | .unsupported .. | .binary .. | .unary .. | .ternary ..
   | .reduce .. | .concat _ | .repl .. | .functionCall .. => rfl
 
@@ -3237,7 +3237,7 @@ theorem iDO_peel : ∀ (p : PExpr) (s : Bool) (c : Nat), (∀ g, p.peelMk ≠ .g
       rw [instDiv_sresize s (some c) m e]
       simpa [PExpr.peelMk, PExpr.peelSg, Option.orElse] using iDO_peel e true c hg
   | .lit _, _, _, _ | .fill _, _, _, _ | .ident _, _, _, _ | .bitSel .., _, _, _ | .partSel .., _, _, _
-  | .arrayElem .., _, _, _ | .arrayPart .., _, _, _ | .paramRef .., _, _, _ | .genvarRef _, _, _, _
+  | .arrayElem .., _, _, _ | .arrayPart .., _, _, _ | .aggregateMember .., _, _, _ | .paramRef .., _, _, _ | .genvarRef _, _, _, _
   | .enumRef .., _, _, _ | .int _, _, _, _ | .sysCall .., _, _, _ | .cast .., _, _, _ | .squash2 .., _, _, _
   | .unsupported .., _, _, _ | .binary .., _, _, _ | .unary .., _, _, _ | .ternary .., _, _, _
   | .reduce .., _, _, _ | .concat _, _, _, _ | .repl .., _, _, _ | .functionCall .., _, _, _ => rfl
