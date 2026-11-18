@@ -1757,6 +1757,39 @@ theorem reallocAt_valid_pointer_shape (m : Mem) (p : Ptr) (size address : Nat)
   simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq,
     kill, allocAt, alloc, Ptr.toObjectBoundAt, get?, Except.map]
 
+theorem reallocAt_valid_new_loadBytes (m : Mem) (p : Ptr) (size address n : Nat)
+    (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hn : n ≤ size)
+    (hp : p.obj = some o) (hc : m.get? o = some c)
+    (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0) :
+    (reallocAt m p size address).map
+        (fun r => r.1.loadBytes r.2 n) =
+      .ok (.ok (List.take n
+        (c.bytes.take size ++ List.replicate (size - (c.bytes.take size).length) CByte.indet))) := by
+  have hbeq : (Duration.allocated == Duration.allocated) = true := by rfl
+  have hn' : ¬ size < n := by omega
+  change m.objs[o]? = some c at hc
+  have ho : o < m.objs.length := (List.getElem?_eq_some_iff.mp hc).choose
+  have hne : m.objs.length ≠ o := Nat.ne_of_gt ho
+  have hobj : m.objs[o] = c := (List.getElem?_eq_some_iff.mp hc).choose_spec
+  have hnew (fresh : CObj) :
+      ((m.objs ++ [fresh]).modify o
+        (fun c => { c with live := false }))[m.objs.length] = fresh := by
+    rw [List.getElem_modify_ne (fun c => { c with live := false })
+      (m.objs ++ [fresh]) hne.symm (by simp)]
+    simp
+  have hlen : min size c.bytes.length + (size - min size c.bytes.length) = size := by
+    by_cases hs : size ≤ c.bytes.length
+    · simp [Nat.min_eq_left hs]
+    · have hslt : c.bytes.length < size := by omega
+      have hs' : c.bytes.length ≤ size := Nat.le_of_lt hslt
+      rw [Nat.min_eq_right hs']
+      exact Nat.add_sub_of_le hs'
+  simp [reallocAt, hsize, hp, hc, hdur, hlive, hoff, hbeq,
+    kill, Ptr.toObjectBoundAt, loadBytes, resolve, get?, Except.map, hn', ho, hne,
+    hobj, hnew, hlen, List.getElem?_append_right, List.getElem?_modify]
+  simp [CObj.size, List.length_append, List.length_take, hlen, hn']
+  rfl
+
 theorem reallocAt_valid_old_resolve (m : Mem) (p : Ptr) (size address n : Nat)
     (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
     (hc : m.get? o = some c) (hdur : c.dur = .allocated)
