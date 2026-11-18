@@ -1914,8 +1914,8 @@
   "no-entry-point": 102
  },
  "manifest_hash": "8b5b05c8a9f9a70448c629a552c5404fcaea492b07a56c65b93c41fcefda45e1",
- "measured_at_utc": "2026-11-18T23:05:00Z",
- "measured_commit": "baac768a4",
+ "measured_at_utc": "2026-11-18T22:15:35Z",
+ "measured_commit": "5fa6f5cf7",
  "pin": "C1-C3",
  "rows": [
   {
