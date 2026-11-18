@@ -1968,8 +1968,9 @@ The checker now verifies the source SHA-256
 `0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622` and the
 RISCV_FORMAL envelope SHA-256
 `17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236` before
-running either simulator.  This prevents a receipt from silently using a
-different source or envelope.
+running either simulator.  It also verifies Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 before accepting rows.  This
+prevents a receipt from silently using a different source, envelope, or oracle.
 
 Canonical E was then exercised through the loaded `picorv32_r2.sv.json`
 family with the same input-driven route.  It remains **0/220 E-RUN cycles**
