@@ -22,3 +22,8 @@ first uninitialized sample and `0`, `1`, `x`, and `z` function operands:
 The current wall-table `automatic_function_subroutine` row is the same
 parser-shaped function and edge-call family; its eight seeded ordinary E rows
 also match both pinned simulators.
+
+The checker also records the default extractor route. It keeps the call's
+source location and marks the existing inline representation explicitly. The
+`--retain-proc-rewrites` envelope used by the E receipt retains the parser
+`FunctionCall` node, so the two front-end modes cannot silently be conflated.
