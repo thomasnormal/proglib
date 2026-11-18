@@ -944,7 +944,7 @@ partial def parseGenItem (j : Json) : Except String GenItem := do
           | none => pure []
           | some je => (← je.getArr?).toList.mapM parseGenItem
         return .genIf cond thenB elseB
-    | "AlwaysPosedge" | "AlwaysComb" | "AlwaysEvent" | "Assign" | "Initial" =>
+    | "AlwaysPosedge" | "AlwaysComb" | "AlwaysLatch" | "AlwaysEvent" | "Assign" | "Initial" =>
         return .process (← parsePProcess j)
     | "Instance" => return .inst (← parsePInst j)
     | "UnpackedDecl" =>
@@ -1977,6 +1977,12 @@ private def unsupMemberText : String := r#"{
 #guard match (Json.parse r#"{"kind":"AlwaysEvent","event_kind":"ImplicitEventControl",
     "body":{"kind":"Empty"}}"# >>= parseGenItem).toOption with
   | some (.process (.alwaysImplicit (.block []))) => true
+  | _ => false
+-- Generate regions retain parser-native latch processes as process nodes.  The
+-- canonical E route may refuse the latch profile later, but ingestion must
+-- not reject the source-shaped member before that semantic boundary.
+#guard match (Json.parse r#"{"kind":"AlwaysLatch","body":{"kind":"Empty"}}"# >>= parseGenItem).toOption with
+  | some (.process (.alwaysLatch (.block []))) => true
   | _ => false
 -- Explicit scalar event lists retain every parser-provided edge and reject
 -- empty or malformed lists instead of falling through to a generic process.
