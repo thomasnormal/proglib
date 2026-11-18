@@ -532,6 +532,11 @@ def Layout.arrayElementSizeAt (layout : Layout) (arrayTy elementTy : CType) :
   layout.arrayElementSize arrayTy |>.orElse
     (fun _ => layout.size (layout.normalizeTy elementTy))
 
+def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
+    Option Nat :=
+  decl.bind layout.declSize |>.orElse
+    (fun _ => layout.size (layout.normalizeTy ty))
+
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
   (directDeclId base).bind layout.structuredType
@@ -1292,7 +1297,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
         | none => pure (Ptr.toObject 0)
       else match ctx.idEnv.lookup? id with
       | some o =>
-          pure (match ctx.layout.size (ctx.layout.normalizeTy ty) with
+          pure (match ctx.layout.sizeAt (some id) ty with
             | some sz => Ptr.toObjectBound o sz
             | none => Ptr.toObject o)
       | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
@@ -1303,7 +1308,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
         | none => pure (Ptr.toObject 0)
       else match ctx.env.lookup? name with
       | some o =>
-          pure (match ctx.layout.size (ctx.layout.normalizeTy ty) with
+          pure (match ctx.layout.sizeAt none ty with
             | some sz => Ptr.toObjectBound o sz
             | none => Ptr.toObject o)
       | none => refuseUnsupported s!"unbound name '{name}'"
@@ -1746,9 +1751,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | none => refuseUnsupported s!"unknown enum declaration '{id.value}' (name '{name}')"
       else match ctx.idEnv.lookup? id with
         | some o =>
-            let p := match ctx.layout.size (ctx.layout.normalizeTy ty) with
+            let p := match ctx.layout.sizeAt (some id) ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.sizeAt (some id) ty)
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
   | .declRef none name declKind ty _ =>
       if declKind == "EnumConstantDecl" then
@@ -1757,9 +1762,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | none => refuseUnsupported s!"unknown enum constant '{name}'"
       else match ctx.env.lookup? name with
         | some o =>
-            let p := match ctx.layout.size (ctx.layout.normalizeTy ty) with
+            let p := match ctx.layout.sizeAt none ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.sizeAt none ty)
         | none => refuseUnsupported s!"unbound name '{name}'"
 
   -- §6.5.3.3p4 — the arguments are evaluated HERE, in the caller's scope,
