@@ -391,6 +391,9 @@ theorem CoreMemDesign.evalExprLocals_eq_evalV {E : CoreMemDesign} {st : CoreMemS
       unfold CoreMemDesign.evalExprLocals CoreMemDesign.evalV
       cases hmd : E.memDecl? name <;>
         simp [hmd, CoreMemDesign.evalScalarLocals, CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
+  | ctx, .aggregateMember base path, _ => by
+      simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV,
+        CoreMemDesign.evalScalarLocals, CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
   | ctx, .bitSel base index, h => by
       simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
       unfold CoreMemDesign.evalExprLocals CoreMemDesign.evalV
@@ -2061,6 +2064,7 @@ theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | initial _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | comb _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | event _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
 
@@ -2133,6 +2137,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       | initial _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | comb _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | event _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | latch _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | unsupported _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
 
