@@ -152,7 +152,7 @@ def localSlot (s : State) (localId : Nat) : Option Slot :=
 
 def allocationCell (s : State) (provenance : Nat) : Option Cell :=
   match s.allocations.drop provenance |>.head? with
-  | some allocation => bytesValue allocation.bytes |>.map Cell.int
+  | some allocation => if allocation.bytesValid then bytesValue allocation.bytes |>.map Cell.int else none
   | none => none
 
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
@@ -198,9 +198,9 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
   | .downcast _ :: _ | .unsupported _ :: _ => none
 
 def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
-  let layout := s.types.find? (fun item => item.id == toString ty)
+  let layout := s.types.find? (fun item => item.id == "t" ++ toString ty || item.id == toString ty)
   match layout with
-  | none => none
+  | none => if s.types.isEmpty then bytesValue bytes else none
   | some info =>
     match info.sizeBits with
     | some 0 => some 0
@@ -217,10 +217,33 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
       else none
     | none => none
 
+def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
+  match s.types.find? (fun item => item.id == "t" ++ toString target || item.id == toString target) with
+  | some info =>
+      if !(info.kind.startsWith "RigidTy(Int(") &&
+          !(info.kind.startsWith "RigidTy(Uint(") then none else
+        match info.sizeBits, info.signed with
+        | some width, some signed =>
+            if width == 0 then none
+            else if width ≤ 64 then
+              let modulus := (2 : Int) ^ width
+              let raw := value % modulus
+              if signed && raw ≥ 2 ^ (width - 1) then
+                some (raw - modulus)
+              else some raw
+            else none
+        | _, _ => none
+  | none => none
+
+def pointerType (s : State) (target : Nat) : Bool :=
+  match s.types.find? (fun item => item.id == "t" ++ toString target || item.id == toString target) with
+  | some info => info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref"
+  | none => false
+
 def operandCell (s : State) : Operand → Option Cell
   | .constant _ bytes ty provenance zeroSized =>
       if zeroSized then some (.int 0) else
-      match s.types.find? (fun item => item.id == toString ty), provenance with
+      match s.types.find? (fun item => item.id == "t" ++ toString ty || item.id == toString ty), provenance with
       | some info, some target =>
           if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" then
             some (.pointer { provenance := target, address := placementOf s target })
@@ -255,6 +278,10 @@ def rvalueValue (s : State) : Rvalue → Option Int
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (leftValue % rightValue)
+  | .cast .intToInt operand target => do
+      let value ← operandValue s operand
+      castInt s target value
+  | .cast _ _ _ => none
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -288,6 +315,16 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (.int (leftValue % rightValue))
+  | .cast .intToInt operand target => do
+      let value ← operandValue s operand
+      let casted ← castInt s target value
+      pure (.int casted)
+  | .cast .ptrToPtr operand target => do
+      if !pointerType s target then none else
+        match ← operandCell s operand with
+        | .pointer pointer => pure (.pointer pointer)
+        | _ => none
+  | .cast _ _ _ => none
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -434,6 +471,7 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.ref _ ) => .refused (.unsupported "reference write")
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
           | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
+          | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")
           | .assign _ _ => .refused (.unsupported "assignment")
           | .placeMention _ => .refused (.unsupported "place mention")
           | .storageLive _ | .storageDead _ | .unsupported _ =>

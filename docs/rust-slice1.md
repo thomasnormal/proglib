@@ -3,14 +3,14 @@
 This slice implements the MIR node census groups in the approved
 `rustc_public` envelope.  It covers `Assign`, `StorageLive`, `StorageDead`, `PlaceMention`, structured `Deref` and
 `Field` projections, `Ref` and tuple aggregates, pointer cells with provenance
-and chosen addresses, `Use` rvalues, constant operands, control flow, resolved
-calls, normal drop edges, and explicit refusal boundaries for cleanup,
-intrinsics, and foreign operations.  The implementation is 962 lines in
-`LeanModels/Rust/Semantics.lean`, with 106 lines of AST declarations, 361 lines
-of JSON decoding, and 38 lines of the literal-envelope loader.
+and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
+rvalues, constant operands, control flow, resolved calls, normal drop edges, and
+explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
+implementation is 1000 lines in `LeanModels/Rust/Semantics.lean`, with 114 lines
+of AST declarations, 399 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
-counter for this worktree is `SLICE1-ROWS 6/30, diverging 0`.
+counter for this worktree is `SLICE1-ROWS 7/30, diverging 0`.
 
 The 30 non-printing Stage 0 rows were audited with the structured extractor:
 
@@ -18,7 +18,7 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, six decided rows, 24 named refusals, and zero
+The report contains 30 rows, seven decided rows, 23 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` in one kernel process, and compares successful returns with the
 Stage 0 Miri `ok` verdict. Refusal reasons retain the first unsupported MIR
@@ -28,8 +28,11 @@ extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
 
 The Repeat family is parsed from the structured const-generic value in the
-MIR envelope and constructs a repeated aggregate cell.  The
-`rustc_vec-repeat-with-cast` corpus row now reaches its later Cast refusal.
+MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
+`IntToInt` through the target integer layout, preserves provenance for
+`PtrToPtr`, and refuses transmute, exposed-provenance, pointer-coercion, and
+other cast kinds. The `rustc_vec-repeat-with-cast` corpus row is decided after
+its Repeat value reaches a zero-sized return.
 
 The three rows are the checked-in sources
 `Examples/rust/assign/main.rs`, `Examples/rust/storage/main.rs`, and
@@ -47,7 +50,7 @@ Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
 were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
 diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
-the corpus counter remains `SLICE1-ROWS 6/30, diverging 0`.
+the corpus counter remains `SLICE1-ROWS 7/30, diverging 0`.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -94,13 +97,12 @@ returned `ok` with status 0 under both models.  The measured two-model command
 completed in 10.023 s on a cold invocation.  This local fixture does not change
 the Stage 0 corpus counter.
 
-The cleanup family adds `Drop` with a normal target and a recorded cleanup
-target, plus `Resume` as a named refusal.  `Examples/rust/drop/main.rs` uses a
-zero-sized user type with a `Drop` implementation, so its extracted entry body
-executes `Drop` before the normal return.  The runner clears the dropped local,
-emits a drop event, and follows the normal target.  Miri returned `ok`, status
-0 under both borrow models, in 1.257 s.  Cleanup and resume paths remain
-refusals until unwind terminal outcomes are modeled.
+The cleanup family retains `Drop` with a normal target and a recorded cleanup
+target, plus `Resume` as a named refusal. `Examples/rust/drop/main.rs` has a
+fieldless aggregate construction before the drop. The loader refuses that
+aggregate explicitly, so no drop trace is claimed until fieldless aggregate
+values and drop glue are modeled. Miri returned `ok`, status 0 under both
+borrow models, in 1.257 s.
 
 The final intrinsic/foreign boundary is represented by
 `Examples/rust/foreign/main.rs`, which calls `std::process::exit(7)`.  Its
@@ -124,17 +126,17 @@ MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
 place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
-corpus counter remains `SLICE1-ROWS 6/30, diverging 0`.
+corpus counter remains `SLICE1-ROWS 7/30, diverging 0`.
 
 ## Slice 1 exit record
 
-The D1 corpus audit reports 30 rows, six decided rows, 24 named refusals, and
+The D1 corpus audit reports 30 rows, seven decided rows, 23 named refusals, and
 zero diverging rows.  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and
 its per-row extractor timings are recorded in `docs/rust-slice1-audit.json`.
 The pinned Stage 0 Miri report records the exit, panic, and UB verdict for all
-31 measured rows under both borrow models.  The Lean semantics is 962 lines.
+31 measured rows under both borrow models.  The Lean semantics is 1000 lines.
 The checked-in theorem rows include a user loop, a resolved user call, and a
 standard-library identity call proved from its extracted MIR body.
 
