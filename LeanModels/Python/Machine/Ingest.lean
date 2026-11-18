@@ -129,6 +129,14 @@ private def mUnaryOp : String → Option UnaryOp
   | "USub" => some .usub | "Not" => some .not | "UAdd" => some .uadd
   | "Invert" => some .invert | _ => none
 
+private def mCmpOp : String → Option CmpOp
+  | "Eq" => some .eq | "NotEq" => some .notEq
+  | "Lt" => some .lt | "LtE" => some .ltE
+  | "Gt" => some .gt | "GtE" => some .gtE
+  | "Is" => some .is | "IsNot" => some .isNot
+  | "In" => some .inOp | "NotIn" => some .notIn
+  | _ => none
+
 private def mConst (j : Json) : Except String Const := do
   let ty ← (← mField j "type").getStr?
   match ty with
@@ -181,6 +189,17 @@ partial def mExpr (j : Json) : Except String MExpr := do
       pure (.call func args keywords #[] #[] span)
   | "IfExp" => pure (.ifExp (← mExpr (← mField j "test"))
       (← mExpr (← mField j "body")) (← mExpr (← mField j "orelse")) span)
+  | "Compare" =>
+      let left ← mExpr (← mField j "left")
+      let ops ← (← (← mField j "ops").getArr?).mapM fun op => do
+        let name ← match op with
+          | .str name => pure name
+          | _ => (← mField op "kind").getStr?
+        match mCmpOp name with
+        | some op => pure op
+        | none => throw s!"unsupported machine comparison {name}"
+      let comparators ← (← (← mField j "comparators").getArr?).mapM mExpr
+      pure (.compare left ops comparators span)
   | "List" => pure (.list (← (← (← mField j "elts").getArr?).mapM mExpr) span)
   | "Tuple" => pure (.tuple (← (← (← mField j "elts").getArr?).mapM mExpr) span)
   | "Set" => pure (.set (← (← (← mField j "elts").getArr?).mapM mExpr) span)

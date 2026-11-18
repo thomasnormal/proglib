@@ -245,6 +245,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_dict_get.py",
+    "envelope": "harness/scripts/machine_dict_get.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"
