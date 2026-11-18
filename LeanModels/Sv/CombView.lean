@@ -3154,6 +3154,7 @@ def _root_.LeanModels.Sv.PDesign.netZNoteIn (pre : String) (d : PDesign) : Strin
     d.generates.any (fun it => match it with
       | .inst i => i.conns.any (fun c => match c with
           | .output _ (some l) => l.name == n
+          | .inout _ (some (.ident a)) => a == n
           | _ => false)
       | _ => false)
   match d.others.find? (fun (k, t) => k == "PortSymbol:net-z" && driven t) with

@@ -127,6 +127,7 @@ private def hParamProcess (vals : List (String × Int)) : PProcess → PProcess
 private def hParamConn (vals : List (String × Int)) : PConn → PConn
   | .input p a net => .input p (a.map (hParamExpr vals)) net
   | .output p a => .output p (a.map (hParamLhs vals))
+  | .inout p a => .inout p (a.map (hParamExpr vals))
   | c@(.unsupported ..) => c
 
 private def hParamInst (vals : List (String × Int)) (i : PInst) : PInst :=
