@@ -81,6 +81,11 @@ inductive REvent where
   | choice (kind : String) (token : Nat)
 deriving Repr, Inhabited, BEq
 
+inductive RResourcePoint where
+  | framePush
+  | allocation
+deriving Repr, Inhabited, BEq
+
 inductive RLabel where
   | tau
   | event (event : REvent)
@@ -89,11 +94,6 @@ deriving Repr, Inhabited, BEq
 structure RChoice where
   kind : String
   allowed : List Nat
-deriving Repr, Inhabited, BEq
-
-inductive RResourcePoint where
-  | framePush
-  | allocation
 deriving Repr, Inhabited, BEq
 
 inductive RStatus where
@@ -126,6 +126,9 @@ inductive RControl where
   | evaluate (expression : Expr) (continuation : RKont)
   | continueValue (value : RVal) (continuation : RKont)
   | raising (error : RError)
+  /-- A rule has reached a resource point.  The relation admits both the
+  ordinary continuation and the corresponding catchable resource raise. -/
+  | resourceChoice (point : RResourcePoint) (continuation : RControl)
   /-- A configuration reached a construct for which the current machine
   slice has no rule.  Refusal is represented in the state before its event
   is emitted, so a stuck state can never silently terminate. -/
@@ -505,6 +508,14 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
   | raiseUncaught {config : RConfig} {error : RError}
       (hcontrol : config.frames.head?.map RFrame.control = some (.raising error)) :
       Step config (.event (.raise error)) (config.finish (.raise error))
+  | resourceProceed {config : RConfig} {point : RResourcePoint} {continuation : RControl}
+      (hcontrol : config.frames.head?.map RFrame.control =
+        some (.resourceChoice point continuation)) :
+      Step config .tau (config.setControl continuation)
+  | resourceRaise {config : RConfig} {point : RResourcePoint} {continuation : RControl}
+      (hcontrol : config.frames.head?.map RFrame.control =
+        some (.resourceChoice point continuation)) :
+      Step config .tau (config.setControl (.raising (resourceError point)))
   | refuseControl {config : RConfig} {reason : String}
       (hcontrol : config.frames.head?.map RFrame.control = some (.refusing reason)) :
       Step config (.event (.refuse reason)) (config.finish (.refuse reason))
@@ -551,6 +562,8 @@ def resolveAst (config : RConfig) : Option (RLabel × RConfig) :=
   | frame :: _ =>
       match frame.control with
       | .refusing reason => some (.event (.refuse reason), config.finish (.refuse reason))
+      | .resourceChoice _ continuation =>
+          some (.tau, config.setControl continuation)
       | .statements [] => none
       | .statements (stmt :: rest) =>
           match stmt, rest with
@@ -595,6 +608,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       match frame.control with
       | .refusing reason =>
           some (.event (.refuse reason), config.finish (.refuse reason))
+      | .resourceChoice _ continuation =>
+          some (.tau, config.setControl continuation)
       | .statements [] =>
           if config.frames.tail.isEmpty then
             some (.event (.return .none), config.finish (.return .none))
@@ -803,6 +818,12 @@ theorem resolve_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : R
               have hhead : config.frames.head?.map RFrame.control =
                   some (.refusing reason) := by simp [hframes, hcontrol]
               exact Step.refuseControl hhead
+          | resourceChoice point continuation =>
+              simp [resolveAst, hframes, hcontrol] at h
+              obtain ⟨rfl, rfl⟩ := h
+              have hhead : config.frames.head?.map RFrame.control =
+                  some (.resourceChoice point continuation) := by simp [hframes, hcontrol]
+              exact Step.resourceProceed hhead
           | statements remaining =>
               cases hremaining : remaining with
               | nil => simp [resolveAst, hframes, hcontrol, hremaining] at h
@@ -938,6 +959,13 @@ private def b1Module : RModule :=
 
 private def b1RefusalModule : RModule :=
   { body := #[.expr (.unaryOp .not (.constant (.int 1) testSpan) testSpan) testSpan] }
+
+private def bResourceConfig : RConfig :=
+  let initial := RConfig.initial b1Module
+  let frame : RFrame :=
+    { control := .resourceChoice .framePush (.statements [])
+      locals := [], globals := [] }
+  { initial with frames := [frame] }
 
 private def bFunction : RFunction :=
   { name := "identity", params := #[], body := #[.ret none testSpan], globals := "__main__" }
@@ -1132,6 +1160,22 @@ example : ∃ c₁ c₂,
   · exact Step.raiseMemory (frame := frame) (tail := []) (by rfl)
   · intro h
     simp [RConfig.initial, RConfig.setControl, resourceError] at h
+
+example : ∃ c₁ c₂,
+    Step bResourceConfig .tau c₁ ∧
+    Step bResourceConfig .tau c₂ ∧ c₁ ≠ c₂ := by
+  refine ⟨bResourceConfig.setControl (.statements []),
+    bResourceConfig.setControl (.raising (resourceError .framePush)), ?_, ?_, ?_⟩
+  · exact Step.resourceProceed (by rfl)
+  · exact Step.resourceRaise (by rfl)
+  · simp [bResourceConfig, RConfig.setControl, resourceError]
+
+example : ∃ next,
+    Step bResourceConfig .tau next ∧
+      next.frames.head?.map RFrame.control = some (.raising (resourceError .framePush)) := by
+  refine ⟨bResourceConfig.setControl (.raising (resourceError .framePush)),
+    Step.resourceRaise (by rfl), ?_⟩
+  rfl
 
 #guard (runRelation RImpl.cpython39 3 (RConfig.initial testModule)).1 ==
   [.tau, .tau, .event (.return (.int 7))]
