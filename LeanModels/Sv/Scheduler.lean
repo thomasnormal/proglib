@@ -416,7 +416,14 @@ def stmtAction (s : SlotState) (p : Nat) (stmt : Stmt) (next : Nat) : EvalAction
   | .block body =>
       match body.toList with
       | [] => .continue next
-      | [inner] => stmtAction s p inner next
+      | [.blockingAssign target e] =>
+          match evalValue s e with
+          | .ok v => .blocking target v next
+          | .error msg => .refuse msg
+      | [.nbaAssign target e] =>
+          match evalValue s e with
+          | .ok v => .nonblocking next target v next
+          | .error msg => .refuse msg
       | _ => .refuse "scheduler: nested block with multiple statements"
   | .unsupported kind _ => .refuse s!"scheduler: unsupported statement '{kind}'"
 
@@ -537,6 +544,40 @@ theorem allSlots_sound : ∀ (n : Nat) (d : SchedulerDesign) (s : SlotState) (v 
         obtain ⟨t, ht, htv⟩ := allSlots_sound n d u v hv
         refine ⟨t, ?_, htv⟩
         exact ⟨Steps.trans (Steps.tail (Steps.refl s) hu') ht.1, ht.2⟩
+
+/- A bounded path records the scheduler choices explicitly.  Its head
+   constructor mirrors `allSlots`'s one-step expansion, while the reflexive
+   constructor permits a quiet state to be observed at any remaining fuel. -/
+inductive BoundedSteps (r : SlotState → SlotState → Prop) :
+    Nat → SlotState → SlotState → Prop where
+  | refl {n : Nat} (s : SlotState) : BoundedSteps r n s s
+  | head {n : Nat} {s t u : SlotState} :
+      r s t → BoundedSteps r n t u → BoundedSteps r (n + 1) s u
+
+theorem allSlots_complete : ∀ (n : Nat) (d : SchedulerDesign) (s t : SlotState),
+    BoundedSteps (oneStep d) n s t → quiet t → t.store ∈ allSlots n d s
+  | 0, d, s, t, hpath, hquiet => by
+      cases hpath with
+      | refl =>
+          have hq : quietB s = true := by simpa [quiet] using hquiet
+          simp [allSlots, hq]
+  | n + 1, d, s, t, hpath, hquiet => by
+      cases hpath with
+      | refl =>
+          have hq : quietB s = true := by simpa [quiet] using hquiet
+          simp [allSlots, hq]
+      | @head n s u t hstep hrest =>
+          by_cases hs : quietB s
+          · have hs' : (s.active = [] ∧ s.nba = []) ∧ s.refusal = none := by
+              simpa [quietB] using hs
+            simp [oneStep, hs'.1.1, hs'.1.2] at hstep
+          · have hnext : u ∈ nextStates d s :=
+              (mem_nextStates_iff d s u).mpr hstep
+            have htail : t.store ∈ allSlots n d u :=
+              allSlots_complete n d u t hrest hquiet
+            rw [allSlots]
+            simp only [hs, ↓reduceIte]
+            exact List.mem_flatMap.mpr ⟨u, hnext, htail⟩
 
 /-! ## Executable audit rows -/
 
