@@ -810,6 +810,7 @@ theorem CoreMemDesign.settleRaw_frame {E : CoreMemDesign} {mv : MemV} :
       | edge f =>
           simp only [CoreMemDesign.settleRaw] at h
           exact CoreMemDesign.settleRaw_frame rest (idx + 1) r r' h x (by simpa [assignTargets] using hx)
+      | primitive _ _ _ => simp [CoreMemDesign.settleRaw] at h
       | initial _ => simp [CoreMemDesign.settleRaw] at h
       | comb _ => simp [CoreMemDesign.settleRaw] at h
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
@@ -911,6 +912,7 @@ theorem CoreMemDesign.settleRaw_agree {E : CoreMemDesign} {mv : MemV} :
           obtain ⟨r2', h2, hfin⟩ := CoreMemDesign.settleRaw_agree rest (idx + 1) r1 r2 r1' ht.2
             (fun x hx => hag x (by simpa [assignTargets] using hx)) h
           exact ⟨r2', by simp [CoreMemDesign.settleRaw, h2], hfin⟩
+      | primitive _ _ _ => simp [CoreMemDesign.settleRaw] at h
       | initial _ => simp [CoreMemDesign.settleRaw] at h
       | comb _ => simp [CoreMemDesign.settleRaw] at h
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
@@ -1216,6 +1218,7 @@ theorem CoreMemDesign.edgesV_cons_inv {E : CoreMemDesign} {before after v : SvSt
       · rename_i hf
         exact ⟨[], r, by simp [hf], by simp, h, by simp⟩
   | assign t e => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
+  | primitive _ _ _ => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
   | initial b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
   | comb b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
   | implicit b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
@@ -1244,6 +1247,7 @@ theorem CoreMemDesign.edgesV_cons_mk {E : CoreMemDesign} {before after v : SvSta
         subst h1
         simp [hf, h2]
   | assign t e => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
+  | primitive _ _ _ => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
   | initial b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
   | comb b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
   | implicit b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
@@ -1305,6 +1309,9 @@ theorem CoreMemDesign.edgesV_perm {E : CoreMemDesign} {before after v : SvState}
       | assign t e =>
           simp only [CoreMemDesign.edgesV] at h ⊢
           exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      | primitive _ _ _ =>
+          simp only [CoreMemDesign.edgesV] at h ⊢
+          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
       | initial b =>
           simp only [CoreMemDesign.edgesV] at h ⊢
           exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
@@ -1356,6 +1363,8 @@ theorem CoreMemDesign.edgesV_filter {E : CoreMemDesign} {before after : SvState}
   | .edge f :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
   | .assign t e :: ps, v => by
+      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .primitive _ _ _ :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
   | .initial b :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
@@ -1923,6 +1932,9 @@ theorem CoreMemDesign.edgesV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.to
               · exact hmono _ (hb.2 u hu)
           · exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
       | assign t e =>
+          simp only [CoreMemDesign.edgesV] at h
+          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
+      | primitive _ _ _ =>
           simp only [CoreMemDesign.edgesV] at h
           exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
       | initial b =>
