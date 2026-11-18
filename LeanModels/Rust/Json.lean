@@ -21,6 +21,11 @@ private def string (j : Json) : Except String String :=
 private def nat (j : Json) : Except String Nat :=
   j.getNat?
 
+private def optionalNat (j : Json) : Except String (Option Nat) :=
+  match j with
+  | .null => pure none
+  | _ => some <$> nat j
+
 private def int (j : Json) : Except String Int :=
   j.getInt?
 
@@ -140,7 +145,7 @@ private def terminator (j : Json) : Except String Terminator := do
           let func ← field value "func" >>= operand
           let args ← field value "args" >>= array >>= (·.mapM operand)
           let destination ← field value "destination" >>= place
-          let target ← field value "target" >>= nat
+          let target ← field value "target" >>= optionalNat
           let unwind ← field value "unwind"
           let unwindName ←
             match unwind with
@@ -189,7 +194,10 @@ def parseEnvelope (j : Json) : Except String Envelope := do
     | .ok callsJson => array callsJson >>= (·.mapM fun callJson => do
         let caller ← field callJson "caller" >>= string
         let block ← field callJson "block" >>= nat
-        let callee ← field callJson "callee" >>= string
+        let callee ←
+          match ← field callJson "callee" with
+          | .null => pure none
+          | value => some <$> string value
         let resolved ← field callJson "resolved" >>= Lean.Json.getBool?
         pure { caller, block, callee, resolved })
   pure { schema, entry, bodies, calls }

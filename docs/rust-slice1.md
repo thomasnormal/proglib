@@ -3,9 +3,12 @@
 This family implements the first MIR node census group in the approved
 `rustc_public` envelope.  It covers `Assign`, `StorageLive`, `StorageDead`,
 `PlaceMention`, `Use` rvalues, constant operands, zero-projection places, and a
-single `Return` block.  The implementation is 225 lines in
-`LeanModels/Rust/Semantics.lean`, with 55 lines of AST declarations, 124 lines
+single `Return` block.  The implementation is 315 lines in
+`LeanModels/Rust/Semantics.lean`, with 74 lines of AST declarations, 209 lines
 of JSON decoding, and 38 lines of the literal-envelope loader.
+
+The local fixture count is separate from the Stage 0 corpus.  The authoritative
+counter for this worktree is `SLICE1-ROWS 0/30, diverging 0`.
 
 The three rows are the checked-in sources
 `Examples/rust/assign/main.rs`, `Examples/rust/storage/main.rs`, and
@@ -76,3 +79,12 @@ executes `Drop` before the normal return.  The runner clears the dropped local,
 emits a drop event, and follows the normal target.  Miri returned `ok`, status
 0 under both borrow models, in 1.257 s.  Cleanup and resume paths remain
 refusals until unwind terminal outcomes are modeled.
+
+The final intrinsic/foreign boundary is represented by
+`Examples/rust/foreign/main.rs`, which calls `std::process::exit(7)`.  Its
+resolved instance has no MIR body and its call has no normal target.  The
+runner refuses this foreign registry operation without guessing an exit event.
+Miri returned `exit`, status 7, under both borrow models.  The two-model
+invocation measured 2.828 s.  Intrinsics, foreign calls without a registry
+entry, calls with a missing body, calls with cleanup unwind, and calls with no
+normal continuation are named refusals in this slice.
