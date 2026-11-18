@@ -17,9 +17,14 @@ ENVELOPE_REFUSAL = {
         "decl 'FLUSH': non-literal initializer outside the M0 tier",
     "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5":
         "decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)",
+    "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7":
+        "decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)",
 }
 
-COREMEM_ENVELOPE = "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5"
+COREMEM_ENVELOPES = {
+    "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5",
+    "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7",
+}
 
 
 def main() -> None:
@@ -89,7 +94,7 @@ def row (res : Nat) : SvState := [("CLK", bits 1 0), ("RES", bits 1 res), ("IRQ"
         script.unlink(missing_ok=True)
     if result.returncode != 0:
         raise SystemExit(result.stdout)
-    if digest == COREMEM_ENVELOPE:
+    if digest in COREMEM_ENVELOPES:
         if 'initial-ok\\ntwo-pass-ok\\nclock-prepare-ok\\nclock-edges-ok\\nclock-commit-built' not in result.stdout:
             raise SystemExit("canonical-E staged clock probe did not complete")
         print("canonical E: loaded one-rank memory route and completed two passes plus clock preparation, edge execution, and NBA commit construction")
