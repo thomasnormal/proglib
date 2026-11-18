@@ -2619,6 +2619,16 @@ theorem reallocAt_null_storeIntChecked (m : Mem) (alias : AliasModel)
   rw [reallocAt_null m size address hsize]
   rfl
 
+theorem reallocAt_null_storeIntChecked_full (m : Mem) (alias : AliasModel)
+    (size address : Nat) (t : IntTy) (used : CType) (v : Int)
+    (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.storeIntChecked alias r.2 t used v) =
+      .ok ((m.mallocAt size address).1.storeIntChecked alias
+        (m.mallocAt size address).2 t used v) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 theorem reallocAt_null_storePtr (m : Mem) (size address : Nat) (q : Ptr)
     (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
