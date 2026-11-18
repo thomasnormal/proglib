@@ -763,6 +763,19 @@ with `TypeAliasType:TypeAlias` and the dependency-order refusal, and
 `member_nested_repro.sv` with `MemberAccessExpression` followed by the typed
 storage refusal.  No aggregate count transition is claimed.
 
+## Current ordinary wall-table correction — 2026-11-18T04:15Z
+
+Fresh ordinary census at the current public head confirms the rows previously
+marked predicted. `primitive_repro.sv` reaches and refuses
+`PrimitiveInstanceSymbol:PrimitiveInstance` in `PDesign.instantiate`, then
+reports the same boundary from `PDesign.instantiateE2`. `specify_repro.sv`
+similarly reaches and refuses `SpecifyBlockSymbol:SpecifyBlock`. The typed
+aggregate rows are measured rather than predicted: `typed_nested_repro.sv`
+retains `PortSymbol:type` and `VariableSymbol:type` and reaches the canonical
+typed-storage E boundary, while `member_nested_repro.sv` retains
+`MemberAccessExpression:aggregate` after the extractor update. These are
+ordinary loud boundaries. No REAL-BLOCKS or E-ROWS count transition is claimed.
+
 ## Current-head package remeasurement — 2026-11-18T02:00Z
 
 At public master d97c9b19e9836c1aaff4524eb39f02281d5bc4b, the approved
