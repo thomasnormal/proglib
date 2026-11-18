@@ -2029,6 +2029,10 @@ first scalar-E declaration wall.  The direct instantiation reports
 any cycle executes.  The loaded theorem `picorv32_loaded_cpuregs_cell_shape`
 pins its 32-bit cell width and one unpacked dimension, while
 `picorv32_loaded_regfile_size` pins the resolved register-file size at 32.
+The measured first ADDI row is checked separately by
+[`rvfi_addi_boundary.lean`](rvfi_addi_boundary.lean), whose raw
+`addiBoundary` witness supplies the exact ISA-step and memory-machine commit
+equations consumed by the eventual loaded-core invariant.
 
 ## 2026-11-18 W5 kernel-cost measurement
 
