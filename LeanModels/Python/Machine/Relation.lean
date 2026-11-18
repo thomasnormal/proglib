@@ -114,6 +114,7 @@ inductive RKont where
   | subscriptIndex (receiver : RVal) (continuation : RKont)
   | tupleElements (remaining : List Expr) (values : List RVal) (continuation : RKont)
   | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
+  | ifExpression (body : Expr) (orelse : Expr) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
       (continuation : RKont)
@@ -819,6 +820,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | first :: rest =>
               some (.tau, config.setControl
                 (.evaluate first (.tupleElements rest [] continuation)))
+      | .evaluate (.ifExp test body orelse _) continuation =>
+          some (.tau, config.setControl
+            (.evaluate test (.ifExpression body orelse continuation)))
       | .evaluate (.unsupported _ text _) _ =>
           some (.event (.refuse text), config.finish (.refuse text))
       | .evaluate _ _ =>
@@ -866,6 +870,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue value (.ifBranch body orelse remaining) =>
           let selected := if rTruthy value then body else orelse
           some (.tau, config.setControl (.statements (selected ++ remaining)))
+      | .continueValue value (.ifExpression body orelse continuation) =>
+          some (.tau, config.setControl
+            (.evaluate (if rTruthy value then body else orelse) continuation))
       | .continueValue index (.subscriptIndex receiver continuation) =>
           match rLookupDict config.heap receiver index with
           | some value => some (.tau, config.setControl (.continueValue value continuation))

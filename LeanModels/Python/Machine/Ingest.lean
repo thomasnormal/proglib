@@ -24,6 +24,7 @@ inductive MExpr where
   | unaryOp (op : UnaryOp) (operand : MExpr) (span : Span)
   | boolOp (op : BoolOp) (values : Array MExpr) (span : Span)
   | compare (left : MExpr) (ops : Array CmpOp) (comparators : Array MExpr) (span : Span)
+  | ifExp (test : MExpr) (body : MExpr) (orelse : MExpr) (span : Span)
   | call (func : MExpr) (args : Array MExpr) (keywords : Array (String × MExpr))
       (starargs : Array MExpr) (kwargs : Array MExpr) (span : Span)
   | attribute (value : MExpr) (attr : String) (span : Span)
@@ -171,6 +172,8 @@ partial def mExpr (j : Json) : Except String MExpr := do
         let name ← (← mField kw "arg").getStr?
         pure (name, ← mExpr (← mField kw "value"))
       pure (.call func args keywords #[] #[] span)
+  | "IfExp" => pure (.ifExp (← mExpr (← mField j "test"))
+      (← mExpr (← mField j "body")) (← mExpr (← mField j "orelse")) span)
   | "List" => pure (.list (← (← (← mField j "elts").getArr?).mapM mExpr) span)
   | "Tuple" => pure (.tuple (← (← (← mField j "elts").getArr?).mapM mExpr) span)
   | "Set" => pure (.set (← (← (← mField j "elts").getArr?).mapM mExpr) span)
@@ -297,6 +300,8 @@ partial def mExprToExpr : MExpr → Expr
   | .boolOp op values span => .boolOp op (values.map mExprToExpr) span
   | .compare left ops comparators span => .compare (mExprToExpr left) ops
       (comparators.map mExprToExpr) span
+  | .ifExp test body orelse span => .ifExp (mExprToExpr test)
+      (mExprToExpr body) (mExprToExpr orelse) span
   | .call func args keywords _ _ span => .call (mExprToExpr func) (args.map mExprToExpr)
       (keywords.map fun (name, value) => (name, mExprToExpr value)) none span
   | .attribute value attr span => .attribute (mExprToExpr value) attr span
