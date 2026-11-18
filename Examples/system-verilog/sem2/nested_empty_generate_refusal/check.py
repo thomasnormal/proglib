@@ -21,10 +21,12 @@ def main():
         raise RuntimeError("stale envelope")
     text = checked.decode()
     marker = '"sv_kind": "GenerateFor:no-template"'
-    if marker not in text:
-        raise RuntimeError("expected GenerateFor:no-template refusal is absent")
+    if marker in text:
+        raise RuntimeError("stale GenerateFor:no-template refusal remains")
+    if '"kind": "Assign"' not in text:
+        raise RuntimeError("retained inner generate assignment is absent")
     print("extractor: envelope regenerates byte-identically")
-    print("E ordinary route: REFUSED GenerateFor:no-template; no E row claimed")
+    print("E ordinary route: retained generate template reaches PortSymbol:net-z; no E row claimed")
     expected = [["y=1z"]]
     src = str(HERE / "nested_empty_generate_refusal.sv")
     tb = str(HERE / "nested_empty_generate_refusal_tb.sv")
