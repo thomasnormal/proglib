@@ -172,6 +172,18 @@ theorem picorv32_riscv_formal_param_names_pinned :
 
 #print axioms picorv32_riscv_formal_param_names_pinned
 
+/-! The loaded source contains one one-rank unpacked declaration, the
+register file at `cpuregs`.  This is the concrete declaration shape behind
+the current scalar-E instantiation wall. -/
+
+theorem picorv32_loaded_cpuregs_one_rank_unpacked :
+    picorv32_r2.pdesign.decls.filterMap
+      (fun d => if d.name == "cpuregs" then some d.unpackedDims.length else none) =
+      [1] := by
+  decide
+
+#print axioms picorv32_loaded_cpuregs_one_rank_unpacked
+
 theorem picorv32_rv32m_disabled :
     picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
       picorv32RISCVFormalParameters.ENABLE_DIV = 0 := by
