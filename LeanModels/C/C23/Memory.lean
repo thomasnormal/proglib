@@ -2556,6 +2556,19 @@ theorem reallocAt_null_loadPtrInt (m : Mem) (size address : Nat)
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
     loadPtrInt, resolve, get?, CObj.size, Except.map, hwidth', hwidthInt]
 
+theorem reallocAt_null_loadFunction (m : Mem) (size address : Nat)
+    (hsize : size ≠ 0) (hwidth : 8 ≤ size) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.loadFunction r.2) =
+      .ok (.error (.memUB (.indetAllocated m.objs.length 0))) := by
+  rw [reallocAt_null m size address hsize]
+  have hwidth' : ¬ size < 1 := by omega
+  have hwidthInt : ¬ (size : Int) < 1 := by omega
+  change .ok ((m.mallocAt size address).1.loadFunction
+    (m.mallocAt size address).2) = _
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
+    loadFunction, resolve, get?, CObj.size, Except.map, hwidth', hwidthInt]
+
 theorem reallocAt_null_storeBytes (m : Mem) (size address : Nat)
     (bs : List CByte) (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
