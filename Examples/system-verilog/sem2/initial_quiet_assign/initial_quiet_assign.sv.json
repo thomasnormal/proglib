@@ -1,0 +1,91 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "initial_quiet_assign",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/initial_quiet_assign/initial_quiet_assign.sv",
+      "sha256": "01e551bd97458bb22ab71e0313d85150c205165e27120688a204b203c5ceef80"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 4,
+          "end_col": 10
+        },
+        "name": "initial_quiet_assign",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 42,
+              "end_line": 2,
+              "end_col": 43
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 3,
+              "col": 10,
+              "end_line": 3,
+              "end_col": 18
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 10,
+                "end_line": 3,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "y"
+            },
+            "value": {
+              "kind": "Literal",
+              "span": {
+                "line": 3,
+                "col": 14,
+                "end_line": 3,
+                "end_col": 18
+              },
+              "width": 1,
+              "bits": "1"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
