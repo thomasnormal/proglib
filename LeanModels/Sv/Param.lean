@@ -3119,8 +3119,8 @@ def GenItem.expand (env : IEnv) (iterFuel : Nat) : GenItem → Res (List Process
       match evalGenGuard env cond with
       | .error e => .unsupported s!"generate if: {e}"
       | .ok v =>
-          if v != 0 then expandList env iterFuel thenB
-          else expandList env iterFuel elseB
+          if v != 0 then expandScopedList env iterFuel thenB
+          else expandScopedList env iterFuel elseB
   | .genFor _label g initE bound step _rc body =>
       match evalInt env initE, stepDelta g step with
       | .ok i0, .ok δ => do
@@ -3137,6 +3137,23 @@ def expandList (env : IEnv) (iterFuel : Nat) : List GenItem → Res (List Proces
   | it :: rest => do
       let ps ← it.expand env iterFuel
       let qs ← expandList env iterFuel rest
+      .ok (ps ++ qs)
+  termination_by l => (sizeOf l, 0)
+  decreasing_by all_goals (simp_wf; omega)
+
+/-- Expand a generate branch with its source-shaped localparams in scope.
+Each local parameter belongs to the enclosing generate block (§27.4), so
+the binding is threaded only through that branch and is never leaked into a
+sibling or the module scope. -/
+def expandScopedList (env : IEnv) (iterFuel : Nat) : List GenItem → Res (List Process)
+  | [] => .ok []
+  | .localParam p :: rest =>
+      match bindLocal env p with
+      | .error e => .unsupported s!"generate-local parameter '{p.name}': {e}"
+      | .ok env' => expandScopedList env' iterFuel rest
+  | it :: rest => do
+      let ps ← it.expand env iterFuel
+      let qs ← expandScopedList env iterFuel rest
       .ok (ps ++ qs)
   termination_by l => (sizeOf l, 0)
   decreasing_by all_goals (simp_wf; omega)
