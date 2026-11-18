@@ -310,7 +310,20 @@ def instScalarDecl1 (env : IEnv) (pd : PDecl) : Res (Option Decl) :=
                     isNet := pd.isNet, twoState := pd.twoState,
                     isInput := pd.isInput, isOutput := pd.isOutput, init := some v }
                 .ok (some dc)
-            | _ => .unsupported s!"decl '{pd.name}': non-literal initializer outside E"
+            | _ =>
+                -- Match the scalar declaration route: an INT-class constant
+                -- such as `logic [1:0] value = -1` is context-sized at the
+                -- declaration width (§6.8, §11.8).  Signal-dependent
+                -- initializers remain a loud refusal.
+                match evalInt env init with
+                | .ok v =>
+                    let dc : Decl :=
+                      { name := pd.name, width := w, isSigned := pd.isSigned,
+                        isNet := pd.isNet, twoState := pd.twoState,
+                        isInput := pd.isInput, isOutput := pd.isOutput,
+                        init := some (LVec.ofInt w v) }
+                    .ok (some dc)
+                | .error _ => .unsupported s!"decl '{pd.name}': non-literal initializer outside E"
 
 def buildScalarDecls1 (env : IEnv) : List PDecl → Res (List Decl)
   | [] => .ok []
