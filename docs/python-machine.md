@@ -183,5 +183,7 @@ function call, while
 loudly, while
 `harness/scripts/function_none.py` checks caller resumption after an implicit
 `None` return, while
+`harness/scripts/function_print_local.py` checks an expression call whose callee
+assigns a local before returning, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is nine matches, two refusals, and zero divergence.
+current result is ten matches, two refusals, and zero divergence.

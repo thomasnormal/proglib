@@ -188,6 +188,23 @@ def evalExpr (env : REnv) : Expr → Res RVal
   | .unsupported kind _ _ => .unsupported ("machine AST node: " ++ kind)
   | _ => .unsupported "machine expression"
 
+def targetName : Expr → Option String
+  | .name name _ => some name
+  | _ => none
+
+def evalFunctionBody : REnv → List Stmt → Res RVal
+  | env, [.ret (some expression) _] => evalExpr env expression
+  | env, [.ret none _] => .ok .none
+  | env, [.assign #[target] expression _, .ret (some returnValue) span] =>
+      match targetName target, evalExpr env expression with
+      | some name, .ok value =>
+          evalFunctionBody (setEnv env name value) [.ret (some returnValue) span]
+      | none, _ => .unsupported "machine function assignment target"
+      | _, .exn error => .exn error
+      | _, .timeout => .timeout
+      | _, .unsupported reason => .unsupported reason
+  | _, _ => .unsupported "machine nested function body"
+
 def evalFunctionReturn (m : Module) (env : REnv) (name : String)
     (args : Array Expr) : Res RVal :=
   match findFunction m.functions.toList name, args.toList.mapM (evalExpr env) with
@@ -195,10 +212,9 @@ def evalFunctionReturn (m : Module) (env : REnv) (name : String)
       if !function.argsOk || !function.localsOk then
         .unsupported "machine function admission"
       else
-        match bindParams function.params.toList values, function.body.toList with
-        | some locals, [.ret (some expression) _] => evalExpr locals expression
-        | some _, [.ret none _] => .ok .none
-        | _, _ => .unsupported "machine nested function body"
+        match bindParams function.params.toList values with
+        | some locals => evalFunctionBody locals function.body.toList
+        | none => .unsupported "machine function arity"
   | none, _ => .unsupported "machine function lookup"
   | _, .exn error => .exn error
   | _, .timeout => .timeout
@@ -209,10 +225,6 @@ def evalPrintExpr (m : Module) (env : REnv) : Expr → Res RVal
       if kwargs.isEmpty then evalFunctionReturn m env name args
       else .unsupported "machine nested function keywords"
   | expression => evalExpr env expression
-
-def targetName : Expr → Option String
-  | .name name _ => some name
-  | _ => none
 
 def finish : MachineState → Observation → Event → MachineState
   | state, observation, event =>
