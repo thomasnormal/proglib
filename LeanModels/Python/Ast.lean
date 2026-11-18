@@ -330,7 +330,7 @@ end
 
 /-- A module-level function definition (schema `FunctionDef`).
 `argsOk` is DESIGN.md's `paramsOk`: `false` iff the schema's `args_unsupported`
-was non-null (NON-literal defaults / `*args` / kw-only / `**kwargs` /
+was non-null (NON-literal defaults / positional-only / `*args` / kw-only / `**kwargs` /
 decorators), in which case calling the function is `unsupported`. Plain
 positional params are always listed in `params`; literal defaults ride on
 the params themselves (`Param.default`) and do NOT set `argsOk = false`. -/

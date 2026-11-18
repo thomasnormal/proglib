@@ -1550,6 +1550,8 @@ def _lambda_nested_def(node, enclosing):
     a = lam.args
     plain = list(a.posonlyargs) + list(a.args)
     reasons = []
+    if a.posonlyargs:
+        reasons.append("positional-only")
     payloads = [literal_const_payload(d) for d in a.defaults]
     if a.defaults and not all(pl is not None for pl in payloads):
         reasons.append("defaults")
@@ -1562,6 +1564,7 @@ def _lambda_nested_def(node, enclosing):
         for i, p in enumerate(plain)
     ]
     if a.vararg is not None:
+        reasons.append("*args")
         params.append(convert_param(a.vararg, variadic=True))
     kw_payloads = [literal_const_payload(d) if d is not None else None
                    for d in a.kw_defaults]
@@ -1573,6 +1576,8 @@ def _lambda_nested_def(node, enclosing):
         convert_param(p, kw_payloads[i], keyword_only=True)
         for i, p in enumerate(a.kwonlyargs)
     )
+    if a.kwonlyargs:
+        reasons.append("keyword-only")
     if a.kwarg is not None:
         reasons.append("**kwargs")
     if enclosing is None:
@@ -1847,6 +1852,8 @@ def convert_stmt(node, enclosing=None, module_scope=False,
         a = node.args
         plain = list(a.posonlyargs) + list(a.args)
         reasons = []
+        if a.posonlyargs:
+            reasons.append("positional-only")
         # Positional defaults: LITERAL defaults (int/bool/str/None Constant)
         # are in-tier — emitted as a "default" const payload on the trailing
         # params (a.defaults aligns with the tail of posonly+args, per
@@ -1866,6 +1873,7 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             for i, p in enumerate(plain)
         ]
         if a.vararg is not None:
+            reasons.append("*args")
             params.append(convert_param(a.vararg, variadic=True))
         kw_payloads = [literal_const_payload(d) if d is not None else None
                        for d in a.kw_defaults]
@@ -1877,6 +1885,8 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             convert_param(p, kw_payloads[i], keyword_only=True)
             for i, p in enumerate(a.kwonlyargs)
         )
+        if a.kwonlyargs:
+            reasons.append("keyword-only")
         if a.kwarg is not None:
             reasons.append("**kwargs")
         if node.decorator_list:

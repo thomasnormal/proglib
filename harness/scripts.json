@@ -722,5 +722,20 @@
     "file": "harness/scripts/init_unsupported_rollback.py",
     "expect": "unsupported",
     "note": "Top-level try/except else stays a loud refusal; module initialization must not roll back and continue."
+  },
+  {
+    "file": "harness/scripts/function_varargs_frozen.py",
+    "expect": "unsupported",
+    "note": "Variadic positional parameters are outside the frozen runner tier."
+  },
+  {
+    "file": "harness/scripts/function_keyword_only_frozen.py",
+    "expect": "unsupported",
+    "note": "Keyword-only parameters are outside the frozen runner tier."
+  },
+  {
+    "file": "harness/scripts/function_positional_only_frozen.py",
+    "expect": "unsupported",
+    "note": "Positional-only parameters are outside the frozen runner tier."
   }
 ]
