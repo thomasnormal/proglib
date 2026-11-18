@@ -878,6 +878,7 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
   | edge f =>
       simp only [CoreMemDesign.procOkB, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
       exact ⟨h.1.1.1, h.1.1.2, h.1.2, h.2⟩
+  | primitive _ _ _ => simp [CoreMemDesign.procOkB] at h
   | initial _ => simp [CoreMemDesign.procOkB] at h
   | comb _ => simp [CoreMemDesign.procOkB] at h
   | implicit _ => simp [CoreMemDesign.procOkB] at h
@@ -949,6 +950,7 @@ theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | edge f =>
       simp only [CoreMemDesign.procOkIB, Bool.and_eq_true, decide_eq_true_eq] at h
       exact ⟨h.1, h.2⟩
+  | primitive _ _ _ => simp [CoreMemDesign.procOkIB] at h
   | initial _ => simp [CoreMemDesign.procOkIB] at h
   | comb _ => simp [CoreMemDesign.procOkIB] at h
   | implicit _ => simp [CoreMemDesign.procOkIB] at h
@@ -1371,6 +1373,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
           obtain ⟨st', hrun, hc', hm', hv'⟩ :=
             CoreMemDesign.settleAssignAt_seq hP rest (idx + 1) hrest st raw raw' hc hmc hv hs
           exact ⟨st', by simpa [CoreMemDesign.settleAssignAt] using hrun, hc', hm', hv'⟩
+      | primitive _ _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | initial _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
@@ -2086,6 +2089,7 @@ theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   cases p with
   | assign t v => trivial
   | edge f => exact h
+  | primitive _ _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | initial _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | comb _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
@@ -2159,6 +2163,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
           obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ :=
             CoreMemDesign.runEdges_V hnd h4 before after rest hrest st v' q mq hc hmc hv
           exact ⟨st2, by simp [CoreMemDesign.runEdges, hs2], hv2, hc2, hm2, hr2⟩
+      | primitive _ _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | initial _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | comb _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
