@@ -323,16 +323,7 @@ def instScalarDecl1 (env : IEnv) (pd : PDecl) : Res (Option Decl) :=
                         isInput := pd.isInput, isOutput := pd.isOutput,
                         init := some (LVec.ofInt w v) }
                     .ok (some dc)
-                | .error _ =>
-                    match evalAt env (w, pd.isSigned) init with
-                    | .ok v =>
-                        let dc : Decl :=
-                          { name := pd.name, width := w, isSigned := pd.isSigned,
-                            isNet := pd.isNet, twoState := pd.twoState,
-                            isInput := pd.isInput, isOutput := pd.isOutput,
-                            init := some (LVec.ofInt w v) }
-                        .ok (some dc)
-                    | .error _ => .unsupported s!"decl '{pd.name}': non-literal initializer outside E"
+                | .error _ => .unsupported s!"decl '{pd.name}': non-literal initializer outside E"
 
 def buildScalarDecls1 (env : IEnv) : List PDecl → Res (List Decl)
   | [] => .ok []
