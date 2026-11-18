@@ -11,6 +11,7 @@
  "groups": [
   {
    "boundary": "fresh parser-native envelope replay",
+   "classification": "regression",
    "examples": [
     "00025.c",
     "00047.c",
@@ -35,11 +36,17 @@
      "rows": 180
     }
    ],
+   "representatives": {
+    "00025.c": "instrument boundary: stale receipt envelope",
+    "20000519-1.c": "instrument boundary: stale receipt envelope",
+    "931004-10.c": "instrument boundary: stale receipt envelope"
+   },
    "route": "instrument: stale receipt/envelope path",
    "rows": 189
   },
   {
    "boundary": "floating literal frontend price",
+   "classification": "old MATCH was wrong (it relied on source-spelling floating values)",
    "examples": [
     "00123.c",
     "20000603-1.c",
@@ -59,11 +66,17 @@
      "rows": 67
     }
    ],
+   "representatives": {
+    "00123.c": "329189a93 c: price floating literal frontend",
+    "20000603-1.c": "329189a93 c: price floating literal frontend",
+    "20001017-1.c": "329189a93 c: price floating literal frontend"
+   },
    "route": "F7 shared floating-value/parser-bit work",
    "rows": 67
   },
   {
    "boundary": "declaration-identity layout join",
+   "classification": "regression for 00043.c and 20010116-1.c; old MATCH was wrong for 00124.c",
    "examples": [
     "00043.c",
     "00046.c",
@@ -83,11 +96,17 @@
      "rows": 43
     }
    ],
+   "representatives": {
+    "00043.c": "85dfb1421 f1: refuse anonymous layouts without identity",
+    "00124.c": "before 08f21135d: pre-existing function-pointer layout wall",
+    "20010116-1.c": "85dfb1421 f1: refuse anonymous layouts without identity"
+   },
    "route": "F1 parser-native layout and aggregate initialization",
    "rows": 43
   },
   {
    "boundary": "frontend declaration identity resolution",
+   "classification": "regression",
    "examples": [
     "00024.c",
     "00091.c",
@@ -105,11 +124,17 @@
      "rows": 6
     }
    ],
+   "representatives": {
+    "00024.c": "85dfb1421 f1: refuse anonymous layouts without identity",
+    "00091.c": "85dfb1421 f1: refuse anonymous layouts without identity",
+    "20000801-3.c": "85dfb1421 f1: refuse anonymous layouts without identity"
+   },
    "route": "F1 declaration binding",
    "rows": 6
   },
   {
    "boundary": "scalar effective-type check at access",
+   "classification": "regression",
    "examples": [
     "20030903-1.c",
     "20050218-1.c",
@@ -139,11 +164,17 @@
      "rows": 1
     }
    ],
+   "representatives": {
+    "20030903-1.c": "f6d5df37a f2: check scalar effective types at memory access",
+    "minmaxcmp-1.c": "f6d5df37a f2: check scalar effective types at memory access",
+    "postmod-1.c": "f6d5df37a f2: check scalar effective types at memory access"
+   },
    "route": "F2 effective-type compatibility",
    "rows": 19
   },
   {
    "boundary": "subobject pointer bounds check",
+   "classification": "old MATCH was wrong (the defined UB was previously executed)",
    "examples": [
     "ptr-arith-1.c"
    ],
@@ -156,6 +187,9 @@
      "rows": 1
     }
    ],
+   "representatives": {
+    "ptr-arith-1.c": "47568eb92 c: enforce subobject pointer bounds"
+   },
    "route": "F2 object bounds",
    "rows": 1
   }

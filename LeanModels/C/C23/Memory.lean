@@ -845,8 +845,14 @@ def cAliasModel : AliasModel where
   -- layout layer and is not reconstructible from this spelling-only memory
   -- primitive.  Enforce scalar mismatches here and leave aggregate member
   -- compatibility to that identity-keyed layout path.
-    eff.startsWith "struct " || eff.startsWith "union " || eff.contains "[" ||
-      used == eff || used == "char" || used == "signed char" || used == "unsigned char"
+    let e := if eff.startsWith "volatile " then eff.drop 9 |>.toString else eff
+    let scalar := e == "char" || e == "signed char" || e == "unsigned char" ||
+      e == "short" || e == "unsigned short" || e == "int" || e == "unsigned int" ||
+      e == "long" || e == "unsigned long" || e == "long long" ||
+      e == "unsigned long long" || e == "_Bool"
+    e.startsWith "struct " || e.startsWith "union " || e.startsWith "enum " ||
+      e.contains "[" || used == e || used == "char" || used == "signed char" ||
+      used == "unsigned char" || !scalar
 
 def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat) (used : CType) : MRes Unit :=
   match c.effTy with
@@ -902,7 +908,12 @@ def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used :
   let (o, c, off) ← m.resolve p bs.length
   checkEffective alias o c off used
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
-  let effTy := match c.effTy with | some eff => some eff | none => some used
+  -- Aggregate objects have no single effective type for all of their
+  -- subobjects.  Their member declarations supply the type at each access,
+  -- so a scalar store must not stamp the enclosing aggregate with the first
+  -- member's spelling.  Scalar allocations already carry their declared
+  -- effective type from `alloc` and retain it here.
+  let effTy := c.effTy
   return { m with objs := m.objs.set o { c with bytes := bytes, effTy := effTy } }
 
 /-- Write a pointer, as `pointer_64`'s eight tagged bytes. Kept whole so

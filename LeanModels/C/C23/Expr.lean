@@ -1271,7 +1271,8 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
           let o ← match m.compoundObject? span with
             | some existing => pure existing
             | none =>
-                let (m', fresh) := m.alloc .automatic sz (some ty)
+                let storageTy := if ctx.layout.members ty |>.isSome then none else some ty
+                let (m', fresh) := m.alloc .automatic sz storageTy
                 set (m'.rememberCompound span fresh)
                 pure fresh
           ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
@@ -1291,7 +1292,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let o ← match m.compoundObject? span with
             | some existing => pure existing
             | none =>
-                let (m', fresh) := m.alloc .automatic sz (some ty)
+                let storageTy := if ctx.layout.members ty |>.isSome then none else some ty
+                let (m', fresh) := m.alloc .automatic sz storageTy
                 set (m'.rememberCompound span fresh)
                 pure fresh
           ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
