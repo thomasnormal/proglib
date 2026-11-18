@@ -221,6 +221,14 @@ def finish : MachineState → Observation → Event → MachineState
           events := state.events ++ [event]
           resources := { fuel := state.resources.fuel } }
 
+def returnToCaller (state : MachineState) (value : RVal) : Event × MachineState :=
+  match state.frames, state.continuations with
+  | _ :: caller :: tail, .sequence rest :: continuations =>
+      (.choice "return" 0, { state with
+        frames := { caller with control := .statements rest } :: tail
+        continuations := continuations })
+  | _, _ => (.return value, finish state (.returned value) (.return value))
+
 def stepStmt (m : Module) (state : MachineState) (frame : Frame) (rest : List Stmt) (stmt : Stmt) :
     Option (Event × MachineState) :=
   match stmt with
@@ -287,10 +295,10 @@ def stepStmt (m : Module) (state : MachineState) (frame : Frame) (rest : List St
       | .unsupported reason, _ => some (.refuse reason, finish state (.refused reason) (.refuse reason))
   | .ret value _ =>
       match value with
-      | none => some (.return .none, finish state (.returned .none) (.return .none))
+      | none => some (returnToCaller state .none)
       | some expression =>
           match evalExpr frame.locals expression with
-          | .ok result => some (.return result, finish state (.returned result) (.return result))
+          | .ok result => some (returnToCaller state result)
           | .exn error => some (.raise error, finish state (.raised error) (.raise error))
           | .timeout => some (.resource .recursion, finish state (.resource .recursion) (.resource .recursion))
           | .unsupported reason => some (.refuse reason, finish state (.refused reason) (.refuse reason))
@@ -328,10 +336,9 @@ def step (m : Module) : MachineState → Option (Event × MachineState)
       | .statements [] =>
           match state.frames, state.continuations with
           | _ :: caller :: tail, .sequence rest :: continuations =>
-              some (.return .none, { state with
+              some (.choice "return" 0, { state with
                 frames := { caller with control := .statements rest } :: tail
-                continuations := continuations
-                events := state.events ++ [.return .none] })
+                continuations := continuations })
           | _, _ => some (.return .none, finish state (.returned .none) (.return .none))
       | .statements (stmt :: rest) =>
           match stepStmt m state frame rest stmt with

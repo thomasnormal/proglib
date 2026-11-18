@@ -177,5 +177,7 @@ machine in one batch. `harness/scripts/hello.py` and
 function body, and `harness/scripts/function_local.py` checks a local
 assignment before return. `harness/scripts/function_conditional.py` checks a
 lazy conditional in a function return, while
+`harness/scripts/function_sequence.py` checks resumption after a completed
+function call, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is seven matches, one refusal, and zero divergence.
+current result is eight matches, one refusal, and zero divergence.

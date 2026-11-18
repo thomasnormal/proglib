@@ -35,6 +35,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/function_sequence.py",
+    "envelope": "harness/scripts/function_sequence.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"
