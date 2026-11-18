@@ -608,9 +608,9 @@ private def bFunction : RFunction :=
   { name := "identity", params := #[], body := #[.ret none testSpan], globals := "__main__" }
 
 example :
-    (RConfig.initial b1Module).defineFunction
+    ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
-      bFunction [] |>.functions.length = 1 := by
+      bFunction []).functions.length = 1 := by
   rfl
 
 #guard (runB1 32 (RConfig.initial b1Module)).2.status ==
