@@ -249,6 +249,8 @@ keyword-only parameters after `*args`, including a literal default, while
 argument order is independent of parameter order, while
 `harness/scripts/function_fixed_varargs_keyword_only.py` checks fixed
 positional binding together with `*args` and a keyword-only default, while
+`harness/scripts/function_positional_only_varargs.py` checks positional-only
+binding before variadic positional collection, while
 `harness/scripts/function_kwargs.py` records the current loud refusal for
 variadic keyword parameters, while
 `harness/scripts/function_unknown_keyword.py` records the current loud refusal
