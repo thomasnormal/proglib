@@ -112,6 +112,7 @@ inductive RKont where
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
   | subscriptValue (index : Expr) (continuation : RKont)
   | subscriptIndex (receiver : RVal) (continuation : RKont)
+  | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
       (continuation : RKont)
@@ -447,6 +448,16 @@ def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   | .mult, .int a, .int b => .ok (.int (a * b))
   | _, _, _ => .unsupported "machine binary operator"
 
+def rTruthy : RVal → Bool
+  | .none => false
+  | .bool value => value
+  | .int value => value != 0
+  | .float value => !Float64.isZero value
+  | .str value => !value.isEmpty
+  | .tuple values => !values.isEmpty
+  | .listV values => !values.isEmpty
+  | _ => true
+
 def RConfig.finish (config : RConfig) (event : REvent) : RConfig :=
   { config with frames := [], status := .finished event }
 
@@ -709,6 +720,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl (.evaluate expression (.sequence rest)))
           | .assign (.name name _) value _ =>
               some (.tau, config.setControl (.evaluate value (.assign name rest)))
+          | .ifStmt test body orelse _ =>
+              some (.tau, config.setControl
+                (.evaluate test (.ifBranch body.toList orelse.toList rest)))
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
@@ -825,6 +839,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue receiver (.subscriptValue index continuation) =>
           some (.tau, config.setControl (.evaluate index (.subscriptIndex receiver continuation)))
+      | .continueValue value (.ifBranch body orelse remaining) =>
+          let selected := if rTruthy value then body else orelse
+          some (.tau, config.setControl (.statements (selected ++ remaining)))
       | .continueValue index (.subscriptIndex receiver continuation) =>
           match rLookupDict config.heap receiver index with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
@@ -1085,6 +1102,14 @@ private def bBuiltinModule : RModule :=
   { body := #[.expr (.call (.name "print" testSpan)
       #[.constant (.str "hello") testSpan] #[] none testSpan) testSpan] }
 
+private def bTruthinessModule : RModule :=
+  { body := #[
+      .ifStmt (.constant (.float (Float64.ofBits 0)) testSpan)
+        #[.expr (.call (.name "print" testSpan)
+          #[.constant (.int 1) testSpan] #[] none testSpan) testSpan]
+        #[.expr (.call (.name "print" testSpan)
+          #[.constant (.int 2) testSpan] #[] none testSpan) testSpan] testSpan] }
+
 private def bClosureModule : RModule :=
   { body := #[.functionDef "outer" #[] #[]
         #[.assign (.name "x" testSpan) (.constant (.int 9) testSpan) testSpan,
@@ -1229,6 +1254,10 @@ example :
 #guard (runB1 16 (RConfig.initial bBuiltinModule)).1 ==
   [.tau, .tau, .tau, .tau, .tau, .event (.output "hello"), .tau,
     .event (.return .none)]
+
+#guard (runB1 32 (RConfig.initial bTruthinessModule)).1 ==
+  [.tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau,
+    .event (.output "2"), .tau, .event (.return .none)]
 
 #guard (runB1 128 (RConfig.initial bMixedDefaultKeywordModule)).2.status ==
   .finished (.return .none)
