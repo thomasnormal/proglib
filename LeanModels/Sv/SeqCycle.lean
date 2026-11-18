@@ -1307,6 +1307,60 @@ theorem CoreMemDesign.matV_set {E : CoreMemDesign} (hnd : (E.scalar.decls.toList
   · have hne : ¬ dc.name = d.name := fun h => hdn h.symm
     simp [lookup_set', hdn, hne]
 
+mutual
+/-- **A function-free expression reads no aggregate member**: `hasFunctionCall` classifies an aggregate member read as
+outside the function-free fragment, so the route's named aggregate boundary (`hasAggregateMember`, which sends a
+continuous assign to the source-shaped evaluator) lies inside the profile's function-free one. -/
+theorem seq_noAggregate_of_noCall : ∀ (e : PExpr), LeanModels.Sv.PExpr.hasFunctionCall e = false →
+    LeanModels.Sv.PExpr.hasAggregateMember e = false
+  | .lit _, _ | .ident _, _ | .paramRef _ _, _ | .genvarRef _, _ | .enumRef _ _ _, _ | .int _, _ | .fill _, _
+  | .unsupported _ _, _ => rfl
+  | .functionCall _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
+  | .aggregateMember _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
+  | .unary _ a, h | .resize _ a, h | .signedResize _ a, h | .squash2 _ a, h | .sysCall _ a, h | .reduce _ a, h
+  | .cast _ a, h => by
+      have ha := seq_noAggregate_of_noCall a
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall] at h
+      simp only [LeanModels.Sv.PExpr.hasAggregateMember]
+      exact ha h
+  | .binary _ a b, h | .bitSel a b, h | .repl a b, h => by
+      have ha := seq_noAggregate_of_noCall a
+      have hb := seq_noAggregate_of_noCall b
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasAggregateMember, Bool.or_eq_false_iff]
+      exact ⟨ha h.1, hb h.2⟩
+  | .ternary a b c, h | .partSel a b c, h => by
+      have ha := seq_noAggregate_of_noCall a
+      have hb := seq_noAggregate_of_noCall b
+      have hc := seq_noAggregate_of_noCall c
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasAggregateMember, Bool.or_eq_false_iff]
+      exact ⟨⟨ha h.1.1, hb h.1.2⟩, hc h.2⟩
+  | .concat xs, h | .arrayElem _ xs, h => by
+      have hx := seq_noAggregate_of_noCallList xs
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall] at h
+      simp only [LeanModels.Sv.PExpr.hasAggregateMember]
+      exact hx h
+  | .arrayPart _ xs _ a b, h => by
+      have hx := seq_noAggregate_of_noCallList xs
+      have ha := seq_noAggregate_of_noCall a
+      have hb := seq_noAggregate_of_noCall b
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasAggregateMember, Bool.or_eq_false_iff]
+      exact ⟨⟨hx h.1.1, ha h.1.2⟩, hb h.2⟩
+
+/-- `seq_noAggregate_of_noCall` of a list. -/
+theorem seq_noAggregate_of_noCallList : ∀ (es : List PExpr), LeanModels.Sv.PExpr.hasFunctionCallList es = false →
+    LeanModels.Sv.PExpr.hasAggregateMemberList es = false
+  | [], _ => rfl
+  | e :: es, h => by
+      have he := seq_noAggregate_of_noCall e
+      have hes := seq_noAggregate_of_noCallList es
+      simp only [LeanModels.Sv.PExpr.hasFunctionCallList, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasAggregateMemberList, Bool.or_eq_false_iff]
+      exact ⟨he h.1, hes h.2⟩
+end
+
 /-- **`settleAssignAt` on the clocked profile is `settleRaw`**, keeping coherence, the memory and the materialized
 view. -/
 theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI) :
@@ -1364,8 +1418,8 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
                   Res.bind_eq_ok] at hs
                 obtain ⟨x, hx, hs⟩ := hs
                 refine hstep x hs ?_
-                simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, Bool.or_false, Bool.false_eq_true,
-                  ↓reduceIte, hc']
+                simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, seq_noAggregate_of_noCall value hfc,
+                  Bool.or_false, Bool.false_eq_true, ↓reduceIte, hc']
                 exact hx
           | _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | edge f =>
