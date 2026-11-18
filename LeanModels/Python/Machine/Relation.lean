@@ -92,6 +92,10 @@ inductive RKont where
   | returnValue
   | printValue
   | discardValue
+  | sequence (remaining : List RStmt)
+  | assign (name : String) (remaining : List RStmt)
+  | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
+  | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
 deriving Repr, Inhabited, BEq
 
 inductive RControl where
@@ -129,6 +133,32 @@ def RConfig.setControl (config : RConfig) (control : RControl) : RConfig :=
   match config.frames with
   | [] => config
   | frame :: tail => { config with frames := { frame with control := control } :: tail }
+
+def RConfig.setTop (config : RConfig) (frame : RFrame) : RConfig :=
+  match config.frames with
+  | [] => config
+  | _ :: tail => { config with frames := frame :: tail }
+
+def lookupEnv : REnv → String → Option RVal
+  | [], _ => none
+  | (name, value) :: rest, wanted =>
+      if name == wanted then some value else lookupEnv rest wanted
+
+def setEnv (env : REnv) (name : String) (value : RVal) : REnv :=
+  (name, value) :: env.filter (fun binding => binding.1 != name)
+
+def assignedFrame (frame : RFrame) (name : String) (value : RVal)
+    (remaining : List RStmt) : RFrame :=
+  { control := .statements remaining
+    locals := setEnv frame.locals name value
+    globals := frame.globals }
+
+def evalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
+  match op, left, right with
+  | .add, .int a, .int b => .ok (.int (a + b))
+  | .sub, .int a, .int b => .ok (.int (a - b))
+  | .mult, .int a, .int b => .ok (.int (a * b))
+  | _, _, _ => .unsupported "machine binary operator"
 
 def RConfig.finish (config : RConfig) (event : REvent) : RConfig :=
   { config with frames := [], status := .finished event }
@@ -176,17 +206,61 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
       (hframe : config.frames =
         { frame with control := .statements [.expr expression span] } :: tail) :
       Step config .tau (config.setControl (.evaluate expression .discardValue))
+  | assignStmt {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      {name : String} {value : Expr} {rest : List RStmt} {span : Span}
+      (hframe : config.frames =
+        { frame with control := .statements (.assign (.name name span) value span :: rest) } :: tail) :
+      Step config .tau (config.setControl (.evaluate value (.assign name rest)))
   | evaluateConstant {config : RConfig} {frame : RFrame} {tail : List RFrame}
       {value : Const} {span : Span} {continuation : RKont}
       (hframe : config.frames =
         { frame with control := .evaluate (.constant value span) continuation } :: tail) :
       Step config .tau (config.setControl (.continueValue (rConstValue value) continuation))
+  | evaluateName {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      {name : String} {span : Span} {continuation : RKont} {value : RVal}
+      (hframe : config.frames =
+        { frame with control := .evaluate (.name name span) continuation } :: tail)
+      (hvalue : lookupEnv frame.locals name = some value) :
+      Step config .tau (config.setControl (.continueValue value continuation))
+  | evaluateBinOp {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      {left right : Expr} {op : BinOp} {span : Span} {continuation : RKont}
+      (hframe : config.frames =
+        { frame with control := .evaluate (.binOp left op right span) continuation } :: tail) :
+      Step config .tau
+        (config.setControl (.evaluate left (.binOpLeft op right continuation)))
+  | evaluateBinOpRight {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      {left : RVal} {op : BinOp} {right : Expr} {continuation : RKont} :
+      Step config .tau
+        (config.setControl (.evaluate right (.binOpRight left op continuation)))
   | returnValue {config : RConfig} {value : RVal}
       (hcontrol : config.frames.head?.map RFrame.control = some (.continueValue value .returnValue)) :
       Step config (.event (.return value)) (config.finish (.return value))
   | discardValue {config : RConfig} {value : RVal}
       (hcontrol : config.frames.head?.map RFrame.control = some (.continueValue value .discardValue)) :
       Step config .tau (config.setControl (.statements []))
+  | sequenceValue {config : RConfig} {value : RVal} {remaining : List RStmt}
+      (hcontrol : config.frames.head?.map RFrame.control =
+        some (.continueValue value (.sequence remaining))) :
+      Step config .tau (config.setControl (.statements remaining))
+  | assignValue {config : RConfig} {value : RVal} {name : String} {remaining : List RStmt}
+      {frame : RFrame} {tail : List RFrame}
+      (hframe : config.frames = frame :: tail)
+      (hcontrol : frame.control = .continueValue value (.assign name remaining)) :
+      Step config .tau
+        (config.setTop (assignedFrame frame name value remaining))
+  | binOpLeftValue {config : RConfig} {value : RVal} {op : BinOp} {right : Expr}
+      {continuation : RKont}
+      (hcontrol : config.frames.head?.map RFrame.control =
+        some (.continueValue value (.binOpLeft op right continuation))) :
+      Step config .tau (config.setControl (.evaluate right (.binOpRight value op continuation)))
+  | binOpResult {config : RConfig} {left right : RVal} {op : BinOp} {continuation : RKont}
+      (hcontrol : config.frames.head?.map RFrame.control =
+        some (.continueValue right (.binOpRight left op continuation)))
+      {value : RVal} (hresult : evalBinOp op left right = .ok value) :
+      Step config .tau (config.setControl (.continueValue value continuation))
+  | moduleEnd {config : RConfig} {frame : RFrame}
+      (hframes : config.frames = [ { frame with control := .statements [] } ]) :
+      Step config (.event (.return .none)) (config.finish (.return .none))
   | refuseStmt {config : RConfig} {frame : RFrame} {tail : List RFrame}
       {kind text : String} {span : Span}
       (hframe : config.frames =
@@ -255,11 +329,74 @@ def resolveAst (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue _ .discardValue =>
           some (.tau, config.setControl (.statements []))
       | .continueValue _ .printValue => none
+      | .continueValue _ _ => none
 
 def resolve (impl : RImpl) (config : RConfig) : Option (RLabel × RConfig) :=
   match config.choices with
   | _ :: _ => resolveChoice impl config
   | [] => resolveAst config
+
+/- A direct resolver for the B1 continuation-stack slice.  The compatibility
+   resolver above remains available to the trace proof while this resolver
+   exercises sequencing, assignment and expression continuations. -/
+def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
+  match config.frames with
+  | [] => none
+  | frame :: _ =>
+      match frame.control with
+      | .statements [] =>
+          if config.frames.tail.isEmpty then
+            some (.event (.return .none), config.finish (.return .none))
+          else none
+      | .statements (stmt :: rest) =>
+          match stmt with
+          | .pass _ => some (.tau, config.setControl (.statements rest))
+          | .expr expression _ =>
+              some (.tau, config.setControl (.evaluate expression (.sequence rest)))
+          | .assign (.name name _) value _ =>
+              some (.tau, config.setControl (.evaluate value (.assign name rest)))
+          | .ret none _ => some (.event (.return .none), config.finish (.return .none))
+          | .ret (some expression) _ =>
+              some (.tau, config.setControl (.evaluate expression .returnValue))
+          | .unsupported _ text _ =>
+              some (.event (.refuse text), config.finish (.refuse text))
+          | _ => some (.event (.refuse "machine statement"), config.finish (.refuse "machine statement"))
+      | .evaluate (.constant value _) continuation =>
+          some (.tau, config.setControl (.continueValue (rConstValue value) continuation))
+      | .evaluate (.name name _) continuation =>
+          match lookupEnv frame.locals name with
+          | some value => some (.tau, config.setControl (.continueValue value continuation))
+          | none => some (.event (.refuse ("unbound name: " ++ name)),
+              config.finish (.refuse ("unbound name: " ++ name)))
+      | .evaluate (.binOp left op right _) continuation =>
+          some (.tau, config.setControl (.evaluate left (.binOpLeft op right continuation)))
+      | .evaluate (.unsupported _ text _) _ =>
+          some (.event (.refuse text), config.finish (.refuse text))
+      | .evaluate _ _ => none
+      | .continueValue value .returnValue =>
+          some (.event (.return value), config.finish (.return value))
+      | .continueValue _ .discardValue => some (.tau, config.setControl (.statements []))
+      | .continueValue value (.sequence remaining) =>
+          some (.tau, config.setControl (.statements remaining))
+      | .continueValue value (.assign name remaining) =>
+          some (.tau, config.setTop (assignedFrame frame name value remaining))
+      | .continueValue value (.binOpLeft op right continuation) =>
+          some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
+      | .continueValue right (.binOpRight left op continuation) =>
+          match evalBinOp op left right with
+          | .ok value => some (.tau, config.setControl (.continueValue value continuation))
+          | _ => some (.event (.refuse "machine binary operator"),
+              config.finish (.refuse "machine binary operator"))
+      | .continueValue _ .printValue => none
+
+def runB1 : Nat → RConfig → List RLabel × RConfig
+  | 0, config => ([], config)
+  | fuel + 1, config =>
+      match resolveB1 config with
+      | some (label, next) =>
+          let result := runB1 fuel next
+          (label :: result.1, result.2)
+      | none => ([], config)
 
 theorem resolveChoice_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : RConfig)
     (h : resolveChoice impl config = some (label, next)) :
@@ -385,6 +522,7 @@ theorem resolve_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : R
                     simp [hframes, hcontrol]
                   exact Step.discardValue hhead
               | printValue => simp [resolveAst, hframes, hcontrol] at h
+              | _ => simp [resolveAst, hframes, hcontrol] at h
 
 def runRelation (impl : RImpl) : Nat → RConfig → List RLabel × RConfig
   | 0, config => ([], config)
@@ -400,6 +538,21 @@ private def testSpan : Span :=
 
 private def testModule : RModule :=
   { body := #[.ret (some (.constant (.int 7) testSpan)) testSpan] }
+
+private def b1Module : RModule :=
+  { body := #[
+      .expr (.constant (.str "doc") testSpan) testSpan,
+      .assign (.name "x" testSpan) (.constant (.int 1) testSpan) testSpan,
+      .assign (.name "y" testSpan)
+        (.binOp (.name "x" testSpan) .add (.constant (.int 2) testSpan) testSpan) testSpan,
+      .expr (.name "y" testSpan) testSpan] }
+
+#guard (runB1 32 (RConfig.initial b1Module)).2.status ==
+  .finished (.return .none)
+
+example : (runB1 32 (RConfig.initial b1Module)).2.status =
+    .finished (.return .none) := by
+  rfl
 
 #guard (runRelation RImpl.cpython39 3 (RConfig.initial testModule)).1 ==
   [.tau, .tau, .event (.return (.int 7))]
