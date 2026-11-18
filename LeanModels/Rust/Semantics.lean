@@ -392,6 +392,61 @@ def cfgRun : Nat → Body → Nat → State → Option Trace
           let suffix ← cfgRun fuel body target dropState'
           pure { state := suffix.state, events := firstTrace.events ++ event :: suffix.events }
 
+def statementFailure : State → List Statement → Outcome
+  | _, [] => .refused (.unsupported "statement execution")
+  | state, statement :: rest =>
+      match statementStep state statement with
+      | some (state', _) => statementFailure state' rest
+      | none =>
+          match statement with
+          | .assign _ (.binaryDiv _ right) =>
+              if operandValue state right == some 0 then .panicked
+              else .refused (.unsupported "binary division")
+          | .assign _ (.checkedBinary op left right) =>
+              match operandValue state left, operandValue state right with
+              | some leftValue, some rightValue =>
+                  match checkedBinaryOutcome op leftValue rightValue with
+                  | .divideByZero => .panicked
+                  | .overflow | .value _ => .refused (.unsupported "checked arithmetic")
+              | _, _ => .refused (.unsupported "checked arithmetic operands")
+          | .assign _ (.ref _ ) => .refused (.unsupported "reference write")
+          | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
+          | .assign _ _ => .refused (.unsupported "assignment")
+          | .placeMention _ => .refused (.unsupported "place mention")
+          | .storageLive _ | .storageDead _ | .unsupported _ =>
+              .refused (.unsupported "statement")
+
+def cfgRunOutcome : Nat → Body → Nat → State → Outcome
+  | 0, _, _, _ => .outOfFuel
+  | fuel + 1, body, blockId, state =>
+      match blockAt body.blocks blockId with
+      | none => .refused (.malformed "missing block")
+      | some block =>
+          match statementsRun block.statements state with
+          | none => statementFailure state block.statements
+          | some firstTrace =>
+              match block.terminator with
+              | .ret => .returned firstTrace
+              | .goto target => cfgRunOutcome fuel body target firstTrace.state
+              | .switchInt discr branches otherwise =>
+                  match terminatorStep firstTrace.state block.terminator with
+                  | some (.jump target) => cfgRunOutcome fuel body target firstTrace.state
+                  | _ => .refused (.unsupported "switch operand")
+              | .assert cond expected target =>
+                  match operandValue firstTrace.state cond with
+                  | none => .refused (.unsupported "assert condition")
+                  | some value =>
+                      if value == (if expected then 1 else 0) then
+                        cfgRunOutcome fuel body target firstTrace.state
+                      else .panicked
+              | .drop place target cleanup =>
+                  match dropState firstTrace.state place with
+                  | none => .refused (.unsupported "drop projection")
+                  | some (dropState', _) => cfgRunOutcome fuel body target dropState'
+              | .resume => .panicked
+              | .unreachable => .ub "unreachable"
+              | .call _ _ _ _ | .unsupported _ => .refused (.unsupported "terminator")
+
 def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (CallEdge × Body) := do
   let edge ← program.calls.find? (fun edge => edge.caller == caller.instanceId ∧ edge.block == block)
   let calleeId ← edge.callee
@@ -444,6 +499,68 @@ def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
               let (dropState', event) ← dropState firstTrace.state place
               let suffix ← cfgRunProgram fuel program body target dropState'
               pure { state := suffix.state, events := firstTrace.events ++ event :: suffix.events }
+
+def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outcome
+  | 0, _, _, _, _ => .outOfFuel
+  | fuel + 1, program, body, blockId, state =>
+      match blockAt body.blocks blockId with
+      | none => .refused (.malformed "missing block")
+      | some block =>
+          match statementsRun block.statements state with
+          | none => statementFailure state block.statements
+          | some firstTrace =>
+              match block.terminator with
+              | .call _ args destination (some target) =>
+                  match lookupCallBody program body blockId with
+                  | none => .refused (.unsupported "unresolved call")
+                  | some (edge, callee) =>
+                      match edge.callee with
+                      | none => .refused (.unsupported "call without callee")
+                      | some calleeId =>
+                          match bindCallArgs
+                              { placements := firstTrace.state.placements,
+                                types := firstTrace.state.types } args 1 with
+                          | none => .refused (.unsupported "call arguments")
+                          | some calleeState =>
+                              match cfgRunOutcome fuel callee 0 calleeState with
+                              | .returned calleeTrace =>
+                                  match returnValue calleeTrace with
+                                  | none => .refused (.unsupported "callee return value")
+                                  | some value =>
+                                      match writeCell firstTrace.state destination (.int value) with
+                                      | none => .refused (.unsupported "call destination")
+                                      | some callerState =>
+                                          match cfgRunProgramOutcome fuel program body target callerState with
+                                          | .returned suffixTrace =>
+                                              let combined : Trace :=
+                                                { state := suffixTrace.state,
+                                                  events := firstTrace.events ++
+                                                    (Event.call calleeId ::
+                                                      (calleeTrace.events ++ suffixTrace.events)) }
+                                              .returned combined
+                                          | outcome => outcome
+                              | outcome => outcome
+              | .call _ _ _ none => .refused (.unsupported "call without normal target")
+              | .ret => .returned firstTrace
+              | .goto target => cfgRunProgramOutcome fuel program body target firstTrace.state
+              | .switchInt _ _ _ =>
+                  match terminatorStep firstTrace.state block.terminator with
+                  | some (.jump target) => cfgRunProgramOutcome fuel program body target firstTrace.state
+                  | _ => .refused (.unsupported "switch operand")
+              | .assert cond expected target =>
+                  match operandValue firstTrace.state cond with
+                  | none => .refused (.unsupported "assert condition")
+                  | some value =>
+                      if value == (if expected then 1 else 0) then
+                        cfgRunProgramOutcome fuel program body target firstTrace.state
+                      else .panicked
+              | .drop place target _ =>
+                  match dropState firstTrace.state place with
+                  | none => .refused (.unsupported "drop projection")
+                  | some (dropState', _) => cfgRunProgramOutcome fuel program body target dropState'
+              | .resume => .panicked
+              | .unreachable => .ub "unreachable"
+              | .unsupported _ => .refused (.unsupported "terminator")
 
 inductive ProgramSteps (program : Envelope) : Body → Nat → State → Trace → Prop
   | ret {body : Body} {blockId : Nat} {state : State} {block : Block} {first : Trace}
@@ -573,9 +690,10 @@ def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Tra
   | none => none
 
 def runOutcome (program : Envelope) : Outcome :=
-  match runWithPlacement (fun n => n) program with
-  | some trace => .returned trace
-  | none => .refused (.unsupported "execution")
+  match program.bodies.find? (·.instanceId == program.entry) with
+  | some body => cfgRunProgramOutcome 4096 program body 0
+      (initialState (fun n => n) program.types program.allocations)
+  | none => .refused (.malformed "missing entry body")
 
 def ProgramInSteps (program : Envelope) (trace : Trace) : Prop :=
   ∃ body, program.bodies.find? (·.instanceId == program.entry) = some body ∧
