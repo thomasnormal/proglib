@@ -25,6 +25,7 @@ theorem caught_type_identity_total (value : PyInt) :
     exc_handlers_lab.caught_type_identity(value) ==> value := by
   refine ⟨64, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [exc_handlers_lab, excHandlerNames, excHandlerTuple,
     excHandlerAdmitted, excHandlerMatches, floorDiv_ne_bitAnd,
@@ -39,7 +40,8 @@ theorem caught_type_identity_total (value : PyInt) :
 theorem tuple_handler :
     exc_handlers_lab.tuple_handler() ==> (13 : PyInt) := by
   refine ⟨64, ?_⟩
-  unfold callFunction
+  have hfree : Val.listFreeArgs #[] = true := by rfl
+  simp only [callFunction, publicThawArgs_of_listFree hfree]
   rw [callIn.eq_2]
   py_simp [exc_handlers_lab, excHandlerNames, excHandlerTuple,
     excHandlerAdmitted, excHandlerMatches, floorDiv_ne_bitAnd, floorDiv_ne_mult,

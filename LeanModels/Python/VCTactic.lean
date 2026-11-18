@@ -495,7 +495,7 @@ theorem PyTriple.exists_callsTo_arityOk {m : Module} {fname : String}
       obtain ⟨v, rfl, hΦ⟩ := hr
       refine ⟨v, ⟨t + 1, ?_⟩, hΦ⟩
       unfold callFunction
-      simp only [publicThawArgs, hm, ↓reduceIte]
+      simp only [publicThawArgs_of_heapFree hm]
       rw [callIn.eq_def]
       simp [hf, hargsOk, hlocalsOk, hgen, harity, hrt, hdepth, pythonTopCallDepth, pythonRecursionLimit, Run.leaveCallDepth, RVal.freezeB_thaw]
     | brk => exact hr.elim

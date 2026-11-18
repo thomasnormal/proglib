@@ -736,14 +736,14 @@ theorem PyTriple.callsTo_arityOk {m : Module} {fname : String}
       have hv : v = .none := hr
       refine ⟨t + 1, ?_⟩
       unfold callFunction
-      simp only [publicThawArgs, hm, ↓reduceIte]
+      simp only [publicThawArgs_of_heapFree hm]
       rw [callIn.eq_def]
       simp [hf, hargsOk, hlocalsOk, hgen, harity, hrt, hv, hdepth, pythonTopCallDepth, pythonRecursionLimit, Run.leaveCallDepth, Run.toPublic_ok, RVal.freezeB]
     | ret rv =>
       have hv : rv = RVal.thaw v := hr
       refine ⟨t + 1, ?_⟩
       unfold callFunction
-      simp only [publicThawArgs, hm, ↓reduceIte]
+      simp only [publicThawArgs_of_heapFree hm]
       rw [callIn.eq_def]
       simp [hf, hargsOk, hlocalsOk, hgen, harity, hrt, hv, hdepth, pythonTopCallDepth, pythonRecursionLimit, Run.leaveCallDepth, Run.toPublic_ok, RVal.freezeB_thaw]
     | brk => exact hr.elim
@@ -864,7 +864,7 @@ theorem CallsTo.toTriple {m : Module} {fname : String} {f : FunctionDefn}
       { next := fun _ => v = .none, ret := fun rv _ => rv = RVal.thaw v } := by
   obtain ⟨fuel, hc⟩ := h
   unfold callFunction at hc
-  simp only [publicThawArgs, hm, ↓reduceIte] at hc
+  simp only [publicThawArgs_of_heapFree hm] at hc
   cases fuel with
   | zero => rw [callIn.eq_def] at hc; simp at hc
   | succ fu =>
@@ -951,7 +951,7 @@ theorem PyTriple.raises_arityOk {m : Module} {fname : String}
     have he : e' = e := hr
     refine ⟨t + 1, ?_⟩
     unfold callFunction
-    simp only [publicThawArgs, hm, ↓reduceIte]
+    simp only [publicThawArgs_of_heapFree hm]
     rw [callIn.eq_def]
     simp [hf, hargsOk, hlocalsOk, hgen, harity, hrt, hdepth, pythonTopCallDepth, pythonRecursionLimit, Run.leaveCallDepth, Run.toPublic_exn, he]
   | timeout => exact (PyPost.holds_ne_timeout hr rfl).elim
@@ -988,7 +988,7 @@ theorem Raises.toTriple {m : Module} {fname : String} {f : FunctionDefn}
       { next := fun _ => False, err := fun e' _ => e' = e } := by
   obtain ⟨fuel, hc⟩ := h
   unfold callFunction at hc
-  simp only [publicThawArgs, hm, ↓reduceIte] at hc
+  simp only [publicThawArgs_of_heapFree hm] at hc
   cases fuel with
   | zero => rw [callIn.eq_def] at hc; simp at hc
   | succ fu =>

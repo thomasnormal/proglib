@@ -298,8 +298,15 @@ elab "py_begin" "[" prog:ident "]" : tactic => do
     setGoals [entryG.mvarId!]
     let progT : Term := ⟨prog.raw⟩
     evalTactic (← `(tactic|
-      (intro F; simp only [$progT:term];
-       py_simp [callIn.eq_2, pythonTopCallDepth, pythonRecursionLimit])))
+      (intro F; simp only [callFunction];
+       simp [publicThawArgs_of_listFree, Val.listFreeArgs, Val.listFree, Val.listFreeList];
+       simp only [$progT:term];
+       py_simp [callIn.eq_2, publicThawArgs, publicThawArgs_of_listFree,
+         Val.listFreeArgs, Val.listFree, Val.listFreeList, Module.heapFree,
+         funsHeapFree, FunctionDefn.heapFree, Stmt.heapFree, Stmt.heapFreeList,
+         moduleGenFree, funsGenAllocFree, Stmt.genAllocFree, Stmt.genAllocFreeList,
+         mkCallEnv, defaultBindings, markUnboundLocals,
+         pythonTopCallDepth, pythonRecursionLimit])))
     let [g2] ← getGoals
       | throwError "py_begin: expected exactly one residual entry goal"
     g2.withContext do

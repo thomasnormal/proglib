@@ -30,6 +30,7 @@ theorem stop_str_total (value : PyBool) :
   cases value <;> refine ⟨32, ?_⟩
   all_goals
     unfold callFunction
+    simp (disch := rfl) only [publicThawArgs_of_listFree]
     rw [callIn.eq_2]
     py_simp [range_render, reprVal, printOne, zero_decimal]
     all_goals simp only [funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList,

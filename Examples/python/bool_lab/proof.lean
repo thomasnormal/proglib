@@ -19,6 +19,7 @@ theorem integer_truth (value : PyInt) :
     bool_lab.of(value) ==> (value != 0) := by
   refine ⟨64, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [bool_lab, bool_ne_fstring, bool_ne_lenMult, bool_ne_starArg,
     bool_ne_starTuple, bool_ne_starList, funsHeapFree, FunctionDefn.heapFree,
@@ -33,6 +34,7 @@ theorem boolean_identity (value : PyBool) :
     bool_lab.of(value) ==> value := by
   refine ⟨64, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [bool_lab, bool_ne_fstring, bool_ne_lenMult, bool_ne_starArg,
     bool_ne_starTuple, bool_ne_starList, funsHeapFree, FunctionDefn.heapFree,

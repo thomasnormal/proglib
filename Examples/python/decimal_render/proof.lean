@@ -75,6 +75,9 @@ private theorem scalar_call (value : PyInt) (text : String)
   refine ⟨32, ?_⟩
   unfold callFunction
   rw [initial_world]
+  simp only [toVal_int]
+  have hfree : Val.listFreeArgs #[.int value] = true := by rfl
+  rw [publicThawArgs_of_listFree hfree]
   rw [callIn.eq_2]
   simp (config := { maxSteps := 200000 })
     [scalarFunction, globals_empty, scalar_found,
@@ -90,8 +93,7 @@ private theorem scalar_call (value : PyInt) (text : String)
       flattenStarRun, flattenStarCallArgs, strOfValH, strOfVal,
       Run.bind, Run.liftRes, RVal.thaw, RVal.thawList, RVal.thawArgs,
       RVal.freezeB, renderedHeap]
-  rw [scalarOk]
-  rfl
+  simp [pythonTopCallDepth, pythonRecursionLimit, scalarOk, builtinMethORecursionCheck, Run.toPublic, Run.toPublic_ok, Run.leaveCallDepth, RVal.freezeB]
 
 theorem scalar_str_total (value : PyInt)
     (valueBound : value.natAbs < 10 ^ 4300) :

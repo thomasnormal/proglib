@@ -10,6 +10,7 @@ theorem by_one_total (value : PyInt) :
     divmod_lab.by_one(value) ==> (Val.tuple #[.int value, .int 0]) := by
   refine ⟨32, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [divmod_lab, divmodArgs, funsHeapFree, FunctionDefn.heapFree,
     Stmt.heapFreeList, Stmt.heapFree, Expr.heapFreeList, Expr.heapFree,

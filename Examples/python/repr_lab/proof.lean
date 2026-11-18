@@ -21,6 +21,7 @@ theorem boolean_repr (value : PyBool) :
   intros
   refine ⟨32, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [repr_lab, reprVal, lenMultBuiltinName, decimalOverflowValH,
     decimalOverflowImmediate]
@@ -44,6 +45,7 @@ theorem integer_repr (value : PyInt) (valueBound : value.natAbs < 10 ^ 4300) :
   intros
   refine ⟨32, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [repr_lab, reprVal, lenMultBuiltinName, decimalOverflowValH,
     decimalOverflowImmediate, rendered]

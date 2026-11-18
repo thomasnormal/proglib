@@ -12320,7 +12320,24 @@ def proofCellGeneratorUnsafe (m : Module) (fname : String) : Bool :=
           !(initialized && !reboundAfter && f.body.toList.any (proofCellDrainStmt g.name))
 
 def publicThawArgs (m : Module) (h : Heap) (args : Array Val) : Heap × Array RVal :=
-  if m.heapFree then (h, RVal.thawArgs args) else RVal.thawArgsH h args
+  if Val.listFreeArgs args then (h, RVal.thawArgs args)
+  else if m.heapFree then (h, RVal.thawArgs args) else RVal.thawArgsH h args
+
+/-- Public arguments that contain no mutable containers take the pure thaw path
+regardless of the module's heap-freedom classification. -/
+@[simp] theorem publicThawArgs_of_listFree {m : Module} {h : Heap} {args : Array Val}
+    (hf : Val.listFreeArgs args = true) :
+    publicThawArgs m h args = (h, RVal.thawArgs args) := by
+  unfold publicThawArgs
+  by_cases hm : m.heapFree = true
+  · simp [hm]
+  · simp [hm, RVal.thawArgsH_of_listFree hf h]
+
+theorem publicThawArgs_of_heapFree {m : Module} {h : Heap} {args : Array Val}
+    (hm : m.heapFree = true) :
+    publicThawArgs m h args = (h, RVal.thawArgs args) := by
+  unfold publicThawArgs
+  simp [hm]
 
 def callFunction (m : Module) (fname : String) (args : Array Val) (fuel : Nat) : Res Val :=
   let w0 := initWorld m

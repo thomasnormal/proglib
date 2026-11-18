@@ -267,7 +267,7 @@ theorem CallsTo.callsIn_frame {m : Module} {fname : String}
       (initWorld m) (RVal.thaw v) := by
   obtain ⟨fuel, hf⟩ := h
   unfold callFunction at hf
-  simp only [publicThawArgs, hm, ↓reduceIte] at hf
+  simp only [publicThawArgs_of_heapFree hm] at hf
   revert hf
   cases hc : callIn m fuel (initWorld m) fname (RVal.thawArgs args) with
   | ok w' rv =>
@@ -768,7 +768,8 @@ macro "py_prove" "[" args:(simpStar <|> simpErase <|> simpLemma),* "]" : tactic 
        | (refine ⟨32, ?_⟩
           py_simp [callFunction, callIn, evalBinOpH, setLikeRefH,
             pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
-            Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, $extra,*]
+            Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, publicThawArgs_of_listFree, Val.listFreeArgs,
+            Val.listFree, Val.listFreeList, $extra,*]
           first
             | done
             | split <;> py_simp <;> omega
@@ -777,14 +778,17 @@ macro "py_prove" "[" args:(simpStar <|> simpErase <|> simpLemma),* "]" : tactic 
        | (refine CallsTo.intro 32 ?_
           py_simp [callFunction, callIn, evalBinOpH, setLikeRefH,
             pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
-            Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, $extra,*]
+            Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, publicThawArgs_of_listFree, Val.listFreeArgs,
+            Val.listFree, Val.listFreeList, $extra,*]
           done)
        | refine ⟨32, ?_⟩ <;> py_simp [callFunction, callIn, evalBinOpH, setLikeRefH,
            pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
-           Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, $extra,*]
+           Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, publicThawArgs_of_listFree, Val.listFreeArgs,
+            Val.listFree, Val.listFreeList, $extra,*]
        | (py_simp [callFunction, callIn, evalBinOpH, setLikeRefH,
             pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
-            Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, $extra,*]
+            Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB, publicThawArgs_of_listFree, Val.listFreeArgs,
+            Val.listFree, Val.listFreeList, $extra,*]
           all_goals try (first | rfl | omega))
      py_prove_residual_guard))
 

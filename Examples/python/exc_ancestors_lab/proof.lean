@@ -27,6 +27,7 @@ theorem caught_arithmetic_identity_total (value : PyInt) :
     exc_ancestors_lab.caught_arithmetic_identity(value) ==> value := by
   refine ⟨64, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [exc_ancestors_lab, excHandlerNames, excHandlerTuple, excHandlerBare, excHandlerPrimary,
     excHandlerAdmitted, excHandlerMatches, floorDiv_ne_bitAnd, floorDiv_ne_mult,

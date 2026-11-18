@@ -25,11 +25,7 @@ theorem integer_identity (value : PyInt) :
 
 theorem notimplemented_builtin :
     ellipsis_lab.notimplemented_builtin() ==> Val.notImplemented := by
-  py_prove [ellipsis_lab, RVal.isNotImplemented, hasUnboundLocal,
-    starListBuiltinName, starTupleBuiltinName, Run.toPublic, RVal.freezeB,
-    unboundLocalMarker, isPyBuiltinName, isLoweredBuiltinName,
-    smallIntIdentity, Env.lookup, pythonTopCallDepth, pythonRecursionLimit,
-    Run.finishCallAt, Run.leaveCallDepth, Run.toPublic_ok]
+  exact ⟨32, rfl⟩
 
 #print axioms branch_singleton
 #print axioms integer_identity

@@ -21,6 +21,7 @@ theorem grouped_offset_total (offset : PyInt) :
     int_string.grouped_offset(offset) ==> 1024 + offset := by
   refine ⟨64, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [int_string, lenMultBuiltinName, intCastArgs, intCastVal, intCastBase,
     grouped_decimal, add_ne_bitAnd, evalBinOpH, PyVCGen.binOpBeqBitAnd,
@@ -36,6 +37,7 @@ theorem signed_adjustment_total (offset : PyInt) :
     int_string.signed_adjustment(offset) ==> offset - 2048 := by
   refine ⟨64, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [int_string, lenMultBuiltinName, intCastArgs, intCastVal, intCastBase,
     signed_decimal, add_ne_bitAnd, evalBinOpH, PyVCGen.binOpBeqBitAnd,
@@ -59,6 +61,7 @@ theorem hex_offset_total (offset : PyInt) :
     int_string.hex_offset(offset) ==> 255 + offset := by
   refine ⟨64, ?_⟩
   unfold callFunction
+  simp (disch := rfl) only [publicThawArgs_of_listFree]
   rw [callIn.eq_2]
   py_simp [int_string, lenMultBuiltinName, intCastArgs, intCastVal, intCastBase,
     hexadecimal, hexadecimal_str, add_ne_bitAnd, evalBinOpH,
