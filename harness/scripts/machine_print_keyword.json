@@ -1,0 +1,113 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_print_keyword.py",
+  "source_sha256": "ceba6beb70db66dac7a6ce20639763963c88f7b5aba7380766ace947b639e10f",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 65
+        },
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 65
+          },
+          "value": {
+            "type": "str",
+            "value": "Machine wrong-answer row: print keywords affect its output."
+          }
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 20
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 3,
+            "col_offset": 0,
+            "end_lineno": 3,
+            "end_col_offset": 20
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 3,
+                "col_offset": 6,
+                "end_lineno": 3,
+                "end_col_offset": 7
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            },
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 3,
+                "col_offset": 9,
+                "end_lineno": 3,
+                "end_col_offset": 10
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          ],
+          "keywords": [
+            {
+              "arg": "sep",
+              "value": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 16,
+                  "end_lineno": 3,
+                  "end_col_offset": 19
+                },
+                "value": {
+                  "type": "str",
+                  "value": "-"
+                }
+              }
+            }
+          ],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

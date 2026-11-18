@@ -1,0 +1,130 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_shadow_print.py",
+  "source_sha256": "d5a6feb6a4243421422103093ec98c990267b5e07bf545117c9d05e87930761a",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 64
+        },
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 64
+          },
+          "value": {
+            "type": "str",
+            "value": "Machine wrong-answer row: a user definition shadows print."
+          }
+        }
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 13
+        },
+        "name": "print",
+        "args": [
+          {
+            "arg": "value",
+            "span": {
+              "lineno": 3,
+              "col_offset": 10,
+              "end_lineno": 3,
+              "end_col_offset": 15
+            }
+          }
+        ],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 13
+            },
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 4,
+                "col_offset": 11,
+                "end_lineno": 4,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "99"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 8
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 6,
+            "col_offset": 0,
+            "end_lineno": 6,
+            "end_col_offset": 8
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 6,
+              "col_offset": 0,
+              "end_lineno": 6,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 6,
+                "col_offset": 6,
+                "end_lineno": 6,
+                "end_col_offset": 7
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

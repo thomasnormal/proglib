@@ -248,5 +248,55 @@
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_global_read.py",
+    "envelope": "harness/scripts/machine_global_read.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_call_before_def.py",
+    "envelope": "harness/scripts/machine_call_before_def.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_redefinition.py",
+    "envelope": "harness/scripts/machine_redefinition.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_statement_keyword.py",
+    "envelope": "harness/scripts/machine_statement_keyword.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_print_keyword.py",
+    "envelope": "harness/scripts/machine_print_keyword.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_shadow_print.py",
+    "envelope": "harness/scripts/machine_shadow_print.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_shadow_function.py",
+    "envelope": "harness/scripts/machine_shadow_function.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_float_truthy.py",
+    "envelope": "harness/scripts/machine_float_truthy.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_negative_index.py",
+    "envelope": "harness/scripts/machine_negative_index.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_left_error_order.py",
+    "envelope": "harness/scripts/machine_left_error_order.json",
+    "expect": "unsupported"
   }
 ]
