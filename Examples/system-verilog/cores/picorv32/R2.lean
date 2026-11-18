@@ -156,6 +156,19 @@ theorem picorv32_riscv_formal_args_pinned :
 
 #print axioms picorv32_riscv_formal_args_pinned
 
+theorem picorv32_riscv_formal_param_names_pinned :
+    picorv32_r2.pdesign.params.map PParam.name =
+      ["ENABLE_COUNTERS", "ENABLE_COUNTERS64", "ENABLE_REGS_16_31",
+       "ENABLE_REGS_DUALPORT", "LATCHED_MEM_RDATA", "TWO_STAGE_SHIFT",
+       "BARREL_SHIFTER", "TWO_CYCLE_COMPARE", "TWO_CYCLE_ALU",
+       "COMPRESSED_ISA", "CATCH_MISALIGN", "CATCH_ILLINSN", "ENABLE_PCPI",
+       "ENABLE_MUL", "ENABLE_FAST_MUL", "ENABLE_DIV", "ENABLE_IRQ",
+       "ENABLE_IRQ_QREGS", "ENABLE_IRQ_TIMER", "ENABLE_TRACE", "REGS_INIT_ZERO",
+       "MASKED_IRQ", "LATCHED_IRQ", "PROGADDR_RESET", "PROGADDR_IRQ", "STACKADDR"] := by
+  decide
+
+#print axioms picorv32_riscv_formal_param_names_pinned
+
 theorem picorv32_rv32m_disabled :
     picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
       picorv32RISCVFormalParameters.ENABLE_DIV = 0 := by
