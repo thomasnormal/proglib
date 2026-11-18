@@ -10,7 +10,7 @@ implementation is 1000 lines in `LeanModels/Rust/Semantics.lean`, with 114 lines
 of AST declarations, 399 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
-counter for this worktree is `SLICE1-ROWS 13/30, diverging 0`.
+counter for this worktree is `SLICE1-ROWS 14/30, diverging 0`.
 
 The 30 non-printing Stage 0 rows were audited with the structured extractor:
 
@@ -18,7 +18,7 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 13 decided rows, 17 named refusals, and zero
+The report contains 30 rows, 14 decided rows, 16 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` in one kernel process, and compares successful returns with the
 Stage 0 Miri `ok` verdict. Refusal reasons retain the first unsupported MIR
@@ -57,7 +57,7 @@ Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
 were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
 diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
-the corpus counter remains `SLICE1-ROWS 13/30, diverging 0`.
+the corpus counter remains `SLICE1-ROWS 14/30, diverging 0`.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -132,11 +132,11 @@ MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
 place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
-corpus counter remains `SLICE1-ROWS 13/30, diverging 0`.
+corpus counter remains `SLICE1-ROWS 14/30, diverging 0`.
 
 ## Slice 1 exit record
 
-The D1 corpus audit reports 30 rows, 13 decided rows, 17 named refusals, and
+The D1 corpus audit reports 30 rows, 14 decided rows, 16 named refusals, and
 zero diverging rows.  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and

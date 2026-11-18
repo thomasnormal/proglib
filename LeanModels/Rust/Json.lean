@@ -197,7 +197,7 @@ private def rvalue (j : Json) : Except String Rvalue := do
             | .str name => pure name
             | .obj _ => pure "Adt"
             | _ => .error "MIR Aggregate tag is malformed"
-          if args.isEmpty && tagName == "Adt" then
+          if tagName == "Adt" then
             match tag with
             | .obj _ =>
                 let (_, payload) ← variant tag
@@ -205,8 +205,11 @@ private def rvalue (j : Json) : Except String Rvalue := do
                 | .arr values =>
                     match values.toList.drop 1 |>.head? with
                     | some (.num value) =>
-                        if value == 0 then pure .zstAggregate
-                        else pure (.unsupported "fieldless Aggregate")
+                        let variant? := value.toString.toNat?
+                        match variant? with
+                        | none => pure (.unsupported "Aggregate variant")
+                        | some variant =>
+                            pure (.adtAggregate variant args)
                     | _ => pure (.unsupported "fieldless Aggregate")
                 | _ => pure (.unsupported "fieldless Aggregate")
             | _ => pure (.unsupported "fieldless Aggregate")
@@ -223,6 +226,7 @@ private def rvalue (j : Json) : Except String Rvalue := do
       | [kind, operandJson, target] =>
           pure (.cast (← castKind kind) (← operand operandJson) (← nat target))
       | _ => .error "MIR Cast has malformed operands"
+  | "Discriminant" => .map Rvalue.discriminant (place value)
   | other => pure (.unsupported other)
 
 private def statement (j : Json) : Except String Statement := do
