@@ -779,6 +779,16 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Unconditional-generate current-head check — 2026-11-18T02:13Z
+
+Fresh extraction of unconditional_case2.sv at public master bc8059b74 retains
+two GenerateBlockSymbol:unconditional nodes. Ordinary E reports both source
+assignments at GenItem.expand and PDesign.instantiateE2, then refuses the
+module members. IEEE 1800-2023 section 27.4 requires source-shaped generate
+item semantics, so no unrolling is introduced. Existing Icarus Verilog 13.0
+and Xcelium 24.03-s004 rows agree on 00, 11, and xx. No count transition is
+claimed.
+
 ## Specify-block current-head check — 2026-11-18T02:11Z
 
 Fresh extraction of specify_repro.sv at public master f2377936d retains
