@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.2,
+      "extract_seconds": 0.265,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.12,
+      "extract_seconds": 0.236,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.07,
+      "extract_seconds": 0.095,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.073,
+      "extract_seconds": 0.103,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.091,
+      "extract_seconds": 0.119,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.067,
+      "extract_seconds": 0.095,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.076,
+      "extract_seconds": 0.178,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.098,
+      "extract_seconds": 0.142,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 0.403,
+      "extract_seconds": 0.694,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.112,
+      "extract_seconds": 0.137,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.106,
+      "extract_seconds": 0.18,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.03,
+      "extract_seconds": 0.05,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.077,
+      "extract_seconds": 0.109,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.071,
+      "extract_seconds": 0.136,
       "lean_outcome": "refused:unsupported:assignment fieldless Aggregate"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.068,
+      "extract_seconds": 0.099,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.066,
+      "extract_seconds": 0.089,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.038,
+      "extract_seconds": 0.059,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.038,
+      "extract_seconds": 0.054,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.064,
+      "extract_seconds": 0.101,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.067,
+      "extract_seconds": 0.095,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.065,
+      "extract_seconds": 0.117,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.047,
+      "extract_seconds": 0.063,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.038,
+      "extract_seconds": 0.085,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.031,
+      "extract_seconds": 0.068,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.092,
+      "extract_seconds": 0.135,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -1142,14 +1142,14 @@
           }
         }
       },
-      "extract_seconds": 0.042,
+      "extract_seconds": 0.059,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_match-on-negative-integer-ranges",
       "source": "measurement_programs/rustc_run_pass/17_match-on-negative-integer-ranges.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:assignment BinaryOp",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -1186,8 +1186,8 @@
           }
         }
       },
-      "extract_seconds": 0.081,
-      "lean_outcome": "refused:unsupported:assignment BinaryOp"
+      "extract_seconds": 0.109,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_by-value-self-method-on-int",
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.042,
+      "extract_seconds": 0.074,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.031,
+      "extract_seconds": 0.086,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1318,11 +1318,11 @@
           }
         }
       },
-      "extract_seconds": 0.051,
+      "extract_seconds": 0.077,
       "lean_outcome": "refused:unsupported:terminator"
     }
   ],
-  "decided_rows": 14,
-  "named_refusals": 16,
+  "decided_rows": 15,
+  "named_refusals": 15,
   "diverging": 0
 }
