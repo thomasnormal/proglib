@@ -45,6 +45,11 @@
     "expect": "unsupported"
   },
   {
+    "source": "harness/scripts/function_none.py",
+    "envelope": "harness/scripts/function_none.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"

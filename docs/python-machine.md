@@ -181,5 +181,7 @@ lazy conditional in a function return, while
 function call, while
 `harness/scripts/function_arity.py` checks that a wrong-arity call refuses
 loudly, while
+`harness/scripts/function_none.py` checks caller resumption after an implicit
+`None` return, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is eight matches, two refusals, and zero divergence.
+current result is nine matches, two refusals, and zero divergence.
