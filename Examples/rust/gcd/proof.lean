@@ -4,6 +4,84 @@ namespace Examples.rust.gcd
 
 open LeanModels.Rust
 
+def gcdCore : Body := {
+ instanceId := "_RNvCsiQfy8kqUaFp_15study_while_gcd3gcd",
+ blocks := [
+  { statements := [.storageLive 3], terminator := .goto 1 },
+  { statements := [.storageLive 5, .storageLive 6,
+    .assign {localId:=6,projection:=[]} (.use (.copy {localId:=2,projection:=[]})),
+    .assign {localId:=5,projection:=[]} (.binaryNe (.move {localId:=6,projection:=[]}) (.constant 6 [0,0,0,0] 1))],
+    terminator := .switchInt (.move {localId:=5,projection:=[]}) [(0,4)] 2 },
+  { statements := [.storageDead 6, .storageLive 7, .storageLive 8,
+    .assign {localId:=8,projection:=[]} (.use (.copy {localId:=1,projection:=[]})),
+    .storageLive 9,
+    .assign {localId:=9,projection:=[]} (.use (.copy {localId:=2,projection:=[]})),
+    .assign {localId:=10,projection:=[]} (.binaryEq (.copy {localId:=9,projection:=[]}) (.constant 6 [0,0,0,0] 1))],
+    terminator := .assert (.move {localId:=10,projection:=[]}) false 3 },
+  { statements := [.assign {localId:=7,projection:=[]} (.binaryRem (.move {localId:=8,projection:=[]}) (.move {localId:=9,projection:=[]})),
+    .storageDead 9, .storageDead 8, .storageLive 11,
+    .assign {localId:=11,projection:=[]} (.use (.copy {localId:=2,projection:=[]})),
+    .assign {localId:=1,projection:=[]} (.use (.move {localId:=11,projection:=[]})),
+    .storageDead 11, .storageLive 12,
+    .assign {localId:=12,projection:=[]} (.use (.copy {localId:=7,projection:=[]})),
+    .assign {localId:=2,projection:=[]} (.use (.move {localId:=12,projection:=[]})),
+    .storageDead 12,
+    .assign {localId:=4,projection:=[]} (.use (.constant 4 [] 3 none true)),
+    .storageDead 7, .storageDead 5], terminator := .goto 1 },
+  { statements := [.storageDead 6, .storageLive 14,
+    .assign {localId:=3,projection:=[]} (.use (.constant 4 [] 3 none true)),
+    .storageDead 14, .storageDead 5, .storageDead 3,
+    .assign {localId:=0,projection:=[]} (.use (.copy {localId:=1,projection:=[]}))], terminator := .ret }
+ ]}
+
+
+
+theorem gcdBody_eq : gcdBody = gcdCore := by rfl
+
+def gcdBlock0 : Block :=
+  { statements := [.storageLive 3], terminator := .goto 1 }
+
+theorem gcd_block0_eq : blockAt gcdCore.blocks 0 = some gcdBlock0 := by rfl
+
+def gcdBlock1 : Block :=
+  { statements := [.storageLive 5, .storageLive 6,
+      .assign { localId := 6, projection := [] }
+        (.use (.copy { localId := 2, projection := [] })),
+      .assign { localId := 5, projection := [] }
+        (.binaryNe (.move { localId := 6, projection := [] })
+          (.constant 6 [0, 0, 0, 0] 1))],
+    terminator := .switchInt (.move { localId := 5, projection := [] }) [(0, 4)] 2 }
+
+def gcdBlock4 : Block :=
+  { statements := [.storageDead 6, .storageLive 14,
+      .assign { localId := 3, projection := [] }
+        (.use (.constant 4 [] 3 none true)),
+      .storageDead 14, .storageDead 5, .storageDead 3,
+      .assign { localId := 0, projection := [] }
+        (.use (.copy { localId := 1, projection := [] }))],
+    terminator := .ret }
+
+theorem gcd_block1_eq : blockAt gcdCore.blocks 1 = some gcdBlock1 := by rfl
+
+theorem gcd_block4_eq : blockAt gcdCore.blocks 4 = some gcdBlock4 := by rfl
+
+theorem gcd_zero_cfg (a : Nat) :
+    ∃ t, cfgRunOutcome 10 gcdBody 0 (gcdInput a 0) = .returned t ∧
+      returnValue t = some (Int.ofNat (Nat.gcd a 0)) := by
+  unfold gcdInput gcdType
+  rw [gcdBody_eq, cfgRunOutcome.eq_2, gcd_block0_eq]
+  simp [gcdBlock0, statementsRun, statementStep, setSlot]
+  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter]
+  rw [cfgRunOutcome.eq_2, gcd_block4_eq]
+  simp [gcdBlock4, statementsRun, statementStep, setSlot, operandCell,
+    readCell, localSlot, slotCell, rvalueCell, typedBytesValue, littleEndian,
+    projectCell, writeCell, eventForCell, returnValue, cellSlot, cellInt,
+    List.filter]
+
 def gcdLoop : Nat → Nat → Nat
   | a, 0 => a
   | a, b + 1 => gcdLoop (b + 1) (a % (b + 1))
