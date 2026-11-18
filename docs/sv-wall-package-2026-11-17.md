@@ -1131,3 +1131,19 @@ execution cost and clocked storage targets. The inout and latch target families
 remain explicit canonical-E refusals with matching pinned-simulator rows. This
 ranking is based on the generated `docs/sv-real-designs.md` check and the
 package x/z receipt, not a new real-design count claim.
+
+## Parameter-default assignment-pattern wall — 2026-11-19
+
+The pinned Ibex remeasurement reaches the parser-native `AssignmentPattern:default-point`
+value in a package/module parameter default. The clean-room receipt
+`Examples/system-verilog/sem2/assignment_pattern_param_e/` retains the
+`'{default: 4'h0}` node and keeps canonical E loud at the same boundary before
+`P ^ x` is evaluated. This follows IEEE 1800-2023 §10.9's aggregate-pattern
+correspondence rule without freezing the parameter family at the default point.
+
+Xcelium 24.03-s004 produces three source rows, `0000`, `1010`, and `xxxx`.
+Icarus Verilog 13.0 rejects the faithful parameter-default syntax, so no Icarus
+oracle result is claimed. No aggregate value is lowered to a scalar integer and
+no E-ROWS or REAL-DESIGNS count transition is claimed. The next implementation
+item is a source-shaped aggregate-pattern value representation for typed
+parameter defaults, with rows at multiple parameter points and x/z operands.
