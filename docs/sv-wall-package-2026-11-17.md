@@ -502,6 +502,17 @@ result is claimed for that divergent point, and the source remains outside the
 receipt manifest. No loop lowering, E-row admission, or real-design count
 transition is claimed.
 
+## Nested unpacked-target wall
+
+The parameterized `nested_unpacked_target.sv` clean-room source keeps a
+two-rank unpacked `weights[row][col]` target in generated edge processes. The
+ordinary census retains the parser's default-point index rows, then canonical
+E refuses the declaration with
+`decl 'weights': nested unpacked memory rank outside E (UnpackedDecl:rank)`.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all six source rows,
+including reset, known, x, and z data. No nested-memory E execution or
+real-design count transition is claimed.
+
 ## Memory-cell identifier wall remeasurement
 
 The public clean-room `memory_cell_identifier.sv` fixture uses `cell` as a
