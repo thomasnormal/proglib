@@ -56,7 +56,7 @@ def _root_.LeanModels.Sv.PExpr.sigNames : PExpr → List String
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a | .sysCall _ a | .reduce _ a | .cast _ a =>
       PExpr.sigNames a
   | .binary _ a b | .bitSel a b | .repl a b => PExpr.sigNames a ++ PExpr.sigNames b
-  | .aggregateMember base _ => [base]
+  | .aggregateMember base path => base :: PExpr.sigNamesPath path
   | .ternary c a b | .partSel c a b => PExpr.sigNames c ++ PExpr.sigNames a ++ PExpr.sigNames b
   | .concat xs | .functionCall _ xs => PExpr.sigNamesList xs
   | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .unsupported _ _ => []
@@ -66,7 +66,21 @@ def _root_.LeanModels.Sv.PExpr.sigNamesList : List PExpr → List String
   | [] => []
   | x :: xs => PExpr.sigNames x ++ PExpr.sigNamesList xs
 
+def _root_.LeanModels.Sv.PExpr.sigNamesOpt : Option PExpr → List String
+  | none => []
+  | some e => PExpr.sigNames e
+
+def _root_.LeanModels.Sv.PExpr.sigNamesPath :
+    List (Option String × Option PExpr) → List String
+  | [] => []
+  | (_, index) :: rest => PExpr.sigNamesOpt index ++ PExpr.sigNamesPath rest
+
 end
+
+/-! Aggregate selectors retain both the aggregate base and every signal read by
+their parser-native index expressions in the clocked obligation read set. -/
+#guard PExpr.sigNames (.aggregateMember "state"
+    [(some "value", none), (none, some (.ident "sel_i"))]) == ["state", "sel_i"]
 
 mutual
 
