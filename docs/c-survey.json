@@ -1,42 +1,44 @@
 {
  "by_corpus": {
   "c-testsuite/single-exec": {
+   "failed": 1,
    "not-parsed": 1,
-   "passed": 185,
+   "passed": 188,
    "refused-libc": 1,
    "refused-ub": 4,
-   "refused-unsupported": 26,
-   "timeout": 3
+   "refused-unsupported": 24,
+   "timeout": 1
   },
   "gcc.c-torture/execute": {
-   "failed": 3,
-   "not-parsed": 321,
+   "failed": 7,
+   "not-parsed": 325,
    "oracle-tests-compiler": 1,
-   "passed": 1018,
+   "passed": 1130,
    "refused-libc": 18,
-   "refused-ub": 78,
-   "refused-unsupported": 306,
-   "timeout": 84
+   "refused-ub": 91,
+   "refused-unsupported": 249,
+   "timeout": 8
   },
   "gcc.c23-run": {
+   "failed": 1,
    "not-parsed": 28,
    "passed": 8,
-   "refused-libc": 2,
+   "refused-libc": 1,
    "refused-ub": 4,
    "refused-unsupported": 21
   }
  },
  "corpus": "C1-C3 (gcc torture, c-testsuite, gcc c23-run)",
  "counts": {
-  "failed": 3,
+  "failed": 9,
   "no-entry-point": 102,
-  "not-parsed": 350,
+  "not-parsed": 354,
   "oracle-tests-compiler": 1,
-  "passed": 1211,
-  "refused-libc": 21,
-  "refused-ub": 86,
-  "refused-unsupported": 353,
-  "timeout": 87
+  "passed": 1326,
+  "refused-libc": 20,
+  "refused-ub": 99,
+  "refused-unsupported": 396,
+  "timeout": 9
  },
  "dynamic_wall_ranking": [
   {
@@ -390,105 +392,15 @@
     "tstdi-1.c",
     "user-printf.c",
     "va-arg-2.c",
-    "va-arg-pack-1.c"
+    "va-arg-pack-1.c",
+    "vfprintf-1.c",
+    "vfprintf-chk-1.c",
+    "vprintf-1.c",
+    "vprintf-chk-1.c"
    ],
-   "present": 350,
-   "sole": 350,
+   "present": 354,
+   "sole": 354,
    "wall": "frontend"
-  },
-  {
-   "files": [
-    "00040.c",
-    "00041.c",
-    "00128.c",
-    "20000121-1.c",
-    "20000412-2.c",
-    "20000605-1.c",
-    "20011008-3.c",
-    "20020108-1.c",
-    "20030916-1.c",
-    "20040313-1.c",
-    "20040629-1.c",
-    "20050224-1.c",
-    "20060905-1.c",
-    "20071030-1.c",
-    "20081218-1.c",
-    "951204-1.c",
-    "960521-1.c",
-    "961017-1.c",
-    "961017-2.c",
-    "980602-1.c",
-    "990513-1.c",
-    "991201-1.c",
-    "arith-rand-ll.c",
-    "arith-rand.c",
-    "ashldi-1.c",
-    "ashrdi-1.c",
-    "builtin-bitops-1.c",
-    "divcmp-1.c",
-    "divcmp-3.c",
-    "doloop-1.c",
-    "doloop-2.c",
-    "fprintf-chk-1.c",
-    "ieee/20001122-1.c",
-    "ieee/compare-fp-4.c",
-    "loop-11.c",
-    "loop-ivopts-2.c",
-    "lshrdi-1.c",
-    "memcpy-1.c",
-    "memcpy-2.c",
-    "memcpy-bi.c",
-    "memset-1.c",
-    "mode-dependent-address.c",
-    "multi-ix.c",
-    "nestfunc-4.c",
-    "pr107881-1.c",
-    "pr110252-1.c",
-    "pr123978.c",
-    "pr126405-2.c",
-    "pr126405.c",
-    "pr19005.c",
-    "pr27260.c",
-    "pr28982a.c",
-    "pr28982b.c",
-    "pr37573.c",
-    "pr42512.c",
-    "pr43784.c",
-    "pr45034.c",
-    "pr47337.c",
-    "pr48571-1.c",
-    "pr49886.c",
-    "pr61725.c",
-    "pr65401.c",
-    "pr65418-1.c",
-    "pr66556.c",
-    "pr68506.c",
-    "pr68532.c",
-    "pr71083.c",
-    "pr78675.c",
-    "pr82387.c",
-    "pr85529-2.c",
-    "pr87290.c",
-    "pr88693.c",
-    "pr91137.c",
-    "pr92904.c",
-    "pr94734.c",
-    "pr95731.c",
-    "pr98736.c",
-    "printf-chk-1.c",
-    "shiftdi-2.c",
-    "split-path-1.c",
-    "ssad-run.c",
-    "strcpy-1.c",
-    "strlen-3.c",
-    "strlen-4.c",
-    "subcmp-1.c",
-    "switch-1.c",
-    "usad-run.c"
-   ],
-   "present": 87,
-   "sole": 87,
-   "wall": "timeout"
   },
   {
    "files": [
@@ -498,35 +410,42 @@
     "00200.c",
     "20000910-1.c",
     "20001203-2.c",
+    "20010329-1.c",
     "20010409-1.c",
     "20010904-1.c",
     "20010904-2.c",
     "20020129-1.c",
     "20020508-2.c",
     "20020508-3.c",
+    "20021010-2.c",
     "20030404-1.c",
     "20031003-1.c",
     "20040409-1w.c",
     "20040409-2w.c",
     "20040409-3w.c",
-    "20041212-1.c",
     "20050826-1.c",
+    "20051113-1.c",
     "20060110-1.c",
     "20060110-2.c",
     "20071120-1.c",
     "20080222-1.c",
     "20090113-1.c",
     "20090527-1.c",
+    "20100430-1.c",
     "20121108-1.c",
     "20171008-1.c",
     "20191023-1.c",
     "920726-1.c",
     "930529-1.c",
+    "941014-2.c",
     "950704-1.c",
     "960317-1.c",
     "990524-1.c",
+    "arith-rand-ll.c",
+    "arith-rand.c",
     "bswap-2.c",
     "builtin-prefetch-2.c",
+    "builtin-prefetch-6.c",
     "enum-3.c",
     "gcc/testsuite/gcc.dg/c23-complit-1.c",
     "gcc/testsuite/gcc.dg/c23-tag-alias-1.c",
@@ -541,16 +460,20 @@
     "ieee/mzero2.c",
     "ieee/pr84235.c",
     "loop-15.c",
+    "loop-2e.c",
     "pr101188.c",
+    "pr15296.c",
     "pr17252.c",
     "pr21173.c",
     "pr22493-1.c",
     "pr23047.c",
+    "pr28982a.c",
     "pr33870-1.c",
     "pr33870.c",
     "pr34099-2.c",
     "pr34099.c",
     "pr34176.c",
+    "pr38051.c",
     "pr39339.c",
     "pr40386.c",
     "pr41395-1.c",
@@ -567,7 +490,9 @@
     "pr79286.c",
     "pr84339.c",
     "pr99079.c",
+    "ptr-arith-1.c",
     "return-addr.c",
+    "shiftdi-2.c",
     "stdarg-3.c",
     "strlen-7.c",
     "va-arg-1.c",
@@ -579,8 +504,8 @@
     "zero-struct-2.c",
     "zerolen-1.c"
    ],
-   "present": 86,
-   "sole": 86,
+   "present": 99,
+   "sole": 99,
    "wall": "undefined-behavior"
   },
   {
@@ -663,90 +588,6 @@
   },
   {
    "files": [
-    "00218.c",
-    "20230630-1.c",
-    "20230630-2.c",
-    "20230630-3.c",
-    "20230630-4.c",
-    "921016-1.c",
-    "990326-1.c",
-    "991118-1.c",
-    "bf64-1.c",
-    "pr110165-1.c",
-    "pr31448-2.c",
-    "pr31448.c",
-    "pr48973-1.c",
-    "pr48973-2.c",
-    "pr49123.c",
-    "pr55750.c",
-    "signed1bitfield-1.c",
-    "vrp-7.c"
-   ],
-   "present": 18,
-   "sole": 18,
-   "wall": "unsupported:implementation-defined bit-field conversion"
-  },
-  {
-   "files": [
-    "20011121-1.c",
-    "20050215-1.c",
-    "20060420-1.c",
-    "941014-1.c",
-    "941014-2.c",
-    "980526-2.c",
-    "alloca-1.c",
-    "loop-2c.c",
-    "pr17133.c",
-    "pr23467.c",
-    "pr36339.c",
-    "pr38051.c",
-    "pr58209.c",
-    "pr97421-3.c"
-   ],
-   "present": 14,
-   "sole": 14,
-   "wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t"
-  },
-  {
-   "files": [
-    "00214.c",
-    "20000622-1.c",
-    "20010329-1.c",
-    "20021010-2.c",
-    "20041112-1.c",
-    "20050125-1.c",
-    "960116-1.c",
-    "builtin-prefetch-6.c",
-    "loop-2e.c",
-    "pr103255.c",
-    "pr23324.c",
-    "pr39233.c",
-    "pr86231.c"
-   ],
-   "present": 13,
-   "sole": 13,
-   "wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip"
-  },
-  {
-   "files": [
-    "20001228-1.c",
-    "20020406-1.c",
-    "20051021-1.c",
-    "20230510-1.c",
-    "930930-2.c",
-    "pr17377.c",
-    "pr20100-1.c",
-    "pr20621-1.c",
-    "string-opt-5.c",
-    "va-arg-10.c",
-    "va-arg-9.c"
-   ],
-   "present": 11,
-   "sole": 11,
-   "wall": "unsequenced-effects"
-  },
-  {
-   "files": [
     "20030914-1.c",
     "20080502-1.c",
     "gcc/testsuite/gcc.dg/c23-float-1.c",
@@ -761,6 +602,22 @@
    "present": 10,
    "sole": 10,
    "wall": "unsupported:long double floating literal"
+  },
+  {
+   "files": [
+    "00040.c",
+    "20011008-3.c",
+    "960521-1.c",
+    "memcpy-1.c",
+    "minmaxcmp-1.c",
+    "pr107881-1.c",
+    "pr28982b.c",
+    "pr91137.c",
+    "subcmp-1.c"
+   ],
+   "present": 9,
+   "sole": 9,
+   "wall": "timeout"
   },
   {
    "files": [
@@ -780,6 +637,21 @@
   },
   {
    "files": [
+    "00214.c",
+    "20000703-1.c",
+    "20000917-1.c",
+    "20020206-1.c",
+    "20020320-1.c",
+    "930406-1.c",
+    "950906-1.c",
+    "compndlit-1.c"
+   ],
+   "present": 8,
+   "sole": 8,
+   "wall": "unsupported:StmtExpr"
+  },
+  {
+   "files": [
     "20040302-1.c",
     "20041214-1.c",
     "20071210-1.c",
@@ -794,33 +666,6 @@
   },
   {
    "files": [
-    "20000703-1.c",
-    "20000917-1.c",
-    "20020206-1.c",
-    "20020320-1.c",
-    "930406-1.c",
-    "950906-1.c",
-    "compndlit-1.c"
-   ],
-   "present": 7,
-   "sole": 7,
-   "wall": "unsupported:StmtExpr"
-  },
-  {
-   "files": [
-    "00174.c",
-    "00175.c",
-    "00195.c",
-    "00205.c",
-    "00213.c",
-    "00215.c"
-   ],
-   "present": 6,
-   "sole": 6,
-   "wall": "unsupported:printf"
-  },
-  {
-   "files": [
     "20030910-1.c",
     "960512-1.c",
     "complex-1.c",
@@ -830,6 +675,29 @@
    "present": 5,
    "sole": 5,
    "wall": "unsupported:no layout for declared type '_Complex double'"
+  },
+  {
+   "files": [
+    "20011121-1.c",
+    "980526-2.c",
+    "loop-2c.c",
+    "pr17133.c",
+    "pr23467.c"
+   ],
+   "present": 5,
+   "sole": 5,
+   "wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t"
+  },
+  {
+   "files": [
+    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
+    "pr103255.c",
+    "pr30778.c",
+    "pr44468.c"
+   ],
+   "present": 4,
+   "sole": 4,
+   "wall": "unsupported:OffsetOfExpr"
   },
   {
    "files": [
@@ -877,13 +745,24 @@
   },
   {
    "files": [
-    "gcc/testsuite/gcc.dg/c23-nullptr-5.c",
-    "pr58943.c",
-    "pr77767.c"
+    "20000223-1.c",
+    "align-3.c",
+    "alloca-1.c",
+    "zerolen-2.c"
+   ],
+   "present": 4,
+   "sole": 4,
+   "wall": "unsupported:type trait '__alignof'"
+  },
+  {
+   "files": [
+    "20020227-1.c",
+    "complex-4.c",
+    "pr42248.c"
    ],
    "present": 3,
    "sole": 3,
-   "wall": "libc-call: __builtin_abort"
+   "wall": "cast:FloatingRealToComplex"
   },
   {
    "files": [
@@ -907,13 +786,13 @@
   },
   {
    "files": [
-    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
-    "pr30778.c",
-    "pr44468.c"
+    "00199.c",
+    "00213.c",
+    "20040704-1.c"
    ],
    "present": 3,
    "sole": 3,
-   "wall": "unsupported:OffsetOfExpr"
+   "wall": "unsupported:break, continue or goto escaped a function body"
   },
   {
    "files": [
@@ -924,6 +803,16 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'"
+  },
+  {
+   "files": [
+    "20000731-1.c",
+    "20011217-1.c",
+    "pr92904.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:floating value used as an integer"
   },
   {
    "files": [
@@ -957,32 +846,13 @@
   },
   {
    "files": [
-    "pr52979-1.c",
-    "pr52979-2.c",
-    "pr79737-1.c"
+    "00174.c",
+    "00175.c",
+    "00195.c"
    ],
    "present": 3,
    "sole": 3,
-   "wall": "unsupported:no layout for declared type 'struct S'"
-  },
-  {
-   "files": [
-    "20000223-1.c",
-    "align-3.c",
-    "zerolen-2.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:type trait '__alignof'"
-  },
-  {
-   "files": [
-    "complex-4.c",
-    "pr42248.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "cast:FloatingRealToComplex"
+   "wall": "unsupported:printf"
   },
   {
    "files": [
@@ -1004,6 +874,15 @@
   },
   {
    "files": [
+    "20040709-1.c",
+    "20040709-2.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "libc-call: __builtin_classify_type"
+  },
+  {
+   "files": [
     "970217-1.c",
     "loop-8.c"
    ],
@@ -1022,6 +901,15 @@
   },
   {
    "files": [
+    "20020406-1.c",
+    "string-opt-5.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsequenced-effects"
+  },
+  {
+   "files": [
     "20071211-1.c",
     "pr81588.c"
    ],
@@ -1037,15 +925,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:GenericSelectionExpr"
-  },
-  {
-   "files": [
-    "00199.c",
-    "20040704-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:break, continue or goto escaped a function body"
   },
   {
    "files": [
@@ -1085,15 +964,6 @@
   },
   {
    "files": [
-    "20000731-1.c",
-    "20011217-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:floating value used as an integer"
-  },
-  {
-   "files": [
     "00129.c",
     "gcc/testsuite/gcc.dg/c23-labels-1.c"
    ],
@@ -1121,12 +991,30 @@
   },
   {
    "files": [
+    "00078.c",
+    "struct-cpy-1.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsupported:non-object declaration in a block"
+  },
+  {
+   "files": [
     "980701-1.c",
     "pr36321.c"
    ],
    "present": 2,
    "sole": 2,
    "wall": "unsupported:operator '-' on pointers without array provenance"
+  },
+  {
+   "files": [
+    "921113-1.c",
+    "pr77767.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsupported:parameter array-bound effects are not retained by clang"
   },
   {
    "files": [
@@ -1145,6 +1033,15 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:unbound declaration 'id15' (name 'a')"
+  },
+  {
+   "files": [
+    "pr126405-2.c",
+    "pr126405.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsupported:unbound declaration 'id23' (name 'g18')"
   },
   {
    "files": [
@@ -1174,14 +1071,6 @@
   },
   {
    "files": [
-    "20040709-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: __builtin_classify_type"
-  },
-  {
-   "files": [
     "builtin-constant.c"
    ],
    "present": 1,
@@ -1203,6 +1092,14 @@
    "present": 1,
    "sole": 1,
    "wall": "libc-call: __builtin_islessgreater"
+  },
+  {
+   "files": [
+    "pr17377.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "libc-call: __builtin_return_address"
   },
   {
    "files": [
@@ -1278,11 +1175,11 @@
   },
   {
    "files": [
-    "20050604-1.c"
+    "pr23324.c"
    ],
    "present": 1,
    "sole": 1,
-   "wall": "unsupported:aggregate load without a layout '__attribute__((__vector_size__(4 * sizeof(unsigned short)))) unsigned short'"
+   "wall": "unsupported:bit-field reads an indeterminate representation"
   },
   {
    "files": [
@@ -1382,6 +1279,14 @@
   },
   {
    "files": [
+    "941014-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:function pointer used as an object pointer"
+  },
+  {
+   "files": [
     "00219.c"
    ],
    "present": 1,
@@ -1414,11 +1319,11 @@
   },
   {
    "files": [
-    "strct-pack-2.c"
+    "20050604-1.c"
    ],
    "present": 1,
    "sole": 1,
-   "wall": "unsupported:no layout for declared type 'A'"
+   "wall": "unsupported:no layout for compound literal type 'v4hi'"
   },
   {
    "files": [
@@ -1435,14 +1340,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'Q'"
-  },
-  {
-   "files": [
-    "strct-pack-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'TRIAL'"
   },
   {
    "files": [
@@ -1558,6 +1455,14 @@
   },
   {
    "files": [
+    "00124.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:no layout for declared type 'int (*(*)(int, int))(int, int)'"
+  },
+  {
+   "files": [
     "991112-1.c"
    ],
    "present": 1,
@@ -1582,99 +1487,11 @@
   },
   {
    "files": [
-    "20040709-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct A'"
-  },
-  {
-   "files": [
-    "pr70602.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct S[21]'"
-  },
-  {
-   "files": [
-    "pr58570.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct S[6]'"
-  },
-  {
-   "files": [
-    "packed-aligned.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct c'"
-  },
-  {
-   "files": [
-    "bf-pack-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct foo'"
-  },
-  {
-   "files": [
-    "pr45070.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct packed_ushort'"
-  },
-  {
-   "files": [
     "gcc/testsuite/gcc.dg/c23-tag-5.c"
    ],
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'struct product_iSfd_'"
-  },
-  {
-   "files": [
-    "pr29006.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct s'"
-  },
-  {
-   "files": [
-    "struct-cpy-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct tty_driver'"
-  },
-  {
-   "files": [
-    "20020227-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct x'"
-  },
-  {
-   "files": [
-    "struct-ret-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'three_byte_t'"
-  },
-  {
-   "files": [
-    "strct-pack-4.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'three_char_t'"
   },
   {
    "files": [
@@ -1718,14 +1535,6 @@
   },
   {
    "files": [
-    "20010518-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'volatile a_struct'"
-  },
-  {
-   "files": [
     "gcc/testsuite/gcc.dg/c23-float-12.c"
    ],
    "present": 1,
@@ -1739,22 +1548,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'wchar_t[21]'"
-  },
-  {
-   "files": [
-    "20051113-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for field 'Count'"
-  },
-  {
-   "files": [
-    "20100430-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for field 'pst1'"
   },
   {
    "files": [
@@ -1830,11 +1623,11 @@
   },
   {
    "files": [
-    "00078.c"
+    "pr48571-1.c"
    ],
    "present": 1,
    "sole": 1,
-   "wall": "unsupported:non-object declaration in a block"
+   "wall": "unsupported:no size for pointee of 'void *'"
   },
   {
    "files": [
@@ -1862,6 +1655,14 @@
   },
   {
    "files": [
+    "20041212-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:operator operands have unsupported value kinds (C23 6.5)"
+  },
+  {
+   "files": [
     "gcc/testsuite/gcc.dg/atomic/c23-stdatomic-lockfree-char8_t.c"
    ],
    "present": 1,
@@ -1886,6 +1687,14 @@
   },
   {
    "files": [
+    "20060420-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:sizeof: no layout for operand type 'v4flt'"
+  },
+  {
+   "files": [
     "va-arg-21.c"
    ],
    "present": 1,
@@ -1894,27 +1703,19 @@
   },
   {
    "files": [
+    "20001228-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:src/20001228-1.c"
+  },
+  {
+   "files": [
     "930628-1.c"
    ],
    "present": 1,
    "sole": 1,
    "wall": "unsupported:src/930628-1.c"
-  },
-  {
-   "files": [
-    "ffs-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/ffs-2.c"
-  },
-  {
-   "files": [
-    "ieee/mul-subnormal-single-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:src/ieee/mul-subnormal-single-1.c"
   },
   {
    "files": [
@@ -1982,14 +1783,6 @@
   },
   {
    "files": [
-    "packed-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id22' (name 't')"
-  },
-  {
-   "files": [
     "pr87053.c"
    ],
    "present": 1,
@@ -2014,14 +1807,6 @@
   },
   {
    "files": [
-    "20131127-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id30' (name 'b')"
-  },
-  {
-   "files": [
     "va-arg-trap-1.c"
    ],
    "present": 1,
@@ -2038,22 +1823,6 @@
   },
   {
    "files": [
-    "20030224-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id32' (name 'node')"
-  },
-  {
-   "files": [
-    "packed-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id33' (name 't')"
-  },
-  {
-   "files": [
     "pr34456.c"
    ],
    "present": 1,
@@ -2067,14 +1836,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:unbound declaration 'id45' (name 'k')"
-  },
-  {
-   "files": [
-    "960117-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:unbound declaration 'id48' (name 'curval')"
   },
   {
    "files": [
@@ -2110,11 +1871,11 @@
   },
   {
    "files": [
-    "pr15296.c"
+    "mode-dependent-address.c"
    ],
    "present": 1,
    "sole": 1,
-   "wall": "unsupported:union initializer has no member"
+   "wall": "unsupported:unbound declaration 'id901' (name 'arg1')"
   },
   {
    "files": [
@@ -2139,15 +1900,23 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:unnamed pointer parameter (array-bound effects are not retained by clang)"
+  },
+  {
+   "files": [
+    "991118-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:unsupported bit-field width 53 for 'long long'"
   }
  ],
  "excluded": {
   "no-entry-point": 102
  },
- "manifest_hash": "3e6f6add513d9e002704d81e95c042c0d97b48506e37ce6c58c2666f464ab4e4",
- "measured_at_utc": "2026-11-17T03:06:44Z",
- "measured_commit": "3faf427a1",
- "pin": null,
+ "manifest_hash": "8b5b05c8a9f9a70448c629a552c5404fcaea492b07a56c65b93c41fcefda45e1",
+ "measured_at_utc": "2026-11-18T23:05:00Z",
+ "measured_commit": "baac768a4",
+ "pin": "C1-C3",
  "rows": [
   {
    "corpus": "c-testsuite/single-exec",
@@ -2564,7 +2333,7 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "per-file wall timeout (2s)",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "00040.c",
@@ -2577,12 +2346,12 @@
   {
    "corpus": "c-testsuite/single-exec",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00041.c",
    "sha256": "412d5d27698454a6f238b6e67891f5ee8a48665eb19ae3403186672f930f2795",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -3486,15 +3255,15 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "no layout for declared type 'int (*(*)(int, int))(int, int)'",
+   "dynamic_wall": "unsupported:no layout for declared type 'int (*(*)(int, int))(int, int)'",
    "manifest_status": "parsed",
    "name": "00124.c",
    "sha256": "77b3d195814db328448ba7ce8986574ab66ed59ded9746ce479c94a75b31e02d",
    "static_walls": [
     "libc-call"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -3533,12 +3302,12 @@
   {
    "corpus": "c-testsuite/single-exec",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00128.c",
    "sha256": "24bce7c18abe4b9677c16369492018f2b3a68bc4774a7d738f445496995321ef",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4569,8 +4338,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: unsupported format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00205.c",
    "sha256": "aeee57466f8c7361ba59eb4a0146c5e07bab844ed5dacc605611f9bbe32a0903",
@@ -4579,7 +4348,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4625,7 +4394,7 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "tests/single-exec/00209.c:24:16: error: too many arguments to function call, expected 0, have 1 24 | return (*fp)(i); | ~~~~~ ^ 1 error generated.",
+   "detail": "src/00209.c:24:16: error: too many arguments to function call, expected 0, have 1",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "00209.c",
@@ -4679,8 +4448,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: unsupported format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "break, continue or goto escaped a function body",
+   "dynamic_wall": "unsupported:break, continue or goto escaped a function body",
    "manifest_status": "parsed",
    "name": "00213.c",
    "sha256": "5ed538b99fd0718984ef80e4cad7f442f51128688f531ae3b2d6f5e5a3ab28a5",
@@ -4694,8 +4463,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "out of tier: StmtExpr",
+   "dynamic_wall": "unsupported:StmtExpr",
    "manifest_status": "parsed",
    "name": "00214.c",
    "sha256": "5164bc3a4482815ba765ec253765a69bf59bc074e4313fdf607e4554daf798bb",
@@ -4711,8 +4480,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "printf: unsupported format",
-   "dynamic_wall": "unsupported:printf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00215.c",
    "sha256": "e4a5fb421df978c45734fcda23c74233a72bcecc9df977e6556f55d9a2f4583c",
@@ -4721,7 +4490,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4756,8 +4525,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00218.c",
    "sha256": "92fd92f656c2aa1677d705f2bc7acf3187dda642d7b21651ed0a84428abde331",
@@ -4766,7 +4535,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "failed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4810,7 +4579,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000113-1.c",
@@ -4822,8 +4591,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "per-file wall timeout (2s)",
-   "dynamic_wall": "timeout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000121-1.c",
    "sha256": "5b93de04401f74c32ca0163f36e2d0c2c517e7fe3b4f0588b7c4f6258ec6a835",
@@ -4831,7 +4600,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -4888,7 +4657,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "Traceback (most recent call last):",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "20000227-1.c",
@@ -4974,13 +4743,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000412-2.c",
    "sha256": "58fcf26646e058b0dae6a2d9a5523aad60365f42b5ba2476fab43db71baec133",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5004,7 +4773,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000412-5.c",
@@ -5127,8 +4896,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000605-1.c",
    "sha256": "0201957d2776e0467c21a5428affeae829962f43c4ab93ebe71ad375e5939bf1",
@@ -5138,7 +4907,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5166,8 +4935,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000622-1.c",
    "sha256": "6205380b86f91172e9e941c846cc3f33c0e16affe937b04804bb497aad19ed96",
@@ -5175,7 +4944,7 @@
     "cast:IntegralToPointer",
     "cast:PointerToIntegral"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5768,8 +5537,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "src/20001228-1.c:17:12)'",
+   "dynamic_wall": "unsupported:src/20001228-1.c",
    "manifest_status": "parsed",
    "name": "20001228-1.c",
    "sha256": "63f5490094887141743fbbe50b7d32daa768330306586ae3b263ef53473c6809",
@@ -5959,15 +5728,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "LeanModels.C.C23.MemFault.relationalAcrossObjects",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "20010329-1.c",
    "sha256": "2ceea77f27478e0417a31cf60b446e25b59d4e826a265a97088f22936bb30560",
    "static_walls": [
     "cast:IntegralToPointer"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6015,8 +5784,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'volatile a_struct'",
-   "dynamic_wall": "unsupported:no layout for declared type 'volatile a_struct'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20010518-2.c",
    "sha256": "9159aa769ff820397c20c84bc03d2ea12e976ebc8a3c6b6f89facb9149b8d84c",
@@ -6024,7 +5793,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6176,7 +5945,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "20011008-3.c",
@@ -6380,13 +6149,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20020108-1.c",
    "sha256": "633f8a970ad8fe3c0405b4658188c6338940e08e2fd2169353208be3ddf987c5",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6534,8 +6303,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct x'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct x'",
+   "detail": "castKind 'FloatingRealToComplex'",
+   "dynamic_wall": "cast:FloatingRealToComplex",
    "manifest_status": "parsed",
    "name": "20020227-1.c",
    "sha256": "22863853a7e0bbad256eaa0e42f32684ff4fd585c1cc37d10d0a6b14c6db1388",
@@ -6955,8 +6724,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "LeanModels.C.C23.MemFault.nullDeref 0",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "20021010-2.c",
    "sha256": "db712e8a4916d3e933ef6add4db64c1a0e3808452897a5156ffdffdf105d5574",
@@ -6964,7 +6733,7 @@
     "cast:IntegralToPointer",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7292,8 +7061,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id32' (name 'node')",
-   "dynamic_wall": "unsupported:unbound declaration 'id32' (name 'node')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030224-2.c",
    "sha256": "db10e5fd721f70b5497e52114ca00dcda96b47aa107efd95f5d43e0c02adbb6e",
@@ -7301,7 +7070,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7628,15 +7397,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030916-1.c",
    "sha256": "ec30f2d5cb7106d3b5b0eb1e3a4382762a5457ae5b7cc5246ef7a0d7fe916788",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7898,14 +7667,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20040313-1.c",
    "sha256": "ac45f1d7f24589a4abbdd8358a84607584f1dcc37adb795bc698ec1e4750a7ca",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8024,7 +7793,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20040625-1.c",
@@ -8038,14 +7807,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20040629-1.c",
    "sha256": "ad4cf873a5dadb85002c2742486f7ed3da45e31478a7ac7e3392fdb1f8fd7681",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8128,8 +7897,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct A'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct A'",
+   "detail": "__builtin_classify_type",
+   "dynamic_wall": "libc-call: __builtin_classify_type",
    "manifest_status": "parsed",
    "name": "20040709-2.c",
    "sha256": "e7053c30dcf6effda4a98f7060d3587aea9a6433289236a4c1d661620331c849",
@@ -8140,7 +7909,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-libc"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8246,15 +8015,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20041112-1.c",
    "sha256": "1dea30cad5697db71e774a3f55f061505fdb9f09b27e79a0320d2171103f3576",
    "static_walls": [
     "cast:IntegralToPointer"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8334,13 +8103,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "LeanModels.C.C23.MemFault.indetAutomatic 0 0",
-   "dynamic_wall": "undefined-behavior",
+   "detail": "operator operands have unsupported value kinds (C23 6.5)",
+   "dynamic_wall": "unsupported:operator operands have unsupported value kinds (C23 6.5)",
    "manifest_status": "parsed",
    "name": "20041212-1.c",
    "sha256": "761141959003be6f41b91fe550b146729acaf2c92f1393006320f76381161b85",
    "static_walls": [],
-   "verdict": "refused-ub"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8440,7 +8209,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050119-1.c",
@@ -8453,7 +8222,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050119-2.c",
@@ -8489,8 +8258,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050125-1.c",
    "sha256": "4a29243c05c71c8eb655fe7dbe5212d8e9ba47756332e7d10c56d558e32174e9",
@@ -8498,7 +8267,7 @@
     "cast:IntegralToPointer",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8522,8 +8291,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050215-1.c",
    "sha256": "438f2262ce298b6a1ce1661a23f8c79d33d5b88644c73f84b917f4a7142edfad",
@@ -8532,7 +8301,7 @@
     "cast:PointerToIntegral",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8552,12 +8321,12 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050224-1.c",
    "sha256": "507f63462b6408c0637acefc026a6cbb06c22f2ccfb129656590a81f1a762a2f",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8636,8 +8405,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "aggregate load without a layout '__attribute__((__vector_size__(4 * sizeof(unsigned short)))) unsigned short'",
-   "dynamic_wall": "unsupported:aggregate load without a layout '__attribute__((__vector_size__(4 * sizeof(unsigned short)))) unsigned short'",
+   "detail": "no layout for compound literal type 'v4hi'",
+   "dynamic_wall": "unsupported:no layout for compound literal type 'v4hi'",
    "manifest_status": "parsed",
    "name": "20050604-1.c",
    "sha256": "bbae86866c6345203a57e5d18d0be4497517de5413554a07137169b336ef6e74",
@@ -8734,13 +8503,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20051021-1.c",
    "sha256": "2c67076304ec9e08ca626458ce90d4754dee863cac3ea0373eddab9f4aa21f0a",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8781,8 +8550,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for field 'Count'",
-   "dynamic_wall": "unsupported:no layout for field 'Count'",
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 34 30 94",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "20051113-1.c",
    "sha256": "70b9ac38f0e7d3612a075307054fb8b6efb73d49dc365dea8392fc6eeee8099a",
@@ -8792,7 +8561,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8860,8 +8629,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "sizeof: no layout for operand type 'v4flt'",
+   "dynamic_wall": "unsupported:sizeof: no layout for operand type 'v4flt'",
    "manifest_status": "parsed",
    "name": "20060420-1.c",
    "sha256": "cd7d81ae9a017a0c0c308153fdb88bc5aa1992cca079b468821cbe62a288a828",
@@ -8875,14 +8644,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20060905-1.c",
    "sha256": "db40f4ad156808d4ff3b845240fa28d312ac31adf99c34c2b8f8c977ec469eb2",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9135,7 +8904,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20071030-1.c",
    "sha256": "a149547a4bb6485847d48252da6eaf6d3b2e8185b74b062ac88bd6bcc23d79c2",
@@ -9145,7 +8914,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9479,7 +9248,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20081218-1.c",
    "sha256": "f8a063c3a29bbea7c8f108c12c7eece2f2e4bfa5fa11640ae94f1e68351146a0",
@@ -9488,7 +9257,7 @@
     "libc-call: __builtin_memset",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9638,8 +9407,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for field 'pst1'",
-   "dynamic_wall": "unsupported:no layout for field 'pst1'",
+   "detail": "LeanModels.C.C23.MemFault.indetAutomatic 3 8",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "20100430-1.c",
    "sha256": "b0620bda1d0f8ec4b4df7772215b5804066e030e383ef80107482d82abc36a9e",
@@ -9647,7 +9416,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9889,8 +9658,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id30' (name 'b')",
-   "dynamic_wall": "unsupported:unbound declaration 'id30' (name 'b')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20131127-1.c",
    "sha256": "32fee8fe474bff736cb9b3762d01e535a606160826cb6947d8285408776b6910",
@@ -9898,7 +9667,7 @@
     "type-layout",
     "unsupported:MaxFieldAlignmentAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10228,20 +9997,20 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230510-1.c",
    "sha256": "13c379f0104d0379ee184e504eac839270d8937a8f370347fabda575640f55be",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-1.c",
    "sha256": "41f9aad43dadb0658bf7ba63e59587cd873656fc79936ff5fa08c5acab6bb4f9",
@@ -10249,12 +10018,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-2.c",
    "sha256": "3fee99e4e5c5b5ba4cd56c80287630d2a3b6f9e3eea2751f37cf6880393dc43f",
@@ -10262,12 +10031,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "failed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-3.c",
    "sha256": "b738f362510553934b0e1dd18248a2ed1204f4b13f61781686f66a68a4d581e0",
@@ -10275,12 +10044,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-4.c",
    "sha256": "75b86123dbfa571b0c34576552ccbccb0a9e3a1166f7e90ef8400f7961749868",
@@ -10288,7 +10057,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "failed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10853,15 +10622,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921016-1.c",
    "sha256": "fe4ed290bb1efb9a2b0e15ceec69bee88c254f9b0695a9c969bd99699b4cfc5e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "failed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10940,8 +10709,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
-   "dynamic_wall": null,
+   "detail": "parameter array-bound effects are not retained by clang",
+   "dynamic_wall": "unsupported:parameter array-bound effects are not retained by clang",
    "manifest_status": "parsed",
    "name": "921113-1.c",
    "sha256": "b791176b451294a07fbc2962a66ca47b38988041ffe0e0160016f808f8ecaea6",
@@ -10950,7 +10719,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11364,7 +11133,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/930628-1.c:14:3)[2]'",
+   "detail": "src/930628-1.c:14:3)[4][2]'",
    "dynamic_wall": "unsupported:src/930628-1.c",
    "manifest_status": "parsed",
    "name": "930628-1.c",
@@ -11491,8 +11260,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "930930-2.c",
    "sha256": "721eba07c1b1ec880ed7b829e2f6105d779002e77f1d4ff7d2f328acd8f96cdd",
@@ -11501,7 +11270,7 @@
     "type-layout",
     "unsequenced-effects"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11841,8 +11610,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "function pointer used as an object pointer",
+   "dynamic_wall": "unsupported:function pointer used as an object pointer",
    "manifest_status": "parsed",
    "name": "941014-1.c",
    "sha256": "8d8f16c12e7ed2048f5416f93f34459cd2f52ce5307532e47cfde022b14687b5",
@@ -11853,8 +11622,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "LeanModels.C.C23.MemFault.indetAllocated 3 0",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "941014-2.c",
    "sha256": "188d52462aac626921914c0541fd63a4fb1a40601a4b891635a9d15cda08c109",
@@ -11865,7 +11634,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12184,18 +11953,18 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "951204-1.c",
    "sha256": "25a47f1a49f86523773a6c44026c7f9d062c2663f1fb3ada6315e23ab30d01fe",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "960116-1.c",
    "sha256": "92c13b1c9671cba3398b79b5ee868843c8e42049627c1d62655bd652383d9d44",
@@ -12203,12 +11972,12 @@
     "cast:IntegralToPointer",
     "cast:PointerToIntegral"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id48' (name 'curval')",
-   "dynamic_wall": "unsupported:unbound declaration 'id48' (name 'curval')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "960117-1.c",
    "sha256": "6f65783a8811e85e24380b2a2c45520c232d7cf6d742ca3f6edcfaf07615c537",
@@ -12217,7 +11986,7 @@
     "unsupported:AlignedAttr",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12454,7 +12223,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "960521-1.c",
@@ -12526,23 +12295,23 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "961017-1.c",
    "sha256": "216b7433659129bc4c719d60fb73d01d20eea0aec4290e98b624e1fd469d51d4",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "961017-2.c",
    "sha256": "e82afb99928ae4b4c29e216e8b3adc94c71fcf21a28d203fdca9532733a111e1",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12807,13 +12576,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "980602-1.c",
    "sha256": "51c521c68be506c6cf42ce75a4b5e82829cfa07238aaa7b35b003fa5e6da6bdd",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13131,8 +12900,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "990326-1.c",
    "sha256": "2f7244e7ade4cda9b5db57f8a07d3ccd9669f647062c96ee954df30d3780c7a4",
@@ -13140,7 +12909,7 @@
     "type-layout",
     "unsupported:AlignedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13171,7 +12940,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "990513-1.c",
    "sha256": "efc5173b45881fa5320d70c2b39564e0f17e1f1423de6f7e5a945bc5ec690fd6",
@@ -13179,7 +12948,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13400,8 +13169,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "unsupported bit-field width 53 for 'long long'",
+   "dynamic_wall": "unsupported:unsupported bit-field width 53 for 'long long'",
    "manifest_status": "parsed",
    "name": "991118-1.c",
    "sha256": "098e5c478b0e18053d843f15d42802f3631f84acde0b39660c1adb486b9434e8",
@@ -13412,15 +13181,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "991201-1.c",
    "sha256": "b049ece642416fc1272b7b90f44f217468d3e96ab5692b82660192a3264afabc",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13645,8 +13414,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "type trait '__alignof'",
+   "dynamic_wall": "unsupported:type trait '__alignof'",
    "manifest_status": "parsed",
    "name": "alloca-1.c",
    "sha256": "2af69a1caaac8c57db3ae9e61d97a7237d6830ab8972c2fb9cd9ae3da60ad9f1",
@@ -13682,47 +13451,47 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "arith-rand-ll.c",
    "sha256": "8e4da7b080eee46dd5d37a9b588ee64a439ef009a8fa3458573475278bbd9cf0",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "arith-rand.c",
    "sha256": "2a7bade42fd22c970f880cb2fe78665cb71755c8557d224dd1fa97f176bc6764",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ashldi-1.c",
    "sha256": "1ea00996ffc02dc6b6072708f3e883e15bfef485e7d2ddce7857a777f611ac66",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ashrdi-1.c",
    "sha256": "9b7d8a875d02c6cbdf77928a400a0436f76759f9af6b840b65ae069fc69665be",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13754,8 +13523,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct foo'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct foo'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bf-pack-1.c",
    "sha256": "c889b13e07bf0e0550ec32494f9943741ee0b4d50f70ace369eeb2bd5a4b8b2f",
@@ -13763,7 +13532,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13791,15 +13560,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bf64-1.c",
    "sha256": "d3035b700fbe0ba71cea78f1d69b7333698986ea945b0a9b904fdb1cc06e2c2e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14009,8 +13778,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "builtin-bitops-1.c",
    "sha256": "d58024d311022fa610f9c447b80677f1cbeb4461fd70ca9f03ebb65a972f4279",
@@ -14036,7 +13805,7 @@
     "type-layout",
     "unsequenced-effects"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14119,8 +13888,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "LeanModels.C.C23.MemFault.nonValueRepresentation 1 512",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "builtin-prefetch-6.c",
    "sha256": "f2dceeb20e3502ea409668ace21144dfd392ed961a49eeb9646745b0b35d290a",
@@ -14129,7 +13898,7 @@
     "libc-call: __builtin_prefetch",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14694,7 +14463,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/memcpy-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memcpy-chk.c",
@@ -14740,7 +14509,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/memmove-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memmove-chk.c",
@@ -14844,7 +14613,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/mempcpy-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/mempcpy-chk.c",
@@ -14891,7 +14660,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/memset-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memset-chk.c",
@@ -14978,7 +14747,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/pr23484-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/pr23484-chk.c",
@@ -14998,7 +14767,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/pr93262-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/pr93262-chk.c",
@@ -15038,7 +14807,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/snprintf-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/snprintf-chk.c",
@@ -15058,7 +14827,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/sprintf-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/sprintf-chk.c",
@@ -15104,7 +14873,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/stpcpy-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/stpcpy-chk.c",
@@ -15124,7 +14893,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/stpncpy-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/stpncpy-chk.c",
@@ -15144,7 +14913,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/strcat-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strcat-chk.c",
@@ -15268,7 +15037,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/strcpy-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strcpy-chk.c",
@@ -15415,7 +15184,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/strncat-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strncat-chk.c",
@@ -15512,7 +15281,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/strncpy-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strncpy-chk.c",
@@ -15840,7 +15609,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/vsnprintf-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/vsnprintf-chk.c",
@@ -15860,7 +15629,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/builtins/vsprintf-chk.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/vsprintf-chk.c",
@@ -16139,12 +15908,12 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "divcmp-1.c",
    "sha256": "75b9c44b7e633b8b58f7028c125b37553d9026bd28a62f12c85b4d119b16417d",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16159,12 +15928,12 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "divcmp-3.c",
    "sha256": "f35eb754e09367af82f33697aba11bdbe1e58e888c95d77b0f196611d7e7c1d3",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16232,23 +16001,23 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "doloop-1.c",
    "sha256": "f924830953739b2bbc9d38153a41d69d8796fad4e088f23203e4c158c6b61b77",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "doloop-2.c",
    "sha256": "c79b63c696c75731543fcb09129ea0d86d993f3384b2e6c42e3aee76f59735db",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16316,8 +16085,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/ffs-2.c:1:1)'",
-   "dynamic_wall": "unsupported:src/ffs-2.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ffs-2.c",
    "sha256": "b3ae15c3c3639ce034a6574ff705032168309638f7eb8bde4e4db1e60c5c0d25",
@@ -16325,7 +16094,7 @@
     "libc-call: __builtin_ffs",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16371,7 +16140,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/fprintf-2.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "fprintf-2.c",
@@ -16382,7 +16151,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "fprintf-chk-1.c",
    "sha256": "1f8ad943caf97cf3e4cd44c9466a36a57279d219a5185203225b99ab5480e837",
@@ -16393,7 +16162,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16447,7 +16216,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-attr-reproducible-5.c:28:10: error: use of undeclared identifier '__builtin_has_attribute' 28 | return __builtin_has_attribute (*(x ? f3 : f1), reproducible); | ^~~~~~~~~~~~~~~~~~~~~~~ /tmp/ls-gcc-c23-tree/gcc/t",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-attr-reproducible-5.c:16:10: error: use of undeclared identifier '__builtin_has_attribute'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-attr-reproducible-5.c",
@@ -16457,7 +16226,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-attr-u",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-attr-unsequenced-5.c:16:10: error: use of undeclared identifier '__builtin_has_attribute'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-attr-unsequenced-5.c",
@@ -16519,7 +16288,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-complit-2.c:31:14: error: expected expression 31 | int *p = &(static int) { 0 }; | ^ 5 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-complit-2.c:11:13: error: expected expression",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-complit-2.c",
@@ -16529,7 +16298,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-complit-4.c:18:11: error: expected expression 18 | return (static thread_local int []) { 1, 2 }; | ^ 1 error generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-complit-4.c:18:11: error: expected expression",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-complit-4.c",
@@ -16772,7 +16541,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-enum-6.c:118:10: warning: implicit conversion from 'int' to 'enum e2' changes value from 10 to 0",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-enum-6.c:37:19: error: '_Atomic' qualifier ignored; operations involving the enumeration type will be non-atomic [-Wunderlying-atomic-qualifier-ignored]",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-enum-6.c",
@@ -16866,7 +16635,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/g",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-float-6.c:14:2: error: \"FLT_SNAN undefined\"",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-float-6.c",
@@ -16876,7 +16645,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-float-7a.c:19:20: error: use of undeclared identifier 'FLT_SNAN' 19 | volatile float f = FLT_SNAN; | ^~~~~~~~ 2 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-float-7a.c:16:2: error: \"FLT_SNAN undefined\"",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-float-7a.c",
@@ -16886,7 +16655,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-float-7b.c:19:21: error: use of undeclared identifier 'DBL_SNAN' 19 | volatile double d = DBL_SNAN; | ^~~~~~~~ 2 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-float-7b.c:16:2: error: \"DBL_SNAN undefined\"",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-float-7b.c",
@@ -16896,7 +16665,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-float-7c.c:19:27: error: use of undeclared identifier 'LDBL_SNAN' 19 | volatile long double ld = LDBL_SNAN; | ^~~~~~~~~ 2 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-float-7c.c:16:2: error: \"LDBL_SNAN undefined\"",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-float-7c.c",
@@ -16920,7 +16689,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-imaginary-constants-3.c:14:1: warning: plain '_Complex' requires a type specifier; assuming '_Complex double' 14 | _Complex _Float32 d = 4.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-imaginary-constants-3.c:11:18: error: expected ';' after top level declarator",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-imaginary-constants-3.c",
@@ -16930,7 +16699,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-imaginary-constants-5.c:10:1: warning: plain '_Complex' requires a type specifier; assuming '_Complex double' 10 | _Complex _Float128 d = 4",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-imaginary-constants-5.c:7:19: error: expected ';' after top level declarator",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-imaginary-constants-5.c",
@@ -16954,7 +16723,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-imaginary-constants-9.c:10:1: warning: plain '_Complex' requires a type specifier; assuming '_Complex double' 10 | _Complex _Float64x d = 4",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-imaginary-constants-9.c:7:19: error: expected ';' after top level declarator",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-imaginary-constants-9.c",
@@ -16976,7 +16745,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-nullptr-1.c",
+   "detail": "",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-nullptr-1.c",
@@ -16986,8 +16755,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "__builtin_abort",
-   "dynamic_wall": "libc-call: __builtin_abort",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-nullptr-5.c",
    "sha256": "ae26e9452dfe14abd1e6549873adb0d681f3fff550df2b97b72a4ede9519a63f",
@@ -16995,7 +16764,7 @@
     "libc-call: __builtin_abort",
     "unsupported:CXXNullPtrLiteralExpr"
    ],
-   "verdict": "refused-libc"
+   "verdict": "failed"
   },
   {
    "corpus": "gcc.c23-run",
@@ -17011,7 +16780,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-register-array-2.c:39:12: error:",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-register-array-2.c:16:3: error: address of register variable requested",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-register-array-2.c",
@@ -17021,7 +16790,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-register-array-3.c:40:12: error:",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-register-array-3.c:17:3: error: address of register variable requested",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-register-array-3.c",
@@ -17031,7 +16800,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-register-array-4.c:46:12: error: address of register variable requested 46 | (void) a[__INT_MAX__ + 2]; | ^ 11 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-register-array-4.c:17:3: error: address of register variable requested",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-register-array-4.c",
@@ -17041,7 +16810,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-stdarg-4.c:28:46: error: use of undeclared identifier 'text' 28 | va_start (ap, random ! ignored, ignored ** text); /* { dg-warning \"'va_start' macro used with additional arguments other than identifier of the last named argument\" } */ | ^~~~ 3 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-stdarg-4.c:28:17: error: use of undeclared identifier 'random'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-stdarg-4.c",
@@ -17051,7 +16820,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-stdarg-6.c:32:46: error: use of undeclared identifier 'text' 32 | va_start (ap, random ! ignored, ignored ** text); /* { dg-warning \"'va_start' macro used with additional arguments other than identifier of the last named argument\" } */ | ^~~~ 3 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-stdarg-6.c:32:17: error: use of undeclared identifier 'random'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-stdarg-6.c",
@@ -17061,7 +16830,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-stdarg-4.c:28:46: error: use of undeclared identifier 'text' 28 | va_start (ap, random ! ignored, ignored ** text); /* { dg-warning \"'va_start' macro used with additional arguments other than identifier of the last named argument\" } */ | ^~~~ 3 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-stdarg-4.c:28:17: error: use of undeclared identifier 'random'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-stdarg-7.c",
@@ -17071,7 +16840,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-stdarg-6.c:32:46: error: use of undeclared identifier 'text' 32 | va_start (ap, random ! ignored, ignored ** text); /* { dg-warning \"'va_start' macro used with additional arguments other than identifier of the last named argument\" } */ | ^~~~ 3 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-stdarg-6.c:32:17: error: use of undeclared identifier 'random'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-stdarg-8.c",
@@ -17162,7 +16931,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-tag-alias-6.c:17:3: error: member reference base type 'typeof (*(1 ? &s : &t))' (aka 'void') is not a structure or union 17 | p->x = 2; | ~^ ~ 1 warning and 1 error generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-tag-alias-6.c:17:3: error: member reference base type 'typeof (*(1 ? &s : &t))' (aka 'void') is not a structure or union",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-tag-alias-6.c",
@@ -17185,7 +16954,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-tag-composite-10.c:21:2: error: use of undeclared identifier '__builtin_clear_padding' 21 | __builtin_clear_padding(z); | ^~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-tag-composite-10.c:21:2: error: use of undeclared identifier '__builtin_clear_padding'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-tag-composite-10.c",
@@ -17195,7 +16964,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-tag-composite-7.c:13:25: error: variable has incomplete type 'typeof (*(1 ? &x : &y))' (aka 'void') 13 | typeof(*(1 ? &x : &y)) a; | ^ 1 warning and 1 error generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-tag-composite-7.c:13:25: error: variable has incomplete type 'typeof (*(1 ? &x : &y))' (aka 'void')",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-tag-composite-7.c",
@@ -17218,7 +16987,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/c23-typeof-1.c:46:29: note: previous declaration is here 46 | extern typeof (1 ? ai : ai) i; | ^ 2 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-typeof-1.c:44:34: error: redeclaration of 'i' with a different type: 'typeof ((_Atomic(int))ai)' (aka '_Atomic(int)') vs 'typeof (+ai)' (aka 'int')",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-typeof-1.c",
@@ -17241,7 +17010,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/cpp/trigraphs.c:34:1: error: expected identifier or '(' 6 warnings and 5 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/cpp/trigraphs.c:26:3: error: unknown type name 'x'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/cpp/c23-trigraphs-2.c",
@@ -17251,7 +17020,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/dfp/c23-constants-3.c:17:33: error: invalid suffix 'd32' on floating constant 17 | static_assert (expr_has_type (2.d32, _D",
+   "detail": "src/gcc/testsuite/gcc.dg/dfp/c23-constants-3.c:5:18: error: invalid suffix 'D32' on floating constant",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/dfp/c23-constants-3.c",
@@ -17261,7 +17030,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/dfp/c23-decimal64x-4.c:31:61: error: invalid suffix 'D64x' on floating constant 31 | if (DEC64X_MAX != 9.999999999999999999999999999999999E6144D64x) |",
+   "detail": "src/gcc/testsuite/gcc.dg/dfp/c23-decimal64x-4.c:12:31: error: use of undeclared identifier 'DEC64X_MAX'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/dfp/c23-decimal64x-4.c",
@@ -17271,7 +17040,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "gcc/testsuite/gcc.dg/dfp/c23-float-dfp-8.c:12:29: error: use of undeclared identifier 'DEC128_SNAN' 12 | volatile _Decimal128 d128 = DEC128_SNAN; | ^~~~~~~~~~~ 6 errors generated.",
+   "detail": "src/gcc/testsuite/gcc.dg/dfp/c23-float-dfp-8.c:10:10: error: GNU decimal type extension not supported",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/dfp/c23-float-dfp-8.c",
@@ -17334,8 +17103,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/20001122-1.c",
    "sha256": "0a5874e451d4814910b999fce4018548afbf669532f37fd60700ab2fa4219256",
@@ -17343,7 +17112,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17618,7 +17387,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/compare-fp-4.c",
    "sha256": "33c04dbf76f3f260476158b437555b048e938f71c5e7feb0c6c301832cea2232",
@@ -17631,7 +17400,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18038,15 +17807,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/ieee/mul-subnormal-single-1.c:67:1)'",
-   "dynamic_wall": "unsupported:src/ieee/mul-subnormal-single-1.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/mul-subnormal-single-1.c",
    "sha256": "677177d59dfd024deb55f3b03de0b095df8e1b197dda3eab196c0353a030aab9",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18477,14 +18246,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "loop-11.c",
    "sha256": "c3ba0aa2d8628d271700af5e3c5935f8383e036e8b22e5366cd5bb7fcd8a6367",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18582,8 +18351,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "LeanModels.C.C23.MemFault.nullDeref 0",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "loop-2e.c",
    "sha256": "565f5ebbedd5f99f00dbfc33f17706d2ee4e9224d9c4fc59e2b5f5b2970e438c",
@@ -18591,7 +18360,7 @@
     "cast:IntegralToPointer",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18747,26 +18516,26 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "loop-ivopts-2.c",
    "sha256": "a0e446486106f9009ca7241aea621ecb7ffb86f769cbc2239a56fd4143605995",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "lshrdi-1.c",
    "sha256": "f8b359a6601d2245a99c2ae18f014ab1ab78e99ac0d884db6f185be8beb09d66",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18859,7 +18628,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "memcpy-1.c",
@@ -18873,8 +18642,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "memcpy-2.c",
    "sha256": "4b70077da1952fa302f5e5ba44b62625955714c8005995c76d3213c3552655db",
@@ -18882,11 +18651,11 @@
     "libc-call: memcpy",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/memcpy-a1.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a1.c",
@@ -18896,7 +18665,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/memcpy-a2.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a2.c",
@@ -18906,7 +18675,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/memcpy-a4.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a4.c",
@@ -18916,7 +18685,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/memcpy-a8.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a8.c",
@@ -18927,7 +18696,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "memcpy-bi.c",
    "sha256": "aef5169ff4a04008094748cc310d0a2ae689f9d9ca855b413f4092e0dc4e49dd",
@@ -18937,12 +18706,12 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "memset-1.c",
    "sha256": "ec4a2649b0a16fd7ae77591c0b3f37b0e6a24a90e7464ab6f2c14b2f2fd6061e",
@@ -18950,7 +18719,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18994,15 +18763,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "row wall timeout 12s",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
    "sha256": "c8373ae57ea0dec72ae5329a74a82f467b092ce0c3f95a8a4ce9181a9bba503e",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "passed"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19026,15 +18795,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "unbound declaration 'id901' (name 'arg1')",
+   "dynamic_wall": "unsupported:unbound declaration 'id901' (name 'arg1')",
    "manifest_status": "parsed",
    "name": "mode-dependent-address.c",
    "sha256": "efa53beeba8203d1790308f7f01e9809f6146b3937bdf56e831865a2d7aeced2",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19060,8 +18829,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "multi-ix.c",
    "sha256": "c419fe0b5c2f4ba23408553432f6a8fef6ea671ec815146fb8e08a11c9940fd1",
@@ -19071,7 +18840,7 @@
     "libc-call: __builtin_va_end",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19125,13 +18894,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "nestfunc-4.c",
    "sha256": "bce30f3ec3a128641b864931775db4a71a148cfbd616b68bfd1c8d1116d38c1e",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19179,8 +18948,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id33' (name 't')",
-   "dynamic_wall": "unsupported:unbound declaration 'id33' (name 't')",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "packed-1.c",
    "sha256": "e963fe550c6b16868bd472ba483d1f2b12f1c4d68492b28460488abccfc80810",
@@ -19188,12 +18957,12 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unbound declaration 'id22' (name 't')",
-   "dynamic_wall": "unsupported:unbound declaration 'id22' (name 't')",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "packed-2.c",
    "sha256": "f8433306606805b8fb76ea8639f5be45c11c1f33e161654234de20f0f3129e9f",
@@ -19201,12 +18970,12 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct c'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct c'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "packed-aligned.c",
    "sha256": "b05af614cb3d96f7077aa86d23754c241e7e9632f20b5f470e0debff51001be6",
@@ -19215,7 +18984,7 @@
     "unsupported:AlignedAttr",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19312,8 +19081,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "out of tier: OffsetOfExpr",
+   "dynamic_wall": "unsupported:OffsetOfExpr",
    "manifest_status": "parsed",
    "name": "pr103255.c",
    "sha256": "3dc66d164d91b0e1ee7b0abad7977cd486f8d90081d495da6efc95bebd085760",
@@ -19435,7 +19204,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/pr105777.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr105777.c",
@@ -19505,7 +19274,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "pr107881-1.c",
@@ -19618,7 +19387,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/pr109938.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr109938.c",
@@ -19628,7 +19397,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/pr109986.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr109986.c",
@@ -19650,8 +19419,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr110165-1.c",
    "sha256": "37f7a9004a4003bfb6c30caf4024a0cec35bda612b135942170f7cc80ac25d15",
@@ -19659,7 +19428,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19677,14 +19446,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr110252-1.c",
    "sha256": "2335f7af5967eb8d5aa87e009a07e76103e1cdc0bc95ba2eae4d6dedfe36e715",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20299,7 +20068,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr123978.c",
    "sha256": "1ed8a36af452bfd14d600d31c3ce62b3d9241009455c4399adece59506cb5e9f",
@@ -20308,7 +20077,7 @@
     "libc-call: __builtin_memset",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20338,8 +20107,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "unbound declaration 'id23' (name 'g18')",
+   "dynamic_wall": "unsupported:unbound declaration 'id23' (name 'g18')",
    "manifest_status": "parsed",
    "name": "pr126405-2.c",
    "sha256": "0b91ab76b23510d74969a65f5e11595d4136959c60a86495f2baed094478b5f7",
@@ -20347,7 +20116,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20364,8 +20133,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "unbound declaration 'id23' (name 'g18')",
+   "dynamic_wall": "unsupported:unbound declaration 'id23' (name 'g18')",
    "manifest_status": "parsed",
    "name": "pr126405.c",
    "sha256": "764416eec91cefdb81ae9de44d37396c6f818f89b4c01c06d349816df4ca9228",
@@ -20373,7 +20142,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20417,8 +20186,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "union initializer has no member",
-   "dynamic_wall": "unsupported:union initializer has no member",
+   "detail": "LeanModels.C.C23.MemFault.nullDeref 0",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "pr15296.c",
    "sha256": "321282fc50c49fc23a268aaab4175be76240a0a06ab3f54f593a19e807894cb5",
@@ -20427,7 +20196,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20474,25 +20243,25 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "__builtin_return_address",
+   "dynamic_wall": "libc-call: __builtin_return_address",
    "manifest_status": "parsed",
    "name": "pr17377.c",
    "sha256": "a2bca45e7f6f101a6d53f9f76903b270ec9f67d28f6f9e8bd81e8fd0127f2479",
    "static_walls": [
     "libc-call: __builtin_return_address"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-libc"
   },
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr19005.c",
    "sha256": "6c51e506a042a1db8a32e4e67673d0aa8bb87b4cce5802f824d01f00c5c93fa5",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20554,13 +20323,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr20100-1.c",
    "sha256": "b83bd9f5e8419a32d79a438c7a5a4e6b835a9f6e4c5f75558d800f50b358e68e",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20609,8 +20378,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr20621-1.c",
    "sha256": "2e9a6cb0ed8cd7c53aa0e8e36ccd88f8f12f326079e9f42ac198ac76f3465401",
@@ -20618,7 +20387,7 @@
     "type-layout",
     "unsequenced-effects"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20826,8 +20595,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "bit-field reads an indeterminate representation",
+   "dynamic_wall": "unsupported:bit-field reads an indeterminate representation",
    "manifest_status": "parsed",
    "name": "pr23324.c",
    "sha256": "8b6c8e94d29e9bf08299873ef44903f8bf907525465bcac25a5f90a6501fce22",
@@ -20966,7 +20735,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr27260.c",
    "sha256": "a5b8a50e9fe2db0cc753d4534d4facbeeaf6554af3fae65564ed1dd5f0a0677d",
@@ -20974,7 +20743,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21064,8 +20833,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 4 340 4 320",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "pr28982a.c",
    "sha256": "7fa896d2f4c4deb42265759ddc905bfaf7f9f1f64d9083caba86e357624a76ac",
@@ -21073,11 +20842,11 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "pr28982b.c",
@@ -21090,8 +20859,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct s'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct s'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr29006.c",
    "sha256": "10bc33ff13c7c26e57f8a9187be78280a5c4cade7df1e9476b5bc72664d34e90",
@@ -21099,7 +20868,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21180,7 +20949,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/pr30314.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr30314.c",
@@ -21240,8 +21009,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr31448-2.c",
    "sha256": "f82edd474dc8881ef13be1ff096859ede174fe3fdda3c5ed4bb2208947b9615d",
@@ -21249,12 +21018,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr31448.c",
    "sha256": "bf8ef014bfb7759820baaeaa2540051f4ff5cdfa1a9ced0f1a56eb17e9cb78d9",
@@ -21262,7 +21031,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21686,8 +21455,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr36339.c",
    "sha256": "74e666cc7cad681d9772bda316146b24d59130d1dacd083d0e78eed33dd0d067",
@@ -21696,7 +21465,7 @@
     "cast:PointerToIntegral",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21757,7 +21526,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr37573.c",
    "sha256": "27ba2d916cdcf7c9e18241c4ae25c95506737584eaf20f6361584192476a75d2",
@@ -21766,7 +21535,7 @@
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21842,8 +21611,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "LeanModels.C.C23.MemFault.nullDeref 0",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "pr38051.c",
    "sha256": "f605ca4bbd46e9015fcb4052d477a68a8cb5c1160be61a2d7735b5568b6f0847",
@@ -21855,7 +21624,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21977,8 +21746,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr39233.c",
    "sha256": "cef0e1c6fdd21df7977d0ee7966c919044f257bdc8359032ede0839ad94075da",
@@ -21986,7 +21755,7 @@
     "cast:IntegralToPointer",
     "cast:PointerToIntegral"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22300,12 +22069,12 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr42512.c",
    "sha256": "5f4c24043700dec47e78a98378b0011a4efb314192a99903b7ec2d21b0f2f09a",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22471,7 +22240,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr43784.c",
    "sha256": "e84096a5fa025d38be9550d80dc8761150e73dcec82c323cc7efed1e888095cb",
@@ -22479,7 +22248,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22631,17 +22400,17 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr45034.c",
    "sha256": "886716c00a2e699cc131abfeb9c984aa202036dfb73c717e62f7134804a87700",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct packed_ushort'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct packed_ushort'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr45070.c",
    "sha256": "8c446d54effbf5cd69f96bffd7155be7fc60dfdf73d60bf1c5dfe14c7b1681a9",
@@ -22649,7 +22418,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22768,7 +22537,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr47337.c",
    "sha256": "e35d8c36b3f0766784cbf87955951da4ad5d04912220fa78933b08c232bb91ce",
@@ -22778,7 +22547,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22817,15 +22586,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "no size for pointee of 'void *'",
+   "dynamic_wall": "unsupported:no size for pointee of 'void *'",
    "manifest_status": "parsed",
    "name": "pr48571-1.c",
    "sha256": "2436ea0622d3b2a0112f3db14397ef5a09a08472e57c49ddef377109abea0601",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22873,27 +22642,27 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr48973-1.c",
    "sha256": "ff655a8e387ed3f4be796bc633d32a5fbd24c4735fb6fe030098380b3f0af45a",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr48973-2.c",
    "sha256": "bc06b27e2885600480c3ff698811e8627c5ef1c9653e1f6015bb3fefaaf71698",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22919,15 +22688,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr49123.c",
    "sha256": "61d760f108b2bfa9d65354ec4ad80f11b92e66943a1186ded3bbb6a90073fb78",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23042,14 +22811,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr49886.c",
    "sha256": "cf0c182cb0d4913c10ceba7daa6fac120e65a165c5141ab8c00d9f024f3b1e49",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23109,7 +22878,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/pr51581-1.c:11:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes]",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr51581-1.c",
@@ -23119,7 +22888,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/pr51581-2.c:10:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes]",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr51581-2.c",
@@ -23196,8 +22965,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr52979-1.c",
    "sha256": "1dadc165373ec8fe6f3ef9be1784dc6c9dca2139dd61e55d8662ab8940b06365",
@@ -23205,12 +22974,12 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr52979-2.c",
    "sha256": "aee0f1b8756e7cb3e67d75b17bf910cebe45632685535e06169176be03895bb1",
@@ -23218,7 +22987,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23338,15 +23107,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr55750.c",
    "sha256": "7a19af873c60ed8d4c86f75d139bc8247b1a0898d80770fcdab4d3527368d325",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23649,8 +23418,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr58209.c",
    "sha256": "684d94d8b8532bc15aed1278f69d2d0bfda04ed5a482f2209b3e4e10a7910884",
@@ -23659,7 +23428,7 @@
     "cast:PointerToIntegral",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "failed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23761,8 +23530,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S[6]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S[6]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr58570.c",
    "sha256": "8977d3d9cbbb7d40a055648e256eeae11819545f4a918fafdd366aebc281fc5d",
@@ -23771,7 +23540,7 @@
     "type-layout",
     "unsupported:MaxFieldAlignmentAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23850,8 +23619,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_abort",
-   "dynamic_wall": "libc-call: __builtin_abort",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr58943.c",
    "sha256": "112d9b05a6654221cf70194e8a6505827acf269fd4f7614e8cc83c5caf40a308",
@@ -23859,7 +23628,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24190,7 +23959,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr61725.c",
    "sha256": "3c1576945873a0034645e2b836219a69ae8b16a3f223e0077b2290e7a6539f45",
@@ -24198,7 +23967,7 @@
     "libc-call: __builtin_abort",
     "libc-call: __builtin_ffs"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24519,7 +24288,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr65401.c",
    "sha256": "357a6e4951f76bad634a9f65a1d78f214c35b371a4253ea2b77eb58313a061e4",
@@ -24527,19 +24296,19 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr65418-1.c",
    "sha256": "52aa63b4e5981ab5f2aefefc2610ff076cf58792b41a057dc5e56792c1aeaa27",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24616,14 +24385,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr66556.c",
    "sha256": "b7644c4a5f8cf141a6e6b3a4d10bca5dea9ac4449cc6312ed1f6f41f644fa617",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24837,17 +24606,17 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr68506.c",
    "sha256": "2371984d4a573d0e31248daf562d611be5c6cffa510da476bd15ad0b1b2dff29",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr68532.c",
    "sha256": "9db2c92f99a575b3a687b0e691577e6c22527686454d608316528d851395ff2c",
@@ -24855,7 +24624,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25102,8 +24871,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S[21]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S[21]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr70602.c",
    "sha256": "21730ef8ae07a0249e611ff67597948c5b82f500e13605110d6b3045ad3dda94",
@@ -25111,7 +24880,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25128,7 +24897,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr71083.c",
    "sha256": "067579742373456736684f013996f1023768456cc60b94766aecc1388eb33030",
@@ -25136,7 +24905,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25275,8 +25044,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_abort",
-   "dynamic_wall": "libc-call: __builtin_abort",
+   "detail": "parameter array-bound effects are not retained by clang",
+   "dynamic_wall": "unsupported:parameter array-bound effects are not retained by clang",
    "manifest_status": "parsed",
    "name": "pr77767.c",
    "sha256": "bac099a33ceecc4194f62ffdb8adb74e3cf7f83bd0a8db40f89222d9fcf4d63a",
@@ -25284,7 +25053,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25404,14 +25173,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr78675.c",
    "sha256": "a46ecededcd420e023218a9949ffd721367ceb0cc493107110bd20619ea1d335",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25548,8 +25317,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr79737-1.c",
    "sha256": "c3a27bdc31cf152a26e369151558e5e5afe7ff7267c4163d51249293dae31655",
@@ -25558,7 +25327,7 @@
     "type-layout",
     "unsupported:MaxFieldAlignmentAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25725,14 +25494,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr82387.c",
    "sha256": "29cf27f0dd5c2c4526f2da14dce9deb3d5a779ea5a1b9b05cc6e57f717a2728f",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25969,14 +25738,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr85529-2.c",
    "sha256": "0fd5d91644e8b6fed2bcd117b73de5e79154ce10410a4c2581d06b1d902a9338",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26024,8 +25793,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr86231.c",
    "sha256": "f564f3b69dd1ad15a61941cac42ad531d470a47b2472b7e9b3312f7d0bb74265",
@@ -26034,7 +25803,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26143,14 +25912,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr87290.c",
    "sha256": "4762b49fdc1f430185be5b8dc5d5bb60d33378445cf1b967577dd487fed2ca46",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26168,7 +25937,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr88693.c",
    "sha256": "ad4fd22a0cacfb3851fce1aa1d6356071daba3f42b95a81668bc4b6045d8bf46",
@@ -26180,7 +25949,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26338,7 +26107,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "pr91137.c",
@@ -26443,8 +26212,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "floating value used as an integer",
+   "dynamic_wall": "unsupported:floating value used as an integer",
    "manifest_status": "parsed",
    "name": "pr92904.c",
    "sha256": "bce28f06aa69e28c01ce5e66aefddfce0273244d17aa59cc4036b463a8bc0795",
@@ -26455,7 +26224,7 @@
     "type-layout",
     "unsupported:AlignedAttr"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26695,7 +26464,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr94734.c",
    "sha256": "037905731554f9a8ff8272b0466db99d49181caa5e11dc145538d5109a0d9c73",
@@ -26703,7 +26472,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26720,14 +26489,14 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr95731.c",
    "sha256": "3211922bc5a45bdecd017b0040bd5d6288aebb37fc11abdae7ff8a7d7c43c9ec",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26830,8 +26599,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer-to-integer conversion outside uintptr_t/intptr_t",
-   "dynamic_wall": "unsupported:pointer-to-integer conversion outside uintptr_t/intptr_t",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr97421-3.c",
    "sha256": "5310faba6674536fd87499fb3d33a75a6aa98019f61b84cbc05650be1c2271dd",
@@ -26840,7 +26609,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26904,7 +26673,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/pr98304-2.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr98304-2.c",
@@ -26965,7 +26734,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr98736.c",
    "sha256": "39951ef7d20f500160492ab198b58f797e76f9ec72f5df4dac4e12fbad4c3d31",
@@ -26973,7 +26742,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27040,7 +26809,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/printf-2.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "printf-2.c",
@@ -27051,7 +26820,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "printf-chk-1.c",
    "sha256": "f085b13f50d60e7d4928c453fb38efbbc385625e16b4cb5313bc78eed03042d3",
@@ -27062,7 +26831,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27090,8 +26859,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 2 14 1 13",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "ptr-arith-1.c",
    "sha256": "d7125e5a3d11cef291bad1cec7eca7dbc05b2e28750e0c59525b849b647b599c",
@@ -27099,7 +26868,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27217,8 +26986,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "LeanModels.C.C23.UB.shiftOverflow 568513516876543756 5 { signed := true, bits := 64 }",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "shiftdi-2.c",
    "sha256": "210a1059e5c915545f0f9da2df78b5ef202493300b6af461019d1ff6e9f67156",
@@ -27226,7 +26995,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27250,8 +27019,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "signed1bitfield-1.c",
    "sha256": "5a15170d1b0c815407047c65320c0faafd59c80697c799c5253174d3a6fb15b7",
@@ -27259,7 +27028,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27324,19 +27093,19 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "split-path-1.c",
    "sha256": "0053e25aabca452b2d795f7011c6ab90b8c5c7f37e6309efe639cb41f6b156c9",
    "static_walls": [
     "libc-call: malloc"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ssad-run.c",
    "sha256": "93374b66425569aa08a54b30cfe8ed1769e8a0f0e20467edffe52fc7f30a2e2d",
@@ -27344,7 +27113,7 @@
     "libc-call: abs",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27431,8 +27200,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": "timeout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strcpy-1.c",
    "sha256": "1b3e448671092bdc6c1b79b6455e8a197c58280bf6bb82e3b2676fb4d470add3",
@@ -27440,7 +27209,7 @@
     "libc-call: strcpy",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27459,8 +27228,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'TRIAL'",
-   "dynamic_wall": "unsupported:no layout for declared type 'TRIAL'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strct-pack-1.c",
    "sha256": "a07d290975cb2abba6f010e8ebbcc1134ae2d69fbd8604380d9afa1128e32699",
@@ -27469,12 +27238,12 @@
     "unsupported:AlignedAttr",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'A'",
-   "dynamic_wall": "unsupported:no layout for declared type 'A'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strct-pack-2.c",
    "sha256": "f9dea346111184587b4601784570c07642d388bc773aa2159158d90e951bd104",
@@ -27483,7 +27252,7 @@
     "unsupported:AlignedAttr",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27497,8 +27266,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'three_char_t'",
-   "dynamic_wall": "unsupported:no layout for declared type 'three_char_t'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strct-pack-4.c",
    "sha256": "fa8ad14fb6fb7f115f2b2f0c3dce45abefb59074e47ff28c23a5ffeb117f29e7",
@@ -27506,7 +27275,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27622,7 +27391,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strlen-3.c",
    "sha256": "3d9d348f6e0a8dcb6db3950378215846746479c90a9d566ab2465df8373efde6",
@@ -27633,12 +27402,12 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strlen-4.c",
    "sha256": "44a8f219723f11de84643fd2c9dff8af0a28fa1a23121bf8879d86c41fc6a6b0",
@@ -27649,7 +27418,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27728,8 +27497,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct tty_driver'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct tty_driver'",
+   "detail": "non-object declaration in a block",
+   "dynamic_wall": "unsupported:non-object declaration in a block",
    "manifest_status": "parsed",
    "name": "struct-cpy-1.c",
    "sha256": "ad4e5c5064447a67ceee351e34d4b5ce41d5eb632d53df6f0e6f413646e6a2e1",
@@ -27806,8 +27575,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'three_byte_t'",
-   "dynamic_wall": "unsupported:no layout for declared type 'three_byte_t'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "struct-ret-2.c",
    "sha256": "b2953932ffb53f08d74942c5799f510f59eaf732f55d0ce7c1c030fd0eca9bb0",
@@ -27815,11 +27584,11 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "per-file wall timeout (2s)",
+   "detail": "row wall timeout 12s",
    "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "subcmp-1.c",
@@ -27832,12 +27601,12 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "switch-1.c",
    "sha256": "7909465fd9bd7e2501772ae0c636381432a306313b3fe817e8d1bfbb45ed126b",
    "static_walls": [],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27862,7 +27631,7 @@
   {
    "corpus": "gcc.c-torture/execute",
    "detail": "",
-   "dynamic_wall": "timeout",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "usad-run.c",
    "sha256": "804dcb3bf7fce195965bbf7919d8d810eec3fa42754f78109e636028e6c2afd6",
@@ -27870,11 +27639,11 @@
     "libc-call: abs",
     "type-layout"
    ],
-   "verdict": "timeout"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "clang rejected it under the pinned profile",
+   "detail": "src/user-printf.c (exit 1).  A partial AST is a DIFFERENT program, not a smaller one:",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "user-printf.c",
@@ -27908,8 +27677,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "va-arg-10.c",
    "sha256": "5cb2d6ed423c050aaa81f9a50ce99c3dd43e88f2757c460a46a8b5836b09c4df",
@@ -27921,7 +27690,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28226,8 +27995,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in binary operands",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "va-arg-9.c",
    "sha256": "d81cf4ba2a988b659534a2037ecff6039bac090a41e316dad99cfd094c743cba",
@@ -28238,7 +28007,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28266,35 +28035,23 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
-   "manifest_status": "parsed",
+   "detail": "extract.py: string byte probe did not observe StringLiteral at offset 630",
+   "dynamic_wall": "frontend",
+   "manifest_status": "rejected",
    "name": "vfprintf-1.c",
    "sha256": "7df1dbd5fd4f746a3bd234b8b05ea11d683aa60fbd934c58b194bf9a88c96a52",
-   "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vfprintf",
-    "string-literal",
-    "type-layout"
-   ],
-   "verdict": "passed"
+   "static_walls": [],
+   "verdict": "not-parsed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
-   "manifest_status": "parsed",
+   "detail": "extract.py: string byte probe did not observe StringLiteral at offset 1085",
+   "dynamic_wall": "frontend",
+   "manifest_status": "rejected",
    "name": "vfprintf-chk-1.c",
    "sha256": "189237de6ef718daac65cc669f1cdd773d6e50ddda996cc7909c62e9bb9372b4",
-   "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vfprintf",
-    "string-literal",
-    "type-layout"
-   ],
-   "verdict": "passed"
+   "static_walls": [],
+   "verdict": "not-parsed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28310,35 +28067,23 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
-   "manifest_status": "parsed",
+   "detail": "extract.py: string byte probe did not observe StringLiteral at offset 688",
+   "dynamic_wall": "frontend",
+   "manifest_status": "rejected",
    "name": "vprintf-1.c",
    "sha256": "b6598bdae9a2234785be0d52dbbbecf7825a5b9e549611f8faf0b5e7c0f30b86",
-   "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vprintf",
-    "string-literal",
-    "type-layout"
-   ],
-   "verdict": "passed"
+   "static_walls": [],
+   "verdict": "not-parsed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
-   "manifest_status": "parsed",
+   "detail": "extract.py: string byte probe did not observe StringLiteral at offset 1123",
+   "dynamic_wall": "frontend",
+   "manifest_status": "rejected",
    "name": "vprintf-chk-1.c",
    "sha256": "7a02b4e6301753bc927c2b350ae0e5d08dfde5b49ff7ca574216e4b07f06767a",
-   "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vprintf",
-    "string-literal",
-    "type-layout"
-   ],
-   "verdict": "passed"
+   "static_walls": [],
+   "verdict": "not-parsed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28402,15 +28147,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "implementation-defined bit-field conversion",
-   "dynamic_wall": "unsupported:implementation-defined bit-field conversion",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "vrp-7.c",
    "sha256": "0ba1c5299568f51db6ed852984c79a22cd663c10f265efe2a8467954684797b7",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -29035,19 +28780,45 @@
     "builtin-prefetch-6.c",
     "builtin-types-compatible-p.c",
     "builtins/20010124-1-lib.c",
+    "builtins/20010124-1.c",
     "builtins/complex-1-lib.c",
+    "builtins/complex-1.c",
     "builtins/lib/chk.c",
     "builtins/lib/fprintf.c",
     "builtins/lib/printf.c",
     "builtins/lib/sprintf.c",
+    "builtins/memchr.c",
+    "builtins/memcmp.c",
+    "builtins/memmove-2.c",
+    "builtins/memmove.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
+    "builtins/memset.c",
+    "builtins/pr22237-1.c",
+    "builtins/pr22237.c",
+    "builtins/sprintf.c",
     "builtins/strcat.c",
+    "builtins/strchr.c",
+    "builtins/strcmp.c",
+    "builtins/strcpy-2.c",
+    "builtins/strcpy.c",
+    "builtins/strcspn.c",
     "builtins/strlen-2.c",
     "builtins/strlen-3.c",
+    "builtins/strlen.c",
+    "builtins/strncat.c",
+    "builtins/strncmp-2.c",
+    "builtins/strncmp.c",
+    "builtins/strncpy.c",
+    "builtins/strnlen.c",
+    "builtins/strpbrk.c",
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c",
+    "builtins/strrchr.c",
+    "builtins/strspn.c",
+    "builtins/strstr-asm.c",
+    "builtins/strstr.c",
     "cbrt.c",
     "complex-1.c",
     "complex-2.c",
@@ -29538,11 +29309,7 @@
     "va-arg-8.c",
     "va-arg-9.c",
     "va-arg-trap-1.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c",
     "vla-dealloc-1.c",
-    "vprintf-1.c",
-    "vprintf-chk-1.c",
     "vrp-7.c",
     "wchar_t-1.c",
     "widechar-2.c",
@@ -29552,8 +29319,8 @@
     "zerolen-1.c",
     "zerolen-2.c"
    ],
-   "present": 1035,
-   "sole": 356,
+   "present": 1057,
+   "sole": 358,
    "wall": "type-layout"
   },
   {
@@ -30038,6 +29805,7 @@
     "960116-1.c",
     "980526-2.c",
     "alloca-1.c",
+    "builtins/strnlen.c",
     "loop-2c.c",
     "pr103255.c",
     "pr15296.c",
@@ -30054,7 +29822,7 @@
     "pr91597.c",
     "pr97421-3.c"
    ],
-   "present": 26,
+   "present": 27,
    "sole": 2,
    "wall": "cast:PointerToIntegral"
   },
@@ -30092,41 +29860,19 @@
   {
    "files": [
     "00179.c",
-    "20001203-2.c",
-    "20031012-1.c",
-    "20040823-1.c",
-    "20050826-1.c",
-    "20051113-1.c",
-    "20071030-1.c",
-    "20071219-1.c",
-    "920810-1.c",
-    "990513-1.c",
-    "builtins/strcat.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
-    "memcpy-1.c",
-    "memcpy-bi.c",
-    "memset-1.c",
-    "memset-2.c",
-    "memset-3.c",
-    "pr27260.c",
-    "pr30778.c",
-    "pr35472.c",
-    "pr43236.c",
-    "string-opt-5.c"
-   ],
-   "present": 22,
-   "sole": 1,
-   "wall": "libc-call: memset"
-  },
-  {
-   "files": [
-    "00179.c",
     "20050502-2.c",
     "20050826-1.c",
+    "builtins/memcmp.c",
+    "builtins/memmove-2.c",
+    "builtins/memmove.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
+    "builtins/sprintf.c",
     "builtins/strcat.c",
+    "builtins/strcpy.c",
+    "builtins/strncat.c",
+    "builtins/strncpy.c",
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c",
     "ieee/builtin-nan-1.c",
@@ -30141,9 +29887,42 @@
     "string-opt-18.c",
     "string-opt-5.c"
    ],
-   "present": 20,
+   "present": 27,
    "sole": 1,
    "wall": "libc-call: memcmp"
+  },
+  {
+   "files": [
+    "00179.c",
+    "20001203-2.c",
+    "20031012-1.c",
+    "20040823-1.c",
+    "20050826-1.c",
+    "20051113-1.c",
+    "20071030-1.c",
+    "20071219-1.c",
+    "920810-1.c",
+    "990513-1.c",
+    "builtins/memset.c",
+    "builtins/sprintf.c",
+    "builtins/strcat.c",
+    "builtins/strncat.c",
+    "builtins/strncpy.c",
+    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
+    "memcpy-1.c",
+    "memcpy-bi.c",
+    "memset-1.c",
+    "memset-2.c",
+    "memset-3.c",
+    "pr27260.c",
+    "pr30778.c",
+    "pr35472.c",
+    "pr43236.c",
+    "string-opt-5.c"
+   ],
+   "present": 26,
+   "sole": 1,
+   "wall": "libc-call: memset"
   },
   {
    "files": [
@@ -30233,6 +30012,20 @@
   },
   {
    "files": [
+    "20030330-1.c",
+    "builtins/abs-2.c",
+    "builtins/complex-1.c",
+    "builtins/memcmp.c",
+    "builtins/uabs-2.c",
+    "ieee/fp-cmp-7.c",
+    "medce-1.c"
+   ],
+   "present": 7,
+   "sole": 1,
+   "wall": "libc-call: link_error"
+  },
+  {
+   "files": [
     "builtin-bitops-1.c",
     "ffs-1.c",
     "ffs-2.c",
@@ -30263,16 +30056,6 @@
    "present": 3,
    "sole": 1,
    "wall": "libc-call: calloc"
-  },
-  {
-   "files": [
-    "20030330-1.c",
-    "ieee/fp-cmp-7.c",
-    "medce-1.c"
-   ],
-   "present": 3,
-   "sole": 1,
-   "wall": "libc-call: link_error"
   },
   {
    "files": [
@@ -30463,14 +30246,35 @@
     "bcp-1.c",
     "built-in-setjmp.c",
     "builtin-constant.c",
+    "builtins/memchr.c",
+    "builtins/memcmp.c",
+    "builtins/memmove-2.c",
+    "builtins/memmove.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
+    "builtins/sprintf.c",
     "builtins/strcat.c",
+    "builtins/strchr.c",
+    "builtins/strcmp.c",
+    "builtins/strcpy-2.c",
+    "builtins/strcpy.c",
+    "builtins/strcspn.c",
     "builtins/strlen-2.c",
     "builtins/strlen-3.c",
+    "builtins/strlen.c",
+    "builtins/strncat.c",
+    "builtins/strncmp-2.c",
+    "builtins/strncmp.c",
+    "builtins/strncpy.c",
+    "builtins/strnlen.c",
+    "builtins/strpbrk.c",
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c",
+    "builtins/strrchr.c",
+    "builtins/strspn.c",
+    "builtins/strstr-asm.c",
+    "builtins/strstr.c",
     "complex-6.c",
     "const-addr-expr-1.c",
     "fprintf-1.c",
@@ -30551,15 +30355,11 @@
     "va-arg-24.c",
     "va-arg-4.c",
     "va-arg-9.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c",
-    "vprintf-1.c",
-    "vprintf-chk-1.c",
     "wchar_t-1.c",
     "widechar-2.c",
     "widechar-3.c"
    ],
-   "present": 241,
+   "present": 258,
    "sole": 0,
    "wall": "string-literal"
   },
@@ -30794,13 +30594,9 @@
     "va-arg-7.c",
     "va-arg-8.c",
     "va-arg-9.c",
-    "va-arg-trap-1.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c",
-    "vprintf-1.c",
-    "vprintf-chk-1.c"
+    "va-arg-trap-1.c"
    ],
-   "present": 66,
+   "present": 62,
    "sole": 0,
    "wall": "libc-call: __builtin_c23_va_start"
   },
@@ -30865,13 +30661,9 @@
     "va-arg-7.c",
     "va-arg-8.c",
     "va-arg-9.c",
-    "va-arg-trap-1.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c",
-    "vprintf-1.c",
-    "vprintf-chk-1.c"
+    "va-arg-trap-1.c"
    ],
-   "present": 64,
+   "present": 60,
    "sole": 0,
    "wall": "libc-call: __builtin_va_end"
   },
@@ -30948,6 +30740,7 @@
     "20141107-1.c",
     "builtins/memops-asm.c",
     "builtins/mempcpy-2.c",
+    "builtins/strcpy.c",
     "builtins/strpcpy-2.c",
     "pr110914.c",
     "pr38051.c",
@@ -30965,7 +30758,7 @@
     "pr98853-1.c",
     "strlen-7.c"
    ],
-   "present": 27,
+   "present": 28,
    "sole": 0,
    "wall": "libc-call: __builtin_memcpy"
   },
@@ -31081,6 +30874,7 @@
     "builtins/lib/chk.c",
     "builtins/strlen-2.c",
     "builtins/strlen-3.c",
+    "builtins/strlen.c",
     "builtins/strstr-asm-lib.c",
     "pr36321.c",
     "string-opt-5.c",
@@ -31093,9 +30887,79 @@
     "va-arg-10.c",
     "va-arg-9.c"
    ],
-   "present": 21,
+   "present": 22,
    "sole": 0,
    "wall": "libc-call: strlen"
+  },
+  {
+   "files": [
+    "00179.c",
+    "00180.c",
+    "20031204-1.c",
+    "20041214-1.c",
+    "20120207-1.c",
+    "980707-1.c",
+    "built-in-setjmp.c",
+    "builtins/memcmp.c",
+    "builtins/strcat.c",
+    "builtins/strcpy-2.c",
+    "builtins/strcpy.c",
+    "builtins/strcspn.c",
+    "builtins/strncat.c",
+    "builtins/strspn.c",
+    "strcpy-1.c",
+    "string-opt-17.c",
+    "string-opt-18.c",
+    "struct-ret-1.c"
+   ],
+   "present": 18,
+   "sole": 0,
+   "wall": "libc-call: strcpy"
+  },
+  {
+   "files": [
+    "00179.c",
+    "20001011-1.c",
+    "20011024-1.c",
+    "20030715-1.c",
+    "20041214-1.c",
+    "20050502-1.c",
+    "980707-1.c",
+    "built-in-setjmp.c",
+    "builtins/strcmp.c",
+    "builtins/strpbrk.c",
+    "gcc/testsuite/gcc.dg/c23-bool-1.c",
+    "p18298.c",
+    "strcmp-1.c",
+    "string-opt-18.c",
+    "string-opt-5.c",
+    "struct-ret-1.c"
+   ],
+   "present": 16,
+   "sole": 0,
+   "wall": "libc-call: strcmp"
+  },
+  {
+   "files": [
+    "00179.c",
+    "20010925-1.c",
+    "20011024-1.c",
+    "20011113-1.c",
+    "20050826-1.c",
+    "20111208-1.c",
+    "920810-1.c",
+    "builtins/memops-asm.c",
+    "builtins/mempcpy.c",
+    "builtins/strcpy.c",
+    "ieee/pr30704.c",
+    "memcpy-1.c",
+    "memcpy-2.c",
+    "memcpy-bi.c",
+    "string-opt-18.c"
+   ],
+   "present": 15,
+   "sole": 0,
+   "wall": "libc-call: memcpy"
   },
   {
    "files": [
@@ -31121,51 +30985,10 @@
   },
   {
    "files": [
-    "00179.c",
-    "20010925-1.c",
-    "20011024-1.c",
-    "20011113-1.c",
-    "20050826-1.c",
-    "20111208-1.c",
-    "920810-1.c",
-    "builtins/memops-asm.c",
-    "builtins/mempcpy.c",
-    "ieee/pr30704.c",
-    "memcpy-1.c",
-    "memcpy-2.c",
-    "memcpy-bi.c",
-    "string-opt-18.c"
-   ],
-   "present": 14,
-   "sole": 0,
-   "wall": "libc-call: memcpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20001011-1.c",
-    "20011024-1.c",
-    "20030715-1.c",
-    "20041214-1.c",
-    "20050502-1.c",
-    "980707-1.c",
-    "built-in-setjmp.c",
-    "gcc/testsuite/gcc.dg/c23-bool-1.c",
-    "p18298.c",
-    "strcmp-1.c",
-    "string-opt-18.c",
-    "string-opt-5.c",
-    "struct-ret-1.c"
-   ],
-   "present": 14,
-   "sole": 0,
-   "wall": "libc-call: strcmp"
-  },
-  {
-   "files": [
     "20020406-1.c",
     "20121108-1.c",
     "20141022-1.c",
+    "builtins/strnlen.c",
     "memchr-1.c",
     "pr111863-1.c",
     "pr71550.c",
@@ -31177,7 +31000,7 @@
     "strlen-5.c",
     "strlen-6.c"
    ],
-   "present": 13,
+   "present": 14,
    "sole": 0,
    "wall": "libc-call: __builtin_printf"
   },
@@ -31191,12 +31014,13 @@
     "921007-1.c",
     "921117-1.c",
     "930725-1.c",
+    "builtins/strcmp.c",
     "ieee/pr108540-1.c",
     "pr47337.c",
     "pr60062.c",
     "pr86528.c"
    ],
-   "present": 12,
+   "present": 13,
    "sole": 0,
    "wall": "libc-call: __builtin_strcmp"
   },
@@ -31205,6 +31029,7 @@
     "20030221-1.c",
     "20031012-1.c",
     "920726-1.c",
+    "builtins/strlen.c",
     "pr110914.c",
     "pr116799.c",
     "pr80153.c",
@@ -31215,34 +31040,16 @@
     "strlen-7.c",
     "widechar-3.c"
    ],
-   "present": 12,
+   "present": 13,
    "sole": 0,
    "wall": "libc-call: __builtin_strlen"
-  },
-  {
-   "files": [
-    "00179.c",
-    "00180.c",
-    "20031204-1.c",
-    "20041214-1.c",
-    "20120207-1.c",
-    "980707-1.c",
-    "built-in-setjmp.c",
-    "builtins/strcat.c",
-    "strcpy-1.c",
-    "string-opt-17.c",
-    "string-opt-18.c",
-    "struct-ret-1.c"
-   ],
-   "present": 12,
-   "sole": 0,
-   "wall": "libc-call: strcpy"
   },
   {
    "files": [
     "20041124-1.c",
     "20041201-1.c",
     "20070614-1.c",
+    "builtins/complex-1.c",
     "complex-1.c",
     "complex-2.c",
     "complex-5.c",
@@ -31253,9 +31060,26 @@
     "pr38151.c",
     "pr49644.c"
    ],
-   "present": 12,
+   "present": 13,
    "sole": 0,
    "wall": "unsupported:ImaginaryLiteral"
+  },
+  {
+   "files": [
+    "00186.c",
+    "20030626-1.c",
+    "20030626-2.c",
+    "20070201-1.c",
+    "920501-8.c",
+    "920726-1.c",
+    "960327-1.c",
+    "980605-1.c",
+    "builtins/sprintf.c",
+    "struct-ret-1.c"
+   ],
+   "present": 10,
+   "sole": 0,
+   "wall": "libc-call: sprintf"
   },
   {
    "files": [
@@ -31272,22 +31096,6 @@
    "present": 9,
    "sole": 0,
    "wall": "libc-call: __builtin_mul_overflow"
-  },
-  {
-   "files": [
-    "00186.c",
-    "20030626-1.c",
-    "20030626-2.c",
-    "20070201-1.c",
-    "920501-8.c",
-    "920726-1.c",
-    "960327-1.c",
-    "980605-1.c",
-    "struct-ret-1.c"
-   ],
-   "present": 9,
-   "sole": 0,
-   "wall": "libc-call: sprintf"
   },
   {
    "files": [
@@ -31317,6 +31125,34 @@
    "present": 7,
    "sole": 0,
    "wall": "libc-call: __builtin_inff"
+  },
+  {
+   "files": [
+    "20021011-1.c",
+    "921117-1.c",
+    "builtins/strcpy.c",
+    "pr84339.c",
+    "pr86528.c",
+    "strcpy-2.c",
+    "strlen-7.c"
+   ],
+   "present": 7,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strcpy"
+  },
+  {
+   "files": [
+    "00179.c",
+    "20050218-1.c",
+    "builtins/strncmp-2.c",
+    "builtins/strncmp.c",
+    "builtins/strstr-asm-lib.c",
+    "string-opt-18.c",
+    "strncmp-1.c"
+   ],
+   "present": 7,
+   "sole": 0,
+   "wall": "libc-call: strncmp"
   },
   {
    "files": [
@@ -31373,16 +31209,16 @@
   },
   {
    "files": [
-    "20021011-1.c",
-    "921117-1.c",
-    "pr84339.c",
-    "pr86528.c",
-    "strcpy-2.c",
-    "strlen-7.c"
+    "20041126-1.c",
+    "builtins/abs-1.c",
+    "builtins/abs-2.c",
+    "pr33142.c",
+    "ssad-run.c",
+    "usad-run.c"
    ],
    "present": 6,
    "sole": 0,
-   "wall": "libc-call: __builtin_strcpy"
+   "wall": "libc-call: abs"
   },
   {
    "files": [
@@ -31486,26 +31322,14 @@
   {
    "files": [
     "00179.c",
-    "20050218-1.c",
+    "20000910-2.c",
+    "builtins/strchr.c",
     "builtins/strstr-asm-lib.c",
-    "string-opt-18.c",
-    "strncmp-1.c"
+    "string-opt-5.c"
    ],
    "present": 5,
    "sole": 0,
-   "wall": "libc-call: strncmp"
-  },
-  {
-   "files": [
-    "builtins/lib/printf.c",
-    "printf-chk-1.c",
-    "va-arg-21.c",
-    "vprintf-1.c",
-    "vprintf-chk-1.c"
-   ],
-   "present": 5,
-   "sole": 0,
-   "wall": "libc-call: vprintf"
+   "wall": "libc-call: strchr"
   },
   {
    "files": [
@@ -31550,39 +31374,6 @@
    "present": 4,
    "sole": 0,
    "wall": "libc-call: __builtin_unreachable"
-  },
-  {
-   "files": [
-    "20041126-1.c",
-    "pr33142.c",
-    "ssad-run.c",
-    "usad-run.c"
-   ],
-   "present": 4,
-   "sole": 0,
-   "wall": "libc-call: abs"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20000910-2.c",
-    "builtins/strstr-asm-lib.c",
-    "string-opt-5.c"
-   ],
-   "present": 4,
-   "sole": 0,
-   "wall": "libc-call: strchr"
-  },
-  {
-   "files": [
-    "builtins/lib/fprintf.c",
-    "fprintf-chk-1.c",
-    "vfprintf-1.c",
-    "vfprintf-chk-1.c"
-   ],
-   "present": 4,
-   "sole": 0,
-   "wall": "libc-call: vfprintf"
   },
   {
    "files": [
@@ -31678,6 +31469,26 @@
   },
   {
    "files": [
+    "builtins/memmove-2.c",
+    "builtins/memmove.c",
+    "builtins/memops-asm.c"
+   ],
+   "present": 3,
+   "sole": 0,
+   "wall": "libc-call: bcopy"
+  },
+  {
+   "files": [
+    "builtins/memmove-2.c",
+    "builtins/memmove.c",
+    "string-opt-18.c"
+   ],
+   "present": 3,
+   "sole": 0,
+   "wall": "libc-call: memmove"
+  },
+  {
+   "files": [
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c",
     "string-opt-18.c"
@@ -31685,6 +31496,36 @@
    "present": 3,
    "sole": 0,
    "wall": "libc-call: mempcpy"
+  },
+  {
+   "files": [
+    "00179.c",
+    "builtins/strncpy.c",
+    "string-opt-5.c"
+   ],
+   "present": 3,
+   "sole": 0,
+   "wall": "libc-call: strncpy"
+  },
+  {
+   "files": [
+    "00179.c",
+    "builtins/strrchr.c",
+    "string-opt-5.c"
+   ],
+   "present": 3,
+   "sole": 0,
+   "wall": "libc-call: strrchr"
+  },
+  {
+   "files": [
+    "builtins/lib/printf.c",
+    "printf-chk-1.c",
+    "va-arg-21.c"
+   ],
+   "present": 3,
+   "sole": 0,
+   "wall": "libc-call: vprintf"
   },
   {
    "files": [
@@ -31742,6 +31583,15 @@
    "present": 2,
    "sole": 0,
    "wall": "libc-call: __builtin_clz"
+  },
+  {
+   "files": [
+    "20020411-1.c",
+    "builtins/complex-1.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: __builtin_conjf"
   },
   {
    "files": [
@@ -31844,6 +31694,15 @@
   },
   {
    "files": [
+    "builtins/memmove.c",
+    "pr93213.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: __builtin_memmove"
+  },
+  {
+   "files": [
     "builtins/mempcpy-2.c",
     "builtins/mempcpy.c"
    ],
@@ -31871,6 +31730,24 @@
   },
   {
    "files": [
+    "builtins/strncpy.c",
+    "pr93249.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strncpy"
+  },
+  {
+   "files": [
+    "builtins/strstr-asm.c",
+    "builtins/strstr.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strstr"
+  },
+  {
+   "files": [
     "20020418-1.c",
     "pr125291.c"
    ],
@@ -31895,6 +31772,15 @@
    "present": 2,
    "sole": 0,
    "wall": "libc-call: _setjmp"
+  },
+  {
+   "files": [
+    "builtins/20010124-1.c",
+    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: f"
   },
   {
    "files": [
@@ -31934,6 +31820,15 @@
   },
   {
    "files": [
+    "builtins/20010124-1.c",
+    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: g"
+  },
+  {
+   "files": [
     "ieee/cdivchkd.c",
     "ieee/cdivchkf.c"
    ],
@@ -31943,12 +31838,30 @@
   },
   {
    "files": [
+    "builtins/abs-1.c",
+    "builtins/abs-2.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: labs"
+  },
+  {
+   "files": [
     "20210505-1.c",
     "pr56982.c"
    ],
    "present": 2,
    "sole": 0,
    "wall": "libc-call: longjmp"
+  },
+  {
+   "files": [
+    "builtins/memchr.c",
+    "memchr-1.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: memchr"
   },
   {
    "files": [
@@ -31997,21 +31910,39 @@
   },
   {
    "files": [
-    "00179.c",
-    "string-opt-5.c"
+    "builtins/strstr-asm.c",
+    "builtins/strstr.c"
    ],
    "present": 2,
    "sole": 0,
-   "wall": "libc-call: strncpy"
+   "wall": "libc-call: strstr"
   },
   {
    "files": [
-    "00179.c",
-    "string-opt-5.c"
+    "builtins/uabs-1.c",
+    "builtins/uabs-2.c"
    ],
    "present": 2,
    "sole": 0,
-   "wall": "libc-call: strrchr"
+   "wall": "libc-call: uabs"
+  },
+  {
+   "files": [
+    "builtins/uabs-1.c",
+    "builtins/uabs-2.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: ulabs"
+  },
+  {
+   "files": [
+    "builtins/lib/fprintf.c",
+    "fprintf-chk-1.c"
+   ],
+   "present": 2,
+   "sole": 0,
+   "wall": "libc-call: vfprintf"
   },
   {
    "files": [
@@ -32050,6 +31981,14 @@
   },
   {
    "files": [
+    "builtins/memmove.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_bcopy"
+  },
+  {
+   "files": [
     "pr97386-1.c"
    ],
    "present": 1,
@@ -32071,6 +32010,30 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: __builtin_bzero"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_cimag"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_cimagf"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_cimagl"
   },
   {
    "files": [
@@ -32114,11 +32077,43 @@
   },
   {
    "files": [
-    "20020411-1.c"
+    "builtins/complex-1.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: __builtin_conjf"
+   "wall": "libc-call: __builtin_conj"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_conjl"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_creal"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_crealf"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_creall"
   },
   {
    "files": [
@@ -32186,6 +32181,14 @@
   },
   {
    "files": [
+    "builtins/strchr.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_index"
+  },
+  {
+   "files": [
     "ieee/inf-4.c"
    ],
    "present": 1,
@@ -32194,11 +32197,11 @@
   },
   {
    "files": [
-    "pr93213.c"
+    "builtins/memchr.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: __builtin_memmove"
+   "wall": "libc-call: __builtin_memchr"
   },
   {
    "files": [
@@ -32250,6 +32253,14 @@
   },
   {
    "files": [
+    "builtins/strrchr.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_rindex"
+  },
+  {
+   "files": [
     "pr78622.c"
    ],
    "present": 1,
@@ -32266,11 +32277,59 @@
   },
   {
    "files": [
-    "pr93249.c"
+    "builtins/strchr.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: __builtin_strncpy"
+   "wall": "libc-call: __builtin_strchr"
+  },
+  {
+   "files": [
+    "builtins/strcspn.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strcspn"
+  },
+  {
+   "files": [
+    "builtins/strncat.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strncat"
+  },
+  {
+   "files": [
+    "builtins/strncmp.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strncmp"
+  },
+  {
+   "files": [
+    "builtins/strpbrk.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strpbrk"
+  },
+  {
+   "files": [
+    "builtins/strrchr.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strrchr"
+  },
+  {
+   "files": [
+    "builtins/strspn.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: __builtin_strspn"
   },
   {
    "files": [
@@ -32314,11 +32373,27 @@
   },
   {
    "files": [
-    "builtins/memops-asm.c"
+    "builtins/complex-1.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: bcopy"
+   "wall": "libc-call: cimag"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: cimagf"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: cimagl"
   },
   {
    "files": [
@@ -32330,11 +32405,51 @@
   },
   {
    "files": [
-    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
+    "builtins/complex-1.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: f"
+   "wall": "libc-call: conj"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: conjf"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: conjl"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: creal"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: crealf"
+  },
+  {
+   "files": [
+    "builtins/complex-1.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: creall"
   },
   {
    "files": [
@@ -32418,14 +32533,6 @@
   },
   {
    "files": [
-    "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: g"
-  },
-  {
-   "files": [
     "00187.c"
    ],
    "present": 1,
@@ -32498,6 +32605,22 @@
   },
   {
    "files": [
+    "builtins/abs-2.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: imaxabs"
+  },
+  {
+   "files": [
+    "builtins/strchr.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: index"
+  },
+  {
+   "files": [
     "pr68390.c"
    ],
    "present": 1,
@@ -32514,19 +32637,11 @@
   },
   {
    "files": [
-    "memchr-1.c"
+    "builtins/abs-2.c"
    ],
    "present": 1,
    "sole": 0,
-   "wall": "libc-call: memchr"
-  },
-  {
-   "files": [
-    "string-opt-18.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: memmove"
+   "wall": "libc-call: llabs"
   },
   {
    "files": [
@@ -32570,6 +32685,14 @@
   },
   {
    "files": [
+    "builtins/strrchr.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: rindex"
+  },
+  {
+   "files": [
     "ieee/mzero4.c"
    ],
    "present": 1,
@@ -32583,6 +32706,46 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: sqrt"
+  },
+  {
+   "files": [
+    "builtins/strcspn.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: strcspn"
+  },
+  {
+   "files": [
+    "builtins/strncat.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: strncat"
+  },
+  {
+   "files": [
+    "builtins/strnlen.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: strnlen"
+  },
+  {
+   "files": [
+    "builtins/strpbrk.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: strpbrk"
+  },
+  {
+   "files": [
+    "builtins/strspn.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: strspn"
   },
   {
    "files": [
@@ -32607,6 +32770,22 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: terminate_me"
+  },
+  {
+   "files": [
+    "builtins/uabs-2.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: ullabs"
+  },
+  {
+   "files": [
+    "builtins/uabs-2.c"
+   ],
+   "present": 1,
+   "sole": 0,
+   "wall": "libc-call: umaxabs"
   },
   {
    "files": [
