@@ -3034,6 +3034,7 @@ def tgtOf? (ds : List DeclT) : PLhs → Except String Acc
   | .arrayElem n is => elemAcc? ds n is
   | .arrayPart n is mode hi lo => partAcc? ds n is mode hi lo
   | .partSel n msb lsb => partAcc? ds n [] .range msb lsb
+  | .aggregateMember .. => .error "aggregate member target (outside the v1 fragment)"
   | .concat _ => .error "concatenation target (outside the v1 fragment)"
 
 /-- The site with the lists `cn`, `rc` given, a literal `[]` for each that is empty (see `forceSite`). -/

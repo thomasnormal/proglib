@@ -491,6 +491,7 @@ def _root_.LeanModels.Sv.PLhs.hasCall : PLhs → Bool
   | .arrayElem _ is => LeanModels.Sv.PExpr.hasFunctionCallList is
   | .arrayPart _ is _ a b => LeanModels.Sv.PExpr.hasFunctionCallList is || LeanModels.Sv.PExpr.hasFunctionCall a ||
       LeanModels.Sv.PExpr.hasFunctionCall b
+  | .aggregateMember .. => true
   | .concat parts => PLhs.hasCallList parts
 
 /-- `hasCall` of a list of targets. -/
@@ -1621,6 +1622,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
           simp [CoreMemDesign.execStmtFuel, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
+      | aggregateMember _ _ =>
+          simp [PLhs.hasCall] at hbt
   | .blockingAssign n e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.not_eq_true'] at hb
@@ -1640,7 +1643,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
   | .blockingAssignL lhs e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
-      obtain ⟨hb, -⟩ := hb
+      obtain ⟨hb, hbt⟩ := hb
       cases lhs with
       | ident n =>
           simp only [CoreMemDesign.execV] at hv
@@ -1699,6 +1702,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
           simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
             hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx, hs']
+      | aggregateMember _ _ =>
+          simp [PLhs.hasCall] at hbt
   | .ifStmt c y n, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
