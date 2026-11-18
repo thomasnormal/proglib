@@ -697,3 +697,17 @@ Sail oracle result is claimed.  The RV harness self-test generated the same
 257 cases across hash seeds with fingerprint
 `a0d1ec3e980838c0c1fc997555fde11f25fd91d67687fc6c90a2fea5f4a0bc83`, and the
 Lean-side coverage check covered all 57 decoder rows.
+
+## 2026-11-18 canonical memory constant-initializer row
+
+The clean-room `darkriscv/walls/memory_unary_initializer.sv` combines an
+INT-class scalar initializer (`logic [1:0] value = -1`) with one-rank native
+memory and a time-zero write.  The canonical E memory probe admits all six
+rows in its census, retains the source-shaped initializer and continuous
+assignment, and settles the cell and output to `11`.  Icarus Verilog 13.0 and
+Xcelium 24.03-s004 both print `q=11`.
+
+The branch `pico-localparam-case` carries this CoreMemExec change and its
+probe.  It is a general-lane review item because the change is in
+`LeanModels/Sv/Kernel/CoreMemExec.lean`.  No PicoRV32 census or E-RUN count
+changes here.
