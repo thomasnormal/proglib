@@ -1342,6 +1342,10 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
     m.free Ptr.null = .ok m := by
   simp [free, Ptr.null]
 
+@[simp] theorem free_null_address_irrel (m : Mem) (address : Nat) :
+    m.free {Ptr.null with address := address} = .ok m := by
+  simp [free, Ptr.null]
+
 @[simp] theorem free_null_placement_lookup (m : Mem) (q : ObjId) :
     (m.free Ptr.null).map (fun m' => m'.placement? q) =
       .ok (m.placement? q) := by
