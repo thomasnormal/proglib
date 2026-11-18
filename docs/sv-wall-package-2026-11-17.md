@@ -779,6 +779,17 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Primitive-instance current-head check — 2026-11-18T02:10Z
+
+Fresh extraction of primitive_repro.sv at public master 31561db80 retains
+PrimitiveInstanceSymbol:PrimitiveInstance. Ordinary E reports the primitive
+at PDesign.instantiate and then refuses it in instantiateE2. IEEE 1800-2023
+section 28 gives primitive instances dedicated cell semantics, so canonical E
+keeps a loud refusal rather than lowering the gate to an assignment. The
+faithful output-logic source remains simulator-asymmetric between Icarus
+Verilog 13.0 and Xcelium 24.03-s004; the existing wire-terminal receipt agrees
+on both. No count transition is claimed.
+
 ## Current-head reconciliation — 2026-11-18T02:05Z
 
 Public master advanced from 2c1750717 to eaa90b1219a6f4453132adbec039b3032f64a722.
