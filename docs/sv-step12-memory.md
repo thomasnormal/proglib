@@ -67,3 +67,22 @@ refinement theorem back to `CoreMemDesign.step`; it is not a second semantics
 for users.  The next implementation gate is a loaded parameterized storage
 design running through `CoreMemDesign.initialState` and `CoreMemDesign.step`,
 with simulator rows at two parameter points and x/z index probes.
+
+## Current measured boundary — 2026-11-19
+
+The source-shaped one-rank route is executable for the concrete clean-room
+memory initializer at parameter points `(W, DEPTH) = (8, 2)` and `(32, 32)`.
+The canonical probe initializes `mem[0]`, settles `q`, and preserves the
+declaration width. Icarus Verilog 13.0 and Xcelium 24.03-s004 both report the
+same `q=3c` value at the 8-bit point and the corresponding zero-extended value
+at the 32-bit point. These rows exercise native `MemState` storage and the
+time-zero continuous read without expanding cells or changing the source AST.
+
+The DarkRISCV clean-room handoff reaches a successful canonical `initialState`
+with one native memory and completes two reset-shaped passes. Its first
+clocked transition reaches the source-shaped runtime `REGS[DPTR]` memory target
+and does not return within the bounded execution window. This is a kernel-cost
+wall, not a semantic refusal, so no whole-design E row or theorem is claimed.
+The remaining Step 12 implementation work is the kernel-cheap edge/NBA path
+for that dynamic cell target. The existing memory guards continue to cover
+valid, x/z, negative, and out-of-range indices plus issue-order NBA commit.
