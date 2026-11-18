@@ -1051,14 +1051,25 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
 def runB1 : Nat → RConfig → List RLabel × RConfig
   | 0, config => ([], config)
   | fuel + 1, config =>
-      match config.status, resolveB1 config with
-      | .finished _, _ => ([], config)
-      | .running, some (label, next) =>
-          let result := runB1 fuel next
-          (label :: result.1, result.2)
-      | .running, none =>
-          let stuck := config.finish (.refuse "machine stuck")
-          ([.event (.refuse "machine stuck")], stuck)
+      match config.status with
+      | .finished _ => ([], config)
+      | .running =>
+          match config.choices, resolveB1 config with
+          | choice :: tail, _ =>
+              let token := 0
+              if token ∈ choice.allowed then
+                let next := config.chooseToken tail token
+                let result := runB1 fuel next
+                (.event (.choice choice.kind token) :: result.1, result.2)
+              else
+                let stuck := config.finish (.refuse "machine choice")
+                ([.event (.refuse "machine choice")], stuck)
+          | [], some (label, next) =>
+              let result := runB1 fuel next
+              (label :: result.1, result.2)
+          | [], none =>
+              let stuck := config.finish (.refuse "machine stuck")
+              ([.event (.refuse "machine stuck")], stuck)
 
 theorem resolveChoice_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : RConfig)
     (h : resolveChoice impl config = some (label, next)) :
@@ -1540,6 +1551,13 @@ private def choiceConfig : RConfig :=
 
 #guard (runRelation RImpl.cpython39 1 choiceConfig).1 ==
   [.event (.choice "identity" 0)]
+
+#guard (runB1 1 choiceConfig).1 ==
+  [.event (.choice "identity" 0)]
+
+example :
+    choiceConfig.chooseToken [] 0 ≠ choiceConfig.chooseToken [] 1 := by
+  simp [choiceConfig, RConfig.chooseToken]
 
 example : (runRelation RImpl.cpython39 3 (RConfig.initial testModule)).1 =
     [.tau, .tau, .event (.return (.int 7))] := by
