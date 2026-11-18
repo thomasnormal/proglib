@@ -403,7 +403,7 @@ def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
       | _ => none
   | _ => none
 
-def rRenderPrint : List RVal → Option String
+def rRenderPrintWithSep (separator : String) : List RVal → Option String
   | [] => some ""
   | value :: rest =>
       let rendered := match value with
@@ -413,9 +413,11 @@ def rRenderPrint : List RVal → Option String
         | .int n => toString n
         | .str text => text
         | _ => ""
-      match rRenderPrint rest with
-      | some tail => if tail.isEmpty then some rendered else some (rendered ++ " " ++ tail)
+      match rRenderPrintWithSep separator rest with
+      | some tail => if tail.isEmpty then some rendered else some (rendered ++ separator ++ tail)
       | none => none
+
+def rRenderPrint : List RVal → Option String := rRenderPrintWithSep " "
 
 def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
   { config with modules := rSetModule config.modules module name value }
@@ -448,12 +450,7 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     Option (RLabel × RConfig) :=
   match callee with
   | .callable name =>
-      if name == "print" then
-        match rRenderPrint values with
-        | some text => some (.event (.output text),
-            config.setControl (.continueValue .none continuation))
-        | none => some (.tau, config.setControl (.refusing "machine print"))
-      else match rFunction config.functions name with
+      match rFunction config.functions name with
       | some function =>
           let builtKwargs :=
             if keywords.isEmpty then (config.heap, none)
@@ -474,8 +471,17 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
                   config.finish (.refuse "machine argument binder"))
           | _ => some (.event (.refuse "machine call stack"),
               config.finish (.refuse "machine call stack"))
-      | none => some (.event (.refuse ("unknown function: " ++ name)),
-          config.finish (.refuse ("unknown function: " ++ name)))
+      | none =>
+          if name == "print" then
+            let separator := match rLookupEnv keywords "sep" with
+              | some (.str text) => text
+              | _ => " "
+            match rRenderPrintWithSep separator values with
+            | some text => some (.event (.output text),
+                config.setControl (.continueValue .none continuation))
+            | none => some (.tau, config.setControl (.refusing "machine print"))
+          else some (.event (.refuse ("unknown function: " ++ name)),
+            config.finish (.refuse ("unknown function: " ++ name)))
   | _ => some (.event (.refuse "machine non-callable"),
       config.finish (.refuse "machine non-callable"))
 
