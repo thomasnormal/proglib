@@ -779,6 +779,17 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Aggregate relation landing remeasurement — 2026-11-18T02:52Z
+
+After public landing 8ade780f5 added the source-shaped aggregate relation, fresh
+ordinary censuses of typed_nested_repro.sv, typed_named_unpacked.sv,
+member_nested_repro.sv, and type_alias_nested_repro.sv were rerun. The typed
+port and variable, typed named-value, member-access, and type-alias parser nodes
+remain preserved. Ordinary E still ends at the canonical typed-port or typed
+variable storage boundary, with the type-alias case retaining the
+9.2.2.2/9.4.2.2 dependency-order refusal. No aggregate wall moved and
+REAL-BLOCKS remains 41.
+
 ## Package-head reconciliation — 2026-11-18T02:19Z
 
 The current public head remains 9f0f4cbf5 after the output-net-z
