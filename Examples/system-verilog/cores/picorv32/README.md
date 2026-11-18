@@ -2023,7 +2023,9 @@ directly from the loaded envelope.  `R2.lean` also records that the loaded
 source has exactly one one-rank unpacked declaration, `cpuregs`, matching the
 first scalar-E declaration wall.  The direct instantiation reports
 `decl 'cpuregs': unpacked array storage outside E (UnpackedDecl:memory)` before
-any cycle executes.
+any cycle executes.  The loaded theorem `picorv32_loaded_cpuregs_cell_shape`
+pins its 32-bit cell width and one unpacked dimension, while
+`picorv32_loaded_regfile_size` pins the resolved register-file size at 32.
 
 ## 2026-11-18 W5 kernel-cost measurement
 
