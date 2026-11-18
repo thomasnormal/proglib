@@ -445,5 +445,11 @@
     "source": "int main(void) { int x = 3; unsigned long long u = (unsigned long long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "match",
     "return_value": 0
+  },
+  {
+    "id": "signed-bitfield-layout-wall",
+    "source": "struct S { signed int x : 3; }; int main(void) { struct S s = {0}; s.x = 7; return s.x == -1 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "no layout for declared type"
   }
 ]
