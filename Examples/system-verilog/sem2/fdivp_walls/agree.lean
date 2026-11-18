@@ -12,14 +12,14 @@ def unsupportedKinds (ps : Array Process2) : Array String :=
 
 #guard match fdivpGenerate.pdesign.instantiate2 [8] 100 with
   | .ok d => unsupportedKinds d.processes ==
-      #["GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign",
-        "GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign",
-        "GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign",
-        "GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign",
-        "GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign",
-        "GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign",
-        "GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign",
-        "GenerateDecl:LocalParam", "GenerateDecl:Var", "GenerateDecl:Var", "Assign", "Assign"]
+      #["GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign",
+        "GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign",
+        "GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign",
+        "GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign",
+        "GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign",
+        "GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign",
+        "GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign",
+        "GenerateDecl:LocalParam", "GenerateDecl:UnpackedDecl", "GenerateDecl:UnpackedDecl", "Assign", "Assign"]
   | _ => false
 
 #guard match fdivpLargePow.pdesign.instantiate2 [8193] 100 with
