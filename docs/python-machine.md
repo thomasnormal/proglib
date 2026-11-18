@@ -209,5 +209,7 @@ literal-defaulted parameter, while
 `harness/scripts/function_keyword_omitted_default.py` checks that an earlier
 literal default can be omitted when a later parameter is selected by keyword,
 while
+`harness/scripts/function_keyword_expression.py` checks evaluation of a scalar
+keyword value before binding, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twenty-one matches, three refusals, and zero divergence.
+current result is twenty-two matches, three refusals, and zero divergence.
