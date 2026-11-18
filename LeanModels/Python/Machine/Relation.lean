@@ -112,6 +112,7 @@ inductive RKont where
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
   | subscriptValue (index : Expr) (continuation : RKont)
   | subscriptIndex (receiver : RVal) (continuation : RKont)
+  | tupleElements (remaining : List Expr) (values : List RVal) (continuation : RKont)
   | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
@@ -414,6 +415,17 @@ def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
           rLookupDictEntries entries.toList index
       | _ => none
   | _ => none
+
+def rIndexValue (receiver index : RVal) : Option RVal :=
+  let select (values : Array RVal) (position : Int) : Option RVal :=
+    let length := values.size
+    let normalized := if position < 0 then position + length else position
+    if normalized < 0 then none
+    else GetElem?.getElem? values normalized.toNat
+  match receiver, index with
+  | .tuple values, .int position => select values position
+  | .listV values, .int position => select values position
+  | _, _ => none
 
 def rRenderPrintWithSep (separator : String) : List RVal → Option String
   | [] => some ""
@@ -795,6 +807,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl (.evaluate left (.binOpLeft op right continuation)))
       | .evaluate (.subscript receiver index _) continuation =>
           some (.tau, config.setControl (.evaluate receiver (.subscriptValue index continuation)))
+      | .evaluate (.tuple elements _) continuation =>
+          match elements.toList with
+          | [] => some (.tau, config.setControl (.continueValue (.tuple #[]) continuation))
+          | first :: rest =>
+              some (.tau, config.setControl
+                (.evaluate first (.tupleElements rest [] continuation)))
       | .evaluate (.unsupported _ text _) _ =>
           some (.event (.refuse text), config.finish (.refuse text))
       | .evaluate _ _ =>
@@ -845,7 +863,18 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue index (.subscriptIndex receiver continuation) =>
           match rLookupDict config.heap receiver index with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
-          | none => some (.tau, config.setControl (.refusing "machine dictionary lookup"))
+          | none =>
+              match rIndexValue receiver index with
+              | some value => some (.tau, config.setControl (.continueValue value continuation))
+              | none => some (.tau, config.setControl (.refusing "machine subscript"))
+      | .continueValue value (.tupleElements remaining values continuation) =>
+          match remaining with
+          | next :: rest =>
+              some (.tau, config.setControl
+                (.evaluate next (.tupleElements rest (values ++ [value]) continuation)))
+          | [] =>
+              some (.tau, config.setControl
+                (.continueValue (.tuple (values.toArray ++ #[value])) continuation))
       | .continueValue right (.binOpRight left op continuation) =>
           match rEvalBinOp op left right with
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))
@@ -1110,6 +1139,11 @@ private def bTruthinessModule : RModule :=
         #[.expr (.call (.name "print" testSpan)
           #[.constant (.int 2) testSpan] #[] none testSpan) testSpan] testSpan] }
 
+private def bTupleModule : RModule :=
+  { body := #[.ret (some (.subscript
+      (.tuple #[.constant (.int 1) testSpan, .constant (.int 2) testSpan] testSpan)
+      (.constant (.int (-1)) testSpan) testSpan)) testSpan] }
+
 private def bClosureModule : RModule :=
   { body := #[.functionDef "outer" #[] #[]
         #[.assign (.name "x" testSpan) (.constant (.int 9) testSpan) testSpan,
@@ -1258,6 +1292,9 @@ example :
 #guard (runB1 32 (RConfig.initial bTruthinessModule)).1 ==
   [.tau, .tau, .tau, .tau, .tau, .tau, .tau, .tau,
     .event (.output "2"), .tau, .event (.return .none)]
+
+#guard (runB1 32 (RConfig.initial bTupleModule)).2.status ==
+  .finished (.return (.int 2))
 
 #guard (runB1 128 (RConfig.initial bMixedDefaultKeywordModule)).2.status ==
   .finished (.return .none)
