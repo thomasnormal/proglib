@@ -1,5 +1,6 @@
 import LeanModels.Core.Basic
 import Lean.ToExpr
+import LeanModels.Clang.QualType
 
 /-!
 # The C tier's deep-embedded AST (`LeanModels.C`)
@@ -105,6 +106,34 @@ inductive TypeNode where
   | funcProto (ret : TypeNode) (params : List TypeNode)
   | unsupported (cKind : String) (text : String)
 deriving Repr, Inhabited, BEq
+
+/-! ### Parser-native bridge to the shared clang type layer
+
+`TypeNode` is already the recursive shape clang emits below a typedef.  This
+bridge preserves that shape and carries declaration identity into the shared
+`QualType`; it never interprets a flat `qualType` spelling.  C-only builtin
+spellings remain explicit `cBuiltin` leaves until the C profile supplies their
+width and signedness facts.
+-/
+
+partial def TypeNode.toQualType : TypeNode → Except String LeanModels.Clang.QualType
+  | .builtin name => .ok (.cBuiltin name)
+  | .pointer inner => do
+      let pointee ← inner.toQualType
+      pure (.pointer pointee)
+  | .paren inner => inner.toQualType
+  | .elaborated inner => inner.toQualType
+  | .funcProto ret params => do
+      let result ← ret.toQualType
+      let arguments ← params.mapM TypeNode.toQualType
+      pure (.function result arguments false)
+  | .typedefRef (some id) _ => .ok (.typedefRef {value := id.value})
+  | .typedefRef none spelling =>
+      .error s!"structured typedef type has no declaration identity: {spelling}"
+  | .record spelling =>
+      .error s!"structured record type has no declaration identity: {spelling}"
+  | .unsupported kind text =>
+      .error s!"unsupported structured C type '{kind}': {text}"
 
 /-- A record layout observed from Clang's `ASTRecordLayout` probe.  These are
 frontend facts carried by the envelope; the C semantics may use them only

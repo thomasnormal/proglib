@@ -20,6 +20,9 @@ structure DeclarationHandle where
 
 inductive QualType where
   | builtin (type : LeanModels.Cpp.CppIntType)
+  /-- A C frontend builtin whose signedness/width is a parser fact that the
+  C profile has not normalized into the C++ integer taxonomy yet. -/
+  | cBuiltin (name : String)
   | void
   | pointer (pointee : QualType)
   | array (element : QualType) (extent : Option Nat)
@@ -37,6 +40,7 @@ mutual
     match left, right with
     | .void, .void => true
     | .builtin left, .builtin right => left == right
+    | .cBuiltin left, .cBuiltin right => left == right
     | .pointer left, .pointer right => QualType.beq left right
     | .array left le, .array right re =>
         QualType.beq left right && le == re
