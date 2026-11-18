@@ -314,8 +314,9 @@ macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : 
 macro "sv_seq_profile" : tactic =>
   `(tactic| exact LeanModels.Sv.Kernel.CoreMemDesign.SeqProfile.of_B
       (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.memOkB]) rfl (by simp)
-      (by simp [LeanModels.Sv.Kernel.AllFour]) (by simp)
-      (by simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
+      (by simp [LeanModels.Sv.Kernel.AllFour])
+      (by simp [LeanModels.Sv.Kernel.coreMemResolvedNetNames])
+      (by simp (config := {maxSteps := 4000000, decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
         LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
         LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
         LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
