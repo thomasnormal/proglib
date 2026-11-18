@@ -1875,7 +1875,12 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
           if structuredType.recordLike then
             (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
               |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
-          else none
+          else
+            -- A typedef reference is a parser-native identity node whose
+            -- underlying record is supplied by the translation unit's
+            -- checked layout facts.  Let that fact resolve the member while
+            -- retaining the loud fallback for scalar and function types.
+            ctx.layout.fieldOff base.ty field
       | none =>
           (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
             |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
@@ -1887,7 +1892,9 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
               (ctx.layout.fieldSizeAt base field).orElse
                 (fun _ => (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
                   (fun _ => ctx.layout.fieldSize base.ty field))
-            else none
+            else
+              (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
+                (fun _ => ctx.layout.fieldSizeAt base field)
         | none =>
             (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
               (fun _ => ctx.layout.fieldSizeAt base field)

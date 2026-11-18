@@ -696,6 +696,87 @@
     ]
   },
   {
+    "id": "structured-typedef-array-init",
+    "source": "typedef int Word; int main(void) { Word a[3] = {1}; return a[0] == 1 && a[1] == 0 && a[2] == 0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "envelope_checks": [
+      "array_filler"
+    ],
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "type_layout_element_size"
+    ]
+  },
+  {
+    "id": "structured-parameter-array-init",
+    "source": "int read(int a[3]) { return a[2]; } int main(void) { int a[3] = {0, 0, 7}; return read(a) == 7 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout"
+    ]
+  },
+  {
+    "id": "structured-record-array-init",
+    "source": "struct S { int x; int y; }; int main(void) { struct S a[2] = {{1}, {2, 3}}; return a[0].y == 0 && a[1].y == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "envelope_checks": [
+      "array_filler"
+    ],
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "record_layout",
+      "type_layout_element_size"
+    ]
+  },
+  {
+    "id": "structured-typedef-record-init",
+    "source": "typedef struct V { int a; int b; } V; int main(void) { V v = {1, 2}; return v.b == 2 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "record_layout"
+    ]
+  },
+  {
+    "id": "structured-typedef-record-pointer-member",
+    "source": "typedef struct V { int a; int b; } V; int main(void) { V v = {1, 2}; V *p = &v; return p->b == 2 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "record_layout"
+    ]
+  },
+  {
     "id": "structured-pointer-load",
     "source": "int main(void) { int x = 7; int *p = &x; return *p == 7 ? 0 : 1; }",
     "expect": "match",
