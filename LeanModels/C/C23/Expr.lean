@@ -437,6 +437,9 @@ structure Layout where
   typeSize : CType → Option Nat := fun _ => none
   /-- Frontend-observed byte stride for a declared pointer-to-array object. -/
   pointeeSize : CType → Option Nat := fun _ => none
+  /-- Frontend-observed byte stride keyed by the declaration identity of the
+  pointer-to-array object. -/
+  pointeeSizeDecl : DeclarationId → Option Nat := fun _ => none
   /-- `offsetof`, keyed on the BASE expression's spelling, so `p->f` and
   `x.f` look up under `"const Pos *"` and `"Pos"` respectively. -/
   fieldOff : CType → String → Option Nat
@@ -530,6 +533,7 @@ def Layout.unknown : Layout :=
     fieldOffType := fun _ _ => none
     typeSize := fun _ => none
     pointeeSize := fun _ => none
+    pointeeSizeDecl := fun _ => none
     fieldSize := fun _ _ => none, fieldSizeDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
@@ -1890,7 +1894,9 @@ def indexAddr (ctx : Ctx) (base idx : Expr) (ty : CType) : EvalM Ptr := do
   let bp ← asPtr bv
   let iv ← evalExpr ctx idx
   let (_, i) ← asInt iv
-  match ctx.layout.size ty with
+  let elementSize := (directDeclId base).bind (fun did => ctx.layout.pointeeSizeDecl did)
+    |>.orElse (fun _ => ctx.layout.size ty)
+  match elementSize with
   | some esz => readMem (fun m => Mem.subscript m bp esz i)
   | none => refuseUnsupported s!"no size for element type '{ty}'"
   termination_by 2 * (base.size + idx.size) + 2
