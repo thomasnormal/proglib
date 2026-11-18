@@ -2,9 +2,9 @@
 """Reproduce the PicoRV32 input-driven simulator and canonical-E receipt.
 
 The pinned simulators must agree on every sampled row. Canonical E is then
-loaded at the same 26-parameter point. Its first running boundary is the
-reactive dependency-order refusal, so the receipt records zero E cycles and
-the exact refusal instead of treating a simulator trace as an E result.
+loaded at the same 26-parameter point. The reactive-region wall is now handled
+by bounded quiescence, so this receipt records admission and the simulator
+baseline. The full input trace remains a separate comparison artifact.
 """
 
 from __future__ import annotations
@@ -21,11 +21,6 @@ SOURCE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.v"
 ENVELOPE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
 SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
-EXPECTED = (
-    "Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads "
-    "'alu_eq' from itself or a later reactive process; canonical E has no "
-    "fixed-point scheduler"
-)
 ARGS = (
     "1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 "
     "4294967295"
@@ -62,8 +57,11 @@ open LeanModels.Sv LeanModels.Sv.Kernel
 set_option maxRecDepth 100000 in
 load_design_sv2 picorv32_step_wall from "{envelope}"
 #eval match picorv32_step_wall.e {ARGS} with
-| .unsupported msg => "E-RUN: 0/220 cycles; wall: " ++ msg
-| .ok _ => "unexpected canonical-E admission"
+| .unsupported msg => "unexpected canonical-E refusal: " ++ msg
+| .ok d => match d.initialState with
+  | .ok _ => "E-RUN: design admitted; reactive region quiesces"
+  | .unsupported msg => "E-RUN: initial-state wall: " ++ msg
+  | .timeout => "E-RUN: initial-state timeout"
 | .timeout => "unexpected canonical-E timeout"
 '''
     with tempfile.NamedTemporaryFile(
@@ -86,7 +84,7 @@ def main() -> int:
     if "agree on 220/220 cycles" not in simulator:
         raise RuntimeError("simulator receipt did not report 220/220 agreement")
     e_run = canonical_e_receipt()
-    expected = "E-RUN: 0/220 cycles; wall: " + EXPECTED
+    expected = "E-RUN: design admitted; reactive region quiesces"
     if expected not in e_run:
         raise RuntimeError("canonical-E receipt did not reproduce the pinned wall\n" + e_run)
     print("source SHA-256: " + SOURCE_SHA256)

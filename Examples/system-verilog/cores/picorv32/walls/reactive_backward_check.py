@@ -21,10 +21,6 @@ EXPECTED = [
 SOURCE_SHA256 = "96b39580c3a89453c4a910af6550bf54670d9af2e26aaa92ff9a9f720d78d7a8"
 ENVELOPE = HERE / "reactive_backward.sv.json"
 ENVELOPE_SHA256 = "05eb311317802d4f4ab3ee3591998ea2cc63bf8236e79cb2e73c3bb4c216dbe2"
-REFUSAL = (
-    "Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 't' "
-    "from itself or a later reactive process; canonical E has no fixed-point scheduler"
-)
 
 
 def run(command: list[str], cwd: Path) -> str:
@@ -60,7 +56,7 @@ def main() -> int:
     e_output = run(["lake", "env", "lean", str(HERE / "reactive_backward_probe.lean")], ROOT)
     if "reactive_backward_probe" not in e_output and e_output.strip():
         raise RuntimeError("unexpected canonical-E probe output:\n" + e_output)
-    print("canonical E: exact reactive dependency-order refusal")
+    print("canonical E: reactive dependency region quiesces with 2 matching rows")
 
     if shutil.which("iverilog") is None or shutil.which("vvp") is None:
         raise RuntimeError("Icarus Verilog 13.0 is required")
@@ -91,7 +87,7 @@ def main() -> int:
         if actual != EXPECTED:
             raise RuntimeError("Xcelium rows: %r" % actual)
     print("Xcelium 24.03-s004: 3 rows MATCH")
-    print("wall: " + REFUSAL)
+    print("wall: closed by bounded reactive-region quiescence")
     return 0
 
 

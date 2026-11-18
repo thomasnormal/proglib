@@ -9,15 +9,11 @@ The source rows use `a=0` at time zero, then set `a=1` at 1 ns and sample at
 2 ns and 3 ns. Icarus Verilog 13.0 and Xcelium 24.03-s004 both report
 `y=x` at time zero and `y=1` at both later samples.
 
-Canonical E currently refuses the instantiated envelope with
-
-```
-Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 't' from itself or a later reactive process; canonical E has no fixed-point scheduler
-```
-
-No E trace is claimed for this row. The refusal is the first running wall after
-PicoRV32's 360 admitted, 0 refused, 4 inactive census.
+Canonical E now re-runs the retained reactive region to quiescence. Its two
+input rows produce `(a,t,y) = (0,0,0)` and `(1,1,1)`, matching the defined
+blocking-assignment result after the later process wakes the earlier process.
+The bounded quiescence loop refuses only if the region fails to settle.
 
 The executable checker `reactive_backward_check.py` reruns the same rows and
-the canonical-E probe.  It reports the exact refusal above, three matching
+the canonical-E probe. It reports two matching canonical-E rows, three matching
 rows from Icarus Verilog 13.0, and three matching rows from Xcelium 24.03-s004.
