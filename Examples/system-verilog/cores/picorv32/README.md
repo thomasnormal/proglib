@@ -1964,3 +1964,15 @@ Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'alu_eq' from its
 This is a running scheduler wall, not a simulator disagreement or an RTL
 rewrite.  The clean-room `reactive_backward` fixture and its simulator rows
 are recorded in [`walls/reactive_backward_receipt.md`](walls/reactive_backward_receipt.md).
+
+## 2026-11-18 R1 boundary inventory and routing
+
+The checked-in R1 package now covers the complete RV32I boundary used by the
+R2 statement: immediate and register ALU operations, upper-immediate forms,
+all branches and jumps, all byte/halfword/word memory directions and
+signednesses, fences, machine system transfers, implemented Zicsr forms, and
+illegal decode/CSR traps.  The remaining R2 work is the loaded-core invariant,
+which cannot be discharged while canonical E stops before cycle 0 at the
+reactive dependency-order refusal.  No additional class theorem is added until
+that E boundary becomes reachable or the R2 statement names a concrete missing
+consumer.
