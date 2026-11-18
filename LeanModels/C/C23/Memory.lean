@@ -2628,6 +2628,15 @@ theorem reallocAt_null_storePtrInt (m : Mem) (size address : Nat) (q : Ptr)
   rw [reallocAt_null m size address hsize]
   rfl
 
+theorem reallocAt_null_storeFunction (m : Mem) (size address : Nat)
+    (id : DeclarationId) (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => (r.1.storeFunction r.2 id).map (fun m' => m'.objs)) =
+      .ok (((m.mallocAt size address).1.storeFunction
+        (m.mallocAt size address).2 id).map (fun m' => m'.objs)) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 @[simp] theorem mallocAt_pointer_shape (m : Mem) (size address : Nat) :
     (m.mallocAt size address).2 =
       ⟨some (m.objs.length), address, 0, some size⟩ := by
