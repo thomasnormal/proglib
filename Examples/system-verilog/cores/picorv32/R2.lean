@@ -485,4 +485,29 @@ theorem picoRV32_progress {State : Type}
       coreState memoryState hrel hschedule htarget k
   exact ⟨n, program, certificate, htrace⟩
 
+theorem picorv32_progress_bridge {State : Type}
+    (profile : PlatformProfile) (machine : RvfiCycleMachine State)
+    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
+    (hstep : Rv32iCycleStepRefines machine rel admit)
+    (start : Nat) (coreState : State) (memoryState : RvMemoryState)
+    (hrel : rel coreState memoryState)
+    {schedule target : Nat → Input}
+    (hschedule : ∀ n, admit (schedule n))
+    {resetRelease bound : Nat}
+    (progress : BoundedNextRetirement machine coreState schedule target
+      resetRelease bound) :
+    ∀ k : Nat, ∃ n : Nat, ∃ program : List Rv32iInstruction,
+      Rv32iRvfiCycleTrace machine start coreState memoryState
+        (schedulePrefix schedule n) program ∧
+      normalizeRvfiTrace? start
+        (rvfiObservations machine coreState (schedulePrefix schedule n)) =
+        some (trace (rvMemoryMachineWith profile) memoryState
+          (schedulePrefix target k)) := by
+  exact picoRV32_progress profile machine rel admit hstep start coreState
+    memoryState hrel hschedule progress
+
+#print axioms picorv32_progress_bridge
+
+
+
 end Examples.«system-verilog».cores.picorv32
