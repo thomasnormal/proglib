@@ -736,6 +736,13 @@ private def bGlobalModule : RModule :=
       .assign (.name "x" testSpan) (.constant (.int 2) testSpan) testSpan,
       .expr (.call (.name "read" testSpan) #[] #[] none testSpan) testSpan] }
 
+private def bCallModule : RModule :=
+  { body := #[
+      .functionDef "identity" #[{ name := "value" }] #[]
+        #[.ret (some (.name "value" testSpan)) testSpan] testSpan,
+      .ret (some (.call (.name "identity" testSpan)
+        #[.constant (.int 7) testSpan] #[] none testSpan)) testSpan] }
+
 example :
     ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
@@ -757,6 +764,11 @@ example :
 example :
     rLookupModule (runB1 64 (RConfig.initial bGlobalModule)).2.modules
       "__main__" "x" = some (.int 2) := by
+  rfl
+
+example :
+    (runB1 64 (RConfig.initial bCallModule)).2.status =
+      .finished (.return (.int 7)) := by
   rfl
 
 example : ∃ c₁ c₂,
