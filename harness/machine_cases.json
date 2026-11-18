@@ -250,9 +250,14 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_list_mutation.py",
+    "envelope": "harness/scripts/machine_list_mutation.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_global_read.py",
