@@ -1982,6 +1982,8 @@ Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'alu_eq' from its
 This is a running scheduler wall, not a simulator disagreement or an RTL
 rewrite.  The clean-room `reactive_backward` fixture and its simulator rows
 are recorded in [`walls/reactive_backward_receipt.md`](walls/reactive_backward_receipt.md).
+The executable receipt is [`walls/reactive_backward_check.py`](walls/reactive_backward_check.py),
+which reruns the canonical-E refusal and the three rows on both pinned simulators.
 
 ## 2026-11-18 system-function call wall
 
