@@ -200,6 +200,15 @@ def targetName : Expr → Option String
 def evalFunctionBody : REnv → List Stmt → Res RVal
   | env, [.ret (some expression) _] => evalExpr env expression
   | env, [.ret none _] => .ok .none
+  | env, [.ifStmt test body orelse _] =>
+      match evalExpr env test with
+      | .ok value =>
+          match truthy value with
+          | true => evalReturnBranch env body
+          | false => evalReturnBranch env orelse
+      | .exn error => .exn error
+      | .timeout => .timeout
+      | .unsupported reason => .unsupported reason
   | env, [.assign #[target] expression _, .ret (some returnValue) span] =>
       match targetName target, evalExpr env expression with
       | some name, .ok value =>
@@ -209,6 +218,13 @@ def evalFunctionBody : REnv → List Stmt → Res RVal
       | _, .timeout => .timeout
       | _, .unsupported reason => .unsupported reason
   | _, _ => .unsupported "machine nested function body"
+
+where
+  evalReturnBranch (env : REnv) (body : Array Stmt) : Res RVal :=
+    match body.toList with
+    | [.ret (some expression) _] => evalExpr env expression
+    | [.ret none _] => .ok .none
+    | _ => .unsupported "machine function branch body"
 
 def evalFunctionReturn (m : Module) (env : REnv) (name : String)
     (args : Array Expr) : Res RVal :=

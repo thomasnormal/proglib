@@ -187,5 +187,7 @@ loudly, while
 assigns a local before returning, while
 `harness/scripts/function_default.py` checks an omitted literal default
 parameter, while
+`harness/scripts/function_print_branch.py` checks branch-selected returns in an
+expression callee, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is eleven matches, two refusals, and zero divergence.
+current result is twelve matches, two refusals, and zero divergence.
