@@ -1533,6 +1533,22 @@ theorem free_valid_loadFloat64 (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
   simp [loadFloat64, loadBytes, resolve, hp, hk]
   rfl
 
+theorem free_valid_storeFloat32 (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
+    (f : Float32.Model) (hp : p.obj = some o) (hc : m.get? o = some c)
+    (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0) :
+    (m.free p).map (fun m' => m'.storeFloat32 p f) =
+      .ok (.error (.memUB (.deadObject o c.dur))) := by
+  have h : m.free p = .ok (m.kill o) := by
+    simpa using free_valid_address_irrel m p o c p.address hp hc hdur hlive hoff
+  rw [h]
+  simp only [Except.map, Except.ok.injEq]
+  have hk : (m.kill o).get? o = some { c with live := false } := by
+    simp only [kill, get?] at hc ⊢
+    rw [List.getElem?_modify]
+    simp [hc]
+  simp [storeFloat32, storeBytes, resolve, hp, hk]
+  rfl
+
 theorem free_valid_placement_lookup (m : Mem) (p : Ptr) (o q : ObjId) (c : CObj)
     (hp : p.obj = some o) (hc : m.get? o = some c)
     (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0) :
