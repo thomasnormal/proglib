@@ -71,9 +71,16 @@ def strLit? (e : Lean.Expr) : Option String :=
   | Lean.Expr.lit (Lean.Literal.strVal s) => some s
   | _ => none
 
+/-- The svKind of the first statement ingestion kept unconverted (`PStmt.unsupported kind _`) inside a term. -/
+def unsupportedStmtKind? (e : Lean.Expr) : Option String :=
+  match e.find? (fun x => x.isAppOfArity ``PStmt.unsupported 2) with
+  | some u => strLit? (u.getArg! 0)
+  | none => none
+
 /-- Why a process of the normal form is outside the clocked profile (the `procOkB` check failed on it; `clk? = some clk`
-for the single-clock profile, `none` for the instant profile). -/
-def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) : MetaM String := do
+for the single-clock profile, `none` for the instant profile; `resolved` the design's nets with several continuous
+drivers, `CoreMemDesign.resolvedNets`). -/
+def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) (resolved : List String := []) : MetaM String := do
   let p ← whnf p
   let at_ := s!"process {i}"
   if p.isAppOfArity ``CoreMemProc.edge 1 then
@@ -92,10 +99,16 @@ def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) : MetaM String := d
         return s!"{at_} (an edge process) has a procedural `for` loop: the memories slice (next), refused"
       if (body.find? (·.isConstOf ``PExpr.functionCall)).isSome then
         return s!"{at_} (an edge process) calls a function: outside the clocked profile (U5)"
+      if (body.find? (·.isConstOf ``PExpr.aggregateMember)).isSome then
+        return s!"{at_} (an edge process) reads an unpacked aggregate member (a struct field or an aggregate element, §7.2, §7.4): the clocked views carry no aggregate store, refused"
       if (body.find? (·.isConstOf ``PStmt.unsupported)).isSome then
-        return s!"{at_} (an edge process) holds a statement ingestion kept unconverted"
+        match unsupportedStmtKind? body with
+        | some k => return s!"{at_} (an edge process) holds a statement ingestion kept unconverted ({k}), refused"
+        | none => return s!"{at_} (an edge process) holds a statement ingestion kept unconverted"
       return s!"{at_} (an edge process): its body is outside the edge-body fragment the clocked stages mirror"
     return s!"{at_} (an edge process): outside the clocked profile"
+  if p.isAppOfArity ``CoreMemProc.event 2 then
+    return s!"{at_} is a plain `always` with an explicit event list (`always @(a or b)`, kept as an event process): its event control is not one clock edge with an optional asynchronous reset, outside the clocked profile, refused"
   if p.isAppOfArity ``CoreMemProc.comb 1 then
     return s!"{at_} is an always_comb process: always_comb beside flip-flops is the next slice (T7), refused"
   if p.isAppOfArity ``CoreMemProc.latch 1 then
@@ -113,6 +126,11 @@ def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) : MetaM String := d
     let v := p.getArg! 1
     if (v.find? (·.isConstOf ``PExpr.functionCall)).isSome then
       return s!"{at_} (a continuous assign) calls a function: outside the clocked profile (U5)"
+    if (v.find? (·.isConstOf ``PExpr.aggregateMember)).isSome then
+      return s!"{at_} (a continuous assign) reads an unpacked aggregate member (a struct field or an aggregate element, §7.2, §7.4): the clocked views carry no aggregate store, refused"
+    if let some n := strLit? (← whnf (t.getArg! 0)) then
+      if resolved.contains n then
+        return s!"{at_} (a continuous assign) drives `{n}`, a net with several continuous drivers: the clocked views do not model the §6.6 driver resolution (`resolvedNets`), refused"
     return s!"{at_} (a continuous assign): its compiled expression is missing or its target is undeclared"
   return s!"{at_}: outside the clocked profile"
 
@@ -148,6 +166,10 @@ def runProfile (g : MVarId) : TacticM Unit := do
     throwError "sv_structure: a memory is outside the clocked profile (memories of distinct names and identities, 4-state elements, none a port), refused"
   let some ps ← arrayElems (← whnf (mkApp (mkConst ``CoreMemDesign.processes) E))
     | throwError "sv_structure: the clocked profile does not hold (the processes are not a literal list at these parameters)"
+  let resolved : List String ← do
+    match ← listElems (mkApp (mkConst ``CoreMemDesign.resolvedNets) E) with
+    | some ns => pure (← ns.mapM fun n => do pure ((strLit? (← whnf n)).getD "?"))
+    | none => pure []
   let mut i := 0
   for p in ps do
     let t := match clk? with
@@ -166,8 +188,12 @@ def runProfile (g : MVarId) : TacticM Unit := do
         LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList,
         LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?, LeanModels.Sv.Kernel.Elab.resolve,
         LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])) do
-      throwError "sv_structure: {← whyProc clk? i p}"
+      throwError "sv_structure: {← whyProc clk? i p resolved}"
     i := i + 1
+  let gr ← mkFreshExprMVar (← mkEq (mkApp (mkConst ``CoreMemDesign.resolvedNets) E)
+    (← mkAppOptM ``List.nil #[mkConst ``String]))
+  unless ← closes gr.mvarId! (← `(tactic| simp)) do
+    throwError "sv_structure: the design has a net with several continuous drivers ({String.intercalate ", " resolved}): the clocked views do not model the §6.6 driver resolution (`resolvedNets` is not empty), refused"
   throwError "sv_structure: the clocked profile does not hold: the declarations are not distinct and 4-state, the scalar and edge views differ, or a memory is outside the profile (memories of distinct names, 4-state elements, none a port)"
 
 /-- The named obligations, in the order they are checked, with the reason each refuses (`true`: the obligation takes
