@@ -194,6 +194,14 @@ theorem picorv32_loaded_cpuregs_cell_shape :
 
 #print axioms picorv32_loaded_cpuregs_cell_shape
 
+theorem picorv32_loaded_regfile_size :
+    picorv32_r2.pdesign.localParams.filterMap
+      (fun p => if p.name == "regfile_size" then p.resolved? else none) =
+      [32] := by
+  decide
+
+#print axioms picorv32_loaded_regfile_size
+
 theorem picorv32_rv32m_disabled :
     picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
       picorv32RISCVFormalParameters.ENABLE_DIV = 0 := by
