@@ -830,6 +830,16 @@ timing scheduler, so the timing construct remains a loud refusal. Functional
 rows match Icarus Verilog 13.0 and Xcelium 24.03-s004 in the existing receipt.
 No count transition is claimed.
 
+## Resolved net-with-z current-head check — 2026-11-18T02:17Z
+
+Fresh extraction of resolved_net_multiple_driver.sv at public master 2907217f2
+retains PortSymbol:net-z. Ordinary E reports that parser-native net at
+PDesign.instantiate and refuses the module member in instantiateE2. IEEE
+1800-2023 section 6.6 requires four-state driver resolution for conflicting
+drivers, so canonical E keeps a loud refusal rather than collapsing drivers.
+Existing Icarus Verilog 13.0 and Xcelium 24.03-s004 rows agree on y=x. No
+count transition is claimed.
+
 ## Typed named-value current-head check — 2026-11-18T02:12Z
 
 Fresh extraction of typed_named_unpacked.sv at public master 770931a50 retains
