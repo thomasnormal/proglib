@@ -127,7 +127,7 @@
   {
     "source": "harness/scripts/function_body_call_assignment.py",
     "envelope": "harness/scripts/function_body_call_assignment.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_dynamic_default.py",
@@ -252,7 +252,7 @@
   {
     "source": "harness/scripts/machine_global_read.py",
     "envelope": "harness/scripts/machine_global_read.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_call_before_def.py",
@@ -262,27 +262,27 @@
   {
     "source": "harness/scripts/machine_redefinition.py",
     "envelope": "harness/scripts/machine_redefinition.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_statement_keyword.py",
     "envelope": "harness/scripts/machine_statement_keyword.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_print_keyword.py",
     "envelope": "harness/scripts/machine_print_keyword.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_shadow_print.py",
     "envelope": "harness/scripts/machine_shadow_print.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_shadow_function.py",
     "envelope": "harness/scripts/machine_shadow_function.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_float_truthy.py",
@@ -292,7 +292,7 @@
   {
     "source": "harness/scripts/machine_negative_index.py",
     "envelope": "harness/scripts/machine_negative_index.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_left_error_order.py",
