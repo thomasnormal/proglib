@@ -41,8 +41,19 @@
           "end_col_offset": 18
         },
         "name": "answer",
-        "args": [],
-        "args_unsupported": "*args",
+        "args": [
+          {
+            "arg": "args",
+            "span": {
+              "lineno": 3,
+              "col_offset": 12,
+              "end_lineno": 3,
+              "end_col_offset": 16
+            },
+            "variadic": true
+          }
+        ],
+        "args_unsupported": null,
         "locals_unsupported": null,
         "body": [
           {

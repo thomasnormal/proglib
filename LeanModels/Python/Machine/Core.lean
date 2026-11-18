@@ -108,14 +108,20 @@ def findFunction : List FunctionDefn → String → Option FunctionDefn
 
 def bindParams : List Param → List RVal → Option REnv
   | [], [] => some []
-  | parameter :: params, value :: values =>
-      if parameter.keywordOnly then none
-      else bindParams params values |>.map (fun env => (parameter.arg, value) :: env)
-  | parameter :: params, [] =>
-      match parameter.default with
-      | some value =>
-          bindParams params [] |>.map (fun env => (parameter.arg, constValue value) :: env)
-      | none => none
+  | parameter :: params, values =>
+      if parameter.variadic then
+        bindParams params [] |>.map (fun env =>
+          (parameter.arg, .tuple values.toArray) :: env)
+      else
+        match values with
+        | value :: rest =>
+            if parameter.keywordOnly then none
+            else bindParams params rest |>.map (fun env => (parameter.arg, value) :: env)
+        | [] =>
+            match parameter.default with
+            | some value =>
+                bindParams params [] |>.map (fun env => (parameter.arg, constValue value) :: env)
+            | none => none
   | _, _ => none
 
 def keywordLookup (name : String) : List (String × RVal) → Option RVal
@@ -128,22 +134,28 @@ def keywordDrop (name : String) : List (String × RVal) → List (String × RVal
 
 def bindParamsWithKeywords : List Param → List RVal → List (String × RVal) → Option REnv
   | [], [], [] => some []
-  | parameter :: params, value :: values, keywords =>
-      if parameter.keywordOnly || (keywordLookup parameter.arg keywords).isSome then none
-      else bindParamsWithKeywords params values keywords
-        |>.map (fun env => (parameter.arg, value) :: env)
-  | parameter :: params, [], keywords =>
-      if parameter.positionalOnly then
-        none
-      else match keywordLookup parameter.arg keywords with
-      | some value =>
-          bindParamsWithKeywords params [] (keywordDrop parameter.arg keywords)
-            |>.map (fun env => (parameter.arg, value) :: env)
-      | none =>
-          match parameter.default with
-          | some value => bindParamsWithKeywords params [] keywords
-              |>.map (fun env => (parameter.arg, constValue value) :: env)
-          | none => none
+  | parameter :: params, values, keywords =>
+      if parameter.variadic then
+        bindParamsWithKeywords params [] keywords |>.map (fun env =>
+          (parameter.arg, .tuple values.toArray) :: env)
+      else
+        match values with
+        | value :: rest =>
+            if parameter.keywordOnly || (keywordLookup parameter.arg keywords).isSome then none
+            else bindParamsWithKeywords params rest keywords
+              |>.map (fun env => (parameter.arg, value) :: env)
+        | [] =>
+            if parameter.positionalOnly then
+              none
+            else match keywordLookup parameter.arg keywords with
+            | some value =>
+                bindParamsWithKeywords params [] (keywordDrop parameter.arg keywords)
+                  |>.map (fun env => (parameter.arg, value) :: env)
+            | none =>
+                match parameter.default with
+                | some value => bindParamsWithKeywords params [] keywords
+                    |>.map (fun env => (parameter.arg, constValue value) :: env)
+                | none => none
   | _, _, _ => none
 
 def truthy : RVal → Bool
@@ -182,6 +194,11 @@ def evalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   | .mult, .int a, .int b => .ok (.int (a * b))
   | _, _, _ => .unsupported "machine binary operator"
 
+def tupleAt : List RVal → Nat → Option RVal
+  | [], _ => none
+  | value :: _, 0 => some value
+  | _ :: rest, index + 1 => tupleAt rest index
+
 def evalExpr (env : REnv) : Expr → Res RVal
   | .constant value _ => .ok (constValue value)
   | .name name _ =>
@@ -209,6 +226,19 @@ def evalExpr (env : REnv) : Expr → Res RVal
       | .unsupported msg, _ | _, .unsupported msg => .unsupported msg
   | .boolOp _ _ _ => .unsupported "machine boolean expression"
   | .compare _ _ _ _ => .unsupported "machine comparison"
+  | .subscript value index _ =>
+      match evalExpr env value, evalExpr env index with
+      | .ok (.tuple values), .ok (.int position) =>
+          if position < 0 then
+            .exn .indexErrorTuple
+          else
+            match tupleAt values.toList position.toNat with
+            | some result => .ok result
+            | none => .exn .indexErrorTuple
+      | .ok _, .ok _ => .unsupported "machine subscript value"
+      | .exn error, _ | _, .exn error => .exn error
+      | .timeout, _ | _, .timeout => .timeout
+      | .unsupported reason, _ | _, .unsupported reason => .unsupported reason
   | .ifExp test body orelse _ =>
       match evalExpr env test with
       | .ok value =>

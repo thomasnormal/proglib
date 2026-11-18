@@ -82,6 +82,7 @@ structure Param where
   default : Option Const := Option.none
   positionalOnly : Bool := false
   keywordOnly : Bool := false
+  variadic : Bool := false
 deriving Repr, Inhabited, BEq, DecidableEq
 
 /-- Expressions. Constructor ↔ schema `kind` mapping:
