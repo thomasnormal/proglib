@@ -41,6 +41,7 @@ deriving Repr, Inhabited, BEq
 structure RFunction where
   name : String
   params : Array RParam
+  defaults : Array Expr := #[]
   body : Array RStmt
   globals : String
 deriving Repr, Inhabited, BEq
@@ -103,6 +104,10 @@ inductive RKont where
   | assign (name : String) (remaining : List RStmt)
   | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
+  | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
+  | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
+      (continuation : RKont)
+  | callReturn (continuation : RKont)
 deriving Repr, Inhabited, BEq
 
 inductive RControl where
@@ -116,6 +121,7 @@ structure RFrame where
   control : RControl
   locals : REnv
   globals : REnv
+  module : String := "__main__"
 deriving Repr, Inhabited, BEq
 
 structure RConfig where
@@ -131,7 +137,7 @@ deriving Repr, Inhabited, BEq
 
 def RConfig.initial (program : RModule) : RConfig :=
   { program := program
-    frames := [{ control := .statements program.body.toList, locals := [], globals := [] }]
+    frames := [{ control := .statements program.body.toList, locals := [], globals := [], module := "__main__" }]
     heap := #[]
     modules := [("__main__", [])]
     functions := []
@@ -152,17 +158,25 @@ def RConfig.setTop (config : RConfig) (frame : RFrame) : RConfig :=
 def rSetEnv (env : REnv) (name : String) (value : RVal) : REnv :=
   (name, value) :: env.filter (fun binding => binding.1 != name)
 
+def rSetModule : List (String × REnv) → String → String → RVal → List (String × REnv)
+  | [], module, name, value => [(module, [(name, value)])]
+  | (current, env) :: rest, module, name, value =>
+      if current == module then
+        (current, rSetEnv env name value) :: rest
+      else (current, env) :: rSetModule rest module name value
+
 def rDefinedFrame (frame : RFrame) (name : String) (remaining : List RStmt) : RFrame :=
   { control := .statements remaining
     locals := rSetEnv frame.locals name (.callable name)
-    globals := frame.globals }
+    globals := frame.globals
+    module := frame.module }
 
 def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFrame)
     (function : RFunction) (remaining : List RStmt) : RConfig :=
   { program := config.program
     frames := rDefinedFrame frame function.name remaining :: tail
     heap := config.heap
-    modules := config.modules
+    modules := rSetModule config.modules frame.module function.name (.callable function.name)
     functions := function :: config.functions
     choices := config.choices
     choiceToken := config.choiceToken
@@ -173,11 +187,41 @@ def rLookupEnv : REnv → String → Option RVal
   | (name, value) :: rest, wanted =>
       if name == wanted then some value else rLookupEnv rest wanted
 
+def rLookupModule : List (String × REnv) → String → String → Option RVal
+  | [], _, _ => none
+  | (module, env) :: rest, wantedModule, wantedName =>
+      if module == wantedModule then rLookupEnv env wantedName
+      else rLookupModule rest wantedModule wantedName
+
+def rFunction : List RFunction → String → Option RFunction
+  | [], _ => none
+  | function :: rest, name =>
+      if function.name == name then some function else rFunction rest name
+
+def rBindPositional (params : Array RParam) (values : List RVal) : Option REnv :=
+  let names := params.toList.map (fun parameter => parameter.name)
+  if params.toList.any (fun parameter => parameter.keywordOnly || parameter.variadic) then none
+  else if names.length != values.length then none
+  else some (names.zip values)
+
+def rCallFrame (function : RFunction) (values : List RVal) : Option RFrame :=
+  match rBindPositional function.params values with
+  | none => none
+  | some locals =>
+      some { control := .statements function.body.toList
+             locals := locals
+             globals := []
+             module := function.globals }
+
+def RConfig.setModules (config : RConfig) (module : String) (name : String) (value : RVal) : RConfig :=
+  { config with modules := rSetModule config.modules module name value }
+
 def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
     (remaining : List RStmt) : RFrame :=
   { control := .statements remaining
     locals := rSetEnv frame.locals name value
-    globals := frame.globals }
+    globals := frame.globals
+    module := frame.module }
 
 def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   match op, left, right with
@@ -403,9 +447,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               match config.frames with
               | current :: tail =>
                   some (.tau, config.defineFunction current tail
-                    { name := name, params := params, body := body, globals := "__main__" } rest)
+                    { name := name, params := params, defaults := defaults, body := body,
+                      globals := current.module } rest)
               | [] => none
-          | .ret none _ => some (.event (.return .none), config.finish (.return .none))
+          | .ret none _ => some (.tau, config.setControl (.continueValue .none .returnValue))
           | .ret (some expression) _ =>
               some (.tau, config.setControl (.evaluate expression .returnValue))
           | .unsupported _ text _ =>
@@ -416,20 +461,46 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .evaluate (.name name _) continuation =>
           match rLookupEnv frame.locals name with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
-          | none => some (.event (.refuse ("unbound name: " ++ name)),
-              config.finish (.refuse ("unbound name: " ++ name)))
+          | none =>
+              match rLookupEnv frame.globals name with
+              | some value => some (.tau, config.setControl (.continueValue value continuation))
+              | none =>
+                  match rLookupModule config.modules frame.module name with
+                  | some value => some (.tau, config.setControl (.continueValue value continuation))
+                  | none => some (.event (.refuse ("unbound name: " ++ name)),
+                      config.finish (.refuse ("unbound name: " ++ name)))
+      | .evaluate (.call function args keywords unsupported _) continuation =>
+          match unsupported, keywords.toList with
+          | some text, _ => some (.event (.refuse text), config.finish (.refuse text))
+          | none, [] => some (.tau, config.setControl
+              (.evaluate function (.callCallee args.toList [] continuation)))
+          | none, _ :: _ => some (.event (.refuse "machine keyword call"),
+              config.finish (.refuse "machine keyword call"))
       | .evaluate (.binOp left op right _) continuation =>
           some (.tau, config.setControl (.evaluate left (.binOpLeft op right continuation)))
       | .evaluate (.unsupported _ text _) _ =>
           some (.event (.refuse text), config.finish (.refuse text))
       | .evaluate _ _ => none
       | .continueValue value .returnValue =>
-          some (.event (.return value), config.finish (.return value))
+          match config.frames with
+          | _callee :: caller :: tail =>
+              match caller.control with
+              | .continueValue _ (.callReturn continuation) =>
+                  some (.tau, { config with frames :=
+                    { caller with control := .continueValue value continuation } :: tail })
+              | _ => some (.event (.refuse "machine call stack"),
+                  config.finish (.refuse "machine call stack"))
+          | [_] => some (.event (.return value), config.finish (.return value))
+          | [] => none
       | .continueValue _ .discardValue => some (.tau, config.setControl (.statements []))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue value (.assign name remaining) =>
-          some (.tau, config.setTop (rAssignedFrame frame name value remaining))
+          let next := config.setTop (rAssignedFrame frame name value remaining)
+          if config.frames.tail.isEmpty then
+            some (.tau, next.setModules frame.module name value)
+          else
+            some (.tau, next)
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
@@ -437,6 +508,56 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))
           | _ => some (.event (.refuse "machine binary operator"),
               config.finish (.refuse "machine binary operator"))
+      | .continueValue callee (.callCallee args keywords continuation) =>
+          if !keywords.isEmpty then
+            some (.event (.refuse "machine keyword call"),
+              config.finish (.refuse "machine keyword call"))
+          else
+            match args with
+            | [] =>
+                match callee with
+                | .callable name =>
+                    match rFunction config.functions name with
+                    | some function =>
+                        match config.frames, rCallFrame function [] with
+                        | caller :: tail, some calleeFrame =>
+                            some (.tau, { config with frames :=
+                              calleeFrame :: { caller with
+                                control := .continueValue .none (.callReturn continuation) } :: tail })
+                        | _, _ => some (.event (.refuse "machine call stack"),
+                            config.finish (.refuse "machine call stack"))
+                    | none => some (.event (.refuse ("unknown function: " ++ name)),
+                        config.finish (.refuse ("unknown function: " ++ name)))
+                | _ => some (.event (.refuse "machine non-callable"),
+                    config.finish (.refuse "machine non-callable"))
+            | first :: rest =>
+                some (.tau, config.setControl (.evaluate first
+                  (.callArg callee rest [] continuation)))
+      | .continueValue value (.callArg callee remaining values continuation) =>
+          match remaining with
+          | next :: rest =>
+              some (.tau, config.setControl (.evaluate next
+                (.callArg callee rest (values ++ [value]) continuation)))
+          | [] =>
+              match callee with
+              | .callable name =>
+                  match rFunction config.functions name, config.frames with
+                  | some function, caller :: tail =>
+                      match rCallFrame function (values ++ [value]) with
+                      | some calleeFrame =>
+                          some (.tau, { config with frames :=
+                            calleeFrame :: { caller with
+                              control := .continueValue .none (.callReturn continuation) } :: tail })
+                      | none => some (.event (.refuse "machine argument binder"),
+                          config.finish (.refuse "machine argument binder"))
+                  | none, _ => some (.event (.refuse "unknown function"),
+                      config.finish (.refuse "unknown function"))
+                  | _, _ => some (.event (.refuse "machine call stack"),
+                      config.finish (.refuse "machine call stack"))
+              | _ => some (.event (.refuse "machine non-callable"),
+                  config.finish (.refuse "machine non-callable"))
+      | .continueValue _ (.callReturn _) =>
+          some (.event (.refuse "machine call return"), config.finish (.refuse "machine call return"))
       | .continueValue _ .printValue => none
       | .raising error => some (.event (.raise error), config.finish (.raise error))
 
@@ -607,6 +728,14 @@ private def b1Module : RModule :=
 private def bFunction : RFunction :=
   { name := "identity", params := #[], body := #[.ret none testSpan], globals := "__main__" }
 
+private def bGlobalModule : RModule :=
+  { body := #[
+      .assign (.name "x" testSpan) (.constant (.int 1) testSpan) testSpan,
+      .functionDef "read" #[] #[]
+        #[.ret (some (.name "x" testSpan)) testSpan] testSpan,
+      .assign (.name "x" testSpan) (.constant (.int 2) testSpan) testSpan,
+      .expr (.call (.name "read" testSpan) #[] #[] none testSpan) testSpan] }
+
 example :
     ((RConfig.initial b1Module).defineFunction
       { control := .statements b1Module.body.toList, locals := [], globals := [] } []
@@ -618,6 +747,16 @@ example :
 
 example : (runB1 32 (RConfig.initial b1Module)).2.status =
     .finished (.return .none) := by
+  rfl
+
+example :
+    (runB1 64 (RConfig.initial bGlobalModule)).2.status =
+      .finished (.return .none) := by
+  rfl
+
+example :
+    rLookupModule (runB1 64 (RConfig.initial bGlobalModule)).2.modules
+      "__main__" "x" = some (.int 2) := by
   rfl
 
 example : ∃ c₁ c₂,

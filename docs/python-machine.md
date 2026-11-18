@@ -48,8 +48,14 @@ decides it and agrees with CPython. A refusal is reported separately.
 
 ### B scopes, names, functions as values, and minimal objects
 
-Rows cover globals, definition order, redefinition, shadowing, nested calls,
-and defaults evaluated at definition time. Planned deletion targets are
+The current machine B resolver has a live `__main__` namespace, local-first then
+module lookup, function values in that namespace, positional call-frame
+dispatch, and caller resumption on return. Its checked row defines `read`,
+mutates a module global, then calls `read` so the callee observes the new
+value. Keyword arguments, defaults, closures, redefinition identity, and
+class values remain refusals until their own cases land. Rows cover globals,
+definition order, redefinition, shadowing, nested calls, and defaults
+evaluated at definition time. Planned deletion targets are
 `LeanModels/Python/Json.lean:parseFunctionDefn`,
 `LeanModels/Python/Script.lean:findFunction`, and
 `LeanModels/Python/Semantics.lean:globalCallEnv`. `scriptForwardName` is in
