@@ -1,0 +1,197 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "reactive_backward",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/cores/picorv32/walls/reactive_backward.sv",
+      "sha256": "96b39580c3a89453c4a910af6550bf54670d9af2e26aaa92ff9a9f720d78d7a8"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 4,
+          "col": 1,
+          "end_line": 15,
+          "end_col": 10
+        },
+        "name": "reactive_backward",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 15,
+              "end_line": 5,
+              "end_col": 16
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 6,
+              "col": 16,
+              "end_line": 6,
+              "end_col": 17
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 8,
+              "col": 9,
+              "end_line": 8,
+              "end_col": 10
+            },
+            "name": "t",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 9,
+              "col": 3,
+              "end_line": 11,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 10,
+                "col": 5,
+                "end_line": 10,
+                "end_col": 11
+              },
+              "stmts": [
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 10,
+                    "col": 5,
+                    "end_line": 10,
+                    "end_col": 11
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 10,
+                      "col": 5,
+                      "end_line": 10,
+                      "end_col": 6
+                    },
+                    "width": 1,
+                    "name": "y"
+                  },
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 10,
+                      "col": 9,
+                      "end_line": 10,
+                      "end_col": 10
+                    },
+                    "width": 1,
+                    "name": "t"
+                  }
+                }
+              ]
+            },
+            "always_star_lowered": "implicit"
+          },
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 12,
+              "col": 3,
+              "end_line": 14,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 13,
+                "col": 5,
+                "end_line": 13,
+                "end_col": 11
+              },
+              "stmts": [
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 13,
+                    "col": 5,
+                    "end_line": 13,
+                    "end_col": 11
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 13,
+                      "col": 5,
+                      "end_line": 13,
+                      "end_col": 6
+                    },
+                    "width": 1,
+                    "name": "t"
+                  },
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 13,
+                      "col": 9,
+                      "end_line": 13,
+                      "end_col": 10
+                    },
+                    "width": 1,
+                    "name": "a"
+                  }
+                }
+              ]
+            },
+            "always_star_lowered": "implicit"
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

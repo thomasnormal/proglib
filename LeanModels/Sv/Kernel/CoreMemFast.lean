@@ -112,6 +112,7 @@ def CoreMemDesign.fastSettleAssignAt (E : CoreMemDesign)
   | .comb _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .implicit _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .latch _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
+  | .event _ _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .assign target value :: rest =>
       E.fastSettleFallback env elems s view index (.assign target value :: rest)
   | .unsupported kind text :: _ => .unsupported s!"{kind}: {text}"
