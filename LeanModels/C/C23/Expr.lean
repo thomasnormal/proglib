@@ -813,6 +813,12 @@ def compatiblePointerTypes (ctx : Ctx) (a b : CType) : Bool :=
       | _, _ => false
   | _, _ => false
 
+def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
+    (t : IntTy) (ty : CType) : MRes CVal :=
+  match Mem.loadPtrInt m p with
+  | .ok q => .ok (.ptrInt q)
+  | .error _ => Mem.loadIntChecked m alias p t ty
+
 /-- Load whatever an lvalue of this type holds — an integer or a pointer.
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
 implicit of the whole corpus.** -/
@@ -826,7 +832,13 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat) :
     pure (.ptr q)
   else do
     match intTyOf? ty with
-    | some t => readMem (fun m => Mem.loadIntChecked m alias p t ty)
+    | some t =>
+        if isPtrIntType ty then
+          -- A uintptr_t object may contain the profile's preserved pointer
+          -- token or an ordinary integer.  Try the parser-native pointer
+          -- representation first, then use the ordinary integer rule.
+          readMem (fun m => loadPtrIntOrInt m alias p t ty)
+        else readMem (fun m => Mem.loadIntChecked m alias p t ty)
     | none =>
         match size with
         | some n => do
@@ -1397,16 +1409,23 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         if isPtrIntType (ctx.layout.normalizeTy ty) then do
           let v ← evalExpr ctx sub
           let p ← asPtr v
-          let t ← intTyOf (ctx.layout.normalizeTy ty)
-          pure (convert t (ctx.pointerToInteger p))
+          -- C23 §6.3.2.3p6 leaves the representation implementation-defined.
+          -- The pinned profile preserves the exposed pointer token through a
+          -- uintptr_t object, so an unchanged cast back retains both
+          -- provenance and the subobject offset.  It is still refused when
+          -- used as an ordinary integer or changed before the cast back.
+          pure (.ptrInt p)
         else refuseUnsupported "pointer-to-integer conversion outside uintptr_t/intptr_t"
       else if ck == "IntegralToPointer" then
         if isPtrType ty then do
           let v ← evalExpr ctx sub
-          let (_, n) ← asInt v
-          match ctx.integerToPointer n with
-          | some p => pure (.ptr p)
-          | none => refuseUnsupported "integer-to-pointer address is not exposed by this memory instance"
+          match v with
+          | .ptrInt p => pure (.ptr p)
+          | _ =>
+              let (_, n) ← asInt v
+              match ctx.integerToPointer n with
+              | some p => pure (.ptr p)
+              | none => refuseUnsupported "integer-to-pointer address is not exposed by this memory instance"
         else refuseUnsupported "integer-to-pointer conversion outside pointer type"
       else refuseUnsupported s!"castKind '{ck}'"
 

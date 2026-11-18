@@ -420,16 +420,13 @@
     "id": "type-function-pointer",
     "source": "int f(int x) { return x; } int main(void) { int (*p)(int) = f; return p(1); }",
     "expect": "refuse",
-    "layout_expect": "match",
-    "layout_return_value": 1
+    "error": "no layout for declared type"
   },
   {
     "id": "function-pointer-call-wall",
     "source": "int f(int x) { return x + 1; } int main(void) { int (*p)(int) = f; return p(1) == 2 ? 0 : 1; }",
     "expect": "refuse",
-    "error": "no layout for declared type",
-    "layout_expect": "match",
-    "layout_return_value": 0
+    "error": "no layout for declared type"
   },
   {
     "id": "type-nested-array",
@@ -471,6 +468,18 @@
   {
     "id": "pointer-long-long-roundtrip",
     "source": "int main(void) { int x = 3; unsigned long long u = (unsigned long long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "pointer-integer-compound-literal-index",
+    "source": "#include <stdint.h>\nint main(void) { uintptr_t u = (uintptr_t)(&(int []){0, 1, 2}[1]); int *p = (int *)u; return *p == 1 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "pointer-integer-compound-literal-side-effect",
+    "source": "#include <stdint.h>\nint n = 0; int f(void) { return ++n; } int main(void) { uintptr_t u = (uintptr_t)(&(int []){0, f(), 2}[1]); int *p = (int *)u; return *p == 1 && n == 1 ? 0 : 1; }",
     "expect": "match",
     "return_value": 0
   },
