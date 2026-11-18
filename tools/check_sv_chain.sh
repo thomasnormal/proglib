@@ -272,10 +272,17 @@ run_lake() {
 # input so a constructor drift such as GenItem.localParam fails this gate.
 check_refusal_census() {
   command -v lake >/dev/null 2>&1 || { echo "check_sv_chain: no \`lake\` on PATH" >&2; return 2; }
-  local envelope="Examples/system-verilog/event_control_repro/event_control_repro.sv.json"
-  [ -f "$envelope" ] || { echo "check_sv_chain: missing refusal-census smoke envelope: $envelope" >&2; return 2; }
+  local envelopes=(
+    "Examples/system-verilog/event_control_repro/event_control_repro.sv.json"
+    "Examples/system-verilog/sem2/inout_wall/inout_wall.sv.json"
+  )
+  for envelope in "${envelopes[@]}"; do
+    [ -f "$envelope" ] || { echo "check_sv_chain: missing refusal-census smoke envelope: $envelope" >&2; return 2; }
+  done
   echo "=== [sv-chain] refusal census smoke"
-  run_lake env lean --run harness/sv/refusal_census.lean "$envelope" >/dev/null
+  for envelope in "${envelopes[@]}"; do
+    run_lake env lean --run harness/sv/refusal_census.lean "$envelope" >/dev/null
+  done
 }
 
 build_all() {

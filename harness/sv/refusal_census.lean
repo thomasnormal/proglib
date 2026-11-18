@@ -85,6 +85,7 @@ def genRows : GenItem → List Row
       | .unsupported _ k t => [{ construct := k, function := "parsePConn", message := t }]
       | .input _ e _ => e.toList.flatMap exprRows
       | .output _ l => l.toList.flatMap lhsRows
+      | .inout _ e => e.toList.flatMap exprRows
 
 def designRows (d : PDesign) : List Row :=
   d.processes.flatMap processRows ++ d.generates.flatMap genRows ++
