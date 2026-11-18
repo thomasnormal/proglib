@@ -836,12 +836,13 @@ def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
 /-- Load whatever an lvalue of this type holds — an integer or a pointer.
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
 implicit of the whole corpus.** -/
-def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat) : EvalM CVal :=
+def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
+    (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
   if ty == "float" then
     readMem (fun m => Mem.loadFloat32 m p)
   else if ty == "double" then
     readMem (fun m => Mem.loadFloat64 m p)
-  else if isPtrType ty then do
+  else if structured.map LeanModels.Clang.QualType.pointerObject |>.getD (isPtrType ty) then do
     let q ← readMem (fun m => Mem.loadPtr m p)
     pure (.ptr q)
   else do
@@ -1356,9 +1357,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                   if ctx.layout.fieldBitsAt base field |>.isSome then
                     loadBitFieldAt ctx base.ty field fieldTy p
                   else
-                    loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+                    loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
+                      (ctx.layout.size (ctx.layout.normalizeTy ty))
+                      (ctx.layout.structuredTypeAt sub)
               | _ =>
-                  loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+                  loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
+                    (ctx.layout.size (ctx.layout.normalizeTy ty))
+                    (ctx.layout.structuredTypeAt sub)
       else if ck == "ArrayToPointerDecay" then do
         -- §6.3.2.1p3 — 405 sites, the LARGEST pointer producer there is.
         let p ← evalLValue ctx sub
@@ -2336,7 +2341,9 @@ theorem asPtr' (v : CVal) : MemInvariant (asPtr v) := by
 theorem asInt' (v : CVal) : MemInvariant (asInt v) := by
   cases v <;> first | exact pure' _ | exact refuseUnsupported' _ | exact refuseUB' _
 
-theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat) : MemInvariant (loadAt alias p ty size) := by
+theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
+    (structured : Option LeanModels.Clang.QualType := none) :
+    MemInvariant (loadAt alias p ty size structured) := by
   unfold loadAt
   repeat
     first

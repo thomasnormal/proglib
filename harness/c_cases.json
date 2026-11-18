@@ -643,5 +643,14 @@
     "structured_envelope_checks": [
       "structured_types"
     ]
+  },
+  {
+    "id": "structured-pointer-load",
+    "source": "int main(void) { int x = 7; int *p = &x; return *p == 7 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
   }
 ]

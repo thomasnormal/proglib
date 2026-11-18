@@ -89,4 +89,11 @@ def QualType.indexable : QualType → Bool
   | .qualified _ _ base => base.indexable
   | _ => false
 
+/-- Whether the object value itself is a pointer. Arrays remain distinct because
+array-to-pointer decay is a separate C conversion. -/
+def QualType.pointerObject : QualType → Bool
+  | .pointer _ => true
+  | .qualified _ _ base => base.pointerObject
+  | _ => false
+
 end LeanModels.Clang
