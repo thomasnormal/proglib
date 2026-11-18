@@ -61,3 +61,11 @@ transitions, and `statementsRun_in_steps`, `bodyRun_in_steps`, and
 the relation.  The three Lean example proofs check that each loaded envelope
 has a successful run.  They also expose the exact event traces through the
 reducible runner when inspecting a row.
+
+The resolved-call family has a checked refusal row in `Examples/rust/call`.
+The envelope preserves the resolved edge in its `calls` table, while the first
+runner has no call frame or return-place state and therefore refuses a `Call`
+terminator instead of guessing a callee or treating it as a no-op.  Miri still
+returns `ok` with status 0 under both models for this row.  Its two-model
+invocation measured 0.611 s.  The cumulative semantic count remains six because
+this row is an explicit refusal and does not claim a Lean/Miri decision.
