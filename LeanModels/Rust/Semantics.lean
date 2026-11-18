@@ -35,6 +35,7 @@ structure State where
   locals : List (Nat × Slot) := []
   placements : List (Nat × Nat) := []
   types : List TypeLayout := []
+  allocations : List Allocation := []
 deriving Repr, Inhabited, BEq, DecidableEq
 
 inductive Event where
@@ -149,11 +150,19 @@ def cellSlot : Cell → Slot
 def localSlot (s : State) (localId : Nat) : Option Slot :=
   s.locals.find? (fun item => item.1 == localId) |>.map (·.2)
 
+def allocationCell (s : State) (provenance : Nat) : Option Cell :=
+  match s.allocations.drop provenance |>.head? with
+  | some allocation => bytesValue allocation.bytes |>.map Cell.int
+  | none => none
+
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | [] => some cell
   | .deref :: rest =>
       match cell with
-      | .pointer pointer => localSlot s pointer.provenance |>.bind slotCell |>.bind (projectCell s · rest)
+      | .pointer pointer =>
+          let target := (localSlot s pointer.provenance).bind slotCell |>.orElse
+            (fun _ => allocationCell s pointer.provenance)
+          target.bind (projectCell s · rest)
       | _ => none
   | .field index _ :: rest =>
       match cell with
@@ -476,6 +485,21 @@ def bindCallArgs : State → List Operand → Nat → Option State
       let value ← operandValue state operand
       bindCallArgs (setSlot state localId (.value value)) rest (localId + 1)
 
+def bindCallCells : State → List Operand → Nat → Option State
+  | state, [], _ => some state
+  | state, operand :: rest, localId => do
+      let value ← operandCell state operand
+      bindCallCells (setSlot state localId (cellSlot value)) rest (localId + 1)
+
+def bindEvaluatedCells : State → List Cell → Nat → State
+  | state, [], _ => state
+  | state, value :: rest, localId =>
+      bindEvaluatedCells (setSlot state localId (cellSlot value)) rest (localId + 1)
+
+def bindCallCellsFresh (caller callee : State) (args : List Operand) (localId : Nat) : Option State := do
+  let values ← args.mapM (operandCell caller)
+  pure (bindEvaluatedCells callee values localId)
+
 def returnValue (trace : Trace) : Option Int :=
   (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item =>
     match item.2 with
@@ -483,6 +507,9 @@ def returnValue (trace : Trace) : Option Int :=
     | .cell (.int value) => some value
     | .cell _ => none
     | .uninit => none
+
+def returnCell (trace : Trace) : Option Cell :=
+  (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item => slotCell item.2
 
 def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
   | 0, _, _, _, _ => none
@@ -531,17 +558,19 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                       match edge.callee with
                       | none => .refused (.unsupported "call without callee")
                       | some calleeId =>
-                          match bindCallArgs
-                              { placements := firstTrace.state.placements,
-                                types := firstTrace.state.types } args 1 with
-                          | none => .refused (.unsupported "call arguments")
+                          let callState : State :=
+                            { placements := firstTrace.state.placements,
+                              types := firstTrace.state.types,
+                              allocations := firstTrace.state.allocations }
+                          match bindCallCellsFresh firstTrace.state callState args 1 with
+                          | none => .refused (.unsupported ("call arguments for " ++ calleeId))
                           | some calleeState =>
                               match cfgRunOutcome fuel callee 0 calleeState with
                               | .returned calleeTrace =>
-                                  match returnValue calleeTrace with
+                                  match returnCell calleeTrace with
                                   | none => .refused (.unsupported "callee return value")
                                   | some value =>
-                                      match writeCell firstTrace.state destination (.int value) with
+                                      match writeCell firstTrace.state destination value with
                                       | none => .refused (.unsupported "call destination")
                                       | some callerState =>
                                           match cfgRunProgramOutcome fuel program body target callerState with
@@ -695,7 +724,8 @@ def run (program : Envelope) : Option Trace :=
 
 def initialState (placement : Nat → Nat) (types : List TypeLayout)
     (allocations : List Allocation := []) : State :=
-  { locals := [], placements := allocationPlacements placement allocations, types := types }
+  { locals := [], placements := allocationPlacements placement allocations,
+    types := types, allocations := allocations }
 
 def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with

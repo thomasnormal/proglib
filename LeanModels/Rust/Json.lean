@@ -309,7 +309,12 @@ private def allocation (j : Json) : Except String Allocation := do
         | .ok ptrs => array ptrs >>= (·.mapM fun ptr => do
             let values ← array ptr
             match values with
-            | [offset, target] => pure (← nat offset, ← nat target)
+            | [offset, target] => do
+                let targetId ←
+                  match nat target with
+                  | .ok value => pure value
+                  | .error _ => field target "allocation" >>= nat
+                pure (← nat offset, targetId)
             | _ => .error "allocation provenance entry must contain offset and target")
   pure { id, bytes, provenance, align }
 
@@ -341,9 +346,12 @@ def parseEnvelope (j : Json) : Except String Envelope := do
         | .error _ => pure []
         | .ok values => array values >>= (·.mapM typeLayout)
   let allocations ←
-    match j.getObjVal? "allocations" with
+    match j.getObjVal? "tables" with
     | .error _ => pure []
-    | .ok values => array values >>= (·.mapM allocation)
+    | .ok tables =>
+        match tables.getObjVal? "allocations" with
+        | .error _ => pure []
+        | .ok values => array values >>= (·.mapM allocation)
   pure { schema, entry, bodies, calls, types, allocations }
 
 def parseEnvelopeString (s : String) : Except String Envelope := do
