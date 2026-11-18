@@ -491,6 +491,10 @@ def rLookupAttribute (heap : Heap) (receiver : RVal) (attr : String) : Option RV
       match heap.get? address with
       | some (.list _) => some (.callable ("__machine_list_pop:" ++ toString address))
       | _ => none
+  | .ref address, "insert" =>
+      match heap.get? address with
+      | some (.list _) => some (.callable ("__machine_list_insert:" ++ toString address))
+      | _ => none
   | _, _ => none
 
 def rUpdateDictEntries : List (RVal × RVal) → RVal → RVal → List (RVal × RVal)
@@ -536,6 +540,22 @@ def rListPop (heap : Heap) (receiver : RVal) : Option (Heap × RVal) :=
           | none => none
       | _ => none
   | _ => none
+
+def rListInsert (heap : Heap) (receiver : RVal) (position : RVal) (value : RVal) : Option Heap :=
+  match receiver, position with
+  | .ref address, .int rawPosition =>
+      match heap.get? address with
+      | some (.list values) =>
+          let length := values.size
+          let position := if rawPosition < 0 then rawPosition + length else rawPosition
+          let clamped : Int := if position < 0 then 0 else if position > length then length else position
+          let rec insertAt : Nat → List RVal → List RVal
+            | 0, rest => value :: rest
+            | _, [] => [value]
+            | n, head :: rest => head :: insertAt (n - 1) rest
+          Heap.update heap address (.list (insertAt clamped.toNat values.toList).toArray)
+      | _ => none
+  | _, _ => none
 
 def rIndexValue (receiver index : RVal) : Option RVal :=
   let select (values : Array RVal) (position : Int) : Option RVal :=
@@ -683,6 +703,16 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
                 config.finish (.raise { errorClass := .index, args := [] }))
         | _, _ => some (.event (.refuse "machine list.pop"),
             config.finish (.refuse "machine list.pop"))
+      else if name.startsWith "__machine_list_insert:" then
+        match (name.drop "__machine_list_insert:".length).toNat?, values with
+        | some address, [position, value] =>
+            match rListInsert config.heap (.ref address) position value with
+            | some heap => some (.tau, { config with heap := heap } |>.setControl
+                (.continueValue .none continuation))
+            | none => some (.event (.refuse "machine list.insert"),
+                config.finish (.refuse "machine list.insert"))
+        | _, _ => some (.event (.refuse "machine list.insert"),
+            config.finish (.refuse "machine list.insert"))
       else match rFunction config.functions name with
       | some function =>
           let builtKwargs :=
