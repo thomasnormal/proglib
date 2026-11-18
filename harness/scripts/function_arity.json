@@ -1,0 +1,113 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/function_arity.py",
+  "source_sha256": "2d264f6eab4580a3325f731caecde5b575de31f05e0d8bb8c79b0fadc355265b",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 71
+        },
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 71
+          },
+          "value": {
+            "type": "str",
+            "value": "Machine scopes row: unsupported function arity is a loud refusal."
+          }
+        }
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 12
+        },
+        "name": "one",
+        "args": [
+          {
+            "arg": "x",
+            "span": {
+              "lineno": 3,
+              "col_offset": 8,
+              "end_lineno": 3,
+              "end_col_offset": 9
+            }
+          }
+        ],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 12
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 4,
+                "col_offset": 11,
+                "end_lineno": 4,
+                "end_col_offset": 12
+              },
+              "id": "x"
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 5
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 6,
+            "col_offset": 0,
+            "end_lineno": 6,
+            "end_col_offset": 5
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 6,
+              "col_offset": 0,
+              "end_lineno": 6,
+              "end_col_offset": 3
+            },
+            "id": "one"
+          },
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

@@ -179,5 +179,7 @@ assignment before return. `harness/scripts/function_conditional.py` checks a
 lazy conditional in a function return, while
 `harness/scripts/function_sequence.py` checks resumption after a completed
 function call, while
+`harness/scripts/function_arity.py` checks that a wrong-arity call refuses
+loudly, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is eight matches, one refusal, and zero divergence.
+current result is eight matches, two refusals, and zero divergence.
