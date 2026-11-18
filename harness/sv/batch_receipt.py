@@ -207,6 +207,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("d", 4),), (Port("q", 4),)),
     Fixture("typed_value_repro.sv", "typed_value_repro",
             (Port("source", 4),), (Port("result", 4),)),
+    Fixture("type_alias_repro.sv", "type_alias_repro",
+            (Port("source", 4),), (Port("result", 4),)),
     Fixture("member_access_repro.sv", "member_access_repro",
             (Port("source", 5),), (Port("result", 4),),
             retain_proc_rewrites=True),
