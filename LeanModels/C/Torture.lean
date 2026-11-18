@@ -358,6 +358,12 @@ def recordFieldSize (layout : RecordLayout) (field : String) : Option Nat :=
 
 def recordLayoutMatchesFields : List Decl → List RecordLayoutField → Bool
   | [], [] => true
+  | .record _ _ _ _ _ :: .field none _ _ _ _ :: ds, field :: fs =>
+      -- An anonymous aggregate is represented twice by Clang's tree: the
+      -- child RecordDecl and its nameless FieldDecl.  The layout dump has
+      -- one blank slot for that aggregate, so consume both parser nodes.
+      if field.name == "" then recordLayoutMatchesFields ds fs
+      else false
   | .field name _ bits _ _ :: ds, field :: fs =>
       (match name with
        | some nm => field.name == nm
@@ -368,6 +374,13 @@ def recordLayoutMatchesFields : List Decl → List RecordLayoutField → Bool
        | none, none => true
        | _, _ => false) &&
       recordLayoutMatchesFields ds fs
+  | .record _ _ _ _ _ :: ds, field :: fs =>
+      -- Clang emits one blank layout entry for an anonymous aggregate
+      -- member.  Consume that entry when the parser child has no named
+      -- field of its own.  Named nested records still expose their outer
+      -- field below this child and therefore leave the layout entry for it.
+      if field.name == "" then recordLayoutMatchesFields ds fs
+      else recordLayoutMatchesFields ds (field :: fs)
   | .record .. :: ds, fs => recordLayoutMatchesFields ds fs
   | .unsupported .. :: ds, fs => recordLayoutMatchesFields ds fs
   | _ :: ds, fs => recordLayoutMatchesFields ds fs
@@ -400,7 +413,9 @@ def observedRecordFacts (envl : Envelope) :
     fields.flatMap fun child => match child with
       | .record (some childRecordId) none nested (some layout) childSpan =>
           match fields.find? (fun f => match f with
-            | .field _ _ty _ (some rid) _ => rid == childRecordId
+            | .field _ _ty _ (some rid) fspan =>
+                rid == childRecordId ||
+                  (fspan.line == childSpan.line && fspan.col == childSpan.col)
             | .field _ _ty _ none fspan =>
                 fspan.line == childSpan.line && fspan.col == childSpan.col
             | _ => false) with
