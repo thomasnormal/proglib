@@ -1936,3 +1936,31 @@ retirement trace, or ADDI theorem is claimed.
 The current pinned RISCV_FORMAL census is
 `360 ADMITTED / 0 REFUSED / 4 NOT REACHED` (`remaining=4`); the four remaining
 rows are inactive generate branches.  E-RUN remains `0/unmeasured`.
+
+## 2026-11-18 input-driven whole-core run
+
+[`rvfi_long_probe.v`](rvfi_long_probe.v) drives the unchanged pinned source
+with reset held for four clocks, an always-ready memory, no interrupts or
+PCPI, and a fixed image containing `ADDI`, register `ADD`, `SW`, `LW`, `BEQ`,
+and `EBREAK`.  The branch skips one instruction.  It prints every sampled
+memory-port and RVFI output for 220 post-reset cycles.  The checker
+[`rvfi_long_check.py`](rvfi_long_check.py) compares the complete rows from
+both pinned simulators and checks the retired instruction prefix and memory
+masks.
+
+The measured simulator result is **220/220 rows** for Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004.  The normalized row
+SHA-256 is
+`93ed9a43ae1298785e349cd0b993523877adc54625653d70413e3058f5e6b8b4`.
+
+Canonical E was then exercised through the loaded `picorv32_r2.sv.json`
+family with the same input-driven route.  It remains **0/220 E-RUN cycles**
+because the first reactive process dependency is refused before cycle 0:
+
+```
+Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'alu_eq' from itself or a later reactive process; canonical E has no fixed-point scheduler
+```
+
+This is a running scheduler wall, not a simulator disagreement or an RTL
+rewrite.  The clean-room `reactive_backward` fixture and its simulator rows
+are recorded in [`walls/reactive_backward_receipt.md`](walls/reactive_backward_receipt.md).
