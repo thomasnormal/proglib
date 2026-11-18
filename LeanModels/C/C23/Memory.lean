@@ -1295,7 +1295,7 @@ def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
 
 @[simp] theorem mallocAt_address (m : Mem) (size address : Nat) :
     (m.mallocAt size address).2.address = address := by
-  simp [mallocAt, allocAt, Ptr.toObjectBoundAt]
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt]
 
 @[simp] theorem callocAt_address (m : Mem) (n size address : Nat) :
     (m.callocAt n size address).2.address = address := by
@@ -1805,6 +1805,12 @@ theorem reallocAt_null_placement_lookup (m : Mem) (size address : Nat) (h : size
   simp only [Except.map, Except.ok.injEq]
   simpa [mallocAt, alloc] using
     (allocAt_placement_lookup m .allocated size none address)
+
+@[simp] theorem reallocAt_null_address (m : Mem) (size address : Nat) (h : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map (fun r => r.2.address) = .ok address := by
+  rw [reallocAt_null m size address h]
+  simp only [Except.map, Except.ok.injEq]
+  simp [mallocAt, allocAt, Ptr.toObjectBoundAt]
 
 @[simp] theorem reallocAt_null_placement_irrel (m : Mem) (size address₁ address₂ : Nat)
     (h : size ≠ 0) :
