@@ -10,7 +10,7 @@ def gcdBody : LeanModels.Rust.Body :=
     { instanceId := "missing", blocks := [] }
 
 def gcdType : LeanModels.Rust.TypeLayout :=
-  { id := "1", kind := "RigidTy(Uint(U32))", sizeBits := some 32,
+  { id := Nat.repr 1, kind := "RigidTy(Uint(U32))", sizeBits := some 32,
     align := some 4, signed := some false }
 
 def gcdInput (a b : Nat) : LeanModels.Rust.State :=
