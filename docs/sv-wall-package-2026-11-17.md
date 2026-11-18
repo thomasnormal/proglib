@@ -1048,3 +1048,12 @@ declarations. `typed_nested_repro.sv` and `typed_named_unpacked.sv` still end
 at the `PortSymbol:type` E refusal. `member_nested_repro.sv` and
 `type_alias_nested_repro.sv` still end at the `VariableSymbol:type` E refusal.
 No fixture crosses the aggregate storage boundary, so REAL-BLOCKS remains 41.
+
+## Scalar event-control landing remeasurement — 2026-11-18T06:00Z
+
+After public landing f8622b3f9, the event-control fixtures were rerun. The
+source-shaped `event_control_repro.sv` ordinary census is refusal-free, and
+its pinned seven-row canonical-E receipt matches Icarus Verilog 13.0 and
+Xcelium 24.03-s004. `signal_event_control.sv` remains a `Clock:implicit`
+refusal because its event source has no supported edge or implicit-sensitivity
+semantics. No count transition is claimed.
