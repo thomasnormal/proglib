@@ -75,6 +75,9 @@ structure SchedulerDesign where
   /-- Edge processes must install their event controls before the implicit
       time-zero activation of always_comb (§9.2.2.2). -/
   startupEdges : List Nat := []
+  /-- Admission is explicit so refused designs cannot satisfy a property
+      vacuously through an empty run relation. -/
+  admitted : Bool := true
 deriving Inhabited
 
 def lookupBit (st : SvState) (name : String) : Logic := st.bit0 name
@@ -209,7 +212,7 @@ def Run (d : SchedulerDesign) : List SvState → SlotState → List SvState → 
   | _, _, _ => False
 
 def RunDesign (d : SchedulerDesign) (rows : List SvState) (outs : List SvState) : Prop :=
-  Run d rows d.initial outs
+  d.admitted = true ∧ Run d rows d.initial outs
 
 def nextUpdates (d : SchedulerDesign) (s : SlotState) : List SlotState :=
   s.active.filterMap fun a =>
@@ -333,6 +336,7 @@ def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalActi
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
     startupEdges := d.edgeIndices
+    admitted := !d.hasUnsupported
     initial :=
       { store := initState d
         active := (List.range d.processes.size).map fun p => .eval p 0 } }
@@ -626,6 +630,19 @@ private def timeZeroRun : List SvState :=
   allSlots 8 d (startWithInputs afterLow [("clk", LVec.lit "1")])
 
 #guard timeZeroRun == [[("q", LVec.ofNat 1 0), ("clk", LVec.lit "1")]]
+
+private def refusedDesign : SchedulerDesign :=
+  SchedulerDesign.ofDesign
+    { name := "refused"
+      decls := #[]
+      processes := #[.unsupported "Initial" "initial process"] }
+
+#guard !refusedDesign.admitted
+example : ¬ RunDesign refusedDesign [] [] := by
+  intro h
+  change (!Design.hasUnsupported
+    { name := "refused", decls := #[], processes := #[.unsupported "Initial" "initial process"] }) = true ∧ _ at h
+  simp [Design.hasUnsupported] at h
 
 /- READY FOR AUDIT S1b: A1-A7, B1-B2, and C1-C3 are implemented in this
    additive scheduler file; S2 remains outside this change. -/
