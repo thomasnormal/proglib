@@ -67,8 +67,10 @@ deriving Repr, DecidableEq, Inhabited
 
 inductive Active where
   | eval (process : Nat) (resume : Nat)
+  /-- A statement selected from a branch block, with its source-order tail. -/
+  | evalStmt (process : Nat) (stmt : Stmt) (tail : List Stmt) (next : Nat)
   | update (u : Update)
-deriving Repr, DecidableEq, Inhabited
+deriving Repr, BEq, Inhabited
 
 structure SlotState where
   store : SvState := []
@@ -85,15 +87,20 @@ deriving Repr, Inhabited
 inductive EvalAction where
   | blocking (target : String) (value : LVec) (next : Nat)
   | nonblocking (seq : Nat) (target : String) (value : LVec) (next : Nat)
+  | blockingTail (target : String) (value : LVec) (tail : List Stmt) (next : Nat)
+  | nonblockingTail (seq : Nat) (target : String) (value : LVec)
+      (tail : List Stmt) (next : Nat)
+  | enter (stmts : List Stmt) (tail : List Stmt) (next : Nat)
   /-- A continuous assignment emits its own Active update event and then
       re-arms its source sensitivity. -/
   | continuous (target : String) (value : LVec)
   /-- Continue at the following statement without performing a write. -/
   | continue (next : Nat)
+  | continueTail (stmt : Stmt) (tail : List Stmt) (next : Nat)
   | wait (s : List Sensitivity)
   | done
   | refuse (message : String)
-deriving Repr, DecidableEq, Inhabited
+deriving Repr, BEq, Inhabited
 
 structure SchedulerDesign where
   /-- One source-shaped action from a process's resume point. -/
@@ -146,6 +153,7 @@ def updateOwnerBlocked (u : Update) : List Active → Bool
        | some ou, some ov, some us, some vs => ov == ou && vs < us
        | _, _, _, _ => false) || updateOwnerBlocked u rest
   | .eval _ _ :: rest => updateOwnerBlocked u rest
+  | .evalStmt _ _ _ _ :: rest => updateOwnerBlocked u rest
 
 def canConsume (u : Update) (active : List Active) : Bool :=
   !updateOwnerBlocked u active
@@ -161,6 +169,7 @@ def bumpNbaSeq (s : SlotState) (p : Nat) : SlotState :=
 def activeProcesses : List Active → List Nat
   | [] => []
   | Active.eval p _ :: rest => p :: activeProcesses rest
+  | Active.evalStmt p _ _ _ :: rest => p :: activeProcesses rest
   | Active.update _ :: rest => activeProcesses rest
 
 def dropProcesses (ps : List Nat) : List Sensitivity → List Sensitivity
@@ -179,7 +188,12 @@ def applyUpdate (s : SlotState) (u : Update) : SlotState :=
 
 def evalAllowed (d : SchedulerDesign) (s : SlotState) (p : Nat) : Bool :=
   p ∈ d.startupEdges ||
-    !(d.startupEdges.any (fun q => Active.eval q 0 ∈ s.active))
+    !(d.startupEdges.any (fun q => s.active.any (fun a => a == Active.eval q 0)))
+
+def continuationActive (p : Nat) (tail : List Stmt) (next : Nat) : List Active :=
+  match tail with
+  | [] => [.eval p next]
+  | stmt :: rest => [.evalStmt p stmt rest next]
 
 def actionStep (s : SlotState) (p : Nat) : EvalAction → SlotState
   | .blocking target value next =>
@@ -191,26 +205,31 @@ def actionStep (s : SlotState) (p : Nat) : EvalAction → SlotState
       let u : Update := { owner := some p, seq := some seq, target, value }
       let s' := bumpNbaSeq s p
       { s' with nba := s'.nba ++ [u], active := s'.active ++ [.eval p next] }
+  | .blockingTail target value tail next =>
+      let u : Update := { owner := some p, seq := none, target, value }
+      let s' := applyUpdate s u
+      if s'.refusal.isSome then s' else
+        { s' with active := s'.active ++ continuationActive p tail next }
+  | .nonblockingTail _ target value tail next =>
+      let seq := nbaSeq s p
+      let u : Update := { owner := some p, seq := some seq, target, value }
+      let s' := bumpNbaSeq s p
+      { s' with nba := s'.nba ++ [u], active := s'.active ++ continuationActive p tail next }
+  | .enter stmts tail next =>
+      { s with active := s.active ++ continuationActive p (stmts ++ tail) next }
   | .continuous target value =>
       let u : Update := { owner := none, seq := none, target, value }
       let s' := applyUpdate s u
       if s'.refusal.isSome then s' else { s' with active := s'.active ++ [.eval p 1] }
   | .continue next => { s with active := s.active ++ [.eval p next] }
+  | .continueTail stmt tail next =>
+      { s with active := s.active ++ continuationActive p (stmt :: tail) next }
   | .wait ws => { s with sens := (s.sens ++ ws).eraseDups }
   | .done => s
   | .refuse message => { s with refusal := some message }
 
 def moveNba (s : SlotState) : SlotState :=
   { s with active := s.nba.map Active.update, nba := [] }
-
-def oneStep (d : SchedulerDesign) (s t : SlotState) : Prop :=
-  (∃ u, Active.update u ∈ s.active ∧ canConsume u s.active ∧
-    t = applyUpdate { s with active := removeActive (.update u) s.active } u) ∨
-  (∃ p resume, Active.eval p resume ∈ s.active ∧
-    evalAllowed d s p ∧
-    t = actionStep { s with active := removeActive (.eval p resume) s.active }
-      p (d.eval p resume s)) ∨
-  (s.active = [] ∧ s.nba ≠ [] ∧ t = moveNba s)
 
 def quietB (s : SlotState) : Bool :=
   s.active.isEmpty && s.nba.isEmpty && s.refusal.isNone
@@ -225,71 +244,6 @@ theorem Steps.trans {r : SlotState → SlotState → Prop} {s t u : SlotState} :
     Steps r s t → Steps r t u → Steps r s u
   | h, .refl _ => h
   | h, .tail h' hu => Steps.tail (Steps.trans h h') hu
-
-def Slot (d : SchedulerDesign) (s t : SlotState) : Prop :=
-  Steps (oneStep d) s t ∧ quiet t
-
-def inputUpdatesFrom (info : List (String × Bool)) : SvState → List Update
-  | [] => []
-  | (name, value) :: rest =>
-      match info with
-      | [] =>
-          { owner := none, seq := none, target := name, value } ::
-            inputUpdatesFrom [] rest
-      | _ => match info.find? (fun x => x.1 == name) with
-        | some (_, twoState) =>
-          { owner := none, seq := none, target := name,
-            value := if twoState then value.toTwoState else value } ::
-            inputUpdatesFrom info rest
-        | none => inputUpdatesFrom info rest
-
-def inputUpdates (row : SvState) : List Update := inputUpdatesFrom [] row
-
-def inputUpdatesFor (info : List (String × Bool)) (row : SvState) : List Update :=
-  inputUpdatesFrom info row
-
-def startWithInputs (d : SchedulerDesign) (s : SlotState) (row : SvState) : SlotState :=
-  { s with active := (inputUpdatesFor (SchedulerDesign.inputInfo d) row).map Active.update ++ s.active, nbaNext := [] }
-
-def Run (d : SchedulerDesign) : List SvState → SlotState → List SvState → Prop
-  | [], s, [] => quiet s
-  | row :: rows, s, out :: outs =>
-      ∃ t, Slot d (startWithInputs d s row) t ∧ out = t.store ∧ Run d rows t outs
-  | _, _, _ => False
-
-/- A design starts with its time-zero processes active.  Settle that initial
-   slot before consuming external rows, so an empty stimulus still denotes a
-   completed time-zero run. -/
-def RunDesign (d : SchedulerDesign) (rows : List SvState) (outs : List SvState) : Prop :=
-  d.admitted = true ∧ ∃ s, Slot d d.initial s ∧ Run d rows s outs
-
-def nextUpdates (d : SchedulerDesign) (s : SlotState) : List SlotState :=
-  s.active.filterMap fun a =>
-    match a with
-    | .update u => if canConsume u s.active then
-        some (applyUpdate { s with active := removeActive a s.active } u) else none
-    | _ => none
-
-def nextEvals (d : SchedulerDesign) (s : SlotState) : List SlotState :=
-  s.active.filterMap fun a =>
-    match a with
-    | .eval p resume =>
-        if evalAllowed d s p then
-          some (actionStep { s with active := removeActive a s.active }
-            p (d.eval p resume s))
-        else none
-    | _ => none
-
-def nextNba (s : SlotState) : List SlotState :=
-  if s.active.isEmpty && !s.nba.isEmpty then [moveNba s] else []
-
-def nextStates (d : SchedulerDesign) (s : SlotState) : List SlotState :=
-  nextUpdates d s ++ nextEvals d s ++ nextNba s
-
-def allSlots : Nat → SchedulerDesign → SlotState → List SvState
-  | 0, _, s => if quietB s then [s.store] else []
-  | fuel + 1, d, s =>
-      if quietB s then [s.store] else (nextStates d s).flatMap (allSlots fuel d)
 
 /-! ## A loaded M0 design view -/
 
@@ -455,6 +409,29 @@ def stmtAction (s : SlotState) (p : Nat) (stmt : Stmt) (next : Nat) : EvalAction
       | _ => .refuse "scheduler: nested block with multiple statements"
   | .unsupported kind _ => .refuse s!"scheduler: unsupported statement '{kind}'"
 
+/- A branch block is entered without collapsing its statements into one
+   atomic action.  The tail is carried by `Active.evalStmt`, so every
+   statement remains an independently selectable active event (§4.7). -/
+def stmtActionTail (s : SlotState) (p : Nat) (stmt : Stmt)
+    (tail : List Stmt) (next : Nat) : EvalAction :=
+  match stmt with
+  | .blockingAssign target e =>
+      match evalValue s e with
+      | .ok v => .blockingTail target v tail next
+      | .error msg => .refuse msg
+  | .nbaAssign target e =>
+      match evalValue s e with
+      | .ok v => .nonblockingTail 0 target v tail next
+      | .error msg => .refuse msg
+  | .ifStmt cond t e =>
+      match evalValue s cond with
+      | .error msg => .refuse msg
+      | .ok v => if v.condTrue then .enter [t] tail next else
+          match e with
+          | some alt => .enter [alt] tail next
+          | none => .enter [] tail next
+  | .block body => .enter body.toList tail next
+  | .unsupported kind _ => .refuse s!"scheduler: unsupported statement '{kind}'"
 def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalAction :=
   match d.processes[p]? with
   | none => .done
@@ -482,8 +459,91 @@ def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalActi
               | .assign _ _ => []
               | .unsupported kind _ => [.unsupported kind ""]
             match body[pc]? with
-            | some stmt => stmtAction s p stmt (pc + 1 + if edge then 1 else 0)
+            | some stmt => stmtActionTail s p stmt [] (pc + 1 + if edge then 1 else 0)
             | none => .wait ((waitForProcess proc).map fun x => { x with process := p })
+
+def oneStep (d : SchedulerDesign) (s t : SlotState) : Prop :=
+  (∃ u, Active.update u ∈ s.active ∧ canConsume u s.active ∧
+    t = applyUpdate { s with active := removeActive (.update u) s.active } u) ∨
+  (∃ p resume, Active.eval p resume ∈ s.active ∧
+    evalAllowed d s p ∧
+    t = actionStep { s with active := removeActive (.eval p resume) s.active }
+      p (d.eval p resume s)) ∨
+  (∃ p stmt tail next, Active.evalStmt p stmt tail next ∈ s.active ∧
+    evalAllowed d s p ∧
+    t = actionStep { s with active := removeActive (.evalStmt p stmt tail next) s.active }
+      p (stmtActionTail s p stmt tail next)) ∨
+  (s.active = [] ∧ s.nba ≠ [] ∧ t = moveNba s)
+
+def Slot (d : SchedulerDesign) (s t : SlotState) : Prop :=
+  Steps (oneStep d) s t ∧ quiet t
+
+def inputUpdatesFrom (info : List (String × Bool)) : SvState → List Update
+  | [] => []
+  | (name, value) :: rest =>
+      match info with
+      | [] =>
+          { owner := none, seq := none, target := name, value } ::
+            inputUpdatesFrom [] rest
+      | _ => match info.find? (fun x => x.1 == name) with
+        | some (_, twoState) =>
+          { owner := none, seq := none, target := name,
+            value := if twoState then value.toTwoState else value } ::
+            inputUpdatesFrom info rest
+        | none => inputUpdatesFrom info rest
+
+def inputUpdates (row : SvState) : List Update := inputUpdatesFrom [] row
+
+def inputUpdatesFor (info : List (String × Bool)) (row : SvState) : List Update :=
+  inputUpdatesFrom info row
+
+def startWithInputs (d : SchedulerDesign) (s : SlotState) (row : SvState) : SlotState :=
+  { s with active := (inputUpdatesFor (SchedulerDesign.inputInfo d) row).map Active.update ++ s.active, nbaNext := [] }
+
+def Run (d : SchedulerDesign) : List SvState → SlotState → List SvState → Prop
+  | [], s, [] => quiet s
+  | row :: rows, s, out :: outs =>
+      ∃ t, Slot d (startWithInputs d s row) t ∧ out = t.store ∧ Run d rows t outs
+  | _, _, _ => False
+
+/- A design starts with its time-zero processes active.  Settle that initial
+   slot before consuming external rows, so an empty stimulus still denotes a
+   completed time-zero run. -/
+def RunDesign (d : SchedulerDesign) (rows : List SvState) (outs : List SvState) : Prop :=
+  d.admitted = true ∧ ∃ s, Slot d d.initial s ∧ Run d rows s outs
+
+def nextUpdates (d : SchedulerDesign) (s : SlotState) : List SlotState :=
+  s.active.filterMap fun a =>
+    match a with
+    | .update u => if canConsume u s.active then
+        some (applyUpdate { s with active := removeActive a s.active } u) else none
+    | _ => none
+
+def nextEvals (d : SchedulerDesign) (s : SlotState) : List SlotState :=
+  s.active.filterMap fun a =>
+    match a with
+    | .eval p resume =>
+        if evalAllowed d s p then
+          some (actionStep { s with active := removeActive a s.active }
+            p (d.eval p resume s))
+        else none
+    | .evalStmt p stmt tail next =>
+        if evalAllowed d s p then
+          some (actionStep { s with active := removeActive a s.active }
+            p (stmtActionTail s p stmt tail next))
+        else none
+    | .update _ => none
+
+def nextNba (s : SlotState) : List SlotState :=
+  if s.active.isEmpty && !s.nba.isEmpty then [moveNba s] else []
+
+def nextStates (d : SchedulerDesign) (s : SlotState) : List SlotState :=
+  nextUpdates d s ++ nextEvals d s ++ nextNba s
+
+def allSlots : Nat → SchedulerDesign → SlotState → List SvState
+  | 0, _, s => if quietB s then [s.store] else []
+  | fuel + 1, d, s =>
+      if quietB s then [s.store] else (nextStates d s).flatMap (allSlots fuel d)
 
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
@@ -516,13 +576,19 @@ theorem mem_nextStates_iff (d : SchedulerDesign) (s t : SlotState) :
             exact ⟨u, ha, hc, hm.symm⟩
           · simp [hc] at hm
       | eval p r => simp at hm
+      | evalStmt p stmt tail next => simp at hm
     · rintro ⟨u, hu, hc, rfl⟩
       rw [List.mem_filterMap]
       exact ⟨.update u, hu, by simp [hc]⟩
-  have he : t ∈ nextEvals d s ↔ ∃ p resume, Active.eval p resume ∈ s.active ∧
-      evalAllowed d s p ∧
-      t = actionStep { s with active := removeActive (.eval p resume) s.active }
-        p (d.eval p resume s) := by
+  have he : t ∈ nextEvals d s ↔
+      (∃ p resume, Active.eval p resume ∈ s.active ∧
+        evalAllowed d s p ∧
+        t = actionStep { s with active := removeActive (.eval p resume) s.active }
+          p (d.eval p resume s)) ∨
+      (∃ p stmt tail next, Active.evalStmt p stmt tail next ∈ s.active ∧
+        evalAllowed d s p ∧
+        t = actionStep { s with active := removeActive (.evalStmt p stmt tail next) s.active }
+          p (stmtActionTail s p stmt tail next)) := by
     unfold nextEvals
     constructor
     · intro h
@@ -532,10 +598,15 @@ theorem mem_nextStates_iff (d : SchedulerDesign) (s t : SlotState) :
       | update u => simp at hm
       | eval p r =>
           simp at hm
-          exact ⟨p, r, ha, by simpa using hm.1, hm.2.symm⟩
-    · rintro ⟨p, r, hp, ha, rfl⟩
-      rw [List.mem_filterMap]
-      exact ⟨.eval p r, hp, by simp [ha]⟩
+          exact Or.inl ⟨p, r, ha, by simpa using hm.1, hm.2.symm⟩
+      | evalStmt p stmt tail next =>
+          simp at hm
+          exact Or.inr ⟨p, stmt, tail, next, ha, by simpa using hm.1, hm.2.symm⟩
+    · rintro (⟨p, r, hp, ha, rfl⟩ | ⟨p, stmt, tail, next, hp, ha, rfl⟩)
+      · rw [List.mem_filterMap]
+        exact ⟨.eval p r, hp, by simp [ha]⟩
+      · rw [List.mem_filterMap]
+        exact ⟨.evalStmt p stmt tail next, hp, by simp [ha]⟩
   by_cases hn : s.active.isEmpty && !s.nba.isEmpty
   · simp only [nextStates, List.mem_append, hu, he, nextNba, hn, List.mem_cons,
       List.not_mem_nil, or_false]
@@ -733,6 +804,23 @@ private def nestedIfBlock : SchedulerDesign :=
 #guard (allSlots 8 nestedIfBlock nestedIfBlock.initial).any
   (fun st => st.lookup "q" == some (LVec.ofNat 1 1))
 
+/- A source-shaped begin/end in an if keeps both statements as separate
+   active events.  The second write is therefore still schedulable against
+   another process between the two statements. -/
+private def nestedIfMultiDesign : Design :=
+  { name := "nested_if_multi"
+    decls := #[{ name := "q", width := 1 }, { name := "r", width := 1 }]
+    processes := #[.alwaysComb
+      (.ifStmt (.lit (LVec.ofNat 1 1))
+        (.block #[
+          .blockingAssign "q" (.lit (LVec.ofNat 1 1)),
+          .blockingAssign "r" (.lit (LVec.ofNat 1 1))]) none)] }
+
+#guard (allSlots 16 (SchedulerDesign.ofDesign nestedIfMultiDesign)
+    (SchedulerDesign.ofDesign nestedIfMultiDesign).initial).any
+  (fun st => st.lookup "q" == some (LVec.ofNat 1 1) &&
+    st.lookup "r" == some (LVec.ofNat 1 1))
+
 private def midBodyWait : SchedulerDesign :=
   { eval := fun _ resume s =>
       if resume == 0 then .blocking "x" (LVec.ofNat 1 1) 1
@@ -817,8 +905,13 @@ example : RunDesign (SchedulerDesign.ofDesign timeZeroDesign) [] [] := by
         · simp [d, SchedulerDesign.ofDesign, timeZeroDesign, evalAllowed,
             Design.edgeIndices, Process.isEdgePhase]
         · simp [s, d, SchedulerDesign.ofDesign, timeZeroDesign, actionStep,
-            processEval, waitForProcess, quietB, quiet, hasMultipleAssignDrivers]
-          <;> decide)
+            processEval, waitForProcess, quietB, quiet, hasMultipleAssignDrivers,
+            removeActive]
+          refine ⟨?_, ?_, ?_⟩
+          · rfl
+          · rfl
+          · rfl
+          )
     · simp [s, quietB, quiet]
   · simp [Run, s, quietB, quiet]
 
