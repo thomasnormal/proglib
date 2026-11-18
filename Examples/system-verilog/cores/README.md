@@ -677,3 +677,15 @@ loads without an unsupported declaration, and Icarus Verilog 13.0 and Xcelium
 after this landing moves it to 177 admitted, 0 refused, and 0 not reached.
 The canonical-E source run advances to the next exact wall, the one-rank
 unpacked `REGS` storage refusal.
+
+## 2026-11-18 one-rank memory wall handoff
+
+The clean-room `darkriscv/walls/initial_memory.sv` has the same one-rank
+unpacked storage shape as the DarkRISCV `REGS` declaration.  Icarus Verilog
+13.0 and Xcelium 24.03-s004 both print `ROW q=3c` after the time-zero initial
+write.  The ordinary canonical-E instantiation reports the exact refusal
+`decl 'mem': unpacked array storage outside E (UnpackedDecl:memory)`.  Its
+existing memory-route probe executes the source-shaped initial process and
+reads the initialized cell, so this row is ready for the general lane's
+canonical one-rank memory Step 12 branch.  No E memory meaning is changed in
+this lane.
