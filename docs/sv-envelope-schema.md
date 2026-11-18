@@ -457,6 +457,14 @@ instead of parsing the display name. Dynamic or out-of-range
 indices and nested-unpacked arrays stay `Unsupported`; the symbolic tier adds
 no aggregate store or dynamic index executor.
 
+The shared E aggregate relation is defined by
+`LeanModels.Sv.Kernel.Aggregate`.  `AggType` preserves scalar, named-field,
+and fixed-indexed-array shape, while `AggPath` carries member and index steps
+directly.  `AggValue.read?` and `AggValue.write?` walk that source-shaped value
+and retain the complete aggregate snapshot.  The parser-facing `PType` and
+`PDecl` bridge is still pending, so the existing typed aggregate envelope
+markers remain loud until ingestion can construct this relation.
+
 When an unpacked dimension or its packed element type depends on a parameter
 or generate point, the source shape cannot use those default-point cells.
 The symbolic extractor therefore emits one `UnpackedDecl` with the packed
