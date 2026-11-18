@@ -197,6 +197,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clk", 1, clock=True), Port("rst_n", 1, reset_active_low=True),
              Port("en", 1), Port("d", 4)), (Port("q", 4),),
             (Point("N4", (4,)),)),
+    Fixture("latch_array_e.sv", "latch_array_e",
+            (Port("en", 1), Port("d", 4)), (Port("q", 4),)),
     Fixture("preempt_block_refuse.sv", "preemptive_schedule",
             (Port("a", 1), Port("b", 1)),
             (Port("q", 1), Port("r", 1), Port("z", 1))),
