@@ -13,18 +13,20 @@ known.
 ## Drop table: 1,211 → 888 MATCH
 
 The old receipt (`docs/c-survey.md`, 1,211 MATCH out of 2,112 scored files)
-and the post-push receipt (888 MATCH out of 2,214 files) contain the same
-2,214 named rows. Comparing their row verdicts gives **325 rows** that were
-previously `passed` and are now refused or timed out. The table groups each
-row by its new first runtime wall; it explains the measurement change without
-claiming that an old accidental MATCH was correct.
+and the post-push receipt (888 MATCH out of 2,214 files) were joined by the
+stable manifest row name. The old receipt covers 2,112 rows, while the new
+manifest adds 102 rows, so the denominator change is reported separately.
+Among rows present in both receipts, **325 old `passed` rows** now have a
+refusal or timeout. The table assigns every one of those rows to its new
+first runtime wall. It explains the measurement change without claiming that
+an old accidental MATCH was correct.
 
 | cause in the new first wall | rows | evidence / route |
 | --- | ---: | --- |
 | H2 undefined-value refusals | 0 | H2 reclassified non-MATCH undefined-value cases; no old MATCH row first refused there |
 | H4 fuel and fixed-wall change | 1 | `minmaxcmp-1.c` is now the fixed per-file timeout |
 | H5 own-definition precedence | 0 | the full receipt predates the H5 landing; the focused `strlen` and `printf` rows now MATCH |
-| denominator change | 0 old MATCH drops; +102 rows scored | the old denominator excluded 102 no-entry-point files; the new receipt scores the 2,214-row manifest |
+| denominator change | 0 old MATCH drops; +102 rows scored | the old denominator excluded 102 no-entry-point rows; the new receipt scores the 2,214-row manifest |
 | structured layout and object binding | 128 | `no layout`, `unbound declaration`, and `unknown enum declaration`; F1/F2 route |
 | floating parser-native bits | 69 | `floating literal lacks parser-native bits`; shared SoftFloat route after F1 |
 | library and string behavior | 79 | `printf`, `sprintf`, `strcmp`, `strlen`, `strcpy`, and string-literal refusals; F6 route |
@@ -32,7 +34,7 @@ claiming that an old accidental MATCH was correct.
 | UB, lifetime, and bounds | 11 | named `MemFault.outOfBounds` refusals; memory-model route |
 | parser-node refusal | 5 | `DesignatedInitUpdateExpr`; node-level ingestion/semantics route |
 | other named semantic walls | 9 | the remaining named first refusals, retained for their family routes |
-| **total old MATCH rows no longer MATCH** | **325** | exact row-by-row comparison |
+| **total shared rows whose old MATCH is no longer MATCH** | **325** | stable-name join of the two receipts |
 
 This is a measurement explanation, not permission to preserve a wrong old
 answer: any row whose old MATCH was correct must return to MATCH or become a
