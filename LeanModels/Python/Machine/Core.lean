@@ -538,6 +538,10 @@ def initial (m : Module) : MachineState :=
     choices := [.cpython39]
     resources := { fuel := 4096 } }
 
+def kernelPass : Module :=
+  { functions := #[]
+    topLevel := #[.pass { lineno := 1, colOffset := 0, endLineno := 1, endColOffset := 4 }] }
+
 def steps (m : Module) : MachineState → List Event → MachineState → Prop
   | start, [], finishState => start = finishState
   | start, event :: events, finishState =>
@@ -585,6 +589,10 @@ def run (impl : Impl) (fuel : Nat) (m : Module) : MachineState × Observation :=
       | fuel + 1 =>
           let result := runTrace impl m (fuel + 1) { initial m with resources := { fuel := fuel + 1 } }
           (result.2, (observationOfEvents result.2.events).getD (.resource .memory))
+
+/- The kernel evaluates this complete machine run, rather than relying on
+   the executable runner or a native decision procedure. -/
+example : (run Impl.cpython39 64 kernelPass).2 = .returned .none := by rfl
 
 theorem runTrace_is_trace (impl : Impl) (m : Module) (fuel : Nat) (state : MachineState) :
     Trace m state (runTrace impl m fuel state).1 (runTrace impl m fuel state).2 := by

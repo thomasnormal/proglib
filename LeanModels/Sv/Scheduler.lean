@@ -60,6 +60,9 @@ deriving Repr, Inhabited
 inductive EvalAction where
   | blocking (target : String) (value : LVec) (next : Nat)
   | nonblocking (seq : Nat) (target : String) (value : LVec) (next : Nat)
+  /-- A continuous assignment emits its own Active update event and then
+      re-arms its source sensitivity. -/
+  | continuous (target : String) (value : LVec)
   /-- Continue at the following statement without performing a write. -/
   | continue (next : Nat)
   | wait (s : List Sensitivity)
@@ -161,6 +164,10 @@ def actionStep (s : SlotState) (p : Nat) : EvalAction → SlotState
       let u : Update := { owner := some p, seq := some seq, target, value }
       let s' := bumpNbaSeq s p
       { s' with nba := s'.nba ++ [u], active := s'.active ++ [.eval p next] }
+  | .continuous target value =>
+      let u : Update := { owner := none, seq := none, target, value }
+      let s' := applyUpdate s u
+      if s'.refusal.isSome then s' else { s' with active := s'.active ++ [.eval p 1] }
   | .continue next => { s with active := s.active ++ [.eval p next] }
   | .wait ws => { s with sens := (s.sens ++ ws).eraseDups }
   | .done => s
@@ -407,22 +414,34 @@ def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalActi
         -- is entered by the first matching update, never at time zero.
         .wait ((waitForProcess proc).map fun x => { x with process := p })
       else
-        let pc := if edge then resume - 1 else resume
-        let body := match proc with
-          | .alwaysFF _ b | .alwaysPlain _ b | .alwaysComb b => flattenStmt b
-          | .assign target e => [.blockingAssign target e]
-          | .unsupported kind _ => [.unsupported kind ""]
-        match body[pc]? with
-        | some stmt => stmtAction s p stmt (pc + 1 + if edge then 1 else 0)
-        | none => .wait ((waitForProcess proc).map fun x => { x with process := p })
+        match proc with
+        | .assign target e =>
+            if resume == 0 then
+              match evalValue s e with
+              | .ok v => .continuous target v
+              | .error msg => .refuse msg
+            else
+              .wait ((waitForProcess proc).map fun x => { x with process := p })
+        | _ =>
+            let pc := if edge then resume - 1 else resume
+            let body := match proc with
+              | .alwaysFF _ b | .alwaysPlain _ b | .alwaysComb b => flattenStmt b
+              | .assign _ _ => []
+              | .unsupported kind _ => [.unsupported kind ""]
+            match body[pc]? with
+            | some stmt => stmtAction s p stmt (pc + 1 + if edge then 1 else 0)
+            | none => .wait ((waitForProcess proc).map fun x => { x with process := p })
 
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
     startupEdges := d.edgeIndices
-    admitted := !d.hasUnsupported
+    admitted := !d.hasUnsupported && !hasMultipleAssignDrivers d
     initial :=
       { store := initState d
-        active := (List.range d.processes.size).map fun p => .eval p 0 } }
+        active := (List.range d.processes.size).map fun p => .eval p 0
+        refusal := if hasMultipleAssignDrivers d then
+          some "scheduler: multiple continuous drivers are unsupported"
+        else none } }
 
 /-! ## Enumerator soundness -/
 
@@ -724,6 +743,22 @@ private def timeZeroRun : List SvState :=
 
 #guard timeZeroRun == [[("q", LVec.ofNat 1 0), ("clk", LVec.lit "1")]]
 
+private def multiAssignDesign : Design :=
+  { name := "multi_assign"
+    decls := #[{ name := "a", width := 1 }, { name := "y", width := 1 }]
+    processes := #[
+      .assign "y" (.ident "a"),
+      .assign "y" (.unary .bnot (.ident "a"))] }
+
+#guard hasMultipleAssignDrivers multiAssignDesign
+#guard !(SchedulerDesign.ofDesign multiAssignDesign).admitted
+#guard (processEval
+  { name := "one_assign"
+    decls := #[{ name := "a", width := 1 }, { name := "y", width := 1 }]
+    processes := #[.assign "y" (.ident "a")] }
+  0 0 { store := [("a", LVec.ofNat 1 1)] }) ==
+  .continuous "y" (LVec.ofNat 1 1)
+
 private def refusedDesign : SchedulerDesign :=
   SchedulerDesign.ofDesign
     { name := "refused"
@@ -733,9 +768,9 @@ private def refusedDesign : SchedulerDesign :=
 #guard !refusedDesign.admitted
 example : ¬ RunDesign refusedDesign [] [] := by
   intro h
-  change (!Design.hasUnsupported
-    { name := "refused", decls := #[], processes := #[.unsupported "Initial" "initial process"] }) = true ∧ _ at h
-  simp [Design.hasUnsupported] at h
+  unfold RunDesign refusedDesign at h
+  dsimp [SchedulerDesign.ofDesign] at h
+  simp [Design.hasUnsupported, hasMultipleAssignDrivers] at h
 
 /- READY FOR AUDIT S1b: A1-A7, B1-B2, and C1-C3 are implemented in this
    additive scheduler file; S2 remains outside this change. -/
