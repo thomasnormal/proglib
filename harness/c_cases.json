@@ -419,14 +419,14 @@
   {
     "id": "type-function-pointer",
     "source": "int f(int x) { return x; } int main(void) { int (*p)(int) = f; return p(1); }",
-    "expect": "refuse",
-    "error": "no layout for declared type"
+    "expect": "match",
+    "return_value": 1
   },
   {
     "id": "function-pointer-call-wall",
     "source": "int f(int x) { return x + 1; } int main(void) { int (*p)(int) = f; return p(1) == 2 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "type-nested-array",

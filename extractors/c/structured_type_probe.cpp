@@ -183,6 +183,13 @@ public:
 
   bool VisitDecl(clang::Decl *decl) {
     if (decl->isImplicit()) return true;
+    // Clang materializes parameter declarations while walking a function
+    // prototype in a declarator. They have a source location but no AST
+    // declaration node in the JSON dump, so emitting them would make the
+    // approved offset join fail. The containing function type already
+    // carries the complete parameter tree, including an absent bound.
+    if (const auto *parameter = llvm::dyn_cast<clang::ParmVarDecl>(decl))
+      if (!parameter->getIdentifier()) return true;
     const auto occurrence = sourceOffset(decl, context->getSourceManager());
     if (!occurrence) return true;
     clang::QualType qualified;
