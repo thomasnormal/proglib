@@ -128,23 +128,21 @@ def cellSlot : Cell → Slot
 def localSlot (s : State) (localId : Nat) : Option Slot :=
   s.locals.find? (fun item => item.1 == localId) |>.map (·.2)
 
-def readCell (s : State) (place : Place) : Option Cell :=
-  match place.projection with
-  | [] => localSlot s place.localId |>.bind slotCell
+def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
+  | [] => some cell
   | .deref :: rest =>
-      localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
-        match cell with
-        | .pointer pointer =>
-            if rest.isEmpty then localSlot s pointer.provenance |>.bind slotCell else none
-        | _ => none
+      match cell with
+      | .pointer pointer => localSlot s pointer.provenance |>.bind slotCell |>.bind (projectCell s · rest)
+      | _ => none
   | .field index _ :: rest =>
-      if rest.isEmpty then
-        localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
-          match cell with
-          | .aggregate fields => fields.drop index |>.head? |>.map fieldCell
-          | _ => none
-      else none
+      match cell with
+      | .aggregate fields =>
+          fields.drop index |>.head? |>.map fieldCell |>.bind (projectCell s · rest)
+      | _ => none
   | .downcast _ :: _ | .unsupported _ :: _ => none
+
+def readCell (s : State) (place : Place) : Option Cell :=
+  localSlot s place.localId |>.bind slotCell |>.bind (projectCell s · place.projection)
 
 def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
   match place.projection with
