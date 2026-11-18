@@ -99,11 +99,14 @@ deriving Repr, Inhabited, BEq, DecidableEq
 inductive TypeNode where
   | builtin (name : CType)
   | pointer (inner : TypeNode)
+  | array (inner : TypeNode) (extent : Option Nat)
   | paren (inner : TypeNode)
   | elaborated (inner : TypeNode)
-  | record (ty : CType)
+  | qualified (isConst : Bool) (isVolatile : Bool) (inner : TypeNode)
+  | record (id : Option DeclarationId) (ty : CType)
+  | enumeration (id : Option DeclarationId) (ty : CType)
   | typedefRef (id : Option DeclarationId) (ty : CType)
-  | funcProto (ret : TypeNode) (params : List TypeNode)
+  | funcProto (ret : TypeNode) (params : List TypeNode) (variadic : Bool)
   | unsupported (cKind : String) (text : String)
 deriving Repr, Inhabited, BEq
 
@@ -121,17 +124,27 @@ partial def TypeNode.toQualType : TypeNode → Except String LeanModels.Clang.Qu
   | .pointer inner => do
       let pointee ← inner.toQualType
       pure (.pointer pointee)
+  | .array inner extent => do
+      let element ← inner.toQualType
+      pure (.array element extent)
   | .paren inner => inner.toQualType
   | .elaborated inner => inner.toQualType
-  | .funcProto ret params => do
+  | .qualified isConst isVolatile inner => do
+      let base ← inner.toQualType
+      pure (.qualified isConst isVolatile base)
+  | .funcProto ret params variadic => do
       let result ← ret.toQualType
       let arguments ← params.mapM TypeNode.toQualType
-      pure (.function result arguments false)
+      pure (.function result arguments variadic)
+  | .record (some id) _ => .ok (.record {value := id.value})
+  | .record none spelling =>
+      .error s!"structured record type has no declaration identity: {spelling}"
+  | .enumeration (some id) _ => .ok (.enumeration {value := id.value})
+  | .enumeration none spelling =>
+      .error s!"structured enum type has no declaration identity: {spelling}"
   | .typedefRef (some id) _ => .ok (.typedefRef {value := id.value})
   | .typedefRef none spelling =>
       .error s!"structured typedef type has no declaration identity: {spelling}"
-  | .record spelling =>
-      .error s!"structured record type has no declaration identity: {spelling}"
   | .unsupported kind text =>
       .error s!"unsupported structured C type '{kind}': {text}"
 

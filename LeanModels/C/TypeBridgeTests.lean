@@ -11,7 +11,12 @@ private def scalar : TypeNode := .builtin "unsigned short"
 private def pointerToScalar : TypeNode := .pointer scalar
 
 private def functionType : TypeNode :=
-  .funcProto (.builtin "int") [pointerToScalar, .builtin "_Bool"]
+  .funcProto (.builtin "int") [pointerToScalar, .builtin "_Bool"] true
+
+private def arrayType : TypeNode := .array (.builtin "int") (some 4)
+
+private def qualifiedRecord : TypeNode :=
+  .qualified true false (.record (some ⟨"record-1"⟩) "struct S")
 
 private def same (left right : Except String LeanModels.Clang.QualType) : Bool :=
   match left, right with
@@ -28,7 +33,12 @@ private def isError : Except String α → Bool
   (.ok (.pointer (.cBuiltin "unsigned short")))
 #guard same functionType.toQualType
   (.ok (.function (.cBuiltin "int")
-    [.pointer (.cBuiltin "unsigned short"), .cBuiltin "_Bool"] false))
+    [.pointer (.cBuiltin "unsigned short"), .cBuiltin "_Bool"] true))
+#guard same arrayType.toQualType
+  (.ok (.array (.cBuiltin "int") (some 4)))
+#guard same qualifiedRecord.toQualType
+  (.ok (.qualified true false (.record {value := "record-1"})))
 #guard isError (TypeNode.typedefRef none "T" |>.toQualType)
+#guard isError (TypeNode.enumeration none "enum E" |>.toQualType)
 
 end LeanModels.C

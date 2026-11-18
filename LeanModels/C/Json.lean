@@ -160,28 +160,34 @@ def nodeSpan (j : Json) : Except String CSpan := do
 partial def parseTypeNode (j : Json) : Except String TypeNode := do
   let kind ← getStr j "kind"
   withCtx kind do
+    let declId : Except String (Option DeclarationId) :=
+      match getOptNode j "decl" with
+      | none => pure none
+      | some d => do
+          let rawId ← getOptStr d "id"
+          pure (rawId.map DeclarationId.mk)
     let inner : Except String TypeNode := match getOptNode j "inner" with
       | none => .ok (.unsupported kind "missing inner")
       | some v => parseTypeNode v
     match kind with
     | "BuiltinType" => return .builtin (← getStr j "name")
     | "PointerType" => return .pointer (← inner)
+    | "ConstantArrayType" => return .array (← inner) (some (← getNat j "size"))
+    | "IncompleteArrayType" | "VariableArrayType" | "DependentSizedArrayType" =>
+        return .array (← inner) none
     | "ParenType" => return .paren (← inner)
     | "ElaboratedType" => return .elaborated (← inner)
-    | "RecordType" => return .record (← getStr j "type")
-    | "TypedefType" =>
-        let id ← match getOptNode j "decl" with
-          | none => pure none
-          | some d => do
-              let rawId ← getOptStr d "id"
-              pure (rawId.map DeclarationId.mk)
-        return .typedefRef id (← getStr j "type")
+    | "QualifiedType" =>
+        return .qualified (← getBool j "const") (← getBool j "volatile") (← inner)
+    | "RecordType" => return .record (← declId) (← getStr j "type")
+    | "EnumType" => return .enumeration (← declId) (← getStr j "type")
+    | "TypedefType" => return .typedefRef (← declId) (← getStr j "type")
     | "FunctionProtoType" =>
         let ret ← match getOptNode j "ret" with
           | none => throw "missing 'ret'"
           | some v => parseTypeNode v
         let ps ← (← getArr j "params").mapM parseTypeNode
-        return .funcProto ret ps
+        return .funcProto ret ps (← getBool j "variadic")
     | "Unsupported" =>
         return .unsupported (← getStr j "c_kind") (← getStr j "text")
     | other => throw s!"unknown type kind {other.quote}"
