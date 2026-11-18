@@ -5,7 +5,7 @@ This slice implements the MIR node census groups in the approved
 `PlaceMention`, `Use` rvalues, constant operands, zero-projection places, and a
 single `Return` block, together with control flow, resolved calls, normal drop
 edges, and explicit refusal boundaries for cleanup, intrinsics, and foreign
-operations.  The implementation is 582 lines in
+operations.  The implementation is 581 lines in
 `LeanModels/Rust/Semantics.lean`, with 75 lines of AST declarations, 210 lines
 of JSON decoding, and 38 lines of the literal-envelope loader.
 
@@ -120,4 +120,6 @@ continuation.  `Examples/rust/std_identity` proves the analogous trace for
 `std::convert::identity::<i32>` directly from its extracted standard-library
 MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
-the Stage 0 corpus counter remains `SLICE1-ROWS 0/30, diverging 0`.
+the checked-in `ProgramInSteps` rows also cover the assignment, storage,
+place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
+corpus counter remains `SLICE1-ROWS 0/30, diverging 0`.
