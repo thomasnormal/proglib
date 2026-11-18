@@ -180,6 +180,9 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clock", 1), Port("value", 1)), (Port("result", 1),),
             expected_ordinary_refusal="InstanceSymbol:interface",
             expected_source_refusals=("iverilog",)),
+    Fixture("typed_variable_unpacked_scalar_repro.sv", "typed_variable_unpacked_scalar_repro",
+            (Port("source", 4),), (Port("result", 4),),
+            expected_source_refusals=("iverilog",)),
     Fixture("preempt_block_refuse.sv", "preemptive_schedule",
             (Port("a", 1), Port("b", 1)),
             (Port("q", 1), Port("r", 1), Port("z", 1))),
@@ -694,6 +697,9 @@ def main() -> int:
                     try:
                         sim_out, actual = run_simulator(sim, fixture, point, rows, source, Path(sim_name))
                     except RuntimeError as exc:
+                        if sim in fixture.expected_source_refusals:
+                            print(f"  {sim}: EXPECTED SOURCE REFUSAL {exc}")
+                            continue
                         print(f"  {sim}: ERROR {exc}")
                         all_match = False
                         continue
