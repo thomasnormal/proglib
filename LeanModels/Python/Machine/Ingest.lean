@@ -350,8 +350,13 @@ partial def mStmtToStmt : MStmt → RStmt
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
   | .whileStmt test body orelse span => .whileStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
-  | .functionDef name args _ _ body span => .functionDef name (mParams args)
-      (args.defaults.map mExprToExpr) (body.map mStmtToStmt) span
+  | .functionDef name args _ _ body span =>
+      if args.keywordOnly.isEmpty then
+        .functionDef name (mParams args) (args.defaults.map mExprToExpr)
+          (body.map mStmtToStmt) span
+      else
+        .functionDefKw name (mParams args) (args.defaults.map mExprToExpr)
+          (args.kwDefaults.map (·.map mExprToExpr)) (body.map mStmtToStmt) span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .augAssign _ _ _ span | .annAssign _ _ _ _ span | .delete _ span
   | .forStmt _ _ _ _ _ span | .classDef _ _ _ _ _ span | .import _ span
