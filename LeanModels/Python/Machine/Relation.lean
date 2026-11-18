@@ -138,21 +138,21 @@ def RConfig.setTop (config : RConfig) (frame : RFrame) : RConfig :=
   | [] => config
   | _ :: tail => { config with frames := frame :: tail }
 
-def lookupEnv : REnv → String → Option RVal
+def rLookupEnv : REnv → String → Option RVal
   | [], _ => none
   | (name, value) :: rest, wanted =>
-      if name == wanted then some value else lookupEnv rest wanted
+      if name == wanted then some value else rLookupEnv rest wanted
 
-def setEnv (env : REnv) (name : String) (value : RVal) : REnv :=
+def rSetEnv (env : REnv) (name : String) (value : RVal) : REnv :=
   (name, value) :: env.filter (fun binding => binding.1 != name)
 
-def assignedFrame (frame : RFrame) (name : String) (value : RVal)
+def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
     (remaining : List RStmt) : RFrame :=
   { control := .statements remaining
-    locals := setEnv frame.locals name value
+    locals := rSetEnv frame.locals name value
     globals := frame.globals }
 
-def evalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
+def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   match op, left, right with
   | .add, .int a, .int b => .ok (.int (a + b))
   | .sub, .int a, .int b => .ok (.int (a - b))
@@ -219,7 +219,7 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
       {name : String} {span : Span} {continuation : RKont} {value : RVal}
       (hframe : config.frames =
         { frame with control := .evaluate (.name name span) continuation } :: tail)
-      (hvalue : lookupEnv frame.locals name = some value) :
+      (hvalue : rLookupEnv frame.locals name = some value) :
       Step config .tau (config.setControl (.continueValue value continuation))
   | evaluateBinOp {config : RConfig} {frame : RFrame} {tail : List RFrame}
       {left right : Expr} {op : BinOp} {span : Span} {continuation : RKont}
@@ -246,7 +246,7 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
       (hframe : config.frames = frame :: tail)
       (hcontrol : frame.control = .continueValue value (.assign name remaining)) :
       Step config .tau
-        (config.setTop (assignedFrame frame name value remaining))
+        (config.setTop (rAssignedFrame frame name value remaining))
   | binOpLeftValue {config : RConfig} {value : RVal} {op : BinOp} {right : Expr}
       {continuation : RKont}
       (hcontrol : config.frames.head?.map RFrame.control =
@@ -255,7 +255,7 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
   | binOpResult {config : RConfig} {left right : RVal} {op : BinOp} {continuation : RKont}
       (hcontrol : config.frames.head?.map RFrame.control =
         some (.continueValue right (.binOpRight left op continuation)))
-      {value : RVal} (hresult : evalBinOp op left right = .ok value) :
+      {value : RVal} (hresult : rEvalBinOp op left right = .ok value) :
       Step config .tau (config.setControl (.continueValue value continuation))
   | moduleEnd {config : RConfig} {frame : RFrame}
       (hframes : config.frames = [ { frame with control := .statements [] } ]) :
@@ -373,7 +373,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .evaluate (.constant value _) continuation =>
           some (.tau, config.setControl (.continueValue (rConstValue value) continuation))
       | .evaluate (.name name _) continuation =>
-          match lookupEnv frame.locals name with
+          match rLookupEnv frame.locals name with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none => some (.event (.refuse ("unbound name: " ++ name)),
               config.finish (.refuse ("unbound name: " ++ name)))
@@ -388,11 +388,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue value (.assign name remaining) =>
-          some (.tau, config.setTop (assignedFrame frame name value remaining))
+          some (.tau, config.setTop (rAssignedFrame frame name value remaining))
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
-          match evalBinOp op left right with
+          match rEvalBinOp op left right with
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))
           | _ => some (.event (.refuse "machine binary operator"),
               config.finish (.refuse "machine binary operator"))
