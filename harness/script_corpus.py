@@ -300,11 +300,12 @@ def main(argv=None):
           % (total, failures, completed, len(blocked)))
     print("machine: matched %d, refused %d, diverging %d" %
           (machine_matched, machine_refused, machine_diverged))
-    print("MACHINE-PARITY %d/%d, diverging %d" %
-          (machine_matched, machine_matched, machine_diverged))
+    machine_decided = machine_matched + machine_diverged
+    print("MACHINE-REL scripts %d/%d (diverge %d)" %
+          (machine_decided, total, machine_diverged))
     for src, msg in blocked:
         print("  blocked: %-34s %s" % (src, msg))
-    return 1 if failures else 0
+    return 1 if failures or machine_diverged else 0
 
 
 if __name__ == "__main__":

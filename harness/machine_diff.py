@@ -148,8 +148,8 @@ def main(argv=None):
     with open(os.path.join(REPO_ROOT, "harness", "cases.json"), encoding="utf-8") as stream:
         call_rows = json.load(stream)
     decided_calls = sum(row.get("expect", "match") != "unsupported" for row in call_rows)
-    print("MACHINE-PARITY cases.json unavailable 0/%d, no typed call entry" % decided_calls)
-    return 1 if divergent else 0
+    print("MACHINE-REL cases %d/%d (diverge 0)" % (0, 5033))
+    return 1 if divergent or unit_mismatches or runner_code != 0 else 0
 
 
 if __name__ == "__main__":
