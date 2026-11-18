@@ -443,6 +443,8 @@ structure Layout where
   /-- Frontend-observed byte stride keyed by the declaration identity of an
       array object. -/
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
+  /-- Frontend-observed byte size of one element for an array type. -/
+  arrayElementSize : CType → Option Nat := fun _ => none
   /-- `offsetof`, keyed on the BASE expression's spelling, so `p->f` and
   `x.f` look up under `"const Pos *"` and `"Pos"` respectively. -/
   fieldOff : CType → String → Option Nat
@@ -525,6 +527,11 @@ def Layout.fieldSizeAt (layout : Layout) (base : Expr) (field : String) :
   (directDeclId base).bind (fun did => layout.fieldSizeDecl did field)
     |>.orElse (fun _ => layout.fieldSize base.ty field)
 
+def Layout.arrayElementSizeAt (layout : Layout) (arrayTy elementTy : CType) :
+    Option Nat :=
+  layout.arrayElementSize arrayTy |>.orElse
+    (fun _ => layout.size (layout.normalizeTy elementTy))
+
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
   (directDeclId base).bind layout.structuredType
@@ -538,6 +545,7 @@ def Layout.unknown : Layout :=
     pointeeSize := fun _ => none
     pointeeSizeDecl := fun _ => none
     elementSizeDecl := fun _ => none
+    arrayElementSize := fun _ => none
     fieldSize := fun _ _ => none, fieldSizeDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none

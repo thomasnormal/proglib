@@ -645,6 +645,57 @@
     ]
   },
   {
+    "id": "structured-array-partial-init",
+    "source": "int main(void) { int a[4] = {7}; return a[0] == 7 && a[1] == 0 && a[3] == 0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "envelope_checks": [
+      "array_filler"
+    ],
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "type_layout_element_size"
+    ]
+  },
+  {
+    "id": "structured-array-zero-init",
+    "source": "int main(void) { int a[4] = {}; return a[0] == 0 && a[2] == 0 && a[3] == 0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "type_layout_element_size"
+    ]
+  },
+  {
+    "id": "structured-nested-array-partial-init",
+    "source": "int main(void) { int a[2][3] = {{1}, {2, 3}}; return a[0][1] == 0 && a[1][1] == 3 && a[1][2] == 0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "envelope_checks": [
+      "array_filler"
+    ],
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout",
+      "type_layout_element_size"
+    ]
+  },
+  {
     "id": "structured-pointer-load",
     "source": "int main(void) { int x = 7; int *p = &x; return *p == 7 ? 0 : 1; }",
     "expect": "match",

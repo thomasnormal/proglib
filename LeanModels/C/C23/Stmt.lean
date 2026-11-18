@@ -191,7 +191,7 @@ def zeroInit : Nat → Ctx → Ptr → CType → ExecM Unit
       else
         match ctx.layout.elem ty with
         | some (et, n) =>
-            match ctx.layout.size et with
+            match ctx.layout.arrayElementSizeAt ty et with
             | some esz => zeroElems fuel ctx p et esz n 0
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
@@ -259,7 +259,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr → ExecM Unit
         -- shapes rather than guessing their repeated initialization semantics.
         match inits, filler, ctx.layout.elem ty with
         | [], .implicitValueInit _ _ :: entries, some (et, n) =>
-            match ctx.layout.size et with
+            match ctx.layout.arrayElementSizeAt ty et with
             | some esz => initElems fuel ctx p et esz n 0 entries
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | _, _, _ => refuseUnsupported "unsupported Clang array_filler initializer"
@@ -282,7 +282,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr → ExecM Unit
         match ctx.layout.elem ty with
         -- an ARRAY: elements at i * sizeof(elem), then §6.7.11p10 on the tail
         | some (et, n) =>
-            match ctx.layout.size et with
+            match ctx.layout.arrayElementSizeAt ty et with
             | some esz => initElems fuel ctx p et esz n 0 inits
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
@@ -307,7 +307,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr → ExecM Unit
                   let padded := copied ++ List.replicate (n - copied.length) (CByte.conc 0)
                   liftEval (writeMem (fun m => m.storeBytes p padded))
                 else
-                  match ctx.layout.size (ctx.layout.normalizeTy et) with
+                  match ctx.layout.arrayElementSizeAt ty et with
                   | some esz =>
                       if esz > 0 && bytes.length % esz == 0 then
                         let copied := bytes.take (n * esz)
@@ -316,7 +316,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr → ExecM Unit
                       else refuseUnsupported "wide string literal has incomplete element bytes"
                   | none => refuseUnsupported "wide string literal lacks element layout"
             | none =>
-                match ctx.layout.size (ctx.layout.normalizeTy et) with
+                match ctx.layout.arrayElementSizeAt ty et with
                 | some esz =>
                     if esz > 0 && bytes.length % esz == 0 then
                       let copied := bytes.take (n * esz)
