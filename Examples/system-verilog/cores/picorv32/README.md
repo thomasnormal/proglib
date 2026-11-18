@@ -1997,3 +1997,16 @@ which cannot be discharged while canonical E stops before cycle 0 at the
 reactive dependency-order refusal.  No additional class theorem is added until
 that E boundary becomes reachable or the R2 statement names a concrete missing
 consumer.
+
+## 2026-11-18 W5 kernel-cost measurement
+
+The 3,442,095-byte `picorv32_r2.sv.json` envelope was elaborated through the
+current `R2.lean` loader and one-cycle wall probe under the host's 12 GiB
+budget.  The measured Lean process took 26.1 seconds and reached 1,737,776
+KiB of child max RSS.  It completed successfully and then reported the existing
+reactive dependency-order refusal before an E cycle executed.  This is an
+elaboration and refusal-cost measurement, not a symbolic cycle result.
+
+The measured peak is below the 12 GiB budget, so the proof route does not need
+a kernel-cheap store or a derived cycle model for memory reasons.  The ADDI
+invariant still awaits a canonical-E run through the scheduler boundary.
