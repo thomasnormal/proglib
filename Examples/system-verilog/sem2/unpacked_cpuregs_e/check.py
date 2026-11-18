@@ -77,7 +77,10 @@ def source_rows(simulator):
 def main():
     run(["lake", "env", "lean",
          "Examples/system-verilog/sem2/unpacked_cpuregs_e/agree.lean"])
+    run(["lake", "env", "lean",
+         "Examples/system-verilog/sem2/unpacked_cpuregs_e/canonical_agree.lean"])
     print("E native one-rank memory and runtime-index guards: PASS")
+    print("canonical E: 11 rows MATCH the source receipt")
 
     if not shutil.which("iverilog") or not shutil.which("vvp"):
         raise RuntimeError("Icarus is required for this differential check")

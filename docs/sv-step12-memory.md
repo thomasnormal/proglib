@@ -64,9 +64,12 @@ The older `Kernel/MemE` and `MemCycle` files are compatibility and measurement
 surfaces only.  New storage work belongs in `Kernel/MemElab.lean` and
 `Kernel/CoreMemExec.lean`.  Any remaining MemE receipt must be justified by a
 refinement theorem back to `CoreMemDesign.step`; it is not a second semantics
-for users.  The next implementation gate is a loaded parameterized storage
-design running through `CoreMemDesign.initialState` and `CoreMemDesign.step`,
-with simulator rows at two parameter points and x/z index probes.
+for users.  The `unpacked_cpuregs_e/canonical_agree.lean` receipt now runs the
+source-shaped parameterized register-file envelope through
+`CoreMemDesign.step` for all 11 x/z, write-enable, and NBA rows. Its simulator
+checker reports 11/11 matching rows on Icarus Verilog 13.0 and Xcelium
+24.03-s004. The next implementation gate is a full loaded design running
+through the same dynamic-cell path at two parameter points.
 
 ## Current measured boundary — 2026-11-19
 
