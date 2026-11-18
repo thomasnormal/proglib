@@ -201,6 +201,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("source", 5),), (Port("result", 4),)),
     Fixture("typed_port_pkg_repro.sv", "typed_port_pkg_repro",
             (Port("source", 5),), (Port("result", 4),)),
+    Fixture("typed_port_enum_repro.sv", "typed_port_enum_repro",
+            (Port("mode", 2),), (Port("result", 2),)),
     Fixture("parameterized_storage_structure.sv", "parameterized_storage_structure",
             (Port("x", 8),), (Port("y", 8),),
             (Point("N1", (1,)), Point("N2", (2,)))),
