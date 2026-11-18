@@ -39,6 +39,9 @@ theorem source_instantiation2 (width : Nat) :
 private theorem truthy_one : LVec.truthy (.ofLogic .l1) = .l1 := by
   simp [LVec.truthy, LVec.hasKnownOne, LVec.ofLogic]
 
+private theorem truthy_one_bitvec : LVec.truthy (.ofBitVec (1#1)) = .l1 := by
+  decide
+
 private theorem one_or (value : Logic) : Logic.or .l1 value = .l1 := by
   cases value <;> rfl
 
@@ -52,7 +55,7 @@ theorem false_antecedent (left right : LVec) (width fuel : Nat)
       .ok (.ofLogic .l1) := by
   rw [source_instantiation]
   simp [evalExpr, evalUnaryOp, evalBinOp, readSignal, SvState.lookup,
-    Bind.bind, Pure.pure, falseLeft, LVec.lor, truthy_one, one_or, LVec.truthy, LVec.hasKnownOne, LVec.ofLogic]
+    Bind.bind, Pure.pure, falseLeft, LVec.lor, truthy_one, truthy_one_bitvec, one_or]
 
 /-- A true consequent dominates even an unknown antecedent. -/
 theorem true_consequent (left right : LVec) (width fuel : Nat)

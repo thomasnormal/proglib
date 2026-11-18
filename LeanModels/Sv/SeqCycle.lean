@@ -1133,20 +1133,12 @@ def CoreMemDesign.settleRaw (E : CoreMemDesign) (mv : MemV) (raw : SvState) (idx
         match E.scalarWidth? n with
         | some w => do
             let x ← E.evalV E.env E.elems (E.matV raw) mv (some w) value
-            let x := if E.resolvedNets.contains n then
-                LVec.resolveDrivers [
-                  (SvState.lookup raw n).getD (LVec.replicate w .lz), x]
-              else x
             E.settleRaw mv (SvState.set raw n x) (idx + 1) rest
         | none => .unsupported s!"10.3: continuous target '{n}' is undeclared"
       else
         match E.compiledAssigns[idx]? with
         | some (some c) => do
             let x ← evalPure2 raw c
-            let x := if E.resolvedNets.contains n then
-                LVec.resolveDrivers [
-                  (SvState.lookup raw n).getD (LVec.replicate c.width .lz), x]
-              else x
             E.settleRaw mv (SvState.set raw n x) (idx + 1) rest
         | _ => .unsupported "settleRaw: a continuous assign without its compiled expression"
   | .edge _ :: rest => E.settleRaw mv raw (idx + 1) rest
