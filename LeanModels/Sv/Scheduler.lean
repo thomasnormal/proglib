@@ -27,11 +27,13 @@ sequence relation is intentionally a superset of the standard's concrete
 queue order, so theorems quantify over all admissible readings without
 claiming a particular implementation order.
 
-The scheduler also records the S1 narrowing of §4.7.  A ready process runs
-through its next source-shaped action sequence until it reaches a wait.  It
-is not interrupted between ordinary statements.  Interleavings at waits and
-the choice of ready active event remain explicit in `oneStep`; this narrowing
-is the boundary used by `allSlots` and `BoundedSteps`.
+The scheduler follows the full §4.7 interleaving boundary.  A ready process
+may be interrupted between any two source-shaped statements, so each ordinary
+action leaves its continuation as a selectable Active event.  The choice of
+ready active event and every such mid-process interleaving remain explicit in
+`oneStep`; `allSlots` and `BoundedSteps` enumerate them under their stated
+fuel bound.  Race-free designs require a separate confluence theorem before
+these interleavings can be erased.
 -/
 
 namespace LeanModels.Sv.Scheduler
@@ -812,6 +814,31 @@ private def midBodyWaitResult : List SvState :=
 #guard midBodyWaitResult.any (fun s =>
   s.lookup "x" == some (LVec.ofNat 1 1) &&
   s.lookup "z" == some (LVec.ofNat 1 1))
+
+/- A mid-process race: process 0 writes `x` and then reads it into `q`, while
+   process 1 may write `x` between those two statements.  The two final q
+   values are the legal members of the corresponding blocking race.  This
+   guard specifically checks that the scheduler does not erase
+   the §4.7 interruption between ordinary statements. -/
+private def midProcessRace : SchedulerDesign :=
+  { eval := fun p resume s =>
+      if p == 0 then
+        if resume == 0 then .blocking "x" (LVec.ofNat 8 1) 1
+        else if resume == 1 then .blocking "q" (lookupValue s.store "x") 2
+        else .done
+      else if resume == 0 then .blocking "x" (LVec.ofNat 8 2) 1
+      else .done
+    initial :=
+      { store := [("x", LVec.ofNat 8 0), ("q", LVec.ofNat 8 0)]
+        active := [.eval 0 0, .eval 1 0] } }
+
+private def midProcessRaceStores : List SvState :=
+  allSlots 8 midProcessRace midProcessRace.initial
+
+#guard midProcessRaceStores.any (fun s =>
+  s.lookup "q" == some (LVec.ofNat 8 1))
+#guard midProcessRaceStores.any (fun s =>
+  s.lookup "q" == some (LVec.ofNat 8 2))
 
 private def unorderedInputs : SlotState :=
   { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)]
