@@ -199,6 +199,9 @@ FIXTURES: tuple[Fixture, ...] = (
             (Point("N4", (4,)),)),
     Fixture("latch_array_e.sv", "latch_array_e",
             (Port("en", 1), Port("d", 4)), (Port("q", 4),)),
+    Fixture("latch_generate_e.sv", "latch_generate_e",
+            (Port("en", 2), Port("d", 4)), (Port("q", 4),),
+            (Point("N2", (2,)), Point("N3", (3,)))),
     Fixture("preempt_block_refuse.sv", "preemptive_schedule",
             (Port("a", 1), Port("b", 1)),
             (Port("q", 1), Port("r", 1), Port("z", 1))),
@@ -358,6 +361,8 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
             return 1 if point.args[0] == 1 else 2
     if fixture.top == "generate_local_top" and point.args:
         return point.args[0]
+    if fixture.top == "latch_generate_e" and point.args and port.name == "en":
+        return point.args[0]
     return port.width
 
 
@@ -434,6 +439,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generate_local_top": ("N",),
             "clk_arst": ("N",),
             "clk_arst_comma": ("N",),
+            "latch_generate_e": ("N",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []
