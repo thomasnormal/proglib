@@ -1057,3 +1057,16 @@ its pinned seven-row canonical-E receipt matches Icarus Verilog 13.0 and
 Xcelium 24.03-s004. `signal_event_control.sv` remains a `Clock:implicit`
 refusal because its event source has no supported edge or implicit-sensitivity
 semantics. No count transition is claimed.
+
+## Parser-native inout wall reconciliation — 2026-11-18T18:05Z
+
+The clean-room `inout_repro.sv` packet is now represented source-shaped in the
+public loader. Slang's `PortSymbol:InOut` direction is retained as `PDecl.isInout`,
+and its child connection is retained as `PConn.inout`, including assignment-form
+actuals. Canonical scalar E and both hierarchy adapters still refuse at the
+IEEE 1800-2023 §6.6 driver-set resolution boundary. The independent receipt
+reports six matching rows from Icarus Verilog 13.0 and Xcelium 24.03-s004,
+covering all-known, high-impedance, and conflicting drivers. No aliasing,
+flattening, or scalar x/z approximation is claimed. The parser-native landing
+is public in `0f7f84270`, and the aggregate-member red-fix ancestry was pushed
+without waiting for the asynchronous-memory profile wall.
