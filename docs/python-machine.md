@@ -174,7 +174,9 @@ machine in one batch. `harness/scripts/hello.py` and
 `harness/scripts/function_call.py` checks a positional module-function call,
 `harness/scripts/function_print.py` checks a direct-return call inside
 `print`, and `harness/scripts/function_branch.py` checks branch selection in a
-function body, and `harness/scripts/function_local.py` checks a local
+function body, while `harness/scripts/function_call_assignment.py` checks a
+named function call on an assignment right-hand side, and
+`harness/scripts/function_local.py` checks a local
 assignment before return. `harness/scripts/function_conditional.py` checks a
 lazy conditional in a function return, while
 `harness/scripts/function_sequence.py` checks resumption after a completed
@@ -212,4 +214,4 @@ while
 `harness/scripts/function_keyword_expression.py` checks evaluation of a scalar
 keyword value before binding, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is twenty-two matches, three refusals, and zero divergence.
+current result is twenty-three matches, three refusals, and zero divergence.

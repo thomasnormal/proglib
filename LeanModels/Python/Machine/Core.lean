@@ -288,6 +288,11 @@ def evalPrintExpr (m : Module) (env : REnv) : Expr → Res RVal
       evalFunctionReturn m env name args kwargs
   | expression => evalExpr env expression
 
+def evalAssignmentExpr (m : Module) (env : REnv) : Expr → Res RVal
+  | .call (.name name _) args kwargs none _ =>
+      evalFunctionReturn m env name args kwargs
+  | expression => evalExpr env expression
+
 def finish : MachineState → Observation → Event → MachineState
   | state, observation, event =>
       { state with
@@ -357,7 +362,7 @@ def stepStmt (m : Module) (state : MachineState) (frame : Frame) (rest : List St
       | .timeout => some (.resource .recursion, finish state (.resource .recursion) (.resource .recursion))
       | .unsupported reason => some (.refuse reason, finish state (.refused reason) (.refuse reason))
   | .assign targets value _ =>
-      match evalExpr frame.locals value, targets.toList.mapM targetName with
+      match evalAssignmentExpr m frame.locals value, targets.toList.mapM targetName with
       | .ok result, some names =>
           let locals := names.foldl (fun env name => setEnv env name result) frame.locals
           some (.choice "assign" 0, { state with frames := { frame with locals := locals, control := .statements rest } :: state.frames.tail! })
