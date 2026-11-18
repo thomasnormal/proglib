@@ -779,7 +779,7 @@ theorem decodeInt_indet (t : IntTy) (bs : List CByte)
           simp only [step]
           cases h with
           | inl hneq => cases hneq
-          | inr htail => rw [ih htail]; simp [step]
+          | inr htail => rw [ih htail]
       | ptrByte p k => simp [step]
       | ptrIntByte p k => simp [step]
       | funByte id => simp [step]
@@ -2518,9 +2518,30 @@ theorem reallocAt_null_loadInt (m : Mem) (size address : Nat) (t : IntTy)
       .ok (.error (.memUB (.indetAllocated m.objs.length 0))) := by
   rw [reallocAt_null m size address hsize]
   have hwidth' : ¬ size < max 1 (t.bits / 8) := by omega
+  have hwidthInt : ¬ (size : Int) < (max 1 (t.bits / 8) : Int) := by omega
+  have hdecode :
+      decodeInt t (List.take (max 1 (t.bits / 8))
+        (List.drop 0 (List.replicate size CByte.indet))) = none := by
+    apply decodeInt_indet
+    simp [hwidth]
+  change .ok ((m.mallocAt size address).1.loadInt
+    (m.mallocAt size address).2 t) = _
   simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
-    loadInt, loadBytes, resolve, get?, Except.map, hwidth',
-    decodeInt_indet]
+    loadInt, resolve, get?, CObj.size, Except.map, hwidth', hwidthInt,
+    hdecode]
+
+theorem reallocAt_null_loadPtr (m : Mem) (size address : Nat)
+    (hsize : size ≠ 0) (hwidth : 8 ≤ size) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.loadPtr r.2) =
+      .ok (.error (.memUB (.indetAllocated m.objs.length 0))) := by
+  rw [reallocAt_null m size address hsize]
+  have hwidth' : ¬ size < 8 := by omega
+  have hwidthInt : ¬ (size : Int) < 8 := by omega
+  change .ok ((m.mallocAt size address).1.loadPtr
+    (m.mallocAt size address).2) = _
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
+    loadPtr, resolve, get?, CObj.size, Except.map, hwidth', hwidthInt]
 
 theorem reallocAt_null_storeBytes (m : Mem) (size address : Nat)
     (bs : List CByte) (hsize : size ≠ 0) :
