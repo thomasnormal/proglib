@@ -779,6 +779,18 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Full clean-room batch census — 2026-11-18T03:25Z
+
+The required external `CENSUS-ls-sv3.txt` was refreshed with the approved
+single-harness command at public master 4338b0c82. The batch measured 58
+fixture/parameter points. Forty-eight returned eight ordinary cycles, while
+ten returned ordinary zero for the named dependency-order, LocalDecl,
+non-literal initializer, Clock:implicit, untyped-localparam, 10.3, and
+parameterized-storage equation-gate boundaries. Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 were both detected. The
+receipt printed 768 ordinary/source matching cycles and 72 source-only matching
+cycles for intentionally refused ordinary routes. REAL-BLOCKS remains 41.
+
 ## Aggregate relation landing remeasurement — 2026-11-18T02:52Z
 
 After public landing 8ade780f5 added the source-shaped aggregate relation, fresh
