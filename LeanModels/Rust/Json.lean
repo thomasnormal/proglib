@@ -201,6 +201,32 @@ private def body (instanceId : String) (j : Json) : Except String Body := do
   let blocks ← field j "blocks" >>= array >>= (·.mapM (withCtx "block" ∘ block))
   pure { instanceId, blocks }
 
+private def typeLayout (j : Json) : Except String TypeLayout := do
+  let id ← field j "id" >>= string
+  let kind ← field j "kind" >>= string
+  let layout ← field j "layout"
+  let size ← field layout "size"
+  let sizeBits ← field size "num_bits" >>= nat
+  let align ← field layout "abi_align" >>= nat
+  pure { id, kind, sizeBits, align }
+
+private def allocation (j : Json) : Except String Allocation := do
+  let id ← field j "id" >>= string
+  let bytes ← field j "bytes" >>= array >>= (·.mapM nat)
+  let align ← field j "align" >>= nat
+  let provenance ←
+    match j.getObjVal? "provenance" with
+    | .error _ => pure []
+    | .ok p =>
+        match p.getObjVal? "ptrs" with
+        | .error _ => pure []
+        | .ok ptrs => array ptrs >>= (·.mapM fun ptr => do
+            let values ← array ptr
+            match values with
+            | [offset, target] => pure (← nat offset, ← nat target)
+            | _ => .error "allocation provenance entry must contain offset and target")
+  pure { id, bytes, provenance, align }
+
 def parseEnvelope (j : Json) : Except String Envelope := do
   let schema ← field j "schema" >>= string
   let entry ← field j "entry" >>= string
@@ -221,7 +247,18 @@ def parseEnvelope (j : Json) : Except String Envelope := do
           | value => some <$> string value
         let resolved ← field callJson "resolved" >>= Lean.Json.getBool?
         pure { caller, block, callee, resolved })
-  pure { schema, entry, bodies, calls }
+  let types ←
+    match j.getObjVal? "tables" with
+    | .error _ => pure []
+    | .ok tables =>
+        match tables.getObjVal? "types" with
+        | .error _ => pure []
+        | .ok values => array values >>= (·.mapM typeLayout)
+  let allocations ←
+    match j.getObjVal? "allocations" with
+    | .error _ => pure []
+    | .ok values => array values >>= (·.mapM allocation)
+  pure { schema, entry, bodies, calls, types, allocations }
 
 def parseEnvelopeString (s : String) : Except String Envelope := do
   let json ← Json.parse s

@@ -74,11 +74,28 @@ structure CallEdge where
   resolved : Bool
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
+structure TypeLayout where
+  id : String
+  kind : String
+  sizeBits : Nat
+  align : Nat
+deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+
+structure Allocation where
+  id : String
+  bytes : List Nat
+  provenance : List (Nat × Nat)
+  align : Nat
+  address : Option Nat := none
+deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
+
 structure Envelope where
   schema : String
   entry : String
   bodies : List Body
   calls : List CallEdge := []
+  types : List TypeLayout := []
+  allocations : List Allocation := []
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 end LeanModels.Rust
