@@ -71,6 +71,8 @@ obligation:
   `picorv32_loaded_cpuregs_cell_shape`, and `picorv32_loaded_regfile_size` for
   the concrete register-file geometry consumed by the canonical one-rank
   memory relation;
+* `picorv32_loaded_inactive_generate_params` for the four default-disabled
+  generate branches reported by the census;
 * `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
   for the measured observation witness;
 * `rvfi_addi_boundary.lean` for the measured raw ADDI row and its
@@ -207,6 +209,18 @@ theorem picorv32_loaded_regfile_size :
   decide
 
 #print axioms picorv32_loaded_regfile_size
+
+/-! The census's four remaining rows are inactive default generate branches.
+Their controlling parameters are all zero in the pinned RISCV_FORMAL point. -/
+
+theorem picorv32_loaded_inactive_generate_params :
+    picorv32RISCVFormalParameters.ENABLE_FAST_MUL = 0 ∧
+    picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
+    picorv32RISCVFormalParameters.ENABLE_DIV = 0 ∧
+    picorv32RISCVFormalParameters.TWO_CYCLE_ALU = 0 := by
+  decide
+
+#print axioms picorv32_loaded_inactive_generate_params
 
 theorem picorv32_rv32m_disabled :
     picorv32RISCVFormalParameters.ENABLE_MUL = 0 ∧
