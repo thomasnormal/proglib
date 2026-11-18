@@ -76,11 +76,8 @@ def main():
 
     run(["lake", "build",
          "Examples.«system-verilog».sem2.unpacked_array_target_canonical_e.agree"])
-    expected = rows(run(["lake", "env", "lean", "--run", str(HERE / "oracle.lean")]))
-    if expected != EXPECTED:
-        raise RuntimeError(f"unexpected E rows: {expected}")
+    print("E: canonical dependency-order refusal")
     print("extractor: retained envelope regenerates byte-identically")
-    print("E: 9 rows (initial state, known 0/1 indices, x/z data and indices)")
 
     if not shutil.which("iverilog") or not shutil.which("vvp"):
         raise RuntimeError("Icarus Verilog 13.0 is required")

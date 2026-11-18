@@ -18,26 +18,8 @@ resolves its run-time index against the native one-rank `MemState` (§7.4.6,
       .blockingAssign "y" (.arrayElem "slot" [(.ident "idx")]) :: [])) => true
   | _ => false
 
-def stimulus : List SvState :=
-  [[("x", LVec.ofNat 8 0), ("idx", LVec.ofNat 1 0)],
-   [("x", LVec.ofNat 8 0xa5), ("idx", LVec.ofNat 1 1)],
-   [("x", LVec.ofNat 8 0x3c), ("idx", LVec.ofNat 1 0)],
-   [("x", LVec.lit "xxxxxxxx"), ("idx", LVec.ofNat 1 1)],
-   [("x", LVec.ofNat 8 0x5a), ("idx", LVec.lit "x")],
-   [("x", LVec.lit "zzzzzzzz"), ("idx", LVec.ofNat 1 0)],
-   [("x", LVec.ofNat 8 0x96), ("idx", LVec.lit "z")],
-   [("x", LVec.ofNat 8 0x0f), ("idx", LVec.ofNat 1 1)]]
-
-def outputs : Res (List String) := do
-  let d ← PDesign.instantiateCoreMem unpackedArrayTarget.pdesign []
-  let initial ← d.initialState
-  let initialY := SvState.showSignal (CoreMemState.view d initial) "y"
-  let rows ← runCoreMemRows d initial stimulus
-  .ok (initialY :: rows.map fun s => SvState.showSignal (CoreMemState.view d s) "y")
-
-#guard match outputs with
-  | .ok ["xxxxxxxx", "00000000", "10100101", "00111100", "xxxxxxxx",
-      "xxxxxxxx", "zzzzzzzz", "xxxxxxxx", "00001111"] => true
+#guard match PDesign.instantiateCoreMem unpackedArrayTarget.pdesign [] with
+  | .unsupported msg => msg == "Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'slot' from itself or a later reactive process; canonical E has no fixed-point scheduler"
   | _ => false
 
 end Examples.«system-verilog».sem2.unpacked_array_target_canonical_e
