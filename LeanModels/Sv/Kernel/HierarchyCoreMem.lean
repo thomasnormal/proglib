@@ -33,6 +33,7 @@ private def hExpr (pfx : String) : PExpr → PExpr
   | .cast s a => .cast s (hExpr pfx a)
   | .repl n a => .repl (hExpr pfx n) (hExpr pfx a)
   | .functionCall n xs => .functionCall n (xs.map (hExpr pfx))
+  | .aggregateMember n path => .aggregateMember (pfx ++ n) path
   | e@(.paramRef ..) | e@(.genvarRef ..) | e@(.enumRef ..)
   | e@(.int ..) | e@(.fill ..) | e@(.lit ..) | e@(.unsupported ..) => e
 
@@ -70,6 +71,7 @@ private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
   | .arrayPart n xs mode a b =>
       .arrayPart n (xs.map (hParamExpr vals)) mode (hParamExpr vals a) (hParamExpr vals b)
   | .functionCall n xs => .functionCall n (xs.map (hParamExpr vals))
+  | .aggregateMember n path => .aggregateMember n path
   | e => e
 
 private def hParamDim (vals : List (String × Int)) (d : PDim) : PDim :=

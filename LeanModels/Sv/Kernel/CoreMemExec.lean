@@ -908,6 +908,7 @@ def coreMemSignalNames : PExpr → List String
   | .ternary c a b | .partSel c a b =>
       coreMemSignalNames c ++ coreMemSignalNames a ++ coreMemSignalNames b
   | .concat xs | .functionCall _ xs => coreMemSignalNamesList xs
+  | .aggregateMember n _ => [n]
   | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _
   | .unsupported _ _ => []
 
@@ -940,6 +941,7 @@ def CoreMemDesign.assignTopoB (E : CoreMemDesign) : Bool :=
 mutual
 def coreMemPExprHasMemory : PExpr → Bool
   | .arrayElem .. | .arrayPart .. => true
+  | .aggregateMember .. => true
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
   | .sysCall _ a | .reduce _ a | .cast _ a => coreMemPExprHasMemory a
   | .binary _ a b => coreMemPExprHasMemory a || coreMemPExprHasMemory b
@@ -1232,6 +1234,7 @@ def LeanModels.Sv.PExpr.hasMemoryRead : PExpr → Bool
       LeanModels.Sv.PExpr.hasMemoryRead b
   | .partSel a b c => LeanModels.Sv.PExpr.hasMemoryRead a ||
       LeanModels.Sv.PExpr.hasMemoryRead b || LeanModels.Sv.PExpr.hasMemoryRead c
+  | .aggregateMember .. => true
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
   | .fill _ | .unsupported .. => false
 
@@ -1256,6 +1259,7 @@ def LeanModels.Sv.PExpr.hasFunctionCall : PExpr → Bool
   | .arrayElem _ indices => PExpr.hasFunctionCallList indices
   | .arrayPart _ indices _ a b => PExpr.hasFunctionCallList indices ||
       LeanModels.Sv.PExpr.hasFunctionCall a || LeanModels.Sv.PExpr.hasFunctionCall b
+  | .aggregateMember .. => false
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
   | .fill _ | .unsupported .. => false
 
@@ -1280,6 +1284,7 @@ def coreMemReadExprs : PExpr → List PExpr
   | e@(.arrayElem _ indices) => e :: coreMemReadExprsList indices
   | e@(.arrayPart _ indices _ a b) =>
       e :: (coreMemReadExprsList indices ++ coreMemReadExprs a ++ coreMemReadExprs b)
+  | e@(.aggregateMember _ _) => [e]
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
   | .sysCall _ a | .reduce _ a | .cast _ a => coreMemReadExprs a
   | .binary _ a b | .bitSel a b | .repl a b =>

@@ -364,6 +364,14 @@ partial def parsePExpr (j : Json) : Except String PExpr := do
               | m => throw s!"unknown ArraySel part mode {m.quote}"
             return .arrayPart name indices mode (← parsePExpr (← getField pj "left"))
               (← parsePExpr (← getField pj "right"))
+    | "AggregateMember" =>
+        let base ← getStrField j "base"
+        let path ← (← (← getField j "path").getArr?).toList.mapM fun sj => do
+          match getOptField sj "field", getOptField sj "index" with
+          | some fj, none => pure (some (← fj.getStr?), none)
+          | none, some ij => pure (none, some (← parsePExpr ij))
+          | _, _ => throw "aggregate member step must contain exactly one of 'field' or 'index'"
+        return .aggregateMember base path
     | "FunctionCall" =>
         return .functionCall (← getStrField j "name")
           (← (← (← getField j "args").getArr?).toList.mapM parsePExpr)
@@ -1921,6 +1929,9 @@ private def unsupMemberText : String := r#"{
 -- empty or malformed lists instead of falling through to a generic process.
 #guard match (Json.parse r#"{"kind":"AlwaysEvent","events":[{"signal":"a","edge":"any"},{"signal":"clk","edge":"posedge"},{"signal":"rst","edge":"negedge"}],"body":{"kind":"Empty"}}"# >>= parsePProcess).toOption with
   | some (.alwaysEvent [{ signal := "a", edge := .any }, { signal := "clk", edge := .posedge }, { signal := "rst", edge := .negedge }] _) => true
+  | _ => false
+#guard match (Json.parse r#"{"kind":"AggregateMember","base":"state","path":[{"field":"words"},{"index":{"kind":"Int","value":1}},{"field":"value"}]}"# >>= parsePExpr).toOption with
+  | some (.aggregateMember "state" [(some "words", none), (none, some (.int 1)), (some "value", none)]) => true
   | _ => false
 #guard match (Json.parse r#"{"kind":"AlwaysEvent","events":[],"body":{"kind":"Empty"}}"# >>= parsePProcess) with
   | .error _ => true

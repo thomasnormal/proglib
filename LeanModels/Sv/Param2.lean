@@ -105,7 +105,7 @@ dynamic indexed part-select base (`v[sel +: 4]`, lowered by `dynPartRead`)
 from a constant base that merely fails `evalInt` (such as the
 width-dependent `~K`), which stays loud on the static path. -/
 def PExpr.readsSignal : PExpr → Bool
-  | .ident _ | .arrayElem .. | .arrayPart .. => true
+  | .ident _ | .arrayElem .. | .arrayPart .. | .aggregateMember .. => true
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a | .sysCall _ a
   | .reduce _ a | .cast _ a => a.readsSignal
   | .binary _ l r | .bitSel l r | .repl l r => l.readsSignal || r.readsSignal
@@ -582,6 +582,7 @@ def selfWidth2 (env : IEnv) (elems : List (String × Nat)) : PExpr → Option Na
   | .cast _ a => selfWidth2 env elems a
   | .arrayElem n is => arraySelWidth env (.arrayElem n is)
   | .arrayPart n is mode a b => arraySelWidth env (.arrayPart n is mode a b)
+  | .aggregateMember .. => none
   | .unsupported .. => none
 
 def selfWidthSum2 (env : IEnv) (elems : List (String × Nat)) : List PExpr → Option Nat
@@ -600,6 +601,7 @@ def divOperandWidth2 (env : IEnv) (elems : List (String × Nat)) : PExpr → Opt
   | .genvarRef _ | .int _ | .sysCall .. => some 32
   | .enumRef name _ pkg => env.enumWidth name pkg
   | .functionCall .. => none
+  | .aggregateMember .. => none
   | .fill _ => none
   | .unary (.m0 .lnot) _ => some 1
   | .unary (.m0 _) operand | .unary .plus operand => divOperandWidth2 env elems operand
@@ -833,6 +835,7 @@ def substFunction (bindings : List (String × PExpr)) : PExpr → PExpr
   | .arrayElem n is => .arrayElem n (is.map (substFunction bindings))
   | .arrayPart n is mode a b => .arrayPart n (is.map (substFunction bindings)) mode
       (substFunction bindings a) (substFunction bindings b)
+  | .aggregateMember n path => .aggregateMember n path
   | .functionCall n as => .functionCall n (as.map (substFunction bindings))
   | .unsupported k t => .unsupported k t
 
@@ -904,6 +907,9 @@ def instExpr2 (env : IEnv) (elems : List (String × Nat)) (ctx : Option Nat) :
   | .functionCall name _ =>
       .unsupported "CallExpression:user-function"
         s!"source-shaped function '{name}' awaits the E function-body evaluator"
+  | .aggregateMember .. =>
+      .unsupported "MemberAccessExpression:aggregate"
+        "source-shaped aggregate member path requires the E aggregate store"
   | .int v => intLit2 ctx v
   | .fill b =>
       match ctx with

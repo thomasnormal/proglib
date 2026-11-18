@@ -326,6 +326,10 @@ inductive PExpr where
   /-- `arrayElem`'s path followed by a part select on the NEXT dimension:
   `[a:b]`, `[a +: b]`, `[a -: b]` (`PartMode`). -/
   | arrayPart (name : String) (indices : List PExpr) (mode : PartMode) (a b : PExpr)
+  /-- Source-shaped unpacked aggregate member path.  Each step is either a
+  field name or a runtime index expression.  The path is retained until the
+  aggregate E relation consumes it. -/
+  | aggregateMember (base : String) (path : List (Option String × Option PExpr))
   /-- Source-shaped automatic function call. -/
   | functionCall (name : String) (args : List PExpr)
   | unsupported (svKind : String) (text : String)
@@ -1009,7 +1013,7 @@ def PExpr.isInt (env : IEnv) : PExpr → Bool
   | .unary (.m0 .neg) a | .unary (.m0 .pos) a | .unary .plus a => a.isInt env
   | .binary op l r => op.intArith && l.isInt env && r.isInt env
   | .ternary _ t e => t.isInt env && e.isInt env
-  | .functionCall .. | _ => false
+  | .functionCall .. | .aggregateMember .. | _ => false
 
 -- The INT-class test computes on syntax (and `vals` lookups): a `simp` that
 -- unfolds `evalInt` decides it by itself.
@@ -1028,6 +1032,7 @@ def PExpr.mentionsAny (names : List String) : PExpr → Bool
   | .concat ps | .arrayElem _ ps => PExpr.mentionsAnyList names ps
   | .arrayPart _ ps _ a b =>
       PExpr.mentionsAnyList names ps || a.mentionsAny names || b.mentionsAny names
+  | .aggregateMember .. => false
   | .functionCall _ args => PExpr.mentionsAnyList names args
   | .lit _ | .ident _ | .genvarRef _ | .enumRef .. | .int _ | .fill _
   | .unsupported .. => false
@@ -1073,7 +1078,7 @@ def PExpr.readsSignalConst : PExpr → Bool
       b.readsSignalConst || m.readsSignalConst || l.readsSignalConst
   | .concat ps => PExpr.readsSignalConstList ps
   | .lit _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
-  | .fill _ | .functionCall .. | .unsupported .. => false
+  | .fill _ | .functionCall .. | .aggregateMember .. | .unsupported .. => false
 
 def PExpr.readsSignalConstList : List PExpr → Bool
   | [] => false
@@ -1085,6 +1090,7 @@ def PExpr.signalRoot? : PExpr → Option String
   | .ident n => some n
   | .bitSel b _ | .partSel b _ _ => b.signalRoot?
   | .arrayElem n _ | .arrayPart n .. => some n
+  | .aggregateMember n _ => some n
   | _ => none
 
 /-- An order comparison spelled signed by the frontend (`s<` …). -/
@@ -1343,6 +1349,7 @@ def ctype (env : IEnv) : PExpr → Except String (Nat × Bool)
       let lv ← evalAt env (← ctype env l) l
       if lv ≤ mv then .ok ((mv - lv).toNat + 1, false) else .error "bad part-select bounds"
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
+  | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
   | .fill _ => .error "unbased-unsized literal in a constant context (no context width)"
   | .concat ps => do
       let tys ← ctypeList env ps
@@ -1560,6 +1567,7 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
           (Int.ofNat (((bv.emod ((2 : Int) ^ wb)).toNat >>> lv.toNat) % 2 ^ fw)))
   | .functionCall n _ => .error s!"function '{n}' in a constant context"
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
+  | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
   | .fill _ => .error "unbased-unsized literal in a constant context (no context width)"
   | .concat ps => do
       let parts ← evalAtList env ps
@@ -1951,6 +1959,7 @@ def evalInt (env : IEnv) : PExpr → Except String Int
   | .reduce _ _ => .error "reduction in a constant context (width-dependent)"
   | .cast s a => if s && a.isInt env then evalInt env a else evalSized env (.cast s a)
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
+  | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
   | .unsupported k _ => .error s!"unsupported node '{k}' in a constant context"
 
 /-- Exact-mode proof entry point.  INT-class trees whose constants are in
@@ -2239,7 +2248,8 @@ def selfWidth (env : IEnv) : PExpr → Option Nat
   | .functionCall .. => none
   -- Semantic-tier nodes: the M0 layer does not know element widths
   -- (`Param2.lean`'s `selfWidth2` does); `none` = unknowable here.
-  | .bitSel .. | .partSel .. | .repl .. | .arrayElem .. | .arrayPart .. => none
+  | .bitSel .. | .partSel .. | .repl .. | .arrayElem .. | .arrayPart ..
+  | .aggregateMember .. => none
   | .reduce .. => some 1
   | .cast _ a => selfWidth env a
   | .unsupported .. => none
@@ -2279,6 +2289,7 @@ def divOperandWidth (env : IEnv) : PExpr → Option Nat
   | .reduce .. => some 1
   | .cast _ operand => divOperandWidth env operand
   | .bitSel .. | .partSel .. | .repl .. | .arrayElem .. | .arrayPart ..
+  | .aggregateMember ..
   | .functionCall ..
   | .unsupported .. => none
 
@@ -2436,6 +2447,9 @@ def instExpr (env : IEnv) (ctx : Option Nat) : PExpr → Expr
   | .cast .. => .unsupported "T2:Cast" "cast outside the M0 tier"
   | .arrayElem .. | .arrayPart .. =>
       .unsupported "T2:ArraySel" "packed-array select path outside the M0 tier"
+  | .aggregateMember .. =>
+      .unsupported "MemberAccessExpression:aggregate"
+        "source-shaped aggregate member path requires the E aggregate store"
   | .functionCall n _ => .unsupported "CallExpression:user-function" s!"function '{n}' outside the M0 tier"
   | .unsupported k t => .unsupported k t
 

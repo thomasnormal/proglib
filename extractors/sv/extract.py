@@ -8238,6 +8238,43 @@ def _convert_selected_leaf(sm, expression, kind):
     return None
 
 
+def _convert_unpacked_aggregate_member(sm, expression):
+    """Retain Slang's source-shaped unpacked aggregate path.
+
+    The path is walked on parser nodes from the leaf back to the declared
+    storage symbol, then emitted in source order.  Fields and element
+    selectors remain separate nodes, so the E aggregate relation can apply
+    IEEE member/index rules without recovering names from a flattened string.
+    """
+    try:
+        if not _has_unpacked_aggregate_path(expression):
+            return None
+        node = expression
+        steps = []
+        while type(node).__name__ in ("MemberAccessExpression",
+                                      "ElementSelectExpression"):
+            if type(node).__name__ == "MemberAccessExpression":
+                steps.append({"field": node.member.name})
+                node = node.value
+            else:
+                index = _convert_expr(sm, node.selector)
+                if index is None or index.get("kind") == "Unsupported":
+                    return None
+                steps.append({"index": index})
+                node = node.value
+        if not steps or not _storage_expression(node):
+            return None
+        symbol = getattr(node, "symbol", None)
+        base = _storage_name(symbol)
+        if not base:
+            return None
+        steps.reverse()
+        return {"kind": "AggregateMember", "span": node_span(sm, expression),
+                "base": base, "path": steps, "width": _safe_width(expression)}
+    except Exception:
+        return None
+
+
 def _convert_expr(sm, e):
     if e is None:
         return None
@@ -8306,6 +8343,9 @@ def _convert_expr(sm, e):
             return _convert_packed_pattern(sm, e)
         return unsupported(sm, e, "AssignmentPattern:default-point")
     if cname == "MemberAccessExpression":
+        retained = _convert_unpacked_aggregate_member(sm, e)
+        if retained is not None:
+            return retained
         if _SYM is not None and _has_unpacked_aggregate_path(e):
             return unsupported(sm, e, "MemberAccessExpression:aggregate",
                                "source-shaped aggregate member path is retained until the E aggregate relation")
@@ -8360,6 +8400,9 @@ def _convert_expr(sm, e):
     if _SYM is not None and cname in (
         "ElementSelectExpression", "RangeSelectExpression", "ReplicationExpression"
     ):
+        retained = _convert_unpacked_aggregate_member(sm, e)
+        if retained is not None:
+            return retained
         if cname != "ReplicationExpression" and _has_unpacked_aggregate_path(e):
             return unsupported(sm, e, "MemberAccessExpression:aggregate",
                                "source-shaped aggregate member path is retained until the E aggregate relation")

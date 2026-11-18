@@ -122,19 +122,39 @@ class SymbolicUnpackedPorts(unittest.TestCase):
         self.assertEqual(aggregate["fields"][0]["name"], "words")
         self.assertEqual(aggregate["fields"][0]["type"]["kind"], "array")
         self.assertEqual(aggregate["fields"][0]["type"]["elem"]["kind"], "struct")
-        members = find(module, lambda n: n.get("sv_kind") == "MemberAccessExpression:aggregate")
-        self.assertTrue(members)
+        members = find(module, lambda n: n.get("kind") == "AggregateMember")
+        self.assertEqual(len(members), 1)
+        self.assertEqual(members[-1]["base"], "source")
+        path = members[-1]["path"]
+        self.assertEqual(path[0], {"field": "words"})
+        self.assertEqual(path[1]["index"]["kind"], "Int")
+        self.assertEqual(path[1]["index"]["value"], 0)
+        self.assertEqual(path[2], {"field": "value"})
 
-    def test_unpacked_struct_member_is_not_flattened(self):
+    def test_unpacked_struct_member_retains_source_shaped_path(self):
         module = self.extract(
             "typedef struct { logic [3:0] value; } word_t;"
             " module top(input word_t source, output logic [3:0] y);"
             " always_comb y = source.value; endmodule")
+        members = find(module, lambda n: n.get("kind") == "AggregateMember")
+        self.assertEqual(len(members), 1)
+        self.assertEqual(members[0]["base"], "source")
+        self.assertEqual(members[0]["path"], [{"field": "value"}])
+        self.assertFalse(find(module, lambda n: n.get("kind") == "Ident"
+                              and n.get("name") == "source.value"))
+
+    def test_unsupported_aggregate_path_remains_loud(self):
+        module = self.extract(
+            "typedef struct { logic [3:0] value; } word_t;"
+            " typedef struct { word_t words [0:1]; } bundle_t;"
+            " module top(input bundle_t source, output logic [3:0] y);"
+            " function automatic int pick(input int x); pick = x; endfunction"
+            " always_comb y = source.words[pick(0)].value; endmodule")
         values = find(module, lambda n: n.get("kind") == "Unsupported")
         self.assertTrue(any(n.get("sv_kind") == "MemberAccessExpression:aggregate"
                             for n in values))
-        self.assertFalse(any(n.get("kind") == "Ident" and n.get("name") == "source.value"
-                             for n in values))
+        self.assertFalse(find(module, lambda n: n.get("kind") == "Ident"
+                              and n.get("name") == "source.words[pick(0)].value"))
 
     def test_fixed_output_net_array_with_one_driver_per_cell_flattens(self):
         module = self.extract(

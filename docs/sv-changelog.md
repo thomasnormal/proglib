@@ -7030,3 +7030,9 @@ the defined sampling and NBA rules.
   a root read-back theorem, a noninterference theorem for other cells, and a
   type-preservation theorem.  Scalar E expression admission remains pending
   the parser-native member-path node.
+
+- Retained parser-native unpacked aggregate member paths as a dedicated
+  `PExpr.aggregateMember` node. The path keeps field and index steps
+  source-shaped through ingestion, parameter substitution, hierarchy adapters,
+  range guards, and memory walkers. Value execution continues to refuse this
+  node until it is connected to the aggregate store.
