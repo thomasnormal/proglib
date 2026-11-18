@@ -2017,8 +2017,13 @@ ADDI and upper-immediate invariants into the unified RV32I cycle obligation.
 into the all-prefix trace result.  These wrappers consume existing generic
 theorems and do not assert that the current RTL has an admitted E invariant.
 The R1 ADDI package also proves envelope-level prerequisites for that consumer.
-It pins the 26-parameter configuration, the RVFI declaration prefix, every
-decoder field, and all 21 decoder widths directly from the loaded envelope.
+It pins the 26-parameter configuration, the defaults-resolved parameter vector,
+the RVFI declaration prefix, every decoder field, and all 21 decoder widths
+directly from the loaded envelope.  `R2.lean` also records that the loaded
+source has exactly one one-rank unpacked declaration, `cpuregs`, matching the
+first scalar-E declaration wall.  The direct instantiation reports
+`decl 'cpuregs': unpacked array storage outside E (UnpackedDecl:memory)` before
+any cycle executes.
 
 ## 2026-11-18 W5 kernel-cost measurement
 
