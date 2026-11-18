@@ -83,6 +83,15 @@ private def rvalue (j : Json) : Except String Rvalue := do
       | ["BitAnd", left, right] => pure (.binaryBitAnd (← operand left) (← operand right))
       | ["Div", left, right] => pure (.binaryDiv (← operand left) (← operand right))
       | _ => pure (.unsupported "BinaryOp")
+  | "Aggregate" => do
+      let values ← array value
+      match values with
+      | [tag, operands] =>
+          let args ← array operands
+          match tag, args with
+          | .obj _, [] => pure .zstAggregate
+          | _, _ => pure (.unsupported "Aggregate")
+      | _ => pure (.unsupported "Aggregate")
   | other => pure (.unsupported other)
 
 private def statement (j : Json) : Except String Statement := do
@@ -139,6 +148,18 @@ private def terminator (j : Json) : Except String Terminator := do
             | _ => (variant unwind).map Prod.fst
           if unwindName == "Continue" then pure (.call func args destination target)
           else pure (.unsupported "Call with cleanup unwind")
+      | "Drop" => do
+          let place ← field value "place" >>= place
+          let target ← field value "target" >>= nat
+          let unwind ← field value "unwind"
+          let cleanup ←
+            match unwind with
+            | .obj _ => do
+                let (name, payload) ← variant unwind
+                if name == "Cleanup" then nat payload else pure target
+            | _ => pure target
+          pure (.drop place target cleanup)
+      | "Resume" => pure .resume
       | "Unreachable" => pure .unreachable
       | other => pure (.unsupported other)
   | .str other => pure (.unsupported other)

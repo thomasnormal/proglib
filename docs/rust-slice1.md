@@ -50,10 +50,9 @@ unsigned integers.  Zero-sized constants decode to zero.  This deliberately
 small constant subset is the one exercised by these rows.
 
 The semantics refuses projected places, `Copy` and `Move` operands, unsupported
-rvalues and statements, unsupported terminators, and bodies that are missing,
-have more than one block, or do not end in `Return`.  Refusal is represented by
-the `none` result of the executable fold.  No unsupported node is lowered to a
-different construct.
+rvalues and statements, unsupported terminators, and bodies that are missing
+or have an invalid target.  Refusal is represented by the `none` result of the
+executable fold.  No unsupported node is lowered to a different construct.
 
 `Step` is the definition of one statement transition.  `InSteps` composes those
 transitions, and `statementsRun_in_steps`, `bodyRun_in_steps`, and
@@ -69,3 +68,11 @@ destination, records a call event, and continues at the target block.  Miri
 returned `ok` with status 0 under both models.  The measured two-model command
 completed in 10.023 s on a cold invocation.  This local fixture does not change
 the Stage 0 corpus counter.
+
+The cleanup family adds `Drop` with a normal target and a recorded cleanup
+target, plus `Resume` as a named refusal.  `Examples/rust/drop/main.rs` uses a
+zero-sized user type with a `Drop` implementation, so its extracted entry body
+executes `Drop` before the normal return.  The runner clears the dropped local,
+emits a drop event, and follows the normal target.  Miri returned `ok`, status
+0 under both borrow models, in 1.257 s.  Cleanup and resume paths remain
+refusals until unwind terminal outcomes are modeled.

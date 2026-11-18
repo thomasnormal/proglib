@@ -23,6 +23,7 @@ inductive Event where
   | assign (localId : Nat) (value : Int)
   | placeMention (localId : Nat)
   | call (callee : String)
+  | drop (localId : Nat)
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
 structure Trace where
@@ -71,6 +72,7 @@ def rvalueValue (s : State) : Rvalue → Option Int
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (leftValue / rightValue)
+  | .zstAggregate => some 0
   | .unsupported _ => none
 
 def statementStep (s : State) (statement : Statement) : Option (State × Event) :=
@@ -90,6 +92,7 @@ def statementStep (s : State) (statement : Statement) : Option (State × Event) 
 inductive TermResult where
   | ret
   | jump (target : Nat)
+  | drop (place : Place) (target cleanup : Nat)
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
 def terminatorStep (s : State) : Terminator → Option TermResult
@@ -101,7 +104,14 @@ def terminatorStep (s : State) : Terminator → Option TermResult
   | .assert cond expected target => do
       let value ← operandValue s cond
       if value == (if expected then 1 else 0) then some (.jump target) else none
-  | .call _ _ _ _ | .unreachable | .unsupported _ => none
+  | .drop place target cleanup =>
+      if place.projection.isEmpty then some (.drop place target cleanup) else none
+  | .call _ _ _ _ | .resume | .unreachable | .unsupported _ => none
+
+def dropState (s : State) (place : Place) : Option (State × Event) :=
+  if place.projection.isEmpty then
+    some (setSlot s place.localId .uninit, .drop place.localId)
+  else none
 
 theorem terminatorStep_in_relation {s : State} {terminator : Terminator}
     {result : TermResult} (h : terminatorStep s terminator = some result) :
@@ -133,7 +143,11 @@ def CfgInSteps : Nat → Body → Nat → State → Trace → Prop
         (match transition with
         | .ret => trace = first
         | .jump next => ∃ suffix, CfgInSteps fuel body next first.state suffix ∧
-            trace = { state := suffix.state, events := first.events ++ suffix.events })
+            trace = { state := suffix.state, events := first.events ++ suffix.events }
+        | .drop place target cleanup => ∃ dropState' event suffix,
+            dropState first.state place = some (dropState', event) ∧
+            CfgInSteps fuel body target dropState' suffix ∧
+            trace = { state := suffix.state, events := first.events ++ event :: suffix.events })
 
 def cfgRun : Nat → Body → Nat → State → Option Trace
   | 0, _, _, _ => none
@@ -146,6 +160,10 @@ def cfgRun : Nat → Body → Nat → State → Option Trace
       | .jump next =>
           let suffix ← cfgRun fuel body next firstTrace.state
           pure { state := suffix.state, events := firstTrace.events ++ suffix.events }
+      | .drop place target cleanup => do
+          let (dropState', event) ← dropState firstTrace.state place
+          let suffix ← cfgRun fuel body target dropState'
+          pure { state := suffix.state, events := firstTrace.events ++ event :: suffix.events }
 
 def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (CallEdge × Body) := do
   let edge ← program.calls.find? (fun edge => edge.caller == caller.instanceId ∧ edge.block == block)
@@ -179,6 +197,10 @@ def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
           | .jump next =>
               let suffix ← cfgRunProgram fuel program body next firstTrace.state
               pure { state := suffix.state, events := firstTrace.events ++ suffix.events }
+          | .drop place target cleanup => do
+              let (dropState', event) ← dropState firstTrace.state place
+              let suffix ← cfgRunProgram fuel program body target dropState'
+              pure { state := suffix.state, events := firstTrace.events ++ event :: suffix.events }
 
 def resolvedCallRun (program : Envelope) (caller : Body) (block : Nat) (state : State) :
     Option (State × Trace × String) := do
@@ -262,6 +284,22 @@ theorem cfgRun_in_steps {fuel : Nat} {body : Body} {blockId : Nat}
                           simp_all [CfgInSteps, hb, hs, ht]
                           have hrel := ih (blockId := next) (state := firstTrace.state) hr
                           exact ⟨suffixTrace, hrel, by simp_all⟩
+                  | drop place target cleanup =>
+                      generalize hd : dropState firstTrace.state place = dropped at h
+                      cases dropped with
+                      | none => simp_all
+                      | some pair =>
+                          rcases pair with ⟨dropState', event⟩
+                          generalize hr : cfgRun fuel body target dropState' = suffix at h
+                          cases suffix with
+                          | none => simp_all
+                          | some suffixTrace =>
+                              have hrel := ih (blockId := target) (state := dropState') hr
+                              simp only [CfgInSteps]
+                              refine ⟨block, firstTrace, .drop place target cleanup, hb, hs, ht, ?_⟩
+                              refine ⟨dropState', event, suffixTrace, hd, hrel, ?_⟩
+                              simp [hs, ht, hd, hr] at h
+                              exact h.symm
 
 theorem bodyRun_in_steps {body : Body} {trace : Trace}
     (h : bodyRun body = some trace) : BodyInSteps body trace := by

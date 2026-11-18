@@ -23,6 +23,7 @@ inductive Rvalue where
   | binaryEq (left right : Operand)
   | binaryBitAnd (left right : Operand)
   | binaryDiv (left right : Operand)
+  | zstAggregate
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
@@ -40,6 +41,8 @@ inductive Terminator where
   | switchInt (discr : Operand) (branches : List (Int × Nat)) (otherwise : Nat)
   | assert (cond : Operand) (expected : Bool) (target : Nat)
   | call (func : Operand) (args : List Operand) (destination : Place) (target : Nat)
+  | drop (place : Place) (target cleanup : Nat)
+  | resume
   | unreachable
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
