@@ -762,6 +762,30 @@ def decodeInt (t : IntTy) (bs : List CByte) : Option Int :=
   | none => none
   | some xs => some (t.wrap (natOfBytes xs))
 
+theorem decodeInt_indet (t : IntTy) (bs : List CByte)
+    (h : CByte.indet ∈ bs) : decodeInt t bs = none := by
+  let step := fun (b : CByte) (acc : Option (List UInt8)) =>
+    match b, acc with
+    | .conc x, some xs => some (x :: xs)
+    | _, _ => none
+  have hfold : bs.foldr step (some []) = none := by
+    induction bs with
+    | nil => simp at h
+    | cons b bs ih =>
+      simp only [List.mem_cons] at h
+      simp only [List.foldr]
+      cases b with
+      | conc x =>
+          simp only [step]
+          cases h with
+          | inl hneq => cases hneq
+          | inr htail => rw [ih htail]; simp [step]
+      | ptrByte p k => simp [step]
+      | ptrIntByte p k => simp [step]
+      | funByte id => simp [step]
+      | indet => simp [step]
+  simp [decodeInt, step, hfold]
+
 def encodeFloat32 (f : Float32.Model) : List CByte :=
   (natToBytes 4 (f.toBits.toNat)).map CByte.conc
 
@@ -2485,6 +2509,18 @@ theorem reallocAt_null_loadBytes (m : Mem) (size address n : Nat)
   change (.ok (List.take n (List.drop 0 (List.replicate size CByte.indet))) : MRes (List CByte)) =
     .ok (List.replicate n CByte.indet)
   simp [hn]
+
+theorem reallocAt_null_loadInt (m : Mem) (size address : Nat) (t : IntTy)
+    (hsize : size ≠ 0)
+    (hwidth : max 1 (t.bits / 8) ≤ size) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.loadInt r.2 t) =
+      .ok (.error (.memUB (.indetAllocated m.objs.length 0))) := by
+  rw [reallocAt_null m size address hsize]
+  have hwidth' : ¬ size < max 1 (t.bits / 8) := by omega
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
+    loadInt, loadBytes, resolve, get?, Except.map, hwidth',
+    decodeInt_indet]
 
 theorem reallocAt_null_storeBytes (m : Mem) (size address : Nat)
     (bs : List CByte) (hsize : size ≠ 0) :
