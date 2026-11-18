@@ -27780,6 +27780,21 @@ def convert_procedural_block(sm, m, module_level=False):
             return d
     if type(timing).__name__ != "SignalEventControl":
         return unsupported(sm, m, "TimedStatement:" + type(timing).__name__)
+    # A bare signal event control (`always_ff @(sig)`) is an any-change event
+    # under IEEE 1800-2023 §9.4.2.  Keep it as the parser-native retained
+    # event process so canonical E can apply its four-state change rule.
+    if (_SYM is not None and pk == ProceduralBlockKind.AlwaysFF
+            and timing.edge == EdgeKind.None_
+            and timing.iffCondition is None):
+        signal = convert_expr(sm, timing.expr)
+        if signal.get("kind") == "Ident" and signal.get("width") == 1:
+            return {
+                "kind": "AlwaysEvent",
+                "span": span,
+                "events": [{"signal": signal["name"], "edge": "any"}],
+                "body": convert_stmt(sm, body.stmt),
+            }
+        return unsupported(sm, m, "SignalEventControl:clock")
     if timing.edge not in (EdgeKind.PosEdge, EdgeKind.NegEdge):
         return unsupported(
             sm, m, "SignalEventControl:" + str(timing.edge).split(".")[-1]
