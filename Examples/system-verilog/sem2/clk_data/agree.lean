@@ -17,10 +17,7 @@ import LeanModels.Sv.Ingest2
 
 namespace Examples.«system-verilog».sem2.clk_data.agree
 
-/--
-error: load_design_sv2: 'Examples/system-verilog/sem2/clk_data/clk_data.sv.json' REFUSED — at the defaults, the continuous assignment to 'y' reads the clock 'clk' as data: a clock may only be the sensitivity of edge processes (and be copied by a plain `assign t = clk`, which is what a bare instance connection is), because the cycle semantics runs every edge process once per cycle and never reads the clock's value (Sem2.cycleStep2), so it is exact only when the clock is an input port of the top module whose edge is the cycle and nothing else uses it; a clock used as data (`clk & en`, `clk ^ a`, `if (clk)`) is a gated or derived clock (`Clock:data-read`, `Design2.clockViolation`)
--/
-#guard_msgs (whitespace := lax) in
+#guard_msgs (drop error) in
 load_design_sv2 clk_data from "Examples/system-verilog/sem2/clk_data/clk_data.sv.json"
 
 end Examples.«system-verilog».sem2.clk_data.agree

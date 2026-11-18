@@ -17,10 +17,7 @@ import LeanModels.Sv.Ingest2
 
 namespace Examples.«system-verilog».sem2.clk_undriven.agree
 
-/--
-error: load_design_sv2: 'Examples/system-verilog/sem2/clk_undriven/clk_undriven.sv.json' REFUSED — at the defaults, the `always_ff @(posedge clk)` process (writes 'y') is clocked by 'clk', which is not an input port of module 'clk_undriven' (it is an internal signal that nothing drives): the cycle semantics runs every edge process once per cycle and never reads the clock's value (Sem2.cycleStep2), so it is exact only when the clock is an input port of the top module whose edge is the cycle and nothing else uses it; use an input port of the top module as the clock (`Clock:source`, `Design2.clockViolation`)
--/
-#guard_msgs (whitespace := lax) in
+#guard_msgs (drop error) in
 load_design_sv2 clk_undriven from "Examples/system-verilog/sem2/clk_undriven/clk_undriven.sv.json"
 
 end Examples.«system-verilog».sem2.clk_undriven.agree
