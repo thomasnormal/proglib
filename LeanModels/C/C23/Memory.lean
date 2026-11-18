@@ -1638,6 +1638,15 @@ theorem allocAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
   exact resolve_address_irrel (m.allocZeroed dur size ty).1
     (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₂ size) n address₁
 
+theorem allocZeroedAt_loadBytes_placement_irrel (m : Mem) (dur : Duration)
+    (size : Nat) (ty : Option CType) (address₁ address₂ n : Nat) :
+    (m.allocZeroedAt dur size ty address₁).1.loadBytes
+        (m.allocZeroedAt dur size ty address₁).2 n =
+      (m.allocZeroedAt dur size ty address₂).1.loadBytes
+        (m.allocZeroedAt dur size ty address₂).2 n := by
+  simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt, loadBytes,
+    resolve, get?, resolve_address_irrel]
+
 theorem allocZeroedAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
     (size : Nat) (ty : Option CType) (address₁ address₂ : Nat)
     (bs : List CByte) :
