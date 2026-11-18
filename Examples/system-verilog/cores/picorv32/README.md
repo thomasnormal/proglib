@@ -1683,6 +1683,8 @@ already-pinned one-rank unpacked `cpuregs` storage, while the continuous-driver
 * **R0 — ISA:** the executable RV32I model and byte-memory lemmas compile;
   official Sail refinement remains open.  The last recorded differential run
   passed 257 cases, but this host has no pinned Sail binary for a new comparison.
+  The current no-build harness coverage check covers all 57/57 decoder rows
+  without claiming a new Sail oracle result.
 * **R1 — observation:** the generic RVFI observation/normalization contract and
   a finite four-row PicoRV32 observation-to-ISA bridge are proved.  The E
   safety bridge is conditional on a loaded-core invariant.
