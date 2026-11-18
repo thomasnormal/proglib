@@ -125,11 +125,24 @@ def bumpNbaSeq (s : SlotState) (p : Nat) : SlotState :=
   let rest := s.nbaNext.filter (fun x => x.1 != p)
   { s with nbaNext := rest ++ [(p, next)] }
 
+def activeProcesses : List Active → List Nat
+  | [] => []
+  | Active.eval p _ :: rest => p :: activeProcesses rest
+  | Active.update _ :: rest => activeProcesses rest
+
+def dropProcesses (ps : List Nat) : List Sensitivity → List Sensitivity
+  | [] => []
+  | x :: rest =>
+      if ps.contains x.process then dropProcesses ps rest
+      else x :: dropProcesses ps rest
+
 def applyUpdate (s : SlotState) (u : Update) : SlotState :=
   let old := s.store
   let now := SvState.set old u.target u.value
   let (kept, wakes) := wakeSens old now s.sens
-  { s with store := now, sens := kept, active := s.active ++ wakes }
+  let woken := wakes.foldl (fun acc a => if acc.contains a then acc else a :: acc) []
+  let remaining := dropProcesses (activeProcesses woken) kept
+  { s with store := now, sens := remaining, active := s.active ++ woken }
 
 def evalAllowed (d : SchedulerDesign) (s : SlotState) (p : Nat) : Bool :=
   p ∈ d.startupEdges ||
@@ -501,6 +514,11 @@ private def wakeStart : SlotState :=
   { store := [("v", LVec.ofNat 2 0)]
     sens := [{ process := 4, target := "v", wait := .level, resume := 9 }] }
 
+private def wakeTwoStart : SlotState :=
+  { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)]
+    sens := [{ process := 4, target := "a", wait := .level, resume := 0 },
+      { process := 4, target := "b", wait := .level, resume := 0 }] }
+
 private def wakeOnce : SlotState :=
   applyUpdate wakeStart { owner := none, seq := none, target := "v", value := LVec.ofNat 2 1 }
 
@@ -508,6 +526,10 @@ private def wakeOnce : SlotState :=
 #guard wakeOnce.active == [.eval 4 9]
 #guard (applyUpdate wakeOnce { owner := none, seq := none, target := "v", value := LVec.ofNat 2 0 }).active == [.eval 4 9]
 #guard sensitivityMet { process := 0, target := "v", wait := .level } [("v", LVec.ofNat 2 0)] [("v", LVec.ofNat 2 2)]
+#guard (applyUpdate wakeTwoStart
+  { owner := none, seq := none, target := "a", value := LVec.ofNat 1 1 }).sens == []
+#guard (applyUpdate wakeTwoStart
+  { owner := none, seq := none, target := "a", value := LVec.ofNat 1 1 }).active == [.eval 4 0]
 
 private def readAfterWrite : SchedulerDesign :=
   { eval := fun _ resume s =>
