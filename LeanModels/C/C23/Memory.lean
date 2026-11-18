@@ -2683,6 +2683,15 @@ theorem reallocAt_null_storeFloat32 (m : Mem) (size address : Nat)
   rw [reallocAt_null m size address hsize]
   rfl
 
+theorem reallocAt_null_storeFloat32_full (m : Mem) (size address : Nat)
+    (f : Float32.Model) (hsize : size ≠ 0) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.storeFloat32 r.2 f) =
+      .ok ((m.mallocAt size address).1.storeFloat32
+        (m.mallocAt size address).2 f) := by
+  rw [reallocAt_null m size address hsize]
+  rfl
+
 theorem reallocAt_null_storeFloat64 (m : Mem) (size address : Nat)
     (f : Float.Model) (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
