@@ -30,6 +30,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/function_conditional.py",
+    "envelope": "harness/scripts/function_conditional.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "unsupported"

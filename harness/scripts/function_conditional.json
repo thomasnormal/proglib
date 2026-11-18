@@ -1,0 +1,162 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/function_conditional.py",
+  "source_sha256": "d4144136bb8c65d8e19b3de8e459add1a7a70ea42484f9002f3ce98e27ac0793",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 66
+        },
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 66
+          },
+          "value": {
+            "type": "str",
+            "value": "Machine scopes row: a lazy conditional in a function return."
+          }
+        }
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 24
+        },
+        "name": "select",
+        "args": [
+          {
+            "arg": "x",
+            "span": {
+              "lineno": 3,
+              "col_offset": 11,
+              "end_lineno": 3,
+              "end_col_offset": 12
+            }
+          }
+        ],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 24
+            },
+            "value": {
+              "kind": "IfExp",
+              "span": {
+                "lineno": 4,
+                "col_offset": 11,
+                "end_lineno": 4,
+                "end_col_offset": 24
+              },
+              "test": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 16,
+                  "end_lineno": 4,
+                  "end_col_offset": 17
+                },
+                "id": "x"
+              },
+              "body": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 11,
+                  "end_lineno": 4,
+                  "end_col_offset": 12
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "1"
+                }
+              },
+              "orelse": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 23,
+                  "end_lineno": 4,
+                  "end_col_offset": 24
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "2"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 9
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 6,
+            "col_offset": 0,
+            "end_lineno": 6,
+            "end_col_offset": 9
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 6,
+              "col_offset": 0,
+              "end_lineno": 6,
+              "end_col_offset": 6
+            },
+            "id": "select"
+          },
+          "args": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 6,
+                "col_offset": 7,
+                "end_lineno": 6,
+                "end_col_offset": 8
+              },
+              "value": {
+                "type": "int",
+                "repr": "0"
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

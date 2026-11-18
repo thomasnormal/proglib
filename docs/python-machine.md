@@ -175,6 +175,7 @@ machine in one batch. `harness/scripts/hello.py` and
 `harness/scripts/function_print.py` checks a direct-return call inside
 `print`, and `harness/scripts/function_branch.py` checks branch selection in a
 function body, and `harness/scripts/function_local.py` checks a local
-assignment before return, while
+assignment before return. `harness/scripts/function_conditional.py` checks a
+lazy conditional in a function return, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is six matches, one refusal, and zero divergence.
+current result is seven matches, one refusal, and zero divergence.
