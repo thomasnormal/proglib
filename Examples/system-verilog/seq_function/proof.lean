@@ -6,9 +6,9 @@ open LeanModels.Sv
 
 load_design_sv2 functionEval from "Examples/system-verilog/seq_function/function_call_eval.sv.json"
 
-#guard !functionEval.sem.hasUnsupported
-#guard functionEval.sem.processes.toList.any fun p => match p with
-  | .assign (.ident "y") (.binary .add (.ident "a") (.lit v)) => v == .ofNat 4 1
+#guard functionEval.sem.hasUnsupported
+#guard match functionEval.sem.processes.toList with
+  | [.assign (.ident "y") (.unsupported "CallExpression:user-function" _)] => true
   | _ => false
 
 end Examples.«system-verilog».seq_function.proof
