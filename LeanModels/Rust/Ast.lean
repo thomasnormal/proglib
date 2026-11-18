@@ -36,6 +36,7 @@ inductive Rvalue where
   | use (operand : Operand)
   | binaryEq (left right : Operand)
   | binaryNe (left right : Operand)
+  | binaryLe (left right : Operand)
   | binaryBitAnd (left right : Operand)
   | binaryDiv (left right : Operand)
   | binaryRem (left right : Operand)
