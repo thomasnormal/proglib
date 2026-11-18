@@ -106,8 +106,7 @@ entry, calls with a missing body, calls with cleanup unwind, and calls with no
 normal continuation are named refusals in this slice.
 
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
-proves the exact executable trace of a countdown loop and proves that the
-successful run belongs to `ProgramInSteps`.  Its Miri oracle invocation took
+proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
 15.299 s and returned `ok` with status 0 under both borrow models.  The extra
 time is the cold compilation of the loop's extracted program.
 

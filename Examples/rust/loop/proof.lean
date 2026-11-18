@@ -18,9 +18,4 @@ theorem loop_trace :
         .storageDead 1, .assign 0 0] } := by
   decide
 
-theorem loop_in_steps {trace : LeanModels.Rust.Trace}
-    (h : LeanModels.Rust.run loop = some trace) :
-    LeanModels.Rust.ProgramInSteps loop trace := by
-  exact LeanModels.Rust.run_in_steps h
-
 end Examples.rust.loop

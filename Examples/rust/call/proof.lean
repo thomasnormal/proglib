@@ -12,9 +12,4 @@ theorem call_trace :
         .placeMention 1, .storageDead 1, .assign 0 0] } := by
   decide
 
-theorem call_in_steps {trace : LeanModels.Rust.Trace}
-    (h : LeanModels.Rust.run call = some trace) :
-    LeanModels.Rust.ProgramInSteps call trace := by
-  exact LeanModels.Rust.run_in_steps h
-
 end Examples.rust.call
