@@ -1051,11 +1051,14 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
 def runB1 : Nat → RConfig → List RLabel × RConfig
   | 0, config => ([], config)
   | fuel + 1, config =>
-      match resolveB1 config with
-      | some (label, next) =>
+      match config.status, resolveB1 config with
+      | .finished _, _ => ([], config)
+      | .running, some (label, next) =>
           let result := runB1 fuel next
           (label :: result.1, result.2)
-      | none => ([], config)
+      | .running, none =>
+          let stuck := config.finish (.refuse "machine stuck")
+          ([.event (.refuse "machine stuck")], stuck)
 
 theorem resolveChoice_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : RConfig)
     (h : resolveChoice impl config = some (label, next)) :
@@ -1225,7 +1228,7 @@ private def b1Module : RModule :=
       .expr (.name "y" testSpan) testSpan] }
 
 private def b1RefusalModule : RModule :=
-  { body := #[.expr (.unaryOp .not (.constant (.int 1) testSpan) testSpan) testSpan] }
+  { body := #[.unsupported "Unsupported" "unsupported node" testSpan] }
 
 private def bResourceConfig : RConfig :=
   let initial := RConfig.initial b1Module
@@ -1233,6 +1236,9 @@ private def bResourceConfig : RConfig :=
     { control := .resourceChoice .framePush (.statements [])
       locals := [], globals := [] }
   { initial with frames := [frame] }
+
+private def bStuckConfig : RConfig :=
+  { RConfig.initial b1Module with frames := [] }
 
 private def bFunction : RFunction :=
   { name := "identity", params := #[], body := #[.ret none testSpan], globals := "__main__" }
@@ -1395,7 +1401,10 @@ example :
 
 
 #guard (runB1 8 (RConfig.initial b1RefusalModule)).2.status ==
-  .finished (.return .none)
+  .finished (.refuse "unsupported node")
+
+#guard (runB1 1 bStuckConfig).2.status ==
+  .finished (.refuse "machine stuck")
 
 example : (runB1 32 (RConfig.initial b1Module)).2.status =
     .finished (.return .none) := by
