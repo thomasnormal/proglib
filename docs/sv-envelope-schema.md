@@ -461,9 +461,11 @@ The shared E aggregate relation is defined by
 `LeanModels.Sv.Kernel.Aggregate`.  `AggType` preserves scalar, named-field,
 and fixed-indexed-array shape, while `AggPath` carries member and index steps
 directly.  `AggValue.read?` and `AggValue.write?` walk that source-shaped value
-and retain the complete aggregate snapshot.  The parser-facing `PType` and
-`PDecl` bridge is still pending, so the existing typed aggregate envelope
-markers remain loud until ingestion can construct this relation.
+and retain the complete aggregate snapshot.  `Kernel/AggregateBridge` maps a
+parser-facing `PDecl` and instantiated `IEnv` to scalar or fixed-unpacked
+`AggType` while retaining every source bound.  Struct and union field tables
+are still required before typed member paths can leave their parser-native
+refusal boundary.
 
 When an unpacked dimension or its packed element type depends on a parameter
 or generate point, the source shape cannot use those default-point cells.
