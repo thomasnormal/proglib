@@ -503,6 +503,16 @@
     ]
   },
   {
+    "id": "record-array-member-layout",
+    "source": "struct A { int xs[3]; char tag; }; int main(void) { struct A a = { {1, 2, 3}, 4 }; return sizeof(struct A) == 16 && a.xs[2] == 3 && a.tag == 4 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_envelope_checks": [
+      "record_layout",
+      "type_layout"
+    ]
+  },
+  {
     "id": "pointer-unsigned-int-wall",
     "source": "int main(void) { int x = 3; unsigned int u = (unsigned int)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "refuse",
