@@ -295,14 +295,37 @@ termination_by structural ss => ss
 
 end
 
+mutual
+
+def stmtWrites : Stmt → List String
+  | .blockingAssign target _ | .nbaAssign target _ => [target]
+  | .ifStmt _ t e => stmtWrites t ++ stmtWritesOpt e
+  | .block ss => stmtWritesList ss.toList
+  | .unsupported _ _ => []
+termination_by structural s => s
+
+def stmtWritesOpt : Option Stmt → List String
+  | none => []
+  | some s => stmtWrites s
+termination_by structural o => o
+
+def stmtWritesList : List Stmt → List String
+  | [] => []
+  | s :: ss => stmtWrites s ++ stmtWritesList ss
+termination_by structural ss => ss
+
+end
+
 def waitForProcess (p : Process) : List Sensitivity :=
   match p with
   | .alwaysFF clock _ | .alwaysPlain clock _ =>
       -- `0` is reserved for the initial registration action below; a wake
       -- resumes at program counter one, i.e. the first flattened statement.
       [{ process := 0, target := clock, wait := .posedge, resume := 1 }]
-  | .alwaysComb body => (stmtNames body).eraseDups.map fun n =>
-      { process := 0, target := n, wait := .anyChange, resume := 0 }
+  | .alwaysComb body =>
+      let writes := stmtWrites body
+      ((stmtNames body).eraseDups.filter fun n => !writes.contains n).map fun n =>
+        { process := 0, target := n, wait := .anyChange, resume := 0 }
   | .assign _ value => (exprNames value).eraseDups.map fun n =>
       { process := 0, target := n, wait := .anyChange, resume := 0 }
   | .unsupported _ _ => []
@@ -582,6 +605,16 @@ private def wakeTwoStart : SlotState :=
   { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)]
     sens := [{ process := 4, target := "a", wait := .level, resume := 0 },
       { process := 4, target := "b", wait := .level, resume := 0 }] }
+
+private def selfReadComb : Process :=
+  .alwaysComb (.block #[
+    .blockingAssign "a" (.ident "a"),
+    .blockingAssign "y" (.ident "a")])
+
+/- IEEE 1800-2023 §9.2.2.2.1 excludes every variable written by an
+   `always_comb` procedure from its implicit sensitivity list, even when the
+   variable also occurs on a right-hand side. -/
+#guard waitForProcess selfReadComb == []
 
 private def wakeOnce : SlotState :=
   applyUpdate wakeStart { owner := none, seq := none, target := "v", value := LVec.ofNat 2 1 }
