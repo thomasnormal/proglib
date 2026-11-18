@@ -408,6 +408,7 @@ theorem CoreMemDesign.settleRaw_domain {E : CoreMemDesign} {A : List SeqEvent} {
           simp only [CoreMemDesign.settleRaw] at h1 h2
           exact CoreMemDesign.settleRaw_domain hD rest (idx + 1) hrest r1 r2 r1' r2' h h1 h2
       | initial _ => simp [CoreMemDesign.settleRaw] at h1
+      | event _ _ => simp [CoreMemDesign.settleRaw] at h1
       | comb _ => simp [CoreMemDesign.settleRaw] at h1
       | implicit _ => simp [CoreMemDesign.settleRaw] at h1
       | event _ _ => simp [CoreMemDesign.settleRaw] at h1
@@ -491,6 +492,9 @@ theorem CoreMemDesign.edgesV_domain {E : CoreMemDesign} {A : List SeqEvent} {S :
           simp only [CoreMemDesign.edgesV] at h1 h2
           exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
       | initial _ =>
+          simp only [CoreMemDesign.edgesV] at h1 h2
+          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
+      | event _ _ =>
           simp only [CoreMemDesign.edgesV] at h1 h2
           exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
       | comb _ =>

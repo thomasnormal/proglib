@@ -77,6 +77,7 @@ def _root_.LeanModels.Sv.PLhs.baseNames : PLhs → List String
   | .partSel n _ _ => [n]
   | .arrayElem n _ => [n]
   | .arrayPart n _ _ _ _ => [n]
+  | .aggregateMember n _ => [n]
   | .concat parts => PLhs.baseNamesList parts
 
 /-- `baseNames` of a list. -/
@@ -95,6 +96,8 @@ def _root_.LeanModels.Sv.PLhs.indexNames : PLhs → List String
   | .partSel _ a b => PExpr.sigNames a ++ PExpr.sigNames b
   | .arrayElem _ is => PExpr.sigNamesList is
   | .arrayPart _ is _ a b => PExpr.sigNamesList is ++ PExpr.sigNames a ++ PExpr.sigNames b
+  | .aggregateMember _ path => path.foldl (fun acc step =>
+      match step.2 with | some e => acc ++ PExpr.sigNames e | none => acc) []
   | .concat parts => PLhs.indexNamesList parts
 
 /-- `indexNames` of a list. -/
@@ -1509,6 +1512,8 @@ theorem seq_instLhs2_in {env : IEnv} {elems : List (String × Nat)} (t : PLhs) {
   | partSel n a b => exact Or.inl (seq_instLhsLeaf2_in _ (by simpa [instLhs2] using h))
   | arrayElem n is => exact Or.inl (seq_instLhsLeaf2_in _ (by simpa [instLhs2] using h))
   | arrayPart n is m a b => exact Or.inl (seq_instLhsLeaf2_in _ (by simpa [instLhs2] using h))
+  | aggregateMember base path =>
+      exact False.elim (by simpa [instLhs2, instLhsLeaf2] using h)
 
 /-- A leaf resolves to its own name. -/
 theorem seq_resolveLhs2_name {fuel : Nat} {v : SvState} {l : Lhs2} (hl : ∀ ps, l ≠ .concat ps) {n : String}
