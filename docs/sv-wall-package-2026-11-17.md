@@ -779,6 +779,16 @@ IEEE 1800-2023 wall matrix. No SV implementation paths changed between the
 package landing and this head, so REAL-BLOCKS remains 41 and no count
 transition is claimed.
 
+## Member-access current-head check — 2026-11-18T02:16Z
+
+Fresh extraction of member_nested_repro.sv at public master 2ef87c779 retains
+VariableSymbol:type and MemberAccessExpression for state.words[i].value.
+Ordinary E reports the member access at parsePExpr and then refuses the
+aggregate variable module member. IEEE 1800-2023 section 11.8 member-path
+semantics depend on unpacked aggregate storage absent from canonical E, so no
+field lowering is introduced. Existing Xcelium 24.03-s004 rows report xxxx;
+Icarus Verilog 13.0 rejects unpacked structs. No count transition is claimed.
+
 ## Type-alias current-head check — 2026-11-18T02:15Z
 
 Fresh extraction of type_alias_nested_repro.sv at public master 40426e6f6
