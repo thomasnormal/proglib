@@ -58,6 +58,8 @@ deriving Repr, Inhabited
 inductive EvalAction where
   | blocking (target : String) (value : LVec) (next : Nat)
   | nonblocking (seq : Nat) (target : String) (value : LVec) (next : Nat)
+  /-- Continue at the following statement without performing a write. -/
+  | continue (next : Nat)
   | wait (s : List Sensitivity)
   | done
   | refuse (message : String)
@@ -124,6 +126,7 @@ def actionStep (s : SlotState) (p : Nat) : EvalAction → SlotState
   | .nonblocking seq target value next =>
       let u : Update := { owner := some p, seq := some seq, target, value }
       { s with nba := s.nba ++ [u], active := s.active ++ [.eval p next] }
+  | .continue next => { s with active := s.active ++ [.eval p next] }
   | .wait ws => { s with sens := (s.sens ++ ws).eraseDups }
   | .done => s
   | .refuse message => { s with refusal := some message }
@@ -267,7 +270,7 @@ def stmtAction (s : SlotState) (p : Nat) (stmt : Stmt) (next : Nat) : EvalAction
       | .ok v => if v.condTrue then stmtAction s p t next else
           match e with
           | some alt => stmtAction s p alt next
-          | none => .done
+          | none => .continue next
   | .block _ => .refuse "scheduler: nested block was not flattened"
   | .unsupported kind _ => .refuse s!"scheduler: unsupported statement '{kind}'"
 
@@ -492,6 +495,20 @@ private def readAfterWriteResult : List SvState :=
   allSlots 8 readAfterWrite { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)], active := [.eval 0 0] }
 
 #guard readAfterWriteResult.any (fun s => s.lookup "b" == some (LVec.ofNat 1 1))
+
+private def ifWithoutElseContinues : SchedulerDesign :=
+  { eval := fun _ resume s =>
+      if resume == 0 then
+        stmtAction s 0
+          (.ifStmt (.lit (LVec.ofNat 1 0))
+            (.blockingAssign "q" (.lit (LVec.ofNat 1 1))) none) 1
+      else if resume == 1 then
+        .blocking "q" (LVec.ofNat 1 0) 2
+      else .done
+    initial := { store := [("q", LVec.lit "x")], active := [.eval 0 0] } }
+
+#guard (allSlots 8 ifWithoutElseContinues ifWithoutElseContinues.initial).any
+  (fun st => st.lookup "q" == some (LVec.ofNat 1 0))
 
 private def midBodyWait : SchedulerDesign :=
   { eval := fun _ resume s =>
