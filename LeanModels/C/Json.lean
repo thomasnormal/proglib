@@ -423,7 +423,9 @@ partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.
   let kind ← getStr j "kind"
   withCtx s!"structured type {kind}" do
     match kind with
-    | "builtin" => .ok (.cBuiltin (← getStr j "name"))
+    | "builtin" =>
+        let name ← getStr j "name"
+        if name == "void" then .ok .void else .ok (.cBuiltin name)
     | "pointer" => .ok (.pointer (← parseStructuredQualType (← getField j "pointee")))
     | "array" =>
         .ok (.array (← parseStructuredQualType (← getField j "element"))
