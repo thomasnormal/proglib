@@ -164,7 +164,18 @@ def _literal_initializer(node: Any) -> bool:
     # initializer forms in the four core envelopes that are unambiguously
     # literal at the declaration point.  Any other shape is reported loudly;
     # the census must not guess a run-time initializer's value.
-    return node.get("kind") in {"Int", "Literal", "Fill"}
+    kind = node.get("kind")
+    if kind in {"Int", "Literal", "Fill"}:
+        return True
+    # Param.instDecl admits the exact INT-class constant path for unary
+    # +/- expressions, context-sized at the declaration width.  Keep the
+    # census aligned with that rule while signal-dependent initializers stay
+    # a loud refusal.
+    return (
+        kind == "Unary"
+        and node.get("op") in {"+", "-"}
+        and _literal_initializer(node.get("operand"))
+    )
 
 
 # Canonical E's memory entry keeps a one-rank unpacked declaration as one
@@ -751,6 +762,7 @@ def _fixture() -> dict[str, Any]:
                     "decls": [
                         {"kind": "Var", "name": "a", "init": None, "span": {"line": 2}},
                         {"kind": "UnpackedDecl", "name": "mem", "unpacked": [{"kind": "Int", "value": 1}], "span": {"line": 3}},
+                        {"kind": "Var", "name": "neg", "init": {"kind": "Unary", "op": "-", "operand": {"kind": "Int", "value": 1}}, "span": {"line": 11}},
                     ],
                     "processes": [
                         {"kind": "Assign", "span": {"line": 4}, "target": {"kind": "Ident", "name": "a"}, "value": {"kind": "Int", "value": 0}},
@@ -773,6 +785,7 @@ def self_test() -> None:
         (1, "declaration", "ADMITTED"),
         (2, "declaration", "ADMITTED"),
         (3, "declaration", "ADMITTED"),
+        (11, "declaration", "ADMITTED"),
         (4, "continuous_assign", "ADMITTED"),
         (5, "process", "ADMITTED"),
         (9, "continuous_assign", "ADMITTED"),
@@ -783,7 +796,7 @@ def self_test() -> None:
     ]
     if statuses != expected:
         raise AssertionError(f"self-test rows differ:\nexpected={expected!r}\nactual={statuses!r}")
-    if result["counts"] != {"ADMITTED": 8, "REFUSED": 1, "NOT REACHED": 1}:
+    if result["counts"] != {"ADMITTED": 9, "REFUSED": 1, "NOT REACHED": 1}:
         raise AssertionError(result["counts"])
     generated_module = {
         "params": [],

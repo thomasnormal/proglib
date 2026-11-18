@@ -669,3 +669,11 @@ Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the unmodified source
 before elaboration because `instr` is used before its declaration, so Quark
 E-RUN is 0/0.  These counts are a source-overlay measurement and do not replace
 the earlier pinned envelope census in the table above.
+
+The clean-room companion `darkriscv/walls/unary_initializer.sv` covers the
+same constant form with `logic [1:0] value = -1`.  Its canonical-E probe now
+loads without an unsupported declaration, and Icarus Verilog 13.0 and Xcelium
+24.03-s004 both print `q=11`.  Re-running the DarkRISCV source-overlay census
+after this landing moves it to 177 admitted, 0 refused, and 0 not reached.
+The canonical-E source run advances to the next exact wall, the one-rank
+unpacked `REGS` storage refusal.
