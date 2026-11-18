@@ -615,6 +615,12 @@ partial def parseTargetL (j : Json) : Except String (Except String PLhs) := do
       | .partSel (.ident n) msb lsb => return .ok (.partSel n msb lsb)
       | .arrayElem n is => return .ok (.arrayElem n is)
       | .arrayPart n is mode a b => return .ok (.arrayPart n is mode a b)
+      | .aggregateMember .. =>
+          -- Keep the parser-native aggregate target visible in the envelope,
+          -- but refuse before constructing a scalar PLhs. Aggregate writes
+          -- need their own storage relation and must not be flattened into a
+          -- field name (IEEE 1800-2023 §§6.8, 6.18, 11.8).
+          return .error "MemberAccessExpression:aggregate target"
       | _ => return .error "AssignmentExpression:target"
 
 partial def parsePStmt (j : Json) : Except String PStmt := do
@@ -1932,6 +1938,9 @@ private def unsupMemberText : String := r#"{
   | _ => false
 #guard match (Json.parse r#"{"kind":"AggregateMember","base":"state","path":[{"field":"words"},{"index":{"kind":"Int","value":1}},{"field":"value"}]}"# >>= parsePExpr).toOption with
   | some (.aggregateMember "state" [(some "words", none), (none, some (.int 1)), (some "value", none)]) => true
+  | _ => false
+#guard match (Json.parse r#"{"kind":"BlockingAssign","target":{"kind":"AggregateMember","base":"sink","path":[{"field":"value"}]},"value":{"kind":"Int","value":1}}"# >>= parsePStmt).toOption with
+  | some (.unsupported "MemberAccessExpression:aggregate target" _) => true
   | _ => false
 #guard match (Json.parse r#"{"kind":"AlwaysEvent","events":[],"body":{"kind":"Empty"}}"# >>= parsePProcess) with
   | .error _ => true

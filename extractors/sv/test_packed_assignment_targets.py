@@ -5,6 +5,7 @@ from pyslang.ast import Compilation
 from pyslang.syntax import SyntaxTree
 
 import extract
+from test_division import symbolic
 
 
 def extract_source(source):
@@ -57,6 +58,21 @@ class PackedAssignmentTargets(unittest.TestCase):
                                 "initial value[0] = $urandom(); endmodule")
         reasons = [node.get("sv_kind") for node in nodes(design)]
         self.assertIn("AssignmentExpression:selected-effects", reasons)
+
+    def test_unpacked_aggregate_target_keeps_parser_path_for_loader_refusal(self):
+        design = symbolic(
+            "module divider; typedef struct { logic [3:0] value; } word_t; "
+            "word_t source, sink; initial sink.value = source.value; endmodule")
+        assignments = [node for node in nodes(design)
+                       if node.get("kind") == "BlockingAssign"]
+        self.assertEqual(len(assignments), 1)
+        target = assignments[0]["target"]
+        self.assertEqual(target["kind"], "AggregateMember")
+        self.assertEqual(target["base"], "sink")
+        self.assertEqual(target["path"], [{"field": "value"}])
+        self.assertTrue(any(node.get("kind") == "AggregateMember"
+                            and node.get("base") == "source"
+                            for node in nodes(design)))
 
     def test_invalid_associative_floating_index_is_inert(self):
         design = extract_source(

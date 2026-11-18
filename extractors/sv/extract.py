@@ -21161,7 +21161,10 @@ def _target_shape_ok(t):
     selects such as `pp[i][j]` — see `_sym_array_select`). A retained
     one-rank unpacked ArraySel is also a source-shaped memory target; its
     run-time index is resolved by the E memory route rather than flattened
-    into default-point cells."""
+    into default-point cells. An unpacked aggregate member is retained as
+    its parser-shaped `AggregateMember` node so the loader can name the
+    missing aggregate write relation instead of collapsing the member into a
+    scalar cell."""
     if t is None:
         return False
     k = t.get("kind")
@@ -21191,6 +21194,17 @@ def _target_shape_ok(t):
             return bool(t.get("indices"))
         if not _sym_array_select_static(t):
             return False  # a run-time part-select base is a read-only form
+    if k == "AggregateMember":
+        base = t.get("base")
+        path = t.get("path")
+        if not isinstance(base, str) or not base or not isinstance(path, list):
+            return False
+        return bool(path) and all(
+            isinstance(step, dict)
+            and ((isinstance(step.get("field"), str) and "index" not in step)
+                 or (isinstance(step.get("index"), dict)
+                     and "field" not in step))
+            for step in path)
     return k == "ArraySel"
 
 
