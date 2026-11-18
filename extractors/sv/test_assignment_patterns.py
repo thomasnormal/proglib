@@ -133,6 +133,17 @@ class AssignmentPatterns(unittest.TestCase):
         self.assertFalse(any(n.get("sv_kind") == "AssignmentPattern:default-point"
                              for n in nodes(d)))
 
+    def test_symbolic_fixed_parameter_default_is_admitted_but_width_family_is_loud(self):
+        fixed = symbolic(
+            "module divider #(parameter logic [3:0] P = '{default: 4'h0}) "
+            "(input logic [3:0] x, output logic [3:0] y); assign y = P ^ x; endmodule")
+        self.assertTrue(patterns(fixed))
+        family = symbolic(
+            "module divider #(parameter int W = 4, "
+            "parameter logic [W-1:0] P = '{default: 1'b0}) "
+            "(input logic [W-1:0] x, output logic [W-1:0] y); assign y = P ^ x; endmodule")
+        self.assertIn('AssignmentPattern:default-point', walls(family))
+
     def test_authored_runnable_sources_are_admitted(self):
         root=Path(__file__).resolve().parents[2]/'Examples/system-verilog/assignment_patterns'
         for name in ('keys','structs','runtime','arrays','replicated'):

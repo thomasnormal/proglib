@@ -8355,7 +8355,10 @@ def _convert_expr(sm, e):
             try:
                 fixed_packed_type = type(e.type.canonicalType).__name__ in (
                     "PackedStructType", "PackedUnionType", "PredefinedIntegerType",
-                    "EnumType") and type_width_2s(e.type)[2] is None
+                    "EnumType", "PackedArrayType") and type_width_2s(e.type)[2] is None
+                if (type(e.type.canonicalType).__name__ == "PackedArrayType"
+                        and not _sym_packed_pattern_type_fixed(e)):
+                    fixed_packed_type = False
             except Exception:
                 fixed_packed_type = False
         if _SYM is None or not _sym_family_point_dependent() or fixed_packed_type:
@@ -35005,6 +35008,41 @@ def _sym_family_point_dependent():
                    for member in _SYM.scope)
     except Exception:
         return True
+
+
+def _sym_packed_pattern_type_fixed(expression):
+    """Whether a packed assignment-pattern target has literal dimensions.
+
+    Slang exposes the elaborated `PackedArrayType` with its default-point
+    width, so `type_width_2s` cannot distinguish `logic [3:0]` from
+    `logic [W-1:0]`.  Inspect the parser-owned declared type syntax instead of
+    recovering the range from source text.  An identifier anywhere in a
+    packed dimension keeps the family loud at `AssignmentPattern:default-point`.
+    """
+    try:
+        if type(expression.type.canonicalType).__name__ != "PackedArrayType":
+            return False
+        syntax = expression.syntax
+        while syntax is not None and type(syntax).__name__ != "ParameterDeclarationSyntax":
+            syntax = getattr(syntax, "parent", None)
+        if syntax is None:
+            return False
+        type_syntax = getattr(syntax, "type", None)
+        dimensions = list(getattr(type_syntax, "dimensions", []))
+        if not dimensions:
+            return False
+        tree = json.loads(type_syntax.to_json())
+        def contains_identifier(node):
+            if isinstance(node, dict):
+                if node.get("kind") == "IdentifierName":
+                    return True
+                return any(contains_identifier(v) for v in node.values())
+            if isinstance(node, list):
+                return any(contains_identifier(v) for v in node)
+            return False
+        return not contains_identifier(tree)
+    except Exception:
+        return False
 
 
 # The `Unsupported` kind `_sym_unsized_xz_widening` emits for an unsized x/z

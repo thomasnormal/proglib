@@ -1136,14 +1136,14 @@ package x/z receipt, not a new real-design count claim.
 
 The pinned Ibex remeasurement reaches the parser-native `AssignmentPattern:default-point`
 value in a package/module parameter default. The clean-room receipt
-`Examples/system-verilog/sem2/assignment_pattern_param_e/` retains the
-`'{default: 4'h0}` node and keeps canonical E loud at the same boundary before
-`P ^ x` is evaluated. This follows IEEE 1800-2023 §10.9's aggregate-pattern
-correspondence rule without freezing the parameter family at the default point.
+`Examples/system-verilog/sem2/assignment_pattern_param_e/` now retains the
+`'{default: 4'h0}` node and runs its fixed packed-array value through canonical
+E. This follows IEEE 1800-2023 §10.9's aggregate-pattern correspondence rule
+without freezing a parameter-dependent width at the default point.
 
-Xcelium 24.03-s004 produces three source rows, `0000`, `1010`, and `xxxx`.
-Icarus Verilog 13.0 rejects the faithful parameter-default syntax, so no Icarus
-oracle result is claimed. No aggregate value is lowered to a scalar integer and
-no E-ROWS or REAL-DESIGNS count transition is claimed. The next implementation
-item is a source-shaped aggregate-pattern value representation for typed
-parameter defaults, with rows at multiple parameter points and x/z operands.
+Canonical E and Xcelium 24.03-s004 produce three rows, `0000`, `1010`, and
+`xxxx`. Icarus Verilog 13.0 rejects the faithful parameter-default syntax, so
+no Icarus oracle result is claimed. The pattern is represented as a four-state
+concat, never as a scalar integer. Parameter-dependent packed widths remain
+loud. This clears the fixed-width row while retaining the exact
+default-point boundary for the unresolved family.

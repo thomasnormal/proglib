@@ -34,6 +34,6 @@ def main():
         print("Icarus Verilog 13.0: faithful assignment-pattern syntax refusal")
     run(["lake", "env", "lean",
          "Examples/system-verilog/sem2/assignment_pattern_param_e/agree.lean"])
-    print("canonical E: exact AssignmentPattern:default-point refusal")
+    print("canonical E: 3 rows MATCH fixed packed default pattern")
 if __name__ == "__main__":
     main()

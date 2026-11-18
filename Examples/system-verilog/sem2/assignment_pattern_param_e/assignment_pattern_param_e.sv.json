@@ -68,15 +68,102 @@
               "resolved": 4
             },
             "default": {
-              "kind": "Unsupported",
+              "kind": "Concat",
               "span": {
                 "line": 2,
                 "col": 63,
                 "end_line": 2,
                 "end_col": 79
               },
-              "sv_kind": "AssignmentPattern:default-point",
-              "text": "'{default: 4'h0}"
+              "width": 4,
+              "parts": [
+                {
+                  "kind": "Resize",
+                  "span": {
+                    "line": 2,
+                    "col": 74,
+                    "end_line": 2,
+                    "end_col": 78
+                  },
+                  "width": 1,
+                  "operand": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 2,
+                      "col": 74,
+                      "end_line": 2,
+                      "end_col": 78
+                    },
+                    "width": 4,
+                    "bits": "0000"
+                  }
+                },
+                {
+                  "kind": "Resize",
+                  "span": {
+                    "line": 2,
+                    "col": 74,
+                    "end_line": 2,
+                    "end_col": 78
+                  },
+                  "width": 1,
+                  "operand": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 2,
+                      "col": 74,
+                      "end_line": 2,
+                      "end_col": 78
+                    },
+                    "width": 4,
+                    "bits": "0000"
+                  }
+                },
+                {
+                  "kind": "Resize",
+                  "span": {
+                    "line": 2,
+                    "col": 74,
+                    "end_line": 2,
+                    "end_col": 78
+                  },
+                  "width": 1,
+                  "operand": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 2,
+                      "col": 74,
+                      "end_line": 2,
+                      "end_col": 78
+                    },
+                    "width": 4,
+                    "bits": "0000"
+                  }
+                },
+                {
+                  "kind": "Resize",
+                  "span": {
+                    "line": 2,
+                    "col": 74,
+                    "end_line": 2,
+                    "end_col": 78
+                  },
+                  "width": 1,
+                  "operand": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 2,
+                      "col": 74,
+                      "end_line": 2,
+                      "end_col": 78
+                    },
+                    "width": 4,
+                    "bits": "0000"
+                  }
+                }
+              ],
+              "assignment_pattern_lowered": true,
+              "source_pattern": "StructuredAssignmentPatternExpression"
             },
             "resolved": 0
           }
