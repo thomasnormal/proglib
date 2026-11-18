@@ -156,6 +156,8 @@ inductive RControl where
   /-- A rule has reached a resource point.  The relation admits both the
   ordinary continuation and the corresponding catchable resource raise. -/
   | resourceChoice (point : RResourcePoint) (continuation : RControl)
+  | allocateList (values : List RVal) (continuation : RKont)
+  | allocateDict (entries : List (RVal × RVal)) (continuation : RKont)
   /-- A configuration reached a construct for which the current machine
   slice has no rule.  Refusal is represented in the state before its event
   is emitted, so a stuck state can never silently terminate. -/
@@ -761,9 +763,12 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
           | caller :: tail =>
               match rCallFrame function values keywords builtKwargs.2 with
               | some calleeFrame =>
-                  some (.tau, { config with heap := builtKwargs.1, frames :=
-                    calleeFrame :: { caller with
-                      control := .continueValue .none (.callReturn continuation) } :: tail })
+                  let pushed := { calleeFrame with control :=
+                    (.resourceChoice .framePush (.statements function.body.toList)) }
+                  let resumed := { caller with
+                    control := .continueValue .none (.callReturn continuation) }
+                  let updated := { config with heap := builtKwargs.1 }
+                  some (.tau, { updated with frames := pushed :: resumed :: tail })
               | none => some (.event (.refuse "machine argument binder"),
                   config.finish (.refuse "machine argument binder"))
           | _ => some (.event (.refuse "machine call stack"),
@@ -897,6 +902,22 @@ inductive Step : RConfig → RLabel → RConfig → Prop where
       (hcontrol : config.frames.head?.map RFrame.control =
         some (.resourceChoice point continuation)) :
       Step config .tau (config.setControl (.raising (resourceError point)))
+  | allocateListProceed {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      {values : List RVal} {continuation : RKont}
+      (hframes : config.frames = { frame with control := .allocateList values continuation } :: tail) :
+      Step config .tau
+        (let allocated := rBuildList config.heap values
+         let updated := { config with heap := allocated.1 }
+         { updated with frames := frame :: tail } |>.setControl
+           (.continueValue allocated.2 continuation))
+  | allocateDictProceed {config : RConfig} {frame : RFrame} {tail : List RFrame}
+      {entries : List (RVal × RVal)} {continuation : RKont}
+      (hframes : config.frames = { frame with control := .allocateDict entries continuation } :: tail) :
+      Step config .tau
+        (let allocated := rBuildDict config.heap entries
+         let updated := { config with heap := allocated.1 }
+         { updated with frames := frame :: tail } |>.setControl
+           (.continueValue allocated.2 continuation))
   | refuseControl {config : RConfig} {reason : String}
       (hcontrol : config.frames.head?.map RFrame.control = some (.refusing reason)) :
       Step config (.event (.refuse reason)) (config.finish (.refuse reason))
@@ -945,6 +966,14 @@ def resolveAst (config : RConfig) : Option (RLabel × RConfig) :=
       | .refusing reason => some (.event (.refuse reason), config.finish (.refuse reason))
       | .resourceChoice _ continuation =>
           some (.tau, config.setControl continuation)
+      | .allocateList values continuation =>
+          let allocated := rBuildList config.heap values
+          some (.tau, { config with heap := allocated.1 } |>.setControl
+            (.continueValue allocated.2 continuation))
+      | .allocateDict entries continuation =>
+          let allocated := rBuildDict config.heap entries
+          some (.tau, { config with heap := allocated.1 } |>.setControl
+            (.continueValue allocated.2 continuation))
       | .statements [] => none
       | .statements (stmt :: rest) =>
           match stmt, rest with
@@ -991,6 +1020,14 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.event (.refuse reason), config.finish (.refuse reason))
       | .resourceChoice _ continuation =>
           some (.tau, config.setControl continuation)
+      | .allocateList values continuation =>
+          let allocated := rBuildList config.heap values
+          some (.tau, { config with heap := allocated.1 } |>.setControl
+            (.continueValue allocated.2 continuation))
+      | .allocateDict entries continuation =>
+          let allocated := rBuildDict config.heap entries
+          some (.tau, { config with heap := allocated.1 } |>.setControl
+            (.continueValue allocated.2 continuation))
       | .statements [] =>
           match frame.completion with
           | some continuation =>
@@ -1109,9 +1146,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .evaluate (.list elements _) continuation =>
           match elements.toList with
           | [] =>
-              let allocated := rBuildList config.heap []
-              some (.tau, { config with heap := allocated.1 } |>.setControl
-                (.continueValue allocated.2 continuation))
+              some (.tau, config.setControl
+                (.resourceChoice .allocation (.allocateList [] continuation)))
           | first :: rest =>
               some (.tau, config.setControl
                 (.evaluate first (.listElements rest [] continuation)))
@@ -1119,9 +1155,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           let pairs := keys.toList.zip values.toList
           match pairs with
           | [] =>
-              let allocated := rBuildDict config.heap []
-              some (.tau, { config with heap := allocated.1 } |>.setControl
-                (.continueValue allocated.2 continuation))
+              some (.tau, config.setControl
+                (.resourceChoice .allocation (.allocateDict [] continuation)))
           | (key, value) :: rest =>
               some (.tau, config.setControl
                 (.evaluate key (.dictKey value rest [] continuation)))
@@ -1254,9 +1289,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl
                 (.evaluate next (.listElements rest (values ++ [value]) continuation)))
           | [] =>
-              let allocated := rBuildList config.heap (values ++ [value])
-              some (.tau, { config with heap := allocated.1 } |>.setControl
-                (.continueValue allocated.2 continuation))
+              some (.tau, config.setControl
+                (.resourceChoice .allocation
+                  (.allocateList (values ++ [value]) continuation)))
       | .continueValue key (.dictKey value remaining entries continuation) =>
           some (.tau, config.setControl
             (.evaluate value (.dictValue key remaining entries continuation)))
@@ -1267,9 +1302,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl
                 (.evaluate nextKey (.dictKey nextValue rest updated continuation)))
           | [] =>
-              let allocated := rBuildDict config.heap updated
-              some (.tau, { config with heap := allocated.1 } |>.setControl
-                (.continueValue allocated.2 continuation))
+              some (.tau, config.setControl
+                (.resourceChoice .allocation (.allocateDict updated continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
           match rEvalBinOp op left right with
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))
@@ -1375,6 +1409,26 @@ theorem resolve_mem (impl : RImpl) (config : RConfig) (label : RLabel) (next : R
               have hhead : config.frames.head?.map RFrame.control =
                   some (.resourceChoice point continuation) := by simp [hframes, hcontrol]
               exact Step.resourceProceed hhead
+          | allocateList values continuation =>
+              simp [resolveAst, hframes, hcontrol] at h
+              obtain ⟨rfl, rfl⟩ := h
+              apply Step.allocateListProceed (config := config) (frame := frame) (tail := tail)
+                (values := values) (continuation := continuation)
+              calc
+                config.frames = frame :: tail := hframes
+                _ = { frame with control := .allocateList values continuation } :: tail := by
+                  exact congrArg (fun current => current :: tail)
+                    (frame_with_control_eq frame _ hcontrol)
+          | allocateDict entries continuation =>
+              simp [resolveAst, hframes, hcontrol] at h
+              obtain ⟨rfl, rfl⟩ := h
+              apply Step.allocateDictProceed (config := config) (frame := frame) (tail := tail)
+                (entries := entries) (continuation := continuation)
+              calc
+                config.frames = frame :: tail := hframes
+                _ = { frame with control := .allocateDict entries continuation } :: tail := by
+                  exact congrArg (fun current => current :: tail)
+                    (frame_with_control_eq frame _ hcontrol)
           | statements remaining =>
               cases hremaining : remaining with
               | nil => simp [resolveAst, hframes, hcontrol, hremaining] at h
