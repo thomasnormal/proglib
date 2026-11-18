@@ -57,10 +57,15 @@ inductive AggValue where
   | scalar (value : Val)
   | struct (fields : List (String × AggValue))
   | array (cells : List (Int × AggValue))
+  /-- An aggregate whose bits have not been written.  Keeping its type lets a
+  read return the exact-width four-state x value without flattening cells. -/
+  | unknown (ty : AggType)
 deriving Inhabited
 
 def AggValue.read? : AggValue → AggPath → Option Val
   | .scalar value, [] => some value
+  | .unknown ty, path => (ty.resolve? path).map fun valueTy =>
+      Val.ofLVec valueTy (LVec.xVec valueTy.width)
   | .scalar _, _ :: _ => none
   | .struct fields, .field name :: rest =>
       (fields.find? (fun p => p.1 == name)).bind fun p => p.2.read? rest
@@ -87,6 +92,7 @@ def AggValue.replaceCell (index : Int) (value : AggValue) :
 
 def AggValue.write? : AggValue → AggPath → Val → Option AggValue
   | .scalar _, [], value => some (.scalar value)
+  | .unknown _, _, _ => none
   | .scalar _, _ :: _, _ => none
   | .struct fields, .field name :: rest, value => do
       let (field, old) ← fields.find? (fun p => p.1 == name)
@@ -122,6 +128,9 @@ structure AggStore where
 
 def AggStore.empty : AggStore := { cells := fun _ => none }
 
+def AggStore.ofCells (cells : List (VarId × AggCell)) : AggStore :=
+  { cells := fun id => cells.find? (fun p => p.1 == id) |>.map (·.2) }
+
 def AggStore.read? (s : AggStore) (id : VarId) (path : AggPath) : Option Val := do
   let cell ← s.cells id
   cell.value.read? path
@@ -152,6 +161,7 @@ theorem AggStore.read_write_root {s : AggStore} {id : VarId}
               simp [AggStore.read?, AggValue.read?]
           | struct fields => simp [AggValue.write?, hv] at hu
           | array cells => simp [AggValue.write?, hv] at hu
+          | unknown ty => simp [AggValue.write?, hv] at hu
 
 theorem AggStore.read_write_other {s : AggStore} {id other : VarId} {path : AggPath}
     {new : Val} {s' : AggStore} (hne : other ≠ id)

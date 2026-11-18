@@ -7036,3 +7036,10 @@ the defined sampling and NBA rules.
   source-shaped through ingestion, parameter substitution, hierarchy adapters,
   range guards, and memory walkers. Value execution continues to refuse this
   node until it is connected to the aggregate store.
+
+- Connected retained aggregate declarations to canonical E memory state. The
+  `CoreMemDesign` now carries source-identity-keyed `AggStore` cells, starts
+  aggregate values as typed four-state unknowns, and evaluates known field and
+  index member reads through the existing source-shaped expression evaluator.
+  Aggregate writes, unknown indices, and external aggregate-port marshalling
+  remain loud boundaries.

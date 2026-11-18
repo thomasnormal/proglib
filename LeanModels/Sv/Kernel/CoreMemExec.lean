@@ -1,4 +1,5 @@
 import LeanModels.Sv.Kernel.Core1Elab
+import LeanModels.Sv.Kernel.AggregateBridge
 import LeanModels.Sv.Kernel.MemElab
 import LeanModels.Sv.Loop2
 
@@ -30,6 +31,12 @@ set_option autoImplicit false
 structure CoreMemDecl where
   source : PDecl
   shape : MemShape
+deriving Repr, Inhabited
+
+structure CoreMemAggDecl where
+  source : PDecl
+  ty : AggType
+  id : VarId
 deriving Repr, Inhabited
 
 structure CoreMemEdge where
@@ -79,6 +86,7 @@ structure CoreMemDesign where
   scalar : Elab
   scalarEdge : Elab1
   memories : Array CoreMemDecl
+  aggregates : Array CoreMemAggDecl := #[]
   processes : Array CoreMemProc
   /-- Parser-retained literal `$readmemh` metadata; no host file is read. -/
   readmemh : List PReadmemh := []
@@ -157,6 +165,7 @@ structure CoreMemState where
       `Store.set` closures. -/
   scalarCache : Array Val
   memory : MemState
+  aggregates : AggStore
 
 /-! The scalar E store is a function for compatibility with canonical E.  The
     cache is the state representation; this direct view avoids rebuilding a
@@ -226,7 +235,9 @@ def CoreMemDesign.initial (E : CoreMemDesign) : CoreMemState :=
   let cache := E.scalarCacheOf E.scalar.initStore
   { scalar := E.scalarStore cache
     scalarCache := cache
-    memory := MemState.ofShapes (E.memories.toList.map CoreMemDecl.shape) }
+    memory := MemState.ofShapes (E.memories.toList.map CoreMemDecl.shape)
+    aggregates := AggStore.ofCells (E.aggregates.toList.map fun d =>
+      (d.id, { ty := d.ty, value := .unknown d.ty })) }
 
 def CoreMemDesign.scalarAssignInputsOnly (E : CoreMemDesign) : Bool :=
   E.memories.isEmpty && E.processes.toList.all fun p =>
@@ -239,6 +250,9 @@ def CoreMemDesign.scalarAssignInputsOnly (E : CoreMemDesign) : Bool :=
 
 def CoreMemDesign.memDecl? (E : CoreMemDesign) (name : String) : Option CoreMemDecl :=
   E.memories.toList.find? (fun d => d.source.name == name)
+
+def CoreMemDesign.aggregateDecl? (E : CoreMemDesign) (name : String) : Option CoreMemAggDecl :=
+  E.aggregates.toList.find? (fun d => d.source.name == name)
 
 def CoreMemDesign.scalarWidth? (E : CoreMemDesign) (name : String) : Option Nat :=
   match E.scalar.resolve name with
@@ -269,7 +283,7 @@ def CoreMemDesign.compileAssigns (E : CoreMemDesign) : Array (Option Expr2) :=
     | _ => none
 
 def instScalarDecl1 (env : IEnv) (pd : PDecl) : Res (Option Decl) :=
-  if !pd.unpackedDims.isEmpty then
+  if pd.aggregate?.isSome || !pd.unpackedDims.isEmpty then
     .ok none
   else
     match pd.type.width env with
@@ -317,6 +331,18 @@ def buildMemDecls1 (env : IEnv) : List PDecl → Nat → Res (List CoreMemDecl)
       | .error e => .unsupported e
       | .ok none => .ok tail
       | .ok (some shape) => .ok ({ source := pd, shape } :: tail)
+
+def buildAggDecls1 (env : IEnv) : List PDecl → Nat → Res (List CoreMemAggDecl)
+  | [], _ => .ok []
+  | pd :: rest, ordinal => do
+      let tail ← buildAggDecls1 env rest (ordinal + 1)
+      match pd.aggregate? with
+      | none => .ok tail
+      | some _ => do
+          let ty ← match LeanModels.Sv.Kernel.PDecl.aggregateType? env pd with
+            | .ok ty => .ok ty
+            | .error msg => .unsupported msg
+          .ok ({ source := pd, ty, id := { decl := ordinal } } :: tail)
 
 def CoreMemProc.ofPProcess : PProcess → CoreMemProc
   | .alwaysFF clock body => .edge { clock, body, style := .alwaysFF }
@@ -1198,9 +1224,11 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
               let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls)
               let decls := decls0 ++ (coreMemNetDecls d allForNet).filter
                 (fun dc => !sourceNames.contains dc.name)
-              let elems ← buildElems env2 sourceDecls
+              let elementDecls := sourceDecls.filter (fun pd => pd.aggregate?.isNone)
+              let elems ← buildElems env2 elementDecls
               let envP := { env2 with widths := decls.map (fun dc => (dc.name, dc.width)) }
               let memories ← buildMemDecls1 envP (d.decls ++ generatedDecls) 0
+              let aggregates ← buildAggDecls1 envP (d.decls ++ generatedDecls) 0
               if memories.isEmpty && (d.decls ++ generatedDecls).any (fun pd => !pd.unpackedDims.isEmpty) then
                 .unsupported "UnpackedDecl:memory: no one-rank unpacked declaration was admitted"
               else
@@ -1213,7 +1241,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
                 let resolvedNets := coreMemResolvedNetNames d allForNet
                 let result : CoreMemDesign :=
                     { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
-                      memories := memories.toArray, processes := processes.toArray,
+                      memories := memories.toArray, aggregates := aggregates.toArray,
+                      processes := processes.toArray,
                       readmemh := d.readmemh, resolvedNets := resolvedNets }
                 .ok { result with compiledAssigns := result.compileAssigns }
 
@@ -1470,6 +1499,31 @@ def CoreMemDesign.evalIndexLocals (E : CoreMemDesign) (env : IEnv) (elems : List
   | .ok i => .ok (LVec.ofInt 32 i)
   | .error _ => E.evalExprLocals env elems st none locals e
 
+def CoreMemDesign.evalAggPath (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
+    (st : CoreMemState) (locals : SvState) :
+    List (Option String × Option PExpr) → Res AggPath
+  | [] => .ok []
+  | (some field, none) :: rest => do
+      let tail ← E.evalAggPath env elems st locals rest
+      .ok (.field field :: tail)
+  | (none, some index) :: rest => do
+      let iv ← E.evalIndexLocals env elems st locals index
+      let some value := LVec.toInt? iv
+        | .unsupported "MemberAccessExpression:aggregate: unknown index"
+      let tail ← E.evalAggPath env elems st locals rest
+      .ok (.index value :: tail)
+  | _ :: _ => .unsupported "MemberAccessExpression:aggregate: malformed path"
+
+def CoreMemDesign.evalAggregateMember (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (locals : SvState)
+    (base : String) (path : List (Option String × Option PExpr)) : Res LVec := do
+  let some decl := E.aggregateDecl? base
+    | .unsupported s!"MemberAccessExpression:aggregate: declaration '{base}' is not present"
+  let steps ← E.evalAggPath env elems st locals path
+  let some value := st.aggregates.read? decl.id steps
+    | .unsupported s!"MemberAccessExpression:aggregate: path in '{base}' is invalid"
+  .ok value.bits
+
 def CoreMemDesign.evalExprLocals (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (ctx : Option Nat) (locals : SvState) : PExpr → Res LVec
   | e@(.arrayElem name [index]) => do
@@ -1489,6 +1543,7 @@ def CoreMemDesign.evalExprLocals (E : CoreMemDesign) (env : IEnv) (elems : List 
       | some _ =>
           .unsupported s!"ArraySel:part: memory '{name}' part select is outside this E slice"
       | none => E.evalScalarLocals env elems st ctx locals e
+  | .aggregateMember base path => E.evalAggregateMember env elems st locals base path
   | e@(.bitSel base index) =>
       if LeanModels.Sv.PExpr.hasMemoryRead e then do
         let bv ← E.evalExprLocals env elems st none locals base
@@ -2786,6 +2841,31 @@ private def auditW4Processes : List PProcess :=
    .assignL (.arrayElem "m1" [.int 0]) (.ident "x")]
 
 #guard coreMemPAssignMemoryTopoB auditW4Processes == false
+
+private def aggregateSmokeDecl : PDecl :=
+  { name := "source", type := .unrecoverable none, isInput := true,
+    aggregate? := some (.struct [
+      ("words", .array (.int 0) (.int 1) (.struct [
+        ("value", .scalar (.packed [⟨.int 3, .int 0⟩] none) false false)]))]) }
+
+private def aggregateSmokeDesign : PDesign :=
+  { name := "aggregate_smoke", params := [], localParams := [], enums := [],
+    decls := [aggregateSmokeDecl,
+      { name := "y", type := .packed [⟨.int 3, .int 0⟩] none, isOutput := true }],
+    processes := [.alwaysComb (.blockingAssign "y"
+      (.aggregateMember "source"
+        [(some "words", none), (none, some (.int 0)), (some "value", none)]))],
+    generates := [] }
+
+#guard match PDesign.instantiateCoreMem aggregateSmokeDesign [] with
+  | .ok E => match E.initialState with
+    | .ok st => match E.evalExpr E.env E.elems st none
+        (.aggregateMember "source"
+          [(some "words", none), (none, some (.int 0)), (some "value", none)]) with
+      | .ok value => value.toBinString == "xxxx"
+      | _ => false
+    | _ => false
+  | _ => false
 
 private def auditW5Processes : List PProcess :=
   [.alwaysComb (.blockingAssign "g" (.unary (.m0 .bnot) (.ident "k"))),
