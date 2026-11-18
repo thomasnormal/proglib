@@ -732,3 +732,15 @@ design, and no real-design count transition is claimed.  The checked-in
 resolved-net receipt remains the executable semantic evidence for the four
 known, conflicting, and x/z driver rows against Icarus Verilog 13.0 and
 Xcelium 24.03-s004.
+
+## Generate-local census correction after the upstream rebase
+
+The earlier blocked census entry was caused by a stale checkout that lacked
+the upstream `GenItem.localParam` constructor.  After rebasing onto the
+current public master, the ordinary census compiler builds and the checked-in
+`generate_parameter_e` envelope reports zero refusals.  Fresh extraction and
+ordinary census of the clean-room `generate_parameter.sv` and
+`packed_enum_package_repro.sv` fixtures also report zero refusals.  The
+generate-parameter receipt runs W=8 and W=3 for eight cycles each, with every
+cycle matching Icarus Verilog 13.0 and Xcelium 24.03-s004, including the x/z
+rows.  No real-design count transition is claimed by this remeasurement.
