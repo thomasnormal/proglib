@@ -153,3 +153,11 @@ lake env lean /tmp/rust_relation_audit.lean
 The printed signatures show no fuel parameter in either public relation.  The
 two containment theorems report only `propext`, `Classical.choice`, and
 `Quot.sound` in their axiom dependencies.
+
+The D3 proof preparation is checked in under `Examples/rust/gcd/`.  Its loaded
+envelope contains the extracted `gcd` body from the Stage 0 corpus.  The
+diagnostic runner reaches that body for arbitrary initial `u32` locals, and the
+spec file checks a concrete `(48,18)` run.  The proof file proves the
+all-inputs Euclidean loop theorem with strong induction and the `Nat.gcd_rec`
+lemma.  The bridge from that invariant theorem to the loaded MIR relation
+remains the next proof step.
