@@ -745,9 +745,9 @@ full E-RUN cycle is claimed.
 
 The stage probe narrows that wall.  `prepareStep` succeeds for the first
 `CLK=1, RES=0` row, `runEdges` succeeds across all 68 retained processes, and
-settling the uncommitted edge state succeeds.  The enclosing `edgePass` does
-not return within the same bound.  This is recorded as an execution boundary,
-without assigning it an unsupported semantic message.
+the scalar plus memory NBA commit construction succeeds.  Settling the
+post-commit state does not return within the same bound.  This is recorded as
+an execution boundary, without assigning it an unsupported semantic message.
 
 ## 2026-11-18 DarkRISCV first clock transition
 
