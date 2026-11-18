@@ -690,6 +690,13 @@ reads the initialized cell, so this row is ready for the general lane's
 canonical one-rank memory Step 12 branch.  No E memory meaning is changed in
 this lane.
 
+The canonical-E runtime-index receipt `sem2/unpacked_cpuregs_canonical_e`
+exercises the same one-rank declaration with `cpuregs[waddr] <= wdata` and
+`rdata = cpuregs[raddr]`.  Its 11 x/z and edge rows pass through
+`CoreMemDesign`, Icarus Verilog 13.0, and Xcelium 24.03-s004.  This is the
+source-shaped target switch required by `REGS[DPTR]`; no DarkRISCV source or
+whole-core result is claimed by the clean-room receipt.
+
 ## 2026-11-18 R0 differential check
 
 The pinned Sail RISC-V 0.13.1 oracle is not installed in this checkout, so no
