@@ -2472,6 +2472,20 @@ theorem reallocAt_null_objects (m : Mem) (size address : Nat) (h : size ≠ 0) :
   rw [reallocAt_null m size address h]
   rfl
 
+theorem reallocAt_null_loadBytes (m : Mem) (size address n : Nat)
+    (hsize : size ≠ 0) (hn : n ≤ size) :
+    (reallocAt m Ptr.null size address).map
+        (fun r => r.1.loadBytes r.2 n) =
+      .ok (.ok (List.replicate n CByte.indet)) := by
+  rw [reallocAt_null m size address hsize]
+  have hn' : ¬ size < n := by omega
+  simp [mallocAt, allocAt, alloc, Ptr.toObjectBoundAt,
+    loadBytes, resolve, get?, Except.map, hn']
+  simp [CObj.size, hn']
+  change (.ok (List.take n (List.drop 0 (List.replicate size CByte.indet))) : MRes (List CByte)) =
+    .ok (List.replicate n CByte.indet)
+  simp [hn]
+
 @[simp] theorem mallocAt_pointer_shape (m : Mem) (size address : Nat) :
     (m.mallocAt size address).2 =
       ⟨some (m.objs.length), address, 0, some size⟩ := by
