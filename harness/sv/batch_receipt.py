@@ -67,6 +67,10 @@ class Fixture:
     # Expected ordinary-route refusal substring for a clean-room boundary.
     # An empty value means the fixture must run eight E cycles.
     expected_ordinary_refusal: str = ""
+    # Expected refusal from the ordinary loader/cross-check before a design
+    # family can be elaborated.  These fixtures are measured by refusal_census
+    # and still receive both pinned source-simulator rows.
+    expected_loader_refusal: str = ""
     # A legal source construct may be rejected by one pinned simulator's
     # frontend.  A refusal receipt records that outcome explicitly; it is
     # never treated as an oracle match.
@@ -198,6 +202,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("type_alias_nested_repro.sv", "type_alias_nested_repro",
             (Port("source", 2),), (Port("result", 2),),
             expected_ordinary_refusal="TypeAliasType:TypeAlias",
+            expected_source_refusals=("iverilog",)),
+    Fixture("assignment_pattern_param_e.sv", "assignment_pattern_param_e",
+            (Port("x", 4),), (Port("y", 4),),
+            expected_loader_refusal="AssignmentPattern:default-point",
             expected_source_refusals=("iverilog",)),
     Fixture("negedge_e.sv", "negedge_e",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),)),
@@ -639,6 +647,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="sv-batch-") as tmp_name:
         tmp = Path(tmp_name)
         entries = []
+        ordinary_entries = []
         fixtures = tuple(f for f in FIXTURES if args.only is None or f.top in args.only)
         if not fixtures:
             raise SystemExit("--only selected no known fixture")
@@ -656,6 +665,8 @@ def main() -> int:
             for point in fixture.points:
                 rows = stimuli(fixture, point, args.seed)
                 entries.append((fixture, point, envelope, rows))
+                if not fixture.expected_loader_refusal:
+                    ordinary_entries.append((fixture, point, envelope, rows))
 
         # Keeping a few source-shaped designs per generated Lean file avoids a
         # single enormous kernel reduction while preserving one top-level batch
@@ -665,11 +676,11 @@ def main() -> int:
         ordinary_errors: dict[tuple[str, str], str] = {}
         errors: list[str] = []
         group_size = max(1, args.lean_group_size)
-        for group_no in range(0, len(entries), group_size):
-            group = entries[group_no:group_no + group_size]
+        for group_no in range(0, len(ordinary_entries), group_size):
+            group = ordinary_entries[group_no:group_no + group_size]
             lean_file = tmp / f"batch_{group_no // group_size}.lean"
             lean_file.write_text(lean_program(group))
-            print(f"ordinary group {group_no // group_size + 1}/{(len(entries) + group_size - 1) // group_size}",
+            print(f"ordinary group {group_no // group_size + 1}/{(len(ordinary_entries) + group_size - 1) // group_size}",
                   flush=True)
             try:
                 lean_out = run_checked(["lake", "env", "lean", "--run", str(lean_file)], ROOT,
@@ -686,6 +697,17 @@ def main() -> int:
                 parts = line.split(" ", 3)
                 if len(parts) == 4 and parts[1] != "ordinary":
                     ordinary_errors[(parts[1], parts[2])] = parts[3]
+        for fixture, point, envelope, _rows in entries:
+            if not fixture.expected_loader_refusal:
+                continue
+            key = (fixture.top, point.label)
+            census = run_checked(["lake", "env", "lean", "--run",
+                                  str(ROOT / "harness" / "sv" / "refusal_census.lean"),
+                                  str(envelope)], ROOT, timeout=args.ordinary_timeout)
+            if fixture.expected_loader_refusal in census:
+                ordinary_errors[key] = fixture.expected_loader_refusal
+            else:
+                errors.append(f"ERROR {fixture.top} {point.label} loader refusal marker missing")
         if errors:
             print("ordinary-route errors:")
             print("\n".join(errors))
@@ -700,6 +722,9 @@ def main() -> int:
                 ordinary_error = ordinary_errors.get(key, "")
                 expected_e_refusal = (fixture.expected_ordinary_refusal != "" and
                                       fixture.expected_ordinary_refusal in ordinary_error)
+                expected_e_refusal = expected_e_refusal or (
+                    fixture.expected_loader_refusal != "" and
+                    fixture.expected_loader_refusal in ordinary_error)
                 if expected_e_refusal:
                     print(f"  RUNS NO (expected ordinary refusal: {ordinary_error})")
                 else:
