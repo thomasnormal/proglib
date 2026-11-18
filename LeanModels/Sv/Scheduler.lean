@@ -413,7 +413,11 @@ def stmtAction (s : SlotState) (p : Nat) (stmt : Stmt) (next : Nat) : EvalAction
           match e with
           | some alt => stmtAction s p alt next
           | none => .continue next
-  | .block _ => .refuse "scheduler: nested block was not flattened"
+  | .block body =>
+      match body.toList with
+      | [] => .continue next
+      | [inner] => stmtAction s p inner next
+      | _ => .refuse "scheduler: nested block with multiple statements"
   | .unsupported kind _ => .refuse s!"scheduler: unsupported statement '{kind}'"
 
 def processEval (d : Design) (p : Nat) (resume : Nat) (s : SlotState) : EvalAction :=
@@ -708,6 +712,18 @@ private def ifWithoutElseContinues : SchedulerDesign :=
 
 #guard (allSlots 8 ifWithoutElseContinues ifWithoutElseContinues.initial).any
   (fun st => st.lookup "q" == some (LVec.ofNat 1 0))
+
+private def nestedIfBlock : SchedulerDesign :=
+  { eval := fun _ resume s =>
+      if resume == 0 then
+        stmtAction s 0
+          (.ifStmt (.lit (LVec.ofNat 1 1))
+            (.block #[.blockingAssign "q" (.lit (LVec.ofNat 1 1))]) none) 1
+      else .done
+    initial := { store := [("q", LVec.ofNat 1 0)], active := [.eval 0 0] } }
+
+#guard (allSlots 8 nestedIfBlock nestedIfBlock.initial).any
+  (fun st => st.lookup "q" == some (LVec.ofNat 1 1))
 
 private def midBodyWait : SchedulerDesign :=
   { eval := fun _ resume s =>
