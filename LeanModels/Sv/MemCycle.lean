@@ -438,7 +438,7 @@ def memExprReadsArray : PExpr → Bool
       memExprReadsArray a || memExprReadsArray b || memExprReadsArray c
   | .concat xs => memExprReadsArrayList xs
   | .functionCall _ xs => memExprReadsArrayList xs
-  | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
+  | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _ | .aggregateMember ..
   | .fill _ | .unsupported .. => false
 
 def memExprReadsArrayList : List PExpr → Bool
