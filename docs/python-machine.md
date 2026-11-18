@@ -235,6 +235,8 @@ loud refusal when that parameter is supplied by keyword, while
 through tuple indexing, while
 `harness/scripts/function_fixed_varargs.py` checks fixed positional binding
 before collecting the remaining `*args`, while
+`harness/scripts/function_varargs_empty.py` checks the empty-tuple indexing
+error from an omitted variadic argument, while
 `harness/scripts/function_kwargs.py` records the current loud refusal for
 variadic keyword parameters, while
 `harness/scripts/function_unknown_keyword.py` records the current loud refusal
@@ -242,4 +244,4 @@ for a keyword with no matching parameter, while
 `harness/scripts/function_positive_default.py` checks a unary-positive integer
 literal default, while
 `harness/scripts/cpython_list_basics.py` checks the explicit list refusal. The
-current result is thirty-one matches, nine refusals, and zero divergence.
+current result is thirty-two matches, nine refusals, and zero divergence.
