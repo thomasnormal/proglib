@@ -1027,3 +1027,14 @@ five, child instances and multiple clocks at four, and derived internal clocks
 at three. Net-z members and packed-enum dimensions remain ls-sv3-owned. No
 count transition is claimed; the next implementation item is the
 event-controlled scheduler boundary.
+
+## Aggregate-shape landing remeasurement — 2026-11-18T05:00Z
+
+After public landing 0701d9066, the four aggregate fixtures were rerun through
+the approved extractor and ordinary census. typed_nested_repro.sv now retains
+the parser-native MemberAccessExpression:aggregate marker alongside its typed
+port and variable boundaries. type_alias_nested_repro.sv retains the same
+aggregate member marker and reaches the typed variable E refusal. The named
+value and nested member fixtures retain their typed aggregate boundaries. The
+canonical E route still refuses PortSymbol:type or VariableSymbol:type, so
+REAL-BLOCKS remains 41 and no aggregate admission transition is claimed.
