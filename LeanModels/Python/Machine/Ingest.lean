@@ -136,6 +136,13 @@ private def mConst (j : Json) : Except String Const := do
   | "ellipsis" => pure .ellipsis
   | "bool" => pure (.bool (← (← mField j "value").getBool?))
   | "str" => pure (.str (← (← mField j "value").getStr?))
+  | "bytes" =>
+      let values ← (← mField j "value").getArr?
+      let bytes ← values.mapM fun value => do
+        let number ← value.getNat?
+        if number ≤ 255 then pure (UInt8.ofNat number)
+        else throw "invalid machine byte"
+      pure (.bytes bytes)
   | "int" =>
       let text ← (← mField j "repr").getStr?
       match text.toInt? with
