@@ -845,3 +845,13 @@ and 23.2.2 require resolved bidirectional driver semantics, including x/z and
 conflicts, which canonical E does not model. The existing source receipt
 matches Icarus Verilog 13.0 and Xcelium 24.03-s004. No lowering or count
 transition is claimed.
+## Current-head resolved-net wall correction
+
+Fresh extraction of the clean-room `resolved_net_multiple_driver.sv` fixture
+with the current Slang frontend retains both dynamic continuous assignments as
+`Assign` nodes with `continuous_net_target: true`.  The stale checked-in
+envelope's second `AssignmentExpression:target` marker is therefore no longer
+evidence for the current extractor.  The ordinary census reaches the intended
+`PortSymbol:net-z` boundary for output `y`, where structured metadata keeps
+both generated driver records.  No canonical-E execution or real-design count
+transition is claimed by this correction.

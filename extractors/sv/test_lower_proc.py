@@ -139,6 +139,27 @@ class ResolvedNetDrivers(Base):
         self.assertTrue(all(p.get("continuous_net_target") for p in assigns))
         self.assertNotIn("AssignmentExpression:target", sv_kinds(m))
 
+    def test_dynamic_output_net_overlap_keeps_each_driver(self):
+        m = self.module(
+            "module t (input logic a, input logic b, output wire y); "
+            "assign y = a; assign y = b; endmodule")
+        assigns = [p for p in m["processes"] if p["kind"] == "Assign"]
+        self.assertEqual(len(assigns), 2)
+        self.assertEqual([p["target"]["name"] for p in assigns], ["y", "y"])
+        self.assertTrue(all(p.get("continuous_net_target") for p in assigns))
+        self.assertNotIn("AssignmentExpression:target", sv_kinds(m))
+        ports = [p for p in m["ports"]
+                 if p.get("sv_kind") == "PortSymbol:net-z"
+                 and p.get("metadata", {}).get("name") == "y"]
+        self.assertEqual(len(ports), 1)
+        self.assertEqual(ports[0].get("sv_kind"), "PortSymbol:net-z")
+        self.assertEqual(ports[0]["metadata"]["driver_records"], [
+            {"bounds": [0, 0], "owner_kind": "ContinuousAssignSymbol",
+             "owner_name": "", "generated": True, "source": "y"},
+            {"bounds": [0, 0], "owner_kind": "ContinuousAssignSymbol",
+             "owner_name": "", "generated": True, "source": "y"},
+        ])
+
 
 class TopModules(Base):
     """N3: the top may be a module that another module of the same sources instantiates."""
