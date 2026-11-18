@@ -31029,7 +31029,7 @@ def _convert_design(sm, comp, packages):
 
 from pyslang.syntax import SyntaxKind
 
-SYM_SYSCALLS = ("$clog2", "$bits", "$high", "$size")
+SYM_SYSCALLS = ("$clog2", "$bits", "$high", "$size", "$test$plusargs")
 
 # Extra operators admitted in symbolic expression positions only
 # (parameter defaults, localparam exprs, generate headers/conds, dims).

@@ -71,7 +71,7 @@ partial def stmtRows : PStmt → List Row
 
 def processRows : PProcess → List Row
   | .alwaysFF _ b | .alwaysFFNegedge _ b | .alwaysPlain _ b | .alwaysComb b | .alwaysLatch b | .alwaysImplicit b
-  | .alwaysFFR _ _ b _ | .alwaysEvent _ b | .initial b => stmtRows b
+  | .alwaysEvent _ b | .alwaysFFR _ _ b _ | .initial b => stmtRows b
   | .assign _ e | .assignL _ e => exprRows e
   | .unsupported k t => [{ construct := k, function := "parsePProcess", message := t }]
 
