@@ -5,8 +5,8 @@ This slice implements the MIR node census groups in the approved
 `Field` projections, `Ref` and tuple aggregates, pointer cells with provenance
 and chosen addresses, `Use` rvalues, constant operands, control flow, resolved
 calls, normal drop edges, and explicit refusal boundaries for cleanup,
-intrinsics, and foreign operations.  The implementation is 759 lines in
-`LeanModels/Rust/Semantics.lean`, with 75 lines of AST declarations, 210 lines
+intrinsics, and foreign operations.  The implementation is 799 lines in
+`LeanModels/Rust/Semantics.lean`, with 103 lines of AST declarations, 327 lines
 of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
@@ -130,7 +130,7 @@ refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and
 its per-row extractor timings are recorded in `docs/rust-slice1-audit.json`.
 The pinned Stage 0 Miri report records the exit, panic, and UB verdict for all
-31 measured rows under both borrow models.  The Lean semantics is 759 lines.
+31 measured rows under both borrow models.  The Lean semantics is 799 lines.
 The checked-in theorem rows include a user loop, a resolved user call, and a
 standard-library identity call proved from its extracted MIR body.
 

@@ -65,6 +65,26 @@ private def place (j : Json) : Except String Place := do
     | _ => .error "MIR place projection must be structured"
   pure { localId, projection }
 
+private def constantProvenance (constant : Json) : Option Nat :=
+  match constant.getObjVal? "kind" with
+  | .ok (.obj fields) =>
+      match fields.toList with
+      | [("Allocated", allocated)] =>
+          match allocated.getObjVal? "provenance" with
+          | .ok provenance =>
+              match provenance.getObjVal? "ptrs" with
+              | .ok ptrs =>
+                  match array ptrs with
+                  | .ok (ptr :: _) =>
+                      match array ptr with
+                      | .ok (_ :: target :: _) => (nat target).toOption
+                      | _ => none
+                  | _ => none
+              | _ => none
+          | _ => none
+      | _ => none
+  | _ => none
+
 private def operand (j : Json) : Except String Operand := do
   let (kind, value) ← variant j
   match kind with
@@ -82,7 +102,8 @@ private def operand (j : Json) : Except String Operand := do
             | [("ZeroSized", _)] => pure []
             | _ => pure []
         | .ok _ | .error _ => pure []
-      pure (.constant id bytes ty)
+      let provenance := constantProvenance constant
+      pure (.constant id bytes ty provenance)
   | other => pure (.unsupported other)
 
 private def rvalue (j : Json) : Except String Rvalue := do
@@ -101,6 +122,13 @@ private def rvalue (j : Json) : Except String Rvalue := do
       | ["BitAnd", left, right] => pure (.binaryBitAnd (← operand left) (← operand right))
       | ["Div", left, right] => pure (.binaryDiv (← operand left) (← operand right))
       | _ => pure (.unsupported "BinaryOp")
+  | "CheckedBinaryOp" => do
+      let values ← array value
+      match values with
+      | [op, left, right] => do
+          let opName ← string op
+          pure (.checkedBinary opName (← operand left) (← operand right))
+      | _ => .error "MIR CheckedBinaryOp has malformed operands"
   | "Ref" => do
       let values ← array value
       match values with

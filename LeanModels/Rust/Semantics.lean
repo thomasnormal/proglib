@@ -65,6 +65,12 @@ inductive Outcome where
   | outOfFuel
 deriving Repr, Inhabited, BEq, DecidableEq
 
+inductive CheckedOutcome where
+  | value (n : Int)
+  | overflow
+  | divideByZero
+deriving Repr, Inhabited, BEq, DecidableEq
+
 def Outcome.isReturned : Outcome → Bool
   | .returned _ => true
   | _ => false
@@ -81,6 +87,21 @@ def bytesValue (bytes : List Nat) : Option Int :=
   if bytes.length ≤ 8 ∧ bytes.all (· ≤ 255) then
     some (Int.ofNat (littleEndian bytes))
   else none
+
+def checkedSub32 (left right : Int) : CheckedOutcome :=
+  let result := left - right
+  if result < -(2 ^ 31) ∨ result > 2 ^ 31 - 1 then .overflow else .value result
+
+def checkedAdd32 (left right : Int) : CheckedOutcome :=
+  let result := left + right
+  if result < -(2 ^ 31) ∨ result > 2 ^ 31 - 1 then .overflow else .value result
+
+def checkedBinaryOutcome (op : String) (left right : Int) : CheckedOutcome :=
+  match op with
+  | "Sub" => checkedSub32 left right
+  | "Add" => checkedAdd32 left right
+  | "Div" => if right == 0 then .divideByZero else .value (left / right)
+  | _ => .overflow
 
 def placementOf (s : State) (localId : Nat) : Nat :=
   (s.placements.find? (fun item => item.1 == localId)).map (·.2) |>.getD localId
@@ -188,7 +209,13 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
     | none => none
 
 def operandCell (s : State) : Operand → Option Cell
-  | .constant _ bytes ty => typedBytesValue s ty bytes |>.map Cell.int
+  | .constant _ bytes ty provenance =>
+      match s.types.find? (fun item => item.id == toString ty), provenance with
+      | some info, some target =>
+          if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" then
+            some (.pointer { provenance := target, address := placementOf s target })
+          else typedBytesValue s ty bytes |>.map Cell.int
+      | _, _ => typedBytesValue s ty bytes |>.map Cell.int
   | .copy place | .move place =>
       readCell s place
   | .unsupported _ => none
@@ -214,6 +241,12 @@ def rvalueValue (s : State) : Rvalue → Option Int
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (leftValue / rightValue)
+  | .checkedBinary op left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      match checkedBinaryOutcome op leftValue rightValue with
+      | .value value => pure value
+      | .overflow | .divideByZero => none
   | .ref _ | .aggregate _ _ => none
   | .zstAggregate => some 0
   | .unsupported _ => none
@@ -236,6 +269,13 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       if rightValue == 0 then none else pure (.int (leftValue / rightValue))
+  | .checkedBinary op left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      match checkedBinaryOutcome op leftValue rightValue with
+      | .value value => pure (.aggregate [.int value, .int 0])
+      | .overflow => pure (.aggregate [.int 0, .int 1])
+      | .divideByZero => none
   | .ref place => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)

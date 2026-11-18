@@ -21,7 +21,7 @@ deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 inductive Operand where
   | copy (place : Place)
   | move (place : Place)
-  | constant (id : Nat) (bytes : List Nat) (ty : Nat)
+  | constant (id : Nat) (bytes : List Nat) (ty : Nat) (provenance : Option Nat := none)
   | unsupported (kind : String)
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
@@ -31,6 +31,7 @@ inductive Rvalue where
   | binaryNe (left right : Operand)
   | binaryBitAnd (left right : Operand)
   | binaryDiv (left right : Operand)
+  | checkedBinary (op : String) (left right : Operand)
   | ref (place : Place)
   | aggregate (tag : String) (fields : List Operand)
   | zstAggregate
