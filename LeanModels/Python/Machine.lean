@@ -1,4 +1,5 @@
 import LeanModels.Python.Machine.Core
+import LeanModels.Python.Machine.Relation
 
 namespace LeanModels.Python.Machine
 
