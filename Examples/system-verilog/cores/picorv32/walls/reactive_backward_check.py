@@ -67,6 +67,13 @@ def main() -> int:
     if shutil.which("xrun") is None:
         raise RuntimeError("Xcelium 24.03-s004 is required")
 
+    iverilog_version = run(["iverilog", "-V"], ROOT)
+    if "Icarus Verilog version 13.0" not in iverilog_version:
+        raise RuntimeError("unexpected Icarus version:\n" + iverilog_version)
+    xrun_version = run(["xrun", "-version"], ROOT)
+    if "24.03-s004" not in xrun_version:
+        raise RuntimeError("unexpected Xcelium version:\n" + xrun_version)
+
     with tempfile.TemporaryDirectory(prefix="sv-reactive-backward-") as work:
         directory = Path(work)
         executable = directory / "sim"
@@ -75,7 +82,7 @@ def main() -> int:
         actual = rows(run(["vvp", str(executable)], directory))
         if actual != EXPECTED:
             raise RuntimeError("Icarus rows: %r" % actual)
-    print("Icarus Verilog 13.0: 3 rows MATCH")
+    print("Icarus Verilog 13.0 (s20250103-64-gdad78d525): 3 rows MATCH")
 
     with tempfile.TemporaryDirectory(prefix="sv-reactive-backward-xcelium-") as work:
         directory = Path(work)
