@@ -439,6 +439,7 @@ theorem siteOf?_cases {ds : List DeclT} {pos : Nat} {p : PProcess} {st : TSite}
   | alwaysPlain _ _ => simp [siteOf?] at h
   | alwaysComb _ => simp [siteOf?] at h
   | alwaysImplicit _ => simp [siteOf?] at h
+  | alwaysEvent _ _ => simp [siteOf?] at h
   | alwaysFFR _ _ _ _ => simp [siteOf?] at h
   | alwaysFFNegedge _ _ => simp [siteOf?] at h
   | alwaysLatch _ => simp [siteOf?] at h

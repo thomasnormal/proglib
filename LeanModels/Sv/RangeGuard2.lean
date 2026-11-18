@@ -171,7 +171,7 @@ def PProcess.legacySelNames : PProcess → List String
   | .initial b => b.legacySelNames
   | .assign _ v => v.legacySelNames
   | .assignL t v => t.legacySelNames ++ v.legacySelNames
-  | .alwaysImplicit _ | .unsupported .. => []
+  | .alwaysImplicit _ | .alwaysEvent _ _ | .unsupported .. => []
 
 /-- … of an instance's port connections (input actuals are values of the
 instantiating scope, output actuals its targets). -/
@@ -324,7 +324,7 @@ def PProcess.bitIdxs : PProcess → List PExpr
   | .initial b => b.bitIdxs
   | .assign _ v => v.bitIdxs
   | .assignL t v => t.bitIdxs ++ v.bitIdxs
-  | .alwaysImplicit _ | .unsupported .. => []
+  | .alwaysImplicit _ | .alwaysEvent _ _ | .unsupported .. => []
 
 /-- … of an instance's port connections. -/
 def PConn.bitIdxs : PConn → List PExpr

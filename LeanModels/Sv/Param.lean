@@ -520,6 +520,20 @@ inductive PStmt where
   | unsupported (svKind : String) (text : String)
 deriving Repr, BEq, Inhabited
 
+/- Edge polarity retained on a plain event-controlled `always` list. -/
+inductive PEventEdge where
+  | any
+  | posedge
+  | negedge
+deriving Repr, BEq, Inhabited
+
+/-! A parser-shaped scalar event-list member. Expression events, guards, and
+aggregate selectors stay outside this first E admission slice. -/
+structure PEvent where
+  signal : String
+  edge : PEventEdge := .any
+deriving Repr, BEq, Inhabited
+
 /-- Processes: M0 shapes plus select-target continuous assigns and the
 async active-low reset event list (`@(posedge clock or negedge rstn)`). -/
 inductive PProcess where
@@ -535,6 +549,8 @@ inductive PProcess where
   body, retained for E. It first waits, unlike `always_comb` (§9.4.2.2).
   The frozen cycle views have no corresponding process and stay loud. -/
   | alwaysImplicit (body : PStmt)
+  /-- A plain `always` with a retained scalar event list (§9.4.2). -/
+  | alwaysEvent (events : List PEvent) (body : PStmt)
   | assign (target : String) (value : PExpr)
   | assignL (target : PLhs) (value : PExpr)
   | alwaysFFR (clock rstn : String) (body : PStmt) (resetHigh : Bool)
@@ -2515,6 +2531,8 @@ def instProcess (env : IEnv) : PProcess → Process
   | .alwaysComb b => .alwaysComb (instStmt env b)
   | .alwaysLatch b => .unsupported "AlwaysLatch" "level-sensitive latch process is outside the scalar M0 tier"
   | .alwaysImplicit _ => .unsupported "ProceduralBlockSymbol:Always"
+      "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
+  | .alwaysEvent _ _ => .unsupported "ProceduralBlockSymbol:Always"
       "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
   | .assign t v => .assign t (instExpr env (env.widths.lookup t) v)
   | .assignL .. => .unsupported "T2:AssignL" "select target outside the M0 tier"

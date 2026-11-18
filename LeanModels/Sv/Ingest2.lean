@@ -1,5 +1,6 @@
 import Lean
 import LeanModels.Sv.Param
+import LeanModels.Sv.ParamExpr
 import LeanModels.Sv.Param2
 import LeanModels.Sv.Hier2
 import LeanModels.Sv.Probe2
@@ -143,6 +144,19 @@ private def getIntField (j : Json) (name : String) : Except String Int := do
 /-- Optional string field. -/
 private def getOptStr (j : Json) (name : String) : Option String :=
   (getOptField j name).bind (·.getStr?.toOption)
+
+private def parsePEvent (j : Json) : Except String PEvent := do
+  let signal ← getStrField j "signal"
+  let edge ← match getOptStr j "edge" with
+    | none | some "any" => pure .any
+    | some "posedge" | some "pos" => pure .posedge
+    | some "negedge" | some "neg" => pure .negedge
+    | some e => throw s!"unknown event edge {e.quote}"
+  pure { signal, edge }
+
+private def parsePEvents (j : Json) : Except String (List PEvent) := do
+  let xs ← withCtx "field 'events'" j.getArr?
+  xs.toList.mapM parsePEvent
 
 /-- Optional metadata field (`resolved`-family) — never load-bearing, so
 an unparseable value degrades to `none`, silently by design. -/
@@ -732,8 +746,10 @@ def parsePProcess (j : Json) : Except String PProcess := do
           if (getOptField j "style").isSome && getOptStr j "style" != some "always" then
             throw "AlwaysEvent:implicit-style — an implicit event control is retained as plain always"
           return .alwaysImplicit (← parsePStmt (← getField j "body"))
-        return .unsupported "ProceduralBlockSymbol:Always"
-          "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
+        let events ← parsePEvents (← getField j "events")
+        if events.isEmpty then
+          throw "AlwaysEvent:events — retained event list is empty"
+        return .alwaysEvent events (← parsePStmt (← getField j "body"))
     | "Initial" =>
         -- Retain the parser's process node.  The ordinary cycle tier still
         -- reports it as outside M0, while the source-shaped memory route has
@@ -1900,6 +1916,17 @@ private def unsupMemberText : String := r#"{
 #guard match (Json.parse r#"{"kind":"AlwaysEvent","event_kind":"ImplicitEventControl",
     "body":{"kind":"Empty"}}"# >>= parseGenItem).toOption with
   | some (.process (.alwaysImplicit (.block []))) => true
+  | _ => false
+-- Explicit scalar event lists retain every parser-provided edge and reject
+-- empty or malformed lists instead of falling through to a generic process.
+#guard match (Json.parse r#"{"kind":"AlwaysEvent","events":[{"signal":"a","edge":"any"},{"signal":"clk","edge":"posedge"},{"signal":"rst","edge":"negedge"}],"body":{"kind":"Empty"}}"# >>= parsePProcess).toOption with
+  | some (.alwaysEvent [{ signal := "a", edge := .any }, { signal := "clk", edge := .posedge }, { signal := "rst", edge := .negedge }] _) => true
+  | _ => false
+#guard match (Json.parse r#"{"kind":"AlwaysEvent","events":[],"body":{"kind":"Empty"}}"# >>= parsePProcess) with
+  | .error _ => true
+  | _ => false
+#guard match (Json.parse r#"{"kind":"AlwaysEvent","events":[{"signal":"a","edge":"sideways"}],"body":{"kind":"Empty"}}"# >>= parsePProcess) with
+  | .error _ => true
   | _ => false
 #guard match (Json.parse r#"{"kind": "UnpackedDecl", "span": null, "name": "mem",
     "width": {"kind": "PackedType", "packed": [], "resolved": 1},

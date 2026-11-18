@@ -44,6 +44,11 @@ structure CoreMemEdge where
   style : EdgeStyle := .alwaysFF
 deriving Repr, Inhabited
 
+structure CoreMemEvent where
+  signal : String
+  edge : PEventEdge := .any
+deriving Repr, Inhabited
+
 inductive CoreMemProc where
   | edge (p : CoreMemEdge)
   | assign (target : PLhs) (value : PExpr)
@@ -56,6 +61,8 @@ inductive CoreMemProc where
       Its source body remains a `PStmt`; the memory route does not lower it
       into a clocked or combinational surrogate. -/
   | implicit (body : PStmt)
+  /-- Plain `always` event list, retained source-shaped until publication. -/
+  | event (events : List CoreMemEvent) (body : PStmt)
   /-- A level-sensitive `always_latch`; its source node uses the exact
       implicit-sensitivity executor while remaining distinct in the AST. -/
   | latch (body : PStmt)
@@ -322,6 +329,7 @@ def CoreMemProc.ofPProcess : PProcess → CoreMemProc
   | .alwaysComb body => .comb body
   | .alwaysLatch body => .latch body
   | .alwaysImplicit body => .implicit body
+  | .alwaysEvent events body => .event (events.map fun e => { signal := e.signal, edge := e.edge }) body
   | .initial body => .initial body
   | .unsupported kind text => .unsupported kind text
 
@@ -338,6 +346,21 @@ def CoreMemProc.ofPProcessAt (env : IEnv) : PProcess → CoreMemProc
       | .ok () => .comb (.block [])
       | .error _ => .initial body
   | p => CoreMemProc.ofPProcess p
+
+def coreMemEventEdge : PEventEdge → ClockEdge → Bool
+  | .any, _ => true
+  | .posedge, _ => true
+  | .negedge, _ => true
+
+def coreMemEventFires (old new : SvState) (e : CoreMemEvent) : Bool :=
+  match e.edge with
+  | .any => SvState.bit0 old e.signal != SvState.bit0 new e.signal
+  | .posedge => isPosedge (SvState.bit0 old e.signal) (SvState.bit0 new e.signal)
+  | .negedge => isNegedge (SvState.bit0 old e.signal) (SvState.bit0 new e.signal)
+
+def coreMemEventsFire (old new : SvState) : List CoreMemEvent → Bool
+  | [] => false
+  | e :: rest => coreMemEventFires old new e || coreMemEventsFire old new rest
 
 /-! Canonical E's one-slot transition compares the slot's starting view with
 the settled pre-edge view.  IEEE 1800-2023 §§4.4 and 9.4.2 instead schedule a
@@ -412,12 +435,14 @@ end
 def coreMemProcWrites : PProcess → List String
   | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysEvent _ body
   | .alwaysFFR _ _ body _ | .initial body => coreMemStmtWrites body
   | .assign _ _ | .assignL _ _ | .unsupported _ _ => []
 
 def coreMemProcBlockingWrites : PProcess → List String
   | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysEvent _ body
   | .alwaysFFR _ _ body _ | .initial body => coreMemStmtBlockingWrites body
   | .assign _ _ | .assignL _ _ | .unsupported _ _ => []
 
@@ -2101,6 +2126,7 @@ def CoreMemDesign.runImplicitAt (E : CoreMemDesign) (before current : CoreMemSta
             "ProceduralBlockSymbol:Always: implicit event process re-triggered in one active pass"
         else
           E.runImplicitAt before after beforeView afterView (index + 1) rest
+  | .event _ _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .assign _ _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .edge _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .initial _ :: rest => E.runImplicitAt before current beforeView currentView (index + 1) rest
@@ -2147,6 +2173,7 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | .edge _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .initial _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .implicit _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
+  | .event _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .latch body :: rest => do
       let reads := coreMemStmtReadExprs body
       let ready ← E.readChangedAt before current beforeView currentView index reads
@@ -2405,6 +2432,7 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
   | .initial _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .comb _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .implicit _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
+  | .event _ _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .latch _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .unsupported kind text :: _ =>
       .unsupported s!"{kind}: {text}"
@@ -2529,6 +2557,12 @@ def CoreMemDesign.runEdges (E : CoreMemDesign) (env : IEnv) (elems : List (Strin
   | .edge p :: rest =>
       if p.fires before after then do
         let a ← E.execStmt env elems st p.body
+        let b ← E.runEdges env elems a.state before after rest
+        .ok (CoreMemExec.append a b)
+      else E.runEdges env elems st before after rest
+  | .event events body :: rest =>
+      if coreMemEventsFire before after events then do
+        let a ← E.execStmt env elems st body
         let b ← E.runEdges env elems a.state before after rest
         .ok (CoreMemExec.append a b)
       else E.runEdges env elems st before after rest

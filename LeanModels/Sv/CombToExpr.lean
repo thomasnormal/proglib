@@ -1,3 +1,4 @@
+import LeanModels.Sv.ParamExpr
 import LeanModels.Sv.CombView
 
 /-!

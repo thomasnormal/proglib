@@ -27543,6 +27543,18 @@ def convert_procedural_block(sm, m, module_level=False):
             # applies WP-PROC E1 and admits the always_comb-equivalent shape.
             timing = getattr(body, "timing", None)
             timed_body = getattr(body, "stmt", body)
+            # Keep Slang's event-control nodes in the envelope.  The
+            # canonical loader must never recover this information from the
+            # source spelling or from the diagnostic text.
+            if timing is not None:
+                if hasattr(timing, "events"):
+                    retained = _event_list_process(sm, m, body, timing, "always")
+                    if retained is not None:
+                        return retained
+                elif type(timing).__name__ == "SignalEventControl":
+                    retained = _single_event_process(sm, m, body, timing)
+                    if retained is not None:
+                        return retained
             return {
                 "kind": "AlwaysEvent",
                 "span": span,

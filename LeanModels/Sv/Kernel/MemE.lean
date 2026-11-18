@@ -762,6 +762,8 @@ def memEProcessAdmission : PProcess → Except String Unit
   | .alwaysFFR _ _ _ true =>
       .error "E memory route does not yet admit active-high asynchronous reset events"
   | .alwaysImplicit body => memEImplicitBodyAdmission body
+  | .alwaysEvent _ _ =>
+      .error "E memory route does not yet admit explicit event-list processes"
   | .assign _ _ => .ok ()
   | .assignL _ _ =>
       .error "E memory route does not yet admit select-target continuous assignments"

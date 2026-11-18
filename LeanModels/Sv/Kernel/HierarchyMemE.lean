@@ -64,6 +64,7 @@ private def hProcess (pfx : String) (clockMap : List (String × String)) : PProc
   | .alwaysComb b => .alwaysComb (hStmt pfx b)
   | .alwaysLatch b => .alwaysLatch (hStmt pfx b)
   | .alwaysImplicit b => .alwaysImplicit (hStmt pfx b)
+  | .alwaysEvent events b => .alwaysEvent (events.map fun e => { e with signal := pfx ++ e.signal }) (hStmt pfx b)
   | .alwaysFFR c r b hi => .alwaysFFR (clockMap.lookup c |>.getD (pfx ++ c))
       (clockMap.lookup r |>.getD (pfx ++ r)) (hStmt pfx b) hi
   | .assign n e => .assign (pfx ++ n) (hExpr pfx e)

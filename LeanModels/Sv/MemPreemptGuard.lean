@@ -238,6 +238,8 @@ def PProcess.memPreemptAccess (d : MemDesign2) : PProcess → ProcessAccess
       (PStmt.memPreemptReads d b, PStmt.memPreemptWrites d b)
   | .alwaysComb b | .alwaysLatch b | .alwaysImplicit b | .initial b =>
       (PStmt.memPreemptReads d b, PStmt.memPreemptWrites d b)
+  | .alwaysEvent _ b =>
+      (PStmt.memPreemptReads d b, PStmt.memPreemptWrites d b)
   | .unsupported _ _ => ([], [])
 
 namespace Kernel

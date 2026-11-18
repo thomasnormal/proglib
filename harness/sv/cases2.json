@@ -73899,6 +73899,25 @@
           "x": "z"
         }
       ]
+    },
+    {
+      "name": "event_control_repro_ecanon",
+      "example": "event_control_repro",
+      "top": "top",
+      "signals": ["a", "b", "q_clk", "q_event"],
+      "stimulus": [
+        {"a": "0", "b": "0"},
+        {"a": "1", "b": "0"},
+        {"a": "1", "b": "1"},
+        {"a": "1", "b": "1"},
+        {"a": "1", "b": "1"},
+        {"a": "0", "b": "1"},
+        {"a": "0", "b": "0"}
+      ],
+      "measured": "Clean-room scalar event-list row. Explicit posedge and any-change event members are retained in E and compared against pinned simulators.",
+      "file": "event_control_repro",
+      "canonical_e": true,
+      "clock": "clk"
     }
   ]
 }

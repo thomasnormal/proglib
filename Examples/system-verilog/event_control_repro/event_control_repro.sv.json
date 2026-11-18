@@ -1,0 +1,242 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "top",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/event_control_repro/event_control_repro.sv",
+      "sha256": "f4f9b484b130084415e456b24d33bf2ac6cb2758902d484738d0e55a04941eb5"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 3,
+          "col": 1,
+          "end_line": 6,
+          "end_col": 10
+        },
+        "name": "top",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 24,
+              "end_line": 3,
+              "end_col": 27
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 41,
+              "end_line": 3,
+              "end_col": 42
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 56,
+              "end_line": 3,
+              "end_col": 57
+            },
+            "name": "b",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 72,
+              "end_line": 3,
+              "end_col": 77
+            },
+            "name": "q_clk",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 92,
+              "end_line": 3,
+              "end_col": 99
+            },
+            "name": "q_event",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 4,
+              "end_col": 36
+            },
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "clk"
+              }
+            ],
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 4,
+                "col": 25,
+                "end_line": 4,
+                "end_col": 36
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 25,
+                  "end_line": 4,
+                  "end_col": 30
+                },
+                "width": 1,
+                "name": "q_clk"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 34,
+                  "end_line": 4,
+                  "end_col": 35
+                },
+                "width": 1,
+                "name": "a"
+              }
+            }
+          },
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 5,
+              "col": 3,
+              "end_line": 5,
+              "end_col": 36
+            },
+            "events": [
+              {
+                "signal": "a",
+                "edge": "any"
+              },
+              {
+                "signal": "b",
+                "edge": "any"
+              }
+            ],
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 5,
+                "col": 20,
+                "end_line": 5,
+                "end_col": 36
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 20,
+                  "end_line": 5,
+                  "end_col": 27
+                },
+                "width": 1,
+                "name": "q_event"
+              },
+              "value": {
+                "kind": "Binary",
+                "span": {
+                  "line": 5,
+                  "col": 30,
+                  "end_line": 5,
+                  "end_col": 35
+                },
+                "width": 1,
+                "op": "^",
+                "left": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 5,
+                    "col": 30,
+                    "end_line": 5,
+                    "end_col": 31
+                  },
+                  "width": 1,
+                  "name": "a"
+                },
+                "right": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 5,
+                    "col": 34,
+                    "end_line": 5,
+                    "end_col": 35
+                  },
+                  "width": 1,
+                  "name": "b"
+                }
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

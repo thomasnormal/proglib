@@ -7019,3 +7019,8 @@ the defined sampling and NBA rules.
   envelope twin. They load as the named `CallExpression:user-function`
   boundary while the default pure-function inliner remains unchanged.
 
+- Retained parser-native scalar event lists for plain event-controlled
+  `always` processes.  Canonical E now carries `any`, `posedge`, and `negedge`
+  members through the source-shaped memory route, while frozen scalar and
+  MemE routes refuse them loudly.  Added parser guards and an Icarus/Xcelium
+  clean-room differential row.

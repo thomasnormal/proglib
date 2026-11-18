@@ -887,6 +887,7 @@ def expandFunctionProcess (env : IEnv) : PProcess → PProcess
   | .alwaysComb b => .alwaysComb (expandFunctionStmt env b)
   | .alwaysLatch b => .alwaysLatch (expandFunctionStmt env b)
   | .alwaysImplicit b => .alwaysImplicit (expandFunctionStmt env b)
+  | .alwaysEvent events b => .alwaysEvent events (expandFunctionStmt env b)
   | .assign t v => .assign t (expandFunctionCalls env v)
   | .assignL t v => .assignL t (expandFunctionCalls env v)
   | .alwaysFFR c r b high => .alwaysFFR c r (expandFunctionStmt env b) high
@@ -1560,6 +1561,8 @@ def instProcess2 (env : IEnv) (elems : List (String × Nat)) : PProcess → Proc
   | .alwaysComb b => combGuardProc (fun n => env.widths.lookup n) (instStmt2 env elems b)
   | .alwaysLatch _ => .unsupported "AlwaysLatch" "level-sensitive latch process is outside the scalar cycle tier"
   | .alwaysImplicit _ => .unsupported "ProceduralBlockSymbol:Always"
+      "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
+  | .alwaysEvent _ _ => .unsupported "ProceduralBlockSymbol:Always"
       "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
   | .alwaysFFR c rn b resetHigh =>
       @Process2.alwaysFFR c rn (instStmt2 env elems b) resetHigh

@@ -113,6 +113,7 @@ private def hParamProcess (vals : List (String × Int)) : PProcess → PProcess
   | .alwaysComb b => .alwaysComb (hParamStmt vals b)
   | .alwaysLatch b => .alwaysLatch (hParamStmt vals b)
   | .alwaysImplicit b => .alwaysImplicit (hParamStmt vals b)
+  | .alwaysEvent events b => .alwaysEvent events (hParamStmt vals b)
   | .assign n e => .assign n (hParamExpr vals e)
   | .assignL l e => .assignL (hParamLhs vals l) (hParamExpr vals e)
   | .alwaysFFR c r b hi => .alwaysFFR c r (hParamStmt vals b) hi
@@ -181,6 +182,7 @@ private def hProcess (pfx : String) (clockMap : List (String × String)) : PProc
   | .alwaysComb b => .alwaysComb (hStmt pfx b)
   | .alwaysLatch b => .alwaysLatch (hStmt pfx b)
   | .alwaysImplicit b => .alwaysImplicit (hStmt pfx b)
+  | .alwaysEvent events b => .alwaysEvent (events.map fun e => { e with signal := pfx ++ e.signal }) (hStmt pfx b)
   | .alwaysFFR c r b hi => .alwaysFFR (clockMap.lookup c |>.getD (pfx ++ c))
       (clockMap.lookup r |>.getD (pfx ++ r)) (hStmt pfx b) hi
   | .assign n e => .assign (pfx ++ n) (hExpr pfx e)
