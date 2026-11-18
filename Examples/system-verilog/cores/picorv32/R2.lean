@@ -258,6 +258,8 @@ theorem PicoRV32Backend.admit_inhabited {E : ESig} (b : PicoRV32Backend E) :
     ∃ env, b.admit env := by
   exact ⟨b.realize b.environment, rfl⟩
 
+#print axioms PicoRV32Backend.admit_inhabited
+
 /-- Reset starts the ISA at the pinned `PROGADDR_RESET = 0` and keeps the
 loaded program as the initial byte memory. -/
 def picoRV32Initial {E : ESig} (b : PicoRV32Backend E) : RvMemoryState :=
@@ -469,6 +471,8 @@ theorem BoundedNextRetirement.toRetiresTarget {State : Type}
           obtain ⟨n, hn⟩ := ih
           obtain ⟨n', _, hn'⟩ := h.next k n hn
           exact ⟨n', by simpa [Nat.add_assoc] using hn'⟩
+
+#print axioms BoundedNextRetirement.toRetiresTarget
 
 /-- The separate R2 progress theorem.  The bounded next-retirement premise
 is the only liveness assumption; safety above does not imply it. -/
