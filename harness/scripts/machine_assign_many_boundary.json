@@ -1,0 +1,60 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_assign_many_boundary.py",
+  "source_sha256": "3612bc546161d9158a66a3295c8fa062cf2332da27541b749c46292d69e0b30a",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 9
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 1
+            },
+            "id": "x"
+          },
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 4,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "y"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 8,
+            "end_lineno": 1,
+            "end_col_offset": 9
+          },
+          "value": {
+            "type": "int",
+            "repr": "1"
+          }
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
