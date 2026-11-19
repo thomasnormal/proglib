@@ -280,6 +280,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_nonlocal_decl.py",
+    "envelope": "harness/scripts/machine_nonlocal_decl.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "match"

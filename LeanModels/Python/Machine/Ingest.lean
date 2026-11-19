@@ -309,7 +309,7 @@ partial def mStmt (j : Json) : Except String MStmt := do
       (← (← (← mField j "body").getArr?).mapM mStmt)
       (← (← (← mField j "orelse").getArr?).mapM mStmt)
       false span)
-  | "FunctionDef" => pure (.functionDef (← (← mField j "name").getStr?)
+  | "FunctionDef" | "NestedDef" => pure (.functionDef (← (← mField j "name").getStr?)
       (← mFunctionArguments (← mField j "args")) #[] none
       (← (← (← mField j "body").getArr?).mapM mStmt) span)
   | "Global" => pure (.global (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
