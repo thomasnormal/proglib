@@ -368,5 +368,10 @@
     "source": "harness/scripts/machine_aug_assign.py",
     "envelope": "harness/scripts/machine_aug_assign.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_for_unpack.py",
+    "envelope": "harness/scripts/machine_for_unpack.json",
+    "expect": "match"
   }
 ]
