@@ -567,6 +567,13 @@ def Layout.fieldSizeAt (layout : Layout) (base : Expr) (field : String) :
   (directDeclId base).bind (fun did => layout.fieldSizeDecl did field)
     |>.orElse (fun _ => layout.fieldSize base.ty field)
 
+/-- Resolve a named member offset through the declaration identity of its
+base object before the legacy type-keyed offset table. -/
+def Layout.fieldOffAt (layout : Layout) (base : Expr) (field : String) :
+    Option Nat :=
+  (directDeclId base).bind (fun did => layout.fieldOffDecl did field)
+    |>.orElse (fun _ => layout.fieldOff base.ty field)
+
 def Layout.arrayElementSizeAt (layout : Layout) (arrayTy elementTy : CType) :
     Option Nat :=
   layout.arrayElementSize arrayTy |>.orElse
@@ -2002,8 +2009,7 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
       match ctx.layout.structuredTypeAt base with
       | some structuredType =>
           if structuredType.recordLike then
-            (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
-              |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
+            ctx.layout.fieldOffAt base field
           else
             -- A typedef reference is a parser-native identity node whose
             -- underlying record is supplied by the translation unit's
@@ -2011,8 +2017,7 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
             -- retaining the loud fallback for scalar and function types.
             ctx.layout.fieldOff base.ty field
       | none =>
-          (directDeclId base).bind (fun did => ctx.layout.fieldOffDecl did field)
-            |>.orElse (fun _ => ctx.layout.fieldOff base.ty field)
+          ctx.layout.fieldOffAt base field
   match off? with
   | some off =>
       let fieldSize := match ctx.layout.structuredTypeAt base with
