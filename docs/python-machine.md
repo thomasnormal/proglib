@@ -83,6 +83,8 @@ Unary negation on an instance dispatches to an explicit `__neg__` method;
 integer unary negation keeps its existing path.
 Unary plus on an instance dispatches to an explicit `__pos__` method;
 integer unary plus keeps its existing path.
+Addition with an instance on the left dispatches to an explicit `__add__`
+method; integer and string addition keep their existing paths.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
