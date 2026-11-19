@@ -2800,6 +2800,12 @@ def convert_stmt(node, enclosing=None, module_scope=False,
                 "module": node.names[0].name,
                 "names": [],
             }
+        out = unsupported(node, "Import", machine_kind="Import")
+        out["machine_names"] = [
+            {"name": alias.name, "asname": alias.asname}
+            for alias in node.names
+        ]
+        return out
 
     if isinstance(node, ast.ImportFrom):
         if id(node) in _DEAD_IMPORT_NODES:
@@ -2866,6 +2872,15 @@ def convert_stmt(node, enclosing=None, module_scope=False,
                 if star:
                     out["star"] = True
                 return out
+
+        out = unsupported(node, "ImportFrom", machine_kind="ImportFrom")
+        out["machine_module"] = node.module
+        out["machine_level"] = node.level
+        out["machine_names"] = [
+            {"name": alias.name, "asname": alias.asname}
+            for alias in node.names
+        ]
+        return out
 
     return unsupported(node)
 

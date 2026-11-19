@@ -1,0 +1,128 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_import_alias_boundary.py",
+  "source_sha256": "1667c601b48d371d4e1d1b93fec316ac18966ef99a775bc6e3b475295514db62",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Unsupported",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 48
+        },
+        "py_kind": "Import",
+        "text": "import package.submodule as alias, package.other",
+        "machine_kind": "Import",
+        "machine_value": null,
+        "machine_names": [
+          {
+            "name": "package.submodule",
+            "asname": "alias"
+          },
+          {
+            "name": "package.other",
+            "asname": null
+          }
+        ]
+      },
+      {
+        "kind": "Unsupported",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 38
+        },
+        "py_kind": "ImportFrom",
+        "text": "from ..relative import item as renamed",
+        "machine_kind": "ImportFrom",
+        "machine_value": null,
+        "machine_module": "relative",
+        "machine_level": 2,
+        "machine_names": [
+          {
+            "name": "item",
+            "asname": "renamed"
+          }
+        ]
+      },
+      {
+        "kind": "Unsupported",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 24
+        },
+        "py_kind": "ImportFrom",
+        "text": "from ..relative import *",
+        "machine_kind": "ImportFrom",
+        "machine_value": null,
+        "machine_module": "relative",
+        "machine_level": 2,
+        "machine_names": [
+          {
+            "name": "*",
+            "asname": null
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 4,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 8
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 4,
+            "col_offset": 0,
+            "end_lineno": 4,
+            "end_col_offset": 8
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 4,
+              "col_offset": 0,
+              "end_lineno": 4,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 4,
+                "col_offset": 6,
+                "end_lineno": 4,
+                "end_col_offset": 7
+              },
+              "value": {
+                "type": "int",
+                "repr": "0"
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
