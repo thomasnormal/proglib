@@ -1,0 +1,119 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "loader_refuse_negedge_reset",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/loader_refuse_negedge_reset/loader_refuse_negedge_reset.sv",
+      "sha256": "96bd8904101976f68ca850ad37f4954ed8086f3022bb355313c7172395dcb035"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "loader_refuse_negedge_reset",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 48,
+              "end_line": 2,
+              "end_col": 51
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 53,
+              "end_line": 2,
+              "end_col": 58
+            },
+            "name": "rst_n",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 60,
+              "end_line": 2,
+              "end_col": 61
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 76,
+              "end_line": 2,
+              "end_col": 77
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 6,
+              "end_col": 6
+            },
+            "sv_kind": "TimedStatement:EventListControl",
+            "text": "always_ff @(negedge clk or negedge rst_n) begin\n    if (!rst_n) q <= 1'b0;\n    else q <= d;\n  end"
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

@@ -1237,6 +1237,26 @@
       ]
     },
     {
+      "name": "loader_refuse_negedge_reset",
+      "example": "sem2/loader_refuse_negedge_reset",
+      "top": "loader_refuse_negedge_reset",
+      "refusal": "TimedStatement:EventListControl",
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {
+          "rst_n": "0",
+          "d": "0"
+        },
+        {
+          "rst_n": "1",
+          "d": "1"
+        }
+      ],
+      "measured": "2026-11-19: mixed negedge clock and negedge asynchronous reset is retained by the parser but remains a named TimedStatement:EventListControl loader refusal; Icarus Verilog 13.0 and Xcelium 24.03-s004 match eight four-state rows."
+    },
+    {
       "name": "loader_refuse_iff",
       "example": "sem2/loader_refuse_iff",
       "top": "loader_refuse_iff",
