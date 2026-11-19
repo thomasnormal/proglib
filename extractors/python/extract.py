@@ -1011,6 +1011,30 @@ def convert_param(p, default=None, positional_only=False, keyword_only=False,
     return d
 
 
+def machine_argument(p):
+    """Encode one CPython ``ast.arg`` without the compatibility projection."""
+    out = {"arg": p.arg, "span": span(p)}
+    if p.annotation is not None:
+        out["annotation"] = convert_expr(p.annotation)
+    if getattr(p, "type_comment", None) is not None:
+        out["type_comment"] = p.type_comment
+    return out
+
+
+def machine_arguments(args):
+    """Encode CPython's seven-field ``ast.arguments`` node directly."""
+    return {
+        "posonlyargs": [machine_argument(p) for p in args.posonlyargs],
+        "args": [machine_argument(p) for p in args.args],
+        "vararg": machine_argument(args.vararg) if args.vararg is not None else None,
+        "kwonlyargs": [machine_argument(p) for p in args.kwonlyargs],
+        "kw_defaults": [convert_expr(d) if d is not None else None
+                         for d in args.kw_defaults],
+        "kwarg": machine_argument(args.kwarg) if args.kwarg is not None else None,
+        "defaults": [convert_expr(d) for d in args.defaults],
+    }
+
+
 def _walk_scope(fn, include_boundaries=False):
     """All nodes of fn's own scope: descends the body but not into nested
     scopes. Optionally yields their defining nodes without entering them."""
@@ -2043,6 +2067,7 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             # nested deeper (inside an if/loop) stays a plain
             # FunctionDef/Lambda node, which ingestion refuses loudly
             "body": body,
+            "machine_arguments": machine_arguments(a),
         }
         if isinstance(node, ast.AsyncFunctionDef):
             # Keep the approved AST distinction available to the machine

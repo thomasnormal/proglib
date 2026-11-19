@@ -373,13 +373,18 @@ def rConstValue : Const → RVal
   | .str s => .str s
   | .bytes xs => .bytes xs
 
+def rConstExprValue : Expr → Option RVal
+  | .constant value _ => some (rConstValue value)
+  | .unaryOp .usub (.constant (.int value) _) _ => some (.int (-value))
+  | .unaryOp .uadd (.constant (.int value) _) _ => some (.int value)
+  | _ => none
+
 def rConstValues : List Expr → Option (List RVal)
   | [] => some []
-  | .constant value _ :: rest =>
-      match rConstValues rest with
-      | some values => some (rConstValue value :: values)
-      | none => none
-  | _ :: _ => none
+  | expression :: rest =>
+      match rConstExprValue expression, rConstValues rest with
+      | some value, some values => some (value :: values)
+      | _, _ => none
 
 def rEvalDefaultValues (defaults : Array Expr) : Option (Array RVal) :=
   (rConstValues defaults.toList).map List.toArray

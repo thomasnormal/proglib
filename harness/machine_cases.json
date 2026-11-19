@@ -578,5 +578,10 @@
     "source": "harness/scripts/machine_display_unpack_boundary.py",
     "envelope": "harness/scripts/machine_display_unpack_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_arguments_boundary.py",
+    "envelope": "harness/scripts/machine_arguments_boundary.json",
+    "expect": "match"
   }
 ]
