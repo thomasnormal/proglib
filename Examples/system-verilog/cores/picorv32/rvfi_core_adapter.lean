@@ -44,6 +44,31 @@ def rvfiObservation (d : CoreMemDesign) (st : CoreMemState) :
     Option RvfiObservation :=
   decode "rvfi_" (rvfiPortSample d st)
 
+theorem rvfiObservation_memAddr_of_valid
+    {d : CoreMemDesign} {st : CoreMemState} {row : RvfiObservation}
+    {addr : Word}
+    (hobs : rvfiObservation d st = some row)
+    (hvalid : row.valid = true)
+    (haddr : (rvfiPortSample d st).read "rvfi_mem_addr" = some (.ofBitVec addr)) :
+    row.memAddr = addr := by
+  have hv := decode_valid "rvfi_" (rvfiPortSample d st) row (by
+    simpa [rvfiObservation] using hobs)
+  have hv' : readBits 1 (rvfiPortSample d st) ("rvfi_" ++ "valid") = some 1 := by
+    simpa [hvalid] using hv
+  have hm : readBits 32 (rvfiPortSample d st) ("rvfi_" ++ "mem_addr") = some addr :=
+    readBits_ofBitVec _ _ _ haddr
+  change decode "rvfi_" (rvfiPortSample d st) = some row at hobs
+  unfold decode at hobs
+  rw [hv'] at hobs
+  simp at hobs
+  cases hp : readPayload "rvfi_" (rvfiPortSample d st) with
+  | none => simp [hp] at hobs
+  | some payload =>
+      rw [hp] at hobs
+      have hpayload := readPayload_memAddr_of_some hp hm
+      simp at hobs
+      exact (Payload.toObservation?_memAddr payload row hobs).trans hpayload
+
 theorem rvfiObservation_eq_decode (d : CoreMemDesign) (st : CoreMemState) :
     rvfiObservation d st = decode "rvfi_" (rvfiPortSample d st) := rfl
 
@@ -342,6 +367,7 @@ theorem CoreAddiBoundary.to_addi_invariant_valid_branch
   exact ⟨next, observation, hrun, hboundary, hpost next observation hrun⟩
 
 #print axioms rvfiPortSample_read
+#print axioms rvfiObservation_memAddr_of_valid
 #print axioms rvfiObservation_eq_decode
 #print axioms rvfiStep_ok_of_fast_and_decode
 #print axioms rvfiStep_ok_iff_fast_and_decode
