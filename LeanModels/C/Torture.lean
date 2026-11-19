@@ -890,7 +890,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
             | _, none => setupGlobalsWithIds fuel lay ds acc ids'
             | _, some e => do
                 initObject fuel ({ env := acc, idEnv := ids', layout := lay } : Ctx).withCompoundInit
-                  (Ptr.toObject o) ty e
+                  (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl)
                 setupGlobalsWithIds fuel lay ds acc ids'
         | none =>
           if storage == some "extern" then
@@ -913,7 +913,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
                   let (m', o) := m.alloc .static_ sz (some ty)
                   set m'
                   initObject fuel ({ env := acc, idEnv := ids, layout := lay } : Ctx).withCompoundInit
-                    (Ptr.toObject o) ty e
+                    (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl)
                   setupGlobalsWithIds fuel lay ds ((nm, o) :: acc)
                     (match declaration with
                     | some id => (id, o) :: ids

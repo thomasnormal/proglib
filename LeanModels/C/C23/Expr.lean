@@ -602,11 +602,14 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
   decl.bind layout.declSize |>.orElse
     (fun _ => layout.size (layout.normalizeTy ty))
 
+def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
+    Option LeanModels.Clang.QualType :=
+  (layout.structuredType id).bind (LeanModels.Clang.QualType.resolveTypedefs
+    (fun declaration => layout.structuredType { value := declaration.value }) 32)
+
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
-  (directDeclId base).bind layout.structuredType
-    |>.bind (LeanModels.Clang.QualType.resolveTypedefs
-      (fun declaration => layout.structuredType { value := declaration.value }) 32)
+  (directDeclId base).bind layout.structuredTypeDecl
 
 /-- Resolve a pointer stride from the declaration identity that owns the
 pointer expression, then from the parser-native type-layout table.  There is
@@ -974,12 +977,13 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
         | none => refuseUnsupported s!"aggregate load without a layout '{ty}'"
 
 /-- Store a value at an address, at the lvalue's type. -/
-def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal) : EvalM Unit :=
+def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
+    (structured : Option LeanModels.Clang.QualType := none) : EvalM Unit :=
   match v with
   | .funPtr id => writeMem (fun m => Mem.storeFunction m p id)
   | .ptr q => writeMem (fun m => Mem.storePtr m p q)
   | .ptrInt q =>
-      if isPtrIntType ty then writeMem (fun m => Mem.storePtrInt m p q)
+      if isPtrIntType ty structured then writeMem (fun m => Mem.storePtrInt m p q)
       else refuseUnsupported "pointer-integer value stored outside uintptr_t/intptr_t"
   | .int _ n => do
       let t ← intTyOf ty
@@ -1612,11 +1616,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               loadBitFieldAt ctx base.ty field fieldTy p (some base)
             else
               storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
+                (ctx.layout.structuredTypeAt l)
               match intTyOf? (ctx.layout.normalizeTy l.ty), v with
               | some t, .int _ n => pure (convert t n)
               | _, _ => pure v
         | _ =>
             storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
+              (ctx.layout.structuredTypeAt l)
             match intTyOf? (ctx.layout.normalizeTy l.ty), v with
             | some t, .int _ n => pure (convert t n)
             | _, _ => pure v
@@ -1841,13 +1847,17 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .declRef (some id) name declKind ty _ =>
       if declKind == "EnumConstantDecl" then
         match (ctx.enumIds.find? (·.1 == id)).map (·.2) with
-        | some n => do let t ← intTyOf (ctx.layout.normalizeTy ty); pure (.int t n)
+        | some n => do
+            let t := (ctx.layout.structuredTypeDecl id).bind intTyOfStructured
+              |>.getD (intTyOf? (ctx.layout.normalizeTy ty) |>.getD IntTy.int_)
+            pure (.int t n)
         | none => refuseUnsupported s!"unknown enum declaration '{id.value}' (name '{name}')"
       else match ctx.idEnv.lookup? id with
         | some o =>
             let p := match ctx.layout.sizeAt (some id) ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
             loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.sizeAt (some id) ty)
+              (ctx.layout.structuredTypeDecl id)
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
   | .declRef none name declKind ty _ =>
       if declKind == "EnumConstantDecl" then
