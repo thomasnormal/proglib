@@ -558,6 +558,11 @@ def convert_expr(node):
         return unsupported(node, "YieldFrom", machine_kind="YieldFrom",
                            machine_value_marker=value)
 
+    if isinstance(node, ast.Starred):
+        value = convert_expr(node.value)
+        return unsupported(node, "Starred", machine_kind="Starred",
+                           machine_value_marker=value)
+
     if isinstance(node, ast.Await):
         return {
             "kind": "Await",
@@ -720,7 +725,7 @@ def convert_expr(node):
         # (a keyword node with arg=None) stays a loud call_unsupported.
         if any(kw.arg is None for kw in node.keywords):
             reasons.append("** unpacking in call")
-        return {
+        out = {
             "kind": "Call",
             "span": span(node),
             "func": convert_expr(node.func),
@@ -760,6 +765,14 @@ def convert_expr(node):
             ],
             "call_unsupported": ", ".join(reasons) if reasons else None,
         }
+        if any(isinstance(a, ast.Starred) for a in node.args) or any(
+                kw.arg is None for kw in node.keywords):
+            out["machine_args"] = [convert_expr(a) for a in node.args]
+            out["machine_keywords"] = [
+                {"arg": kw.arg, "value": convert_expr(kw.value)}
+                for kw in node.keywords
+            ]
+        return out
 
     if isinstance(node, (ast.List, ast.Tuple)):
         if any(isinstance(e, ast.Starred) for e in node.elts):
