@@ -180,8 +180,18 @@ def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
     (structured : Option LeanModels.Clang.QualType) : ExecM Unit :=
   if structuredPointerObject structured ty then
     liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
-  else
-    zeroInit fuel ctx p ty
+  else match structured.bind intTyOfStructured with
+    | some t =>
+        liftEval (writeMem (fun m => Mem.storeIntChecked m Mem.cAliasModel p t ty 0))
+    | none =>
+        match structured.bind floatBitsOfStructured with
+        | some 32 =>
+            liftEval (writeMem (fun m =>
+              Mem.storeFloat32 m p (Float32.Model.ofBits (UInt32.ofNat 0))))
+        | some 64 =>
+            liftEval (writeMem (fun m =>
+              Mem.storeFloat64 m p (Float.Model.ofBits (UInt64.ofNat 0))))
+        | _ => zeroInit fuel ctx p ty
 
 /-- §6.7.11p10 — initialize an object to zero, as if it had static
 storage duration. Type-directed: see the section note. -/
