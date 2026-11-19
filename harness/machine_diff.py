@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Differential smoke rows for the AST small-step machine.
+"""Differential smoke rows for the AST small-step relation.
 
 The source files are executed by CPython, while the machine consumes the
 already-generated CPython-AST envelopes.  The two inputs therefore share the
@@ -68,7 +68,7 @@ def refresh_envelopes(rows):
     return refreshed
 
 
-def run_machine(runner, rows, fuel):
+def run_relation(runner, rows, fuel):
     fd, jobs_path = tempfile.mkstemp(prefix=".machine-jobs-", suffix=".jsonl")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as jobs:
@@ -108,7 +108,7 @@ def main(argv=None):
     oracle = []
     for row in rows:
         oracle.append(oracle_result(opts.oracle, row["source"]))
-    machine, runner_code = run_machine(opts.runner.split(), rows, opts.fuel)
+    machine, runner_code = run_relation(opts.runner.split(), rows, opts.fuel)
 
     matched = refused = divergent = 0
     unit_mismatches = 0
