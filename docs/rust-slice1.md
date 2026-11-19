@@ -60,6 +60,12 @@ current pointer representation requires provenance, so the operand is retained
 as an integer and the second cast reports a typed refusal with target layout 27.
 No provenance is fabricated from the integer address.
 
+The remaining `study_derive` refusal occurs in `core::fmt::Arguments::as_str`.
+Its MIR applies `BitAnd` between a pointer cell with provenance 28 and integer
+constant 1 while checking formatting metadata. The integer bitwise evaluator
+therefore refuses the mixed pointer/integer operands and reports both cells.
+The operation is not reduced to an address comparison.
+
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
 `IntToInt` through the target integer layout and preserves provenance for
