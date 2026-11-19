@@ -27,6 +27,12 @@ default and can be included with `--include-control`.  Each row records the
 extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
 
+When a typed `Use` cannot read its place, the refusal records the operand cell
+and MIR place.  The iterator-chain remainder path reaches a shared-reference
+read whose target cell is unavailable in the extracted frame state.  It stays
+refused until the frame/projection evidence is corrected, so the arithmetic
+case is not evaluated from a guessed integer.
+
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
 `IntToInt` through the target integer layout, preserves provenance for
