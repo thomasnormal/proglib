@@ -349,6 +349,9 @@ theorem CoreMemDesign.evalExprLocals_eq_evalV {E : CoreMemDesign} {st : CoreMemS
   | ctx, .unsupported _ _, _ => by
       simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV, CoreMemDesign.evalScalarLocals,
         CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
+  | ctx, .typeBits _ _, _ => by
+      simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV, CoreMemDesign.evalScalarLocals,
+        CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
   | ctx, .sysCall _ _, _ => by
       simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV, CoreMemDesign.evalScalarLocals,
         CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
@@ -1314,6 +1317,7 @@ continuous assign to the source-shaped evaluator) lies inside the profile's func
 theorem seq_noAggregate_of_noCall : ∀ (e : PExpr), LeanModels.Sv.PExpr.hasFunctionCall e = false →
     LeanModels.Sv.PExpr.hasAggregateMember e = false
   | .lit _, _ | .ident _, _ | .paramRef _ _, _ | .genvarRef _, _ | .enumRef _ _ _, _ | .int _, _ | .fill _, _
+  | .typeBits _ _, _
   | .unsupported _ _, _ => rfl
   | .functionCall _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
   | .aggregateMember _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
