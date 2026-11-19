@@ -63,6 +63,8 @@ deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 `line`/`col` are the EXPANSION location — where a reader sees it. -/
 structure CSpan where
   line : Nat
+  /-- Parser-provided byte offset of the node's beginning, when available. -/
+  offset : Option Nat := none
   /-- The column, **when the frontend gives one**.
 
   `none` is not "column 0" and must never be defaulted to it: clang omits
@@ -77,6 +79,8 @@ structure CSpan where
   in the open (`docs/backlog/c.md` 2026-08-24-c-19). -/
   col : Option Nat
   endLine : Nat
+  /-- Parser-provided byte offset just after the node, when available. -/
+  endOffset : Option Nat := none
   /-- The end column, on the same terms as `col`. -/
   endCol : Option Nat
   /-- The SPELLING location, present only when it differs from the

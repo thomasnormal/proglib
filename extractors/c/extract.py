@@ -426,6 +426,10 @@ def span_of(node, loc):
     # put a value where the frontend had none.  Measured: this is what gated
     # 199 of 300 gcc.c-torture tests at the ingester (2026-08-24-c-18).
     span = {"line": start_line, "end_line": loc.line}
+    if b.get("offset") is not None:
+        span["offset"] = b["offset"]
+    if e.get("offset") is not None:
+        span["end_offset"] = e["offset"]
     if b.get("col") is not None:
         span["col"] = b["col"]
     if e.get("col") is not None:

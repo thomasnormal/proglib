@@ -144,8 +144,10 @@ def parseSpan (j : Json) : Except String CSpan :=
   withCtx "span" do
     -- `col`/`end_col` are OPTIONAL: absent and `null` are the same absence,
     -- which is the reading `getOptNat` already gives the macro fields.
-    return { line := ← getNat j "line", col := ← getOptNat j "col"
-             endLine := ← getNat j "end_line", endCol := ← getOptNat j "end_col"
+    return { line := ← getNat j "line", offset := ← getOptNat j "offset"
+             col := ← getOptNat j "col"
+             endLine := ← getNat j "end_line", endOffset := ← getOptNat j "end_offset"
+             endCol := ← getOptNat j "end_col"
              macroLine := ← (match getOptNode j "macro" with
                              | none => pure none
                              | some m => getOptNat m "line")
