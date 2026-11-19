@@ -335,6 +335,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("arbiter_unpacked_loop_e.sv", "arbiter_unpacked_loop_e",
             (Port("data_bus", 16), Port("winner", 4)), (Port("data_o", 4),),
             (Point("N4", (4,)),), retain_loops=True, retain_proc_rewrites=True),
+    Fixture("proc_local_static_comb_e.sv", "proc_local_static_comb_e",
+            (Port("a", 4),), (Port("y", 4),), retain_proc_rewrites=True),
     Fixture("bits_package_repro.sv", "bits_package_repro",
             (Port("x", 4),), (Port("y", 1),)),
     Fixture("bits_package_param_e.sv", "bits_package_param_e",
