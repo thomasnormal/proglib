@@ -236,13 +236,19 @@ decided by the parser-native library with differential coverage.
 
 **F1 type-string gate audit (2026-11-19).** `tools/check_c_type_strings.py`
 is now the repeatable gate for the five C type paths. Its self-test passes and
-the live audit reports the remaining `CType := String` alias and 50 actual or
+the live audit reports the remaining `CType := String` alias and 37 actual or
 ambiguous type-spelling sites. It excludes clearly unrelated name and byte
-buffer operations while retaining unknown receivers for review. F1 remains open with 50 findings, including
+buffer operations while retaining unknown receivers for review. F1 remains open with 37 findings, including
 qualification
 stripping, typedef resolution, pointer and array recognition, and record-tag
 lookup. No F2 store work starts until this checker reaches zero and the full
 survey is at least 1326/2214 with no DIVERGE.
+
+The bit-field storage family now uses parser-native declaration and recursive
+`QualType` observations for record-member facts and pointee extent. When those
+observations are absent, the evaluator refuses instead of peeling a pointer
+spelling. Existing bit-field rows remain differential refusal rows without the
+optional Clang structured-layout plugin.
 
 The parser-native builtin family now has an explicit `CBuiltin` constructor in
 the shared `QualType` representation. JSON ingestion maps Clang's builtin
