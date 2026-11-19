@@ -22,7 +22,7 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 20 decided rows, 10 named refusals, and zero
+The report contains 30 rows, 21 decided rows, 9 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` for all of them in one `lake env lean` process (`#eval`), and
 compares each return, panic or UB outcome with the Stage 0 Miri verdict; a
@@ -72,6 +72,12 @@ That is the discriminant only for enums with default discriminants: the
 envelope does not carry declared discriminant values, so for
 `enum E { A = 7, B = 9 }` a `match` reaches its `unreachable` arm in the model
 (a known wrong answer, listed below).
+Direct enum layouts carry extracted tag offsets, tag widths, variant counts, and
+payload type arguments. A direct enum can therefore be decoded from allocation
+bytes even when an inactive variant payload contains uninitialized bytes. Local
+`Ref` and `AddressOf` values retain frame-local provenance before a call shares
+them with the callee. The `study_question_mark` corpus row now returns normally
+through `Option<i32>` comparison.
 The `Le` binary operation now uses the decoded signed or unsigned integer
 values from the layout table. These cases decide the negative-integer-range
 corpus row without treating its signed bytes as an unsigned order comparison.
