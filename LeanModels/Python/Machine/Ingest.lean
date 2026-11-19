@@ -447,6 +447,20 @@ partial def mStmt (j : Json) : Except String MStmt := do
         pure (context, target)
       let body ← (← (← mField j "body").getArr?).mapM mStmt
       pure (.withStmt items body (kind == "AsyncWith") span)
+  | "Try" =>
+      let body ← (← (← mField j "body").getArr?).mapM mStmt
+      let handlers ← (← (← mField j "machine_handlers").getArr?).mapM fun handler => do
+        let exception ← match handler.getObjVal? "type" with
+          | .ok .null | .error _ => pure none
+          | .ok value => some <$> mExpr value
+        let name ← match handler.getObjVal? "name" with
+          | .ok .null | .error _ => pure none
+          | .ok value => some <$> value.getStr?
+        let handlerBody ← (← (← mField handler "body").getArr?).mapM mStmt
+        pure (exception, name, handlerBody)
+      let orelse ← (← (← mField j "machine_orelse").getArr?).mapM mStmt
+      let finalbody ← (← (← mField j "machine_finalbody").getArr?).mapM mStmt
+      pure (.tryStmt body handlers orelse finalbody span)
   | _ => pure (.unsupported kind span)
 
 private def mStmtKind : MStmt → String
