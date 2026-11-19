@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.213,
+      "extract_seconds": 0.332,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.147,
+      "extract_seconds": 0.222,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.101,
+      "extract_seconds": 0.108,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.087,
+      "extract_seconds": 0.107,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.112,
+      "extract_seconds": 0.195,
       "lean_outcome": "refused:unsupported:unresolved call"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.093,
+      "extract_seconds": 0.125,
       "lean_outcome": "returned"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.088,
+      "extract_seconds": 0.157,
       "lean_outcome": "refused:unsupported:discriminant assignment"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.124,
+      "extract_seconds": 0.113,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 0.401,
+      "extract_seconds": 1.039,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.161,
+      "extract_seconds": 0.117,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.118,
+      "extract_seconds": 0.191,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsbZvLFSCT5mK_24rustc_ivec_pass_by_value"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.071,
+      "extract_seconds": 0.062,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.072,
+      "extract_seconds": 0.09,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.085,
+      "extract_seconds": 0.087,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.09,
+      "extract_seconds": 0.094,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.11,
+      "extract_seconds": 0.097,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.048,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.052,
+      "extract_seconds": 0.07,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.07,
+      "extract_seconds": 0.087,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.094,
+      "extract_seconds": 0.098,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.076,
+      "extract_seconds": 0.098,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.059,
+      "extract_seconds": 0.086,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.045,
+      "extract_seconds": 0.06,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.039,
+      "extract_seconds": 0.058,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.116,
+      "extract_seconds": 0.149,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCs9qsj18IWarl_21rustc_vector_no_ann_2"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.05,
+      "extract_seconds": 0.082,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.075,
+      "extract_seconds": 0.1,
       "lean_outcome": "returned"
     },
     {
@@ -1230,14 +1230,14 @@
           }
         }
       },
-      "extract_seconds": 0.057,
+      "extract_seconds": 0.095,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_new-unsafe-pointers",
       "source": "measurement_programs/rustc_run_pass/19_new-unsafe-pointers.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:cast write",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -1274,8 +1274,8 @@
           }
         }
       },
-      "extract_seconds": 0.045,
-      "lean_outcome": "refused:unsupported:cast write"
+      "extract_seconds": 0.059,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_empty-mutable-vec",
@@ -1318,11 +1318,11 @@
           }
         }
       },
-      "extract_seconds": 0.055,
+      "extract_seconds": 0.079,
       "lean_outcome": "returned"
     }
   ],
-  "decided_rows": 19,
-  "named_refusals": 11,
+  "decided_rows": 20,
+  "named_refusals": 10,
   "diverging": 0
 }

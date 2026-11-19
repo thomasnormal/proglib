@@ -129,6 +129,7 @@ private def castKind (j : Json) : Except String CastKind :=
   | .str "IntToInt" => pure .intToInt
   | .str "PtrToPtr" => pure .ptrToPtr
   | .str "Transmute" => pure .transmute
+  | .str "PointerWithExposedProvenance" => pure .pointerWithExposedProvenance
   | .str name => pure (.unsupported name)
   | .obj _ => do
       let (name, payload) ← variant j
