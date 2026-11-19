@@ -866,7 +866,10 @@ def callMissingBodyReason (program : Envelope) (caller : Body) (block : Nat)
   | some edge =>
       match edge.callee with
       | none => defaultReason ++ " without callee"
-      | some calleeId => "call target has no MIR body: " ++ calleeId
+      | some calleeId =>
+          if calleeId.contains "__rust_alloc" || calleeId.contains "__rust_no_alloc_shim" then
+            "allocator foreign registry unavailable: " ++ calleeId
+          else "call target has no MIR body: " ++ calleeId
 
 def atomicLoadCell (s : State) (operand : Operand) : Option Cell :=
   operandCell s operand |>.bind fun cell =>
