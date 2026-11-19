@@ -1,0 +1,469 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_land2_ctor_kwargs.py",
+  "source_sha256": "25de515c96a1bfea839ffd0b0acdb0ce169a7a6e1c492758ebf18bd137ab7b14",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 22
+        },
+        "name": "A",
+        "class_unsupported": null,
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 3,
+              "end_col_offset": 22
+            },
+            "name": "__init__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 17,
+                  "end_lineno": 2,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "x",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 23,
+                  "end_lineno": 2,
+                  "end_col_offset": 24
+                }
+              },
+              {
+                "arg": "y",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 26,
+                  "end_lineno": 2,
+                  "end_col_offset": 27
+                },
+                "default": {
+                  "type": "int",
+                  "repr": "2"
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 8,
+                  "end_lineno": 3,
+                  "end_col_offset": 22
+                },
+                "targets": [
+                  {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 8,
+                      "end_lineno": 3,
+                      "end_col_offset": 14
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 3,
+                        "col_offset": 8,
+                        "end_lineno": 3,
+                        "end_col_offset": 12
+                      },
+                      "id": "self",
+                      "machine_context": "Load"
+                    },
+                    "attr": "s",
+                    "machine_context": "Store"
+                  }
+                ],
+                "value": {
+                  "kind": "BinOp",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 17,
+                    "end_lineno": 3,
+                    "end_col_offset": 22
+                  },
+                  "left": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 17,
+                      "end_lineno": 3,
+                      "end_col_offset": 18
+                    },
+                    "id": "x",
+                    "machine_context": "Load"
+                  },
+                  "op": "Add",
+                  "right": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 21,
+                      "end_lineno": 3,
+                      "end_col_offset": 22
+                    },
+                    "id": "y",
+                    "machine_context": "Load"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 17,
+                    "end_lineno": 2,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "x",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 23,
+                    "end_lineno": 2,
+                    "end_col_offset": 24
+                  }
+                },
+                {
+                  "arg": "y",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 26,
+                    "end_lineno": 2,
+                    "end_col_offset": 27
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 28,
+                    "end_lineno": 2,
+                    "end_col_offset": 29
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              ]
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 3,
+              "end_col_offset": 22
+            },
+            "name": "__init__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 17,
+                  "end_lineno": 2,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "x",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 23,
+                  "end_lineno": 2,
+                  "end_col_offset": 24
+                }
+              },
+              {
+                "arg": "y",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 26,
+                  "end_lineno": 2,
+                  "end_col_offset": 27
+                },
+                "default": {
+                  "type": "int",
+                  "repr": "2"
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 8,
+                  "end_lineno": 3,
+                  "end_col_offset": 22
+                },
+                "targets": [
+                  {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 8,
+                      "end_lineno": 3,
+                      "end_col_offset": 14
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 3,
+                        "col_offset": 8,
+                        "end_lineno": 3,
+                        "end_col_offset": 12
+                      },
+                      "id": "self",
+                      "machine_context": "Load"
+                    },
+                    "attr": "s",
+                    "machine_context": "Store"
+                  }
+                ],
+                "value": {
+                  "kind": "BinOp",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 17,
+                    "end_lineno": 3,
+                    "end_col_offset": 22
+                  },
+                  "left": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 17,
+                      "end_lineno": 3,
+                      "end_col_offset": 18
+                    },
+                    "id": "x",
+                    "machine_context": "Load"
+                  },
+                  "op": "Add",
+                  "right": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 21,
+                      "end_lineno": 3,
+                      "end_col_offset": 22
+                    },
+                    "id": "y",
+                    "machine_context": "Load"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 17,
+                    "end_lineno": 2,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "x",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 23,
+                    "end_lineno": 2,
+                    "end_col_offset": 24
+                  }
+                },
+                {
+                  "arg": "y",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 26,
+                    "end_lineno": 2,
+                    "end_col_offset": 27
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 28,
+                    "end_lineno": 2,
+                    "end_col_offset": 29
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              ]
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 20
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 6,
+            "col_offset": 0,
+            "end_lineno": 6,
+            "end_col_offset": 20
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 6,
+              "col_offset": 0,
+              "end_lineno": 6,
+              "end_col_offset": 5
+            },
+            "id": "print",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Attribute",
+              "span": {
+                "lineno": 6,
+                "col_offset": 6,
+                "end_lineno": 6,
+                "end_col_offset": 19
+              },
+              "value": {
+                "kind": "Call",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 6,
+                  "end_lineno": 6,
+                  "end_col_offset": 17
+                },
+                "func": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 6,
+                    "col_offset": 6,
+                    "end_lineno": 6,
+                    "end_col_offset": 7
+                  },
+                  "id": "A",
+                  "machine_context": "Load"
+                },
+                "starargs": [],
+                "kwargs": [],
+                "args": [],
+                "keywords": [
+                  {
+                    "arg": "y",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 6,
+                        "col_offset": 10,
+                        "end_lineno": 6,
+                        "end_col_offset": 11
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "3"
+                      }
+                    }
+                  },
+                  {
+                    "arg": "x",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 6,
+                        "col_offset": 15,
+                        "end_lineno": 6,
+                        "end_col_offset": 16
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ],
+                "call_unsupported": null
+              },
+              "attr": "s",
+              "machine_context": "Load"
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
