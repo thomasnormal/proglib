@@ -986,9 +986,13 @@ partial def mStmtToStmtClean : MStmt → RStmt
         (keywords.map (fun pair => (pair.1, mExprToExpr pair.2)))
         (decorators.map mExprToExpr) (body.map mStmtToStmt) span
   | .classDefNode name bases keywords decorators body span =>
-      .raw "ClassDef"
-        ((bases ++ keywords.map (·.2) ++ decorators).map mExprToRaw)
-        span
+      if keywords.isEmpty then
+        .classDef name (bases.map mExprToExpr) #[] (decorators.map mExprToExpr)
+          (body.map mStmtToStmt) span
+      else
+        .raw "ClassDef"
+          ((bases ++ keywords.map (·.2) ++ decorators).map mExprToRaw)
+          span
   | .withStmt items body isAsync span =>
       RStmt.withStmt (items.map (fun pair => (mExprToExpr pair.1, pair.2.map mExprToExpr)))
         (body.map mStmtToStmt) isAsync span
