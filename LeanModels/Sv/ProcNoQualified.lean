@@ -116,7 +116,8 @@ theorem stmtQ_inst (elems : List (String × Nat)) : ∀ (env : IEnv) (s : PStmt)
       · simp only [Stmt2.hasQualifiedCase, bne, h.1.1, Bool.not_true,
           itemsQ_inst elems env _ its h.1.2, stmtQ_inst elems env d h.2, Bool.or_false]
   | env, .blockingAssignL l v, _ | env, .nbaAssignL l v, _ => by simp only [instStmt2]; split <;> rfl
-  | _, .blockingAssign .., _ | _, .nbaAssign .., _ | _, .localDecl .., _ | _, .unsupported .., _ => rfl
+  | _, .blockingAssign .., _ | _, .nbaAssign .., _ | _, .localDecl .., _
+  | _, .automaticDecl .., _ | _, .unsupported .., _ => rfl
 theorem listQ_inst (elems : List (String × Nat)) : ∀ (env : IEnv) (b : List PStmt), listQ b = true →
     Stmt2.listHasQualifiedCase (instStmts2 env elems b) = false
   | _, [], _ => rfl
