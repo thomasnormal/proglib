@@ -790,3 +790,29 @@ the exact `stepOnePassTrace` from the reset-released state with the same
 180-second bound.  A non-return is reported as an execution wall, and an
 explicit `unsupported` result remains distinguishable from that wall.  This
 receipt adds no simulator result and claims no complete DarkRISCV E-RUN cycle.
+
+## 2026-11-19 current two-core census and E receipts
+
+The pinned DarkRISCV source at `bb6b483cc61a2886a0602c7e62b14f5995ddfbb9` was
+re-extracted with the approved Slang frontend and its `rtl` include directory.
+The source hash is `46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0`.
+The fresh envelope hash is
+`ddba565006335191c35955bd27c4c36ca134e57d8084864269b4a2f4fb77b96f`. The
+census is **177 admitted / 0 refused / 0 not reached**. Canonical E completes
+the two reset/input passes, clock preparation, edge execution, and both scalar
+and memory NBA commit construction, giving a staged receipt of **4/4**. The
+first complete clock transition remains an execution wall, so complete E-RUN is
+**0/0**. Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on the independent
+simulator witness at **220/220** rows, with normalized digest
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+
+The pinned FemtoRV32 Quark source at
+`f5ada24ae6cca67d99889daec2c4ee44a6e59417` was re-extracted with the approved
+Slang frontend. The source hash is
+`182e6d13bf5ab165b6eefaa22ae8d6a24ea45db6dd2dbd57dcfc5e81932097b7`, and the
+fresh envelope hash is
+`7c2011727dde42093d232b268f0c33d892abbd8dbb7fe1604a7ad593cd156cf6`. The
+census is **130 admitted / 51 refused / 0 not reached**. Canonical E refuses
+at `FETCH_INSTR`'s untyped-width differential wall. Both pinned simulators
+refuse the unmodified source before elaboration at the use-before-declared
+`instr` diagnostic, so Quark remains **E-RUN 0/0**.
