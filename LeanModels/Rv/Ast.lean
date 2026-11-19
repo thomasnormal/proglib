@@ -263,6 +263,17 @@ preserves it. -/
 def ArchState.WF (s : ArchState) : Prop :=
   s.regs 0 = 0
 
+/-- Register writes preserve the architectural x0 invariant. -/
+theorem ArchState.writeReg_preserves_WF (s : ArchState) (r : Reg)
+    (v : BitVec 32) (hWF : s.WF) : (s.writeReg r v).WF := by
+  unfold ArchState.WF ArchState.writeReg at *
+  by_cases hr : r = 0
+  · simp [hr, hWF]
+  · have h0r : (0 : Reg) ≠ r := by
+      intro h
+      exact hr h.symm
+    simp [hr, h0r, hWF]
+
 /-- The all-zero register file at a given reset pc. -/
 def ArchState.init (pc : BitVec 32) : ArchState :=
   { regs := fun _ => 0, pc := pc }
