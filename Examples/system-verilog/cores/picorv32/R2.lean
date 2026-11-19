@@ -526,6 +526,10 @@ structure PicoRV32R2Statement (E : ESig) (b : PicoRV32Backend E)
     (rel : Nat → E.Config → RvMemoryState → Prop) where
   initialMemory : initial.memory = b.environment.program
   resetPc : initial.arch.pc = 0
+  initialWellFormed : initial.arch.WF
+  /-- `REGS_INIT_ZERO = 0` leaves nonzero `cpuregs` unresolved.  Their
+      resolution or a refusal for reads before initialization belongs in the
+      supplied invariant, rather than in this deterministic statement. -/
   environmentInhabited : ∃ env, b.admit env
   invariant : PicoRV32Invariant b profile initial rel
   fetchTie : PicoRV32FetchTie b
