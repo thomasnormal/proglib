@@ -818,5 +818,10 @@
     "source": "harness/scripts/machine_review_nested_shadow.py",
     "envelope": "harness/scripts/machine_review_nested_shadow.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_lambda_boundary.py",
+    "envelope": "harness/scripts/machine_lambda_boundary.json",
+    "expect": "unsupported"
   }
 ]

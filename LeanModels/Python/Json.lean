@@ -296,16 +296,6 @@ partial def parseExpr (j : Json) : Except String Expr := do
         -- the node's identity and refuse it explicitly rather than rejecting
         -- an otherwise dead async definition while decoding the envelope.
         return .unsupported "Await" "await expressions are outside the compatibility tier" span
-    | "Set" =>
-        -- The machine envelope keeps a set display as CPython's own `Set`
-        -- node.  The compatibility interpreter has no set-display case, so
-        -- it decodes to the same loud node, with the same py_kind, that
-        -- envelopes carried before the machine fields ("Set:display").
-        return .unsupported "Set:display" "set displays are outside the compatibility tier" span
-    | "Lambda" =>
-        -- Likewise an expression-position lambda (a `name = lambda ...`
-        -- statement still arrives as a NestedDef).
-        return .unsupported "Lambda" "lambda expressions are outside the compatibility tier" span
     | "Unsupported" =>
         return .unsupported (← (← getField j "py_kind").getStr?)
           (← (← getField j "text").getStr?) span
@@ -470,12 +460,6 @@ partial def parseStmt (j : Json) : Except String Stmt := do
         return .importFrom module names star span
     | "AnnAssignNoValue" =>
         return .annNoValue (← (← getField j "name").getStr?) span
-    | "AsyncFor" =>
-        -- The machine envelope keeps `async for` and `async with` as CPython's
-        -- own nodes; the compatibility interpreter refuses them as before.
-        return .unsupported "AsyncFor" "async for is outside the compatibility tier" span
-    | "AsyncWith" =>
-        return .unsupported "AsyncWith" "async with is outside the compatibility tier" span
     | "Unsupported" =>
         return .unsupported (← (← getField j "py_kind").getStr?)
           (← (← getField j "text").getStr?) span
