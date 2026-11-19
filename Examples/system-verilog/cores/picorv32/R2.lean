@@ -149,6 +149,9 @@ obligation:
   `r1_jump.picorv32_jal_fields_isa_step` and
   `r1_jump.picorv32_jalr_fields_isa_step` provide the corresponding exact
   JAL and JALR step bridges while retaining their distinct decoder shapes.
+  `r1_upper.picorv32_lui_fields_isa_step` and
+  `r1_upper.picorv32_auipc_fields_isa_step` provide the corresponding exact
+  LUI and AUIPC step bridges while retaining their distinct source operands.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.
