@@ -1,0 +1,496 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_instance_method_keyword.py",
+  "source_sha256": "2b43109d1e69ea63c024c3df023e479dccd76f7de3d695721a44b4de3a55fd40",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 33
+        },
+        "name": "Box",
+        "class_unsupported": "class-level statements (class attributes)",
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "3"
+              }
+            }
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 3,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 33
+            },
+            "name": "get",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 12,
+                  "end_lineno": 3,
+                  "end_col_offset": 16
+                }
+              },
+              {
+                "arg": "extra",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 21,
+                  "end_lineno": 3,
+                  "end_col_offset": 26
+                },
+                "default": {
+                  "type": "int",
+                  "repr": "2"
+                },
+                "keyword_only": true
+              }
+            ],
+            "args_unsupported": "keyword-only",
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 8,
+                  "end_lineno": 4,
+                  "end_col_offset": 33
+                },
+                "value": {
+                  "kind": "BinOp",
+                  "span": {
+                    "lineno": 4,
+                    "col_offset": 15,
+                    "end_lineno": 4,
+                    "end_col_offset": 33
+                  },
+                  "left": {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 4,
+                      "col_offset": 15,
+                      "end_lineno": 4,
+                      "end_col_offset": 25
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 4,
+                        "col_offset": 15,
+                        "end_lineno": 4,
+                        "end_col_offset": 19
+                      },
+                      "id": "self",
+                      "machine_context": "Load"
+                    },
+                    "attr": "value",
+                    "machine_context": "Load"
+                  },
+                  "op": "Add",
+                  "right": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 4,
+                      "col_offset": 28,
+                      "end_lineno": 4,
+                      "end_col_offset": 33
+                    },
+                    "id": "extra",
+                    "machine_context": "Load"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 12,
+                    "end_lineno": 3,
+                    "end_col_offset": 16
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [
+                {
+                  "arg": "extra",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 21,
+                    "end_lineno": 3,
+                    "end_col_offset": 26
+                  }
+                }
+              ],
+              "kw_defaults": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 27,
+                    "end_lineno": 3,
+                    "end_col_offset": 28
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              ],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "3"
+              }
+            }
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 3,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 33
+            },
+            "name": "get",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 12,
+                  "end_lineno": 3,
+                  "end_col_offset": 16
+                }
+              },
+              {
+                "arg": "extra",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 21,
+                  "end_lineno": 3,
+                  "end_col_offset": 26
+                },
+                "default": {
+                  "type": "int",
+                  "repr": "2"
+                },
+                "keyword_only": true
+              }
+            ],
+            "args_unsupported": "keyword-only",
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 8,
+                  "end_lineno": 4,
+                  "end_col_offset": 33
+                },
+                "value": {
+                  "kind": "BinOp",
+                  "span": {
+                    "lineno": 4,
+                    "col_offset": 15,
+                    "end_lineno": 4,
+                    "end_col_offset": 33
+                  },
+                  "left": {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 4,
+                      "col_offset": 15,
+                      "end_lineno": 4,
+                      "end_col_offset": 25
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 4,
+                        "col_offset": 15,
+                        "end_lineno": 4,
+                        "end_col_offset": 19
+                      },
+                      "id": "self",
+                      "machine_context": "Load"
+                    },
+                    "attr": "value",
+                    "machine_context": "Load"
+                  },
+                  "op": "Add",
+                  "right": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 4,
+                      "col_offset": 28,
+                      "end_lineno": 4,
+                      "end_col_offset": 33
+                    },
+                    "id": "extra",
+                    "machine_context": "Load"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 12,
+                    "end_lineno": 3,
+                    "end_col_offset": 16
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [
+                {
+                  "arg": "extra",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 21,
+                    "end_lineno": 3,
+                    "end_col_offset": 26
+                  }
+                }
+              ],
+              "kw_defaults": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 27,
+                    "end_lineno": 3,
+                    "end_col_offset": 28
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              ],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ]
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 5,
+          "end_col_offset": 9
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 0,
+              "end_lineno": 5,
+              "end_col_offset": 1
+            },
+            "id": "b",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 5,
+            "col_offset": 4,
+            "end_lineno": 5,
+            "end_col_offset": 9
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 4,
+              "end_lineno": 5,
+              "end_col_offset": 7
+            },
+            "id": "Box",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 14
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 6,
+            "col_offset": 0,
+            "end_lineno": 6,
+            "end_col_offset": 14
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 6,
+              "col_offset": 0,
+              "end_lineno": 6,
+              "end_col_offset": 5
+            },
+            "id": "print",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 6,
+                "col_offset": 6,
+                "end_lineno": 6,
+                "end_col_offset": 13
+              },
+              "func": {
+                "kind": "Attribute",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 6,
+                  "end_lineno": 6,
+                  "end_col_offset": 11
+                },
+                "value": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 6,
+                    "col_offset": 6,
+                    "end_lineno": 6,
+                    "end_col_offset": 7
+                  },
+                  "id": "b",
+                  "machine_context": "Load"
+                },
+                "attr": "get",
+                "machine_context": "Load"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ],
+    "machine_type_ignores": []
+  },
+  "lean_blocks": []
+}
