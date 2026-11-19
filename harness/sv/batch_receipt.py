@@ -298,6 +298,7 @@ FIXTURES: tuple[Fixture, ...] = (
     # Signed index bit-select family, including x/z index rows.
     Fixture("signed_bit_select.sv", "signed_select",
             (Port("x", 8),), (Port("y", 1),)),
+    # Signed relational comparison family, including unknown operands.
     Fixture("signed_decl.sv", "signed_comparison",
             (Port("x", 8),), (Port("y", 1),)),
     Fixture("timed_event_loop.sv", "timed_event_loop",
