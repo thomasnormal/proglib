@@ -515,6 +515,17 @@ def rHeapIsInstance (heap : Heap) (address : Addr) : Bool :=
   | some (.instance _ _) => true
   | _ => false
 
+def rIsInstanceValue (heap : Heap) : RVal → Bool
+  | .ref address => rHeapIsInstance heap address
+  | _ => false
+
+/-- Attribute names that `object` and `type` provide to every instance or class (`__class__`,
+`__dict__`, `__doc__`, `__module__`, `__name__`, the default special methods, ..., and `type.mro`).
+The machine models none of them: a miss on such a name is undecided, never an AttributeError, and
+the machine does not store or delete them. -/
+def rObjectProvidedName (attr : String) : Bool :=
+  (attr.length > 4 && attr.startsWith "__" && attr.endsWith "__") || attr == "mro"
+
 def rUpdateClassAttr : List RClass → String → String → RVal → Option (List RClass)
   | [], _, _, _ => none
   | cls :: rest, token, attr, value =>
@@ -1151,8 +1162,14 @@ def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
 
 def rEvalCompare (heap : Heap) (op : CmpOp) (left right : RVal) : Option RVal :=
   match op with
-  | .eq => (rEqualIn heap left right).map RVal.bool
-  | .notEq => (rEqualIn heap left right).map (fun equal => RVal.bool (!equal))
+  -- `==` on an instance calls its class's `__eq__` (the default is identity, a user class may override
+  -- it, and CPython takes no identity shortcut for `==` itself): undecided
+  | .eq =>
+      if rIsInstanceValue heap left || rIsInstanceValue heap right then none
+      else (rEqualIn heap left right).map RVal.bool
+  | .notEq =>
+      if rIsInstanceValue heap left || rIsInstanceValue heap right then none
+      else (rEqualIn heap left right).map (fun equal => RVal.bool (!equal))
   | .lt => match left, right with
       | .int a, .int b => some (.bool (a < b))
       | _, _ => none
@@ -1926,7 +1943,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .classDef _ _ _ _ _ _ =>
               match stmt with
               | .classDef name bases keywords decorators body _ =>
-                  if keywords.isEmpty && decorators.isEmpty
+                  -- a class statement in a function or class body binds a local of that scope, and its
+                  -- methods close over the function's variables; the machine binds classes in the
+                  -- module namespace only
+                  if !config.frames.tail.isEmpty then
+                    some (.event (.refuse "machine class statement outside the module"),
+                      config.finish (.refuse "machine class statement outside the module"))
+                  else if keywords.isEmpty && decorators.isEmpty
                       && rClassBodySupported body.toList then
                     match bases.toList with
                     | [] =>
@@ -2225,6 +2248,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue _ (.setitemResult remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue receiver (.assignAttributeValue attr value remaining) =>
+          if rObjectProvidedName attr then
+            some (.tau, config.setControl (.refusing "machine object attribute assignment"))
+          else
           match receiver with
           | .ref address =>
               if rHeapIsInstance config.heap address then
@@ -2246,6 +2272,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               let error : RError := { errorClass := .attribute, args := [] }
               some (.event (.raise error), config.finish (.raise error))
       | .continueValue receiver (.deleteAttributeReceiver attr remaining) =>
+          if rObjectProvidedName attr then
+            some (.tau, config.setControl (.refusing "machine object attribute deletion"))
+          else
           match receiver with
           | .ref address =>
               if rHeapIsInstance config.heap address then
@@ -2301,6 +2330,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .unsupported reason => some (.tau, config.setControl (.refusing reason))
           | .timeout => some (.tau, config.setControl (.refusing "machine augmented assignment"))
       | .continueValue receiver (.augAssignAttributeReceiver attr op value remaining) =>
+          if rObjectProvidedName attr then
+            some (.tau, config.setControl (.refusing "machine object attribute assignment"))
+          else
           match receiver with
           | .callable token =>
               match rClassByToken config.classes token with
@@ -2420,6 +2452,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                                     some (.tau, config.setControl
                                       (.continueValue value continuation))
                                 | none =>
+                                    if rObjectProvidedName attr then
+                                      some (.tau, config.setControl
+                                        (.refusing "machine object attribute"))
+                                    else
                                     let error : RError := { errorClass := .attribute, args := [] }
                                     some (.event (.raise error), config.finish (.raise error))
                             | none =>
@@ -2436,6 +2472,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                       | some value =>
                           some (.tau, config.setControl (.continueValue value continuation))
                       | none =>
+                          if rObjectProvidedName attr then
+                            some (.tau, config.setControl (.refusing "machine type attribute"))
+                          else
                           let error : RError := { errorClass := .attribute, args := [] }
                           some (.event (.raise error), config.finish (.raise error))
                   | none => some (.tau, config.setControl (.refusing "machine attribute"))
@@ -2615,6 +2654,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   some (.tau, config.setControl
                     (.resourceChoice .allocation (.allocateDict updated continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
+          -- an instance right operand may take the operation by its reflected method (`__radd__`, ...):
+          -- first when its class is a subclass of the left operand's that overrides it, or after the
+          -- left operand returns NotImplemented. The machine dispatches only the left operand's method.
+          if rIsInstanceValue config.heap right then
+            some (.tau, config.setControl (.refusing "machine reflected operand"))
+          else
           match op, left with
           | .add, .ref address =>
               match config.heap.get? address with
