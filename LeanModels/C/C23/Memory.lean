@@ -762,6 +762,29 @@ def decodeInt (t : IntTy) (bs : List CByte) : Option Int :=
   | none => none
   | some xs => some (t.wrap (natOfBytes xs))
 
+/-- One byte of an object representation as observed through a character
+lvalue.  Character accesses are allowed to inspect every object
+representation, including pointer representations (§6.5.1p7).  The
+pointer token is the model's ABI representation, so its byte order is the
+profile's little-endian order used by integer encodings. -/
+def characterByte : CByte → Option UInt8
+  | .conc b => some b
+  | .ptrByte p k => some (UInt8.ofNat (((Ptr.exposedAddress p).toNat / (256 ^ k)) % 256))
+  | .ptrIntByte p k => some (UInt8.ofNat (((Ptr.exposedAddress p).toNat / (256 ^ k)) % 256))
+  | .funByte id => none
+  | .indet => none
+
+def loadCharacter (m : Mem) (p : Ptr) (t : IntTy) : MRes CVal := do
+  let (o, c, off) ← m.resolve p 1
+  match (c.bytes.drop off).head?.bind characterByte with
+  | some b => pure (.int t (t.wrap b.toNat))
+  | none =>
+      if (c.bytes.drop off).any (· == CByte.indet) then
+        .error (.memUB (match c.dur with
+          | .allocated => .indetAllocated o off
+          | _ => .indetAutomatic o off))
+      else .error (.memUB (.nonValueRepresentation o off))
+
 theorem decodeInt_indet (t : IntTy) (bs : List CByte)
     (h : CByte.indet ∈ bs) : decodeInt t bs = none := by
   let step := fun (b : CByte) (acc : Option (List UInt8)) =>

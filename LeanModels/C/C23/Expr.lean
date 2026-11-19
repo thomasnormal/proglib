@@ -616,7 +616,7 @@ def truthy (v : CVal) : EvalM Bool :=
   | .float32 f => pure (!Float32.Model.beq f (Float32.Model.ofBits 0))
   | .float64 f => pure (!Float.Model.beq f (Float.Model.ofBits 0))
   | .ptr p => pure (!p.isNull)
-  | .ptrInt p => pure (p.exposedAddress != 0)
+  | .ptrInt _ => refuseUnsupported "pointer-integer value requires an unchanged cast back"
   | .funPtr _ => refuseUnsupported "function pointer used in a Boolean context"
   | .aggregate _ _ => refuseUnsupported "aggregate used as truth value"
   | .undef => refuseUnsupported "undefined value used where an integer is required (C23 6.3.2.1p2)"
@@ -773,7 +773,7 @@ def asInt (v : CVal) : EvalM (IntTy × Int) :=
   match v with
   | .int t n => pure (t, n)
   | .ptr _ => refuseUnsupported "pointer used as an integer (no ptr↔int cast in tier)"
-  | .ptrInt p => pure (IntTy.ulong, p.exposedAddress)
+  | .ptrInt _ => refuseUnsupported "pointer-integer value requires an unchanged cast back"
   | .funPtr _ => refuseUnsupported "function pointer used as an integer"
   | .float32 _ | .float64 _ => refuseUnsupported "floating value used as an integer"
   | .aggregate _ _ => refuseUnsupported "aggregate used as an integer"
@@ -863,6 +863,10 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
     readMem (fun m => Mem.loadFloat32 m p)
   else if ty == "double" then
     readMem (fun m => Mem.loadFloat64 m p)
+  else if ty == "char" || ty == "signed char" || ty == "unsigned char" then
+    match intTyOf? ty with
+    | some t => readMem (fun m => Mem.loadCharacter m p t)
+    | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
   else if structured.map LeanModels.Clang.QualType.pointerObject |>.getD (isPtrType ty) then do
     let q ← readMem (fun m => Mem.loadPtr m p)
     pure (.ptr q)
@@ -1031,21 +1035,10 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
       else if op == "<=" then do let c ← readMem (fun _ => Mem.ptrLt b a); pure (ofBool (!c))
       else if op == ">=" then do let c ← readMem (fun _ => Mem.ptrLt a b); pure (ofBool (!c))
       else refuseUnsupported s!"operator '{op}' on two pointers"
-  | .ptrInt a, .ptrInt b =>
-      let rt := match intTyOf? (ctx.layout.normalizeTy ty) with
-        | some t => t
-        | none => IntTy.ulong
-      intBinop op rt a.exposedAddress b.exposedAddress
-  | .ptrInt a, .int _ b =>
-      let rt := match intTyOf? (ctx.layout.normalizeTy ty) with
-        | some t => t
-        | none => IntTy.ulong
-      intBinop op rt a.exposedAddress b
-  | .int _ a, .ptrInt b =>
-      let rt := match intTyOf? (ctx.layout.normalizeTy ty) with
-        | some t => t
-        | none => IntTy.ulong
-      intBinop op rt a b.exposedAddress
+  | .ptrInt _, .ptrInt _
+  | .ptrInt _, .int _ _
+  | .int _ _, .ptrInt _ =>
+      refuseUnsupported "pointer-integer value requires an unchanged cast back"
   | .int t a, .int _ b =>
       -- Shifts take the LEFT operand's type (§6.5.8p3); every other
       -- operator has already had both operands converted to a common type.
@@ -1331,11 +1324,11 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
             | some existing => pure existing
             | none =>
             let storageTy :=
-              if ctx.layout.members ty |>.isSome || ctx.layout.elem ty |>.isSome
+              if (ctx.layout.members ty).isSome || (ctx.layout.elem ty).isSome
               then none else some ty
-                let (m', fresh) := m.alloc .automatic sz storageTy
-                set (m'.rememberCompound span fresh)
-                pure fresh
+            let (m', fresh) := m.alloc .automatic sz storageTy
+            set (m'.rememberCompound span fresh)
+            pure fresh
           ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
           pure (Ptr.toObject o)
   | e => refuseUnsupported s!"not an lvalue: {e.kindName}"
@@ -1354,11 +1347,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             | some existing => pure existing
             | none =>
             let storageTy :=
-              if ctx.layout.members ty |>.isSome || ctx.layout.elem ty |>.isSome
+              if (ctx.layout.members ty).isSome || (ctx.layout.elem ty).isSome
               then none else some ty
-                let (m', fresh) := m.alloc .automatic sz storageTy
-                set (m'.rememberCompound span fresh)
-                pure fresh
+            let (m', fresh) := m.alloc .automatic sz storageTy
+            set (m'.rememberCompound span fresh)
+            pure fresh
           ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
           pure (CVal.ptr (Ptr.toObject o))
 
@@ -1477,10 +1470,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match v with
           | .ptrInt p => pure (.ptr p)
           | _ =>
-              let (_, n) ← asInt v
-              match ctx.integerToPointer n with
-              | some p => pure (.ptr p)
-              | none => refuseUnsupported "integer-to-pointer address is not exposed by this memory instance"
+              refuseUnsupported "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip"
         else refuseUnsupported "integer-to-pointer conversion outside pointer type"
       else refuseUnsupported s!"castKind '{ck}'"
 

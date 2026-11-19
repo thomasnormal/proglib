@@ -454,6 +454,24 @@
     "envelope_checks": []
   },
   {
+    "id": "pointer-address-difference-wall",
+    "source": "#include <stdint.h>\nint main(void) { int x[2]; uintptr_t a = (uintptr_t)&x[0]; uintptr_t b = (uintptr_t)&x[1]; return (int)(b - a); }",
+    "expect": "refuse",
+    "error": "pointer-integer value requires an unchanged cast back"
+  },
+  {
+    "id": "integer-to-pointer-exposure-wall",
+    "source": "#include <stdint.h>\nint main(void) { int x[2] = {1, 2}; int *p = (int *)((uintptr_t)&x[0] + sizeof(int)); return *p; }",
+    "expect": "refuse",
+    "error": "pointer-integer value requires an unchanged cast back"
+  },
+  {
+    "id": "pointer-bytes-character-wall",
+    "source": "int main(void) { int *p = (int *)0; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
     "id": "pointer-long-roundtrip",
     "source": "int main(void) { int x = 3; unsigned long u = (unsigned long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "match",
