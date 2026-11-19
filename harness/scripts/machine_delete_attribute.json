@@ -1,0 +1,102 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_delete_attribute.py",
+  "source_sha256": "cce5db295924007109e11eb094518e8dafb4f449b4ffb6fa9671e07a0644f337",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 8
+        },
+        "name": "Box",
+        "class_unsupported": null,
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "Pass",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 8
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 9
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 1
+            },
+            "id": "b"
+          }
+        ],
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 3,
+            "col_offset": 4,
+            "end_lineno": 3,
+            "end_col_offset": 9
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 4,
+              "end_lineno": 3,
+              "end_col_offset": 7
+            },
+            "id": "Box"
+          },
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "DeleteAttribute",
+        "span": {
+          "lineno": 4,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 11
+        },
+        "recv": {
+          "kind": "Name",
+          "span": {
+            "lineno": 4,
+            "col_offset": 4,
+            "end_lineno": 4,
+            "end_col_offset": 5
+          },
+          "id": "b"
+        },
+        "attr": "value"
+      }
+    ]
+  },
+  "lean_blocks": []
+}
