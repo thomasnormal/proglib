@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiAddi
+import LeanModels.Refine.RvfiPorts
 import Examples.«system-verilog».cores.picorv32.rvfi_proof
 import Examples.«system-verilog».cores.picorv32.trace_proof
 
@@ -17,6 +18,8 @@ namespace Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary
 
 open LeanModels.Rv
 open LeanModels.Refine
+open LeanModels.Sv.Observe
+open LeanModels.Refine.RvfiPorts
 open Examples.«system-verilog».cores.picorv32.rvfi_proof
 open Examples.«system-verilog».cores.picorv32.trace_proof
 
@@ -34,6 +37,70 @@ def addi2Input : Input :=
 
 def addi2State : ArchState :=
   machineStateAfter rvMachine (ArchState.init 0) (nontrapInputs.take 3)
+
+/-! The first ADDI row as a concrete, fully-known RVFI port sample.  The
+    projection keeps every declared field, including fields unused by ADDI,
+    so the decoder theorem cannot obtain its result by filling omitted ports
+    with defaults. -/
+
+def addi1Payload : Payload :=
+  { order := .ofNat 64 0
+    insn := .ofNat 32 0x00500093
+    trap := .ofNat 1 0
+    halt := .ofNat 1 0
+    intr := .ofNat 1 0
+    mode := .ofNat 2 3
+    ixl := .ofNat 2 1
+    rs1Addr := .ofNat 5 0
+    rs2Addr := .ofNat 5 0
+    rs1Rdata := .ofNat 32 0
+    rs2Rdata := .ofNat 32 0
+    rdAddr := .ofNat 5 1
+    rdWdata := .ofNat 32 5
+    pcRdata := .ofNat 32 0
+    pcWdata := .ofNat 32 4
+    memAddr := .ofNat 32 0
+    memRmask := .ofNat 4 0
+    memWmask := .ofNat 4 0
+    memRdata := .ofNat 32 0
+    memWdata := .ofNat 32 0 }
+
+def addi1PortSample : PortSample :=
+  ⟨[ ("rvfi_valid", .ofBitVec (.ofNat 1 1))
+    , ("rvfi_order", .ofBitVec (.ofNat 64 0))
+    , ("rvfi_insn", .ofBitVec (.ofNat 32 0x00500093))
+    , ("rvfi_trap", .ofBitVec (.ofNat 1 0))
+    , ("rvfi_halt", .ofBitVec (.ofNat 1 0))
+    , ("rvfi_intr", .ofBitVec (.ofNat 1 0))
+    , ("rvfi_mode", .ofBitVec (.ofNat 2 3))
+    , ("rvfi_ixl", .ofBitVec (.ofNat 2 1))
+    , ("rvfi_rs1_addr", .ofBitVec (.ofNat 5 0))
+    , ("rvfi_rs2_addr", .ofBitVec (.ofNat 5 0))
+    , ("rvfi_rs1_rdata", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_rs2_rdata", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_rd_addr", .ofBitVec (.ofNat 5 1))
+    , ("rvfi_rd_wdata", .ofBitVec (.ofNat 32 5))
+    , ("rvfi_pc_rdata", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_pc_wdata", .ofBitVec (.ofNat 32 4))
+    , ("rvfi_mem_addr", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_mem_rmask", .ofBitVec (.ofNat 4 0))
+    , ("rvfi_mem_wmask", .ofBitVec (.ofNat 4 0))
+    , ("rvfi_mem_rdata", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_mem_wdata", .ofBitVec (.ofNat 32 0)) ]⟩
+
+theorem pinned_addi1_port_projection :
+    RvfiPorts.PayloadProjection "rvfi_" addi1PortSample addi1Payload := by
+  constructor <;>
+    apply readBits_ofBitVec <;>
+    simp [PortSample.read, LeanModels.Sv.SvState.lookup, addi1PortSample,
+      addi1Payload, LeanModels.Sv.LVec.ofBitVec]
+
+theorem pinned_addi1_port_decode :
+    decode "rvfi_" addi1PortSample = some addi1 := by
+  apply RvfiPorts.decode_of_projection pinned_addi1_port_projection
+  decide
+
+#guard decode "rvfi_" addi1PortSample == some addi1
 
 theorem pinned_addi_boundary :
     RvfiObservation.addiBoundary (ArchState.init 0) addiInput addi1

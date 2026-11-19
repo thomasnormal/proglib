@@ -85,6 +85,34 @@ structure Payload where
   memWdata : Word
   deriving DecidableEq, Repr
 
+/-! A state relation can carry the fixed-width port reads separately from the
+    decoder.  This keeps the loaded-core proof responsible for the relation
+    between its state and these reads, while the theorem below handles the
+    purely syntactic port projection once for every RVFI row. -/
+structure PayloadProjection (portPrefix : String) (sample : PortSample)
+    (payload : Payload) : Prop where
+  valid : readBits 1 sample (portPrefix ++ "valid") = some 1
+  order : readBits 64 sample (portPrefix ++ "order") = some payload.order
+  insn : readBits 32 sample (portPrefix ++ "insn") = some payload.insn
+  trap : readBits 1 sample (portPrefix ++ "trap") = some payload.trap
+  halt : readBits 1 sample (portPrefix ++ "halt") = some payload.halt
+  intr : readBits 1 sample (portPrefix ++ "intr") = some payload.intr
+  mode : readBits 2 sample (portPrefix ++ "mode") = some payload.mode
+  ixl : readBits 2 sample (portPrefix ++ "ixl") = some payload.ixl
+  rs1Addr : readBits 5 sample (portPrefix ++ "rs1_addr") = some payload.rs1Addr
+  rs2Addr : readBits 5 sample (portPrefix ++ "rs2_addr") = some payload.rs2Addr
+  rs1Rdata : readBits 32 sample (portPrefix ++ "rs1_rdata") = some payload.rs1Rdata
+  rs2Rdata : readBits 32 sample (portPrefix ++ "rs2_rdata") = some payload.rs2Rdata
+  rdAddr : readBits 5 sample (portPrefix ++ "rd_addr") = some payload.rdAddr
+  rdWdata : readBits 32 sample (portPrefix ++ "rd_wdata") = some payload.rdWdata
+  pcRdata : readBits 32 sample (portPrefix ++ "pc_rdata") = some payload.pcRdata
+  pcWdata : readBits 32 sample (portPrefix ++ "pc_wdata") = some payload.pcWdata
+  memAddr : readBits 32 sample (portPrefix ++ "mem_addr") = some payload.memAddr
+  memRmask : readBits 4 sample (portPrefix ++ "mem_rmask") = some payload.memRmask
+  memWmask : readBits 4 sample (portPrefix ++ "mem_wmask") = some payload.memWmask
+  memRdata : readBits 32 sample (portPrefix ++ "mem_rdata") = some payload.memRdata
+  memWdata : readBits 32 sample (portPrefix ++ "mem_wdata") = some payload.memWdata
+
 /-- Read the standard fields as declared, without resizing or mask/address
 conversion. `portPrefix = "rvfi_"` selects the usual signal names. -/
 def readPayload (portPrefix : String) (sample : PortSample) : Option Payload := do
@@ -111,6 +139,14 @@ def readPayload (portPrefix : String) (sample : PortSample) : Option Payload := 
   return ⟨order, insn, trap, halt, intr, mode, ixl, rs1Addr, rs2Addr,
     rs1Rdata, rs2Rdata, rdAddr, rdWdata, pcRdata, pcWdata, memAddr,
     memRmask, memWmask, memRdata, memWdata⟩
+
+theorem readPayload_of_projection {portPrefix : String} {sample : PortSample}
+    {payload : Payload} (h : PayloadProjection portPrefix sample payload) :
+    readPayload portPrefix sample = some payload := by
+  simp [readPayload, h.order, h.insn, h.trap, h.halt, h.intr, h.mode,
+    h.ixl, h.rs1Addr, h.rs2Addr, h.rs1Rdata, h.rs2Rdata, h.rdAddr,
+    h.rdWdata, h.pcRdata, h.pcWdata, h.memAddr, h.memRmask, h.memWmask,
+    h.memRdata, h.memWdata]
 
 private def Payload.row (p : Payload) : RvfiObservation :=
   { valid := true, order := p.order.toNat, insn := p.insn,
@@ -155,6 +191,13 @@ def decode (portPrefix : String) (sample : PortSample) : Option RvfiObservation 
   let valid ← readBits 1 sample (portPrefix ++ "valid")
   if valid = 0 then return bubble
   else (← readPayload portPrefix sample).toObservation?
+
+theorem decode_of_projection {portPrefix : String} {sample : PortSample}
+    {payload : Payload} {row : RvfiObservation}
+    (h : PayloadProjection portPrefix sample payload)
+    (hrow : payload.toObservation? = some row) :
+    decode portPrefix sample = some row := by
+  simp [decode, h.valid, readPayload_of_projection h, hrow]
 
 /-- A known-invalid cycle ignores even absent or unknown payload ports. -/
 theorem decode_bubble (portPrefix : String) (sample : PortSample)
