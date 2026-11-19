@@ -83,11 +83,13 @@ a C envelope is a function of (source, extractor, PROFILE).
 language-neutral; the inline-spec convention has no C form yet.
 
 `type_layouts` is an optional list of parser-native size/alignment facts from
-the pinned Clang layout probe. It is keyed by the exact type string already
-attached to a Clang declaration; the extractor and Lean loader never parse
-that spelling. It covers declarator-shaped objects such as nested function
-pointers whose size has no `RecordLayout` node. A missing fact remains a loud
-layout refusal. For a declared pointer-to-array object, the optional
+the pinned Clang layout probe. Declaration facts carry the parser declaration
+identity when one exists. Compound-literal facts intentionally have no
+declaration identity and are keyed by the parser-attached type observation.
+The extractor and Lean loader never parse the displayed type spelling. It
+covers declarator-shaped objects such as nested function pointers whose size
+has no `RecordLayout` node. A missing fact remains a loud layout refusal. For
+a declared pointer-to-array object, the optional
 `pointee_size_bytes` field carries Clang's exact byte extent for the pointee;
 pointer arithmetic consumes that parser fact without parsing the flat type
 spelling.

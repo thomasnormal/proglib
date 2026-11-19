@@ -32,6 +32,43 @@ public:
   llvm::json::Array records;
   const clang::ASTContext *context = nullptr;
 
+  void emitTypeLayout(clang::QualType type, clang::SourceLocation beginLoc,
+                      clang::SourceLocation endLoc) {
+    const auto &sources = context->getSourceManager();
+    const auto loc = sources.getExpansionLoc(beginLoc);
+    if (!sources.isWrittenInMainFile(loc) || type->isIncompleteType()) return;
+    const auto end = clang::Lexer::getLocForEndOfToken(
+        sources.getExpansionLoc(endLoc), 0, sources, clang::LangOptions());
+    const auto beginOffset = sources.getFileOffset(loc);
+    const auto finish = end.isValid() ? sources.getFileOffset(end) : beginOffset;
+    const auto size = context->getTypeSizeInChars(type);
+    const auto align = context->getTypeAlignInChars(type);
+    llvm::json::Object item{
+        {"kind", "TypeLayout"},
+        {"offset", static_cast<int64_t>(beginOffset)},
+        {"token_length", static_cast<int64_t>(finish - beginOffset)},
+        {"type", type.getAsString()},
+        {"size_bytes", static_cast<int64_t>(size.getQuantity())},
+        {"alignment_bytes", static_cast<int64_t>(align.getQuantity())}};
+    if (type->isPointerType()) {
+      const auto pointee = type->getPointeeType();
+      if (!pointee->isIncompleteType()) {
+        const auto pointeeSize = context->getTypeSizeInChars(pointee);
+        item["pointee_size_bytes"] =
+            static_cast<int64_t>(pointeeSize.getQuantity());
+      }
+    }
+    if (type->isArrayType()) {
+      const auto element = type->getArrayElementTypeNoTypeQual();
+      if (!element->isIncompleteType()) {
+        const auto elementSize = context->getTypeSizeInChars(element);
+        item["element_size_bytes"] =
+            static_cast<int64_t>(elementSize.getQuantity());
+      }
+    }
+    records.push_back(std::move(item));
+  }
+
   bool VisitRecordDecl(clang::RecordDecl *record) {
     if (!record->isCompleteDefinition()) return true;
     const auto &sources = context->getSourceManager();
@@ -85,41 +122,13 @@ public:
   }
 
   bool VisitVarDecl(clang::VarDecl *decl) {
-    const auto &sources = context->getSourceManager();
-    const auto loc = sources.getExpansionLoc(decl->getBeginLoc());
-    if (!sources.isWrittenInMainFile(loc) || decl->isImplicit() ||
-        decl->getType()->isIncompleteType()) return true;
-    const auto end_loc = clang::Lexer::getLocForEndOfToken(
-        sources.getExpansionLoc(decl->getEndLoc()), 0, sources,
-        clang::LangOptions());
-    const auto begin = sources.getFileOffset(loc);
-    const auto finish = end_loc.isValid() ? sources.getFileOffset(end_loc) : begin;
-    const auto size = context->getTypeSizeInChars(decl->getType());
-    const auto align = context->getTypeAlignInChars(decl->getType());
-    llvm::json::Object item{
-        {"kind", "TypeLayout"},
-        {"offset", static_cast<int64_t>(begin)},
-        {"token_length", static_cast<int64_t>(finish - begin)},
-        {"type", decl->getType().getAsString()},
-        {"size_bytes", static_cast<int64_t>(size.getQuantity())},
-        {"alignment_bytes", static_cast<int64_t>(align.getQuantity())}};
-    if (decl->getType()->isPointerType()) {
-      const auto pointee = decl->getType()->getPointeeType();
-      if (!pointee->isIncompleteType()) {
-        const auto pointeeSize = context->getTypeSizeInChars(pointee);
-        item["pointee_size_bytes"] =
-            static_cast<int64_t>(pointeeSize.getQuantity());
-      }
-    }
-    if (decl->getType()->isArrayType()) {
-      const auto element = decl->getType()->getArrayElementTypeNoTypeQual();
-      if (!element->isIncompleteType()) {
-        const auto elementSize = context->getTypeSizeInChars(element);
-        item["element_size_bytes"] =
-            static_cast<int64_t>(elementSize.getQuantity());
-      }
-    }
-    records.push_back(std::move(item));
+    if (decl->isImplicit()) return true;
+    emitTypeLayout(decl->getType(), decl->getBeginLoc(), decl->getEndLoc());
+    return true;
+  }
+
+  bool VisitCompoundLiteralExpr(clang::CompoundLiteralExpr *expr) {
+    emitTypeLayout(expr->getType(), expr->getBeginLoc(), expr->getEndLoc());
     return true;
   }
 };

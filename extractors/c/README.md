@@ -61,11 +61,13 @@ and bit-field width.  It joins records by the parser-provided source span; it
 does not interpret a type spelling or serialize an address.  Build and run the
 determinism check with the pinned frontend:
 
-The same probe emits `TypeLayout` facts for complete declared object types,
-including declarator-shaped function-pointer objects. The extractor joins
-each fact to Clang's `VarDecl` by the parser-provided source offset and carries
-the resulting declaration identity in `type_layouts`; the displayed type text
-is metadata only and is never parsed or used as the join key.
+The same probe emits `TypeLayout` facts for complete declared object types and
+complete compound-literal objects, including declarator-shaped function-pointer
+objects. Facts for declarations are joined to Clang's `VarDecl` by the
+parser-provided source offset. Compound-literal facts intentionally have no
+declaration identity and are consumed by their parser-attached type. The
+displayed type text is metadata only and is never parsed or used as the join
+key.
 
 ```sh
 export LEAN_C_RECORD_LAYOUT_PLUGIN=/outside/the/repo/record_layout_probe.so
