@@ -98,10 +98,54 @@ theorem rvfiStep_ok_iff_step_and_decode
   rw [rvfiStep_ok_iff_fast_and_decode]
   rw [d.fastStepCanonical_eq_step]
 
+/-! This is the input-aware ADDI obligation for a loaded-core invariant.  The
+    canonical post-state and decoded observation remain witnesses, so a proof
+    cannot establish the architectural boundary by manufacturing a row. -/
+
+structure CoreAddiBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (word : LeanModels.Refine.Word) (rd rs1 : LeanModels.Rv.Reg)
+    (imm : LeanModels.Refine.Word) where
+  next : CoreMemState
+  observation : RvfiObservation
+  run : rvfiStep d st entry = .ok (next, observation)
+  boundary : observation.addiBoundary arch input word rd rs1 imm
+
+theorem CoreAddiBoundary.isaStepMemWith
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word} {rd rs1 : LeanModels.Rv.Reg}
+    {imm : LeanModels.Refine.Word}
+    (h : CoreAddiBoundary d st entry arch input word rd rs1 imm) :
+    LeanModels.Rv.isaStepMemWith LeanModels.Rv.cv32e40pProfile arch
+      input.memory input.fetched input.irq =
+      (LeanModels.Refine.addiNext arch rd rs1 imm, input.memory) := by
+  exact RvfiObservation.addiBoundary_isaStepMemWith
+    LeanModels.Rv.cv32e40pProfile h.observation arch input word rd rs1 imm h.boundary
+
+theorem CoreAddiBoundary.memoryMachineStep
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word} {rd rs1 : LeanModels.Rv.Reg}
+    {imm : LeanModels.Refine.Word}
+    (h : CoreAddiBoundary d st entry arch input word rd rs1 imm) :
+    (LeanModels.Refine.rvMemoryMachineWith LeanModels.Rv.cv32e40pProfile).step
+        { arch := arch, memory := input.memory } input =
+      ({ arch := LeanModels.Refine.addiNext arch rd rs1 imm, memory := input.memory },
+        LeanModels.Refine.addiRetirement arch input rd rs1 imm) := by
+  exact RvfiObservation.addiBoundary_rvMemoryMachineWith
+    LeanModels.Rv.cv32e40pProfile h.observation arch input word rd rs1 imm h.boundary
+
 #print axioms rvfiPortSample_read
 #print axioms rvfiObservation_eq_decode
 #print axioms rvfiStep_ok_of_fast_and_decode
 #print axioms rvfiStep_ok_iff_fast_and_decode
 #print axioms rvfiStep_ok_iff_step_and_decode
+#print axioms CoreAddiBoundary.isaStepMemWith
+#print axioms CoreAddiBoundary.memoryMachineStep
 
 end Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
