@@ -165,6 +165,9 @@ obligation:
   `r1_jump.picorv32_jal_fields_isa_step` and
   `r1_jump.picorv32_jalr_fields_isa_step` provide the corresponding exact
   JAL and JALR step bridges while retaining their distinct decoder shapes.
+  `r1_jump.picorv32_jump_exact_cycle_step_refines` consumes the common exact
+  jump boundary in the mixed cycle dispatcher while preserving the distinct
+  JAL and JALR target semantics carried by `JumpInstruction`.
   `r1_upper.picorv32_lui_fields_isa_step` and
   `r1_upper.picorv32_auipc_fields_isa_step` provide the corresponding exact
   LUI and AUIPC step bridges while retaining their distinct source operands.
