@@ -1609,6 +1609,7 @@ def coreMemStmtReadExprs : PStmt → List PExpr
         coreMemStmtReadExprsOpt default?
   | .unsupported .. => []
 
+
 def coreMemStmtReadExprsOpt : Option PStmt → List PExpr
   | none => []
   | some body => coreMemStmtReadExprs body
@@ -1625,6 +1626,36 @@ def coreMemCaseReadExprs : List (List PExpr × PStmt) → List PExpr
 
 end
 
+mutual
+
+partial def coreMemAutomaticNames : PStmt → List String
+  | .automaticDecl name _ _ => [name]
+  | .localDecl _ _ _ | .blockingAssign _ _ | .nbaAssign _ _ | .unsupported .. => []
+  | .blockingAssignL _ _ | .nbaAssignL _ _ => []
+  | .ifStmt _ yes none => coreMemAutomaticNames yes
+  | .ifStmt _ yes (some no) => coreMemAutomaticNames yes ++ coreMemAutomaticNames no
+  | .block body => coreMemAutomaticNamesList body
+  | .forLoop _ _ _ _ body => coreMemAutomaticNames body
+  | .caseStmt _ items default? _ _ =>
+      coreMemAutomaticNamesCase items ++ default?.toList.flatMap coreMemAutomaticNames
+
+partial def coreMemAutomaticNamesList : List PStmt → List String
+  | [] => []
+  | stmt :: rest => coreMemAutomaticNames stmt ++ coreMemAutomaticNamesList rest
+
+partial def coreMemAutomaticNamesCase : List (List PExpr × PStmt) → List String
+  | [] => []
+  | (_, body) :: rest => coreMemAutomaticNames body ++ coreMemAutomaticNamesCase rest
+
+end
+
+def coreMemExternalReadExprs (body : PStmt) : List PExpr :=
+  let locals := coreMemAutomaticNames body
+  (coreMemStmtReadExprs body).filter fun expr =>
+    match expr with
+    | .ident name => !locals.contains name
+    | _ => true
+
 /-! The ordinary E entry is defined after the source-shaped sensitivity
 walkers so its derived cache is built once at instantiation, never in a cycle.
 The source nodes remain in `CoreMemProc`; this is an evaluator cache only. -/
@@ -1634,7 +1665,7 @@ def CoreMemDesign.compileCombReads (E : CoreMemDesign) :
   E.processes.map fun p =>
     match p with
     | .comb body =>
-        let reads := coreMemStmtReadExprs body
+        let reads := coreMemExternalReadExprs body
         if reads.all (fun e => !LeanModels.Sv.PExpr.hasMemoryRead e &&
             !LeanModels.Sv.PExpr.hasFunctionCall e) then
           some (reads.map (instExpr2 E.env E.elems none))
@@ -1646,7 +1677,7 @@ def CoreMemDesign.compileImplicitReads (E : CoreMemDesign) :
   E.processes.map fun p =>
     match p with
     | .implicit body =>
-        let reads := coreMemStmtReadExprs body
+        let reads := coreMemExternalReadExprs body
         if reads.all (fun e => !LeanModels.Sv.PExpr.hasMemoryRead e &&
             !LeanModels.Sv.PExpr.hasFunctionCall e) then
           some (reads.map (instExpr2 E.env E.elems none))
@@ -2440,43 +2471,46 @@ def CoreMemDesign.evalCombExpr (E : CoreMemDesign) (env : IEnv)
 mutual
 
 def CoreMemDesign.execCombLoopValuesFuel (E : CoreMemDesign) (env : IEnv)
-    (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) : Nat → List Int → PStmt → String →
-    Res (CoreMemState × SvState)
+    (elems : List (String × Nat)) (st : CoreMemState) (view locals : SvState) :
+    Nat → List Int → PStmt → String → Res (CoreMemState × SvState × SvState)
   | 0, _, _, _ => .timeout
-  | fuel + 1, [], _, _ => .ok (st, view)
+  | fuel + 1, [], _, _ => .ok (st, view, locals)
   | fuel + 1, i :: rest, body, iterator => do
-      let (st', view') ← E.execCombStmtFuel (env.bindVal iterator i) elems st view fuel body
-      E.execCombLoopValuesFuel env elems st' view' fuel rest body iterator
+      let (st', view', locals') ←
+        E.execCombStmtFuel (env.bindVal iterator i) elems st view locals fuel body
+      E.execCombLoopValuesFuel env elems st' view' locals' fuel rest body iterator
 
 def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
-    (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) : Nat → PStmt →
-    Res (CoreMemState × SvState)
+    (elems : List (String × Nat)) (st : CoreMemState) (view locals : SvState) :
+    Nat → PStmt → Res (CoreMemState × SvState × SvState)
   | 0, _ => .timeout
-  | fuel + 1, .localDecl _ _ _ => .ok (st, view)
-  | fuel + 1, .automaticDecl _ _ _ => .ok (st, view)
+  | fuel + 1, .localDecl _ _ _ => .ok (st, view, locals)
+  | fuel + 1, .automaticDecl name width init => do
+      let locals' ← E.execAutomaticDecl env elems st locals name width init
+      .ok (st, view, locals')
   | fuel + 1, .blockingAssign name value =>
-      match E.scalarTarget name with
-      | none => .unsupported s!"9.2.2.2: scalar always_comb target '{name}' is undeclared"
-      | some width => do
-          let v ← E.evalCombExpr env elems st view (some width) value
-          let st' := E.setScalarState st name v
-          .ok (st', SvState.set view name v)
-  | fuel + 1, .blockingAssignL target value =>
-      match target with
-      | .ident name =>
+      match SvState.lookup locals name with
+      | some old => do
+          let v ← E.evalExprLocals env elems st (some old.width) locals value
+          .ok (st, view, setAutomaticLocal locals name (v.resizeU old.width))
+      | none =>
           match E.scalarTarget name with
           | none => .unsupported s!"9.2.2.2: scalar always_comb target '{name}' is undeclared"
           | some width => do
-              let v ← E.evalCombExpr env elems st view (some width) value
+              let v ← E.evalExprLocals env elems st (some width) locals value
               let st' := E.setScalarState st name v
-              .ok (st', SvState.set view name v)
+              .ok (st', SvState.set view name v, locals)
+  | fuel + 1, .blockingAssignL target value =>
+      match target with
+      | .ident name =>
+          E.execCombStmtFuel env elems st view locals fuel (.blockingAssign name value)
       | .arrayElem name [_] =>
           match E.memDecl? name with
           | none => .unsupported s!"9.2.2.2: memory always_comb target '{name}' is undeclared"
           | some md => do
-              let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
+              let v ← E.evalExprLocals env elems st (some md.shape.elemWidth) locals value
               let st' ← E.writeInitialCell env elems st target name md v
-              .ok (st', view)
+              .ok (st', view, locals)
       | .arrayElem name _ =>
           .unsupported s!"9.2.2.2: memory always_comb target '{name}' is not one-rank"
       | .partSel name msb lsb => do
@@ -2487,9 +2521,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
           if hi < lo then
             .unsupported "9.2.2.2: packed part-select has descending runtime bounds"
           else
-            let v ← E.evalCombExpr env elems st view (some (hi - lo + 1)) value
+            let v ← E.evalExprLocals env elems st (some (hi - lo + 1)) locals value
             let st' ← E.writeScalarPartAssign env elems st name msb lsb v
-            .ok (st', E.scalar.view st'.scalar)
+            .ok (st', E.scalar.view st'.scalar, locals)
       | .aggregateMember base path =>
           match E.aggregateDecl? base with
           | none => .unsupported s!"9.2.2.2: aggregate always_comb target '{base}' is undeclared"
@@ -2498,41 +2532,41 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
               match decl.ty.resolve? steps with
               | none => .unsupported "9.2.2.2: aggregate always_comb target path is invalid"
               | some ty => do
-                  let v ← E.evalCombExpr env elems st view (some ty.width) value
+                  let v ← E.evalExprLocals env elems st (some ty.width) locals value
                   match st.aggregates.write? decl.id steps (Val.ofLVec ty v) with
                   | none => .unsupported "9.2.2.2: aggregate always_comb target path is not writable"
-                  | some aggregates' => .ok ({ st with aggregates := aggregates' }, view)
+                  | some aggregates' => .ok ({ st with aggregates := aggregates' }, view, locals)
       | .bitSel .. => do
           let st' ← E.execScalarTarget env elems st target value
-          .ok (st', E.scalar.view st'.scalar)
+          .ok (st', E.scalar.view st'.scalar, locals)
       | _ => .unsupported "9.2.2.2: packed or concatenated always_comb target is outside this slice"
   | fuel + 1, .ifStmt cond yes no => do
-      let cv ← E.evalCombExpr env elems st view (some 1) cond
-      if cv.condTrue then E.execCombStmtFuel env elems st view fuel yes
+      let cv ← E.evalExprLocals env elems st (some 1) locals cond
+      if cv.condTrue then E.execCombStmtFuel env elems st view locals fuel yes
       else match no with
-        | none => .ok (st, view)
-        | some stmt => E.execCombStmtFuel env elems st view fuel stmt
-  | fuel + 1, .block body => E.execCombStmtsFuel env elems st view fuel body
+        | none => .ok (st, view, locals)
+        | some stmt => E.execCombStmtFuel env elems st view locals fuel stmt
+  | fuel + 1, .block body => E.execCombStmtsFuel env elems st view locals fuel body
   | fuel + 1, .forLoop iterator init condition step body =>
       match forValues2 env iterator init condition step with
       | .timeout => .timeout
       | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
-      | .ok values => E.execCombLoopValuesFuel env elems st view fuel values body iterator
+      | .ok values => E.execCombLoopValuesFuel env elems st view locals fuel values body iterator
   | fuel + 1, .caseStmt subject items default? mode check => do
-      let sv ← E.evalExpr env elems st none subject
+      let sv ← E.evalExprLocals env elems st none locals subject
       match check with
       | .none =>
           let selected ← coreMemSelectCase E env elems st sv mode items default?
           match selected with
-          | none => .ok (st, view)
-          | some body => E.execCombStmtFuel env elems st view fuel body
+          | none => .ok (st, view, locals)
+          | some body => E.execCombStmtFuel env elems st view locals fuel body
       | qualifier =>
           let n ← coreMemCaseHits E env elems st sv mode items
           if caseClaimOk qualifier default?.isSome n then
             let selected ← coreMemSelectCase E env elems st sv mode items default?
             match selected with
-            | none => .ok (st, view)
-            | some body => E.execCombStmtFuel env elems st view fuel body
+            | none => .ok (st, view, locals)
+            | some body => E.execCombStmtFuel env elems st view locals fuel body
           else
             .unsupported s!"12.5.3: {caseCheckName qualifier}"
   | fuel + 1, .nbaAssign .. | fuel + 1, .nbaAssignL .. =>
@@ -2540,20 +2574,22 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
   | fuel + 1, .unsupported kind text => .unsupported s!"{kind}: {text}"
 
 def CoreMemDesign.execCombStmtsFuel (E : CoreMemDesign) (env : IEnv)
-    (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) : Nat → List PStmt →
-    Res (CoreMemState × SvState)
+    (elems : List (String × Nat)) (st : CoreMemState) (view locals : SvState) :
+    Nat → List PStmt → Res (CoreMemState × SvState × SvState)
   | 0, _ => .timeout
-  | fuel + 1, [] => .ok (st, view)
+  | fuel + 1, [] => .ok (st, view, locals)
   | fuel + 1, stmt :: rest => do
-      let (st', view') ← E.execCombStmtFuel env elems st view fuel stmt
-      E.execCombStmtsFuel env elems st' view' fuel rest
+      let (st', view', locals') ← E.execCombStmtFuel env elems st view locals fuel stmt
+      E.execCombStmtsFuel env elems st' view' locals' fuel rest
 
 end
 
 def CoreMemDesign.execCombStmtAtView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) (stmt : PStmt) :
     Res (CoreMemState × SvState) :=
-  E.execCombStmtFuel env elems st view 4096 stmt
+  do
+    let (st', view', _) ← E.execCombStmtFuel env elems st view [] 4096 stmt
+    .ok (st', view')
 
 def CoreMemDesign.execCombStmt (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (stmt : PStmt) : Res CoreMemState :=
@@ -2569,7 +2605,7 @@ def CoreMemDesign.runImplicitAt (E : CoreMemDesign) (before current : CoreMemSta
   | .primitive _ _ _ :: rest =>
       E.runImplicitAt before current beforeView currentView (index + 1) rest
   | .implicit body :: rest => do
-      let reads := coreMemStmtReadExprs body
+      let reads := coreMemExternalReadExprs body
       let ready ← E.readChangedImplicitAt before current beforeView currentView index reads
       if !ready then
         E.runImplicitAt before current beforeView currentView (index + 1) rest
@@ -2653,7 +2689,7 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | [] => .ok current
   | .primitive _ _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .comb body :: rest => do
-      let reads := coreMemStmtReadExprs body
+      let reads := coreMemExternalReadExprs body
       let ready ← E.readChangedAt before current beforeView currentView index reads
       if !ready then
         E.runCombAt before beforeView current currentView (index + 1) rest
@@ -2668,7 +2704,7 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | .implicit _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .event _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .latch body :: rest => do
-      let reads := coreMemStmtReadExprs body
+      let reads := coreMemExternalReadExprs body
       let ready ← E.readChangedAt before current beforeView currentView index reads
       if !ready then
         E.runCombAt before beforeView current currentView (index + 1) rest

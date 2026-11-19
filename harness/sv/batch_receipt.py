@@ -168,6 +168,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("proc_local_automatic_init.sv", "proc_local_automatic_init",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),),
             retain_proc_rewrites=True, expected_source_refusals=("iverilog",)),
+    # Automatic local in an always_comb activation.
+    Fixture("proc_local_automatic_comb.sv", "proc_local_automatic_comb",
+            (Port("a", 8),), (Port("y", 8),), retain_proc_rewrites=True,
+            expected_source_refusals=("iverilog",)),
     Fixture("proc_local_static_e.sv", "proc_local_static_e",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),)),
     Fixture("proc_local_static_init_e.sv", "proc_local_static_init_e",
