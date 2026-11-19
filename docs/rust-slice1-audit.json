@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.359,
+      "extract_seconds": 0.199,
       "lean_outcome": "refused:unsupported:call target has no MIR body: _RNvCseLJZi906U4A_7___rustc35___rust_no_alloc_shim_is_unstable_v2"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.193,
+      "extract_seconds": 0.133,
       "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 1, projection := [LeanModels.Rust.Projection.deref] } at _RNvXs4J_NtNtCsjS5mZ2TyZbF_4core3ops5arithRlINtB6_3RemlE3remCshipe5na9avQ_20study_iterator_chain:b0"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.18,
+      "extract_seconds": 0.099,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.179,
+      "extract_seconds": 0.088,
       "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 6, projection := [LeanModels.Rust.Projection.deref] } at _RNCNvCs5Jnb55tlxKo_14study_closures4main0B3_:b0"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.109,
+      "extract_seconds": 0.101,
       "lean_outcome": "refused:unsupported:atomic load target=some (LeanModels.Rust.Cell.pointer\n  { provenance := 0,\n    address := 0,\n    pointeeType := some 14,\n    isLocal := false,\n    targetFrame := none,\n    projection := [LeanModels.Rust.Projection.field 0 23] })"
     },
     {
@@ -262,14 +262,14 @@
           }
         }
       },
-      "extract_seconds": 0.18,
+      "extract_seconds": 0.081,
       "lean_outcome": "returned"
     },
     {
       "id": "study_question_mark",
       "source": "measurement_programs/study/07_question_mark.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:discriminant assignment at _RNvXsf_NtCsjS5mZ2TyZbF_4core6optionINtB5_6OptionlENtNtB7_3cmp9PartialEq2eqCskouW2nCaI7F_19study_question_mark:b2",
+      "reason": "Lean outcome refused:unsupported:discriminant assignment place={ localId := 7, projection := [] } cell=none target={ localId := 15, projection := [LeanModels.Rust.Projection.deref] } slot=some (LeanModels.Rust.Slot.cell\n  (LeanModels.Rust.Cell.pointer\n    { provenance := 3, address := 3, pointeeType := some 8, isLocal := false, targetFrame := none, projection := [] })) at _RNvXsf_NtCsjS5mZ2TyZbF_4core6optionINtB5_6OptionlENtNtB7_3cmp9PartialEq2eqCskouW2nCaI7F_19study_question_mark:b3",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -306,8 +306,8 @@
           }
         }
       },
-      "extract_seconds": 0.167,
-      "lean_outcome": "refused:unsupported:discriminant assignment at _RNvXsf_NtCsjS5mZ2TyZbF_4core6optionINtB5_6OptionlENtNtB7_3cmp9PartialEq2eqCskouW2nCaI7F_19study_question_mark:b2"
+      "extract_seconds": 0.082,
+      "lean_outcome": "refused:unsupported:discriminant assignment place={ localId := 7, projection := [] } cell=none target={ localId := 15, projection := [LeanModels.Rust.Projection.deref] } slot=some (LeanModels.Rust.Slot.cell\n  (LeanModels.Rust.Cell.pointer\n    { provenance := 3, address := 3, pointeeType := some 8, isLocal := false, targetFrame := none, projection := [] })) at _RNvXsf_NtCsjS5mZ2TyZbF_4core6optionINtB5_6OptionlENtNtB7_3cmp9PartialEq2eqCskouW2nCaI7F_19study_question_mark:b3"
     },
     {
       "id": "study_async",
@@ -350,14 +350,14 @@
           }
         }
       },
-      "extract_seconds": 0.256,
+      "extract_seconds": 0.127,
       "lean_outcome": "refused:unsupported:cast write at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1"
     },
     {
       "id": "study_derive",
       "source": "measurement_programs/study/09_derive.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:reference write at _RNvXCscItkQonpJJc_12study_deriveNtB2_4PairNtNtCsjS5mZ2TyZbF_4core5clone5Clone5cloneB2_:b0",
+      "reason": "Lean outcome refused:unsupported:bitwise assignment at _RNvMs4_NtCsjS5mZ2TyZbF_4core3fmtNtB5_9Arguments6as_strCscItkQonpJJc_12study_derive:b0",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -394,8 +394,8 @@
           }
         }
       },
-      "extract_seconds": 0.619,
-      "lean_outcome": "refused:unsupported:reference write at _RNvXCscItkQonpJJc_12study_deriveNtB2_4PairNtNtCsjS5mZ2TyZbF_4core5clone5Clone5cloneB2_:b0"
+      "extract_seconds": 0.432,
+      "lean_outcome": "refused:unsupported:bitwise assignment at _RNvMs4_NtCsjS5mZ2TyZbF_4core3fmtNtB5_9Arguments6as_strCscItkQonpJJc_12study_derive:b0"
     },
     {
       "id": "study_while_gcd",
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.203,
+      "extract_seconds": 0.141,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.252,
+      "extract_seconds": 0.173,
       "lean_outcome": "refused:unsupported:call target has no MIR body: _RNvCseLJZi906U4A_7___rustc35___rust_no_alloc_shim_is_unstable_v2"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.082,
+      "extract_seconds": 0.081,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.145,
+      "extract_seconds": 0.178,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.158,
+      "extract_seconds": 0.079,
       "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 3, projection := [] } at _RNCNCNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main00B5_:b0"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.149,
+      "extract_seconds": 0.078,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.145,
+      "extract_seconds": 0.102,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.104,
+      "extract_seconds": 0.048,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.107,
+      "extract_seconds": 0.048,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.158,
+      "extract_seconds": 0.083,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.171,
+      "extract_seconds": 0.087,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.169,
+      "extract_seconds": 0.1,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.116,
+      "extract_seconds": 0.048,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.105,
+      "extract_seconds": 0.046,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.087,
+      "extract_seconds": 0.045,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.229,
+      "extract_seconds": 0.109,
       "lean_outcome": "refused:unsupported:call target has no MIR body: _RNvCseLJZi906U4A_7___rustc35___rust_no_alloc_shim_is_unstable_v2"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.076,
+      "extract_seconds": 0.059,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.118,
+      "extract_seconds": 0.084,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.107,
+      "extract_seconds": 0.046,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.091,
+      "extract_seconds": 0.036,
       "lean_outcome": "returned"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.099,
+      "extract_seconds": 0.059,
       "lean_outcome": "returned"
     }
   ],
