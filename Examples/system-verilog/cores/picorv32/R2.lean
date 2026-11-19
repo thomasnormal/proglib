@@ -109,7 +109,9 @@ obligation:
   `r1_alu_imm` provides the nine remaining immediate ALU consumers through
   the same operation-indexed witness.
   `r1_fence` provides the FENCE and FENCE.I consumers through the decoded
-  fence witness.
+  fence witness.  Its
+  `r1_fence.picorv32_fence_exact_cycle_step_refines` theorem consumes the
+  exact memory-preserving fence boundary while retaining the operation kind.
   `r1_system` provides the ECALL, EBREAK, MRET, and WFI consumers through the
   decoded system witness.  Its
   `r1_system.picorv32_system_exact_cycle_step_refines` theorem consumes the
