@@ -6,7 +6,7 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1390 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
+implementation is 1391 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
 of AST declarations, 530 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
@@ -45,6 +45,12 @@ allocation bytes and projects field zero through the type argument layout.  The
 `study_drop_struct` row therefore passes the atomic operation and reaches its
 next boundary, the missing MIR body for `caller_location`.  That foreign runtime
 helper remains a named refusal with no guessed panic metadata.
+
+The `study_async` cast boundary is `std::ptr::without_provenance`: its MIR
+transmutes a `usize` value into a raw pointer and then applies `PtrToPtr`. The
+current pointer representation requires provenance, so the operand is retained
+as an integer and the second cast reports a typed refusal with target layout 27.
+No provenance is fabricated from the integer address.
 
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes

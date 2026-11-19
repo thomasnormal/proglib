@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.187,
+      "extract_seconds": 0.146,
       "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy\n  { localId := 1, projection := [LeanModels.Rust.Projection.deref, LeanModels.Rust.Projection.field 0 25] } slot=some (LeanModels.Rust.Slot.cell\n  (LeanModels.Rust.Cell.pointer\n    { provenance := 1,\n      address := 1,\n      pointeeType := some 29,\n      isLocal := false,\n      targetFrame := some 2,\n      projection := [] })) at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCsd7FEqVnaBj8_13study_for_vec:b0"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.097,
+      "extract_seconds": 0.098,
       "lean_outcome": "out_of_fuel"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.066,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.065,
+      "extract_seconds": 0.062,
       "lean_outcome": "returned"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.065,
+      "extract_seconds": 0.063,
       "lean_outcome": "returned"
     },
     {
@@ -306,14 +306,14 @@
           }
         }
       },
-      "extract_seconds": 0.069,
+      "extract_seconds": 0.071,
       "lean_outcome": "returned"
     },
     {
       "id": "study_async",
       "source": "measurement_programs/study/08_async.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:cast write at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1",
+      "reason": "Lean outcome refused:unsupported:cast write kind=LeanModels.Rust.CastKind.ptrToPtr operand=some (LeanModels.Rust.Cell.int 0) target=27 at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -350,8 +350,8 @@
           }
         }
       },
-      "extract_seconds": 0.086,
-      "lean_outcome": "refused:unsupported:cast write at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1"
+      "extract_seconds": 0.085,
+      "lean_outcome": "refused:unsupported:cast write kind=LeanModels.Rust.CastKind.ptrToPtr operand=some (LeanModels.Rust.Cell.int 0) target=27 at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1"
     },
     {
       "id": "study_derive",
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 0.329,
+      "extract_seconds": 0.321,
       "lean_outcome": "refused:unsupported:bitwise assignment at _RNvMs4_NtCsjS5mZ2TyZbF_4core3fmtNtB5_9Arguments6as_strCscItkQonpJJc_12study_derive:b0"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.075,
+      "extract_seconds": 0.076,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.1,
+      "extract_seconds": 0.095,
       "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy\n  { localId := 1, projection := [LeanModels.Rust.Projection.deref, LeanModels.Rust.Projection.field 0 11] } slot=some (LeanModels.Rust.Slot.cell\n  (LeanModels.Rust.Cell.pointer\n    { provenance := 1,\n      address := 1,\n      pointeeType := some 15,\n      isLocal := false,\n      targetFrame := some 2,\n      projection := [] })) at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCsbZvLFSCT5mK_24rustc_ivec_pass_by_value:b0"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.029,
+      "extract_seconds": 0.03,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.06,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.063,
+      "extract_seconds": 0.064,
       "lean_outcome": "returned"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.06,
+      "extract_seconds": 0.062,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.06,
+      "extract_seconds": 0.063,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.036,
+      "extract_seconds": 0.034,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.036,
+      "extract_seconds": 0.032,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.06,
+      "extract_seconds": 0.058,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.059,
+      "extract_seconds": 0.061,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.062,
+      "extract_seconds": 0.063,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.04,
+      "extract_seconds": 0.041,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.036,
+      "extract_seconds": 0.037,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.085,
+      "extract_seconds": 0.087,
       "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy\n  { localId := 1, projection := [LeanModels.Rust.Projection.deref, LeanModels.Rust.Projection.field 0 5] } slot=some (LeanModels.Rust.Slot.cell\n  (LeanModels.Rust.Cell.pointer\n    { provenance := 1,\n      address := 1,\n      pointeeType := some 10,\n      isLocal := false,\n      targetFrame := some 2,\n      projection := [] })) at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCs9qsj18IWarl_21rustc_vector_no_ann_2:b0"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.036,
+      "extract_seconds": 0.037,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.062,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.036,
+      "extract_seconds": 0.038,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.028,
+      "extract_seconds": 0.029,
       "lean_outcome": "returned"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.045,
+      "extract_seconds": 0.046,
       "lean_outcome": "returned"
     }
   ],
