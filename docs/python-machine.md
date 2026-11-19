@@ -65,7 +65,8 @@ with mutable attributes and class fallback. Single inheritance and direct
 multiple inheritance resolve class attributes, methods, and `__init__` in
 base-list order. Missing attributes raise `AttributeError`. Multiple
 inheritance with inherited bases, cycles, and other class metadata remain
-outside this slice. Static
+outside this slice. A leading string literal in a class body initializes
+`__doc__`; other class metadata remains outside this slice. Static
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
