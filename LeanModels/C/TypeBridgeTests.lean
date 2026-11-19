@@ -30,6 +30,8 @@ private def isError : Except String α → Bool
   | .ok _ => false
 
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
+#guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
+#guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))
 #guard same pointerToScalar.toQualType
   (.ok (.pointer (.cBuiltinKind .unsignedShort)))
 #guard same functionType.toQualType

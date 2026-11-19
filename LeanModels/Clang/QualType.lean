@@ -40,7 +40,7 @@ inductive CBuiltin where
   deriving Repr, BEq, Inhabited, Lean.ToExpr
 
 def CBuiltin.ofName : String → Option CBuiltin
-  | "_Bool" => some .bool
+  | "_Bool" | "bool" => some .bool
   | "char" => some .char
   | "signed char" => some .signedChar
   | "unsigned char" => some .unsignedChar
@@ -52,6 +52,14 @@ def CBuiltin.ofName : String → Option CBuiltin
   | "unsigned long" | "unsigned long int" => some .unsignedLong
   | "long long" | "long long int" => some .longLong
   | "unsigned long long" | "unsigned long long int" => some .unsignedLongLong
+  | "int8_t" => some .signedChar
+  | "uint8_t" => some .unsignedChar
+  | "int16_t" => some .short
+  | "uint16_t" => some .unsignedShort
+  | "int32_t" => some .int
+  | "uint32_t" => some .unsignedInt
+  | "int64_t" | "intptr_t" => some .long
+  | "uint64_t" | "uintptr_t" => some .unsignedLong
   | "float" => some .float
   | "double" => some .double
   | "long double" => some .longDouble
