@@ -39,7 +39,48 @@
                   "end_lineno": 2,
                   "end_col_offset": 9
                 },
-                "id": "value"
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "3"
+              }
+            }
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -82,8 +123,11 @@
               "end_lineno": 3,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Attribute",
@@ -101,16 +145,19 @@
                   "end_lineno": 3,
                   "end_col_offset": 9
                 },
-                "id": "Box"
+                "id": "Box",
+                "machine_context": "Load"
               },
-              "attr": "value"
+              "attr": "value",
+              "machine_context": "Load"
             }
           ],
           "keywords": [],
           "call_unsupported": null
         }
       }
-    ]
+    ],
+    "machine_type_ignores": []
   },
   "lean_blocks": []
 }
