@@ -69,6 +69,19 @@ theorem rvfiObservation_memAddr_of_valid
       simp at hobs
       exact (Payload.toObservation?_memAddr payload row hobs).trans hpayload
 
+theorem rvfiObservation_memAddr_of_valid_view
+    {d : CoreMemDesign} {st : CoreMemState} {row : RvfiObservation}
+    {addr : Word}
+    (hobs : rvfiObservation d st = some row)
+    (hvalid : row.valid = true)
+    (haddr : SvState.lookup (CoreMemState.view d st) "rvfi_mem_addr" =
+      some (.ofBitVec addr)) :
+    row.memAddr = addr := by
+  apply rvfiObservation_memAddr_of_valid hobs hvalid
+  rw [rvfiPortSample_read]
+  simp only [show "rvfi_mem_addr" ∈ rvfiPortNames by decide, if_true]
+  exact haddr
+
 theorem rvfiObservation_eq_decode (d : CoreMemDesign) (st : CoreMemState) :
     rvfiObservation d st = decode "rvfi_" (rvfiPortSample d st) := rfl
 

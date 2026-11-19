@@ -83,6 +83,8 @@ obligation:
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
+  Its `rvfiObservation_memAddr_of_valid_view` specialization exposes the
+  same fact directly from the canonical `CoreMemState.view`.
   Its
   `CoreRvfiMachine.to_addi_invariant` theorem is the bridge from an explicit
   all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
