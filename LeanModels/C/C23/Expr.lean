@@ -610,6 +610,11 @@ def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : CType) :
       (layout.elementSizeDecl did).orElse (fun _ => layout.pointeeSizeDecl did))
     |>.orElse (fun _ => layout.exprSizeAt base ty)
 
+def Layout.arrayElementSizeDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (arrayTy elementTy : CType) : Option Nat :=
+  decl.bind layout.elementSizeDecl |>.orElse
+    (fun _ => layout.arrayElementSizeAt arrayTy elementTy)
+
 def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
     Option LeanModels.Clang.QualType :=
   (layout.structuredType id).bind (LeanModels.Clang.QualType.resolveTypedefs

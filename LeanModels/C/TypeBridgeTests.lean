@@ -97,6 +97,9 @@ private def isError : Except String α → Bool
   declSize := fun id => if id.value == "record-1" then some 8 else none } :
   LeanModels.C.C23.Layout).bitFieldStorageSizeAt
     (some (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default)) "struct R" == some 8
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  elementSizeDecl := fun id => if id.value == "array-1" then some 4 else none } :
+  LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"}) "int[2]" "int" == some 4
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.isCharacterType (.cBuiltin "unsigned char")

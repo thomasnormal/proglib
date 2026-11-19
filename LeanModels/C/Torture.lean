@@ -891,7 +891,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
             | _, none => setupGlobalsWithIds fuel lay ds acc ids'
             | _, some e => do
                 initObject fuel ({ env := acc, idEnv := ids', layout := lay } : Ctx).withCompoundInit
-                  (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl)
+                  (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl) declaration
                 setupGlobalsWithIds fuel lay ds acc ids'
         | none =>
           if storage == some "extern" then
@@ -914,7 +914,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
                   let (m', o) := m.alloc .static_ sz (lay.storageTypeAt declaration ty)
                   set m'
                   initObject fuel ({ env := acc, idEnv := ids, layout := lay } : Ctx).withCompoundInit
-                    (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl)
+                    (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl) declaration
                   setupGlobalsWithIds fuel lay ds ((nm, o) :: acc)
                     (match declaration with
                     | some id => (id, o) :: ids
@@ -953,7 +953,7 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
             | none => setupStaticsWithIds fuel lay ds acc ids'
             | some e => do
                 initObject fuel ({ env := acc, idEnv := ids', layout := lay } : Ctx).withCompoundInit
-                  (Ptr.toObject o) ty e
+                  (Ptr.toObject o) ty e none declaration
                 setupStaticsWithIds fuel lay ds acc ids'
     | .var none _ _ _ _ _ _ _ => setupStaticsWithIds fuel lay ds acc ids
     | _ => setupStaticsWithIds fuel lay ds acc ids
