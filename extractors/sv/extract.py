@@ -34882,8 +34882,13 @@ def _sym_uninstantiated_port_expr(sm, syntax):
             operand = _sym_uninstantiated_port_expr(sm, children[-1])
             if operand.get("kind") == "Unsupported":
                 return operand
+            width = None
+            try:
+                width = int(str(children[0]).strip())
+            except ValueError:
+                width = operand.get("width")
             return {"kind": "Resize", "span": _syntax_span(sm, syntax),
-                    "width": None, "operand": operand}
+                    "width": width, "operand": operand}
         if syntax.kind == SyntaxKind.IdentifierName:
             name = str(syntax).strip()
             symbol = _SYM.scope.lookupName(name)
