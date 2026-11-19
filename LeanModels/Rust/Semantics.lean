@@ -478,14 +478,18 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       pure (.int (if leftValue < rightValue then 1 else 0))
+  -- Bitwise operators on the natural-number bits of nonnegative operands.  A negative
+  -- operand needs its type's two's-complement width, which is not modelled here: refuse.
   | .binaryBitAnd left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
-      pure (.int (Int.ofNat (leftValue.toNat &&& rightValue.toNat)))
+      if leftValue < 0 ∨ rightValue < 0 then none
+      else pure (.int (Int.ofNat (leftValue.toNat &&& rightValue.toNat)))
   | .binaryBitXor left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
-      pure (.int (Int.ofNat (leftValue.toNat ^^^ rightValue.toNat)))
+      if leftValue < 0 ∨ rightValue < 0 then none
+      else pure (.int (Int.ofNat (leftValue.toNat ^^^ rightValue.toNat)))
   -- Rust's integer `/` rounds toward zero and `%` takes the dividend's sign: `Int.tdiv` and
   -- `Int.tmod`, not Lean's Euclidean `/` and `%` (which give -4 and 1 for -7 and 2).
   | .binaryDiv left right => do
