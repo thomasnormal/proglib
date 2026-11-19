@@ -36,6 +36,7 @@ structure State where
   locals : List (Nat × Slot) := []
   sharedLocals : List (Nat × Nat × Slot) := []
   frameId : Nat := 0
+  localTypes : List (Nat × Nat) := []
   placements : List (Nat × Nat) := []
   types : List TypeLayout := []
   allocations : List Allocation := []
@@ -167,8 +168,17 @@ def shareCell (frameId : Nat) : Cell → Cell
   | .enum variant fields => .enum variant (fields.map (shareCell frameId))
   | value => value
 
+def normalizeAbiCell : Cell → Cell
+  | .aggregate [.pointer pointer] => .pointer pointer
+  | .aggregate fields => .aggregate (fields.map normalizeAbiCell)
+  | .enum variant fields => .enum variant (fields.map normalizeAbiCell)
+  | value => value
+
 def localSlot (s : State) (localId : Nat) : Option Slot :=
   s.locals.find? (fun item => item.1 == localId) |>.map (·.2)
+
+def localType (s : State) (localId : Nat) : Option Nat :=
+  s.localTypes.find? (fun item => item.1 == localId) |>.map (·.2)
 
 def sharedSlot (s : State) (frameId localId : Nat) : Option Slot :=
   s.sharedLocals.find? (fun item => item.1 == frameId && item.2.1 == localId) |>.map (·.2.2)
@@ -229,6 +239,7 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | [] => some cell
   | .deref :: rest =>
       match cell with
+      | .aggregate [inner] => projectCell s inner (.deref :: rest)
       | .pointer pointer =>
           let target :=
             if pointer.isLocal then
@@ -417,7 +428,7 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       | .divideByZero => none
   | .ref place =>
       match place.projection with
-      | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
+      | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId })
       | .deref :: rest =>
           match localSlot s place.localId |>.bind slotCell with
           | some (.pointer pointer) =>
@@ -426,7 +437,7 @@ def rvalueCell (s : State) : Rvalue → Option Cell
               else none
           | _ => none
       | projection =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId, projection := projection })
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId, projection := projection })
   | .addressOf _ place =>
       some (.pointer { provenance := place.localId, address := placementOf s place.localId, projection := place.projection })
   | .aggregate _ fields => do
@@ -580,8 +591,7 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")
           | .assign place (.use operand) =>
               match rvalueCell state (.use operand) with
-              | none =>
-                  .refused (.unsupported "use operand")
+              | none => .refused (.unsupported "use operand")
               | some cell =>
                   if (writeCell state place cell).isNone then
                     .refused (.unsupported ("use destination local " ++ toString place.localId))
@@ -670,10 +680,11 @@ def bindCallCellsFresh (caller callee : State) (args : List Operand) (localId : 
   let values ← args.mapM (operandCell caller)
   let frameState := { callee with frameId := caller.frameId + 1 }
   let sharedState := { frameState with
+    localTypes := callee.localTypes,
     sharedLocals := sharedSlotsFrom caller.frameId caller.locals ++ caller.sharedLocals }
   pure (bindEvaluatedCells
     sharedState
-    (values.map (shareCell caller.frameId)) localId)
+    (values.map (fun value => normalizeAbiCell (shareCell caller.frameId value))) localId)
 
 def returnValue (trace : Trace) : Option Int :=
   (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item =>
@@ -738,7 +749,8 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                               sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
                               allocations := firstTrace.state.allocations,
-                              provenance := firstTrace.state.provenance }
+                              provenance := firstTrace.state.provenance,
+                              localTypes := callee.locals.map (fun loc => (loc.localId, loc.ty)) }
                           match bindCallCellsFresh firstTrace.state callState args 1 with
                           | none => .refused (.unsupported ("call arguments for " ++ calleeId))
                           | some calleeState =>
@@ -777,7 +789,8 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                               sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
                               allocations := firstTrace.state.allocations,
-                              provenance := firstTrace.state.provenance }
+                              provenance := firstTrace.state.provenance,
+                              localTypes := callee.locals.map (fun loc => (loc.localId, loc.ty)) }
                           match bindCallCellsFresh firstTrace.state callState args 1 with
                           | none => .refused (.unsupported ("diverging call arguments for " ++ calleeId))
                           | some calleeState =>
@@ -934,13 +947,15 @@ def initialState (placement : Nat → Nat) (types : List TypeLayout)
 def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with
   | some body => cfgRunProgram 4096 program body 0
-      (initialState placement program.types program.allocations program.provenance)
+      { (initialState placement program.types program.allocations program.provenance) with
+        localTypes := body.locals.map (fun loc => (loc.localId, loc.ty)) }
   | none => none
 
 def runOutcome (program : Envelope) : Outcome :=
   match program.bodies.find? (·.instanceId == program.entry) with
   | some body => cfgRunProgramOutcome 4096 program body 0
-      (initialState (fun n => n) program.types program.allocations program.provenance)
+      { (initialState (fun n => n) program.types program.allocations program.provenance) with
+        localTypes := body.locals.map (fun loc => (loc.localId, loc.ty)) }
   | none => .refused (.malformed "missing entry body")
 
 def ProgramInSteps (program : Envelope) (trace : Trace) : Prop :=
