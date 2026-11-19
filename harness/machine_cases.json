@@ -403,5 +403,10 @@
     "source": "harness/scripts/machine_delete_subscript_missing.py",
     "envelope": "harness/scripts/machine_delete_subscript_missing.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_delete_attribute.py",
+    "envelope": "harness/scripts/machine_delete_attribute.json",
+    "expect": "unsupported"
   }
 ]
