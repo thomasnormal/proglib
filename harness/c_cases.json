@@ -98,8 +98,8 @@
   {
     "id": "bitfield-assignment-expression-converts",
     "source": "void abort(void); void exit(int); int main(void) { int j = 1081; struct { signed int m:11; } l; if ((l.m = j) == j) abort(); exit(0); }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "error": "no layout for declared type"
   },
   {
     "id": "local-anonymous-union",
@@ -425,14 +425,14 @@
   {
     "id": "type-function-pointer",
     "source": "int f(int x) { return x; } int main(void) { int (*p)(int) = f; return p(1); }",
-    "expect": "match",
-    "return_value": 1
+    "expect": "refuse",
+    "error": "no layout for declared type 'int (*)(int)'"
   },
   {
     "id": "function-pointer-call-wall",
     "source": "int f(int x) { return x + 1; } int main(void) { int (*p)(int) = f; return p(1) == 2 ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "error": "no layout for declared type 'int (*)(int)'"
   },
   {
     "id": "type-nested-array",
