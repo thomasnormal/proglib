@@ -443,5 +443,20 @@
     "source": "harness/scripts/machine_try_boundary.py",
     "envelope": "harness/scripts/machine_try_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_assign_many_boundary.py",
+    "envelope": "harness/scripts/machine_assign_many_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_delete_many_boundary.py",
+    "envelope": "harness/scripts/machine_delete_many_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_import_many_boundary.py",
+    "envelope": "harness/scripts/machine_import_many_boundary.json",
+    "expect": "unsupported"
   }
 ]

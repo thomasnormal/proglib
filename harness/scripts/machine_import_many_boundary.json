@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_import_many_boundary.py",
+  "source_sha256": "969e5bf383ea0975ded4f1fc3b566e3e9ad29569543926fd17a9f54691a9c048",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Unsupported",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 44
+        },
+        "py_kind": "Import",
+        "text": "import os as operating_system, sys as system"
+      }
+    ]
+  },
+  "lean_blocks": []
+}

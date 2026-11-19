@@ -30,10 +30,12 @@ inductive RStmt where
   | ret (value : Option Expr) (span : Span)
   | expr (value : Expr) (span : Span)
   | assign (target : Expr) (value : Expr) (span : Span)
+  | assignMany (targets : Array Expr) (value : Expr) (span : Span)
   | unpackAssign (before : Array String) (star : String) (after : Array String)
       (value : Expr) (span : Span)
   | augAssign (target : Expr) (op : BinOp) (value : Expr) (span : Span)
   | delete (target : Expr) (span : Span)
+  | deleteMany (targets : Array Expr) (span : Span)
   | raise (exception : Option Expr) (cause : Option Expr) (span : Span)
   | brk (span : Span)
   | cont (span : Span)
@@ -53,6 +55,7 @@ inductive RStmt where
       (handlers : Array (Option Expr × Option String × Array RStmt))
       (orelse : Array RStmt) (finalbody : Array RStmt) (span : Span)
   | import (module : String) (alias : Option String) (span : Span)
+  | importMany (names : Array (String × Option String)) (span : Span)
   | importFrom (module : Option String) (names : Array (String × Option String))
       (level : Nat) (span : Span)
   | global (names : Array String) (span : Span)
@@ -1224,6 +1227,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                     (.evaluate receiver (.deleteSubscriptReceiver index rest)))
               | _ => some (.event (.refuse "machine delete target"),
                   config.finish (.refuse "machine delete target"))
+          | .deleteMany _ _ =>
+              some (.event (.refuse "machine delete target"),
+                config.finish (.refuse "machine delete target"))
           | .raise _ _ _ =>
               some (.event (.refuse "machine raise"), config.finish (.refuse "machine raise"))
           | .brk _ =>
@@ -1231,6 +1237,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .cont _ =>
               some (.event (.refuse "machine continue"), config.finish (.refuse "machine continue"))
           | .import _ _ _ =>
+              some (.event (.refuse "machine import"), config.finish (.refuse "machine import"))
+          | .importMany _ _ =>
               some (.event (.refuse "machine import"), config.finish (.refuse "machine import"))
           | .importFrom _ _ _ _ =>
               some (.event (.refuse "machine import-from"), config.finish (.refuse "machine import-from"))
@@ -1240,6 +1248,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.event (.refuse "machine with"), config.finish (.refuse "machine with"))
           | .tryStmt _ _ _ _ _ =>
               some (.event (.refuse "machine try"), config.finish (.refuse "machine try"))
+          | .assignMany _ _ _ =>
+              some (.event (.refuse "machine multiple-target assignment"),
+                config.finish (.refuse "machine multiple-target assignment"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>

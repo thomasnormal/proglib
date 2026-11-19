@@ -406,7 +406,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .assign targets value span =>
       match targets.toList with
       | [target] => .assign (mExprToExpr target) (mExprToExpr value) span
-      | _ => .unsupported "Assign" "machine multiple-target assignment" span
+      | _ => .assignMany (targets.map mExprToExpr) (mExprToExpr value) span
   | .unpackAssign before star after value span =>
       .unpackAssign before star after (mExprToExpr value) span
   | .augAssign target op value span =>
@@ -414,7 +414,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .delete targets span =>
       match targets.toList with
       | [target] => .delete (mExprToExpr target) span
-      | _ => .unsupported "Delete" "machine multiple-target deletion" span
+      | _ => .deleteMany (targets.map mExprToExpr) span
   | .deleteSubscript receiver index span =>
       .delete (.subscript (mExprToExpr receiver) (mExprToExpr index) span) span
   | .deleteAttribute receiver attr span =>
@@ -426,7 +426,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .import names span =>
       match names.toList with
       | [name] => .import name.name name.asname span
-      | _ => .unsupported "Import" "machine multiple imports" span
+      | _ => .importMany (names.map (fun name => (name.name, name.asname))) span
   | .importFrom module names level span =>
       .importFrom module (names.map (fun name => (name.name, name.asname))) level span
   | .classDef name bases keywords decorators body span =>
