@@ -42,14 +42,14 @@
           }
         }
       },
-      "extract_seconds": 0.175,
+      "extract_seconds": 0.159,
       "lean_outcome": "refused:unsupported:call target has no MIR body: _RNvCseLJZi906U4A_7___rustc35___rust_no_alloc_shim_is_unstable_v2"
     },
     {
       "id": "study_iterator_chain",
       "source": "measurement_programs/study/02_iterator_chain.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 1, projection := [LeanModels.Rust.Projection.deref] } at _RNvXs4J_NtNtCsjS5mZ2TyZbF_4core3ops5arithRlINtB6_3RemlE3remCshipe5na9avQ_20study_iterator_chain:b0",
+      "reason": "Lean outcome refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 1, projection := [LeanModels.Rust.Projection.deref] } slot=some (LeanModels.Rust.Slot.cell\n  (LeanModels.Rust.Cell.pointer\n    { provenance := 3,\n      address := 3,\n      pointeeType := some 1,\n      isLocal := false,\n      targetFrame := some 4,\n      projection := [] })) at _RNvXs4J_NtNtCsjS5mZ2TyZbF_4core3ops5arithRlINtB6_3RemlE3remCshipe5na9avQ_20study_iterator_chain:b0",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -86,8 +86,8 @@
           }
         }
       },
-      "extract_seconds": 0.129,
-      "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 1, projection := [LeanModels.Rust.Projection.deref] } at _RNvXs4J_NtNtCsjS5mZ2TyZbF_4core3ops5arithRlINtB6_3RemlE3remCshipe5na9avQ_20study_iterator_chain:b0"
+      "extract_seconds": 0.118,
+      "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 1, projection := [LeanModels.Rust.Projection.deref] } slot=some (LeanModels.Rust.Slot.cell\n  (LeanModels.Rust.Cell.pointer\n    { provenance := 3,\n      address := 3,\n      pointeeType := some 1,\n      isLocal := false,\n      targetFrame := some 4,\n      projection := [] })) at _RNvXs4J_NtNtCsjS5mZ2TyZbF_4core3ops5arithRlINtB6_3RemlE3remCshipe5na9avQ_20study_iterator_chain:b0"
     },
     {
       "id": "study_match_or_guard",
@@ -130,14 +130,14 @@
           }
         }
       },
-      "extract_seconds": 0.101,
+      "extract_seconds": 0.07,
       "lean_outcome": "returned"
     },
     {
       "id": "study_closures",
       "source": "measurement_programs/study/04_closures.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 6, projection := [LeanModels.Rust.Projection.deref] } at _RNCNvCs5Jnb55tlxKo_14study_closures4main0B3_:b0",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -174,8 +174,8 @@
           }
         }
       },
-      "extract_seconds": 0.081,
-      "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 6, projection := [LeanModels.Rust.Projection.deref] } at _RNCNvCs5Jnb55tlxKo_14study_closures4main0B3_:b0"
+      "extract_seconds": 0.073,
+      "lean_outcome": "returned"
     },
     {
       "id": "study_drop_struct",
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.098,
+      "extract_seconds": 0.075,
       "lean_outcome": "refused:unsupported:atomic load target=some (LeanModels.Rust.Cell.pointer\n  { provenance := 0,\n    address := 0,\n    pointeeType := some 14,\n    isLocal := false,\n    targetFrame := none,\n    projection := [LeanModels.Rust.Projection.field 0 23] })"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.091,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.083,
+      "extract_seconds": 0.084,
       "lean_outcome": "returned"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.121,
+      "extract_seconds": 0.092,
       "lean_outcome": "refused:unsupported:cast write at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 0.373,
+      "extract_seconds": 0.324,
       "lean_outcome": "refused:unsupported:bitwise assignment at _RNvMs4_NtCsjS5mZ2TyZbF_4core3fmtNtB5_9Arguments6as_strCscItkQonpJJc_12study_derive:b0"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.112,
+      "extract_seconds": 0.081,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.119,
+      "extract_seconds": 0.102,
       "lean_outcome": "refused:unsupported:call target has no MIR body: _RNvCseLJZi906U4A_7___rustc35___rust_no_alloc_shim_is_unstable_v2"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.059,
+      "extract_seconds": 0.031,
       "lean_outcome": "returned"
     },
     {
@@ -570,14 +570,14 @@
           }
         }
       },
-      "extract_seconds": 0.087,
+      "extract_seconds": 0.064,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_closure-returning-closure",
       "source": "measurement_programs/rustc_run_pass/04_closure-returning-closure.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 3, projection := [] } at _RNCNCNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main00B5_:b0",
+      "reason": "Lean outcome refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 3, projection := [] } slot=some (LeanModels.Rust.Slot.uninit) at _RNCNCNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main00B5_:b0",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -614,8 +614,8 @@
           }
         }
       },
-      "extract_seconds": 0.084,
-      "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 3, projection := [] } at _RNCNCNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main00B5_:b0"
+      "extract_seconds": 0.065,
+      "lean_outcome": "refused:unsupported:use operand cell=none operand=LeanModels.Rust.Operand.copy { localId := 3, projection := [] } slot=some (LeanModels.Rust.Slot.uninit) at _RNCNCNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main00B5_:b0"
     },
     {
       "id": "rustc_move-arg",
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.075,
+      "extract_seconds": 0.061,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.088,
+      "extract_seconds": 0.061,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.048,
+      "extract_seconds": 0.04,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.072,
+      "extract_seconds": 0.036,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.09,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.085,
+      "extract_seconds": 0.062,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.088,
+      "extract_seconds": 0.066,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.058,
+      "extract_seconds": 0.042,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.057,
+      "extract_seconds": 0.04,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.046,
+      "extract_seconds": 0.034,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.11,
+      "extract_seconds": 0.086,
       "lean_outcome": "refused:unsupported:call target has no MIR body: _RNvCseLJZi906U4A_7___rustc35___rust_no_alloc_shim_is_unstable_v2"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.051,
+      "extract_seconds": 0.04,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.077,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.058,
+      "extract_seconds": 0.044,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.04,
+      "extract_seconds": 0.029,
       "lean_outcome": "returned"
     },
     {
@@ -1318,11 +1318,11 @@
           }
         }
       },
-      "extract_seconds": 0.069,
+      "extract_seconds": 0.057,
       "lean_outcome": "returned"
     }
   ],
-  "decided_rows": 21,
-  "named_refusals": 9,
+  "decided_rows": 22,
+  "named_refusals": 8,
   "diverging": 0
 }

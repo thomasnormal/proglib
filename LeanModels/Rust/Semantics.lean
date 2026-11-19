@@ -132,6 +132,7 @@ def slotCell : Slot → Option Cell
 
 def cellInt : Cell → Option Int
   | .int value => some value
+  | .aggregate [inner] => cellInt inner
   | _ => none
 
 def cellSlot : Cell → Slot
@@ -277,8 +278,9 @@ def directPointerTarget (s : State) (pointer : Pointer) : Option Cell :=
       (projectFields s · pointer.projection)
   else
     match pointer.targetFrame with
-    | some frameId => (sharedSlot s frameId pointer.provenance).bind slotCell |>.bind
-        (projectFields s · pointer.projection)
+    | some frameId =>
+        let target := (sharedSlot s frameId pointer.provenance).bind slotCell |>.map (shareCell frameId)
+        target.bind (projectFields s · pointer.projection)
     | none => match pointer.pointeeType with
         | some ty => allocationCell s pointer.provenance (some ty) |>.bind
             (projectFields s · pointer.projection)
@@ -308,6 +310,7 @@ def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
     match pointer.targetFrame with
     | some frameId =>
         let target := (sharedSlot s frameId pointer.provenance).bind (pointerSlotCell s pointer)
+          |>.map (shareCell frameId)
         match pointer.projection with
         | .deref :: rest => do
             let cell ← target
@@ -334,7 +337,7 @@ termination_by structural value => value
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | [] => some cell
   | .deref :: rest =>
-      match unwrapSingleton cell with
+      match cell with
       | .pointer pointer =>
           (pointerTarget s pointer).bind (projectCell s · rest)
       | _ => none
@@ -344,7 +347,8 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
           let target :=
             if pointer.isLocal then ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)).bind slotCell
             else match pointer.targetFrame with
-              | some frameId => (sharedSlot s frameId pointer.provenance).bind slotCell
+              | some frameId =>
+                  (sharedSlot s frameId pointer.provenance).bind slotCell |>.map (shareCell frameId)
               | none => match pointer.pointeeType with
                 | some ty => allocationCell s pointer.provenance (some ty)
                 | none => allocationCell s pointer.provenance none
@@ -492,6 +496,10 @@ def operandCell (s : State) : Operand → Option Cell
   | .copy place | .move place =>
       readCell s place
   | .unsupported _ => none
+
+def operandLocalId : Operand → Nat
+  | .copy place | .move place => place.localId
+  | .constant _ _ _ _ _ | .unsupported _ => 0
 
 def operandValue (s : State) (operand : Operand) : Option Int :=
   operandCell s operand |>.bind cellInt
@@ -741,8 +749,11 @@ def statementFailure : State → List Statement → Outcome
               -- `Assert` rustc places before it.
               if operandValue state right == some 0 then .ub "division by zero"
               else .refused (.unsupported "binary arithmetic")
-          | .assign _ (.checkedBinary _ _ _) =>
-              .refused (.unsupported "checked arithmetic operator, operands or integer type")
+          | .assign _ (.checkedBinary op left right) =>
+              .refused (.unsupported ("checked arithmetic operator, operands or integer type left=" ++
+                  toString (repr (operandCell state left)) ++ " right=" ++
+                  toString (repr (operandCell state right)) ++ " op=" ++
+                  toString (repr op)))
           | .assign place (.ref target) =>
               .refused (.unsupported ("reference write place=" ++ toString (repr place) ++
                 " target=" ++ toString (repr target)))
@@ -754,7 +765,8 @@ def statementFailure : State → List Statement → Outcome
               match rvalueCell state (.use operand) with
               | none => .refused (.unsupported ("use operand cell=" ++
                   toString (repr (operandCell state operand)) ++
-                  " operand=" ++ toString (repr operand)))
+                  " operand=" ++ toString (repr operand) ++
+                  " slot=" ++ toString (repr (localSlot state (operandLocalId operand)))))
               | some cell =>
                   if (writeCell state place cell).isNone then
                     .refused (.unsupported ("use destination local " ++ toString place.localId))
