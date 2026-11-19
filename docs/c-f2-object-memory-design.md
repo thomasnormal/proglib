@@ -11,7 +11,10 @@ indeterminate and provenance choices.
 
 ## State and pointer values
 
-The store is parameterized by a language instance L:
+The store is parameterized by a language instance L. Storage lifetime is
+separate from language-level object lifetime. C++ placement construction,
+transparent replacement, and `std::launder` can change the objects inhabiting
+live storage without changing the allocation record.
 
     structure Store (L : Language) where
       allocs : L.AllocId -> Option (L.AllocState × Placement × List L.ByteState)
@@ -29,21 +32,26 @@ ABI null value with no provenance. A null value is never an allocation
 placement.
 
 An allocation record contains identity, kind, placement, size, alignment,
-mutability, lifetime, exposure bit, and per-byte L.ByteState. Kinds include
+mutability, storage lifetime, exposure bit, and per-byte L.ByteState. Kinds include
 static, automatic, allocated, literal, compound, and function storage. The
 frontend supplies declaration identity, object size, alignment, array extent,
 subobject offsets, flexible-array facts, padding, and bit-field facts. The
 store never reconstructs those facts from a type spelling.
 
 Allocation chooses an address in the allocation step. The choice is in the ABI
-address range, nonzero, aligned, and disjoint from every live allocation. The
-step relation quantifies over every valid choice and admits allocation failure
-and out-of-memory outcomes. free ends the allocation lifetime and invalidates
-every pointer carrying its provenance. Any later use, including equality,
-ordering, subtraction, casts, or a byte read, is undefined or a named refusal
-according to the profile. realloc first deallocates the old object, then
-chooses a placement for the new object. GNU17 realloc(p, 0) is an
-implementation-defined profile choice.
+address range, nonzero, aligned for the request, and disjoint from every live
+allocation. Null is the ABI null value and is never a placement. An invalid
+choice is excluded from the relation rather than classified as undefined
+behaviour. The step relation quantifies over every valid choice and also
+admits the always-allowed outcomes where `malloc` or `calloc` returns null
+because the request cannot be satisfied. Out of memory therefore has a
+defined allocation-failure result, even when some valid placement exists.
+`free` ends the allocation lifetime and invalidates every pointer carrying its
+provenance. Any later use, including equality, ordering, subtraction, casts,
+or a byte read, is undefined or a named refusal according to the profile.
+`realloc` first deallocates the old object, then chooses a placement for the
+new object. Its result has a new allocation identity even when the address is
+reused. GNU17 `realloc(p, 0)` is an implementation-defined profile choice.
 
 ## Bytes and representation
 
@@ -86,12 +94,13 @@ function, and temporaries follow the GNU statement-expression profile.
 
 Pointer/integer conversions use PNVI-ae-udi. A pointer-to-integer conversion
 exposes the selected address and sets the allocation's exposed flag. A reverse
-conversion recovers the corresponding live provenance only when the PNVI
-recovery rule permits it and the integer has the required ABI alignment. An
-integer with no exposed allocation is not assigned fabricated provenance. The
-exposed flag, recovery relation, and implementation's undefined-integer choice
-are explicit state. Rule 4 quantifies universally over every admissible
-exposure and recovery choice. Alignment failures are undefined under C17
+conversion recovers the live allocation whose exposed address interval
+contains the integer, derives the offset from that allocation's base, and
+retains empty provenance when no such allocation exists. Recovery also checks
+the target type's ABI alignment. It never fabricates an allocation identity
+from the integer alone. The exposed flag, recovery relation, and udi choice
+are explicit state. Every admissible exposure and recovery resolution is a
+case of the relation under rule 4. Alignment failures are undefined under C17
 §6.3.2.3p7.
 
 ## Operations, effects, and observations
@@ -128,17 +137,19 @@ the observable boundary and carry footprints rather than host addresses.
 Let rho1 and rho2 be placement resolutions for the same initial objects,
 inputs, and nondeterministic choices. A per-allocation renaming R preserves
 provenance, byte offsets, object sizes, alignments, liveness, and disjointness
-while changing each selected base address. Address independence is relational
-over behavior sets:
+while changing one selected live allocation's base address. The step relation
+is renamed operation by operation, and the relation is lifted to behavior
+sets:
 
     address_independent :
       R w1 w2 ->
       Behaviors program w1 = renameBehaviors R (Behaviors program w2)
 
-The theorem applies to programs with no address observation. Its exceptions are
-one-past-the-end equality, alignment undefined behavior on casts, and integer
-reads of pointer bytes. Programs that observe addresses are proved for every
-admissible placement and exposure resolution. The flat-memory refinement maps
+The theorem applies to a per-allocation move when the program does not observe
+that allocation's address. Its exceptions are one-past-the-end equality,
+alignment undefined behavior on casts, and integer reads of pointer bytes.
+Programs that observe addresses are proved for every admissible placement and
+exposure resolution. The flat-memory refinement maps
 each live allocation to its chosen interval and preserves bytes, provenance
 failures, classified undefined behavior, and footprints. Undefined source
 behavior carries no compiler-refinement obligation.
@@ -147,7 +158,8 @@ behavior carries no compiler-refinement obligation.
 
 L.Tag, L.ByteState, and L.AllocState are language parameters. The alias
 instance supplies onAlloc, onRead, onWrite, onCopy, onDealloc, and onRetag
-hooks. C uses effective type and C lifetime state. C++ adds the object tree,
+hooks, with state allowed at each byte and allocation rather than in one
+stateless predicate. C uses effective type and C lifetime state. C++ adds the object tree,
 active union member, pointer-interconvertibility, subobject and vtable
 allocations, and temporary lifetime. Rust supplies borrow tags and
 per-location Stacked Borrows or Tree Borrows state through the same hooks. The
