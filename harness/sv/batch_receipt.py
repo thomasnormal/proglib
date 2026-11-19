@@ -210,6 +210,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("package_child_parameter_e.sv", "package_child_parameter_e",
             (Port("x", 3),), (Port("y", 3),),
             (Point("W3", (3,)), Point("W5", (5,)))),
+    # Package-qualified child parameter inside an active/inactive generate.
+    Fixture("package_child_parameter_generate_e.sv", "package_child_parameter_generate_e",
+            (Port("x", 4),), (Port("y", 4),),
+            (Point("USE0", (0,)), Point("USE1", (1,)))),
     # Generated packed indexed part-select at W=8, N=2.
     Fixture("generated_packed_select_20261119.sv", "generated_packed_select",
             (Port("clk", 1, clock=True), Port("data", 16)), (Port("out", 8),),
@@ -882,6 +886,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generate_typed_localparam_param_e": ("W",),
             "generated_packed_select": ("W", "N"),
             "package_child_parameter_e": ("W",),
+            "package_child_parameter_generate_e": ("USE",),
             "localparam_shift": ("E",),
             "memory_edge_loop": ("W", "N"),
             "parameterized_unpacked_storage": ("N",),
