@@ -65,6 +65,45 @@ theorem picorv32_sw_class_commit (state : ArchState) (memory : Memory) :
   exact rvMachineWith_sw cv32e40pProfile state memory swWord 0 1 0x100
     swWord_decode
 
+/-! The raw word-memory fields determine the exact threaded ISA step.  The
+    store bridge retains the resulting memory update, while the load bridge
+    retains the supplied memory as unchanged architectural state. -/
+
+theorem picorv32_sw_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (rs1 rs2 : Reg) (imm : Word)
+    (hfields : observation.swFields state input word rs1 rs2 imm) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (swNext state,
+        storeVal input.memory .word (state.readReg rs1 + imm)
+          (state.readReg rs2)) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.mem .store .word rs2 rs1 imm) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_sw profile state memory word rs1 rs2 imm hdecode
+
+theorem picorv32_lw_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (rd rs1 : Reg) (imm : Word)
+    (hfields : observation.lwFields state input word rd rs1 imm) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (lwNext state input.memory rd rs1 imm, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.mem (.load true) .word rd rs1 imm) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_lw profile state memory word rd rs1 imm hdecode
+
+#print axioms picorv32_sw_fields_isa_step
+#print axioms picorv32_lw_fields_isa_step
+
 /-! These wrappers connect the measured memory-row predicates to the loaded
     canonical adapter.  The exact source step and decoder result remain
     premises, so the wrappers preserve the boundary evidence instead of
