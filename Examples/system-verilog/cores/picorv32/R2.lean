@@ -109,8 +109,9 @@ obligation:
   CSR row and operation witness.
   `r1_mem_all` provides the five load and three store consumers through the
   memory-threaded MemInstruction witness.
-  `r1_rv32i.picorv32_loaded_rv32i_exact_cycle_step_refines` is the
-  PicoRV32-scoped all-family consumer.  It applies
+  `r1_rv32i.picorv32_loaded_rv32i_exact_cycle_step_refines` and
+  `r1_rv32i.picorv32_loaded_rv32i_reset_refinement` are the
+  PicoRV32-scoped all-family consumers.  They apply
   `CoreRvfiMachine.to_rv32i_step_refines` from an
   exact loaded-core step premise to the mixed cycle obligation. It retains the
   decoded instruction, input, order, indexed post-state, retirement, and
