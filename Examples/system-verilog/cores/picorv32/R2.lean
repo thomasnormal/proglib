@@ -152,6 +152,9 @@ obligation:
   `r1_upper.picorv32_lui_fields_isa_step` and
   `r1_upper.picorv32_auipc_fields_isa_step` provide the corresponding exact
   LUI and AUIPC step bridges while retaining their distinct source operands.
+  `r1_mem.picorv32_sw_fields_isa_step` and
+  `r1_mem.picorv32_lw_fields_isa_step` provide the corresponding exact word
+  store and load step bridges with their memory effects explicit.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.
