@@ -22,7 +22,7 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 22 decided rows, 8 named refusals, and zero
+The report contains 30 rows, 23 decided rows, 7 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` for all of them in one `lake env lean` process (`#eval`), and
 compares each return, panic or UB outcome with the Stage 0 Miri verdict; a
@@ -36,15 +36,17 @@ extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
 
 When a typed `Use` cannot read its place, the refusal records the operand cell
-and MIR place.  The iterator-chain remainder path reaches a shared-reference
-read whose target cell is unavailable in the extracted frame state.  It stays
-refused until the frame/projection evidence is corrected, so the arithmetic
-case is not evaluated from a guessed integer.
+and MIR place.  The iterator-chain row now uses each resolved closure body's
+extracted `arg_count` to spread the final tuple argument into its formal locals.
+This removes the earlier false `uninit` local caused by binding the tuple as one
+slot.  The row then exceeds the current fuel budget while traversing the
+iterator bodies, so it remains an explicit `out_of_fuel` refusal rather than
+inventing a remainder value.
 
-The frame trace for that row records provenance 3 with target frame 4.  The
-target frame's local 3 is `uninit` when the `Rem` call starts.  The pointer is
-therefore not redirected to an older frame that happens to contain an integer,
-and the row remains a named refusal under the current shared-frame model.
+The closure-returning-closure row exercises the same ABI rule with a two-element
+tuple passed to a three-argument closure body.  The tuple fields bind to the two
+integer locals, the checked addition and assertion execute, and the row now
+returns normally under both Miri models.
 
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
