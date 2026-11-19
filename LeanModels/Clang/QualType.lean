@@ -66,6 +66,15 @@ end
 
 instance : BEq QualType := ⟨QualType.beq⟩
 
+/-- Remove parser-provided cv-qualification without inspecting a type
+spelling.  C and C++ use the same representation and both preserve the
+qualification node emitted by clang. -/
+def QualType.unqualified (type : QualType) : QualType :=
+  match type with
+  | .qualified _ _ base => base.unqualified
+  | _ => type
+termination_by structural type
+
 /-- Whether clang's structured type denotes an object with record members.
 This follows the parser tree through qualifiers and one or more pointer layers
 without interpreting a flat type spelling. -/
@@ -74,13 +83,6 @@ def QualType.recordLike : QualType → Bool
   | .pointer pointee => pointee.recordLike
   | .qualified _ _ base => base.recordLike
   | _ => false
-
-/-- Remove parser-provided cv-qualification without inspecting a type
-spelling.  C and C++ use the same representation and both preserve the
-qualification node emitted by clang. -/
-def QualType.unqualified : QualType → QualType
-  | .qualified _ _ base => base.unqualified
-  | type => type
 
 /-- Whether the declared object itself is an aggregate. Pointer layers are
 objects with scalar pointer representation, even when their pointee is a
