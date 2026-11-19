@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.632,
+      "extract_seconds": 8.615,
       "lean_outcome": "refused:unsupported:use operand at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCsd7FEqVnaBj8_13study_for_vec:b0"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.23,
+      "extract_seconds": 0.49,
       "lean_outcome": "refused:unsupported:use operand at _RNvXs4J_NtNtCsjS5mZ2TyZbF_4core3ops5arithRlINtB6_3RemlE3remCshipe5na9avQ_20study_iterator_chain:b0"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.178,
+      "extract_seconds": 0.183,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.21,
+      "extract_seconds": 0.101,
       "lean_outcome": "refused:unsupported:use operand at _RNCNvCs5Jnb55tlxKo_14study_closures4main0B3_:b0"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.179,
+      "extract_seconds": 0.202,
       "lean_outcome": "refused:unsupported:unresolved call"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.138,
+      "extract_seconds": 0.101,
       "lean_outcome": "returned"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.17,
+      "extract_seconds": 0.108,
       "lean_outcome": "refused:unsupported:discriminant assignment at _RNvXsf_NtCsjS5mZ2TyZbF_4core6optionINtB5_6OptionlENtNtB7_3cmp9PartialEq2eqCskouW2nCaI7F_19study_question_mark:b2"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.3,
+      "extract_seconds": 0.219,
       "lean_outcome": "refused:unsupported:cast write at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 5.206,
+      "extract_seconds": 0.669,
       "lean_outcome": "refused:unsupported:reference write at _RNvXCscItkQonpJJc_12study_deriveNtB2_4PairNtNtCsjS5mZ2TyZbF_4core5clone5Clone5cloneB2_:b0"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.097,
+      "extract_seconds": 0.098,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.188,
+      "extract_seconds": 0.144,
       "lean_outcome": "refused:unsupported:use operand at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCsbZvLFSCT5mK_24rustc_ivec_pass_by_value:b0"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.095,
+      "extract_seconds": 0.043,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.096,
+      "extract_seconds": 0.07,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.097,
+      "extract_seconds": 0.075,
       "lean_outcome": "refused:unsupported:use operand at _RNCNCNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main00B5_:b0"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.096,
+      "extract_seconds": 0.075,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.108,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.382,
+      "extract_seconds": 0.061,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.082,
+      "extract_seconds": 0.058,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.079,
+      "extract_seconds": 0.096,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.147,
+      "extract_seconds": 0.082,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.449,
+      "extract_seconds": 0.075,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.154,
+      "extract_seconds": 0.057,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.129,
+      "extract_seconds": 0.16,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.142,
+      "extract_seconds": 0.064,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.244,
+      "extract_seconds": 0.119,
       "lean_outcome": "refused:unsupported:use operand at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCs9qsj18IWarl_21rustc_vector_no_ann_2:b0"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.381,
+      "extract_seconds": 0.054,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.734,
+      "extract_seconds": 0.112,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.673,
+      "extract_seconds": 0.06,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.553,
+      "extract_seconds": 0.043,
       "lean_outcome": "returned"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.489,
+      "extract_seconds": 0.057,
       "lean_outcome": "returned"
     }
   ],
