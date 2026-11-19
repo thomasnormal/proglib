@@ -409,6 +409,9 @@ partial def mStmtToStmt : MStmt → RStmt
       | _ => .assignMany (targets.map mExprToExpr) (mExprToExpr value) span
   | .unpackAssign before star after value span =>
       .unpackAssign before star after (mExprToExpr value) span
+  | .annAssign target annotation value simple span =>
+      .annAssign (mExprToExpr target) (mExprToExpr annotation)
+        (value.map mExprToExpr) simple span
   | .augAssign target op value span =>
       .augAssign (mExprToExpr target) op (mExprToExpr value) span
   | .delete targets span =>
@@ -458,8 +461,6 @@ partial def mStmtToStmt : MStmt → RStmt
   | .global names span => .global names span
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
-  | .annAssign _ _ _ _ span =>
-      .unsupported "machine statement" "machine ingestion frontier" span
 
 def compileMachineModule (module : MModule) : RModule :=
   { body := module.body.map mStmtToStmt }
@@ -524,6 +525,24 @@ private def ingestGlobalFunction : Json :=
   | .ok module =>
       match (compileMachineModule module).body.toList with
       | [.functionDef _ _ _ #[.global #["value"] _, .assign _ _ _] _] => true
+      | _ => false
+  | _ => false
+
+private def ingestAnnAssignModule : Json :=
+  Lean.Json.mkObj [
+    ("module", Lean.Json.mkObj [("kind", Lean.toJson "Module"),
+      ("body", Lean.Json.arr #[Lean.Json.mkObj [
+        ("kind", Lean.toJson "AnnAssign"), ("span", ingestSpan),
+        ("target", ingestName "value"), ("annotation", ingestName "int"),
+        ("value", Lean.Json.mkObj [("kind", Lean.toJson "Constant"),
+          ("span", ingestSpan), ("value", Lean.Json.mkObj [
+            ("type", Lean.toJson "int"), ("repr", Lean.toJson "7")])]),
+        ("simple", Lean.toJson true)]] )])]
+
+#guard match parseMachineModule ingestAnnAssignModule with
+  | .ok module =>
+      match (compileMachineModule module).body.toList with
+      | [.annAssign (.name "value" _) (.name "int" _) (some (.constant (.int 7) _)) true _] => true
       | _ => false
   | _ => false
 
