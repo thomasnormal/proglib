@@ -270,12 +270,14 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
     -- aggregate walk instead of sending that wrapper to evalExpr, where the
     -- value-position InitListExpr is intentionally loud.
     | .constExpr _ (some (.initList _ _ _ _)) _ _ =>
-        initObject fuel ctx p ty (match e with | .constExpr _ (some sub) _ _ => sub | _ => e)
+        initObject fuel ctx p ty
+          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured
     | .constExpr _ (some (.arrayInitList _ _ _ _ _)) _ _ =>
-        initObject fuel ctx p ty (match e with | .constExpr _ (some sub) _ _ => sub | _ => e)
+        initObject fuel ctx p ty
+          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured
     | .designatedUpdate base update _ _ => do
-        initObject fuel ctx p ty base
-        initObject fuel ctx p ty update
+        initObject fuel ctx p ty base structured
+        initObject fuel ctx p ty update structured
     | .arrayInitList inits filler field _ _ =>
         -- Clang's array_filler is [default filler, positional entries...].
         -- Only its implicit-zero default is in tier; retain and refuse other
