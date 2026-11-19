@@ -957,3 +957,20 @@ be constant here`.  Xcelium 24.03-s004 accepts the source and returns
 1, and 2 on packed bytes `81 42 24 18`, with all-x and all-z outputs for
 unknown member data.  E retains the exact refusal rather than selecting a
 simulator-specific value.
+
+## 2026-11-20 invalid continuous-assignment chain wall
+
+The existing clean-room package
+`sem2/invalid_chain2_wall/invalid_chain2_wall.sv` retains the generated
+continuous-assignment chain from IEEE 1800-2023 §10.6, including the
+hierarchical `chain[3].running_sum` read and the later-row dependency on the
+previous generated instance.  Its canonical-E receipt preserves the invalid
+assignment node and reaches the earlier generated-scope storage refusal
+`UnpackedDecl:generate-scope: active generate declarations contain duplicate
+names`; no separate invalid-assignment execution result is claimed.
+
+The checked-in differential receipt passes on Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004.  Both simulators produce
+`1111` and `x111` for the two source rows, and the envelope regenerates
+byte-identically with `python3
+Examples/system-verilog/sem2/invalid_chain2_wall/check.py`.
