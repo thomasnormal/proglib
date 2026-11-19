@@ -647,25 +647,31 @@ def layoutFor (envl : Envelope) : Layout :=
         | _ => none
     | none => none
   let observedMembersDeclFor := fun (did : DeclarationId) =>
-    match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
-          ds.any (fun r => match r with
-            | .record (some rrid) _ fields (some layout) _ =>
-                rrid == rid && (checkedRecordLayout? fields layout).isSome
-            | _ => false)
-      | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _) =>
-        match ds.find? (fun q => match q with
-          | .record (some rrid) _ _ _ _ => rrid == rid
-          | _ => false) with
-        | some (.record (some rrid) _ fields (some layout) _) =>
-            match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
-            | some _ => some (fields.filterMap fun field => match field with
-                | .field name mty _ _ _ _ => some (name.getD "", mty)
-                | _ => none)
-            | none => none
-        | _ => none
-    | _ => none
+    let fromRecord := fun (rid : DeclarationId) =>
+      match ds.find? (fun q => match q with
+        | .record (some rrid) _ _ _ _ => rrid == rid
+        | _ => false) with
+      | some (.record (some rrid) _ fields _ _) =>
+          match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
+          | some _ => some (fields.filterMap fun field => match field with
+              | .field name mty _ _ _ _ => some (name.getD "", mty)
+              | _ => none)
+          | none => none
+      | _ => none
+    match (envl.structuredTypeFor did).bind
+      (LeanModels.Clang.QualType.resolveTypedefs
+        (fun handle => envl.structuredTypeFor {value := handle.value}) 32) with
+    | some (.record handle) => fromRecord {value := handle.value}
+    | _ =>
+      match ds.find? (fun q => match q with
+        | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+            ds.any (fun r => match r with
+              | .record (some rrid) _ fields (some layout) _ =>
+                  rrid == rid && (checkedRecordLayout? fields layout).isSome
+              | _ => false)
+        | _ => false) with
+      | some (.var _ _ _ _ _ (some rid) _ _) => fromRecord rid
+      | _ => none
   -- Feed checked parser-native records into the structural array/typedef
   -- fallback too.  An anonymous typedef such as `Data` has no named
   -- RecordDecl in `recordsOf`, but its observed declaration identity still
