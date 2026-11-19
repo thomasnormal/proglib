@@ -727,6 +727,7 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("x", 8),), (Port("y", 8),)),
     Fixture("assign_target.sv", "assign_target",
             (Port("x", 1),), (Port("y", 1),)),
+    # Typed bit localparam select, with four-state source rows in the receipt.
     Fixture("typed_bit_localparam.sv", "typed_localparam",
             (Port("d", 1),), (Port("q", 1),)),
     Fixture("wire_output_port.sv", "wire_output_port",
