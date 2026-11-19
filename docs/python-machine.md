@@ -55,18 +55,20 @@ module lookup, function values in that namespace, positional call-frame
 dispatch, and caller resumption on return. Each `def` receives a stable
 function-value token, so aliases continue to call the original object after
 the defining name is rebound. Its checked row defines `read`, mutates a module
-global, then calls `read` so the callee observes the new value. Keyword
-arguments, defaults, and closures remain refusals until their own cases land.
+global, then calls `read` so the callee observes the new value.
 Minimal classes with no decorators, keywords, or unsupported body statements
 now retain mutable class attributes, including later assignments and deletion
 through a class value. Plain methods without decorators or annotations are
 also stored as callable class attributes. Instantiation creates an instance
 with mutable attributes and class fallback. Single inheritance and direct
 multiple inheritance resolve class attributes, methods, and `__init__` in
-base-list order. Missing attributes raise `AttributeError`. Multiple
-inheritance with inherited bases, cycles, and other class metadata remain
-outside this slice. A leading string literal in a class body initializes
-`__doc__`; other class metadata remains outside this slice. Static
+base-list order. A missing attribute raises `AttributeError`, except a name
+that `object` or `type` provides (a dunder name, or `mro`), which is refused,
+as is storing or deleting such a name. Multiple inheritance with inherited
+bases, cycles, and other class metadata remain outside this slice. A leading
+string literal in a class body initializes `__doc__`. A class statement in a
+function or class body is refused (it would bind a local of that scope and its
+methods would close over the function's variables).
 Instances with an undecorated `__len__` method participate in `len()` through
 the same bound-method call path; invalid `__len__` results remain refused.
 `repr()` dispatches to an explicit instance `__repr__` method and accepts its
@@ -104,8 +106,15 @@ Bitwise `|` with an instance on the left dispatches to an explicit `__or__`
 method. Scalar bitwise operations remain outside this relation frontier.
 Bitwise `^` with an instance on the left dispatches to an explicit `__xor__`
 method. Scalar bitwise operations remain outside this relation frontier.
-local-name tracking raises `UnboundLocalError` for a read or
-delete before assignment. Rows cover globals, definition order, redefinition
+Only the left operand's method is dispatched: a binary operator whose right
+operand is an instance is refused, since CPython may call the right operand's
+reflected method (`__radd__`, ...) first or after `NotImplemented`. `==` and
+`!=` with an instance operand are refused (they call the class's `__eq__` or
+`__ne__`), and so is an instance's truth value (`__bool__`, `__len__`).
+Static local-name tracking (every suite of the body, assignment targets,
+`with`/`except` names, imports, `del`; not yet walrus targets) raises
+`UnboundLocalError` for a read or delete of a local before assignment; a local
+is never looked up outside its frame. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
 The current deletion candidates that exist are
 `LeanModels/Python/Json.lean:parseFunctionDefn`,
