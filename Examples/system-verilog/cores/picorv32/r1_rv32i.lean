@@ -290,4 +290,76 @@ theorem picorv32_loaded_rv32i_program_refinement_of_total
 
 #print axioms picorv32_loaded_rv32i_program_refinement_of_total
 
+/-! The family-tagged form is the direct loaded-core entry point.  It keeps
+    the eight parser-derived boundary cases in the invariant premise and
+    delegates their projection to the adapter, while retaining the same
+    reset, schedule, and progress obligations as the general package. -/
+
+theorem picorv32_loaded_rv32i_program_refinement_of_family_boundary
+    (core : PicoRV32LoadedCanonicalE)
+    (profile : PlatformProfile)
+    (program : Memory)
+    (initialArch : ArchState)
+    (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF)
+    (encode : LeanModels.Sv.Kernel.CoreMemState → Input → SvState)
+    (htotal : ∀ (state : LeanModels.Sv.Kernel.CoreMemState) (input : Input),
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfiStep (PicoRV32LoadedCanonicalE.design core) state
+              (encode state input) = .ok (next, observation))
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState),
+      PicoRV32ResetRelation
+        (PicoRV32LoadedCanonicalE.design core) program state memoryState →
+      rel state memoryState)
+    (hfamily : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfiStep (PicoRV32LoadedCanonicalE.design core) state
+              (encode state input) = .ok (next, observation) ∧
+          (if observation.valid then
+            ∃ _boundary : Examples.«system-verilog».cores.picorv32.rvfi_core_adapter.CoreRv32iBoundary
+                (PicoRV32LoadedCanonicalE.design core) state
+                (encode state input) memoryState.arch input memoryState,
+              observation.order = start ∧
+              ∀ instruction : Rv32iInstruction,
+                input = rv32iProgramInput memoryState instruction →
+                rel next (rv32iProgramStep memoryState instruction)
+          else rel next memoryState))
+    {schedule target : Nat → Input}
+    (hschedule : ∀ n, admit (schedule n))
+    (progress : Rv32iRetiresTarget
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal))
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal)).init
+      schedule target) :
+    ∃ machine : rvfi_core_adapter.CoreRvfiMachine
+        (PicoRV32LoadedCanonicalE.design core),
+      picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
+      Rv32iAllPrefixRefinement profile
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine)
+        rel 0
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine).init
+        { arch := initialArch, memory := program } schedule target := by
+  let machine := rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal
+  have hmachine :=
+    Examples.«system-verilog».cores.picorv32.rvfi_core_adapter.CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary
+      machine hfamily
+  have hinitial : rel machine.toRvfiCycleMachine.init
+      { arch := initialArch, memory := program } :=
+    hrel _ _ (picoRV32_reset_relation_initial
+      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf)
+  refine ⟨machine, PicoRV32LoadedCanonicalE.loaded core, ?_⟩
+  exact rv32i_progress_refinement profile machine.toRvfiCycleMachine rel admit
+    hmachine 0 _ _ hinitial hschedule progress
+
+#print axioms picorv32_loaded_rv32i_program_refinement_of_family_boundary
+
 end Examples.«system-verilog».cores.picorv32.r1_rv32i
