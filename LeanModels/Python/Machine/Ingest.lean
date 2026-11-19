@@ -29,7 +29,8 @@ inductive MExpr where
       (starargs : Array MExpr) (kwargs : Array MExpr) (span : Span)
   | attribute (value : MExpr) (attr : String) (span : Span)
   | subscript (value : MExpr) (slice : MExpr) (span : Span)
-  | slice (lower : Option MExpr) (upper : Option MExpr) (step : Option MExpr) (span : Span)
+  | slice (value : MExpr) (lower : Option MExpr) (upper : Option MExpr)
+      (step : Option MExpr) (span : Span)
   | list (elts : Array MExpr) (span : Span)
   | tuple (elts : Array MExpr) (span : Span)
   | set (elts : Array MExpr) (span : Span)
@@ -136,6 +137,9 @@ private def mUnaryOp : String → Option UnaryOp
   | "USub" => some .usub | "Not" => some .not | "UAdd" => some .uadd
   | "Invert" => some .invert | _ => none
 
+private def mBoolOp : String → Option BoolOp
+  | "And" => some .and | "Or" => some .or | _ => none
+
 private def mCmpOp : String → Option CmpOp
   | "Eq" => some .eq | "NotEq" => some .notEq
   | "Lt" => some .lt | "LtE" => some .ltE
@@ -187,6 +191,11 @@ partial def mExpr (j : Json) : Except String MExpr := do
       match mUnaryOp opName with
       | some op => pure (.unaryOp op (← mExpr (← mField j "operand")) span)
       | none => pure (.unsupported kind span)
+  | "BoolOp" =>
+      let opName ← (← mField j "op").getStr?
+      match mBoolOp opName with
+      | some op => pure (.boolOp op (← (← (← mField j "values").getArr?).mapM mExpr) span)
+      | none => pure (.unsupported kind span)
   | "Call" =>
       let func ← mExpr (← mField j "func")
       let args ← (← (← mField j "args").getArr?).mapM mExpr
@@ -219,6 +228,13 @@ partial def mExpr (j : Json) : Except String MExpr := do
       (← (← mField j "attr").getStr?) span)
   | "Subscript" => pure (.subscript (← mExpr (← mField j "value"))
       (← mExpr (← mField j "index")) span)
+  | "Slice" =>
+      let component := fun name => do
+        match j.getObjVal? name with
+        | .ok .null | .error _ => pure none
+        | .ok value => some <$> mExpr value
+      pure (.slice (← mExpr (← mField j "value")) (← component "lower")
+        (← component "upper") (← component "step") span)
   | "NamedExpr" => pure (.namedExpr (← (← mField j "target").getStr?)
       (← mExpr (← mField j "value")) span)
   | "Starred" => pure (.starred (← mExpr (← mField j "value")) span)
@@ -386,9 +402,9 @@ partial def mExprToExpr : MExpr → Expr
       (keywords.map fun (name, value) => (name, mExprToExpr value)) none span
   | .attribute value attr span => .attribute (mExprToExpr value) attr span
   | .subscript value slice span => .subscript (mExprToExpr value) (mExprToExpr slice) span
-  | .slice lower upper step span =>
+  | .slice value lower upper step span =>
       let missing := Expr.constant .none span
-      .slice missing (lower.map mExprToExpr |>.getD missing)
+      .slice (mExprToExpr value) (lower.map mExprToExpr |>.getD missing)
         (upper.map mExprToExpr |>.getD missing) (step.map mExprToExpr |>.getD missing) span
   | .list elts span => .list (elts.map mExprToExpr) span
   | .tuple elts span => .tuple (elts.map mExprToExpr) span
