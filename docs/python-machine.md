@@ -58,8 +58,9 @@ the defining name is rebound. Its checked row defines `read`, mutates a module
 global, then calls `read` so the callee observes the new value. Keyword
 arguments, defaults, and closures remain refusals until their own cases land.
 Minimal classes with no bases, decorators, keywords, or unsupported body
-statements now retain class attributes. Instantiation and inheritance remain
-refusals. Static local-name tracking raises `UnboundLocalError` for a read or
+statements now retain mutable class attributes, including later assignments
+through a class value. Instantiation and inheritance remain refusals. Static
+local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
 The current deletion candidates that exist are
