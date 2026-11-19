@@ -1,4 +1,5 @@
 import Examples.«system-verilog».cores.picorv32.R2
+import Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary
 import LeanModels.Sv.Kernel.CoreMemFast
 
 /-!
@@ -102,18 +103,17 @@ theorem rvfiStep_ok_iff_step_and_decode
     canonical post-state and decoded observation remain witnesses, so a proof
     cannot establish the architectural boundary by manufacturing a row. -/
 
-structure CoreAddiBoundary
+def CoreAddiBoundary
     (d : LeanModels.Sv.Kernel.CoreMemDesign)
     (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
     (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
     (word : LeanModels.Refine.Word) (rd rs1 : LeanModels.Rv.Reg)
-    (imm : LeanModels.Refine.Word) where
-  next : CoreMemState
-  observation : RvfiObservation
-  run : rvfiStep d st entry = .ok (next, observation)
-  boundary : observation.addiBoundary arch input word rd rs1 imm
+    (imm : LeanModels.Refine.Word) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.addiBoundary arch input word rd rs1 imm
 
-def CoreAddiBoundary.of_step_decode_boundary
+theorem CoreAddiBoundary.of_step_decode_boundary
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
     {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
@@ -128,7 +128,7 @@ def CoreAddiBoundary.of_step_decode_boundary
   exact ⟨next, observation,
     rvfiStep_ok_of_fast_and_decode hstep hdecode, hboundary⟩
 
-def CoreAddiBoundary.of_canonical_step_decode_boundary
+theorem CoreAddiBoundary.of_canonical_step_decode_boundary
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
     {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
@@ -145,6 +145,38 @@ def CoreAddiBoundary.of_canonical_step_decode_boundary
   rw [d.fastStepCanonical_eq_step]
   exact hstep
 
+theorem pinned_addi1_core_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState}
+    (hstep : d.step st entry = .ok next)
+    (hsample : rvfiPortSample d next =
+      Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.addi1PortSample) :
+    CoreAddiBoundary d st entry
+      (LeanModels.Rv.ArchState.init 0)
+      Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.addiInput
+      0x00500093 1 0 5 := by
+  apply CoreAddiBoundary.of_canonical_step_decode_boundary (hstep := hstep)
+  · rw [rvfiObservation_eq_decode, hsample]
+    exact Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.pinned_addi1_port_decode
+  · exact Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.pinned_addi_boundary
+
+theorem pinned_addi2_core_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState}
+    (hstep : d.step st entry = .ok next)
+    (hsample : rvfiPortSample d next =
+      Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.addi2PortSample) :
+    CoreAddiBoundary d st entry
+      Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.addi2State
+      Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.addi2Input
+      0x00110193 3 2 1 := by
+  apply CoreAddiBoundary.of_canonical_step_decode_boundary (hstep := hstep)
+  · rw [rvfiObservation_eq_decode, hsample]
+    exact Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.pinned_addi2_port_decode
+  · exact Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary.pinned_addi2_boundary
+
 theorem CoreAddiBoundary.isaStepMemWith
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
@@ -155,8 +187,9 @@ theorem CoreAddiBoundary.isaStepMemWith
     LeanModels.Rv.isaStepMemWith LeanModels.Rv.cv32e40pProfile arch
       input.memory input.fetched input.irq =
       (LeanModels.Refine.addiNext arch rd rs1 imm, input.memory) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
   exact RvfiObservation.addiBoundary_isaStepMemWith
-    LeanModels.Rv.cv32e40pProfile h.observation arch input word rd rs1 imm h.boundary
+    LeanModels.Rv.cv32e40pProfile observation arch input word rd rs1 imm hboundary
 
 theorem CoreAddiBoundary.memoryMachineStep
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
@@ -169,8 +202,9 @@ theorem CoreAddiBoundary.memoryMachineStep
         { arch := arch, memory := input.memory } input =
       ({ arch := LeanModels.Refine.addiNext arch rd rs1 imm, memory := input.memory },
         LeanModels.Refine.addiRetirement arch input rd rs1 imm) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
   exact RvfiObservation.addiBoundary_rvMemoryMachineWith
-    LeanModels.Rv.cv32e40pProfile h.observation arch input word rd rs1 imm h.boundary
+    LeanModels.Rv.cv32e40pProfile observation arch input word rd rs1 imm hboundary
 
 #print axioms rvfiPortSample_read
 #print axioms rvfiObservation_eq_decode
