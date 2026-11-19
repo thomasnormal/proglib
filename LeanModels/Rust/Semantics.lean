@@ -256,14 +256,16 @@ def typedBytesEnum (s : State) (ty : Nat) (bytes : List Nat) : Option Cell :=
 def allocationCell (s : State) (provenance : Nat) (pointeeType : Option Nat) : Option Cell :=
   match s.allocations.drop provenance |>.head? with
   | some allocation =>
-      if allocation.bytesValid then
-        match pointeeType with
-        | some ty =>
-            (typedBytesEnum s ty allocation.bytes).orElse fun _ =>
-              (typedBytesAggregate s ty allocation.bytes).orElse fun _ =>
-                typedBytesValue s ty allocation.bytes |>.map Cell.int
-        | none => none
-      else none
+      match pointeeType with
+      | some ty =>
+          match typedBytesEnum s ty allocation.bytes with
+          | some value => some value
+          | none =>
+              if allocation.bytesValid then
+                (typedBytesAggregate s ty allocation.bytes).orElse fun _ =>
+                  typedBytesValue s ty allocation.bytes |>.map Cell.int
+              else none
+      | none => none
   | none => none
 
 def resolveProvenance (s : State) (raw : Nat) : Nat :=
@@ -535,25 +537,25 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       | .divideByZero => none
   | .ref place =>
       match place.projection with
-      | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId })
+      | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, isLocal := true })
       | .deref :: rest =>
           match localSlot s place.localId |>.bind slotCell with
           | some (.pointer pointer) =>
               some (.pointer { pointer with projection := pointer.projection ++ rest })
           | _ => none
       | projection =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, projection := projection })
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, isLocal := true, projection := projection })
   | .addressOf _ place =>
       match place.projection with
       | [] =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId })
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, isLocal := true })
       | .deref :: rest =>
           match localSlot s place.localId |>.bind slotCell with
           | some (.pointer pointer) =>
               some (.pointer { pointer with projection := pointer.projection ++ rest })
           | _ => none
       | projection =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, projection := projection })
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, isLocal := true, projection := projection })
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s)
       pure (.aggregate values)

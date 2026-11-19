@@ -189,6 +189,7 @@ struct Metadata {
     definitions: HashMap<String, Value>,
     allocations: HashMap<rustc_public::ty::Allocation, String>,
     allocation_values: Vec<Value>,
+    next_allocation_id: usize,
     globals: HashMap<String, Value>,
 }
 
@@ -217,7 +218,8 @@ impl Metadata {
         if let Some(id) = self.allocations.get(allocation) {
             return id.clone();
         }
-        let id = format!("a{}", self.allocation_values.len());
+        let id = format!("a{}", self.next_allocation_id);
+        self.next_allocation_id += 1;
         self.allocations.insert(allocation.clone(), id.clone());
         let provenance = allocation
             .provenance
