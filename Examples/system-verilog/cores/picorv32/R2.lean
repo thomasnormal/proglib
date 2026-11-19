@@ -138,6 +138,9 @@ obligation:
   `r1_addi.picorv32_loaded_addi_program_refinement_from_initial_relation`
   composes that invariant with the explicit loaded reset relation and the
   program-image all-prefix contract.
+  `r1_addi.picorv32_loaded_addi_typed_program_prefix_from_initial_relation`
+  retains an `AddiInstruction` list, its exact input fold, and the final
+  relation for each target prefix.
   `r1_addi.picorv32_loaded_addi_program_state_preserves_WF` carries the
   reset relation's x0 invariant through an ADDI-only architectural prefix.
   `r1_addi.picorv32_addi1_boundary_of_reset_relation` consumes an explicit

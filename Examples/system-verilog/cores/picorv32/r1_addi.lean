@@ -312,6 +312,116 @@ theorem picorv32_loaded_addi_program_refinement_from_initial_relation
 
 #print axioms picorv32_loaded_addi_program_refinement_from_initial_relation
 
+/-! The typed ADDI prefix consumer retains the instruction-class fact that is
+    erased by the generic RV32I prefix package.  Its cycle certificate and
+    input fold are both tied to the loaded reset relation and the caller's
+    explicit progress witness. -/
+
+theorem picorv32_loaded_addi_typed_program_prefix_from_initial_relation
+    (core : PicoRV32LoadedCanonicalE)
+    (profile : PlatformProfile)
+    (program : Memory)
+    (initialArch : ArchState)
+    (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (invariant : Rv32iAddiInvariant
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core)) rel admit)
+    (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState),
+      PicoRV32ResetRelation
+        (PicoRV32LoadedCanonicalE.design core) program
+        state memoryState → rel state memoryState)
+    {schedule target : Nat → Input}
+    (hschedule : ∀ n, admit (schedule n))
+    (progress : Rv32iRetiresTarget
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core))
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core)).init schedule target) :
+    ∀ k : Nat, ∃ boundary : Nat, ∃ instructions : List AddiInstruction,
+      AddiRvfiCycleTrace
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+          (PicoRV32LoadedCanonicalE.machine core)) program 0
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+          (PicoRV32LoadedCanonicalE.machine core)).init initialArch
+        (schedulePrefix schedule boundary) instructions ∧
+      addiProgramInputs program instructions = schedulePrefix target k ∧
+      normalizeRvfiTrace? 0
+          (rvfiObservations
+            (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+              (PicoRV32LoadedCanonicalE.machine core))
+            (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+              (PicoRV32LoadedCanonicalE.machine core)).init
+            (schedulePrefix schedule boundary)) =
+        some (trace (rvMemoryMachineWith profile)
+          { arch := initialArch, memory := program }
+          (schedulePrefix target k)) ∧
+      rel
+        (rvfiStateAfter
+          (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+            (PicoRV32LoadedCanonicalE.machine core))
+          (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+            (PicoRV32LoadedCanonicalE.machine core)).init
+          (schedulePrefix schedule boundary))
+        (rvMemoryStateAfter profile
+          { arch := initialArch, memory := program }
+          (schedulePrefix target k)) := by
+  let machine := rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+    (PicoRV32LoadedCanonicalE.machine core)
+  have hinitial : rel machine.init { arch := initialArch, memory := program } :=
+    hrel _ _ (picoRV32_reset_relation_initial
+      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf)
+  intro k
+  obtain ⟨boundary, htarget⟩ := progress k
+  have hall : ∀ input ∈ schedulePrefix schedule boundary, admit input := by
+    intro input hmem
+    exact schedulePrefix_admit schedule admit hschedule boundary input hmem
+  obtain ⟨instructions, certificate, hfinal⟩ :=
+    addiRvfiCycleTrace_of_step machine rel admit invariant.step invariant.order
+      (start := 0) (schedulePrefix schedule boundary) hinitial hall
+  have hinputs : addiProgramInputs program instructions =
+      schedulePrefix target k := by
+    calc
+      addiProgramInputs program instructions =
+          retireInputs machine.toCycleMachine machine.init
+            (schedulePrefix schedule boundary) :=
+        (certificate.retireInputs_eq (start := 0)).symm
+      _ = schedulePrefix target k := htarget
+  have htrace : normalizeRvfiTrace? 0
+      (rvfiObservations machine machine.init
+        (schedulePrefix schedule boundary)) =
+      some (trace (rvMemoryMachineWith profile)
+        { arch := initialArch, memory := program }
+        (schedulePrefix target k)) := by
+    calc
+      normalizeRvfiTrace? 0
+          (rvfiObservations machine machine.init
+            (schedulePrefix schedule boundary)) =
+          some (trace (rvMemoryMachineWith profile)
+            { arch := initialArch, memory := program }
+            (retireInputs machine.toCycleMachine machine.init
+              (schedulePrefix schedule boundary))) :=
+        certificate.trace_refines profile
+      _ = some (trace (rvMemoryMachineWith profile)
+          { arch := initialArch, memory := program }
+          (schedulePrefix target k)) := by rw [htarget]
+  have hstate :
+      { arch := addiProgramState initialArch instructions,
+        memory := program } =
+      rvMemoryStateAfter profile
+        { arch := initialArch, memory := program }
+        (schedulePrefix target k) := by
+    have hmachine := rvMemoryMachineWith_addi_program_state profile
+      initialArch program instructions
+    simpa [rvMemoryStateAfter, hinputs] using hmachine.symm
+  refine ⟨boundary, instructions, certificate, hinputs, htrace, ?_⟩
+  exact hstate ▸ hfinal
+
+#print axioms picorv32_loaded_addi_typed_program_prefix_from_initial_relation
+
 /-! The explicit program-image reset relation also supplies the WF premise
     for an ADDI-only architectural prefix. -/
 
