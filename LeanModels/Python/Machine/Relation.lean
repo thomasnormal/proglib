@@ -25,10 +25,17 @@ structure RParam where
   defaults : Option (Array Expr) := none
 deriving Repr, Inhabited, BEq
 
+inductive RRawExpr where
+  /-- A raw machine expression keeps its CPython node kind and child order
+  until the corresponding expression semantics is implemented. -/
+  | node (kind : String) (children : Array RRawExpr) (span : Span)
+deriving Repr, Inhabited, BEq
+
 inductive RStmt where
   | pass (span : Span)
   | ret (value : Option Expr) (span : Span)
   | expr (value : Expr) (span : Span)
+  | exprRaw (value : RRawExpr) (span : Span)
   | assign (target : Expr) (value : Expr) (span : Span)
   | assignMany (targets : Array Expr) (value : Expr) (span : Span)
   | annAssign (target : Expr) (annotation : Expr) (value : Option Expr)
@@ -1205,6 +1212,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .pass _ => some (.tau, config.setControl (.statements rest))
           | .expr expression _ =>
               some (.tau, config.setControl (.evaluate expression (.sequence rest)))
+          | .exprRaw _ _ =>
+              some (.event (.refuse "machine raw expression"),
+                config.finish (.refuse "machine raw expression"))
           | .assign (.name name _) value _ =>
               some (.tau, config.setControl (.evaluate value (.assign name rest)))
           | .assign (.subscript receiver index _) value _ =>

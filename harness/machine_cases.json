@@ -478,5 +478,30 @@
     "source": "harness/scripts/machine_slice_boundary.py",
     "envelope": "harness/scripts/machine_slice_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_fstring_boundary.py",
+    "envelope": "harness/scripts/machine_fstring_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_set_boundary.py",
+    "envelope": "harness/scripts/machine_set_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_comp_boundary.py",
+    "envelope": "harness/scripts/machine_comp_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_genexp_boundary.py",
+    "envelope": "harness/scripts/machine_genexp_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_dictcomp_boundary.py",
+    "envelope": "harness/scripts/machine_dictcomp_boundary.json",
+    "expect": "unsupported"
   }
 ]
