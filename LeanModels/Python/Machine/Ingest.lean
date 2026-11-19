@@ -917,6 +917,13 @@ private def mParam (arg : MArg) (flags : Bool × Bool × Bool) : RParam :=
   { name := arg.name, positionalOnly := flags.1, keywordOnly := flags.2.1,
     variadic := flags.2.2 }
 
+private def mArgHasAnnotation (arg : MArg) : Bool := arg.annotation.isSome
+
+private def mArgumentsHasAnnotations (args : MArguments) : Bool :=
+  args.positionalOnly.any mArgHasAnnotation || args.positional.any mArgHasAnnotation ||
+    args.vararg.any mArgHasAnnotation || args.keywordOnly.any mArgHasAnnotation ||
+    args.kwarg.any mArgHasAnnotation
+
 private def mParams (args : MArguments) : Array RParam :=
   let positionalOnly := args.positionalOnly.map (fun arg => mParam arg (true, false, false))
   let positional := args.positional.map (fun arg => mParam arg (false, false, false))
@@ -1015,7 +1022,7 @@ partial def mStmtToStmtClean : MStmt → RStmt
           (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
   | .forTypeComment _ _ _ _ _ _ span => .raw "ForTypeComment" #[] span
   | .functionDef name args decorators returns _ body span =>
-      if !decorators.isEmpty || returns.isSome then
+      if !decorators.isEmpty || returns.isSome || mArgumentsHasAnnotations args then
         .functionDefFull name (mParams args) (args.defaults.map mExprToExpr)
           (decorators.map mExprToExpr) (returns.map mExprToExpr)
           (body.map mStmtToStmt) span
