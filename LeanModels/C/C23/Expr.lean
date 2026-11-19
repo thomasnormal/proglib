@@ -230,8 +230,9 @@ def hexNatAux : List Char → Nat → Option Nat
 def hexNat (s : String) : Option Nat :=
   if s.toList.isEmpty then none else hexNatAux s.toList 0
 
-def floatLiteralValue (bitsHex : Option String) (bitWidth : Option Nat) : EvalM CVal :=
-  match bitsHex, bitWidth with
+def floatLiteralValue (bitsHex : Option String) (bitWidth : Option Nat) (ty : CType) : EvalM CVal :=
+  if ty == "long double" then refuseUnsupported "long double floating literal"
+  else match bitsHex, bitWidth with
   | some bits, some 32 =>
       match hexNat bits with
       | some n =>
@@ -246,7 +247,7 @@ def floatLiteralValue (bitsHex : Option String) (bitWidth : Option Nat) : EvalM 
             pure (.float64 (Float.Model.ofBits (UInt64.ofNat n)))
           else refuseUnsupported "floating literal bit pattern exceeds binary64"
       | none => refuseUnsupported "floating literal has invalid parser-native bits"
-  | some _, some 80 => refuseUnsupported "long double floating literal"
+  | _, some 80 => refuseUnsupported "long double floating literal"
   | some _, some _ => refuseUnsupported "unsupported floating literal width"
   | _, _ => refuseUnsupported "floating literal lacks parser-native bits"
 
@@ -1949,7 +1950,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       set m'
       writeMem (fun m => m.storeBytes (Ptr.toObjectBound o bs.length) bs)
       pure (.ptr (Ptr.toObjectBound o bs.length))
-  | .floatLit _ bitsHex bitWidth _ _ => floatLiteralValue bitsHex bitWidth
+  | .floatLit _ bitsHex bitWidth ty _ => floatLiteralValue bitsHex bitWidth ty
 
   -- A bare name in value position is an enumeration constant; every other
   -- name arrives wrapped in a conversion or a decay.
@@ -2635,8 +2636,8 @@ theorem float64ToInt' (f : Float.Model) (t : IntTy) :
     | exact pure' _
     | exact refuseValue' _
 
-theorem floatLiteralValue' (bitsHex : Option String) (bitWidth : Option Nat) :
-    MemInvariant (floatLiteralValue bitsHex bitWidth) := by
+theorem floatLiteralValue' (bitsHex : Option String) (bitWidth : Option Nat) (ty : CType) :
+    MemInvariant (floatLiteralValue bitsHex bitWidth ty) := by
   simp only [floatLiteralValue]
   repeat (any_goals split)
   all_goals first
@@ -2791,8 +2792,8 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       | choose _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | charLit _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | strLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | floatLit _ bitsHex bitWidth _ _ =>
-          exact ⟨by open_eval; exact MemInvariant.floatLiteralValue' bitsHex bitWidth,
+      | floatLit _ bitsHex bitWidth ty _ =>
+          exact ⟨by open_eval; exact MemInvariant.floatLiteralValue' bitsHex bitWidth ty,
             by open_lvalue; mem_inv⟩
       | declRef _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | typeTrait _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
