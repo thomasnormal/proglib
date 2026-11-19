@@ -177,7 +177,7 @@ observation when one is available.  Older envelopes still use the existing
 spelling fallback through `zeroInit`; the parser-native branch is selected
 before that fallback and therefore does not inspect the display type. -/
 def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
-    (structured : Option LeanModels.Clang.QualType) : ExecM Unit :=
+    (structured : Option LeanModels.Clang.QualType) (declaration : Option DeclarationId) : ExecM Unit :=
   if structuredPointerObject structured ty then
     liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
   else match structured.bind intTyOfStructured with
@@ -192,13 +192,13 @@ def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
         | some 64 =>
             liftEval (writeMem (fun m =>
               Mem.storeFloat64 m p (Float.Model.ofBits (UInt64.ofNat 0))))
-        | _ => zeroInit fuel ctx p ty
+        | _ => zeroInit fuel ctx p ty declaration
 
 /-- §6.7.11p10 — initialize an object to zero, as if it had static
 storage duration. Type-directed: see the section note. -/
-def zeroInit : Nat → Ctx → Ptr → CType → ExecM Unit
-  | 0, _, _, _ => exhausted
-  | fuel + 1, ctx, p, ty =>
+def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM Unit
+  | 0, _, _, _, _ => exhausted
+  | fuel + 1, ctx, p, ty, declaration =>
     match intTyOf? (ctx.layout.normalizeTy ty) with
     -- an integer member: the value zero at its own width
     | some t => liftEval (writeMem (fun m => Mem.storeIntChecked m Mem.cAliasModel p t ty 0))
@@ -213,7 +213,7 @@ def zeroInit : Nat → Ctx → Ptr → CType → ExecM Unit
       else
         match ctx.layout.elem ty with
         | some (et, n) =>
-            match ctx.layout.arrayElementSizeAt ty et with
+            match ctx.layout.arrayElementSizeDeclAt declaration ty et with
             | some esz => zeroElems fuel ctx p et esz n 0
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
@@ -227,7 +227,7 @@ def zeroElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → ExecM 
   | fuel + 1, ctx, p, et, esz, n, i =>
     if i ≥ n then pure ()
     else do
-      zeroInit fuel ctx (Mem.member p (i * esz)) et
+      zeroInit fuel ctx (Mem.member p (i * esz)) et none
       zeroElems fuel ctx p et esz n (i + 1)
 
 /-- Zero the members of a structure, in declaration order. -/
@@ -244,7 +244,7 @@ def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → E
               liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off)
                 (.int ((intTyOf? (ctx.layout.normalizeTy mty)).getD IntTy.int_) 0))
             else
-              zeroInit fuel ctx (Mem.member p off) mty
+              zeroInit fuel ctx (Mem.member p off) mty none
         | none => refuseUnsupported s!"no offset for member '{nm}'"
       zeroMembers fuel ctx p ty rest
 
@@ -264,7 +264,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
   | 0, _, _, _, _, _, _ => exhausted
   | fuel + 1, ctx, p, ty, e, structured, declaration =>
     match e with
-    | .implicitValueInit _ _ => zeroInitStructured fuel ctx p ty structured
+    | .implicitValueInit _ _ => zeroInitStructured fuel ctx p ty structured declaration
     -- Clang wraps nested aggregate initializers in ConstantExpr nodes even
     -- when their value is the parser's InitListExpr. Preserve §6.7.11's
     -- aggregate walk instead of sending that wrapper to evalExpr, where the
@@ -296,7 +296,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         -- element initializers and reports a fabricated missing member.
         if (ctx.layout.elem initTy).isNone && ctx.layout.isUnion initTy then
           match ctx.layout.members initTy, inits with
-          | some _, [] => zeroInit fuel ctx p initTy
+          | some _, [] => zeroInit fuel ctx p initTy none
           | some ms, e :: _ =>
               let target := field.getD ((ms.head?.map (·.1)).getD "")
               match ctx.layout.fieldOff initTy target with
