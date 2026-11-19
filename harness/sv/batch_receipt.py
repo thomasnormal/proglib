@@ -360,6 +360,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("specify_repro.sv", "specify_repro",
             (Port("source", 1),), (Port("result", 1),),
             expected_ordinary_refusal="SpecifyBlockSymbol:SpecifyBlock"),
+    Fixture("resolved_net_multiple_driver.sv", "resolved_net_multiple_driver",
+            (Port("a", 1), Port("b", 1)), (Port("y", 1),)),
     Fixture("primitive_gate_family_e.sv", "primitive_gate_family_e",
             (Port("a", 1), Port("b", 1)),
             (Port("y_and", 1), Port("y_or", 1), Port("y_xor", 1), Port("y_xnor", 1))),
