@@ -768,7 +768,10 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.addressOf _ _) => .refused (.unsupported "address-of write")
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
           | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
-          | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")
+          | .assign _ (.cast kind operand target) =>
+              .refused (.unsupported ("cast write kind=" ++ toString (repr kind) ++
+                " operand=" ++ toString (repr (operandCell state operand)) ++
+                " target=" ++ toString target))
           | .assign place (.use operand) =>
               match rvalueCell state (.use operand) with
               | none => .refused (.unsupported ("use operand cell=" ++
