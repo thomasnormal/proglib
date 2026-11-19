@@ -157,6 +157,8 @@ obligation:
   store and load step bridges with their memory effects explicit.
   `r1_mem_all.picorv32_mem_fields_isa_step` provides the shared exact bridge
   for byte, halfword, and word loads and stores, retaining signedness.
+  `r1_alu.picorv32_alu_fields_isa_step` provides the shared exact bridge for
+  register, immediate, and pc-based ALU source forms.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.
