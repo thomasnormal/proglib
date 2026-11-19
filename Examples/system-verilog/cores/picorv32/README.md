@@ -2084,3 +2084,17 @@ by that obligation. The 220-cycle E-RUN receipt now exercises this loaded
 configuration through canonical E, but it is an executable differential
 receipt. The universal loaded-core invariant proof remains the next theorem
 work and is not inferred from the finite receipt.
+
+## 2026-11-19 symbolic-cycle cost boundary
+
+The W5 probe was rerun against the loaded 3,442,095-byte envelope with the
+kernel executor and no captured trace theorem. A single low-clock `step` from
+`initialState` returned `ok` in 20 seconds and reached a measured peak RSS of
+1,601,576 KiB. A low-plus-high two-edge cycle remained in kernel reduction for
+more than six minutes at about 1,617,112 KiB RSS, so it was terminated before
+its 900-second timeout. The direct universal proof route therefore fits the
+12 GiB memory budget, but its current source-shaped executor is too slow for a
+cycle-by-cycle kernel proof. The next R1 slice must expose a derived cycle
+model together with a refinement theorem back to canonical E, or wait for the
+general lane's kernel-cheap store. No universal ADDI invariant is claimed by
+this measurement.
