@@ -332,6 +332,9 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("en", 1), Port("d", 4)), (Port("q", 4),),
             (Point("N2", (2,)), Point("N4", (4,))),
             retain_loops=True, retain_proc_rewrites=True),
+    Fixture("arbiter_unpacked_loop_e.sv", "arbiter_unpacked_loop_e",
+            (Port("data_bus", 16), Port("winner", 4)), (Port("data_o", 4),),
+            (Point("N4", (4,)),), retain_loops=True, retain_proc_rewrites=True),
     Fixture("bits_package_repro.sv", "bits_package_repro",
             (Port("x", 4),), (Port("y", 1),)),
     Fixture("bits_package_param_e.sv", "bits_package_param_e",
@@ -543,6 +546,9 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
     if fixture.top == "generated_array_nested" and point.args \
             and port.name in ("x", "taps"):
         return point.args[0]
+    if fixture.top == "arbiter_unpacked_loop_e" and point.args \
+            and port.name == "data_bus":
+        return point.args[0] * 4
     if fixture.top == "constant_function_top" and point.args:
         if port.name == "x":
             return point.args[0]
@@ -633,6 +639,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "comb_for_loop_e": ("N",),
             "arbiter_loop_comb_e": ("N",),
             "latch_for_e": ("N",),
+            "arbiter_unpacked_loop_e": ("N",),
             "proc_local_for_automatic": ("N",),
             "packed_enum_param_e": ("W",),
             "packed_enum_dimension_repro": ("W",),
