@@ -204,6 +204,9 @@ obligation:
   `r1_jump.picorv32_jump_exact_cycle_step_refines` consumes the common exact
   jump boundary in the mixed cycle dispatcher while preserving the distinct
   JAL and JALR target semantics carried by `JumpInstruction`.
+  `r1_jump.picorv32_loaded_jump_program_refinement_of_total` packages one
+  retained JAL or JALR instruction into the loaded all-prefix contract from
+  total canonical execution.
   `r1_upper.picorv32_lui_fields_isa_step` and
   `r1_upper.picorv32_auipc_fields_isa_step` provide the corresponding exact
   LUI and AUIPC step bridges while retaining their distinct source operands.
