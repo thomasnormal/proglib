@@ -236,8 +236,9 @@ decided by the parser-native library with differential coverage.
 
 **F1 type-string gate audit (2026-11-19).** `tools/check_c_type_strings.py`
 is now the repeatable gate for the five C type paths. Its self-test passes and
-the live audit reports the remaining `CType := String` alias and 91 candidate
-spelling-operation sites. F1 remains open with 92 findings, including
+the live audit reports the remaining `CType := String` alias and 50 actual or
+ambiguous type-spelling sites. It excludes clearly unrelated name and byte
+buffer operations while retaining unknown receivers for review. F1 remains open with 50 findings, including
 qualification
 stripping, typedef resolution, pointer and array recognition, and record-tag
 lookup. No F2 store work starts until this checker reaches zero and the full

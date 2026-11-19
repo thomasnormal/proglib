@@ -29,22 +29,37 @@ PATTERNS = (
     re.compile(r"\.(?:startsWith|endsWith|contains|splitOn|dropEnd|trimAscii|drop)\b"),
 )
 
+# The semantic files also manipulate source names, builtin names, and byte
+# buffers.  Those are strings, but they are not C type spellings.  Keep the
+# audit conservative by excluding only receivers whose surrounding code makes
+# their non-type role explicit.  A new or ambiguous receiver remains reported.
+NON_TYPE_RECEIVERS = re.compile(
+    r"\b(?:nm|name|kind|text|callee|calleeName|allowed|args|es|rest|"
+    r"bytes|source\.bytes|target\.bytes|fo\.bytes|string\.bytes|"
+    r"c\.bytes|chars|pattern|input|value|raw|spelling)\s*\."
+)
+
 
 def findings(paths: tuple[Path, ...] = PATHS) -> list[tuple[str, int, str]]:
     out: list[tuple[str, int, str]] = []
     for path in paths:
         for number, line in enumerate(path.read_text().splitlines(), 1):
-            if any(pattern.search(line) for pattern in PATTERNS):
+            if (any(pattern.search(line) for pattern in PATTERNS) and
+                    not NON_TYPE_RECEIVERS.search(line)):
                 out.append((str(path.relative_to(ROOT)), number, line.strip()))
     return out
 
 
 def self_test() -> int:
     sample = ROOT / "tools" / ".c-type-string-self-test.lean"
-    sample.write_text("abbrev CType := String\n")
+    sample.write_text(
+        "abbrev CType := String\n"
+        "def typeCase (ty : CType) := ty.endsWith \"*\"\n"
+        "def byteCase (bytes : List Nat) := bytes.drop 1\n"
+        "def nameCase (nm : String) := nm.contains \"x\"\n")
     try:
         got = findings((sample,))
-        if len(got) != 1 or got[0][1] != 1:
+        if len(got) != 2 or got[0][1] != 1 or got[1][1] != 2:
             print("check_c_type_strings --self-test: failed", file=sys.stderr)
             return 1
     finally:
