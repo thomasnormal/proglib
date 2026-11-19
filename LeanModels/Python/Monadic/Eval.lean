@@ -2221,7 +2221,7 @@ def dictCompAt (K : Kont) (m : Module) : DictCompCont → SemF RVal
       match c.rest with
       | [] => do
           envPut c.savedLocals
-          let a ← heapPush (.dict c.acc.reverse.toArray 0)
+          let a ← heapPush (.dict c.acc.toArray 0)
           pure (.ref a)
       | v :: rest => do
           assignM c.target v
