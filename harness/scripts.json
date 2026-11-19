@@ -772,5 +772,10 @@
     "file": "harness/scripts/type_comment_signature.py",
     "expect": "match",
     "note": "Argument and signature type comments change nothing at run time."
+  },
+  {
+    "file": "harness/scripts/structured_nodes_dead.py",
+    "expect": "match",
+    "note": "Set, Lambda, AsyncFor and AsyncWith nodes in code that never runs: the compatibility decoder loads the module and refuses them only when reached."
   }
 ]
