@@ -26,6 +26,7 @@ if __name__ == "__main__" and sys.version_info[:2] != (3, 9):
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRACEBACK_CLASS = re.compile(r"(?:^|\s)([A-Za-z_][A-Za-z0-9_]*(?:Error|Interrupt|Exit|Exception|Warning))(?::|$)")
+RELATION_CASE_TOTAL = 5033
 
 
 def oracle_result(oracle, source):
@@ -145,10 +146,15 @@ def main(argv=None):
         print("runner exit:", runner_code)
     version = subprocess.run([opts.oracle, "-V"], capture_output=True, text=True)
     print("oracle: %s" % ((version.stdout or version.stderr).strip(),))
-    with open(os.path.join(REPO_ROOT, "harness", "cases.json"), encoding="utf-8") as stream:
-        call_rows = json.load(stream)
-    print("MACHINE-REL cases %d/%d (diverge %d)" % (0, 5033, 0))
-    return 1 if divergent or unit_mismatches or runner_code != 0 else 0
+    # The relation currently has a module-script adapter only.  Keep the
+    # project's full typed-call denominator visible until that adapter lands,
+    # and never infer decisions from the legacy runner's expectations.
+    relation_case_decided = 0
+    relation_case_divergent = 0
+    print("MACHINE-REL cases %d/%d (diverge %d)" %
+          (relation_case_decided, RELATION_CASE_TOTAL, relation_case_divergent))
+    return 1 if (divergent or unit_mismatches or runner_code != 0 or
+                 relation_case_divergent) else 0
 
 
 if __name__ == "__main__":
