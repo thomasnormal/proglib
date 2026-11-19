@@ -238,7 +238,7 @@ def projectFields (s : State) (cell : Cell) : List Projection → Option Cell
       | _ => none
   | .deref :: _ | .unsupported _ :: _ => none
 
-def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
+def directPointerTarget (s : State) (pointer : Pointer) : Option Cell :=
   if pointer.isLocal then
     ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)).bind slotCell |>.bind
       (projectFields s · pointer.projection)
@@ -246,6 +246,35 @@ def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
     match pointer.targetFrame with
     | some frameId => (sharedSlot s frameId pointer.provenance).bind slotCell |>.bind
         (projectFields s · pointer.projection)
+    | none => match pointer.pointeeType with
+        | some ty => allocationCell s pointer.provenance (some ty)
+        | none => allocationCell s pointer.provenance none
+
+def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
+  if pointer.isLocal then
+    let target := (localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)
+    match pointer.projection with
+    | .deref :: rest => do
+        let cell ← target.bind slotCell
+        match cell with
+        | .pointer nested =>
+            let value ← directPointerTarget s nested
+            projectFields s value rest
+        | _ => none
+    | projection => target.bind slotCell |>.bind (projectFields s · projection)
+  else
+    match pointer.targetFrame with
+    | some frameId =>
+        let target := (sharedSlot s frameId pointer.provenance).bind slotCell
+        match pointer.projection with
+        | .deref :: rest => do
+            let cell ← target
+            match cell with
+            | .pointer nested =>
+                let value ← directPointerTarget s nested
+                projectFields s value rest
+            | _ => none
+        | projection => target.bind (projectFields s · projection)
     | none => match pointer.pointeeType with
         | some ty => allocationCell s pointer.provenance (some ty)
         | none => allocationCell s pointer.provenance none
