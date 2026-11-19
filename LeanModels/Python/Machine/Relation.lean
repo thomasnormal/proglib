@@ -216,8 +216,9 @@ inductive RKont where
       (continuation : RKont)
   | callReturn (continuation : RKont)
   | callReturnInstance (instanceValue : RVal) (continuation : RKont)
-  | classDef (name : String) (base : Option Nat) (remaining : List RStmt)
-  | classDefBase (name : String) (body : List RStmt) (remaining : List RStmt)
+  | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
+  | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
+      (baseExpressions : List Expr) (baseValues : List RVal)
   | attributeValue (attr : String) (continuation : RKont)
   | compareLeft (op : CmpOp) (right : Expr) (continuation : RKont)
   | compareRight (left : RVal) (op : CmpOp) (continuation : RKont)
@@ -524,13 +525,21 @@ def rClassBodySupported : List RStmt → Bool
   | .functionDefKw _ _ _ _ _ _ :: rest => rClassBodySupported rest
   | _ => false
 
-def rClassBases (base : Option Nat) : Array Nat := base.toList.toArray
+def rDirectBaseIds (classes : List RClass) : List RVal → Option (Array Nat)
+  | [] => some #[]
+  | .callable token :: rest =>
+      match rClassByToken classes token, rDirectBaseIds classes rest with
+      | some cls, some ids =>
+          if cls.bases.isEmpty && cls.id ∉ ids.toList then some (#[cls.id] ++ ids)
+          else none
+      | _, _ => none
+  | _ :: _ => none
 
 def rFinishClass (config : RConfig) (classFrame : RFrame) (tail : List RFrame)
-    (name : String) (base : Option Nat) (remaining : List RStmt) : Option RConfig :=
+    (name : String) (bases : Array Nat) (remaining : List RStmt) : Option RConfig :=
   match tail with
   | caller :: rest =>
-      let cls : RClass := RClass.mk config.nextClassId name classFrame.locals (rClassBases base)
+      let cls : RClass := RClass.mk config.nextClassId name classFrame.locals bases
       some { config with
         frames := { caller with control := .statements remaining } :: rest
         modules := rSetModule config.modules caller.module name (.callable (rClassToken cls.id))
@@ -1642,18 +1651,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                                 locals := []
                                 globals := frame.globals
                                 module := frame.module
-                                completion := some (.classDef name none rest)
+                                completion := some (.classDef name #[] rest)
                                 globalNames := []
                                 nonlocalNames := []
                                 localNames := [] }
                             some (.tau, { config with frames := classFrame :: frame :: tail })
                         | [] => none
-                    | [base] =>
+                    | first :: restBases =>
                         some (.tau, config.setControl
-                          (.evaluate base (.classDefBase name body.toList rest)))
-                    | _ =>
-                        some (.event (.refuse "machine class"),
-                          config.finish (.refuse "machine class"))
+                          (.evaluate first (.classDefBases name body.toList rest restBases [])))
                   else
                     some (.event (.refuse "machine class"),
                       config.finish (.refuse "machine class"))
@@ -1838,33 +1844,35 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue _ .discardValue => some (.tau, config.setControl (.statements []))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
-      | .continueValue _ (.classDef name base remaining) =>
+      | .continueValue _ (.classDef name bases remaining) =>
           match config.frames with
           | classFrame :: tail =>
-              match rFinishClass config classFrame tail name base remaining with
+              match rFinishClass config classFrame tail name bases remaining with
               | some next => some (.tau, next)
               | none => some (.event (.refuse "machine class stack"),
                   config.finish (.refuse "machine class stack"))
           | [] => none
-      | .continueValue baseValue (.classDefBase name body remaining) =>
-          match baseValue, config.frames with
-          | .callable token, caller :: tail =>
-              match rClassByToken config.classes token with
-              | some baseClass =>
+      | .continueValue value (.classDefBases name body remaining baseExpressions baseValues) =>
+          match baseExpressions with
+          | nextBase :: restBases =>
+              some (.tau, config.setControl
+                (.evaluate nextBase (.classDefBases name body remaining restBases
+                  (baseValues ++ [value]))))
+          | [] =>
+              match rDirectBaseIds config.classes (baseValues ++ [value]), config.frames with
+              | some baseIds, caller :: tail =>
                   let classFrame : RFrame :=
                     { control := .statements body
                       locals := []
                       globals := caller.globals
                       module := caller.module
-                      completion := some (.classDef name (some baseClass.id) remaining)
+                      completion := some (.classDef name baseIds remaining)
                       globalNames := []
                       nonlocalNames := []
                       localNames := [] }
                   some (.tau, { config with frames := classFrame :: caller :: tail })
-              | none => some (.event (.refuse "machine class"),
+              | _, _ => some (.event (.refuse "machine class"),
                   config.finish (.refuse "machine class"))
-          | _, _ => some (.event (.refuse "machine class"),
-              config.finish (.refuse "machine class"))
       | .continueValue value (.assignSubscriptReceiver receiver index remaining) =>
           some (.tau, config.setControl
             (.evaluate receiver (.assignSubscriptIndex value index remaining)))

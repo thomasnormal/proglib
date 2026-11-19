@@ -770,6 +770,26 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_class_multiple_inherit.py",
+    "envelope": "harness/scripts/machine_class_multiple_inherit.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_multiple_inherit_method.py",
+    "envelope": "harness/scripts/machine_class_multiple_inherit_method.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_multiple_inherit_init.py",
+    "envelope": "harness/scripts/machine_class_multiple_inherit_init.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_inherit_diamond.py",
+    "envelope": "harness/scripts/machine_class_inherit_diamond.json",
+    "expect": "unsupported"
+  },
+  {
     "source": "harness/scripts/machine_instance_method.py",
     "envelope": "harness/scripts/machine_instance_method.json",
     "expect": "match"

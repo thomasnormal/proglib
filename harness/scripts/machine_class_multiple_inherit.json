@@ -1,0 +1,312 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.12.14"
+  },
+  "source_file": "harness/scripts/machine_class_multiple_inherit.py",
+  "source_sha256": "2c1ffea63d831c49e3c68832dee8d7480697b73dbdc3dd620802d023cf01de95",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 13
+        },
+        "name": "Left",
+        "class_unsupported": "class-level statements (class attributes)",
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 13
+        },
+        "name": "Right",
+        "class_unsupported": "class-level statements (class attributes)",
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 4,
+                  "end_lineno": 4,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 4,
+                "col_offset": 12,
+                "end_lineno": 4,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 4,
+                  "end_lineno": 4,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 4,
+                "col_offset": 12,
+                "end_lineno": 4,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 8
+        },
+        "name": "Child",
+        "class_unsupported": "bases (inheritance)",
+        "creation_effects": true,
+        "body": [
+          {
+            "kind": "Pass",
+            "span": {
+              "lineno": 6,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 8
+            }
+          }
+        ],
+        "machine_bases": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 12,
+              "end_lineno": 5,
+              "end_col_offset": 16
+            },
+            "id": "Left",
+            "machine_context": "Load"
+          },
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 18,
+              "end_lineno": 5,
+              "end_col_offset": 23
+            },
+            "id": "Right",
+            "machine_context": "Load"
+          }
+        ],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Pass",
+            "span": {
+              "lineno": 6,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 8
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 7,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 18
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 7,
+            "col_offset": 0,
+            "end_lineno": 7,
+            "end_col_offset": 18
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 7,
+              "col_offset": 0,
+              "end_lineno": 7,
+              "end_col_offset": 5
+            },
+            "id": "print",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Attribute",
+              "span": {
+                "lineno": 7,
+                "col_offset": 6,
+                "end_lineno": 7,
+                "end_col_offset": 17
+              },
+              "value": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 7,
+                  "col_offset": 6,
+                  "end_lineno": 7,
+                  "end_col_offset": 11
+                },
+                "id": "Child",
+                "machine_context": "Load"
+              },
+              "attr": "value",
+              "machine_context": "Load"
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ],
+    "machine_type_ignores": []
+  },
+  "lean_blocks": []
+}
