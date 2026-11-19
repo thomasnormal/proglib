@@ -482,7 +482,7 @@
     "source": "int main(void) { int x = 1; int *const p = &x; return *p; }",
     "expect": "refuse",
     "return_value": 1,
-    "error": "aggregate used as a pointer",
+    "error": "no layout for declared type 'int *const'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
@@ -671,14 +671,16 @@
   {
     "id": "effective-type-const-qualified",
     "source": "int main(void) { const int x = 7; return x == 7 ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "no layout for declared type 'const int'"
   },
   {
     "id": "effective-type-volatile-qualified",
     "source": "int main(void) { volatile int x = 7; return x == 7 ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "no layout for declared type 'volatile int'"
   },
   {
     "id": "pointer-unsigned-int-wall",
@@ -733,7 +735,7 @@
     "layout_envelope_checks": [
       "record_layout"
     ],
-    "error": "no offset for member 'x'",
+    "error": "no layout for declared type 'const struct S'",
     "layout_expect": "match",
     "layout_return_value": 0
   },
