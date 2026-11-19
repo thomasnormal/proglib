@@ -81,6 +81,11 @@ private def isError : Except String α → Bool
   LeanModels.C.C23.Layout).sizeAt (some {value := "object-1"}) "int" == some 8
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
+    if id.value == "scalar-1" then some (.qualified true false (.cBuiltinKind .int)) else none
+  size := fun _ => none } :
+  LeanModels.C.C23.Layout).sizeAt (some {value := "scalar-1"}) "const int" == some 4
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  structuredType := fun id =>
     if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 2)) else none } :
   LeanModels.C.C23.Layout).storageTypeAt (some {value := "array-1"}) "int[2]" == none
 #guard ({ LeanModels.C.C23.Layout.unknown with

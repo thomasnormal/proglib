@@ -681,14 +681,18 @@
     "source": "int main(void) { const int x = 7; return x == 7 ? 0 : 1; }",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type 'const int'"
+    "error": "no layout for declared type 'const int'",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "effective-type-volatile-qualified",
     "source": "int main(void) { volatile int x = 7; return x == 7 ? 0 : 1; }",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type 'volatile int'"
+    "error": "no layout for declared type 'volatile int'",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "pointer-unsigned-int-wall",
