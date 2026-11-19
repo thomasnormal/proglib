@@ -3,6 +3,7 @@ import Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary
 import LeanModels.Sv.Kernel.CoreMemFast
 import LeanModels.Refine.RvfiUpperMixed
 import LeanModels.Refine.RvfiJumpMixed
+import LeanModels.Refine.RvfiBranchProgram
 
 /-!
 # PicoRV32 canonical-E RVFI state adapter
@@ -500,6 +501,38 @@ theorem CoreJumpBoundary.to_rv32i_boundary
   exact LeanModels.Refine.RvfiObservation.jumpBoundary_rv32i instruction hboundary
 
 #print axioms CoreJumpBoundary.to_rv32i_boundary
+
+def CoreBranchBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (instruction : LeanModels.Refine.BranchInstruction) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.branchBoundary arch input instruction.word instruction.cond
+        instruction.rs1 instruction.rs2 instruction.offset
+
+theorem CoreBranchBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {instruction : LeanModels.Refine.BranchInstruction}
+    (h : CoreBranchBoundary d st entry arch input instruction) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.branchNext arch instruction.cond
+            instruction.rs1 instruction.rs2 instruction.offset,
+          memory := input.memory }
+        (LeanModels.Refine.branchRetirement arch input instruction.cond
+          instruction.rs1 instruction.rs2 instruction.offset) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  exact LeanModels.Refine.RvfiObservation.branchBoundary_rv32i
+    instruction.word instruction.cond instruction.rs1 instruction.rs2
+    instruction.offset hboundary
+
+#print axioms CoreBranchBoundary.to_rv32i_boundary
 
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
