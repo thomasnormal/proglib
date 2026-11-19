@@ -243,7 +243,7 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("sel", 2), Port("a", 4), Port("b", 4)), (Port("q", 4),)),
     Fixture("latch_function_e.sv", "latch_function_e",
             (Port("en", 1), Port("d", 1)), (Port("q", 1),),
-            expected_ordinary_refusal="CallExpression:user-function"),
+            retain_proc_rewrites=True),
     Fixture("negedge_e.sv", "negedge_e",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),)),
     Fixture("negedge_plain_e.sv", "negedge_plain_e",
