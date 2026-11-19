@@ -458,5 +458,15 @@
     "source": "harness/scripts/machine_import_many_boundary.py",
     "envelope": "harness/scripts/machine_import_many_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_assert_boundary.py",
+    "envelope": "harness/scripts/machine_assert_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_yield_boundary.py",
+    "envelope": "harness/scripts/machine_yield_boundary.json",
+    "expect": "unsupported"
   }
 ]

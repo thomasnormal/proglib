@@ -1,0 +1,78 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_assert_boundary.py",
+  "source_sha256": "e99e92f86c7f644aa6107dcb6fd11b2700e747b8493311ebf21a478685ab13c8",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assert",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 25
+        },
+        "test": {
+          "kind": "Compare",
+          "span": {
+            "lineno": 1,
+            "col_offset": 7,
+            "end_lineno": 1,
+            "end_col_offset": 13
+          },
+          "left": {
+            "kind": "Constant",
+            "span": {
+              "lineno": 1,
+              "col_offset": 7,
+              "end_lineno": 1,
+              "end_col_offset": 8
+            },
+            "value": {
+              "type": "int",
+              "repr": "1"
+            }
+          },
+          "ops": [
+            "Eq"
+          ],
+          "comparators": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 1,
+                "col_offset": 12,
+                "end_lineno": 1,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          ]
+        },
+        "msg": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 15,
+            "end_lineno": 1,
+            "end_col_offset": 25
+          },
+          "value": {
+            "type": "str",
+            "value": "boundary"
+          }
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
