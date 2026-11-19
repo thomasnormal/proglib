@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""Classify every Stage 0 MIR envelope at the Slice 1 boundary.
+"""Run every Stage 0 corpus row through the Lean MIR semantics and compare with Miri.
 
-The extractor supplies the only tree inspected here.  This audit never parses
-Rust source or a textual MIR dump.  A row is a named refusal when its first
-reachable MIR node lies outside the current Lean family boundary.
+Each row is extracted with the structured rustc_public extractor (this needs
+the pinned nightly and its Miri sysroot; the corpus envelopes are not checked
+in), loaded into Lean, and run with `runOutcome` in one Lean process.  The
+Lean outcome is compared with the checked-in Stage 0 Miri verdicts: a return,
+panic or UB that Miri does not report is `diverging`; a Lean refusal or an
+exhausted fuel budget is a `named_refusal`.  The audit never parses Rust
+source or a textual MIR dump.
+
+LIMIT: every row of the current corpus exits 0 under Miri, so a wrong value
+that still returns (or that only reaches a refused panic path) cannot show up
+here.  Panic and UB rows are needed before `diverging: 0` means much.
 """
 
 from __future__ import annotations
@@ -20,61 +28,33 @@ from types import SimpleNamespace
 from measure import MeasurementError, Runner
 
 
-def _variant(value):
-    if isinstance(value, dict) and len(value) == 1:
-        return next(iter(value.items()))
-    return None, None
+# Lean outcome label -> the Miri verdict that agrees with it.  `refused:*` and
+# `out_of_fuel` claim nothing and are never compared.
+_LEAN_TO_MIRI = {"returned": "ok", "panicked": "panic"}
 
 
-def _first_refusal(envelope):
-    bodies = {body["instance"]: body["body"] for body in envelope.get("bodies", [])}
-    edges = {(edge["caller"], edge["block"]): edge for edge in envelope.get("calls", [])}
-    for body in envelope.get("bodies", []):
-        body_id = body["instance"]
-        for block_id, block in enumerate(body["body"].get("blocks", [])):
-            for statement_id, statement in enumerate(block.get("statements", [])):
-                kind, value = _variant(statement.get("kind"))
-                if kind in {"StorageLive", "StorageDead", "PlaceMention"}:
-                    continue
-                if kind != "Assign":
-                    return f"statement {kind or 'malformed'} at {body_id}:b{block_id}:s{statement_id}"
-                if not isinstance(value, list) or len(value) != 2:
-                    return f"malformed Assign at {body_id}:b{block_id}:s{statement_id}"
-                rvalue_kind, rvalue_value = _variant(value[1])
-                if rvalue_kind == "Use":
-                    continue
-                if rvalue_kind == "BinaryOp" and isinstance(rvalue_value, list):
-                    if rvalue_value and rvalue_value[0] in {"Eq", "Ne", "BitAnd", "Div"}:
-                        continue
-                if rvalue_kind == "Aggregate" and isinstance(rvalue_value, list):
-                    if len(rvalue_value) == 2 and rvalue_value[1] == []:
-                        continue
-                return f"rvalue {rvalue_kind or 'malformed'} at {body_id}:b{block_id}:s{statement_id}"
-            terminator = block.get("terminator", {}).get("kind")
-            kind, value = _variant(terminator) if isinstance(terminator, dict) else (terminator, None)
-            if kind in {"Return", "Goto", "SwitchInt", "Assert", "Drop"}:
-                if kind == "Call":
-                    pass
-                if kind == "Drop" and isinstance(value, dict):
-                    unwind = value.get("unwind")
-                    if isinstance(unwind, dict) and "Cleanup" in unwind:
-                        continue
-                continue
-            if kind == "Call":
-                target = value.get("target") if isinstance(value, dict) else None
-                edge = edges.get((body_id, block_id))
-                if target is None:
-                    return f"Call without normal target at {body_id}:b{block_id}"
-                if edge is None or not edge.get("resolved", False):
-                    return f"unresolved Call at {body_id}:b{block_id}"
-                callee = edge.get("callee")
-                if not callee or callee not in bodies:
-                    return f"Call callee body unavailable at {body_id}:b{block_id}"
-                continue
-            if kind == "Resume":
-                return f"terminator Resume at {body_id}:b{block_id}"
-            return f"terminator {kind or 'malformed'} at {body_id}:b{block_id}"
+def _lean_class(label):
+    if label in _LEAN_TO_MIRI:
+        return _LEAN_TO_MIRI[label]
+    if label.startswith("ub:"):
+        return "ub"
     return None
+
+
+def classify(lean_label, miri_verdicts):
+    """Status and reason of one corpus row from its Lean outcome label and the
+    set of Miri verdicts (one per borrow model).  Every outcome Lean decides
+    (return, panic, UB) is compared with Miri, so a wrong panic or a wrong UB
+    claim is a divergence, not a refusal."""
+    lean = _lean_class(lean_label)
+    if lean is None:
+        return "named_refusal", "Lean outcome " + lean_label
+    verdicts = ",".join(sorted(miri_verdicts))
+    if len(miri_verdicts) != 1:
+        return "named_refusal", "Miri borrow models disagree (" + verdicts + "); no claim"
+    if miri_verdicts == {lean}:
+        return "decided", "Lean " + lean_label + "; Miri Stage 0 verdict is " + verdicts
+    return "diverging", "Lean " + lean_label + " but Miri verdict is " + verdicts
 
 
 def main():
@@ -155,22 +135,13 @@ def main():
             row = next(row for row in rows if row["id"] == item["id"])
             oracle = oracle_rows[item["id"]]
             miri_verdicts = {model["verdict"] for model in oracle["models"].values()}
-            miri_ok = miri_verdicts == {"ok"}
             row["lean_outcome"] = value
-            if value == "returned" and miri_ok:
-                row["status"] = "decided"
-                row["reason"] = "Lean returned; Miri Stage 0 verdict is ok"
-            elif value == "returned" and not miri_ok:
-                row["status"] = "diverging"
-                row["reason"] = "Lean returned but Miri verdict is " + ",".join(sorted(miri_verdicts))
-            else:
-                row["status"] = "named_refusal"
-                row["reason"] = "Lean outcome " + value
+            row["status"], row["reason"] = classify(value, miri_verdicts)
     report = {
         "schema": "lean-surfaces.rust.slice1-audit.v0",
         "rows": rows,
         "decided_rows": sum(row["status"] == "decided" for row in rows),
-        "named_refusals": sum(row["status"] != "decided" for row in rows),
+        "named_refusals": sum(row["status"] in {"named_refusal", "extractor_refusal"} for row in rows),
         "diverging": sum(row["status"] == "diverging" for row in rows),
     }
     Path(args.output).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
