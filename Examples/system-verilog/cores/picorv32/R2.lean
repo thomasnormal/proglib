@@ -136,6 +136,11 @@ obligation:
   A conversion from
   four-state `mem_addr` to an architectural word remains an explicit loaded-
   core premise, not an inferred default.
+  The pinned design leaves nonzero `cpuregs` unresolved at reset because
+  `REGS_INIT_ZERO = 0`.  The R2 statement therefore does not introduce a
+  second ISA-side read-before-write language.  `decodePost` and `rvfiStep`
+  admit only known-width RVFI samples, so the loaded invariant must prove the
+  corresponding sample is known or preserve the exact decoder refusal.
 
 These are boundary consumers for a future loaded-core invariant.  They do not
 assert that the current PicoRV32 envelope executes in canonical E. -/
