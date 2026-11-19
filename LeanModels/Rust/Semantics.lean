@@ -662,7 +662,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                           match bindCallCellsFresh firstTrace.state callState args 1 with
                           | none => .refused (.unsupported ("call arguments for " ++ calleeId))
                           | some calleeState =>
-                              match cfgRunOutcome fuel callee 0 calleeState with
+                              match cfgRunProgramOutcome fuel program callee 0 calleeState with
                               | .returned calleeTrace =>
                                   match returnCell calleeTrace with
                                   | none => .refused (.unsupported "callee return value")
