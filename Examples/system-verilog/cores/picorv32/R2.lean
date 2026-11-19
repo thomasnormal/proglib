@@ -137,6 +137,10 @@ obligation:
   `r1_illegal.picorv32_illegal_exact_cycle_step_refines` theorem consumes the
   two trap shapes through `TrapInstruction` while preserving their shared
   illegal architectural transition and their distinct parser evidence.
+  Its
+  `r1_illegal.picorv32_loaded_illegal_program_refinement_of_total` theorem
+  packages one retained illegal trap instruction into the loaded
+  reset-specialized all-prefix contract from total canonical execution.
   `r1_csr` provides the six implemented Zicsr consumers through the decoded
   CSR row and operation witness.  Its
   `r1_csr.picorv32_csr_exact_cycle_step_refines` theorem consumes the exact
