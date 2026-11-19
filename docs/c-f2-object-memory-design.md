@@ -65,9 +65,13 @@ A torn integer read is defined by decoding the available bytes according to
 the profile representation. A pointer read requires a complete valid pointer
 representation. Reading any object representation through a character lvalue
 is defined, including pointer bytes, as required by C17 §6.5.1p7. A byte that
-was only partly initialized is handled by the byte lattice. A character read
-may observe its initialized value. A typed read of an uninitialized or invalid
-representation follows the profile's named indeterminate or non-value outcome.
+was only partly initialized is represented by the byte value produced by the
+read-modify-write operation. The written bits come from the new value and the
+unwritten bits come from the old byte when it is initialized. When the old
+bits are padding or uninitialized, the relation chooses an allowed byte value
+for those bits. A character read may observe the resulting initialized byte.
+A typed read of an uninitialized or invalid representation follows the
+profile's named indeterminate or non-value outcome.
 Padding bytes and inactive union bytes receive an unspecified value where C17
 §6.2.6.1p6-p7 permits one, and the step relation quantifies over every such
 value.
@@ -99,19 +103,24 @@ contains the integer, derives the offset from that allocation's base, and
 retains empty provenance when no such allocation exists. Recovery also checks
 the target type's ABI alignment. It never fabricates an allocation identity
 from the integer alone. The exposed flag, recovery relation, and udi choice
-are explicit state. Every admissible exposure and recovery resolution is a
-case of the relation under rule 4. Alignment failures are undefined under C17
-§6.3.2.3p7.
+are explicit state. The udi choice is an explicit oracle argument at the first
+integer-to-pointer use. The relation contains one branch for every admissible
+choice, and a theorem quantifies over every branch under rule 4. An integer
+whose address interval contains no exposed live allocation yields a pointer
+with empty provenance. Alignment failures are undefined under C17
+§6.3.2.3p7. A pointer with empty provenance and a non-null address remains a
+valid value for operations whose rules permit it, while dereference requires
+recovered live provenance.
 
 ## Operations, effects, and observations
 
 The shared operation signature is:
 
     alloc : PlacementChoice -> AllocRequest -> Store L
-            -> Result (AllocId × Store L)
+            -> Result (AllocId × Store L × Footprint)
     dealloc : AllocId -> Store L -> Result (Unit × Store L)
     realloc : PlacementChoice -> AllocId -> AllocRequest -> Store L
-              -> Result (Ptr L × Store L)
+              -> Result (Ptr L × Store L × Footprint)
     read : Access -> Store L -> Result (Value × Store L)
     write : Access -> Value -> Store L -> Result (Unit × Store L)
     copy : CopyAccess -> Store L -> Result (Unit × Store L)
@@ -122,9 +131,12 @@ The shared operation signature is:
 Every operation returns a defined result, classified undefined behavior, or a
 named unsupported refusal. Placement choices, allocation failure, padding,
 unspecified bytes, literal sharing, evaluation order, and PNVI exposure are
-explicit arguments or universally quantified choices. Each read and write
+explicit arguments or universally quantified choices. Each memory operation
 returns a footprint containing allocation identity, byte range, access kind,
-and sequencing information for later control-flow semantics.
+and sequencing information for later control-flow semantics. The allocation,
+deallocation, and exposure choices are arguments to the relation or its oracle
+record, so a caller cannot hide a placement decision in evaluator fuel or in
+a host-side global.
 
 Allocation, deallocation, reallocation, and address exposure are internal
 steps, not observable events. Observables are external I/O calls, exit status,
@@ -149,10 +161,16 @@ The theorem applies to a per-allocation move when the program does not observe
 that allocation's address. Its exceptions are one-past-the-end equality,
 alignment undefined behavior on casts, and integer reads of pointer bytes.
 Programs that observe addresses are proved for every admissible placement and
-exposure resolution. The flat-memory refinement maps
-each live allocation to its chosen interval and preserves bytes, provenance
-failures, classified undefined behavior, and footprints. Undefined source
-behavior carries no compiler-refinement obligation.
+exposure resolution. The flat-memory refinement is an XLEN-parameterized
+forward simulation. It maps each live allocation to its chosen interval and
+maps an abstract byte to its concrete value while forgetting optional
+provenance. Every defined abstract step is matched by a flat-memory step with
+the same observable footprint and termination result. An abstract
+undefined-behavior step carries no refinement obligation. An abstract
+uninitialized byte is related to every concrete byte value permitted by the
+profile, and a dead allocation's interval may be reused after its lifetime
+ends. Provenance checks therefore remain source-side obligations of the
+abstract relation rather than properties of the flat target state.
 
 ## Language parameter and migration
 
