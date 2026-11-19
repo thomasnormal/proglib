@@ -53,6 +53,7 @@ inductive MExpr where
       (params : Array (String × Bool × Bool × Bool × Bool × Option MExpr × Option MExpr))
       (body : MExpr) (span : Span)
   | namedExpr (target : String) (value : MExpr) (span : Span)
+  | namedExprNode (target : MExpr) (value : MExpr) (span : Span)
   | starred (value : MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
 deriving Repr, Inhabited, BEq
@@ -320,8 +321,11 @@ partial def mExpr (j : Json) : Except String MExpr := do
         | .ok value => some <$> mExpr value
       pure (.slice (← mExpr (← mField j "value")) (← component "lower")
         (← component "upper") (← component "step") span)
-  | "NamedExpr" => pure (.namedExpr (← (← mField j "target").getStr?)
-      (← mExpr (← mField j "value")) span)
+  | "NamedExpr" =>
+      let value ← mExpr (← mField j "value")
+      match j.getObjVal? "machine_target" with
+      | .ok target => pure (.namedExprNode (← mExpr target) value span)
+      | .error _ => pure (.namedExpr (← (← mField j "target").getStr?) value span)
   | "Starred" => pure (.starred (← mExpr (← mField j "value")) span)
   | _ => pure (.unsupported kind span)
 
@@ -575,6 +579,7 @@ partial def mExprToExpr : MExpr → Expr
   | .dict keys values span => .dict (keys.map (fun key =>
       key.map mExprToExpr |>.getD (.constant .none span))) (values.map mExprToExpr) span
   | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
+  | .namedExprNode _ _ span => .unsupported "NamedExpr" "machine named expression frontier" span
   | .lambdaExpr _ _ span => .unsupported "Lambda" "machine lambda frontier" span
   | .awaitExpr _ span => .unsupported "Await" "machine await frontier" span
   | .yieldExpr _ span => .unsupported "Yield" "machine yield frontier" span
@@ -642,7 +647,10 @@ partial def mExprToRaw : MExpr → RRawExpr
       let parameterChildren := params.flatMap (fun (_, _, _, _, _, default, annotation) =>
         (default.toArray ++ annotation.toArray).map mExprToRaw)
       .node "Lambda" (parameterChildren ++ #[mExprToRaw body]) span
-  | .namedExpr _ value span => .node "NamedExpr" #[mExprToRaw value] span
+  | .namedExpr target value span =>
+      .node "NamedExpr" #[mExprToRaw (.name target span), mExprToRaw value] span
+  | .namedExprNode target value span =>
+      .node "NamedExpr" #[mExprToRaw target, mExprToRaw value] span
   | .starred value span => .node "Starred" #[mExprToRaw value] span
   | .unsupported kind span => .node kind #[] span
 
@@ -670,6 +678,7 @@ partial def mExprHasRaw : MExpr → Bool
   | .list elts _ | .tuple elts _ => elts.any mExprHasRaw
   | .dict keys values _ => keys.any (fun key => key.any mExprHasRaw) || values.any mExprHasRaw
   | .namedExpr _ value _ => mExprHasRaw value
+  | .namedExprNode _ _ _ => true
 
 private def mStmtExpressions : MStmt → Array MExpr
   | .pass _ | .global _ _ | .nonlocal _ _ | .brk _ | .cont _ | .unsupported _ _ => #[]
