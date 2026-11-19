@@ -130,6 +130,45 @@ theorem picorv32_addi_class_commit (state : ArchState) :
 #print axioms picorv32_addi_class_step
 #print axioms picorv32_addi_class_commit
 
+/-! The exact-cycle ADDI consumer.  The source-step/decode obligation remains
+    explicit, so this theorem can only be used after the loaded E machine has
+    supplied a canonical post-state and RVFI observation for every admitted
+    input. -/
+
+theorem picorv32_addi_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            ∃ w rd rs1 imm,
+              input.memory = memoryState.memory ∧
+              observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
+              rel next
+                { arch := addiNext memoryState.arch rd rs1 imm,
+                  memory := memoryState.memory }
+          else rel next memoryState))
+    (horder : ∀ (start : Nat) (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input)
+      (next : LeanModels.Sv.Kernel.CoreMemState)
+      (observation : RvfiObservation),
+      rel state memoryState → admit input →
+      rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+        .ok (next, observation) →
+      if observation.valid then observation.order = start else True) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  exact (machine.to_addi_invariant hstep horder).toMixedStep
+
+#print axioms picorv32_addi_exact_cycle_step_refines
+
+
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact
     port sample remain premises, so this theorem records a loaded-core
