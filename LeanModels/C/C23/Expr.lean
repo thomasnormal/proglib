@@ -1682,12 +1682,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         -- POSTFIX; it never writes `++i`. Postfix yields the value BEFORE
         -- the update, and the update itself can overflow (`J.2(35)`).
         let p ← evalLValue ctx sub
+        let subStructured := ctx.layout.structuredTypeAt sub
         let old ← match sub with
           | .member base field arrow fieldTy _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 loadBitFieldAt ctx base.ty field fieldTy p (some base)
-              else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
-          | _ => loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
+              else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
+          | _ => loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
         match old with
         | .ptr _ =>
             -- C23 §6.5.3.5p2 defines pointer increment/decrement in terms
@@ -1708,14 +1709,16 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             match (if op == "++" then addOp t n 1 else subOp t n 1) with
             | .ub u => refuseValue u
             | .ok (.int _ nv) => do
-                let storedT ← intTyOf (ctx.layout.normalizeTy sub.ty)
+                let storedT ← match subStructured.bind intTyOfStructured with
+                  | some projected => pure projected
+                  | none => intTyOf (ctx.layout.normalizeTy sub.ty)
                 let stored := convert storedT nv
                 match sub with
                 | .member base field arrow fieldTy _ =>
                     if ctx.layout.fieldBitsAt base field |>.isSome then
                       storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
-                    else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored
-                | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored
+                    else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
+                | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
                 pure (if post then old else stored)
             | .ok _ => refuseUnsupported "increment of a non-integer value"
       else refuseUnsupported s!"unary operator '{op}'"
@@ -1726,6 +1729,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       if compoundAssignmentHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in compound assignment"
       let p ← evalLValue ctx l
+      let lStructured := ctx.layout.structuredTypeAt l
       let rv ← evalExpr ctx r
       -- C23 §6.5.16.3: the update is sequenced after the value
       -- computations of both operands.  The lvalue is evaluated once for
@@ -1737,9 +1741,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             if ctx.layout.fieldBitsAt base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p (some base)
             else
-              loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
+              loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty)) lStructured
         | _ =>
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty)) lStructured
       match old, rv with
       | .ptr _, .int _ _ => do
           -- §6.5.17.3: pointer compound assignment uses the same
@@ -1786,7 +1790,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let old' := convert lhsT oldN
           let rv' := convert resultT rvN
           let nv ← evalArith ctx (compoundBase op) old' rv' computeResultType
-          let storageT ← intTyOf (ctx.layout.normalizeTy l.ty)
+          let storageT ← match lStructured.bind intTyOfStructured with
+            | some projected => pure projected
+            | none => intTyOf (ctx.layout.normalizeTy l.ty)
           let (_, nvN) ← asInt nv
           let stored := convert storageT nvN
           match l with
@@ -1794,9 +1800,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
               else
-                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored
+                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored lStructured
           | _ =>
-              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored
+              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored lStructured
           pure stored
 
   -- ===== lvalues reaching value position without a conversion =====
