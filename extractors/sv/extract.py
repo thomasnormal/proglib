@@ -34785,7 +34785,7 @@ def _convert_uninstantiated_sym(sm, m):
                 expr_syntax = getattr(assignment, "expr", None)
                 if not _SYM_HIER_NAME.match(pname) or expr_syntax is None:
                     return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
-                expr = _syntax_expr(sm, expr_syntax)
+                expr = _sym_uninstantiated_port_expr(sm, expr_syntax)
                 if not isinstance(expr, dict) or expr.get("kind") == "Unsupported":
                     return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
                 params.append({"name": pname, "expr": expr})
@@ -34874,6 +34874,16 @@ def _sym_uninstantiated_port_expr(sm, syntax):
             return {"kind": "Binary", "span": _syntax_span(sm, syntax),
                     "width": None, "op": SYM_SYNTAX_BINOPS[syntax.kind],
                     "left": left, "right": right}
+        if syntax.kind == SyntaxKind.CastExpression:
+            children = _syntax_children(syntax)
+            if len(children) != 2:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            operand = _sym_uninstantiated_port_expr(sm, children[-1])
+            if operand.get("kind") == "Unsupported":
+                return operand
+            return {"kind": "Resize", "span": _syntax_span(sm, syntax),
+                    "width": None, "operand": operand}
         if syntax.kind == SyntaxKind.IdentifierName:
             name = str(syntax).strip()
             symbol = _SYM.scope.lookupName(name)
@@ -34887,6 +34897,28 @@ def _sym_uninstantiated_port_expr(sm, syntax):
                                            "UninstantiatedDefSymbol:expression")
             return {"kind": "Ident", "span": _syntax_span(sm, syntax),
                     "width": int(width), "name": name}
+        if syntax.kind in (SyntaxKind.IntegerLiteralExpression,
+                           SyntaxKind.IntegerVectorExpression):
+            if syntax.kind == SyntaxKind.IntegerVectorExpression:
+                size = getattr(getattr(syntax, "size", None), "valueText", None)
+                base = str(getattr(getattr(syntax, "base", None), "valueText", "")).lower()
+                digits = str(getattr(getattr(syntax, "value", None), "valueText", "")).lower()
+                if size and base in ("'b", "'o", "'d", "'h") and digits:
+                    width = int(size)
+                    radix = {"'b": 2, "'o": 8, "'d": 10, "'h": 16}[base]
+                    if all(ch in "01" for ch in digits) and radix == 2:
+                        bits = digits.rjust(width, "0")[-width:]
+                    elif all(ch in "0123456789abcdef" for ch in digits) and radix != 10:
+                        value = int(digits, radix)
+                        bits = format(value, f"0{width}b")[-width:]
+                    else:
+                        bits = ""
+                    if bits:
+                        return {"kind": "Literal", "span": _syntax_span(sm, syntax),
+                                "width": width, "bits": bits}
+            literal = _syntax_expr(sm, syntax)
+            if isinstance(literal, dict) and literal.get("kind") != "Unsupported":
+                return literal
     except Exception:
         pass
     return _syntax_unsupported(sm, syntax,
