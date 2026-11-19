@@ -101,6 +101,8 @@ obligation:
   the same operation-indexed witness.
   `r1_fence` provides the FENCE and FENCE.I consumers through the decoded
   fence witness.
+  `r1_system` provides the ECALL, EBREAK, MRET, and WFI consumers through the
+  decoded system witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
