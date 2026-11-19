@@ -71,6 +71,10 @@ private def isError : Except String α → Bool
 #guard LeanModels.C.C23.intTyOfStructured
   (.enumeration {value := "enum-1"}) == some LeanModels.C.C23.IntTy.int_
 #guard LeanModels.C.C23.intTyOf? "enum E" == none
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  size := fun _ => some 4
+  declSize := fun id => if id.value == "object-1" then some 8 else none } :
+  LeanModels.C.C23.Layout).sizeAt (some {value := "object-1"}) "int" == some 8
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.cAliasCompatible "int" "volatile int"
