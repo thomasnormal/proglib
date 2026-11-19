@@ -1,0 +1,182 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_aug_subscript.py",
+  "source_sha256": "6e45b55acf3a1a9128aeaf7955719d5954e7ed38e9a417072038d99022ddafdb",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 8
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 2
+            },
+            "id": "xs"
+          }
+        ],
+        "value": {
+          "kind": "List",
+          "span": {
+            "lineno": 2,
+            "col_offset": 5,
+            "end_lineno": 2,
+            "end_col_offset": 8
+          },
+          "elts": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 6,
+                "end_lineno": 2,
+                "end_col_offset": 7
+              },
+              "value": {
+                "type": "int",
+                "repr": "3"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "kind": "AugAssign",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 10
+        },
+        "target": {
+          "kind": "Subscript",
+          "span": {
+            "lineno": 3,
+            "col_offset": 0,
+            "end_lineno": 3,
+            "end_col_offset": 5
+          },
+          "value": {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 2
+            },
+            "id": "xs"
+          },
+          "index": {
+            "kind": "Constant",
+            "span": {
+              "lineno": 3,
+              "col_offset": 3,
+              "end_lineno": 3,
+              "end_col_offset": 4
+            },
+            "value": {
+              "type": "int",
+              "repr": "0"
+            }
+          }
+        },
+        "op": "Add",
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 3,
+            "col_offset": 9,
+            "end_lineno": 3,
+            "end_col_offset": 10
+          },
+          "value": {
+            "type": "int",
+            "repr": "1"
+          }
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 4,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 12
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 4,
+            "col_offset": 0,
+            "end_lineno": 4,
+            "end_col_offset": 12
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 4,
+              "col_offset": 0,
+              "end_lineno": 4,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Subscript",
+              "span": {
+                "lineno": 4,
+                "col_offset": 6,
+                "end_lineno": 4,
+                "end_col_offset": 11
+              },
+              "value": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 6,
+                  "end_lineno": 4,
+                  "end_col_offset": 8
+                },
+                "id": "xs"
+              },
+              "index": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 9,
+                  "end_lineno": 4,
+                  "end_col_offset": 10
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "0"
+                }
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

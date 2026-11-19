@@ -1,0 +1,173 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_module_rebind_unpack.py",
+  "source_sha256": "d2f4e9d8d4368f0a0417f80e2fdcdc2fa3474d7eb6673d8a6f96dbe86288dbfe",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 5
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 1
+            },
+            "id": "a"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 2,
+            "col_offset": 4,
+            "end_lineno": 2,
+            "end_col_offset": 5
+          },
+          "value": {
+            "type": "int",
+            "repr": "0"
+          }
+        }
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 11
+        },
+        "targets": [
+          {
+            "kind": "Tuple",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 4
+            },
+            "elts": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 0,
+                  "end_lineno": 3,
+                  "end_col_offset": 1
+                },
+                "id": "a"
+              },
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 3,
+                  "end_lineno": 3,
+                  "end_col_offset": 4
+                },
+                "id": "b"
+              }
+            ]
+          }
+        ],
+        "value": {
+          "kind": "Tuple",
+          "span": {
+            "lineno": 3,
+            "col_offset": 7,
+            "end_lineno": 3,
+            "end_col_offset": 11
+          },
+          "elts": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 3,
+                "col_offset": 7,
+                "end_lineno": 3,
+                "end_col_offset": 8
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            },
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 3,
+                "col_offset": 10,
+                "end_lineno": 3,
+                "end_col_offset": 11
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 4,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 8
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 4,
+            "col_offset": 0,
+            "end_lineno": 4,
+            "end_col_offset": 8
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 4,
+              "col_offset": 0,
+              "end_lineno": 4,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Name",
+              "span": {
+                "lineno": 4,
+                "col_offset": 6,
+                "end_lineno": 4,
+                "end_col_offset": 7
+              },
+              "id": "a"
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

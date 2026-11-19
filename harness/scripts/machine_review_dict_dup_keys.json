@@ -1,0 +1,264 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_dict_dup_keys.py",
+  "source_sha256": "517515efdec8e6832d011a4546484f6a5d7c5f9802968354481205b30575e04e",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 28
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 2,
+            "col_offset": 0,
+            "end_lineno": 2,
+            "end_col_offset": 28
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 2,
+                "col_offset": 6,
+                "end_lineno": 2,
+                "end_col_offset": 27
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 6,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "len"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [
+                {
+                  "kind": "Dict",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 10,
+                    "end_lineno": 2,
+                    "end_col_offset": 26
+                  },
+                  "keys": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 2,
+                        "col_offset": 11,
+                        "end_lineno": 2,
+                        "end_col_offset": 12
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    },
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 2,
+                        "col_offset": 19,
+                        "end_lineno": 2,
+                        "end_col_offset": 20
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  ],
+                  "values": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 2,
+                        "col_offset": 14,
+                        "end_lineno": 2,
+                        "end_col_offset": 17
+                      },
+                      "value": {
+                        "type": "str",
+                        "value": "a"
+                      }
+                    },
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 2,
+                        "col_offset": 22,
+                        "end_lineno": 2,
+                        "end_col_offset": 25
+                      },
+                      "value": {
+                        "type": "str",
+                        "value": "b"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 31
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 3,
+            "col_offset": 0,
+            "end_lineno": 3,
+            "end_col_offset": 31
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 3,
+                "col_offset": 6,
+                "end_lineno": 3,
+                "end_col_offset": 30
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 6,
+                  "end_lineno": 3,
+                  "end_col_offset": 9
+                },
+                "id": "len"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [
+                {
+                  "kind": "Dict",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 10,
+                    "end_lineno": 3,
+                    "end_col_offset": 29
+                  },
+                  "keys": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 3,
+                        "col_offset": 11,
+                        "end_lineno": 3,
+                        "end_col_offset": 12
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    },
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 3,
+                        "col_offset": 19,
+                        "end_lineno": 3,
+                        "end_col_offset": 23
+                      },
+                      "value": {
+                        "type": "bool",
+                        "value": true
+                      }
+                    }
+                  ],
+                  "values": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 3,
+                        "col_offset": 14,
+                        "end_lineno": 3,
+                        "end_col_offset": 17
+                      },
+                      "value": {
+                        "type": "str",
+                        "value": "a"
+                      }
+                    },
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 3,
+                        "col_offset": 25,
+                        "end_lineno": 3,
+                        "end_col_offset": 28
+                      },
+                      "value": {
+                        "type": "str",
+                        "value": "b"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

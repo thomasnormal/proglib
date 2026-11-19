@@ -1,0 +1,136 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_star_order.py",
+  "source_sha256": "d8077c28bdd74adb7f5e67298dd41866cd812d322589c59d5643cc767278bde2",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "UnpackAssign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 12
+        },
+        "before": [
+          "a"
+        ],
+        "star": "a",
+        "after": [],
+        "value": {
+          "kind": "Tuple",
+          "span": {
+            "lineno": 2,
+            "col_offset": 8,
+            "end_lineno": 2,
+            "end_col_offset": 12
+          },
+          "elts": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 8,
+                "end_lineno": 2,
+                "end_col_offset": 9
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            },
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 11,
+                "end_lineno": 2,
+                "end_col_offset": 12
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 13
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 3,
+            "col_offset": 0,
+            "end_lineno": 3,
+            "end_col_offset": 13
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 3,
+                "col_offset": 6,
+                "end_lineno": 3,
+                "end_col_offset": 12
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 6,
+                  "end_lineno": 3,
+                  "end_col_offset": 9
+                },
+                "id": "len"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [
+                {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 10,
+                    "end_lineno": 3,
+                    "end_col_offset": 11
+                  },
+                  "id": "a"
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
