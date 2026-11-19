@@ -389,6 +389,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("packed_enum_case_e.sv", "packed_enum_case_e",
             (Port("raw", 2),), (Port("y", 1),),
             (Point("W2", (2,)), Point("W4", (4,)))),
+    Fixture("casez_casex_e.sv", "casez_casex_e",
+            (Port("x", 4),), (Port("y", 2),)),
     Fixture("parameterized_storage_structure.sv", "parameterized_storage_structure",
             (Port("x", 8),), (Port("y", 8),),
             (Point("N1", (1,)), Point("N2", (2,)))),
