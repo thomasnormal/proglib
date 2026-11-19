@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.879,
+      "extract_seconds": 0.178,
       "lean_outcome": "refused:unsupported:use operand at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCsd7FEqVnaBj8_13study_for_vec:b0"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.366,
+      "extract_seconds": 0.116,
       "lean_outcome": "refused:unsupported:use operand at _RNvXs4J_NtNtCsjS5mZ2TyZbF_4core3ops5arithRlINtB6_3RemlE3remCshipe5na9avQ_20study_iterator_chain:b0"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.122,
+      "extract_seconds": 0.075,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.149,
+      "extract_seconds": 0.068,
       "lean_outcome": "refused:unsupported:use operand at _RNCNvCs5Jnb55tlxKo_14study_closures4main0B3_:b0"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.232,
+      "extract_seconds": 0.085,
       "lean_outcome": "refused:unsupported:atomic load target=some (LeanModels.Rust.Cell.pointer\n  { provenance := 1,\n    address := 1,\n    pointeeType := none,\n    isLocal := false,\n    targetFrame := some 2,\n    projection := [LeanModels.Rust.Projection.deref] })"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.087,
+      "extract_seconds": 0.066,
       "lean_outcome": "returned"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.117,
+      "extract_seconds": 0.082,
       "lean_outcome": "refused:unsupported:discriminant assignment at _RNvXsf_NtCsjS5mZ2TyZbF_4core6optionINtB5_6OptionlENtNtB7_3cmp9PartialEq2eqCskouW2nCaI7F_19study_question_mark:b2"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.272,
+      "extract_seconds": 0.1,
       "lean_outcome": "refused:unsupported:cast write at _RINvNtCsjS5mZ2TyZbF_4core3ptr18without_provenanceuECscfgKIOjA5Ox_11study_async:b1"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 1.107,
+      "extract_seconds": 0.386,
       "lean_outcome": "refused:unsupported:reference write at _RNvXCscItkQonpJJc_12study_deriveNtB2_4PairNtNtCsjS5mZ2TyZbF_4core5clone5Clone5cloneB2_:b0"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.131,
+      "extract_seconds": 0.085,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.195,
+      "extract_seconds": 0.112,
       "lean_outcome": "refused:unsupported:use operand at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCsbZvLFSCT5mK_24rustc_ivec_pass_by_value:b0"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.069,
+      "extract_seconds": 0.032,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.081,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.096,
+      "extract_seconds": 0.072,
       "lean_outcome": "refused:unsupported:use operand at _RNCNCNvCsecULqIEoiJ1_31rustc_closure_returning_closure4main00B5_:b0"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.09,
+      "extract_seconds": 0.064,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.093,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.09,
+      "extract_seconds": 0.039,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.077,
+      "extract_seconds": 0.043,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.108,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.097,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.091,
+      "extract_seconds": 0.068,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.059,
+      "extract_seconds": 0.044,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.134,
+      "extract_seconds": 0.044,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.053,
+      "extract_seconds": 0.031,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.143,
+      "extract_seconds": 0.095,
       "lean_outcome": "refused:unsupported:use operand at _RNvMNtNtCsjS5mZ2TyZbF_4core5alloc6layoutNtB2_6Layout4sizeCs9qsj18IWarl_21rustc_vector_no_ann_2:b0"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.07,
+      "extract_seconds": 0.04,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.093,
+      "extract_seconds": 0.068,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.076,
+      "extract_seconds": 0.046,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.058,
+      "extract_seconds": 0.029,
       "lean_outcome": "returned"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.072,
+      "extract_seconds": 0.053,
       "lean_outcome": "returned"
     }
   ],

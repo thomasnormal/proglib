@@ -452,7 +452,16 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       | projection =>
           some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId, projection := projection })
   | .addressOf _ place =>
-      some (.pointer { provenance := place.localId, address := placementOf s place.localId, projection := place.projection })
+      match place.projection with
+      | [] =>
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId })
+      | .deref :: rest =>
+          match localSlot s place.localId |>.bind slotCell with
+          | some (.pointer pointer) =>
+              some (.pointer { pointer with projection := pointer.projection ++ rest })
+          | _ => none
+      | projection =>
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId, projection := projection })
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s)
       pure (.aggregate values)
@@ -677,7 +686,10 @@ def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (
   pure (edge, callee)
 
 def atomicLoadCell (s : State) (operand : Operand) : Option Cell :=
-  operandCell s operand |>.bind (projectCell s · [.deref])
+  operandCell s operand |>.bind fun cell =>
+    match cell with
+    | .pointer pointer => pointerTarget s pointer
+    | _ => none
 
 def bodyRun (body : Body) : Option Trace :=
   cfgRun 4096 body 0 {}
@@ -781,6 +793,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                           else
                           let callState : State :=
                             { placements := firstTrace.state.placements,
+                              frameId := firstTrace.state.frameId,
                               sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
                               allocations := firstTrace.state.allocations,
@@ -821,6 +834,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                       | some calleeId =>
                           let callState : State :=
                             { placements := firstTrace.state.placements,
+                              frameId := firstTrace.state.frameId,
                               sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
                               allocations := firstTrace.state.allocations,
