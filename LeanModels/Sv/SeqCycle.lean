@@ -518,6 +518,7 @@ def _root_.LeanModels.Sv.PStmt.edgeOkB : PStmt → Bool
   | .block body => PStmt.listEdgeOkB body
   | .caseStmt s items d _ _ =>
       !LeanModels.Sv.PExpr.hasFunctionCall s && PStmt.itemsEdgeOkB items && PStmt.optEdgeOkB d
+  | .localDecl .. => false
   | .forLoop .. => false
   | .unsupported .. => false
 termination_by structural s => s
@@ -702,6 +703,8 @@ def CoreMemDesign.execV (E : CoreMemDesign) (v : SvState) (mv : MemV) : PStmt �
           let n ← E.caseHitsV v mv sv mode items
           if caseClaimOk qualifier d.isSome n then E.execItemsV v mv sv mode items (E.execOptV v mv d)
           else .unsupported s!"12.5.3: {caseCheckName qualifier}"
+  | .localDecl .. =>
+      .unsupported "9.4.2: a procedural local declaration in an edge body is outside the clocked profile"
   | .forLoop .. =>
       .unsupported "9.4.2: a procedural `for` loop in an edge body is outside the clocked profile (the memories slice)"
   | .unsupported kind text => .unsupported s!"{kind}: {text}"

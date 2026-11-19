@@ -36937,7 +36937,17 @@ def write_probe_sidecar(top, sources, incdirs, out_path, points,
 # ---------------------------------------------------------------------------
 
 def rel_posix(path):
-    return os.path.normpath(path).replace(os.sep, "/")
+    """Return a stable repository-relative source name for envelopes.
+
+    Slang accepts absolute filenames when the extractor is invoked with an
+    absolute path, but an absolute name is machine-local metadata and leaks
+    the checkout owner into generated envelopes.  Keep source identity
+    relative to the extractor's working directory in every mode.
+    """
+    normalized = os.path.normpath(path)
+    if os.path.isabs(normalized):
+        normalized = os.path.relpath(normalized, os.getcwd())
+    return normalized.replace(os.sep, "/")
 
 
 def _compilation_with_choice(choice):

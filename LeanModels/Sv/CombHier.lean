@@ -73,6 +73,7 @@ mutual
 /-- Every signal, parameter and genvar name of an expression of the child's scope, under the prefix. -/
 def PExpr.hren (pfx : String) : PExpr → PExpr
   | .lit v => .lit v
+  | .typeBits n w => .typeBits n w
   | .ident n => .ident (pfx ++ n)
   | .paramRef n none => .paramRef (pfx ++ n) none
   | .paramRef n (some k) => .paramRef n (some k)
