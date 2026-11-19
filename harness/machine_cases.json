@@ -438,5 +438,10 @@
     "source": "harness/scripts/machine_with_boundary.py",
     "envelope": "harness/scripts/machine_with_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_try_boundary.py",
+    "envelope": "harness/scripts/machine_try_boundary.json",
+    "expect": "unsupported"
   }
 ]
