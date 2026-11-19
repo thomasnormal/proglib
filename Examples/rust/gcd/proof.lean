@@ -215,6 +215,101 @@ theorem gcd_zero_remainder_cfg (a b : Nat) (hb : 0 < b) (hr : a % b = 0) :
     projectCell, writeCell, eventForCell, returnValue, cellSlot, cellInt,
     List.filter]
 
+theorem gcd_loop_zero_case (a b : Nat) (hb : 0 < b) (hr : a % b = 0) :
+    ∃ t, cfgRunOutcome 5 gcdCore 1 (gcdStepState (a : Int) (b : Int)) = .returned t ∧
+      returnValue t = some (Int.ofNat b) := by
+  have hne : b ≠ 0 := by omega
+  have hrem : (a : Int) % (b : Int) = 0 := by
+    have h := congrArg (fun n : Nat => (n : Int)) hr
+    simpa [Int.natCast_emod] using h
+  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp [gcdType, gcdStepState, gcdBlock1, statementsRun, statementStep,
+      setSlot, terminatorStep, List.find?, operandCell, operandValue,
+      readCell, localSlot, slotCell, rvalueCell, typedBytesValue,
+      littleEndian, Nat.repr, projectCell, writeCell, eventForCell,
+    cellSlot, cellInt, List.filter, hne, hrem, hr]
+  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+  simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
+      List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+      rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
+    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
+  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+  simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
+      List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+      rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
+    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hr]
+  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
+      List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+      rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
+    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
+  rw [cfgRunOutcome.eq_2, gcd_block4_eq]
+  simp [gcdBlock4, statementsRun, statementStep, setSlot, operandCell,
+      readCell, localSlot, slotCell, rvalueCell, typedBytesValue,
+      littleEndian, projectCell, writeCell, eventForCell, returnValue,
+    cellSlot, cellInt, List.filter]
+
+set_option maxHeartbeats 2000000 in
+set_option maxRecDepth 100000 in
+theorem gcd_loop_cfg (a b : Nat) :
+    ∃ fuel t, cfgRunOutcome fuel gcdCore 1 (gcdStepState (a : Int) (b : Int)) = .returned t ∧
+      returnValue t = some (Int.ofNat (Nat.gcd a b)) := by
+  induction b using Nat.strongRecOn generalizing a with
+  | _ b ih =>
+      cases b with
+      | zero =>
+          refine ⟨3, ?_⟩
+          simp [cfgRunOutcome.eq_2, gcd_block1_eq, gcd_block4_eq, gcdType, gcdStepState,
+            gcdBlock1, gcdBlock4, statementsRun, statementStep, setSlot,
+            terminatorStep, List.find?, operandCell,
+            operandValue, readCell, localSlot, slotCell, rvalueCell,
+            typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+            eventForCell, returnValue, cellSlot, cellInt, List.filter]
+      | succ b =>
+          by_cases hr : a % (b + 1) = 0
+          · obtain ⟨t, ht, hv⟩ := gcd_loop_zero_case a (b + 1) (by omega) hr
+            refine ⟨5, t, ht, ?_⟩
+            have hg : Nat.gcd a (b + 1) = b + 1 :=
+              Nat.gcd_eq_right ((Nat.dvd_iff_mod_eq_zero).2 hr)
+            simpa [hg] using hv
+          · have hlt : a % (b + 1) < b + 1 := Nat.mod_lt _ (by omega)
+            obtain ⟨fuel, t, ht, hv⟩ := ih (a := b + 1) (a % (b + 1)) hlt
+            refine ⟨fuel + 3, t, ?_⟩
+            rw [gcd_loop_nonzero_step a (b + 1) fuel (by omega) hr]
+            rw [gcdStepState_mod_cast]
+            have hg : Nat.gcd (b + 1) (a % (b + 1)) = Nat.gcd a (b + 1) := by
+              calc
+                Nat.gcd (b + 1) (a % (b + 1)) = Nat.gcd (a % (b + 1)) (b + 1) := Nat.gcd_comm _ _
+                _ = Nat.gcd (b + 1) a := by rw [← Nat.gcd_rec]
+                _ = Nat.gcd a (b + 1) := Nat.gcd_comm _ _
+            exact ⟨ht, by simpa [hg] using hv⟩
+
+theorem gcd_all_inputs_cfg (a b : Nat) :
+    ∃ fuel t, cfgRunOutcome fuel gcdBody 0 (gcdInput a b) = .returned t ∧
+      returnValue t = some (Int.ofNat (Nat.gcd a b)) := by
+  cases b with
+  | zero =>
+      obtain ⟨t, ht, hv⟩ := gcd_zero_cfg a
+      exact ⟨10, t, by simpa using ht, hv⟩
+  | succ b =>
+      by_cases hr : a % (b + 1) = 0
+      · obtain ⟨t, ht, hv⟩ := gcd_zero_remainder_cfg a (b + 1) (by omega) hr
+        refine ⟨7, t, ?_, ?_⟩
+        · simpa [gcdBody_eq] using ht
+        · have hg : Nat.gcd a (b + 1) = b + 1 :=
+            Nat.gcd_eq_right ((Nat.dvd_iff_mod_eq_zero).2 hr)
+          simpa [hg] using hv
+      · obtain ⟨fuel, t, ht, hv⟩ := gcd_loop_cfg (b + 1) (a % (b + 1))
+        have hstep := gcd_nonzero_step a (b + 1) fuel (by omega) hr
+        refine ⟨fuel + 4, t, ?_, ?_⟩
+        · simpa [gcdBody_eq] using hstep.trans ht
+        · have hg : Nat.gcd (b + 1) (a % (b + 1)) = Nat.gcd a (b + 1) := by
+            calc
+              Nat.gcd (b + 1) (a % (b + 1)) = Nat.gcd (a % (b + 1)) (b + 1) := Nat.gcd_comm _ _
+              _ = Nat.gcd (b + 1) a := by rw [← Nat.gcd_rec]
+              _ = Nat.gcd a (b + 1) := Nat.gcd_comm _ _
+          simpa [hg] using hv
+
 def gcdLoop : Nat → Nat → Nat
   | a, 0 => a
   | a, b + 1 => gcdLoop (b + 1) (a % (b + 1))
