@@ -466,6 +466,10 @@ def parseStructuredType (j : Json) : Except String StructuredType := withCtx "st
   return { declaration := DeclarationId.mk (← getStr j "decl_id")
            type := ← parseStructuredQualType (← getField j "type") }
 
+def parseStructuredExprType (j : Json) : Except String StructuredExprType := withCtx "structured_expr_type" do
+  return { offset := ← getNat j "offset"
+           type := ← parseStructuredQualType (← getField j "type") }
+
 def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
   let ver ← getStr j "schema_version"
   unless ver == "c-0.1" do
@@ -493,6 +497,11 @@ def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
              | some a => do
                  let xs ← a.getArr?
                  xs.toList.mapM parseStructuredType
+           structuredExprTypes := ← match getOptNode j "structured_expr_types" with
+             | none => pure []
+             | some a => do
+                 let xs ← a.getArr?
+                 xs.toList.mapM parseStructuredExprType
            recordKinds := ← match getOptNode j "record_kinds" with
              | none => pure []
              | some a => do

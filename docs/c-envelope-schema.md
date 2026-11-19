@@ -111,12 +111,19 @@ from `qualType` text. Clang's adjusted and parenthesized declaration wrappers
 are unwrapped by the probe. Variable, dependent-sized and incomplete arrays
 carry `"extent": null`, preserving the absence of a bound as frontend data.
 
+`structured_expr_types` is an optional list from the same probe. Each row
+contains the parser-provided expression source offset and its recursive
+`QualType` tree. The offset is joined to the expression span carried by the
+approved AST envelope. Missing rows remain an explicit absence and are never
+recovered by interpreting `qualType` text.
+
 ## 2 Spans
 
 Every node carries
 
 ```json
-"span": {"line": 160, "col": 1, "end_line": 164, "end_col": 2,
+"span": {"line": 160, "offset": 420, "col": 1, "end_line": 164,
+         "end_offset": 512, "end_col": 2,
          "macro": {"name": "YIELD", "line": 302, "col": 9}}
 ```
 
