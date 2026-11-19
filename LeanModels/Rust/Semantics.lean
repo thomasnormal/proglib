@@ -150,6 +150,23 @@ structure AllocationChoice where
   address : Nat
 deriving Repr, Inhabited, BEq, DecidableEq
 
+inductive ForeignSpec where
+  | allocator (zeroed : Bool) (argumentCount : Nat)
+deriving Repr, Inhabited, BEq, DecidableEq
+
+abbrev ForeignRegistry := String → Option ForeignSpec
+
+def allocatorForeignSpec (callee : String) : Option ForeignSpec :=
+  if callee.contains "__rust_alloc_zeroed" then
+    some (.allocator true 2)
+  else if callee.contains "__rust_alloc" then
+    some (.allocator false 2)
+  else none
+
+def emptyForeignRegistry : ForeignRegistry := fun _ => none
+
+def allocatorForeignRegistry : ForeignRegistry := allocatorForeignSpec
+
 def allocationDisjoint (base size otherBase otherSize : Nat) : Prop :=
   base + size ≤ otherBase ∨ otherBase + otherSize ≤ base
 
@@ -571,6 +588,23 @@ def operandLocalId : Operand → Nat
 
 def operandValue (s : State) (operand : Operand) : Option Int :=
   operandCell s operand |>.bind cellInt
+
+def allocatorArguments (s : State) (args : List Operand) : Option (Nat × Nat) := do
+  match args with
+  | [sizeOperand, alignOperand] =>
+      let size ← operandValue s sizeOperand
+      let align ← operandValue s alignOperand
+      pure (size.toNat, align.toNat)
+  | _ => none
+
+def foreignAllocatorStep (s : State) (spec : ForeignSpec) (args : List Operand)
+    (choice : AllocationChoice) : Option (State × Cell) :=
+  match spec with
+  | .allocator zeroed argumentCount =>
+      if args.length != argumentCount then none
+      else do
+        let (size, align) ← allocatorArguments s args
+        pure (allocatorStep s size align zeroed choice)
 
 def rvalueCell (s : State) : Rvalue → Option Cell
   | .use operand => operandCell s operand
@@ -1163,6 +1197,32 @@ inductive ProgramSteps (program : Envelope) : Body → Nat → State → Trace �
       ProgramSteps program body blockId state
         { state := suffix.state,
           events := first.events ++ (Event.call calleeId :: (calleeTrace.events ++ suffix.events)) }
+
+inductive ForeignProgramStep (program : Envelope) (registry : ForeignRegistry) :
+    Body → Nat → State → Trace → Prop
+  | allocator {body : Body} {blockId target : Nat} {state : State}
+      {block : Block} {first suffix : Trace} {edge : CallEdge}
+      {calleeId : String} {choice : AllocationChoice}
+      {args : List Operand} {destination : Place} {cleanup : Option Nat}
+      {foreignState : State} {value : Cell} {callerState : State}
+      {zeroed : Bool} {size align : Nat} {func : Operand}
+      (hb : blockAt body.blocks blockId = some block)
+      (hs : statementsRun block.statements state = some first)
+      (ht : block.terminator = .call func args destination (some target) cleanup)
+      (hl : program.calls.find? (fun candidate =>
+        candidate.caller == body.instanceId ∧ candidate.block == blockId) = some edge)
+      (he : edge.callee = some calleeId)
+      (hr : edge.resolved = true)
+      (hspec : registry calleeId = some (.allocator zeroed 2))
+      (ha : allocatorArguments first.state args = some (size, align))
+      (hv : allocationChoiceValid first.state size align choice)
+      (hf : foreignAllocatorStep first.state (.allocator zeroed 2) args choice =
+        some (foreignState, value))
+      (hw : writeCell foreignState destination value = some callerState)
+      (rest : ProgramSteps program body target callerState suffix) :
+      ForeignProgramStep program registry body blockId state
+        { state := suffix.state,
+          events := first.events ++ (Event.call calleeId :: suffix.events) }
 
 def BodyInSteps (body : Body) (trace : Trace) : Prop :=
   ∃ fuel, CfgInSteps fuel body 0 {} trace

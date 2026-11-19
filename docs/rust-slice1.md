@@ -6,7 +6,7 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1482 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
+implementation is 1542 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
 of AST declarations, 530 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
@@ -186,6 +186,14 @@ contained in `AllocatorStep`, and `allocatorStep_pointer_provenance` records
 the address-independent provenance result.  The call runner has not registered
 this transition yet, so the three corpus allocator rows remain explicit
 foreign-registry refusals.
+
+The foreign layer now has a structured `ForeignRegistry` with allocator specs
+for `__rust_alloc` and `__rust_alloc_zeroed`.  `ForeignProgramStep.allocator`
+requires a resolved call edge, the two typed size/alignment operands, an
+admissible address choice, and a normal continuation.  It appends the call
+event and delegates the memory result to `foreignAllocatorStep`.  The existing
+runner still reports a refusal for these calls until its executable path is
+extended with the same registry transition.
 
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
