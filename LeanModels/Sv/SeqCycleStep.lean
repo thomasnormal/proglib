@@ -121,22 +121,16 @@ theorem runCoreMemRows_cons {E : CoreMemDesign} {st : CoreMemState} {row : SvSta
 #print axioms runCoreMemRows_cons
 
 /-- **The route's time-zero state** on a design with no `initial`, `always_comb` or `always_latch` process and no
-`$readmemh` is one source-order pass of its continuous assigns (`settleAssign`, §10.3) from its declaration-initialized
-state `CoreMemDesign.initial`. -/
+`$readmemh` is the canonical quiescent settle of its continuous assigns
+(`settleCanonical`, §§4.5 and 10.3) from its declaration-initialized state
+`CoreMemDesign.initial`. -/
 theorem CoreMemDesign.initialState_of_quiet {E : CoreMemDesign}
     (hni : ∀ p ∈ E.processes.toList, ∀ b, p ≠ .initial b) (hcomb : E.hasComb = false) (hrm : E.readmemh = []) :
-    E.initialState = E.settleAssign E.env E.elems E.initial E.processes.toList := by
+    E.initialState = E.settleCanonical E.env E.elems E.initial E.processes.toList := by
   unfold CoreMemDesign.initialState
   rw [List.filterMap_eq_nil_iff.mpr (fun p hp => ?_)]
-  · simp only [hrm, List.isEmpty_nil, Bool.not_true, Bool.false_eq_true, ↓reduceIte, Res.ok_bind,
-      CoreMemDesign.settleAssignWithView, CoreMemDesign.settleAssign]
-    cases E.settleAssignAt E.env E.elems (E.resetResolvedNets E.initial)
-        (E.scalar.view (E.resetResolvedNets E.initial).scalar) 0 E.processes.toList with
-    | ok p =>
-        obtain ⟨s, v⟩ := p
-        simp [hcomb]
-    | timeout => rfl
-    | unsupported m => rfl
+  · simp [hrm, hcomb, CoreMemDesign.settleCanonical]
+    cases h : E.settleAssignQuiesce 4096 E.env E.elems E.initial E.processes.toList <;> simp [h]
   · cases p with
     | initial b => exact absurd rfl (hni _ hp b)
     | _ => rfl

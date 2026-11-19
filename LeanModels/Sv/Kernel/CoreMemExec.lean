@@ -2827,14 +2827,18 @@ def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
         | some msg => .unsupported s!"Initial:runtime: {msg}"
         | none => E.execInitialStmt E.env E.elems E.initial 4096 body
     | _ => .unsupported "T2:Initial: multiple initial processes are outside this cycle entry"
-  let (settled, settledView) ←
-    E.settleAssignWithView E.env E.elems base (E.scalar.view base.scalar) E.processes.toList
+  -- The time-zero active region is the same continuous-assignment region as a
+  -- slot.  It must quiesce rather than take one source-order pass: IEEE
+  -- 1800-2023 §§4.5 and 10.3 permit a driver to update a later assignment,
+  -- which can then update an earlier one in the same time slot.
+  let settled ← E.settleCanonical E.env E.elems base E.processes.toList
   if !E.hasComb then
     .ok settled
   else
-    let (combed, combedView) ←
+    let settledView := E.scalar.view settled.scalar
+    let (combed, _) ←
       E.runCombInitialWithView settled settledView E.processes.toList
-    let (final, _) ← E.settleAssignWithView E.env E.elems combed combedView E.processes.toList
+    let final ← E.settleCanonical E.env E.elems combed E.processes.toList
     .ok final
 
 def CoreMemDesign.runEdges (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
