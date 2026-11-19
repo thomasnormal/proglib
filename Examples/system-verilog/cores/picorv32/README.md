@@ -2105,7 +2105,7 @@ this measurement.
 The proof-budget measurement used `tools/lean_memory_gate.py` with `MemoryMax=12G`
 and swap disabled. Compiling the loaded canonical-E entry point
 `input_drive_core.lean` completed in 36.354 seconds and peaked at 0.253 GiB.
-A one-cycle reset-release replay through the same `CoreMemDesign.fastStep` path
+A one-cycle reset-release replay through the same `CoreMemDesign.fastStepCanonical` path
 returned `one-cycle-ok` in 21.896 seconds and peaked at 0.263 GiB. Both runs
 were single-threaded and stayed below the 8 GiB warning threshold. The ADDI
 invariant can therefore use the exact loaded-E path without introducing a
