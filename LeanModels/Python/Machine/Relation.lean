@@ -123,6 +123,7 @@ inductive RErrClass where
   | unboundLocal
   | type
   | index
+  | attribute
   | runtime
 deriving Repr, Inhabited, BEq, DecidableEq
 
@@ -175,6 +176,7 @@ inductive RKont where
   | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
   | assignAttributeReceiver (receiver : Expr) (attr : String) (remaining : List RStmt)
   | assignAttributeValue (attr : String) (value : RVal) (remaining : List RStmt)
+  | deleteAttributeReceiver (attr : String) (remaining : List RStmt)
   | deleteSubscriptReceiver (index : Expr) (remaining : List RStmt)
   | deleteSubscriptIndex (receiver : RVal) (remaining : List RStmt)
   | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
@@ -413,6 +415,18 @@ def rUpdateClassAttr : List RClass → String → String → RVal → Option (Li
         some ({ cls with attrs := rSetEnv cls.attrs attr value } :: rest)
       else
         match rUpdateClassAttr rest token attr value with
+        | some updated => some (cls :: updated)
+        | none => none
+
+def rDeleteClassAttr : List RClass → String → String → Option (List RClass)
+  | [], _, _ => none
+  | cls :: rest, token, attr =>
+      if rClassToken cls.id == token then
+        match rDeleteEnv cls.attrs attr with
+        | some attrs => some ({ cls with attrs := attrs } :: rest)
+        | none => none
+      else
+        match rDeleteClassAttr rest token attr with
         | some updated => some (cls :: updated)
         | none => none
 
@@ -1431,6 +1445,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | .delete (.subscript receiver index _) _ =>
                   some (.tau, config.setControl
                     (.evaluate receiver (.deleteSubscriptReceiver index rest)))
+              | .delete (.attribute receiver attr _) _ =>
+                  some (.tau, config.setControl
+                    (.evaluate receiver (.deleteAttributeReceiver attr rest)))
               | _ => some (.event (.refuse "machine delete target"),
                   config.finish (.refuse "machine delete target"))
           | .deleteMany _ _ =>
@@ -1673,6 +1690,19 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                     (.statements remaining))
               | none => some (.tau, config.setControl (.refusing "machine attribute assignment"))
           | _ => some (.tau, config.setControl (.refusing "machine attribute assignment"))
+      | .continueValue receiver (.deleteAttributeReceiver attr remaining) =>
+          match receiver with
+          | .callable token =>
+              match rDeleteClassAttr config.classes token attr with
+              | some classes =>
+                  some (.tau, { config with classes := classes }.setControl
+                    (.statements remaining))
+              | none =>
+                  let error : RError := { errorClass := .attribute, args := [] }
+                  some (.event (.raise error), config.finish (.raise error))
+          | _ =>
+              let error : RError := { errorClass := .attribute, args := [] }
+              some (.event (.raise error), config.finish (.raise error))
       | .continueValue receiver (.deleteSubscriptReceiver index remaining) =>
           some (.tau, config.setControl (.evaluate index (.deleteSubscriptIndex receiver remaining)))
       | .continueValue index (.deleteSubscriptIndex receiver remaining) =>
@@ -1717,7 +1747,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                       match rLookupEnv cls.attrs attr with
                       | some value =>
                           some (.tau, config.setControl (.continueValue value continuation))
-                      | none => some (.tau, config.setControl (.refusing "machine attribute"))
+                      | none =>
+                          let error : RError := { errorClass := .attribute, args := [] }
+                          some (.event (.raise error), config.finish (.raise error))
                   | none => some (.tau, config.setControl (.refusing "machine attribute"))
               | _ => some (.tau, config.setControl (.refusing "machine attribute"))
       | .continueValue left (.compareLeft op right continuation) =>
