@@ -218,7 +218,7 @@ def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM 
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
           match ctx.layout.members ty with
-          | some ms => zeroMembers fuel ctx p ty ms
+          | some ms => zeroMembers fuel ctx p ty ms declaration
           | none => refuseUnsupported s!"cannot zero-initialize '{ty}'"
 
 /-- Zero the elements of an array, from index `i` up. -/
@@ -231,14 +231,14 @@ def zeroElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → ExecM 
       zeroElems fuel ctx p et esz n (i + 1)
 
 /-- Zero the members of a structure, in declaration order. -/
-def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → ExecM Unit
-  | 0, _, _, _, _ => exhausted
-  | _, _, _, _, [] => pure ()
-  | fuel + 1, ctx, p, ty, (nm, mty) :: rest => do
+def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → Option DeclarationId → ExecM Unit
+  | 0, _, _, _, _, _ => exhausted
+  | _, _, _, _, [], _ => pure ()
+  | fuel + 1, ctx, p, ty, (nm, mty) :: rest, declaration => do
       if ctx.layout.flexibleField ty nm then
         pure ()
       else
-        match ctx.layout.fieldOff ty nm with
+        match ctx.layout.fieldOffDeclAt declaration ty nm with
         | some off =>
             if ctx.layout.fieldBits ty nm |>.isSome then
               liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off)
@@ -246,7 +246,7 @@ def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → E
             else
               zeroInit fuel ctx (Mem.member p off) mty none
         | none => refuseUnsupported s!"no offset for member '{nm}'"
-      zeroMembers fuel ctx p ty rest
+      zeroMembers fuel ctx p ty rest declaration
 
 end
 
@@ -313,7 +313,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         | none =>
           match ctx.layout.members ty with
           -- a STRUCTURE: members in declaration order, then p10 on the rest
-          | some ms => initMembers fuel ctx p ty ms inits
+          | some ms => initMembers fuel ctx p ty ms inits declaration
           | none => refuseUnsupported s!"cannot initialize aggregate '{ty}'"
     -- §6.7.11p14 — a character array initialized by a string literal gets
     -- the literal's parser-native bytes, including its terminating null.
@@ -373,26 +373,26 @@ def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List E
           initElems fuel ctx p et esz n (i + 1) rest
 
 /-- Structure members in declaration order, then zero-fill. -/
-def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → List Expr → ExecM Unit
-  | 0, _, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, ty, ms, es =>
+def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → List Expr → Option DeclarationId → ExecM Unit
+  | 0, _, _, _, _, _, _ => exhausted
+  | fuel + 1, ctx, p, ty, ms, es, declaration =>
     match ms, es with
     | [], [] => pure ()
     | [], _ :: _ => refuseUnsupported "more initializers than structure members"
     -- the list ran out: §6.7.11p10 zeroes every member it did not reach
-    | rest, [] => zeroMembers fuel ctx p ty rest
+    | rest, [] => zeroMembers fuel ctx p ty rest declaration
     | (nm, mty) :: mrest, e :: erest =>
         if ctx.layout.flexibleField ty nm then
           match e with
-          | .implicitValueInit _ _ => initMembers fuel ctx p ty mrest erest
+          | .implicitValueInit _ _ => initMembers fuel ctx p ty mrest erest declaration
           | _ => refuseUnsupported s!"explicit initializer for flexible array member '{nm}'"
         else if nm.isEmpty && (ctx.layout.fieldBits ty nm).isSome then
           -- §6.7.11p9: an unnamed bit-field has no member and consumes no
           -- initializer.  The parser-native layout still carries its
           -- storage range, but the initializer sequence skips it.
-          initMembers fuel ctx p ty mrest es
+          initMembers fuel ctx p ty mrest es declaration
         else do
-          match ctx.layout.fieldOff ty nm with
+          match ctx.layout.fieldOffDeclAt declaration ty nm with
           | some off =>
               if ctx.layout.fieldBits ty nm |>.isSome then
                 let v ← match e with
@@ -403,7 +403,7 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
               else
                 initObject fuel ctx (Mem.member p off) mty e none none
           | none => refuseUnsupported s!"no offset for member '{nm}'"
-          initMembers fuel ctx p ty mrest erest
+          initMembers fuel ctx p ty mrest erest declaration
 
 end
 
