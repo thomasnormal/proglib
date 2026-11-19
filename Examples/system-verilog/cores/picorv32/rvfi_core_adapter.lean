@@ -952,6 +952,53 @@ theorem CoreRv32iBoundary.to_rv32i_boundary
 
 #print axioms CoreRv32iBoundary.to_rv32i_boundary
 
+/-! This adapter is the loaded-invariant entry point for the family union.
+    The relation continuation remains a premise of the core proof, while the
+    projection above supplies the exact mixed boundary. -/
+
+theorem CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary
+    {d : CoreMemDesign} (machine : CoreRvfiMachine d)
+    {rel : CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
+    {admit : LeanModels.Refine.Input → Prop}
+    (hstep : ∀ (start : Nat) (state : CoreMemState)
+      (memoryState : LeanModels.Refine.RvMemoryState)
+      (input : LeanModels.Refine.Input),
+      rel state memoryState → admit input →
+      ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+        rvfiStep d state (machine.encode state input) = .ok (next, observation) ∧
+        (if observation.valid then
+          ∃ boundary : CoreRv32iBoundary d state (machine.encode state input)
+              memoryState.arch input memoryState,
+            observation.order = start ∧
+            ∀ instruction : LeanModels.Refine.Rv32iInstruction,
+              input = LeanModels.Refine.rv32iProgramInput memoryState instruction →
+              rel next
+                (LeanModels.Refine.rv32iProgramStep memoryState instruction)
+        else rel next memoryState)) :
+    LeanModels.Refine.Rv32iCycleStepRefines
+      machine.toRvfiCycleMachine rel admit := by
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  have hmachine := machine.step_eq_of_exact hrun
+  simp only [CoreRvfiMachine.toRvfiCycleMachine, hmachine]
+  by_cases hv : observation.valid = true
+  · simp only [hv, ite_true] at hcase ⊢
+    rcases hcase with ⟨boundary, horder, hpost⟩
+    obtain ⟨next', observation', hrun', instruction', hinput, hboundary⟩ :=
+      CoreRv32iBoundary.to_rv32i_boundary boundary
+    have hpair : (next', observation') = (next, observation) := by
+      exact Res.ok.inj (hrun'.symm.trans hrun)
+    cases hpair
+    exact ⟨instruction', hinput, horder, hboundary, hpost instruction' hinput⟩
+  · have hv' : observation.valid = false := by
+      cases hvalue : observation.valid with
+      | false => exact rfl
+      | true => exact False.elim (hv hvalue)
+    simpa [hv, hv'] using hcase
+
+#print axioms CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary
+
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
