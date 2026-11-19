@@ -206,6 +206,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("generate_typed_localparam_param.sv", "generate_typed_localparam_param_e",
             (Port("x", 1),), (Port("y", 1),),
             (Point("W8", (8,)), Point("W3", (3,)))),
+    # Package-qualified child parameter default and explicit override.
+    Fixture("package_child_parameter_e.sv", "package_child_parameter_e",
+            (Port("x", 3),), (Port("y", 3),),
+            (Point("W3", (3,)), Point("W5", (5,)))),
     # Generated packed indexed part-select at W=8, N=2.
     Fixture("generated_packed_select_20261119.sv", "generated_packed_select",
             (Port("clk", 1, clock=True), Port("data", 16)), (Port("out", 8),),
@@ -798,6 +802,8 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
     if fixture.top == "generated_array_nested" and point.args \
             and port.name in ("x", "taps"):
         return point.args[0]
+    if fixture.top == "package_child_parameter_e" and point.args:
+        return point.args[0]
     if fixture.top == "arbiter_unpacked_loop_e" and point.args \
             and port.name == "data_bus":
         return point.args[0] * 4
@@ -875,6 +881,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generate_typed_localparam": ("W",),
             "generate_typed_localparam_param_e": ("W",),
             "generated_packed_select": ("W", "N"),
+            "package_child_parameter_e": ("W",),
             "localparam_shift": ("E",),
             "memory_edge_loop": ("W", "N"),
             "parameterized_unpacked_storage": ("N",),
