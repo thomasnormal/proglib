@@ -149,6 +149,9 @@ obligation:
   `CoreRv32iBoundary.to_rv32i_boundary` projection converts each retained
   ALU, branch, jump, memory, fence, system, CSR, or trap witness to the
   corresponding mixed boundary while preserving the exact canonical step.
+  `CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary` is the invariant
+  adapter that consumes this projection while retaining the order and
+  relation-continuation obligations.
   `r1_rv32i.picorv32_loaded_rv32i_program_refinement_of_total` packages the
   same all-family program refinement directly from a total canonical
   `rvfiStep` witness, constructing the exact loaded machine while retaining
