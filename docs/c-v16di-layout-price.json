@@ -1,0 +1,139 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 2,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr123625-2.c",
+   "sha256": "0ce240339a524142656e3ba0eb0fdc9338d27af64ecb0363b067383d2847d7de",
+   "type_layouts": [
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id18",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id18",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id18",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id18",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id34",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id34",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id39",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id43",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id64",
+     "size_bytes": 128,
+     "type": "v16di"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr126405-3.c",
+   "sha256": "ceb8a575ddede2cb8131e9ab80fa3d93129f84bc01f409e44c02f709dc007759",
+   "type_layouts": [
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id18",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id18",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id23",
+     "element_size_bytes": 1,
+     "size_bytes": 1024,
+     "type": "volatile char[1024]"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id26",
+     "size_bytes": 4,
+     "type": "unsigned int"
+    },
+    {
+     "alignment_bytes": 128,
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id50",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id70",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 128,
+     "decl_id": "id70",
+     "size_bytes": 128,
+     "type": "v16di"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id74",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id112",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "unsupported:no layout for declared type 'v16di'"
+}
