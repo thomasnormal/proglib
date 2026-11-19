@@ -533,5 +533,15 @@
     "source": "harness/scripts/machine_async_with_boundary.py",
     "envelope": "harness/scripts/machine_async_with_boundary.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_call_star_boundary.py",
+    "envelope": "harness/scripts/machine_call_star_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_call_kwargs_boundary.py",
+    "envelope": "harness/scripts/machine_call_kwargs_boundary.json",
+    "expect": "unsupported"
   }
 ]
