@@ -77,6 +77,9 @@ obligation:
   for the measured observation witness;
 * `rvfi_addi_boundary.lean` for the measured raw ADDI row and its
   `addiBoundary`-to-ISA step and memory-machine commit bridges.
+* `rvfi_core_adapter.lean` for the refusal-preserving canonical RVFI adapter,
+  the `CoreAddiBoundary` state relation, and its exact canonical-step
+  constructors for the measured first and second ADDI rows.
 
 These are boundary consumers for a future loaded-core invariant.  They do not
 assert that the current PicoRV32 envelope executes in canonical E. -/
