@@ -211,7 +211,7 @@ def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM 
         -- §6.3.2.3p3: `= 0` on a pointer is a NULL POINTER, not zero bytes
         liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
       else
-        match ctx.layout.elem ty with
+        match ctx.layout.elemDeclAt declaration ty with
         | some (et, n) =>
             match ctx.layout.arrayElementSizeDeclAt declaration ty et with
             | some esz => zeroElems fuel ctx p et esz n 0
@@ -282,7 +282,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         -- Clang's array_filler is [default filler, positional entries...].
         -- Only its implicit-zero default is in tier; retain and refuse other
         -- shapes rather than guessing their repeated initialization semantics.
-        match inits, filler, ctx.layout.elem ty with
+        match inits, filler, ctx.layout.elemDeclAt declaration ty with
         | [], .implicitValueInit _ _ :: entries, some (et, n) =>
             match ctx.layout.arrayElementSizeDeclAt declaration ty et with
             | some esz => initElems fuel ctx p et esz n 0 entries
@@ -294,7 +294,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         -- `union ...` spelling (`union u0[4]`).  §6.7.11 applies the array
         -- walk first; treating the whole declarator as a union loses the
         -- element initializers and reports a fabricated missing member.
-        if (ctx.layout.elem initTy).isNone && ctx.layout.isUnion initTy then
+        if (ctx.layout.elemDeclAt declaration initTy).isNone && ctx.layout.isUnion initTy then
           match ctx.layout.members initTy, inits with
           | some _, [] => zeroInit fuel ctx p initTy declaration
           | some ms, e :: _ =>
@@ -304,7 +304,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
               | none => refuseUnsupported s!"no offset for union member '{target}'"
           | _, _ => refuseUnsupported "union initializer has no member"
         else
-        match ctx.layout.elem ty with
+        match ctx.layout.elemDeclAt declaration ty with
         -- an ARRAY: elements at i * sizeof(elem), then §6.7.11p10 on the tail
         | some (et, n) =>
             match ctx.layout.arrayElementSizeDeclAt declaration ty et with
@@ -323,7 +323,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         let bytes? := match decoded with
           | some bs => some (bs.map (fun b => CByte.conc (UInt8.ofNat b)))
           | none => (plainStringBytes value).map (fun bs => bs ++ [CByte.conc 0])
-        match ctx.layout.elem ty, bytes? with
+        match ctx.layout.elemDeclAt declaration ty, bytes? with
         | some (et, n), some bytes =>
             match intTyOf? (ctx.layout.normalizeTy et) with
             | some t =>

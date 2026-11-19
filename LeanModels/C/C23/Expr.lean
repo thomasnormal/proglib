@@ -649,6 +649,21 @@ def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
   (directDeclId base).bind layout.structuredTypeDecl
 
+/-- Resolve an aggregate's element extent from its declaration's structured
+array type before using the legacy spelling-derived element table.  The
+element spelling remains the table's existing key, while the parser owns the
+array shape and extent. -/
+def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (ty : CType) : Option (CType × Nat) :=
+  match decl.bind layout.structuredTypeDecl with
+  | some structured =>
+      match structured.unqualified with
+      | .array _ (some extent) =>
+          layout.elem ty |>.map (fun (element, _) => (element, extent))
+      | _ => layout.elem ty
+  | none => layout.elem ty
+
+
 /-- Effective-type metadata for a declaration allocation.  Parser-native
 aggregate observations suppress the scalar declaration type, while legacy
 layouts use their member and element tables for the same decision. -/
