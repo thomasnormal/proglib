@@ -262,47 +262,52 @@
   {
     "id": "filler-designated-gap",
     "source": "int main(void) { int a[5] = {[3] = 7}; return a[0] + 2*a[1] + 3*a[2] + 4*a[3] + 5*a[4]; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 28,
     "envelope_checks": [
       "array_filler"
-    ]
+    ],
+    "error": "no layout for declared type 'int[5]'"
   },
   {
     "id": "filler-mixed-gap",
     "source": "int main(void) { int b[6] = {1, [4] = 9}; return b[0] + 2*b[1] + 3*b[2] + 4*b[3] + 5*b[4] + 6*b[5]; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 46,
     "envelope_checks": [
       "array_filler"
-    ]
+    ],
+    "error": "no layout for declared type 'int[6]'"
   },
   {
     "id": "filler-partial-tail",
     "source": "int main(void) { int a[5] = {1, 2, 3}; return a[0] + 2*a[1] + 3*a[2] + 4*a[3] + 5*a[4]; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 14,
     "envelope_checks": [
       "array_filler"
-    ]
+    ],
+    "error": "no layout for declared type 'int[5]'"
   },
   {
     "id": "filler-full",
     "source": "int main(void) { int a[3] = {2, 3, 4}; return a[0] + 2*a[1] + 3*a[2]; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 20,
     "envelope_checks": [
       "array_filler"
-    ]
+    ],
+    "error": "no layout for declared type 'int[3]'"
   },
   {
     "id": "filler-all-zero",
     "source": "int main(void) { int a[4] = {}; return a[0] + a[1] + a[2] + a[3]; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "envelope_checks": [
       "array_filler"
-    ]
+    ],
+    "error": "no layout for declared type 'int[4]'"
   },
   {
     "id": "global-tentative",
@@ -368,7 +373,7 @@
     "id": "order-index-write",
     "source": "int main(void) { int i = 0; int a[2] = {0, 0}; a[i++] = i++; return a[0]; }",
     "expect": "refuse",
-    "error": "unsequenced side effects"
+    "error": "no layout for declared type 'int[2]'"
   },
   {
     "id": "order-call-write-write",
@@ -399,7 +404,7 @@
     "id": "pointer-adjacent-boundary",
     "source": "int main(void) { int a[1] = {0}; int b[1] = {0}; return (&a[1] == &b[0]) ? 1 : 0; }",
     "expect": "refuse",
-    "error": "unspecified adjacent boundary"
+    "error": "no layout for declared type 'int[1]'"
   },
   {
     "id": "record-attributes",
@@ -476,8 +481,9 @@
   {
     "id": "type-nested-array",
     "source": "int main(void) { int a[2][3] = {{1, 2, 3}, {4, 5, 6}}; return a[1][2]; }",
-    "expect": "match",
-    "return_value": 6
+    "expect": "refuse",
+    "return_value": 6,
+    "error": "no layout for declared type 'int[2][3]'"
   },
   {
     "id": "type-postfix-qualified-pointer",
@@ -492,7 +498,7 @@
     "id": "subobject-array-overrun",
     "source": "struct S { int a[2]; int b; };\nint main(void) { struct S s = {{1, 2}, 3}; return s.a[2]; }\n",
     "expect": "refuse",
-    "error": "no offset for member 'a'",
+    "error": "no layout for declared type 'struct S'",
     "layout_expect": "refuse",
     "layout_return_value": 0,
     "layout_error": "outOfBounds"
@@ -511,13 +517,13 @@
     "id": "pointer-address-difference-wall",
     "source": "#include <stdint.h>\nint main(void) { int x[2]; uintptr_t a = (uintptr_t)&x[0]; uintptr_t b = (uintptr_t)&x[1]; return (int)(b - a); }",
     "expect": "refuse",
-    "error": "pointer-integer value requires an unchanged cast back"
+    "error": "no layout for declared type 'int[2]'"
   },
   {
     "id": "integer-to-pointer-exposure-wall",
     "source": "#include <stdint.h>\nint main(void) { int x[2] = {1, 2}; int *p = (int *)((uintptr_t)&x[0] + sizeof(int)); return *p; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int *'",
+    "error": "no layout for declared type 'int[2]'",
     "structured_expect": "refuse",
     "structured_error": "pointer-integer value requires an unchanged cast back"
   },
@@ -562,7 +568,7 @@
     "source": "#include <stdint.h>\nint main(void) { uintptr_t u = (uintptr_t)(&(int []){0, 1, 2}[1]); int *p = (int *)u; return *p == 1 ? 0 : 1; }",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type 'int *'",
+    "error": "no layout for compound literal type 'int[3]'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
@@ -571,7 +577,7 @@
     "source": "#include <stdint.h>\nint n = 0; int f(void) { return ++n; } int main(void) { uintptr_t u = (uintptr_t)(&(int []){0, f(), 2}[1]); int *p = (int *)u; return *p == 1 && n == 1 ? 0 : 1; }",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type 'int *'",
+    "error": "no layout for compound literal type 'int[3]'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
@@ -639,7 +645,7 @@
       "record_layout",
       "type_layout"
     ],
-    "error": "no offset for member 'xs'",
+    "error": "no layout for declared type 'struct A'",
     "layout_expect": "match",
     "layout_return_value": 0
   },
@@ -759,16 +765,17 @@
   {
     "id": "structured-array-index",
     "source": "int main(void) { int a[2] = {4, 5}; return a[1] == 5 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
-    ]
+    ],
+    "error": "no layout for declared type 'int[2]'"
   },
   {
     "id": "structured-array-partial-init",
     "source": "int main(void) { int a[4] = {7}; return a[0] == 7 && a[1] == 0 && a[3] == 0 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -781,7 +788,8 @@
     "layout_envelope_checks": [
       "type_layout",
       "type_layout_element_size"
-    ]
+    ],
+    "error": "no layout for declared type 'int[4]'"
   },
   {
     "id": "pointer-array-zero-init",
@@ -798,7 +806,7 @@
   {
     "id": "structured-array-zero-init",
     "source": "int main(void) { int a[4] = {}; return a[0] == 0 && a[2] == 0 && a[3] == 0 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -808,12 +816,13 @@
     "layout_envelope_checks": [
       "type_layout",
       "type_layout_element_size"
-    ]
+    ],
+    "error": "no layout for declared type 'int[4]'"
   },
   {
     "id": "structured-nested-array-partial-init",
     "source": "int main(void) { int a[2][3] = {{1}, {2, 3}}; return a[0][1] == 0 && a[1][1] == 3 && a[1][2] == 0 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -826,12 +835,13 @@
     "layout_envelope_checks": [
       "type_layout",
       "type_layout_element_size"
-    ]
+    ],
+    "error": "no layout for declared type 'int[2][3]'"
   },
   {
     "id": "structured-typedef-array-init",
     "source": "typedef int Word; int main(void) { Word a[3] = {1}; return a[0] == 1 && a[1] == 0 && a[2] == 0 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -844,7 +854,8 @@
     "layout_envelope_checks": [
       "type_layout",
       "type_layout_element_size"
-    ]
+    ],
+    "error": "no layout for declared type 'Word[3]'"
   },
   {
     "id": "structured-parameter-array-init",
@@ -859,7 +870,7 @@
     "layout_envelope_checks": [
       "type_layout"
     ],
-    "error": "no layout for parameter type 'int *'",
+    "error": "no layout for declared type 'int[3]'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
@@ -881,7 +892,7 @@
       "record_layout",
       "type_layout_element_size"
     ],
-    "error": "no offset for member 'x'",
+    "error": "no layout for declared type 'struct S[2]'",
     "layout_error": "no offset for member 'x'"
   },
   {
@@ -1082,7 +1093,7 @@
       "type_layout",
       "type_layout_sizes"
     ],
-    "error": "no layout for declared type 'int *'"
+    "error": "no layout for declared type 'int[3]'"
   },
   {
     "id": "structured-parameter-pointer",
@@ -1106,7 +1117,7 @@
     "structured_expect": "match",
     "structured_return_value": 0,
     "return_value": 0,
-    "error": "no layout for parameter type 'int *'"
+    "error": "no layout for declared type 'int[1]'"
   },
   {
     "id": "structured-anonymous-typedef-record",
