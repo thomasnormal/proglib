@@ -104,6 +104,9 @@ inductive MStmt where
       (returns : Option MExpr) (body : Array MStmt) (span : Span)
   | classDef (name : String) (bases : Array MExpr) (keywords : Array (String × MExpr))
       (decorators : Array MExpr) (body : Array MStmt) (span : Span)
+  | classDefNode (name : String) (bases : Array MExpr)
+      (keywords : Array (Option String × MExpr)) (decorators : Array MExpr)
+      (body : Array MStmt) (span : Span)
   | import (names : Array MAlias) (span : Span)
   | importFrom (module : Option String) (names : Array MAlias) (level : Nat) (span : Span)
   | global (names : Array String) (span : Span)
@@ -556,6 +559,19 @@ partial def mStmt (j : Json) : Except String MStmt := do
           let orelse ← (← (← mField j "machine_orelse").getArr?).mapM mStmt
           let finalbody ← (← (← mField j "machine_finalbody").getArr?).mapM mStmt
           pure (.tryStmt body handlers orelse finalbody span)
+  | "ClassDef" =>
+      match j.getObjVal? "machine_bases" with
+      | .error _ => pure (.unsupported kind span)
+      | .ok _ =>
+          let bases ← (← (← mField j "machine_bases").getArr?).mapM mExpr
+          let keywords ← (← (← mField j "machine_keywords").getArr?).mapM fun keyword => do
+            let arg := match keyword.getObjVal? "arg" with
+              | .ok .null | .error _ => none
+              | .ok value => value.getStr?.toOption
+            pure (arg, ← mExpr (← mField keyword "value"))
+          let decorators ← (← (← mField j "machine_decorators").getArr?).mapM mExpr
+          let body ← (← (← mField j "machine_body").getArr?).mapM mStmt
+          pure (.classDefNode (← (← mField j "name").getStr?) bases keywords decorators body span)
   | "Unsupported" =>
       match j.getObjVal? "machine_kind" with
       | .ok (.str "Import") =>
@@ -602,6 +618,7 @@ private def mStmtKind : MStmt → String
   | .functionDef _ _ _ _ _ _ => "FunctionDef"
   | .asyncFunctionDef _ _ _ _ _ _ => "AsyncFunctionDef"
   | .classDef _ _ _ _ _ _ => "ClassDef"
+  | .classDefNode _ _ _ _ _ _ => "ClassDef"
   | .import _ _ => "Import"
   | .importFrom _ _ _ _ => "ImportFrom"
   | .global _ _ => "Global"
@@ -622,7 +639,8 @@ private def mStmtSpan : MStmt → Span
   | .deleteSubscript _ _ span | .deleteAttribute _ _ span | .ifStmt _ _ _ span
   | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span | .functionDef _ _ _ _ _ span
   | .asyncFunctionDef _ _ _ _ _ span
-  | .classDef _ _ _ _ _ span | .import _ span | .importFrom _ _ _ span
+  | .classDef _ _ _ _ _ span | .classDefNode _ _ _ _ _ span
+  | .import _ span | .importFrom _ _ _ span
   | .global _ span | .nonlocal _ span | .raise _ _ span | .assertStmt _ _ span
   | .yieldStmt _ span | .yieldFrom _ span | .tryStmt _ _ _ _ span
   | .withStmt _ _ _ span | .brk span | .cont span | .unsupported _ span => span
@@ -797,6 +815,8 @@ private def mStmtExpressions : MStmt → Array MExpr
         argAnnotations ++ argDefaults ++ vararg ++ kwarg
   | .classDef _ bases keywords decorators _ _ =>
       bases ++ keywords.map (·.2) ++ decorators
+  | .classDefNode _ bases keywords decorators _ _ =>
+      bases ++ keywords.map (·.2) ++ decorators
   | .import _ _ | .importFrom _ _ _ _ => #[]
   | .raise exception cause _ => exception.toArray ++ cause.toArray
   | .assertStmt test msg _ => #[test] ++ msg.toArray
@@ -879,6 +899,10 @@ partial def mStmtToStmtClean : MStmt → RStmt
       .classDef name (bases.map mExprToExpr)
         (keywords.map (fun pair => (pair.1, mExprToExpr pair.2)))
         (decorators.map mExprToExpr) (body.map mStmtToStmt) span
+  | .classDefNode name bases keywords decorators body span =>
+      .raw "ClassDef"
+        ((bases ++ keywords.map (·.2) ++ decorators).map mExprToRaw)
+        span
   | .withStmt items body isAsync span =>
       RStmt.withStmt (items.map (fun pair => (mExprToExpr pair.1, pair.2.map mExprToExpr)))
         (body.map mStmtToStmt) isAsync span

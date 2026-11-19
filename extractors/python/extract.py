@@ -2317,6 +2317,13 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             "class_unsupported": ", ".join(reasons) if reasons else None,
             "creation_effects": creation_effects,
             "body": convert_stmt_list(node.body),
+            "machine_bases": [convert_expr(base) for base in node.bases],
+            "machine_keywords": [
+                {"arg": keyword.arg, "value": convert_expr(keyword.value)}
+                for keyword in node.keywords
+            ],
+            "machine_decorators": [convert_expr(d) for d in node.decorator_list],
+            "machine_body": convert_stmt_list(node.body),
         }
         if slot_names is not None and slot_assignment_count == 1:
             out["slots"] = slot_names
