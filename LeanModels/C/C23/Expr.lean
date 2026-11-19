@@ -885,7 +885,7 @@ the tier carries clang's `qualType` string rather than a type tree
 (`docs/c-envelope-schema.md` §3). Measured: 199 distinct pointer/array
 spellings on expression nodes, every one ending in `*` or `]`. -/
 def isPtrType (ty : CType) : Bool :=
-  ty.endsWith "*" || LeanModels.C.isConstPointerToArray ty
+  ty.endsWith "*"
 
 /-! Parser-native type decisions.  The spelling fallback is retained only for
 older envelopes that have no structured observation.  When clang supplied a

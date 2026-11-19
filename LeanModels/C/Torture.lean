@@ -126,7 +126,7 @@ def torScalarSize : CType → Option Nat
   | "intptr_t" | "uintptr_t" => some 8
   | "int64_t" | "uint64_t" => some 8
   | "__int128" | "unsigned __int128" | "__uint128_t" => some 16
-  | t => if t.endsWith "*" || LeanModels.C.isConstPointerToArray t
+  | t => if t.endsWith "*"
          then some 8 else none
 
 /-- The envelope's ordinary declaration types are flat Clang spellings.
@@ -134,11 +134,11 @@ Admit only the closed spelling fragment consumed by the profile layout; any
 declarator grammar that this tier cannot represent as a tree is rejected at
 the layout boundary instead of being partially peeled into a different type.
 The guard is deliberately conservative for function-pointer and postfix-
-qualified forms, while admitting constant nested-array syntax and its
-pointer-to-array object form. Variable extents and elaborated scope spellings
-remain outside the fragment. -/
+qualified forms, while admitting constant nested-array syntax. Pointer-to-array
+objects require a parser-native type-layout observation. Variable extents and
+elaborated scope spellings remain outside the fragment. -/
 def typeSpellingAdmitted (t : CType) : Bool :=
-  ((!t.contains "(*") || LeanModels.C.isConstPointerToArray t) &&
+  ((!t.contains "(*")) &&
   !t.endsWith " restrict" && !t.endsWith "*restrict" &&
   !t.contains "::"
 
@@ -180,9 +180,7 @@ def arrayOf (t : CType) : Option (CType × Nat) :=
 -- nested constant arrays, pointer-to-array objects, and no variable extents.
 #guard arrayOf "int[2][1]" == some ("int[1]", 2)
 #guard arrayOf "int[n % 1000 + 1]" == none
-#guard LeanModels.C.isConstPointerToArray "int (*)[1]"
-#guard !LeanModels.C.isConstPointerToArray "int (*)[++i]"
-#guard torScalarSize "int (*)[1]" == some 8
+#guard torScalarSize "int (*)[1]" == none
 #guard torScalarSize "enum E" == none
 #guard typeSpellingAdmitted "int (*)(int)" == false
 
