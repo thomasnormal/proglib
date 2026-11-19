@@ -642,6 +642,7 @@ def convert_expr(node):
             "kind": "NamedExpr",
             "span": span(node),
             "target": node.target.id,
+            "machine_target": convert_expr(node.target),
             "value": convert_expr(node.value),
         }
 

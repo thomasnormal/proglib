@@ -1,0 +1,141 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_namedexpr_boundary.py",
+  "source_sha256": "4016525c50b7171a6bc241b25987bf99c09b9d2a1ed6a8f84ee94c0aa66a6010",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 23
+        },
+        "name": "bind",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "AnnAssignNoValue",
+            "span": {
+              "lineno": 2,
+              "col_offset": 12,
+              "end_lineno": 2,
+              "end_col_offset": 22
+            },
+            "name": "value"
+          },
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 23
+            },
+            "value": {
+              "kind": "NamedExpr",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 22
+              },
+              "target": "value",
+              "machine_target": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 12,
+                  "end_lineno": 2,
+                  "end_col_offset": 17
+                },
+                "id": "value"
+              },
+              "value": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 21,
+                  "end_lineno": 2,
+                  "end_col_offset": 22
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "7"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 4,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 13
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 4,
+            "col_offset": 0,
+            "end_lineno": 4,
+            "end_col_offset": 13
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 4,
+              "col_offset": 0,
+              "end_lineno": 4,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 4,
+                "col_offset": 6,
+                "end_lineno": 4,
+                "end_col_offset": 12
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 6,
+                  "end_lineno": 4,
+                  "end_col_offset": 10
+                },
+                "id": "bind"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
