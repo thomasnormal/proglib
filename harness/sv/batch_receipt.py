@@ -164,6 +164,10 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clk", 1, clock=True), Port("en", 1), Port("a", 8)),
             (Port("y", 8),), retain_proc_rewrites=True,
             expected_source_refusals=("iverilog",)),
+    # Automatic local with a signal-dependent declaration initializer.
+    Fixture("proc_local_automatic_init.sv", "proc_local_automatic_init",
+            (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),),
+            retain_proc_rewrites=True, expected_source_refusals=("iverilog",)),
     Fixture("proc_local_static_e.sv", "proc_local_static_e",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),)),
     Fixture("proc_local_static_init_e.sv", "proc_local_static_init_e",
