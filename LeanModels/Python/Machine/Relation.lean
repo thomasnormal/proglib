@@ -373,33 +373,6 @@ def rConstValue : Const → RVal
   | .str s => .str s
   | .bytes xs => .bytes xs
 
-def rConstExprValue : Expr → Option RVal
-  | .constant value _ => some (rConstValue value)
-  | .unaryOp .usub (.constant (.int value) _) _ => some (.int (-value))
-  | .unaryOp .uadd (.constant (.int value) _) _ => some (.int value)
-  | _ => none
-
-def rConstValues : List Expr → Option (List RVal)
-  | [] => some []
-  | expression :: rest =>
-      match rConstExprValue expression, rConstValues rest with
-      | some value, some values => some (value :: values)
-      | _, _ => none
-
-def rEvalDefaultValues (defaults : Array Expr) : Option (Array RVal) :=
-  (rConstValues defaults.toList).map List.toArray
-
-def rEvalKeywordDefaultValues : List (Option Expr) → Option (List (Option RVal))
-  | [] => some []
-  | none :: rest =>
-      match rEvalKeywordDefaultValues rest with
-      | some values => some (none :: values)
-      | none => none
-  | some expression :: rest =>
-      match rConstValues [expression], rEvalKeywordDefaultValues rest with
-      | some [value], some values => some (some value :: values)
-      | _, _ => none
-
 def rBindKeyword : REnv → List RParam → String → RVal → Option REnv
   | env, [], _, _ => none
   | env, parameter :: rest, name, value =>
@@ -872,6 +845,40 @@ def rLookupFrameName (config : RConfig) (frame : RFrame) (name : String) : Optio
             | some value => some value
             | none => readModule
 
+def rEvalDefaultExprIn (config : RConfig) (frame : RFrame) : Expr → Option RVal
+  | .constant value _ => some (rConstValue value)
+  | .name name _ => rLookupFrameName config frame name
+  | .unaryOp op operand _ =>
+      (rEvalDefaultExprIn config frame operand).bind (rEvalUnary op)
+  | .binOp left op right _ =>
+      match rEvalDefaultExprIn config frame left,
+          rEvalDefaultExprIn config frame right with
+      | some leftValue, some rightValue =>
+          match rEvalBinOp op leftValue rightValue with
+          | .ok value => some value
+          | _ => none
+      | _, _ => none
+  | _ => none
+
+def rEvalDefaultValuesIn (config : RConfig) (frame : RFrame) : List Expr → Option (List RVal)
+  | [] => some []
+  | expression :: rest =>
+      match rEvalDefaultExprIn config frame expression,
+          rEvalDefaultValuesIn config frame rest with
+      | some value, some values => some (value :: values)
+      | _, _ => none
+
+def rEvalKeywordDefaultValuesIn (config : RConfig) (frame : RFrame) :
+    List (Option Expr) → Option (List (Option RVal))
+  | [] => some []
+  | none :: rest =>
+      (rEvalKeywordDefaultValuesIn config frame rest).map (List.cons none)
+  | some expression :: rest =>
+      match rEvalDefaultExprIn config frame expression,
+          rEvalKeywordDefaultValuesIn config frame rest with
+      | some value, some values => some (some value :: values)
+      | _, _ => none
+
 def RConfig.finish (config : RConfig) (event : REvent) : RConfig :=
   { config with frames := [], status := .finished event }
 
@@ -1325,10 +1332,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
-                  match rEvalDefaultValues defaults with
+                  match rEvalDefaultValuesIn config current defaults.toList with
                   | none => some (.event (.refuse "machine default expression"),
                       config.finish (.refuse "machine default expression"))
                   | some defaultValues =>
+                      let defaultValues := defaultValues.toArray
                       let captured := rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
@@ -1343,8 +1351,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .functionDefKw name params defaults keywordDefaults body span =>
               match config.frames with
               | current :: tail =>
-                  match rEvalDefaultValues defaults, rEvalKeywordDefaultValues keywordDefaults.toList with
+                  match rEvalDefaultValuesIn config current defaults.toList,
+                      rEvalKeywordDefaultValuesIn config current keywordDefaults.toList with
                   | some defaultValues, some keywordDefaultValues =>
+                      let defaultValues := defaultValues.toArray
                       let captured := rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
