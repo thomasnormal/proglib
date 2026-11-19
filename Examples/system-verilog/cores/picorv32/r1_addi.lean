@@ -268,6 +268,82 @@ theorem picorv32_loaded_addi_exact_cycle_step_refines_of_total
 
 #print axioms picorv32_loaded_addi_exact_cycle_step_refines_of_total
 
+/-! The total-step ADDI bridge also packages the reset-specialized all-prefix
+    contract.  The ADDI boundary and order obligations remain the premises
+    that identify each valid loaded-core row. -/
+
+theorem picorv32_loaded_addi_program_refinement_of_total
+    (core : PicoRV32LoadedCanonicalE)
+    (profile : PlatformProfile)
+    (program : Memory)
+    (initialArch : ArchState)
+    (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF)
+    (encode : LeanModels.Sv.Kernel.CoreMemState → Input → SvState)
+    (htotal : ∀ (state : LeanModels.Sv.Kernel.CoreMemState) (input : Input),
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core)
+              state (encode state input) = .ok (next, observation))
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core)
+              state (encode state input) = .ok (next, observation) ∧
+          (if observation.valid then
+            ∃ w rd rs1 imm,
+              input.memory = memoryState.memory ∧
+              observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
+              rel next
+                { arch := addiNext memoryState.arch rd rs1 imm,
+                  memory := memoryState.memory }
+          else rel next memoryState))
+    (horder : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input)
+      (next : LeanModels.Sv.Kernel.CoreMemState)
+      (observation : RvfiObservation),
+      rel state memoryState → admit input →
+      rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core)
+          state (encode state input) = .ok (next, observation) →
+      if observation.valid then observation.order = start else True)
+    (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState),
+      PicoRV32ResetRelation
+        (PicoRV32LoadedCanonicalE.design core) program state memoryState →
+      rel state memoryState)
+    {schedule target : Nat → Input}
+    (hschedule : ∀ n, admit (schedule n))
+    (progress : Rv32iRetiresTarget
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal))
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal)).init
+      schedule target) :
+    ∃ machine : rvfi_core_adapter.CoreRvfiMachine
+        (PicoRV32LoadedCanonicalE.design core),
+      picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
+      Rv32iAllPrefixRefinement profile
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine)
+        rel 0
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine).init
+        { arch := initialArch, memory := program } schedule target := by
+  let machine := rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal
+  have hstep' := picorv32_addi_exact_cycle_step_refines machine hstep horder
+  have hinitial : rel machine.toRvfiCycleMachine.init
+      { arch := initialArch, memory := program } :=
+    hrel _ _ (picoRV32_reset_relation_initial
+      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf)
+  refine ⟨machine, PicoRV32LoadedCanonicalE.loaded core, ?_⟩
+  exact rv32i_progress_refinement profile machine.toRvfiCycleMachine rel admit
+    hstep' 0 _ _ hinitial hschedule progress
+
+#print axioms picorv32_loaded_addi_program_refinement_of_total
+
 /-! This is the packaged first R1 invariant at the loaded design boundary.
     Its exact source-step, decoder, architectural post-state, relation, and
     order premises remain explicit. -/
