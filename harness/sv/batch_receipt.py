@@ -193,6 +193,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("generate_typed_localparam_param.sv", "generate_typed_localparam_param_e",
             (Port("x", 1),), (Port("y", 1),),
             (Point("W8", (8,)), Point("W3", (3,)))),
+    # Generated packed indexed part-select at W=8, N=2.
+    Fixture("generated_packed_select_20261119.sv", "generated_packed_select",
+            (Port("clk", 1, clock=True), Port("data", 16)), (Port("out", 8),),
+            (Point("W8N2", (8, 2)),), retain_proc_rewrites=True),
     Fixture("initial_syscall.sv", "initial_syscall",
             (Port("x", 1),), (Port("y", 1),),
             expected_ordinary_refusal="Initial:runtime"),
@@ -852,6 +856,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generate_parameter": ("W",),
             "generate_typed_localparam": ("W",),
             "generate_typed_localparam_param_e": ("W",),
+            "generated_packed_select": ("W", "N"),
             "localparam_shift": ("E",),
             "memory_edge_loop": ("W", "N"),
             "parameterized_unpacked_storage": ("N",),
