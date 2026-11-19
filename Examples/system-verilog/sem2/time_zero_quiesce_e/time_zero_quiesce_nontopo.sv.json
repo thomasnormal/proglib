@@ -9,7 +9,7 @@
   "top": "time_zero_quiesce_nontopo",
   "source_files": [
     {
-      "path": "/scratch/thomas-ahle/wt/ls-sv/Examples/system-verilog/sem2/time_zero_quiesce_e/time_zero_quiesce_nontopo.sv",
+      "path": "Examples/system-verilog/sem2/time_zero_quiesce_e/time_zero_quiesce_nontopo.sv",
       "sha256": "456b634e6fb93a3d2089594e46312aa0d0288f5e9ef94ccc64ff54ade05f495d"
     }
   ],

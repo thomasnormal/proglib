@@ -9,7 +9,7 @@
   "top": "time_zero_quiesce_gclk",
   "source_files": [
     {
-      "path": "/scratch/thomas-ahle/wt/ls-sv/Examples/system-verilog/sem2/time_zero_quiesce_e/time_zero_quiesce_gclk.sv",
+      "path": "Examples/system-verilog/sem2/time_zero_quiesce_e/time_zero_quiesce_gclk.sv",
       "sha256": "80bab29db3ff975d0eb6b49a7d73e64b3f92f756a38e0f2c3db1f9fbbf946775"
     }
   ],

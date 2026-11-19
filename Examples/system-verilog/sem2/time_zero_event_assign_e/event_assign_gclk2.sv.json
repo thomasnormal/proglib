@@ -9,7 +9,7 @@
   "top": "event_assign_gclk2",
   "source_files": [
     {
-      "path": "/scratch/thomas-ahle/wt/ls-sv/Examples/system-verilog/sem2/time_zero_event_assign_e/event_assign_gclk2.sv",
+      "path": "Examples/system-verilog/sem2/time_zero_event_assign_e/event_assign_gclk2.sv",
       "sha256": "3bedbd6740e58a340e3265da1f476a8afcd4e0651363bc3901fc006c4d34c764"
     }
   ],
