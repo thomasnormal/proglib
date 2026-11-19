@@ -737,5 +737,10 @@
     "file": "harness/scripts/function_positional_only_frozen.py",
     "expect": "unsupported",
     "note": "Positional-only parameters are outside the frozen runner tier."
+  },
+  {
+    "file": "harness/scripts/structured_nodes_dead.py",
+    "expect": "match",
+    "note": "Set, Lambda, AsyncFor and AsyncWith nodes in code that never runs: the compatibility decoder loads the module and refuses them only when reached."
   }
 ]
