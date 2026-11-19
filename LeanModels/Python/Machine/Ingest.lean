@@ -17,9 +17,15 @@ structure MAlias where
   asname : Option String
 deriving Repr, Inhabited, BEq
 
+inductive MContext where
+  | load
+  | store
+  | del
+deriving Repr, Inhabited, BEq
+
 inductive MExpr where
   | constant (value : Const) (span : Span)
-  | name (id : String) (span : Span)
+  | name (id : String) (context : MContext) (span : Span)
   | binOp (left : MExpr) (op : BinOp) (right : MExpr) (span : Span)
   | unaryOp (op : UnaryOp) (operand : MExpr) (span : Span)
   | boolOp (op : BoolOp) (values : Array MExpr) (span : Span)
@@ -29,12 +35,12 @@ inductive MExpr where
       (starargs : Array MExpr) (kwargs : Array MExpr) (span : Span)
   | callNode (func : MExpr) (args : Array MExpr)
       (keywords : Array (Option String × MExpr)) (span : Span)
-  | attribute (value : MExpr) (attr : String) (span : Span)
-  | subscript (value : MExpr) (slice : MExpr) (span : Span)
+  | attribute (value : MExpr) (attr : String) (context : MContext) (span : Span)
+  | subscript (value : MExpr) (slice : MExpr) (context : MContext) (span : Span)
   | slice (value : MExpr) (lower : Option MExpr) (upper : Option MExpr)
       (step : Option MExpr) (span : Span)
-  | list (elts : Array MExpr) (span : Span)
-  | tuple (elts : Array MExpr) (span : Span)
+  | list (elts : Array MExpr) (context : MContext) (span : Span)
+  | tuple (elts : Array MExpr) (context : MContext) (span : Span)
   | set (elts : Array MExpr) (span : Span)
   | dict (keys : Array (Option MExpr)) (values : Array MExpr) (span : Span)
   | joinedStr (values : Array MExpr) (span : Span)
@@ -56,7 +62,7 @@ inductive MExpr where
       (body : MExpr) (span : Span)
   | namedExpr (target : String) (value : MExpr) (span : Span)
   | namedExprNode (target : MExpr) (value : MExpr) (span : Span)
-  | starred (value : MExpr) (span : Span)
+  | starred (value : MExpr) (context : MContext) (span : Span)
   | rawNode (kind : String) (children : Array MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
 deriving Repr, Inhabited, BEq
@@ -143,6 +149,23 @@ open Lean (Json)
 private def mField (j : Json) (name : String) : Except String Json :=
   j.getObjVal? name
 
+private def mContextName : String → Option MContext
+  | "Load" => some .load
+  | "Store" => some .store
+  | "Del" => some .del
+  | _ => none
+
+private def mContext (j : Json) : Except String MContext := do
+  match j.getObjVal? "machine_context" with
+  | .error _ => pure .load
+  | .ok value =>
+      match value with
+      | .str name =>
+          match mContextName name with
+          | some context => pure context
+          | none => throw s!"unsupported machine expression context {name}"
+      | _ => throw "machine expression context is not a string"
+
 private def mSpan (j : Json) : Except String Span := do
   let getNat := fun name => do (← mField j name).getNat?
   return { lineno := ← getNat "lineno"
@@ -203,7 +226,7 @@ partial def mExpr (j : Json) : Except String MExpr := do
   let span ← mSpan (← mField j "span")
   match kind with
   | "Constant" => pure (.constant (← mConst (← mField j "value")) span)
-  | "Name" => pure (.name (← (← mField j "id").getStr?) span)
+  | "Name" => pure (.name (← (← mField j "id").getStr?) (← mContext j) span)
   | "BinOp" =>
       let opName ← (← mField j "op").getStr?
       match mBinOp opName with
@@ -270,8 +293,10 @@ partial def mExpr (j : Json) : Except String MExpr := do
         | none => throw s!"unsupported machine comparison {name}"
       let comparators ← (← (← mField j "comparators").getArr?).mapM mExpr
       pure (.compare left ops comparators span)
-  | "List" => pure (.list (← (← (← mField j "elts").getArr?).mapM mExpr) span)
-  | "Tuple" => pure (.tuple (← (← (← mField j "elts").getArr?).mapM mExpr) span)
+  | "List" => pure (.list (← (← (← mField j "elts").getArr?).mapM mExpr)
+      (← mContext j) span)
+  | "Tuple" => pure (.tuple (← (← (← mField j "elts").getArr?).mapM mExpr)
+      (← mContext j) span)
   | "Set" => pure (.set (← (← (← mField j "elts").getArr?).mapM mExpr) span)
   | "Dict" =>
       let keys ← (← (← mField j "keys").getArr?).mapM fun key =>
@@ -314,10 +339,10 @@ partial def mExpr (j : Json) : Except String MExpr := do
       match j.getObjVal? "machine_kind" with
       | .ok (.str "List") =>
           let elts ← (← mField j "machine_elts").getArr?
-          pure (.list (← elts.mapM mExpr) span)
+          pure (.list (← elts.mapM mExpr) (← mContext j) span)
       | .ok (.str "Tuple") =>
           let elts ← (← mField j "machine_elts").getArr?
-          pure (.tuple (← elts.mapM mExpr) span)
+          pure (.tuple (← elts.mapM mExpr) (← mContext j) span)
       | .ok (.str "Dict") =>
           let keys ← (← mField j "machine_keys").getArr? >>= (·.mapM fun key =>
             match key with | .null => pure none | _ => some <$> mExpr key)
@@ -331,7 +356,7 @@ partial def mExpr (j : Json) : Except String MExpr := do
       | .ok (.str "YieldFrom") =>
           pure (.yieldFromExpr (← mExpr (← mField j "machine_value")) span)
       | .ok (.str "Starred") =>
-          pure (.starred (← mExpr (← mField j "machine_value")) span)
+          pure (.starred (← mExpr (← mField j "machine_value")) (← mContext j) span)
       | .ok (.str "JoinedStr") =>
           let values ← (← mField j "machine_values").getArr?
           pure (.joinedStr (← values.mapM mExpr) span)
@@ -362,9 +387,9 @@ partial def mExpr (j : Json) : Except String MExpr := do
       let params ← (← (← mField j "lambda_args").getArr?).mapM parseParam
       pure (.lambdaExpr params (← mExpr (← mField j "body")) span)
   | "Attribute" => pure (.attribute (← mExpr (← mField j "value"))
-      (← (← mField j "attr").getStr?) span)
+      (← (← mField j "attr").getStr?) (← mContext j) span)
   | "Subscript" => pure (.subscript (← mExpr (← mField j "value"))
-      (← mExpr (← mField j "index")) span)
+      (← mExpr (← mField j "index")) (← mContext j) span)
   | "Slice" =>
       let component := fun name => do
         match j.getObjVal? name with
@@ -377,7 +402,7 @@ partial def mExpr (j : Json) : Except String MExpr := do
       match j.getObjVal? "machine_target" with
       | .ok target => pure (.namedExprNode (← mExpr target) value span)
       | .error _ => pure (.namedExpr (← (← mField j "target").getStr?) value span)
-  | "Starred" => pure (.starred (← mExpr (← mField j "value")) span)
+  | "Starred" => pure (.starred (← mExpr (← mField j "value")) (← mContext j) span)
   | _ => pure (.unsupported kind span)
 
 private def mArg (j : Json) : Except String MArg := do
@@ -451,7 +476,7 @@ partial def mStmt (j : Json) : Except String MStmt := do
   | "Delete" =>
       let names ← (← mField j "names").getArr?
       let targets ← names.mapM (fun name => do
-        return MExpr.name (← name.getStr?) span)
+        return MExpr.name (← name.getStr?) .del span)
       pure (.delete targets span)
   | "DeleteSubscript" => pure (.deleteSubscript
       (← mExpr (← mField j "recv")) (← mExpr (← mField j "key")) span)
@@ -676,7 +701,7 @@ def parseMachineModule (j : Json) : Except String MModule := do
 
 partial def mExprToExpr : MExpr → Expr
   | .constant value span => .constant value span
-  | .name id span => .name id span
+  | .name id _ span => .name id span
   | .binOp left op right span => .binOp (mExprToExpr left) op (mExprToExpr right) span
   | .unaryOp op operand span => .unaryOp op (mExprToExpr operand) span
   | .boolOp op values span => .boolOp op (values.map mExprToExpr) span
@@ -687,14 +712,14 @@ partial def mExprToExpr : MExpr → Expr
   | .call func args keywords _ _ span => .call (mExprToExpr func) (args.map mExprToExpr)
       (keywords.map fun (name, value) => (name, mExprToExpr value)) none span
   | .callNode _ _ _ span => .unsupported "Call" "machine call frontier" span
-  | .attribute value attr span => .attribute (mExprToExpr value) attr span
-  | .subscript value slice span => .subscript (mExprToExpr value) (mExprToExpr slice) span
+  | .attribute value attr _ span => .attribute (mExprToExpr value) attr span
+  | .subscript value slice _ span => .subscript (mExprToExpr value) (mExprToExpr slice) span
   | .slice value lower upper step span =>
       let missing := Expr.constant .none span
       .slice (mExprToExpr value) (lower.map mExprToExpr |>.getD missing)
         (upper.map mExprToExpr |>.getD missing) (step.map mExprToExpr |>.getD missing) span
-  | .list elts span => .list (elts.map mExprToExpr) span
-  | .tuple elts span => .tuple (elts.map mExprToExpr) span
+  | .list elts _ span => .list (elts.map mExprToExpr) span
+  | .tuple elts _ span => .tuple (elts.map mExprToExpr) span
   | .dict keys values span => .dict (keys.map (fun key =>
       key.map mExprToExpr |>.getD (.constant .none span))) (values.map mExprToExpr) span
   | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
@@ -703,9 +728,9 @@ partial def mExprToExpr : MExpr → Expr
   | .awaitExpr _ span => .unsupported "Await" "machine await frontier" span
   | .yieldExpr _ span => .unsupported "Yield" "machine yield frontier" span
   | .yieldFromExpr _ span => .unsupported "YieldFrom" "machine yield-from frontier" span
-  | .starred value span =>
+  | .starred value _ span =>
       match value with
-      | .name name _ => .unsupported "Starred" name span
+      | .name name _ _ => .unsupported "Starred" name span
       | _ => .unsupported "Starred" "" span
   | .rawNode kind _ span => .unsupported kind "machine comprehension frontier" span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
@@ -716,7 +741,7 @@ partial def mExprToExpr : MExpr → Expr
 
 partial def mExprToRaw : MExpr → RRawExpr
   | .constant _ span => .node "Constant" #[] span
-  | .name _ span => .node "Name" #[] span
+  | .name _ _ span => .node "Name" #[] span
   | .binOp left _ right span => .node "BinOp" #[mExprToRaw left, mExprToRaw right] span
   | .unaryOp _ operand span => .node "UnaryOp" #[mExprToRaw operand] span
   | .boolOp _ values span => .node "BoolOp" (values.map mExprToRaw) span
@@ -731,16 +756,16 @@ partial def mExprToRaw : MExpr → RRawExpr
   | .callNode func args keywords span =>
       .node "Call" ((#[mExprToRaw func]) ++ args.map mExprToRaw ++
         keywords.map (fun pair => mExprToRaw pair.2)) span
-  | .attribute value _ span => .node "Attribute" #[mExprToRaw value] span
-  | .subscript value index span => .node "Subscript" #[mExprToRaw value, mExprToRaw index] span
+  | .attribute value _ _ span => .node "Attribute" #[mExprToRaw value] span
+  | .subscript value index _ span => .node "Subscript" #[mExprToRaw value, mExprToRaw index] span
   | .slice value lower upper step span =>
       let noneRaw : RRawExpr := .node "None" #[] span
       let lowerRaw := lower.map mExprToRaw |>.getD noneRaw
       let upperRaw := upper.map mExprToRaw |>.getD noneRaw
       let stepRaw := step.map mExprToRaw |>.getD noneRaw
       .node "Slice" #[mExprToRaw value, lowerRaw, upperRaw, stepRaw] span
-  | .list elts span => .node "List" (elts.map mExprToRaw) span
-  | .tuple elts span => .node "Tuple" (elts.map mExprToRaw) span
+  | .list elts _ span => .node "List" (elts.map mExprToRaw) span
+  | .tuple elts _ span => .node "Tuple" (elts.map mExprToRaw) span
   | .set elts span => .node "Set" (elts.map mExprToRaw) span
   | .dict keys values span =>
       .node "Dict" ((keys.map (fun key => key.map mExprToRaw |>.getD
@@ -771,19 +796,19 @@ partial def mExprToRaw : MExpr → RRawExpr
         (default.toArray ++ annotation.toArray).map mExprToRaw)
       .node "Lambda" (parameterChildren ++ #[mExprToRaw body]) span
   | .namedExpr target value span =>
-      .node "NamedExpr" #[mExprToRaw (.name target span), mExprToRaw value] span
+      .node "NamedExpr" #[mExprToRaw (.name target .load span), mExprToRaw value] span
   | .namedExprNode target value span =>
       .node "NamedExpr" #[mExprToRaw target, mExprToRaw value] span
-  | .starred value span => .node "Starred" #[mExprToRaw value] span
+  | .starred value _ span => .node "Starred" #[mExprToRaw value] span
   | .rawNode kind children span => .node kind (children.map mExprToRaw) span
   | .unsupported kind span => .node kind #[] span
 
 partial def mExprHasRaw : MExpr → Bool
-  | .constant _ _ | .name _ _ => false
+  | .constant _ _ | .name _ _ _ => false
   | .unsupported _ _ | .rawNode _ _ _ => true
   | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
-  | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true
+  | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ _ => true
   | .awaitExpr _ _ => true
   | .yieldExpr _ _ | .yieldFromExpr _ _ => true
   | .lambdaExpr _ _ _ => true
@@ -796,11 +821,11 @@ partial def mExprHasRaw : MExpr → Bool
       mExprHasRaw func || args.any mExprHasRaw || keywords.any (fun pair => mExprHasRaw pair.2) ||
         !starargs.isEmpty || !kwargs.isEmpty || starargs.any mExprHasRaw || kwargs.any mExprHasRaw
   | .callNode _ _ _ _ => true
-  | .attribute value _ _ => mExprHasRaw value
-  | .subscript value index _ => mExprHasRaw value || mExprHasRaw index
+  | .attribute value _ _ _ => mExprHasRaw value
+  | .subscript value index _ _ => mExprHasRaw value || mExprHasRaw index
   | .slice value lower upper step _ =>
       mExprHasRaw value || lower.any mExprHasRaw || upper.any mExprHasRaw || step.any mExprHasRaw
-  | .list elts _ | .tuple elts _ => elts.any mExprHasRaw
+  | .list elts _ _ | .tuple elts _ _ => elts.any mExprHasRaw
   | .dict keys values _ => keys.any (fun key => key.any mExprHasRaw) || values.any mExprHasRaw
   | .namedExpr _ value _ => mExprHasRaw value
   | .namedExprNode _ _ _ => true
@@ -1025,8 +1050,21 @@ private def ingestTypeIgnoreModule : Json :=
     ("machine_type_ignores", Lean.Json.arr #[Lean.Json.mkObj [
       ("lineno", Lean.toJson (3 : Nat)), ("tag", Lean.toJson "[assignment]")]])])]
 
+private def ingestContextModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [
+    ("kind", Lean.toJson "Module"),
+    ("body", Lean.Json.arr #[Lean.Json.mkObj [
+      ("kind", Lean.toJson "Assign"), ("span", ingestSpan),
+      ("targets", Lean.Json.arr #[Lean.Json.mkObj [
+        ("kind", Lean.toJson "Name"), ("span", ingestSpan),
+        ("id", Lean.toJson "value"), ("machine_context", Lean.toJson "Store")]]),
+      ("value", Lean.Json.mkObj [
+        ("kind", Lean.toJson "Constant"), ("span", ingestSpan),
+        ("value", Lean.Json.mkObj [
+          ("type", Lean.toJson "int"), ("repr", Lean.toJson "7")])])]])])]
+
 #guard match parseMachineModule ingestModule with
-  | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _] _ _], typeIgnores := #[] } => true
+  | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _ _] _ _], typeIgnores := #[] } => true
   | _ => false
 
 #guard match parseMachineModule ingestKwargModule with
@@ -1042,6 +1080,10 @@ private def ingestTypeIgnoreModule : Json :=
 
 #guard match parseMachineModule ingestTypeIgnoreModule with
   | .ok { body := #[], typeIgnores := #[(3, "[assignment]")] } => true
+  | _ => false
+
+#guard match parseMachineModule ingestContextModule with
+  | .ok { body := #[.assign #[.name "value" .store _] _ _], typeIgnores := #[] } => true
   | _ => false
 
 private def ingestAnnAssignModule : Json :=

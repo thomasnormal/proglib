@@ -396,6 +396,11 @@ def span(node):
     }
 
 
+def machine_context(node):
+    """Return CPython's expression-context constructor for machine AST data."""
+    return type(node.ctx).__name__
+
+
 def unparse_truncated(node):
     try:
         text = ast.unparse(node)
@@ -599,8 +604,10 @@ def convert_expr(node):
 
     if isinstance(node, ast.Starred):
         value = convert_expr(node.value)
-        return unsupported(node, "Starred", machine_kind="Starred",
-                           machine_value_marker=value)
+        out = unsupported(node, "Starred", machine_kind="Starred",
+                          machine_value_marker=value)
+        out["machine_context"] = machine_context(node)
+        return out
 
     if isinstance(node, ast.Await):
         return {
@@ -712,7 +719,8 @@ def convert_expr(node):
         return {"kind": "Constant", "span": span(node), "value": const}
 
     if isinstance(node, ast.Name):
-        return {"kind": "Name", "span": span(node), "id": node.id}
+        return {"kind": "Name", "span": span(node), "id": node.id,
+                "machine_context": machine_context(node)}
 
     if isinstance(node, ast.BinOp):
         op = type(node.op).__name__
@@ -820,6 +828,7 @@ def convert_expr(node):
             if isinstance(node.ctx, ast.Load):
                 out = unsupported(node, "Starred:display", machine_kind=type(node).__name__)
                 out["machine_elts"] = [convert_expr(e) for e in node.elts]
+                out["machine_context"] = machine_context(node)
                 return out
             # Store/Del is an assignment or `for` TARGET — position 2 of the
             # design, deliberately NOT landed. It must be refused as a WHOLE
@@ -829,11 +838,16 @@ def convert_expr(node):
             # `ValueError: too many values to unpack (expected 2)` where
             # CPython binds `x = 1, y = [2, 3]` — MEASURED, a wrong answer
             # rather than a loud one, and fixed here.
-            return unsupported(node, "Starred:target")
+            out = unsupported(node, "Starred:target")
+            out["machine_kind"] = type(node).__name__
+            out["machine_elts"] = [convert_expr(e) for e in node.elts]
+            out["machine_context"] = machine_context(node)
+            return out
         return {
             "kind": type(node).__name__,
             "span": span(node),
             "elts": [convert_expr(e) for e in node.elts],
+            "machine_context": machine_context(node),
         }
 
     if isinstance(node, ast.Set):
@@ -870,13 +884,15 @@ def convert_expr(node):
         }
 
     if isinstance(node, ast.Attribute):
-        # `obj.attr` — structured (H0). Store/Del contexts arrive through
-        # Assign/Delete targets; representation is context-free here.
+        # `obj.attr` — structured (H0). Keep CPython's expression context in
+        # the machine payload even though the compatibility projection uses
+        # the surrounding statement to choose its lvalue operation.
         return {
             "kind": "Attribute",
             "span": span(node),
             "value": convert_expr(node.value),
             "attr": node.attr,
+            "machine_context": machine_context(node),
         }
 
     if isinstance(node, ast.Subscript):
@@ -891,6 +907,7 @@ def convert_expr(node):
                 "kind": "Slice",
                 "span": span(node),
                 "value": convert_expr(node.value),
+                "machine_context": machine_context(node),
             }
             # Components are emitted only when present in the source —
             # envelopes mirror CPython's ast (ingestion fills the absent
@@ -909,6 +926,7 @@ def convert_expr(node):
             "span": span(node),
             "value": convert_expr(node.value),
             "index": convert_expr(sl),
+            "machine_context": machine_context(node),
         }
 
     if isinstance(node, ast.DictComp):
