@@ -101,6 +101,12 @@ structure RFunction where
   localNames : List String := []
 deriving Repr, Inhabited, BEq
 
+structure RClass where
+  id : Nat := 0
+  name : String
+  attrs : REnv := []
+deriving Repr, Inhabited, BEq
+
 structure RModule where
   body : Array RStmt
 deriving Repr, Inhabited, BEq
@@ -198,6 +204,7 @@ inductive RKont where
       (positionalValues : List RVal) (keywordValues : List (String × RVal))
       (continuation : RKont)
   | callReturn (continuation : RKont)
+  | classDef (name : String) (remaining : List RStmt)
   | attributeValue (attr : String) (continuation : RKont)
   | compareLeft (op : CmpOp) (right : Expr) (continuation : RKont)
   | compareRight (left : RVal) (op : CmpOp) (continuation : RKont)
@@ -238,6 +245,8 @@ structure RConfig where
   modules : List (String × REnv)
   functions : List RFunction
   nextFunctionId : Nat
+  classes : List RClass
+  nextClassId : Nat
   builtins : List String
   choices : List RChoice
   choiceToken : Option Nat
@@ -251,6 +260,8 @@ def RConfig.initial (program : RModule) : RConfig :=
     modules := [("__main__", [])]
     functions := []
     nextFunctionId := 0
+    classes := []
+    nextClassId := 0
     builtins := ["print", "abs", "len"]
     choices := []
     choiceToken := none
@@ -299,6 +310,8 @@ def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFra
       (.callable (rFunctionToken function.id))
     functions := function :: config.functions
     nextFunctionId := max config.nextFunctionId (function.id + 1)
+    classes := config.classes
+    nextClassId := config.nextClassId
     builtins := config.builtins
     choices := config.choices
     choiceToken := config.choiceToken
@@ -381,6 +394,33 @@ def rFunctionByToken : List RFunction → String → Option RFunction
   | function :: rest, token =>
       if rFunctionToken function.id == token then some function
       else rFunctionByToken rest token
+
+def rClassToken (id : Nat) : String :=
+  "__machine_class:" ++ String.ofList (List.replicate id 'x')
+
+def rClassByToken : List RClass → String → Option RClass
+  | [], _ => none
+  | cls :: rest, token =>
+      if rClassToken cls.id == token then some cls
+      else rClassByToken rest token
+
+def rClassBodySupported : List RStmt → Bool
+  | [] => true
+  | .pass _ :: rest => rClassBodySupported rest
+  | .assign (.name _ _) _ _ :: rest => rClassBodySupported rest
+  | _ => false
+
+def rFinishClass (config : RConfig) (classFrame : RFrame) (tail : List RFrame)
+    (name : String) (remaining : List RStmt) : Option RConfig :=
+  match tail with
+  | caller :: rest =>
+      let cls : RClass := { id := config.nextClassId, name := name, attrs := classFrame.locals }
+      some { config with
+        frames := { caller with control := .statements remaining } :: rest
+        modules := rSetModule config.modules caller.module name (.callable (rClassToken cls.id))
+        classes := cls :: config.classes
+        nextClassId := config.nextClassId + 1 }
+  | [] => none
 
 def rBuiltin (builtins : List String) (name : String) : Option RVal :=
   if name ∈ builtins then some (.callable name) else none
@@ -1401,7 +1441,28 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .importFrom _ _ _ _ =>
               some (.event (.refuse "machine import-from"), config.finish (.refuse "machine import-from"))
           | .classDef _ _ _ _ _ _ =>
-              some (.event (.refuse "machine class"), config.finish (.refuse "machine class"))
+              match stmt with
+              | .classDef name bases keywords decorators body _ =>
+                  if bases.isEmpty && keywords.isEmpty && decorators.isEmpty
+                      && rClassBodySupported body.toList then
+                    match config.frames with
+                    | _ :: tail =>
+                        let classFrame : RFrame :=
+                          { control := .statements body.toList
+                            locals := []
+                            globals := frame.globals
+                            module := frame.module
+                            completion := some (.classDef name rest)
+                            globalNames := []
+                            nonlocalNames := []
+                            localNames := [] }
+                        some (.tau, { config with frames := classFrame :: frame :: tail })
+                    | [] => none
+                  else
+                    some (.event (.refuse "machine class"),
+                      config.finish (.refuse "machine class"))
+              | _ => some (.event (.refuse "machine class"),
+                  config.finish (.refuse "machine class"))
           | .withStmt _ _ _ _ =>
               some (.event (.refuse "machine with"), config.finish (.refuse "machine with"))
           | .tryStmt _ _ _ _ _ =>
@@ -1564,6 +1625,14 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue _ .discardValue => some (.tau, config.setControl (.statements []))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
+      | .continueValue _ (.classDef name remaining) =>
+          match config.frames with
+          | classFrame :: tail =>
+              match rFinishClass config classFrame tail name remaining with
+              | some next => some (.tau, next)
+              | none => some (.event (.refuse "machine class stack"),
+                  config.finish (.refuse "machine class stack"))
+          | [] => none
       | .continueValue value (.assignSubscriptReceiver receiver index remaining) =>
           some (.tau, config.setControl
             (.evaluate receiver (.assignSubscriptIndex value index remaining)))
@@ -1613,7 +1682,17 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue receiver (.attributeValue attr continuation) =>
           match rLookupAttribute config.heap receiver attr with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
-          | none => some (.tau, config.setControl (.refusing "machine attribute"))
+          | none =>
+              match receiver with
+              | .callable token =>
+                  match rClassByToken config.classes token with
+                  | some cls =>
+                      match rLookupEnv cls.attrs attr with
+                      | some value =>
+                          some (.tau, config.setControl (.continueValue value continuation))
+                      | none => some (.tau, config.setControl (.refusing "machine attribute"))
+                  | none => some (.tau, config.setControl (.refusing "machine attribute"))
+              | _ => some (.tau, config.setControl (.refusing "machine attribute"))
       | .continueValue left (.compareLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.compareRight left op continuation)))
       | .continueValue right (.compareRight left op continuation) =>

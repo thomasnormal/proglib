@@ -56,11 +56,13 @@ dispatch, and caller resumption on return. Each `def` receives a stable
 function-value token, so aliases continue to call the original object after
 the defining name is rebound. Its checked row defines `read`, mutates a module
 global, then calls `read` so the callee observes the new value. Keyword
-arguments, defaults, closures, and class values remain refusals until their
-own cases land. Static local-name tracking raises `UnboundLocalError` for a
-read or delete before assignment. Rows cover globals, definition order,
-redefinition identity, shadowing, nested calls, and defaults evaluated at
-definition time. The current deletion candidates that exist are
+arguments, defaults, and closures remain refusals until their own cases land.
+Minimal classes with no bases, decorators, keywords, or unsupported body
+statements now retain class attributes. Instantiation and inheritance remain
+refusals. Static local-name tracking raises `UnboundLocalError` for a read or
+delete before assignment. Rows cover globals, definition order, redefinition
+identity, shadowing, nested calls, and defaults evaluated at definition time.
+The current deletion candidates that exist are
 `LeanModels/Python/Json.lean:parseFunctionDefn`,
 `LeanModels/Python/Semantics.lean:findFunction`,
 `LeanModels/Python/Semantics.lean:globalCallEnv`, and
