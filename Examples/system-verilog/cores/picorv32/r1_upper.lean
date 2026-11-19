@@ -67,6 +67,42 @@ theorem picorv32_auipc_class_commit (state : ArchState) (memory : Memory) :
   exact rvMachineWith_auipc cv32e40pProfile state memory auipcWord 3
     0x12345000 upper_decodes.2
 
+/-! The raw upper-immediate fields determine the exact architectural step.
+    LUI and AUIPC retain their distinct decoder operands in these bridges. -/
+
+theorem picorv32_lui_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (rd : Reg) (imm : Word)
+    (hfields : observation.luiFields state input word rd imm) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (luiNext state rd imm, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.alu .add rd (.reg 0) (.imm imm)) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_lui profile state memory word rd imm hdecode
+
+theorem picorv32_auipc_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (rd : Reg) (imm : Word)
+    (hfields : observation.auipcFields state input word rd imm) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (auipcNext state rd imm, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.alu .add rd .pc (.imm imm)) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_auipc profile state memory word rd imm hdecode
+
+#print axioms picorv32_lui_fields_isa_step
+#print axioms picorv32_auipc_fields_isa_step
+
 /-! These wrappers connect exact loaded-core execution and decoder premises to
     the indexed dispatcher.  The raw upper boundary remains an explicit
     premise, so neither the source step nor the RVFI observation is inferred
