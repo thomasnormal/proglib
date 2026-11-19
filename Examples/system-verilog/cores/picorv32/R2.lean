@@ -97,6 +97,8 @@ obligation:
   condition-indexed decoded witness.
   `r1_alu` provides the ten register-register ALU consumers through one
   operation-indexed decoded witness.
+  `r1_alu_imm` provides the nine remaining immediate ALU consumers through
+  the same operation-indexed witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
