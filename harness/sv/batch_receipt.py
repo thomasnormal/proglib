@@ -113,6 +113,9 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("parameterized_size_cast.sv", "parameterized_size_cast_canonical_e",
             (Port("x", 8),), (Port("y", 2),),
             (Point("W2", (2,)), Point("W12", (12,)))),
+    Fixture("parameterized_constant_cast_e.sv", "parameterized_constant_cast_e",
+            (Port("x", 4),), (Port("y", 4),),
+            (Point("N1", (1,)), Point("N4", (4,)))),
     Fixture("packed_shift_register.sv", "packed_shift_register_canonical_e",
             (Port("clk", 1, clock=True), Port("v", 1)), (Port("q", 4),),
             (Point("N4", (4,)), Point("N8", (8,)))),
@@ -732,6 +735,8 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
     if fixture.top == "parameterized_size_cast_canonical_e" and point.args \
             and port.name == "y":
         return point.args[0]
+    if fixture.top == "parameterized_constant_cast_e" and point.args:
+        return point.args[0]
     if fixture.top == "packed_shift_register_canonical_e" and point.args \
             and port.name == "q":
         return point.args[0]
@@ -826,6 +831,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "memory_edge_loop": ("W", "N"),
             "parameterized_unpacked_storage": ("N",),
             "parameterized_size_cast_canonical_e": ("W",),
+            "parameterized_constant_cast_e": ("N",),
             "packed_shift_register_canonical_e": ("N",),
             "generate_if_unpacked_array": ("N",),
             "generated_array_nested": ("W",),

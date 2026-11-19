@@ -8710,6 +8710,21 @@ def _convert_integral_cast(sm, expr):
     are measured."""
     source_width, _, source_reason = type_width_2s(expr.operand.type)
     target_width, two_state, target_reason = type_width_2s(expr.type)
+    # A sized explicit cast can have an INT-class parameter or localparam as
+    # its operand (`DepthW'(Depth)`, IEEE 1800-2023 §§6.24, 11.8.2).  The
+    # target width is point-dependent, so slang's default-point folded
+    # literal would freeze the wrong value.  Reuse the symbolic conversion
+    # node used by implicit context conversions and let canonical E apply the
+    # target context at each parameter point.
+    if (_SYM is not None and source_reason is None and target_reason is None
+            and source_width is not None and target_width is not None
+            and source_width > 0 and target_width > 0
+            and expr.type.isIntegral and not expr.operand.type.isSigned
+            and type(expr.operand).__name__ == "NamedValueExpression"):
+        symbolic = _sym_conversion(sm, expr, source_width, target_width,
+                                   two_state and expr.operand.type.isFourState)
+        if symbolic is not None and symbolic.get("kind") != "Unsupported":
+            return symbolic
     if (_SYM is not None and source_reason is None and target_reason is None
             and target_width is not None and target_width > 0
             and expr.type.isIntegral):

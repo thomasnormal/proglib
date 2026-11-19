@@ -85,6 +85,17 @@ class SymbolicParamWidths(unittest.TestCase):
         k = [p for p in module["params"] if p["name"] == "K"][0]
         self.assertEqual(k["type"]["packed"][0]["msb"]["kind"], "Binary")
 
+    def test_explicit_size_cast_of_int_parameter_stays_symbolic(self):
+        module = self.extract(
+            "module top #(parameter int unsigned N = 4)"
+            " (input logic [N-1:0] x, output logic [N-1:0] y);"
+            " localparam int unsigned W = N; assign y = W'(N); endmodule")
+        value = module["processes"][0]["value"]
+        self.assertEqual(value["kind"], "Resize")
+        self.assertEqual(value["operand"]["kind"], "ParamRef")
+        self.assertEqual(value["operand"]["name"], "N")
+        self.assertFalse(find(module, lambda n: n.get("kind") == "Unsupported"))
+
     def test_scalar_package_parameters_stay_qualified(self):
         module = self.extract(
             "package pk; parameter int W = 4; endpackage "
