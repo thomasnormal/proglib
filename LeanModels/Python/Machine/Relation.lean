@@ -171,6 +171,12 @@ inductive RKont where
       (remaining : List RStmt)
   | augAssignLeft (name : String) (op : BinOp) (value : Expr) (remaining : List RStmt)
   | augAssignRight (left : RVal) (name : String) (op : BinOp) (remaining : List RStmt)
+  | augAssignAttributeReceiver (attr : String) (op : BinOp) (value : Expr)
+      (remaining : List RStmt)
+  | augAssignAttributeValue (receiver : RVal) (attr : String) (op : BinOp)
+      (value : Expr) (remaining : List RStmt)
+  | augAssignAttributeRight (receiver : RVal) (attr : String) (left : RVal)
+      (op : BinOp) (remaining : List RStmt)
   | assignSubscriptReceiver (receiver : Expr) (index : Expr) (remaining : List RStmt)
   | assignSubscriptIndex (value : RVal) (index : Expr) (remaining : List RStmt)
   | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
@@ -1416,6 +1422,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl
                 (.evaluate (.name name span)
                   (.augAssignLeft name op value rest)))
+          | .augAssign (.attribute receiver attr _) op value _ =>
+              some (.tau, config.setControl
+                (.evaluate receiver (.augAssignAttributeReceiver attr op value rest)))
           | .augAssign _ _ _ _ =>
               some (.event (.refuse "machine augmented assignment target"),
                 config.finish (.refuse "machine augmented assignment target"))
@@ -1725,6 +1734,43 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           match rEvalBinOp op left right with
           | .ok result =>
               some (.tau, rAssignName config frame name result remaining)
+          | .exn _ => some (.tau, config.setControl (.refusing "machine augmented assignment"))
+          | .unsupported reason => some (.tau, config.setControl (.refusing reason))
+          | .timeout => some (.tau, config.setControl (.refusing "machine augmented assignment"))
+      | .continueValue receiver (.augAssignAttributeReceiver attr op value remaining) =>
+          match receiver with
+          | .callable token =>
+              match rClassByToken config.classes token with
+              | some cls =>
+                  match rLookupEnv cls.attrs attr with
+                  | some left => some (.tau, config.setControl
+                      (.continueValue left
+                        (.augAssignAttributeValue receiver attr op value remaining)))
+                  | none =>
+                      let error : RError := { errorClass := .attribute, args := [] }
+                      some (.event (.raise error), config.finish (.raise error))
+              | none =>
+                  let error : RError := { errorClass := .attribute, args := [] }
+                  some (.event (.raise error), config.finish (.raise error))
+          | _ =>
+              let error : RError := { errorClass := .attribute, args := [] }
+              some (.event (.raise error), config.finish (.raise error))
+      | .continueValue left (.augAssignAttributeValue receiver attr op value remaining) =>
+          some (.tau, config.setControl
+            (.evaluate value (.augAssignAttributeRight receiver attr left op remaining)))
+      | .continueValue right (.augAssignAttributeRight receiver attr left op remaining) =>
+          match rEvalBinOp op left right with
+          | .ok result =>
+              match receiver with
+              | .callable token =>
+                  match rUpdateClassAttr config.classes token attr result with
+                  | some classes =>
+                      some (.tau, { config with classes := classes }.setControl
+                        (.statements remaining))
+                  | none => some (.tau, config.setControl
+                      (.refusing "machine augmented attribute assignment"))
+              | _ => some (.tau, config.setControl
+                  (.refusing "machine augmented attribute assignment"))
           | .exn _ => some (.tau, config.setControl (.refusing "machine augmented assignment"))
           | .unsupported reason => some (.tau, config.setControl (.refusing reason))
           | .timeout => some (.tau, config.setControl (.refusing "machine augmented assignment"))
