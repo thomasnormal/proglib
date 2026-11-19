@@ -653,5 +653,10 @@
     "source": "harness/scripts/machine_nonlocal_mutation.py",
     "envelope": "harness/scripts/machine_nonlocal_mutation.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_function_alias_rebind.py",
+    "envelope": "harness/scripts/machine_function_alias_rebind.json",
+    "expect": "match"
   }
 ]

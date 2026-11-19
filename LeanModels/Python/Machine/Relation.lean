@@ -84,6 +84,10 @@ inductive RStmt where
 deriving Repr, Inhabited, BEq
 
 structure RFunction where
+  /-- Stable identity for a function value.  CPython binds the object created
+  by each `def`, so an alias keeps that object when the defining name is
+  rebound later. -/
+  id : Nat := 0
   name : String
   params : Array RParam
   defaults : Array Expr := #[]
@@ -230,6 +234,7 @@ structure RConfig where
   heap : Heap
   modules : List (String × REnv)
   functions : List RFunction
+  nextFunctionId : Nat
   builtins : List String
   choices : List RChoice
   choiceToken : Option Nat
@@ -242,6 +247,7 @@ def RConfig.initial (program : RModule) : RConfig :=
     heap := #[]
     modules := [("__main__", [])]
     functions := []
+    nextFunctionId := 0
     builtins := ["print", "abs", "len"]
     choices := []
     choiceToken := none
@@ -260,6 +266,9 @@ def RConfig.setTop (config : RConfig) (frame : RFrame) : RConfig :=
 def rSetEnv (env : REnv) (name : String) (value : RVal) : REnv :=
   (name, value) :: env.filter (fun binding => binding.1 != name)
 
+def rFunctionToken (id : Nat) : String :=
+  "__machine_fn:" ++ String.ofList (List.replicate id 'x')
+
 def rSetModule : List (String × REnv) → String → String → RVal → List (String × REnv)
   | [], module, name, value => [(module, [(name, value)])]
   | (current, env) :: rest, module, name, value =>
@@ -267,9 +276,9 @@ def rSetModule : List (String × REnv) → String → String → RVal → List (
         (current, rSetEnv env name value) :: rest
       else (current, env) :: rSetModule rest module name value
 
-def rDefinedFrame (frame : RFrame) (name : String) (remaining : List RStmt) : RFrame :=
+def rDefinedFrame (frame : RFrame) (name : String) (id : Nat) (remaining : List RStmt) : RFrame :=
   { control := .statements remaining
-    locals := rSetEnv frame.locals name (.callable name)
+    locals := rSetEnv frame.locals name (.callable (rFunctionToken id))
     globals := frame.globals
     module := frame.module
     cells := frame.cells
@@ -280,10 +289,12 @@ def rDefinedFrame (frame : RFrame) (name : String) (remaining : List RStmt) : RF
 def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFrame)
     (function : RFunction) (remaining : List RStmt) : RConfig :=
   { program := config.program
-    frames := rDefinedFrame frame function.name remaining :: tail
+    frames := rDefinedFrame frame function.name function.id remaining :: tail
     heap := config.heap
-    modules := rSetModule config.modules frame.module function.name (.callable function.name)
+    modules := rSetModule config.modules frame.module function.name
+      (.callable (rFunctionToken function.id))
     functions := function :: config.functions
+    nextFunctionId := max config.nextFunctionId (function.id + 1)
     builtins := config.builtins
     choices := config.choices
     choiceToken := config.choiceToken
@@ -360,6 +371,12 @@ def rFunction : List RFunction → String → Option RFunction
   | [], _ => none
   | function :: rest, name =>
       if function.name == name then some function else rFunction rest name
+
+def rFunctionByToken : List RFunction → String → Option RFunction
+  | [], _ => none
+  | function :: rest, token =>
+      if rFunctionToken function.id == token then some function
+      else rFunctionByToken rest token
 
 def rBuiltin (builtins : List String) (name : String) : Option RVal :=
   if name ∈ builtins then some (.callable name) else none
@@ -912,7 +929,32 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     Option (RLabel × RConfig) :=
   match callee with
   | .callable name =>
-      if name.startsWith "__machine_dict_get:" then
+      match rFunctionByToken config.functions name with
+      | some function =>
+                let builtKwargs :=
+                  if keywords.isEmpty then (config.heap, none)
+                  else
+                    match rKeywordVariadicName function.params.toList with
+                    | some _ =>
+                        let allocated := rBuildKwargs config.heap keywords
+                        (allocated.1, some allocated.2)
+                    | none => (config.heap, none)
+                match config.frames with
+                | caller :: tail =>
+                    match rCallFrame function values keywords builtKwargs.2 with
+                    | some calleeFrame =>
+                        let pushed := { calleeFrame with control :=
+                          (.resourceChoice .framePush (.statements function.body.toList)) }
+                        let resumed := { caller with
+                          control := .continueValue .none (.callReturn continuation) }
+                        let updated := { config with heap := builtKwargs.1 }
+                        some (.tau, { updated with frames := pushed :: resumed :: tail })
+                    | none =>
+                        let error : RError := { errorClass := .type, args := [] }
+                        some (.event (.raise error), config.finish (.raise error))
+                | _ => some (.event (.refuse "machine call stack"),
+                    config.finish (.refuse "machine call stack"))
+      | none => if name.startsWith "__machine_dict_get:" then
         match (name.drop "__machine_dict_get:".length).toNat?, values with
         | some address, [key] =>
             let result := (rLookupDict config.heap (.ref address) key).getD .none
@@ -1357,11 +1399,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                       config.finish (.refuse "machine default expression"))
                   | some defaultValues =>
                       let defaultValues := defaultValues.toArray
-                      let captured := rCaptureLocals config.heap current
+                      let captured :=
+                        if tail.isEmpty then (config.heap, current, [])
+                        else rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
                       let function :=
-                        { name := name, params := params, defaults := defaults,
+                        { id := config.nextFunctionId, name := name, params := params, defaults := defaults,
                           defaultValues := defaultValues, keywordDefaultValues := #[], body := body,
                           globals := current.module, captured := captured.2.2,
                           globalNames := scopeNames.1, nonlocalNames := scopeNames.2 }
@@ -1375,11 +1419,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                       rEvalKeywordDefaultValuesIn config current keywordDefaults.toList with
                   | some defaultValues, some keywordDefaultValues =>
                       let defaultValues := defaultValues.toArray
-                      let captured := rCaptureLocals config.heap current
+                      let captured :=
+                        if tail.isEmpty then (config.heap, current, [])
+                        else rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
                       let function :=
-                        { name := name, params := params, defaults := defaults,
+                        { id := config.nextFunctionId, name := name, params := params, defaults := defaults,
                           defaultValues := defaultValues,
                           keywordDefaultValues := keywordDefaultValues.toArray,
                           body := body, globals := current.module, captured := captured.2.2,

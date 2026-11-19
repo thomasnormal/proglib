@@ -52,12 +52,14 @@ decides it and agrees with CPython. A refusal is reported separately.
 
 The current machine B resolver has a live `__main__` namespace, local-first then
 module lookup, function values in that namespace, positional call-frame
-dispatch, and caller resumption on return. Its checked row defines `read`,
-mutates a module global, then calls `read` so the callee observes the new
-value. Keyword arguments, defaults, closures, redefinition identity, and
-class values remain refusals until their own cases land. Rows cover globals,
-definition order, redefinition, shadowing, nested calls, and defaults
-evaluated at definition time. The current deletion candidates that exist are
+dispatch, and caller resumption on return. Each `def` receives a stable
+function-value token, so aliases continue to call the original object after
+the defining name is rebound. Its checked row defines `read`, mutates a module
+global, then calls `read` so the callee observes the new value. Keyword
+arguments, defaults, closures, and class values remain refusals until their
+own cases land. Rows cover globals, definition order, redefinition identity,
+shadowing, nested calls, and defaults evaluated at definition time. The current
+deletion candidates that exist are
 `LeanModels/Python/Json.lean:parseFunctionDefn`,
 `LeanModels/Python/Semantics.lean:findFunction`,
 `LeanModels/Python/Semantics.lean:globalCallEnv`, and
@@ -94,7 +96,7 @@ is claimed for an absent symbol.
 
 `Main.lean` exposes `--relation-script-batch` and runs the machine decoder and
 relation frontier. The harnesses print
-`MACHINE-REL scripts decided/166` and `MACHINE-REL cases decided/5033`, with
+`MACHINE-REL scripts decided/167` and `MACHINE-REL cases decided/5033`, with
 divergence counts, and fail on divergence or runner and unit expectation
 errors. These are coverage measurements, not parity claims for refused rows.
 
