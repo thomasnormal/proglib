@@ -126,8 +126,7 @@ def torScalarSize : CType → Option Nat
   | "intptr_t" | "uintptr_t" => some 8
   | "int64_t" | "uint64_t" => some 8
   | "__int128" | "unsigned __int128" | "__uint128_t" => some 16
-  | t => if t.endsWith "*"
-         then some 8 else none
+  | _ => none
 
 /-- `T[N]` → `(T, N)`. Constant nested arrays are walked from the outermost
 extent inward; variable extents still return `none`. -/
