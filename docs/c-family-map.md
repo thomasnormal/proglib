@@ -208,7 +208,7 @@ The accepted F2 storage contract is [c-f2-object-memory-design.md](c-f2-object-m
 
 ## F1 exit state
 
-**F1 exit-state audit (2026-11-19).** `CType` remains an alias of `String`, but qualification stripping, parser-native pointer admission, and structured array-shape fallbacks have been removed from the active semantic paths. The live checker reports six remaining operations. One is the legacy scalar pointer-size suffix in `torScalarSize`, and four are the isolated `arrayOf` parser operations used only by legacy size/alignment and element tables. The sixth is the `CType` alias itself. Parser-native declaration and recursive `QualType` observations now supply pointer shape, fixed-array shape, array element type, element stride, record identity, member offsets, extents, bit-field facts, flexible-array markers, and nested anonymous-record identity. Missing observations refuse loudly. The full registered differential battery is 41 MATCH / 80 REFUSE / 0 DIVERGE. The array deletion price is 24 DIVERGEs on legacy envelopes covering designated initialization, nested arrays, pointer arithmetic, compound literals, and array members, so the legacy `arrayOf` fallback remains until those envelopes gain parser-carried shape facts. F1 is not released until the remaining six findings are removed and the full survey reaches the stated threshold.
+**F1 exit-state audit (2026-11-19).** `CType` remains an alias of `String`, but qualification stripping, parser-native pointer admission, and structured array-shape fallbacks have been removed from the active semantic paths. The live checker reports five remaining operations. Four are the isolated `arrayOf` parser operations used only by legacy size/alignment and element tables, and one is the `CType` alias itself. Parser-native declaration and recursive `QualType` observations now supply pointer shape, fixed-array shape, array element type, element stride, record identity, member offsets, extents, bit-field facts, flexible-array markers, and nested anonymous-record identity. Missing observations refuse loudly. The full registered differential battery is 38 MATCH / 83 REFUSE / 0 DIVERGE. Removing the `sizeAlign` array branch costs 24 DIVERGEs, while removing only the `Layout.elem` branch costs 17 DIVERGEs on legacy envelopes covering designated initialization, nested arrays, pointer arithmetic, compound literals, and array members. Removing the pointer-size suffix costs 29 DIVERGEs before those rows are converted to explicit parser-observation refusals. F1 is not released until the remaining five findings are removed and the full survey reaches the stated threshold.
 
 F1 is not released. `LeanModels/C/Ast.lean` still defines `abbrev CType :=
 String`, and type fields, layout interfaces, and memory effective-type fields
@@ -236,7 +236,7 @@ decided by the parser-native library with differential coverage.
 
 **F1 type-string gate audit (2026-11-19).** `tools/check_c_type_strings.py`
 is the repeatable gate for the five C type paths. Its self-test passes and the
-live audit reports six findings. The parser-native effective-type, pointer,
+live audit reports five findings. The parser-native effective-type, pointer,
 qualification, record-identity, and array-shape families are covered by
 focused rows. The remaining `torScalarSize` pointer suffix and `arrayOf`
 operations are legacy fallbacks whose deletion currently causes measured
@@ -245,7 +245,7 @@ until the checker reaches zero and the full survey is at least 1326/2214 with
 no DIVERGE.
 
 **Focused differential receipt (2026-11-19).** The committed `harness/c_cases.json`
-battery without optional probes reports 41 MATCH, 80 REFUSE, and 0 DIVERGE
+battery without optional probes reports 38 MATCH, 83 REFUSE, and 0 DIVERGE
 against pinned Clang 21.1.8. The refusal rows name missing optional parser
 observations for function-pointer layouts, floating literal bits, pointee
 strides, and anonymous bit-field layouts. The receipt is a focused battery,
