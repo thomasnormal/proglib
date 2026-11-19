@@ -540,6 +540,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_function_type_comment_boundary.py",
+    "envelope": "harness/scripts/machine_function_type_comment_boundary.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/machine_set_boundary.py",
     "envelope": "harness/scripts/machine_set_boundary.json",
     "expect": "unsupported"

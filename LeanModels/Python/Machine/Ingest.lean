@@ -110,9 +110,9 @@ inductive MStmt where
   | forTypeComment (target : MExpr) (iter : MExpr) (body : Array MStmt)
       (orelse : Array MStmt) (isAsync : Bool) (typeComment : String) (span : Span)
   | functionDef (name : String) (args : MArguments) (decorators : Array MExpr)
-      (returns : Option MExpr) (body : Array MStmt) (span : Span)
+      (returns : Option MExpr) (typeComment : Option String) (body : Array MStmt) (span : Span)
   | asyncFunctionDef (name : String) (args : MArguments) (decorators : Array MExpr)
-      (returns : Option MExpr) (body : Array MStmt) (span : Span)
+      (returns : Option MExpr) (typeComment : Option String) (body : Array MStmt) (span : Span)
   | classDef (name : String) (bases : Array MExpr) (keywords : Array (String × MExpr))
       (decorators : Array MExpr) (body : Array MStmt) (span : Span)
   | classDefNode (name : String) (bases : Array MExpr)
@@ -574,10 +574,13 @@ partial def mStmt (j : Json) : Except String MStmt := do
       let bodyJson ← mField j "body"
       let bodyArray ← bodyJson.getArr?
       let body ← bodyArray.mapM mStmt
+      let typeComment ← match j.getObjVal? "machine_type_comment" with
+        | .ok .null | .error _ => pure none
+        | .ok value => some <$> value.getStr?
       match j.getObjVal? "machine_kind" with
       | .ok (.str "AsyncFunctionDef") =>
-          pure (.asyncFunctionDef name args decorators returns body span)
-      | _ => pure (.functionDef name args decorators returns body span)
+          pure (.asyncFunctionDef name args decorators returns typeComment body span)
+      | _ => pure (.functionDef name args decorators returns typeComment body span)
   | "Global" => pure (.global (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Nonlocal" => pure (.nonlocal (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Break" => pure (.brk span)
@@ -666,8 +669,8 @@ private def mStmtKind : MStmt → String
   | .whileStmt _ _ _ _ => "While"
   | .forStmt _ _ _ _ isAsync _ => if isAsync then "AsyncFor" else "For"
   | .forTypeComment _ _ _ _ isAsync _ _ => if isAsync then "AsyncFor" else "For"
-  | .functionDef _ _ _ _ _ _ => "FunctionDef"
-  | .asyncFunctionDef _ _ _ _ _ _ => "AsyncFunctionDef"
+  | .functionDef _ _ _ _ _ _ _ => "FunctionDef"
+  | .asyncFunctionDef _ _ _ _ _ _ _ => "AsyncFunctionDef"
   | .classDef _ _ _ _ _ _ => "ClassDef"
   | .classDefNode _ _ _ _ _ _ => "ClassDef"
   | .import _ _ => "Import"
@@ -690,8 +693,8 @@ private def mStmtSpan : MStmt → Span
   | .annAssign _ _ _ _ span | .augAssign _ _ _ span | .ret _ span | .delete _ span
   | .deleteSubscript _ _ span | .deleteAttribute _ _ span | .ifStmt _ _ _ span
   | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span
-  | .forTypeComment _ _ _ _ _ _ span | .functionDef _ _ _ _ _ span
-  | .asyncFunctionDef _ _ _ _ _ span
+  | .forTypeComment _ _ _ _ _ _ span | .functionDef _ _ _ _ _ _ span
+  | .asyncFunctionDef _ _ _ _ _ _ span
   | .classDef _ _ _ _ _ span | .classDefNode _ _ _ _ _ span
   | .import _ span | .importFrom _ _ _ span
   | .global _ span | .nonlocal _ span | .raise _ _ span | .assertStmt _ _ span
@@ -853,7 +856,7 @@ private def mStmtExpressions : MStmt → Array MExpr
   | .deleteAttribute receiver _ _ => #[receiver]
   | .ifStmt test _ _ _ | .whileStmt test _ _ _ => #[test]
   | .forStmt target iter _ _ _ _ | .forTypeComment target iter _ _ _ _ _ => #[target, iter]
-  | .functionDef _ args decorators returns _ _ =>
+  | .functionDef _ args decorators returns _ _ _ =>
       let argExprs := args.positionalOnly ++ args.positional ++ args.keywordOnly
       let argAnnotations := argExprs.filterMap (·.annotation)
       let argDefaults := argExprs.filterMap (·.default)
@@ -862,7 +865,7 @@ private def mStmtExpressions : MStmt → Array MExpr
       let kwarg := args.kwarg.toArray.flatMap argPayload
       decorators ++ returns.toArray ++ args.defaults ++ args.kwDefaults.filterMap id ++
         argAnnotations ++ argDefaults ++ vararg ++ kwarg
-  | .asyncFunctionDef _ args decorators returns _ _ =>
+  | .asyncFunctionDef _ args decorators returns _ _ _ =>
       let argExprs := args.positionalOnly ++ args.positional ++ args.keywordOnly
       let argAnnotations := argExprs.filterMap (·.annotation)
       let argDefaults := argExprs.filterMap (·.default)
@@ -983,7 +986,7 @@ partial def mStmtToStmtClean : MStmt → RStmt
         .forStmt (mExprToExpr target) (mExprToExpr iter)
           (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
   | .forTypeComment _ _ _ _ _ _ span => .raw "ForTypeComment" #[] span
-  | .functionDef name args decorators returns body span =>
+  | .functionDef name args decorators returns _ body span =>
       if !decorators.isEmpty || returns.isSome then
         .functionDefFull name (mParams args) (args.defaults.map mExprToExpr)
           (decorators.map mExprToExpr) (returns.map mExprToExpr)
@@ -994,7 +997,7 @@ partial def mStmtToStmtClean : MStmt → RStmt
       else
         .functionDefKw name (mParams args) (args.defaults.map mExprToExpr)
           (args.kwDefaults.map (·.map mExprToExpr)) (body.map mStmtToStmt) span
-  | .asyncFunctionDef _ _ _ _ _ span =>
+  | .asyncFunctionDef _ _ _ _ _ _ span =>
       .raw "AsyncFunctionDef" #[] span
   | .global names span => .global names span
   | .nonlocal names span => .nonlocal names span
@@ -1089,7 +1092,7 @@ private def ingestConstantKindModule : Json :=
   | _ => false
 
 #guard match parseMachineModule ingestKwargModule with
-  | .ok { body := #[.functionDef _ args _ _ _ _], typeIgnores := #[] } =>
+  | .ok { body := #[.functionDef _ args _ _ _ _ _], typeIgnores := #[] } =>
       args.kwarg.any (·.typeComment == some "dict[str, int]")
   | _ => false
 
@@ -1157,11 +1160,28 @@ private def ingestFunctionMetadata : Json :=
         ("decorator_list", Lean.Json.arr #[ingestName "deco"]),
         ("returns", ingestName "int"), ("body", Lean.Json.arr #[])]] )])]
 
+private def ingestFunctionTypeCommentModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [
+    ("kind", Lean.toJson "Module"),
+    ("body", Lean.Json.arr #[Lean.Json.mkObj [
+      ("kind", Lean.toJson "FunctionDef"), ("span", ingestSpan),
+      ("name", Lean.toJson "identity"), ("args", Lean.Json.arr #[]),
+      ("machine_type_comment", Lean.toJson "() -> int"),
+      ("body", Lean.Json.arr #[])]] )])]
+
 #guard match parseMachineModule ingestFunctionMetadata with
   | .ok module =>
       match (compileMachineModule module).body.toList with
       | [.functionDefFull "decorated" #[] #[] #[.name "deco" _]
           (some (.name "int" _)) #[] _] => true
+      | _ => false
+  | _ => false
+
+#guard match parseMachineModule ingestFunctionTypeCommentModule with
+  | .ok module =>
+      match module.body.toList with
+      | [.functionDef "identity" args #[] none (some "() -> int") #[] _] =>
+          args.positional.isEmpty && args.positionalOnly.isEmpty
       | _ => false
   | _ => false
 
