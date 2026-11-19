@@ -326,7 +326,8 @@ theorem rvfiStep_ok_iff_step_and_decode
 def CoreAddiBoundary
     (d : LeanModels.Sv.Kernel.CoreMemDesign)
     (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
-    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (arch : LeanModels.Rv.ArchState)
+    (input : LeanModels.Refine.Input)
     (word : LeanModels.Refine.Word) (rd rs1 : LeanModels.Rv.Reg)
     (imm : LeanModels.Refine.Word) : Prop :=
   ∃ next : CoreMemState, ∃ observation : RvfiObservation,
@@ -788,6 +789,169 @@ theorem CoreMemBoundary.to_rv32i_boundary
 
 #print axioms CoreMemBoundary.to_rv32i_boundary
 
+/-! The family-tagged boundary keeps the source parser witness alongside the
+    exact canonical step.  It is the composition point for the loaded
+    all-family dispatcher.  Each constructor names its own family boundary,
+    while the projection below is the only place that turns those cases into
+    the mixed `Rv32iBoundary`. -/
+
+inductive CoreRv32iBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (memoryState : LeanModels.Refine.RvMemoryState) : Prop where
+  | alu (instruction : LeanModels.Refine.AluInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.alu instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.aluBoundary memoryState.arch input instruction.word
+        instruction.op instruction.rd instruction.src1 instruction.src2)
+  | branch (instruction : LeanModels.Refine.BranchInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.branch instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.branchBoundary memoryState.arch input instruction.word
+        instruction.cond instruction.rs1 instruction.rs2 instruction.offset)
+  | jump (instruction : LeanModels.Refine.JumpInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.jump instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.jumpBoundary memoryState.arch input instruction)
+  | memory (instruction : LeanModels.Refine.MemInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.memory instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.memBoundary memoryState.arch input instruction.word
+        instruction.kind instruction.r instruction.rs1 instruction.imm)
+  | fence (instruction : LeanModels.Refine.FenceInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.fence instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.fenceBoundary memoryState.arch input instruction.word
+        instruction.kind)
+  | system (instruction : LeanModels.Refine.SystemInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.system instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.systemBoundary memoryState.arch input instruction.word
+        instruction.kind)
+  | csr (instruction : LeanModels.Refine.CsrInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.csr instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.csrBoundary memoryState.arch input instruction.word
+        instruction.row instruction.kind)
+  | trap (instruction : LeanModels.Refine.TrapInstruction)
+      (next : CoreMemState) (observation : RvfiObservation)
+      (hinput : input = LeanModels.Refine.rv32iProgramInput memoryState
+        (.trap instruction))
+      (hrun : rvfiStep d st entry = .ok (next, observation))
+      (hboundary : observation.illegalBoundary memoryState.arch input instruction.wordOf)
+
+theorem CoreRv32iBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {input : LeanModels.Refine.Input}
+    {memoryState : LeanModels.Refine.RvMemoryState}
+    (h : CoreRv32iBoundary d st entry arch input memoryState) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      ∃ instruction : LeanModels.Refine.Rv32iInstruction,
+        input = LeanModels.Refine.rv32iProgramInput memoryState instruction ∧
+        LeanModels.Refine.Rv32iBoundary memoryState.arch input observation
+          (LeanModels.Refine.rv32iProgramStep memoryState instruction)
+          (LeanModels.Refine.rv32iProgramRetirement memoryState instruction) := by
+  cases h with
+  | alu instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreAluBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .alu instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.aluProgramInput,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+  | branch instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreBranchBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .branch instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.branchProgramInput,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+  | jump instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreJumpBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .jump instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.jumpProgramInput,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+  | memory instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreMemBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .memory instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.memProgramInput, LeanModels.Refine.memProgramStep,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+  | fence instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreFenceBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .fence instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.fenceProgramInput,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+  | system instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreSystemBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .system instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.systemProgramInput,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+  | csr instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreCsrBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .csr instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.csrProgramInput,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+  | trap instruction next observation hinput hrun hboundary =>
+      obtain ⟨next', observation', hrun', hrvfi⟩ :=
+        CoreIllegalBoundary.to_rv32i_boundary
+          (d := d) (st := st) (entry := entry)
+          ⟨next, observation, hrun, hboundary⟩
+      exact ⟨next', observation', hrun', .trap instruction, hinput, by
+        simpa [hinput, LeanModels.Refine.rv32iProgramInput,
+          LeanModels.Refine.trapProgramInput,
+          LeanModels.Refine.rv32iProgramStep,
+          LeanModels.Refine.rv32iProgramRetirement] using hrvfi⟩
+
+#print axioms CoreRv32iBoundary.to_rv32i_boundary
+
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
@@ -827,6 +991,7 @@ theorem CoreAddiBoundary.to_addi_invariant_valid_branch
           memory := input.memory } := by
   rcases h with ⟨next, observation, hrun, hboundary⟩
   exact ⟨next, observation, hrun, hboundary, hpost next observation hrun⟩
+
 
 #print axioms rvfiPortSample_read
 #print axioms rvfiObservation_memAddr_of_valid

@@ -144,6 +144,11 @@ obligation:
   exact loaded-core step premise to the mixed cycle obligation. It retains the
   decoded instruction, input, order, indexed post-state, retirement, and
   relation continuation in one contract.
+  `rvfi_core_adapter.CoreRv32iBoundary` is the family-tagged composition
+  boundary for that premise.  Its
+  `CoreRv32iBoundary.to_rv32i_boundary` projection converts each retained
+  ALU, branch, jump, memory, fence, system, CSR, or trap witness to the
+  corresponding mixed boundary while preserving the exact canonical step.
   `r1_rv32i.picorv32_loaded_rv32i_program_refinement_of_total` packages the
   same all-family program refinement directly from a total canonical
   `rvfiStep` witness, constructing the exact loaded machine while retaining
