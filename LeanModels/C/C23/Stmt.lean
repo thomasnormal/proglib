@@ -294,7 +294,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         -- `union ...` spelling (`union u0[4]`).  §6.7.11 applies the array
         -- walk first; treating the whole declarator as a union loses the
         -- element initializers and reports a fabricated missing member.
-        if (ctx.layout.elemDeclAt declaration initTy).isNone && ctx.layout.isUnion initTy then
+        if (ctx.layout.elemDeclAt declaration initTy).isNone && ctx.layout.isUnionDeclAt declaration initTy then
           match ctx.layout.membersDeclAt declaration initTy, inits with
           | some _, [] => zeroInit fuel ctx p initTy declaration
           | some ms, e :: _ =>
