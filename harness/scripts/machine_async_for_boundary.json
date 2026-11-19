@@ -1,0 +1,127 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_async_for_boundary.py",
+  "source_sha256": "9cf2937f95ef49b658cc715c79147b060e3794cc9ca6f0adf2950aa5f0d9a7a2",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 12
+        },
+        "name": "run",
+        "args": [
+          {
+            "arg": "values",
+            "span": {
+              "lineno": 1,
+              "col_offset": 14,
+              "end_lineno": 1,
+              "end_col_offset": 20
+            }
+          }
+        ],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "AsyncFor",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 3,
+              "end_col_offset": 12
+            },
+            "target": {
+              "kind": "Name",
+              "span": {
+                "lineno": 2,
+                "col_offset": 14,
+                "end_lineno": 2,
+                "end_col_offset": 19
+              },
+              "id": "value"
+            },
+            "iter": {
+              "kind": "Name",
+              "span": {
+                "lineno": 2,
+                "col_offset": 23,
+                "end_lineno": 2,
+                "end_col_offset": 29
+              },
+              "id": "values"
+            },
+            "body": [
+              {
+                "kind": "Pass",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 8,
+                  "end_lineno": 3,
+                  "end_col_offset": 12
+                }
+              }
+            ],
+            "orelse": []
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 5,
+          "end_col_offset": 8
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 5,
+            "col_offset": 0,
+            "end_lineno": 5,
+            "end_col_offset": 8
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 0,
+              "end_lineno": 5,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 5,
+                "col_offset": 6,
+                "end_lineno": 5,
+                "end_col_offset": 7
+              },
+              "value": {
+                "type": "int",
+                "repr": "0"
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

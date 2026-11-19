@@ -523,5 +523,15 @@
     "source": "harness/scripts/machine_while_raw_boundary.py",
     "envelope": "harness/scripts/machine_while_raw_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_async_for_boundary.py",
+    "envelope": "harness/scripts/machine_async_for_boundary.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_async_with_boundary.py",
+    "envelope": "harness/scripts/machine_async_with_boundary.json",
+    "expect": "match"
   }
 ]

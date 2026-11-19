@@ -2280,6 +2280,23 @@ def convert_stmt(node, enclosing=None, module_scope=False,
                                          func_scope=func_scope),
         }
 
+    if isinstance(node, ast.AsyncFor):
+        # Keep the CPython async-for node shape intact.  The machine tier
+        # currently refuses async iteration, but must see its target,
+        # iterable, body, and else suite rather than a source-text marker.
+        return {
+            "kind": "AsyncFor",
+            "span": span(node),
+            "target": convert_expr(node.target),
+            "iter": convert_expr(node.iter),
+            "body": convert_stmt_list(node.body, enclosing=enclosing,
+                                       module_scope=module_scope,
+                                       func_scope=func_scope),
+            "orelse": convert_stmt_list(node.orelse, enclosing=enclosing,
+                                         module_scope=module_scope,
+                                         func_scope=func_scope),
+        }
+
     if isinstance(node, ast.If):
         return {
             "kind": "If",
@@ -2309,6 +2326,23 @@ def convert_stmt(node, enclosing=None, module_scope=False,
         # explicitly loud construct below.
         return {
             "kind": "With",
+            "span": span(node),
+            "items": [
+                {
+                    "context": convert_expr(item.context_expr),
+                    "target": (convert_expr(item.optional_vars)
+                               if item.optional_vars is not None else None),
+                }
+                for item in node.items
+            ],
+            "body": convert_stmt_list(node.body, enclosing=enclosing,
+                                       module_scope=module_scope,
+                                       func_scope=func_scope),
+        }
+    if isinstance(node, ast.AsyncWith):
+        # Preserve each async withitem and the body as structured AST data.
+        return {
+            "kind": "AsyncWith",
             "span": span(node),
             "items": [
                 {
