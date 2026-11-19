@@ -62,16 +62,193 @@ inductive AggValue where
   | unknown (ty : AggType)
 deriving Inhabited
 
-/-! An untouched aggregate is represented compactly as `.unknown ty`.  A
-member write materializes that type-shaped value so the write preserves the
-unknown value of every sibling field.  The source-shaped aggregate remains a
-single cell throughout this operation. -/
+/-! An assignment pattern is kept as a value-level node until its destination
+type is known.  This is the correspondence rule of IEEE 1800-2023 §10.9.
+The evaluator below deliberately handles only source-shaped positional,
+keyed/default, and replicated patterns.  A missing field or cell receives the
+destination type's four-state unknown value, while duplicate or out-of-range
+keys refuse loudly. -/
+
+inductive AggPattern where
+  | value (value : Val)
+  | positional (elements : List AggPattern)
+  | keyed (fields : List (String × AggPattern)) (default : Option AggPattern)
+  | indexed (cells : List (Int × AggPattern)) (default : Option AggPattern)
+  | replicated (count : Nat) (element : AggPattern)
+deriving Inhabited
+
+def AggPattern.coerce (ty : VType) (value : Val) : AggValue :=
+  .scalar (Val.ofLVec ty value.bits)
+
+def AggPattern.unknown (ty : AggType) : AggValue :=
+  .unknown ty
+
+def AggPattern.lookupKey (name : String) : List (String × AggPattern) → Option AggPattern
+  | [] => none
+  | (key, pat) :: rest => if key == name then some pat else lookupKey name rest
+
+def AggPattern.hasKey (name : String) : List (String × AggPattern) → Bool
+  | [] => false
+  | (key, _) :: rest => key == name || hasKey name rest
+
+def AggPattern.keysUnique : List (String × AggPattern) → Bool
+  | [] => true
+  | (key, _) :: rest => !hasKey key rest && keysUnique rest
+
+def AggPattern.lookupIndex (index : Int) : List (Int × AggPattern) → Option AggPattern
+  | [] => none
+  | (key, pat) :: rest => if key == index then some pat else lookupIndex index rest
+
+def AggPattern.hasIndex (index : Int) : List (Int × AggPattern) → Bool
+  | [] => false
+  | (key, _) :: rest => key == index || hasIndex index rest
+
+def AggPattern.indicesUnique : List (Int × AggPattern) → Bool
+  | [] => true
+  | (index, _) :: rest => !hasIndex index rest && indicesUnique rest
 
 def AggType.rangeValues (msb lsb : Int) : List Int :=
   if lsb ≤ msb then
     (List.range ((msb - lsb + 1).toNat)).map (fun (n : Nat) => lsb + (n : Int))
   else
     (List.range ((lsb - msb + 1).toNat)).map (fun (n : Nat) => lsb - (n : Int))
+
+def AggPattern.keysInFields : List (String × AggType) → List (String × AggPattern) → Bool
+  | _, [] => true
+  | fields, (key, _) :: rest =>
+      fields.any (fun p => p.1 == key) && keysInFields fields rest
+
+def AggPattern.indicesInRange (msb lsb : Int) : List (Int × AggPattern) → Bool
+  | [] => true
+  | (index, _) :: rest =>
+      AggType.inRange msb lsb index && indicesInRange msb lsb rest
+
+@[simp] def AggPattern.scalarValues : List AggPattern → Option (List Val)
+  | [] => some []
+  | .value val :: rest => scalarValues rest |>.map (fun values => val :: values)
+  | _ :: _ => none
+
+def materializeArrayScalarValues : AggType → List Int → List Val → Except String AggValue
+  | .scalar _, [], [] => .ok (.array [])
+  | .scalar ty, index :: indices, value :: values => do
+      let tail ← materializeArrayScalarValues (.scalar ty) indices values
+      match tail with
+      | .array cells => .ok (.array ((index, AggPattern.coerce ty value) :: cells))
+      | _ => .error "assignment pattern internal scalar array shape mismatch"
+  | _, _, _ => .error "assignment pattern replication requires scalar array elements"
+
+def materializeArrayValues (elem : AggType) (indices : List Int) (patterns : List AggPattern) :
+    Except String AggValue :=
+  match elem with
+  | .scalar ty =>
+      match AggPattern.scalarValues patterns with
+      | some values => materializeArrayScalarValues (.scalar ty) indices values
+      | none => .error "assignment pattern array elements must be scalar values"
+  | _ => .error "assignment pattern nested array or struct element is outside the admitted fragment"
+
+def materializeArrayKeyedValues (indices : List Int) (elem : AggType)
+    (setters : List (Int × AggPattern)) (default? : Option AggPattern) : Except String AggValue :=
+  match elem with
+  | .scalar ty =>
+      match indices with
+      | [] => .ok (.array [])
+      | index :: rest =>
+          let pattern := (AggPattern.lookupIndex index setters).orElse (fun _ => default?)
+          let value := match pattern with
+            | some (.value value) => some (AggPattern.coerce ty value)
+            | some _ => none
+            | none => some (AggPattern.unknown (.scalar ty))
+          match value with
+          | none => .error "assignment pattern array elements must be scalar values"
+          | some value => do
+              let tail ← materializeArrayKeyedValues rest (.scalar ty) setters default?
+              match tail with
+              | .array values => .ok (.array ((index, value) :: values))
+              | _ => .error "assignment pattern internal keyed array shape mismatch"
+  | _ => .error "assignment pattern nested array or struct element is outside the admitted fragment"
+
+mutual
+  def AggPattern.materialize : AggType → AggPattern → Except String AggValue
+    | .scalar ty, .value value => .ok (AggPattern.coerce ty value)
+    | .scalar ty, .keyed [] (some default) =>
+        AggPattern.materialize (.scalar ty) default
+    | .scalar _, _ => .error "assignment pattern does not match a scalar destination"
+    | .struct fields, .positional elements =>
+        if elements.length != fields.length then
+          .error "assignment pattern positional field count mismatch"
+        else materializeStruct fields elements
+    | .struct fields, .keyed setters default? =>
+        if !AggPattern.keysUnique setters then
+          .error "assignment pattern contains a duplicate field key"
+        else if !AggPattern.keysInFields fields setters then
+          .error "assignment pattern contains an unknown field key"
+        else materializeStructKeyed fields setters default?
+    | .struct _, .indexed _ _ => .error "indexed assignment pattern requires an array destination"
+    | .struct _, .value _ => .error "assignment pattern value does not match a struct destination"
+    | .struct _, .replicated _ _ => .error "assignment pattern replication requires an array destination"
+    | .array msb lsb elem, .positional elements =>
+        let indices := AggType.rangeValues msb lsb
+        if elements.length != indices.length then
+          .error "assignment pattern positional array count mismatch"
+        else materializeArrayValues elem indices elements
+    | .array msb lsb elem, .indexed setters default? =>
+        if !AggPattern.indicesUnique setters then
+          .error "assignment pattern contains a duplicate array key"
+        else if !AggPattern.indicesInRange msb lsb setters then
+          .error "assignment pattern contains an out-of-range array key"
+        else materializeArrayKeyedValues (AggType.rangeValues msb lsb) elem setters default?
+    | .array _ _ _, .value _ => .error "assignment pattern value does not match an array destination"
+    | .array _ _ _, .keyed _ _ => .error "named assignment pattern requires a struct destination"
+    | .array msb lsb elem, .replicated count pattern =>
+        let indices := AggType.rangeValues msb lsb
+        if count == 0 || indices.length % count != 0 then
+          .error "assignment pattern replication does not cover the array"
+        else
+          let groupSize := indices.length / count
+          match pattern with
+          | .value value => materializeArrayScalarValues elem indices (List.replicate indices.length value)
+          | .positional elements =>
+              if elements.length != groupSize then
+                .error "assignment pattern replicated group count mismatch"
+              else
+                match AggPattern.scalarValues elements with
+                | some values => materializeArrayScalarValues elem indices
+                    (List.flatten (List.replicate count values))
+                | none => .error "assignment pattern replication requires scalar elements"
+          | _ => .error "assignment pattern replicated element is not positional"
+  termination_by ty pattern => sizeOf ty + sizeOf pattern
+
+  def materializeStruct : List (String × AggType) → List AggPattern → Except String AggValue
+    | [], [] => .ok (.struct [])
+    | (name, ty) :: fields, pattern :: patterns => do
+        let value ← AggPattern.materialize ty pattern
+        let tail ← materializeStruct fields patterns
+        match tail with
+        | .struct values => .ok (.struct ((name, value) :: values))
+        | _ => .error "assignment pattern internal struct shape mismatch"
+    | _, _ => .error "assignment pattern internal struct arity mismatch"
+  termination_by fields patterns => sizeOf fields + sizeOf patterns
+
+  def materializeStructKeyed : List (String × AggType) → List (String × AggPattern) →
+      Option AggPattern → Except String AggValue
+    | [], _, _ => .ok (.struct [])
+    | (name, ty) :: fields, setters, default? => do
+        let pattern := (AggPattern.lookupKey name setters).orElse (fun _ => default?)
+        let value ← match pattern, ty with
+          | none, _ => .ok (AggPattern.unknown ty)
+          | some (.value raw), .scalar scalarTy => .ok (AggPattern.coerce scalarTy raw)
+          | some _, _ => .error "assignment pattern keyed field is not a scalar value"
+        let tail ← materializeStructKeyed fields setters default?
+        match tail with
+        | .struct values => .ok (.struct ((name, value) :: values))
+        | _ => .error "assignment pattern internal keyed struct shape mismatch"
+  termination_by fields setters default => sizeOf fields + sizeOf setters + sizeOf default
+end
+
+/-! An untouched aggregate is represented compactly as `.unknown ty`.  A
+member write materializes that type-shaped value so the write preserves the
+unknown value of every sibling field.  The source-shaped aggregate remains a
+single cell throughout this operation. -/
 
 def AggValue.read? : AggValue → AggPath → Option Val
   | .scalar value, [] => some value
@@ -269,5 +446,48 @@ private def aggregateStore : AggStore :=
   | some updated => (updated.read? { decl := 0 } [.field "value"] |>.map
       (fun v => v.bits.toBinString)) == some "0010"
   | none => false
+
+private def patternPairTy : AggType :=
+  .struct [("a", .scalar wordTy), ("b", .scalar wordTy), ("c", .scalar wordTy)]
+
+private def patternArrayTy : AggType := .array 0 3 (.scalar wordTy)
+
+private def patternXz : Val := Val.ofLVec wordTy (LVec.lit "xz01")
+
+private def aggregateBits? (value : AggValue) (path : AggPath) : Option String :=
+  (value.read? path).map (fun v => v.bits.toBinString)
+
+#guard match AggPattern.materialize patternPairTy
+    (.keyed [("b", .value (wordVal 2)), ("a", .value (wordVal 1))] none) with
+  | .ok value =>
+      aggregateBits? value [.field "a"] == some "0001" &&
+      aggregateBits? value [.field "b"] == some "0010"
+  | .error _ => false
+
+#guard match AggPattern.materialize patternPairTy
+    (.keyed [("a", .value (wordVal 1))] none) with
+  | .ok value => aggregateBits? value [.field "c"] == some "xxxx"
+  | .error _ => false
+
+#guard match AggPattern.materialize patternPairTy
+    (.keyed [("a", .value (wordVal 1))] (some (.value (wordVal 9)))) with
+  | .ok value => aggregateBits? value [.field "b"] == some "1001"
+  | .error _ => false
+
+#guard match AggPattern.materialize patternArrayTy
+    (.replicated 2 (.value (wordVal 5))) with
+  | .ok value =>
+      aggregateBits? value [.index 0] == some "0101" &&
+      aggregateBits? value [.index 3] == some "0101"
+  | .error _ => false
+
+#guard match AggPattern.materialize patternPairTy
+    (.keyed [("a", .value (wordVal 1)), ("a", .value (wordVal 2))] none) with
+  | .error _ => true
+  | .ok _ => false
+
+#guard match AggPattern.materialize (.scalar wordTy) (.value patternXz) with
+  | .ok value => aggregateBits? value [] == some "xz01"
+  | .error _ => false
 
 end LeanModels.Sv.Kernel
