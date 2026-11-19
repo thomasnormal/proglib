@@ -407,7 +407,7 @@
   {
     "source": "harness/scripts/machine_delete_attribute.py",
     "envelope": "harness/scripts/machine_delete_attribute.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_raise_boundary.py",
@@ -712,6 +712,26 @@
   {
     "source": "harness/scripts/machine_class_method_annotation.py",
     "envelope": "harness/scripts/machine_class_method_annotation.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_class_instance.py",
+    "envelope": "harness/scripts/machine_class_instance.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_instance_args.py",
+    "envelope": "harness/scripts/machine_class_instance_args.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_instance_attribute_delete.py",
+    "envelope": "harness/scripts/machine_instance_attribute_delete.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_constructor.py",
+    "envelope": "harness/scripts/machine_class_constructor.json",
     "expect": "unsupported"
   }
 ]

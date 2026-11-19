@@ -60,8 +60,10 @@ arguments, defaults, and closures remain refusals until their own cases land.
 Minimal classes with no bases, decorators, keywords, or unsupported body
 statements now retain mutable class attributes, including later assignments
 and deletion through a class value. Plain methods without decorators or
-annotations are also stored as callable class attributes. Missing class attributes raise
-`AttributeError`. Instantiation and inheritance remain refusals. Static
+annotations are also stored as callable class attributes. No-argument
+instantiation creates an instance with mutable attributes and class fallback.
+Missing attributes raise `AttributeError`, while inheritance and constructor
+arguments remain outside this slice. Static
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
