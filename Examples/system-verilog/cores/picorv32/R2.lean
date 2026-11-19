@@ -90,6 +90,9 @@ obligation:
   `r1_upper.picorv32_lui_loaded_rv32i_boundary_of_step` and
   `picorv32_auipc_loaded_rv32i_boundary_of_step` provide the corresponding
   LUI and AUIPC consumers through the decoded upper-immediate witness.
+  `r1_jump.picorv32_jal_loaded_rv32i_boundary_of_step` and
+  `picorv32_jalr_loaded_rv32i_boundary_of_step` provide the corresponding
+  JAL and JALR consumers through the decoded jump witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.

@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiJump
+import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
 # PicoRV32 R1 jump class
@@ -21,6 +22,16 @@ theorem jump_decodes :
     Fetched.decode (.word jalWord) = some (.jump 1 .pc 8) ∧
     Fetched.decode (.word jalrWord) = some (.jump 1 (.reg 0) 0x100) := by
   decide
+
+def jalInstruction : JumpInstruction :=
+  { word := jalWord
+    kind := .jal 1 8
+    decode := jump_decodes.1 }
+
+def jalrInstruction : JumpInstruction :=
+  { word := jalrWord
+    kind := .jalr 1 0 0x100
+    decode := jump_decodes.2 }
 
 theorem picorv32_jal_class_step (state : ArchState) (memory : Memory) :
     isaStepMemWith cv32e40pProfile state memory (.word jalWord) 0 =
@@ -51,6 +62,61 @@ theorem picorv32_jalr_class_commit (state : ArchState) (memory : Memory) :
           { fetched := .word jalrWord, memory := memory, irq := 0 } 1 0 0x100) := by
   exact rvMachineWith_jalr cv32e40pProfile state memory jalrWord 1 0 0x100
     jump_decodes.2
+
+/-! These wrappers connect exact loaded-core execution and decoder premises to
+    the indexed dispatcher.  JAL and JALR retain distinct raw boundaries while
+    sharing one decoded jump-family witness. -/
+
+theorem picorv32_jal_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation}
+    {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.jalBoundary arch input jalWord 1 8) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry =
+      .ok (next', observation') ∧
+      Rv32iBoundary arch input observation'
+        { arch := jalNext arch 1 8, memory := input.memory }
+        (jalRetirement arch input 1 8) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by
+    rw [d.fastStepCanonical_eq_step]
+    exact hstep
+  have hjump : rvfi_core_adapter.CoreJumpBoundary d st entry arch input
+      jalInstruction := by
+    refine ⟨next, observation,
+      rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [jalInstruction, RvfiObservation.jumpBoundary] using hboundary
+  simpa [jalInstruction, JumpKind.next, JumpKind.retirement] using
+    hjump.to_rv32i_boundary
+
+theorem picorv32_jalr_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation}
+    {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.jalrBoundary arch input jalrWord 1 0 0x100) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry =
+      .ok (next', observation') ∧
+      Rv32iBoundary arch input observation'
+        { arch := jalrNext arch 1 0 0x100, memory := input.memory }
+        (jalrRetirement arch input 1 0 0x100) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by
+    rw [d.fastStepCanonical_eq_step]
+    exact hstep
+  have hjump : rvfi_core_adapter.CoreJumpBoundary d st entry arch input
+      jalrInstruction := by
+    refine ⟨next, observation,
+      rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [jalrInstruction, RvfiObservation.jumpBoundary] using hboundary
+  simpa [jalrInstruction, JumpKind.next, JumpKind.retirement] using
+    hjump.to_rv32i_boundary
+
+#print axioms picorv32_jal_loaded_rv32i_boundary_of_step
+#print axioms picorv32_jalr_loaded_rv32i_boundary_of_step
 
 #print axioms picorv32_jal_class_step
 #print axioms picorv32_jal_class_commit

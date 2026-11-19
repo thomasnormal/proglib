@@ -2,6 +2,7 @@ import Examples.«system-verilog».cores.picorv32.R2
 import Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary
 import LeanModels.Sv.Kernel.CoreMemFast
 import LeanModels.Refine.RvfiUpperMixed
+import LeanModels.Refine.RvfiJumpMixed
 
 /-!
 # PicoRV32 canonical-E RVFI state adapter
@@ -469,6 +470,36 @@ theorem CoreUpperBoundary.to_rv32i_boundary
   exact LeanModels.Refine.RvfiObservation.upperBoundary_rv32i instruction hboundary
 
 #print axioms CoreUpperBoundary.to_rv32i_boundary
+
+/-! Jump rows retain their decoded JAL or JALR witness.  The indexed
+    projection preserves the selected target and link-register retirement. -/
+
+def CoreJumpBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (instruction : LeanModels.Refine.JumpInstruction) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.jumpBoundary arch input instruction
+
+theorem CoreJumpBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {instruction : LeanModels.Refine.JumpInstruction}
+    (h : CoreJumpBoundary d st entry arch input instruction) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.JumpKind.next arch instruction.kind,
+          memory := input.memory }
+        (LeanModels.Refine.JumpKind.retirement arch input instruction.kind) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  exact LeanModels.Refine.RvfiObservation.jumpBoundary_rv32i instruction hboundary
+
+#print axioms CoreJumpBoundary.to_rv32i_boundary
 
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
