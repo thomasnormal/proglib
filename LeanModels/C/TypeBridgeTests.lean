@@ -45,6 +45,10 @@ private def isError : Except String α → Bool
   (.pointer (.record {value := "record-1"})))
 #guard LeanModels.Clang.QualType.pointerObject
   (.qualified true false (.pointer (.cBuiltinKind .int)))
+#guard LeanModels.Clang.QualType.pointee
+  (.qualified true false (.pointer (.cBuiltinKind .int))) ==
+    some (.cBuiltinKind .int)
+#guard LeanModels.Clang.QualType.pointee (.cBuiltinKind .int) == none
 #guard LeanModels.Clang.QualType.arrayObject
   (.qualified false true (.array (.cBuiltinKind .int) (some 4)))
 #guard LeanModels.Clang.QualType.pointerOrArray

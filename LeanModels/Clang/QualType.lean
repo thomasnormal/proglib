@@ -194,4 +194,11 @@ def QualType.pointerObject : QualType → Bool
   | .qualified _ _ base => base.pointerObject
   | _ => false
 
+/-- Peel one parser-native pointer layer.  Qualification is transparent for
+the object type, while arrays remain distinct from pointers. -/
+def QualType.pointee : QualType → Option QualType
+  | .pointer pointee => some pointee
+  | .qualified _ _ base => base.pointee
+  | _ => none
+
 end LeanModels.Clang
