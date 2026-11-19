@@ -408,5 +408,10 @@
     "source": "harness/scripts/machine_delete_attribute.py",
     "envelope": "harness/scripts/machine_delete_attribute.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_raise_boundary.py",
+    "envelope": "harness/scripts/machine_raise_boundary.json",
+    "expect": "unsupported"
   }
 ]

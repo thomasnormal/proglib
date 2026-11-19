@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_raise_boundary.py",
+  "source_sha256": "1051c5628ecb226654010cd53eb0bd2f690b3c179a3e553cd6c1373e586d973d",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Raise",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 23
+        },
+        "exc": {
+          "kind": "Call",
+          "span": {
+            "lineno": 1,
+            "col_offset": 6,
+            "end_lineno": 1,
+            "end_col_offset": 23
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 6,
+              "end_lineno": 1,
+              "end_col_offset": 16
+            },
+            "id": "ValueError"
+          },
+          "args": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 1,
+                "col_offset": 17,
+                "end_lineno": 1,
+                "end_col_offset": 22
+              },
+              "value": {
+                "type": "str",
+                "value": "bad"
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

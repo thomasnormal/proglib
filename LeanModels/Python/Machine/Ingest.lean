@@ -291,6 +291,15 @@ partial def mStmt (j : Json) : Except String MStmt := do
       (← mExpr (← mField j "recv")) (← mExpr (← mField j "key")) span)
   | "DeleteAttribute" => pure (.deleteAttribute
       (← mExpr (← mField j "recv")) (← (← mField j "attr").getStr?) span)
+  | "Raise" =>
+      let exception ← match (← mField j "exc") with
+        | .null => pure none
+        | value => some <$> mExpr value
+      let cause ← match j.getObjVal? "cause" with
+        | .ok .null => pure none
+        | .ok value => some <$> mExpr value
+        | .error _ => pure none
+      pure (.raise exception cause span)
   | "UnpackAssign" => pure (.unpackAssign
       (← (← (← mField j "before").getArr?).mapM (·.getStr?))
       (← (← mField j "star").getStr?)
@@ -410,6 +419,8 @@ partial def mStmtToStmt : MStmt → RStmt
       .delete (.subscript (mExprToExpr receiver) (mExprToExpr index) span) span
   | .deleteAttribute receiver attr span =>
       .delete (.attribute (mExprToExpr receiver) attr span) span
+  | .raise exception cause span =>
+      .raise (exception.map mExprToExpr) (cause.map mExprToExpr) span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
@@ -429,7 +440,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .annAssign _ _ _ _ span
   | .classDef _ _ _ _ _ span | .import _ span
-  | .importFrom _ _ _ span | .raise _ _ span
+  | .importFrom _ _ _ span
   | .tryStmt _ _ _ _ span | .withStmt _ _ _ span | .brk span | .cont span =>
       .unsupported "machine statement" "machine ingestion frontier" span
 
