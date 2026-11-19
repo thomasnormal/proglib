@@ -58,7 +58,7 @@ def lhsRows : PLhs → List Row
   | _ => []
 
 partial def stmtRows : PStmt → List Row
-  | .localDecl _ _ init => init.toList.flatMap exprRows
+  | .localDecl _ _ init | .automaticDecl _ _ init => init.toList.flatMap exprRows
   | .blockingAssign _ e | .nbaAssign _ e => exprRows e
   | .blockingAssignL l e | .nbaAssignL l e => lhsRows l ++ exprRows e
   | .ifStmt c t e => exprRows c ++ stmtRows t ++ e.toList.flatMap stmtRows
