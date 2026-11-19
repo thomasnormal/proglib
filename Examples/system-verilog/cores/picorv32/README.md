@@ -2072,3 +2072,15 @@ binary testbench SHA-256
 `d68991c0b78a5dca544b905b37e490fbae20b7f577a6a6fe7998e2f55f41d800`.
 The normalized binary cycle-row SHA-256 is
 `ebd3e54471927fc1387e502ba0ef7f33026de7eb890bd75cbff89627d09cf5ef`.
+
+## 2026-11-19 R1 ADDI handoff
+
+The loaded-core R1 obligation is the `Rv32iAddiInvariant` consumed by
+`picorv32_addi_step_bridge` in `R2.lean`. Its valid-row premise is the exact
+`RvfiObservation.addiBoundary`, and its conclusion is the memory-threaded
+`addiNext` architectural step. `r1_addi.lean` checks the pinned loaded
+configuration, RVFI field widths, and the ADDI boundary-to-ISA equations used
+by that obligation. The 220-cycle E-RUN receipt now exercises this loaded
+configuration through canonical E, but it is an executable differential
+receipt. The universal loaded-core invariant proof remains the next theorem
+work and is not inferred from the finite receipt.
