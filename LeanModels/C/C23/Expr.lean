@@ -339,32 +339,7 @@ def intTyOfStructured : LeanModels.Clang.QualType → Option IntTy
       | .int128 => some IntTy.int128_
       | .uint128 => some IntTy.uint128
       | _ => none
-  | .cBuiltin name =>
-      match name with
-      | "char" | "signed char" => some IntTy.char_
-      | "unsigned char" => some IntTy.uchar
-      | "short" | "short int" => some IntTy.short_
-      | "unsigned short" | "unsigned short int" => some IntTy.ushort
-      | "int" | "signed int" => some IntTy.int_
-      | "unsigned" | "unsigned int" => some IntTy.uint
-      | "long" | "long int" => some IntTy.long_
-      | "unsigned long" | "unsigned long int" => some IntTy.ulong
-      | "long long" | "long long int" => some IntTy.long_
-      | "unsigned long long" | "unsigned long long int" => some IntTy.ulong
-      | "_Bool" | "bool" => some IntTy.bool_
-      | "int8_t" => some IntTy.char_
-      | "uint8_t" => some IntTy.uchar
-      | "int16_t" => some IntTy.short_
-      | "uint16_t" => some IntTy.ushort
-      | "int32_t" => some IntTy.int_
-      | "uint32_t" => some IntTy.uint
-      | "int64_t" => some IntTy.long_
-      | "uint64_t" => some IntTy.ulong
-      | "intptr_t" => some IntTy.long_
-      | "uintptr_t" => some IntTy.ulong
-      | "__int128" => some IntTy.int128_
-      | "unsigned __int128" | "__uint128_t" => some IntTy.uint128
-      | _ => none
+  | .cBuiltin _ => none
   | .enumeration _ => some IntTy.int_
   | _ => none
 
