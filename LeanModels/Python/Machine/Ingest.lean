@@ -27,6 +27,8 @@ inductive MExpr where
   | ifExp (test : MExpr) (body : MExpr) (orelse : MExpr) (span : Span)
   | call (func : MExpr) (args : Array MExpr) (keywords : Array (String × MExpr))
       (starargs : Array MExpr) (kwargs : Array MExpr) (span : Span)
+  | callNode (func : MExpr) (args : Array MExpr)
+      (keywords : Array (Option String × MExpr)) (span : Span)
   | attribute (value : MExpr) (attr : String) (span : Span)
   | subscript (value : MExpr) (slice : MExpr) (span : Span)
   | slice (value : MExpr) (lower : Option MExpr) (upper : Option MExpr)
@@ -219,17 +221,33 @@ partial def mExpr (j : Json) : Except String MExpr := do
       | none => pure (.unsupported kind span)
   | "Call" =>
       let func ← mExpr (← mField j "func")
-      let args ← (← (← mField j "args").getArr?).mapM mExpr
-      let keywords ← (← (← mField j "keywords").getArr?).mapM fun kw => do
-        let name ← (← mField kw "arg").getStr?
-        pure (name, ← mExpr (← mField kw "value"))
-      let starargs ← match j.getObjVal? "starargs" with
-        | .ok value => (← value.getArr?).mapM mExpr
-        | .error _ => pure #[]
-      let kwargs ← match j.getObjVal? "kwargs" with
-        | .ok value => (← value.getArr?).mapM mExpr
-        | .error _ => pure #[]
-      pure (.call func args keywords starargs kwargs span)
+      let machineArgs ← match j.getObjVal? "machine_args" with
+        | .ok value => some <$> (← value.getArr?).mapM mExpr
+        | .error _ => pure none
+      let machineKeywords ← match j.getObjVal? "machine_keywords" with
+        | .ok value => some <$> (← value.getArr?).mapM fun kw => do
+            let name ← match mField kw "arg" with
+              | .error _ => pure none
+              | .ok field => match field with
+                | .null => pure none
+                | .str value => pure (some value)
+                | _ => throw "machine keyword arg is not a string or null"
+            pure (name, ← mExpr (← mField kw "value"))
+        | .error _ => pure none
+      match machineArgs, machineKeywords with
+      | some args, some keywords => pure (.callNode func args keywords span)
+      | _, _ =>
+          let args ← (← (← mField j "args").getArr?).mapM mExpr
+          let keywords ← (← (← mField j "keywords").getArr?).mapM fun kw => do
+            let name ← (← mField kw "arg").getStr?
+            pure (name, ← mExpr (← mField kw "value"))
+          let starargs ← match j.getObjVal? "starargs" with
+            | .ok value => (← value.getArr?).mapM mExpr
+            | .error _ => pure #[]
+          let kwargs ← match j.getObjVal? "kwargs" with
+            | .ok value => (← value.getArr?).mapM mExpr
+            | .error _ => pure #[]
+          pure (.call func args keywords starargs kwargs span)
   | "IfExp" => pure (.ifExp (← mExpr (← mField j "test"))
       (← mExpr (← mField j "body")) (← mExpr (← mField j "orelse")) span)
   | "Compare" =>
@@ -292,6 +310,8 @@ partial def mExpr (j : Json) : Except String MExpr := do
           pure (.yieldExpr value span)
       | .ok (.str "YieldFrom") =>
           pure (.yieldFromExpr (← mExpr (← mField j "machine_value")) span)
+      | .ok (.str "Starred") =>
+          pure (.starred (← mExpr (← mField j "machine_value")) span)
       | _ => pure (.unsupported kind span)
   | "Lambda" =>
       let parseParam := fun param => do
@@ -568,6 +588,7 @@ partial def mExprToExpr : MExpr → Expr
       (mExprToExpr body) (mExprToExpr orelse) span
   | .call func args keywords _ _ span => .call (mExprToExpr func) (args.map mExprToExpr)
       (keywords.map fun (name, value) => (name, mExprToExpr value)) none span
+  | .callNode _ _ _ span => .unsupported "Call" "machine call frontier" span
   | .attribute value attr span => .attribute (mExprToExpr value) attr span
   | .subscript value slice span => .subscript (mExprToExpr value) (mExprToExpr slice) span
   | .slice value lower upper step span =>
@@ -608,6 +629,9 @@ partial def mExprToRaw : MExpr → RRawExpr
       .node "Call" ((#[mExprToRaw func]) ++ args.map mExprToRaw ++
         keywords.map (fun pair => mExprToRaw pair.2) ++ starargs.map mExprToRaw ++
         kwargs.map mExprToRaw) span
+  | .callNode func args keywords span =>
+      .node "Call" ((#[mExprToRaw func]) ++ args.map mExprToRaw ++
+        keywords.map (fun pair => mExprToRaw pair.2)) span
   | .attribute value _ span => .node "Attribute" #[mExprToRaw value] span
   | .subscript value index span => .node "Subscript" #[mExprToRaw value, mExprToRaw index] span
   | .slice value lower upper step span =>
@@ -671,6 +695,7 @@ partial def mExprHasRaw : MExpr → Bool
   | .call func args keywords starargs kwargs _ =>
       mExprHasRaw func || args.any mExprHasRaw || keywords.any (fun pair => mExprHasRaw pair.2) ||
         !starargs.isEmpty || !kwargs.isEmpty || starargs.any mExprHasRaw || kwargs.any mExprHasRaw
+  | .callNode _ _ _ _ => true
   | .attribute value _ _ => mExprHasRaw value
   | .subscript value index _ => mExprHasRaw value || mExprHasRaw index
   | .slice value lower upper step _ =>

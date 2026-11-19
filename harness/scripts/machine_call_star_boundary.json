@@ -139,7 +139,59 @@
             }
           ],
           "keywords": [],
-          "call_unsupported": null
+          "call_unsupported": null,
+          "machine_args": [
+            {
+              "kind": "Unsupported",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 13
+              },
+              "py_kind": "Starred",
+              "text": "*[1, 2]",
+              "machine_kind": "Starred",
+              "machine_value": {
+                "kind": "List",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 7,
+                  "end_lineno": 1,
+                  "end_col_offset": 13
+                },
+                "elts": [
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 8,
+                      "end_lineno": 1,
+                      "end_col_offset": 9
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 11,
+                      "end_lineno": 1,
+                      "end_col_offset": 12
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "2"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "machine_keywords": []
         }
       }
     ]
