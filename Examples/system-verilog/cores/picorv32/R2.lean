@@ -226,6 +226,10 @@ obligation:
   `r1_addi.picorv32_loaded_addi_exact_cycle_step_refines_of_total` derives
   that loaded consumer from a total canonical-step witness by constructing the
   exact RVFI machine through `CoreRvfiMachine.ofTotal`.
+  `r1_addi.picorv32_loaded_addi_program_refinement_of_total` packages the
+  same total-step ADDI obligation into the reset-specialized all-prefix
+  contract, retaining the loaded reset relation, schedule, and progress
+  premises.
   `r1_addi.picorv32_addi_class_preserves_reset_wf` carries the reset
   `ArchState.WF` fact through the pinned `addi x1, x0, 5` transition.
   `CoreAddiBoundary.to_rv32i_boundary` lifts each exact ADDI witness into the
