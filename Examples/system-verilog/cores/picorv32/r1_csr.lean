@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiCsr
+import Examples.«system-verilog».cores.picorv32.input_drive_core
 import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
@@ -13,7 +14,9 @@ and retirement boundaries are applied.
 namespace Examples.«system-verilog».cores.picorv32.r1_csr
 
 open LeanModels.Rv
+open LeanModels.Sv
 open LeanModels.Refine
+open Examples.«system-verilog».cores.picorv32
 
 def csrrwWord : Word := 0x340312f3
 def csrrsWord : Word := 0x30002073
@@ -196,6 +199,75 @@ theorem picorv32_csr_exact_cycle_step_refines
         horder, hrvfi, hnext⟩
 
 #print axioms picorv32_csr_exact_cycle_step_refines
+
+/-! The loaded CSR consumer packages one exact implemented Zicsr operation
+    into the reset-specialized all-prefix contract. -/
+
+theorem picorv32_loaded_csr_program_refinement_of_total
+    (core : PicoRV32LoadedCanonicalE)
+    (profile : PlatformProfile)
+    (program : Memory)
+    (initialArch : ArchState)
+    (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF)
+    (instruction : CsrInstruction)
+    (encode : LeanModels.Sv.Kernel.CoreMemState → Input → SvState)
+    (htotal : ∀ (state : LeanModels.Sv.Kernel.CoreMemState) (input : Input),
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core)
+              state (encode state input) = .ok (next, observation))
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core)
+              state (encode state input) = .ok (next, observation) ∧
+          (if observation.valid then
+            input = csrProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.csrBoundary memoryState.arch input instruction.word
+              instruction.row instruction.kind ∧
+            rel next
+              { arch := csrNext memoryState.arch instruction.row instruction.kind,
+                memory := memoryState.memory }
+          else rel next memoryState))
+    (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState),
+      PicoRV32ResetRelation
+        (PicoRV32LoadedCanonicalE.design core) program state memoryState →
+      rel state memoryState)
+    {schedule target : Nat → Input}
+    (hschedule : ∀ n, admit (schedule n))
+    (progress : Rv32iRetiresTarget
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal))
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal)).init
+      schedule target) :
+    ∃ machine : rvfi_core_adapter.CoreRvfiMachine
+        (PicoRV32LoadedCanonicalE.design core),
+      picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
+      Rv32iAllPrefixRefinement profile
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine)
+        rel 0
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine).init
+        { arch := initialArch, memory := program } schedule target := by
+  let machine := rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal
+  have hstep' := picorv32_csr_exact_cycle_step_refines machine instruction hstep
+  have hinitial : rel machine.toRvfiCycleMachine.init
+      { arch := initialArch, memory := program } :=
+    hrel _ _ (picoRV32_reset_relation_initial
+      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf)
+  refine ⟨machine, PicoRV32LoadedCanonicalE.loaded core, ?_⟩
+  exact rv32i_progress_refinement profile machine.toRvfiCycleMachine rel admit
+    hstep' 0 _ _ hinitial hschedule progress
+
+#print axioms picorv32_loaded_csr_program_refinement_of_total
 
 theorem picorv32_csrrw_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
