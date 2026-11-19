@@ -1010,6 +1010,21 @@ def extract(path, source_name=None, standard="c23"):
                 unify(child)
     unify(top)
 
+    # Preserve Clang's parser-native record tag decision even when the
+    # optional layout plugin is absent.  This is an AST fact, not a spelling
+    # interpretation, and lets the fallback distinguish anonymous unions.
+    record_kinds = []
+    def collect_record_kinds(node):
+        if isinstance(node, dict):
+            if node.get("kind") == "RecordDecl" and node.get("id") and node.get("tagUsed") in ("struct", "union"):
+                record_kinds.append({"decl_id": node["id"], "is_union": node["tagUsed"] == "union"})
+            for child in kids(node):
+                collect_record_kinds(child)
+        elif isinstance(node, list):
+            for child in node:
+                collect_record_kinds(child)
+    collect_record_kinds(tu)
+
     # Join parser-native TypeLayout observations to the owning VarDecl by
     # clang's AST declaration identity. The probe reports the same source
     # offset; this join is over parser nodes, never over a type spelling.
@@ -1095,6 +1110,7 @@ def extract(path, source_name=None, standard="c23"):
                              if r.get("element_size_bytes") is not None else {})}
                          for r in ex.type_layouts],
         "structured_types": structured_rows,
+        "record_kinds": record_kinds,
         "lean_blocks": [],
     }, ex.unsupported
 

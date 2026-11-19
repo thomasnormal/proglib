@@ -367,6 +367,8 @@ structure Envelope where
   externals : List External
   typeLayouts : List TypeLayout := []
   structuredTypes : List StructuredType := []
+  /-- Parser-native record tag facts keyed by declaration identity. -/
+  recordKinds : List (DeclarationId × Bool) := []
 deriving Repr, Inhabited
 
 /-- Parser-native structured type for a declaration occurrence. -/

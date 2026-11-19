@@ -310,7 +310,10 @@ def recordsOf (envl : Envelope) : List (String × List (String × CType) × Bool
         (fieldsOf fields).map (fun fs =>
           ((if layout.tagKind == "union" then "union " else "struct ") ++ nm, fs,
             layout.tagKind == "union"))
-    | .record _ (some nm) fields none _ =>
+    | .record (some rid) (some nm) fields none _ =>
+        (fieldsOf fields).map (fun fs =>
+          (nm, fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
+    | .record none (some nm) fields none _ =>
         (fieldsOf fields).map (fun fs => (nm, fs, false))
     | _ => none
   let anonymous := ds.filterMap fun d => match d with
@@ -318,7 +321,10 @@ def recordsOf (envl : Envelope) : List (String × List (String × CType) × Bool
         match ds.find? (fun q => match q with
           | .record id none _ _ _ => id == some rid
           | _ => false) with
-        | some (.record _ none fields _ _) =>
+        | some (.record (some rid) none fields _ _) =>
+            (fieldsOf fields).map (fun fs =>
+              (ty, fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
+        | some (.record none none fields _ _) =>
             (fieldsOf fields).map (fun fs => (ty, fs, false))
         | _ => none
     | _ => none
