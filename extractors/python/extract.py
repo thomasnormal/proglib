@@ -2521,6 +2521,27 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             "exc_names": exc_names,
             "handler": handler,
             "try_unsupported": ", ".join(reasons) if reasons else None,
+            # Machine ingestion receives the complete CPython Try node.  The
+            # compact fields above remain for the frozen interpreters, while
+            # this parallel structured view keeps every handler and suite.
+            "machine_handlers": [
+                {
+                    "type": (convert_expr(h.type)
+                             if h.type is not None else None),
+                    "name": h.name,
+                    "body": convert_stmt_list(h.body, enclosing=enclosing,
+                                               module_scope=module_scope,
+                                               func_scope=func_scope),
+                }
+                for h in node.handlers
+            ],
+            "machine_orelse": convert_stmt_list(node.orelse, enclosing=enclosing,
+                                                  module_scope=module_scope,
+                                                  func_scope=func_scope),
+            "machine_finalbody": convert_stmt_list(node.finalbody,
+                                                     enclosing=enclosing,
+                                                     module_scope=module_scope,
+                                                     func_scope=func_scope),
         }
 
     if isinstance(node, ast.Expr) and isinstance(node.value, ast.YieldFrom):
