@@ -360,6 +360,12 @@ private def signedField (shape : Json) : Option Bool :=
 
 private def typeLayout (j : Json) : Except String TypeLayout := do
   let id ← field j "handle" >>= string
+  let sourceId :=
+    match j.getObjVal? "id" with
+    | .ok (.str value) =>
+        let digits := value.dropPrefix "t"
+        digits.toNat?
+    | _ => none
   let kind ← field j "kind" >>= string
   let pointee :=
     match j.getObjVal? "pointee" with
@@ -376,11 +382,23 @@ private def typeLayout (j : Json) : Except String TypeLayout := do
             let align := match shape.getObjVal? "abi_align" with
               | .ok value => (nat value).toOption
               | .error _ => none
-            pure (some (sizeBits, align, signedField shape))
+            let fieldOffsets :=
+              match shape.getObjVal? "fields" with
+              | .ok fields =>
+                  match fields.getObjVal? "Arbitrary" with
+                  | .ok arbitrary =>
+                      match arbitrary.getObjVal? "offsets" with
+                      | .ok offsets =>
+                          (array offsets >>= (·.mapM fun offset => field offset "num_bits" >>= nat)).toOption.getD []
+                      | .error _ => []
+                  | .error _ => []
+              | .error _ => []
+            pure (some (sizeBits, align, signedField shape, fieldOffsets))
         | .error _ => pure none
   match layout with
-  | some (sizeBits, align, signed) => pure { id, kind, pointee, sizeBits, align, signed }
-  | none => pure { id, kind, pointee, sizeBits := none, align := none, signed := none }
+  | some (sizeBits, align, signed, fieldOffsets) =>
+      pure { id, sourceId, kind, pointee, fieldOffsets, sizeBits, align, signed }
+  | none => pure { id, sourceId, kind, pointee, fieldOffsets := [], sizeBits := none, align := none, signed := none }
 
 private def allocation (j : Json) : Except String Allocation := do
   let id ← field j "id" >>= string
