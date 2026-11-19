@@ -155,6 +155,59 @@ theorem picorv32_jalr_loaded_rv32i_boundary_of_step
 #print axioms picorv32_jal_loaded_rv32i_boundary_of_step
 #print axioms picorv32_jalr_loaded_rv32i_boundary_of_step
 
+/-! The loaded jump family has one exact-cycle consumer for both JAL and
+    JALR.  The retained `JumpInstruction` keeps their distinct target
+    semantics in the mixed dispatcher. -/
+
+theorem picorv32_jump_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : JumpInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = jumpProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.jumpBoundary memoryState.arch input instruction ∧
+            rel next
+              { arch := JumpKind.next memoryState.arch instruction.kind,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState (.jump instruction))
+          (rv32iProgramRetirement memoryState (.jump instruction)) := by
+        simpa [hmem, hinput, jumpProgramInput, rv32iProgramStep,
+          rv32iProgramRetirement] using
+          (RvfiObservation.jumpBoundary_rv32i instruction hboundary)
+      simp only [↓reduceIte]
+      exact ⟨.jump instruction, by simpa [rv32iProgramInput] using hinput,
+        horder, hrvfi, by simpa [rv32iProgramStep] using hnext⟩
+
+#print axioms picorv32_jump_exact_cycle_step_refines
+
 #print axioms picorv32_jal_class_step
 #print axioms picorv32_jal_class_commit
 #print axioms picorv32_jalr_class_step
