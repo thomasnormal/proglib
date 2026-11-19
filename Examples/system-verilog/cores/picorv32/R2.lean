@@ -144,6 +144,8 @@ obligation:
   registers unresolved.
   `r1_addi.picorv32_addi_fields_isa_step` bridges any such exact ADDI row
   fields to the ISA memory step without requiring a changed-write list.
+  `r1_branch.picorv32_branch_fields_isa_step` provides the corresponding
+  exact architectural step bridge for every conditional-branch row.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.

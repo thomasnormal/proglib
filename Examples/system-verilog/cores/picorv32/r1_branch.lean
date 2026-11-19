@@ -140,6 +140,28 @@ theorem picorv32_bgeu_class_commit (state : ArchState) (memory : Memory) :
   exact rvMachineWith_branch cv32e40pProfile state memory bgeuWord .geu 0 0 8
     branch_decodes.2.2.2.2.2
 
+/-! The raw branch row fields determine the exact architectural branch step.
+    This bridge is independent of the retirement changed-write list because a
+    conditional branch has no register write. -/
+
+theorem picorv32_branch_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (cond : BranchCond)
+    (rs1 rs2 : Reg) (offset : Word)
+    (hfields : observation.branchFields state input word cond rs1 rs2 offset) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (branchNext state cond rs1 rs2 offset, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.branch cond rs1 rs2 offset) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_branch profile state memory word cond rs1 rs2 offset hdecode
+
+#print axioms picorv32_branch_fields_isa_step
+
 /-! The six fixed branch rows share one loaded-core adapter.  Each wrapper
     retains the exact source transition, decoded observation, and condition-
     specific raw boundary before entering the indexed dispatcher. -/
