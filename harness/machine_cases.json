@@ -42,7 +42,7 @@
   {
     "source": "harness/scripts/function_arity.py",
     "envelope": "harness/scripts/function_arity.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_none.py",
@@ -102,7 +102,7 @@
   {
     "source": "harness/scripts/function_keyword_conflict.py",
     "envelope": "harness/scripts/function_keyword_conflict.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_keyword_default.py",
@@ -147,7 +147,7 @@
   {
     "source": "harness/scripts/function_positional_only_keyword.py",
     "envelope": "harness/scripts/function_positional_only_keyword.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_varargs.py",
@@ -162,7 +162,7 @@
   {
     "source": "harness/scripts/function_unknown_keyword.py",
     "envelope": "harness/scripts/function_unknown_keyword.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_keyword_only_required.py",
@@ -172,7 +172,7 @@
   {
     "source": "harness/scripts/function_keyword_only_missing.py",
     "envelope": "harness/scripts/function_keyword_only_missing.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_mixed_keyword_only.py",
