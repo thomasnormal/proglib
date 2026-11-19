@@ -6,8 +6,8 @@ import Examples.«system-verilog».cores.picorv32.rvfi_prefix_boundary
 
 The measured non-trapping PicoRV32 prefix is certified through the indexed
 `Rv32iBoundary` dispatcher.  This keeps the concrete RVFI rows tied to the
-threaded architectural post-state and retirement without claiming a symbolic
-RTL invariant while the loader still refuses the upstream register memory.
+threaded architectural post-state and retirement without claiming a universal
+RTL invariant.
 -/
 
 namespace Examples.«system-verilog».cores.picorv32.rvfi_rv32i_boundary
