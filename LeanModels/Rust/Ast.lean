@@ -31,6 +31,7 @@ inductive CastKind where
   | ptrToPtr
   | transmute
   | pointerCoercion (name : String)
+  | pointerWithExposedProvenance
   | unsupported (name : String)
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
