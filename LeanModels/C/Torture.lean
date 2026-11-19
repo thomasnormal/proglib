@@ -840,7 +840,7 @@ def layoutFor (envl : Envelope) : Layout :=
       match observedFor t with
       | some (_, members, _) => some members
       | none =>
-          let rt := resolve tds 8 (stripQuals 8 t)
+          let rt := resolve tds 8 t
           let r := recs.find? (·.1 == rt)
           r.map (·.2.1)
     membersDecl := observedMembersDeclFor
