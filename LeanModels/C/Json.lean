@@ -238,6 +238,7 @@ partial def parseExpr (j : Json) : Except String Expr := do
     | "MemberExpr" =>
         return .member (← sub "base") (← getStr j "member")
           (← getBool j "arrow") (← ty) span
+          ((← getOptStr j "record_decl_id").map DeclarationId.mk)
     | "ArraySubscriptExpr" =>
         return .index (← sub "base") (← sub "index") (← ty) span
     | "CallExpr" =>

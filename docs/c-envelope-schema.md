@@ -201,7 +201,7 @@ rung rather than a v0 hole.
 | `StringLiteral` | 126 | `value`: str, `type`; optional parser-native `decoded_bytes`: [nat…] containing the payload and one terminating zero character at Clang's reported character width |
 | `FloatingLiteral` | 15 | `value`: str (exact decimal spelling), `type`; optional parser-native `float_bits_hex`: str and `float_bit_width`: nat when the pinned floating probe is enabled |
 | `DeclRefExpr` | 2444 | `decl_id`, `name`, `decl_kind`, `type`; `decl_id` is clang's `referencedDecl.id` and is the identity used for resolution |
-| `MemberExpr` | 410 | `base`: expr, `member`: str, `arrow`: bool, `type` |
+| `MemberExpr` | 410 | `base`: expr, `member`: str, `arrow`: bool, `type`; optional parser-native `record_decl_id`: declaration identity of the owning record from Clang `referencedMemberDecl` |
 | `ArraySubscriptExpr` | 328 | `base`: expr, `index`: expr, `type` |
 | `CallExpr` | 320 | `callee`: expr, `args`: [expr…], `type` |
 | `BinaryOperator` | 1007 | `op` (§3.5), `lhs`, `rhs`, `type` |

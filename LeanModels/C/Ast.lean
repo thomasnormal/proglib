@@ -209,6 +209,7 @@ inductive Expr where
   | declRef (id : Option DeclarationId) (name : String) (declKind : String)
       (ty : CType) (span : CSpan)
   | member (base : Expr) (field : String) (arrow : Bool) (ty : CType) (span : CSpan)
+      (recordId : Option DeclarationId)
   | index (base : Expr) (idx : Expr) (ty : CType) (span : CSpan)
   /-- A call. An INDIRECT call is one whose callee is not a `declRef` to a
   function — all 19 in the corpus go through the `movecb` parameter. -/
@@ -394,7 +395,7 @@ def Expr.ty : Expr → CType
   | .boolLit _ t _ => t
   | .choose _ _ _ t _ => t
   | .declRef _ _ _ t _ => t
-  | .member _ _ _ t _ | .index _ _ t _ | .call _ _ t _ => t
+  | .member _ _ _ t _ _ | .index _ _ t _ | .call _ _ t _ => t
   | .binop _ _ _ t _ | .compoundAssign _ _ _ _ _ t _ => t
   | .unop _ _ _ t _ | .cond _ _ _ t _ | .paren _ t _ => t
   | .implicitCast _ _ t _ | .cast _ _ t _ => t
@@ -435,7 +436,7 @@ def Expr.kindName : Expr → String
 
 /-- Sub-expressions, including the expression itself. -/
 def Expr.subexprs : Expr → List Expr
-  | e@(.member b _ _ _ _) => e :: b.subexprs
+  | e@(.member b _ _ _ _ _) => e :: b.subexprs
   | e@(.index b i _ _) => e :: (b.subexprs ++ i.subexprs)
   | e@(.call c args _ _) => e :: (c.subexprs ++ args.flatMap Expr.subexprs)
   | e@(.binop _ l r _ _) => e :: (l.subexprs ++ r.subexprs)
@@ -484,8 +485,9 @@ def Expr.sizes (es : List Expr) : Nat := (es.flatMap Expr.subexprs).length
 -- the TACTIC and wrong about the FACT — see `Expr.size_pos` below, which the
 -- argument-list measure does need.)
 
-@[simp] theorem Expr.size_member (b : Expr) (f : String) (a : Bool) (t : CType) (s : CSpan) :
-    (Expr.member b f a t s).size = b.size + 1 := by
+@[simp] theorem Expr.size_member (b : Expr) (f : String) (a : Bool) (t : CType) (s : CSpan)
+    (recordId : Option DeclarationId) :
+    (Expr.member b f a t s recordId).size = b.size + 1 := by
   simp [Expr.size, Expr.subexprs]
 
 @[simp] theorem Expr.size_index (b i : Expr) (t : CType) (s : CSpan) :
