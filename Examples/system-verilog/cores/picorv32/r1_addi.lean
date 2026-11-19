@@ -1,6 +1,7 @@
 import LeanModels.Refine.RvfiAddiProgress
 import Examples.«system-verilog».cores.picorv32.addi_boundary
 import Examples.«system-verilog».cores.picorv32.R2
+import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
 # PicoRV32 R1 ADDI class
@@ -128,5 +129,35 @@ theorem picorv32_addi_class_commit (state : ArchState) :
 
 #print axioms picorv32_addi_class_step
 #print axioms picorv32_addi_class_commit
+
+/-! The measured first ADDI row can be consumed by the same indexed RV32I
+    dispatcher as a universal invariant.  The source transition and exact
+    port sample remain premises, so this theorem records a loaded-core
+    boundary without turning the finite receipt into a universal claim. -/
+
+theorem picorv32_addi1_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState}
+    (hstep : d.step st entry = .ok next)
+    (hsample : rvfi_core_adapter.rvfiPortSample d next =
+      rvfi_addi_boundary.addi1PortSample) :
+    ∃ next' observation, rvfi_core_adapter.rvfiStep d st entry =
+      .ok (next', observation) ∧
+      Rv32iBoundary (ArchState.init 0)
+        rvfi_addi_boundary.addiInput observation
+        { arch := addiNext (ArchState.init 0) 1 0 5,
+          memory := rvfi_addi_boundary.addiInput.memory }
+        (addiRetirement (ArchState.init 0)
+          rvfi_addi_boundary.addiInput 1 0 5) := by
+  obtain ⟨next', observation, hrun, hboundary⟩ :=
+    rvfi_core_adapter.pinned_addi1_core_boundary_of_step hstep hsample
+  have hcore : rvfi_core_adapter.CoreAddiBoundary d st entry
+      (ArchState.init 0) rvfi_addi_boundary.addiInput
+      0x00500093 1 0 5 :=
+    ⟨next', observation, hrun, hboundary⟩
+  exact hcore.to_rv32i_boundary
+
+#print axioms picorv32_addi1_loaded_rv32i_boundary_of_step
 
 end Examples.«system-verilog».cores.picorv32.r1_addi
