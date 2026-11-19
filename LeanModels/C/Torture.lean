@@ -129,26 +129,6 @@ def torScalarSize : CType → Option Nat
   | t => if t.endsWith "*"
          then some 8 else none
 
-/-- Drop the qualifiers. Exact: `const`/`volatile` do not change a size. -/
-def stripQuals : Nat → CType → CType
-  | 0, t => t
-  | n + 1, t =>
-      if t.startsWith "const " then stripQuals n ((t.drop 6).toString)
-      else if t.startsWith "volatile " then stripQuals n ((t.drop 9).toString)
-      else if t.endsWith " restrict" then
-        stripQuals n ((t.dropEnd 9).toString.trimAsciiEnd.toString)
-      else if t.endsWith "*restrict" then
-        stripQuals n ((t.dropEnd 9).toString.trimAsciiEnd.toString)
-      else if t.endsWith " const" then
-        stripQuals n ((t.dropEnd 6).toString.trimAsciiEnd.toString)
-      else if t.endsWith " volatile" then
-        stripQuals n ((t.dropEnd 9).toString.trimAsciiEnd.toString)
-      else if t.endsWith "*const" then
-        stripQuals n ((t.dropEnd 5).toString.trimAsciiEnd.toString)
-      else if t.endsWith "*volatile" then
-        stripQuals n ((t.dropEnd 8).toString.trimAsciiEnd.toString)
-      else t
-
 /-- `T[N]` → `(T, N)`. Constant nested arrays are walked from the outermost
 extent inward; variable extents still return `none`. -/
 def arrayOf (t : CType) : Option (CType × Nat) :=
@@ -180,7 +160,7 @@ def typedefsOf (envl : Envelope) : List (CType × CType) :=
 def resolve (tds : List (CType × CType)) : Nat → CType → CType
   | 0, t => t
   | n + 1, t0 =>
-      let t := stripQuals 8 t0
+      let t := t0
       match tds.find? (·.1 == t) with
       | some p => resolve tds n p.2
       | none => t
@@ -541,7 +521,7 @@ def sizeAlign (tds : List (CType × CType))
       -- so a size question is entitled to ignore the qualifier -- and only a
       -- size question is. Without this, a file-scope `volatile short` has no
       -- size and its whole program refuses (20030128-1.c).
-      let t := resolve tds 8 (stripQuals 8 t0)
+      let t := resolve tds 8 t0
       match if t == "float" then some 4 else if t == "double" then some 8 else torScalarSize t with
       | some sz => some (sz, sz)
       | none =>
@@ -850,7 +830,7 @@ def layoutFor (envl : Envelope) : Layout :=
     -- test and `unsigned long long` in another, so the answer is a property
     -- of the translation unit and not of the spelling.
     normalizeTy := fun t =>
-      let q := stripQuals 8 t
+      let q := t
       let rec ptrIntAlias : Nat → CType → Option CType
         | 0, _ => none
         | n + 1, x =>
