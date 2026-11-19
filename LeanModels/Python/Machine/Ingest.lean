@@ -92,6 +92,9 @@ inductive MStmt where
   | global (names : Array String) (span : Span)
   | nonlocal (names : Array String) (span : Span)
   | raise (exception : Option MExpr) (cause : Option MExpr) (span : Span)
+  | assertStmt (test : MExpr) (msg : Option MExpr) (span : Span)
+  | yieldStmt (value : Option MExpr) (span : Span)
+  | yieldFrom (value : MExpr) (span : Span)
   | tryStmt (body : Array MStmt)
       (handlers : Array (Option MExpr × Option String × Array MStmt)) (orelse : Array MStmt)
       (finalbody : Array MStmt) (span : Span)
@@ -300,6 +303,18 @@ partial def mStmt (j : Json) : Except String MStmt := do
         | .ok value => some <$> mExpr value
         | .error _ => pure none
       pure (.raise exception cause span)
+  | "Assert" =>
+      let msg ← match j.getObjVal? "msg" with
+        | .ok .null | .error _ => pure none
+        | .ok value => some <$> mExpr value
+      pure (.assertStmt (← mExpr (← mField j "test")) msg span)
+  | "Yield" =>
+      let value ← match j.getObjVal? "value" with
+        | .ok .null | .error _ => pure none
+        | .ok value => some <$> mExpr value
+      pure (.yieldStmt value span)
+  | "YieldFrom" =>
+      pure (.yieldFrom (← mExpr (← mField j "value")) span)
   | "UnpackAssign" => pure (.unpackAssign
       (← (← (← mField j "before").getArr?).mapM (·.getStr?))
       (← (← mField j "star").getStr?)
@@ -431,6 +446,12 @@ partial def mStmtToStmt : MStmt → RStmt
       .delete (.attribute (mExprToExpr receiver) attr span) span
   | .raise exception cause span =>
       .raise (exception.map mExprToExpr) (cause.map mExprToExpr) span
+  | .assertStmt test msg span =>
+      .assertStmt (mExprToExpr test) (msg.map mExprToExpr) span
+  | .yieldStmt value span =>
+      .yieldStmt (value.map mExprToExpr) span
+  | .yieldFrom value span =>
+      .yieldFrom (mExprToExpr value) span
   | .brk span => .brk span
   | .cont span => .cont span
   | .import names span =>

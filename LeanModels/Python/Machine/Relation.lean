@@ -39,6 +39,9 @@ inductive RStmt where
   | delete (target : Expr) (span : Span)
   | deleteMany (targets : Array Expr) (span : Span)
   | raise (exception : Option Expr) (cause : Option Expr) (span : Span)
+  | assertStmt (test : Expr) (msg : Option Expr) (span : Span)
+  | yieldStmt (value : Option Expr) (span : Span)
+  | yieldFrom (value : Expr) (span : Span)
   | brk (span : Span)
   | cont (span : Span)
   | ifStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
@@ -1236,6 +1239,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                 config.finish (.refuse "machine delete target"))
           | .raise _ _ _ =>
               some (.event (.refuse "machine raise"), config.finish (.refuse "machine raise"))
+          | .assertStmt _ _ _ =>
+              some (.event (.refuse "machine assert"), config.finish (.refuse "machine assert"))
+          | .yieldStmt _ _ =>
+              some (.event (.refuse "machine yield"), config.finish (.refuse "machine yield"))
+          | .yieldFrom _ _ =>
+              some (.event (.refuse "machine yield-from"),
+                config.finish (.refuse "machine yield-from"))
           | .brk _ =>
               some (.event (.refuse "machine break"), config.finish (.refuse "machine break"))
           | .cont _ =>
