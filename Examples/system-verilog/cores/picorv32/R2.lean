@@ -161,6 +161,8 @@ obligation:
   register, immediate, and pc-based ALU source forms.
   `r1_csr.picorv32_csr_fields_isa_step` provides the exact implemented-row
   bridge for Zicsr operations while retaining the row-lookup premise.
+  `r1_system.picorv32_system_fields_isa_step` provides the exact ECALL,
+  EBREAK, MRET, and WFI bridge with trap and wake semantics retained.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.
