@@ -109,6 +109,9 @@ obligation:
   operation and source operands.
   `r1_alu_imm` provides the nine remaining immediate ALU raw boundaries that
   instantiate that generic consumer.
+  `r1_alu.picorv32_loaded_alu_program_refinement_of_total` packages one
+  operation-indexed ALU instruction into the loaded reset-specialized
+  all-prefix contract from total canonical execution.
   `r1_fence` provides the FENCE and FENCE.I consumers through the decoded
   fence witness.  Its
   `r1_fence.picorv32_fence_exact_cycle_step_refines` theorem consumes the
