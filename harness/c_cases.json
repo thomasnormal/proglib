@@ -96,6 +96,12 @@
     "return_value": 0
   },
   {
+    "id": "bitfield-assignment-expression-converts",
+    "source": "void abort(void); void exit(int); int main(void) { int j = 1081; struct { signed int m:11; } l; if ((l.m = j) == j) abort(); exit(0); }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
     "id": "local-anonymous-union",
     "source": "int main(void) { union { int a; int b; } u; u.a = 1; u.b = 3; return (u.a == 3 && u.b == 3) ? 0 : 1; }",
     "expect": "match",

@@ -1515,11 +1515,21 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | .member base field arrow fieldTy _ =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
               storeBitFieldAt ctx base.ty field fieldTy p v
+              -- §6.5.16.2: the assignment expression has the value after
+              -- conversion to the assigned bit-field type.  Returning the
+              -- RHS here would expose 1081 for an 11-bit field and disagree
+              -- with Clang's truncation before the surrounding comparison.
+              loadBitFieldAt ctx base.ty field fieldTy p
             else
               storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
+              match intTyOf? (ctx.layout.normalizeTy l.ty), v with
+              | some t, .int _ n => pure (convert t n)
+              | _, _ => pure v
         | _ =>
             storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
-        pure v
+            match intTyOf? (ctx.layout.normalizeTy l.ty), v with
+            | some t, .int _ n => pure (convert t n)
+            | _, _ => pure v
       else do
         let lv ← evalExpr ctx l
         let rv ← evalExpr ctx r
