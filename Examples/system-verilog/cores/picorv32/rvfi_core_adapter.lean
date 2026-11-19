@@ -64,11 +64,13 @@ def rvfiStep (d : CoreMemDesign) (st : CoreMemState) (entry : SvState) :
     adapter above.  This wrapper carries that success proof explicitly. -/
 
 structure CoreRvfiMachine (d : CoreMemDesign) where
-  encode : LeanModels.Refine.Input → SvState
+  /-- The cycle entry may depend on the current core state.  This is required
+      for memory responses driven from the core's sampled address. -/
+  encode : CoreMemState → LeanModels.Refine.Input → SvState
   step : CoreMemState → LeanModels.Refine.Input →
     CoreMemState × RvfiObservation
   exact : ∀ (state : CoreMemState) (input : LeanModels.Refine.Input),
-    rvfiStep d state (encode input) = .ok (step state input)
+    rvfiStep d state (encode state input) = .ok (step state input)
 
 def CoreRvfiMachine.toRvfiCycleMachine
     {d : CoreMemDesign} (machine : CoreRvfiMachine d) :
@@ -79,7 +81,7 @@ def CoreRvfiMachine.toRvfiCycleMachine
 theorem CoreRvfiMachine.step_exact
     {d : CoreMemDesign} (machine : CoreRvfiMachine d)
     (state : CoreMemState) (input : LeanModels.Refine.Input) :
-    rvfiStep d state (machine.encode input) =
+    rvfiStep d state (machine.encode state input) =
       .ok ((machine.toRvfiCycleMachine).step state input) := by
   exact machine.exact state input
 
@@ -87,7 +89,7 @@ theorem CoreRvfiMachine.step_eq_of_exact
     {d : CoreMemDesign} (machine : CoreRvfiMachine d)
     {state next : CoreMemState} {input : LeanModels.Refine.Input}
     {observation : RvfiObservation}
-    (h : rvfiStep d state (machine.encode input) =
+    (h : rvfiStep d state (machine.encode state input) =
       .ok (next, observation)) :
     machine.step state input = (next, observation) := by
   have hexact := machine.exact state input
@@ -102,7 +104,7 @@ theorem CoreRvfiMachine.to_addi_invariant
       (input : LeanModels.Refine.Input),
       rel state memoryState → admit input →
       ∃ next : CoreMemState, ∃ observation : RvfiObservation,
-        rvfiStep d state (machine.encode input) = .ok (next, observation) ∧
+        rvfiStep d state (machine.encode state input) = .ok (next, observation) ∧
         (if observation.valid then
           ∃ w rd rs1 imm,
             input.memory = memoryState.memory ∧
@@ -116,7 +118,7 @@ theorem CoreRvfiMachine.to_addi_invariant
       (input : LeanModels.Refine.Input)
       (next : CoreMemState) (observation : RvfiObservation),
       rel state memoryState → admit input →
-      rvfiStep d state (machine.encode input) = .ok (next, observation) →
+      rvfiStep d state (machine.encode state input) = .ok (next, observation) →
       if observation.valid then observation.order = start else True) :
     LeanModels.Refine.Rv32iAddiInvariant
       machine.toRvfiCycleMachine rel admit := by
