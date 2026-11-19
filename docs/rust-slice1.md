@@ -10,7 +10,7 @@ implementation is 1000 lines in `LeanModels/Rust/Semantics.lean`, with 114 lines
 of AST declarations, 399 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
-counter for this worktree is `SLICE1-ROWS 15/30, diverging 0`.
+counter for this worktree is `SLICE1-ROWS 20/30, diverging 0`.
 
 The 30 non-printing Stage 0 rows were audited with the structured extractor:
 
@@ -18,11 +18,11 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 15 decided rows, 15 named refusals, and zero
+The report contains 30 rows, 20 decided rows, 10 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` in one kernel process, and compares successful returns with the
 Stage 0 Miri `ok` verdict. Refusal reasons retain the first unsupported MIR
-node family for the row.  The `println_once` control is excluded by
+node family or missing callee body for the row.  The `println_once` control is excluded by
 default and can be included with `--include-control`.  Each row records the
 extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
@@ -63,7 +63,7 @@ Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
 were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
 diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
-the corpus counter remains `SLICE1-ROWS 15/30, diverging 0`.
+the corpus counter remains `SLICE1-ROWS 20/30, diverging 0`.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -125,6 +125,15 @@ invocation measured 2.828 s.  Intrinsics, foreign calls without a registry
 entry, calls with a missing body, calls with cleanup unwind, and calls with no
 normal continuation are named refusals in this slice.
 
+The allocator family was traced through `Global::allocate` and
+`alloc_impl_runtime` in the `study_for_vec`, `rustc_ivec-pass-by-value`, and
+`rustc_vector-no-ann-2` envelopes.  Their first unavailable target is the
+runtime allocation shim, which has no MIR body in the envelope.  The envelope
+contains constant allocations but no dynamic allocation result or placement
+record for that call, so the runner reports the exact missing target as a
+named refusal instead of manufacturing a pointer or an allocation.  These
+three rows remain in the ten-row refusal set.
+
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
 15.299 s and returned `ok` with status 0 under both borrow models.  The extra
@@ -138,11 +147,11 @@ MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
 place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
-corpus counter remains `SLICE1-ROWS 15/30, diverging 0`.
+corpus counter remains `SLICE1-ROWS 20/30, diverging 0`.
 
 ## Slice 1 exit record
 
-The D1 corpus audit reports 30 rows, 15 decided rows, 15 named refusals, and
+The D1 corpus audit reports 30 rows, 20 decided rows, 10 named refusals, and
 zero diverging rows.  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and
