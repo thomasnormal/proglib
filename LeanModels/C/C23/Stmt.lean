@@ -260,9 +260,9 @@ A scalar initializer is an assignment (§6.7.11p11). A brace-enclosed list
 initializes an aggregate member by member (p9), **in declaration order**,
 and every member the list does not reach is zeroed (p10). -/
 def initObject : Nat → Ctx → Ptr → CType → Expr →
-    (structured : Option LeanModels.Clang.QualType := none) → ExecM Unit
-  | 0, _, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, ty, e, structured =>
+    Option LeanModels.Clang.QualType → Option DeclarationId → ExecM Unit
+  | 0, _, _, _, _, _, _ => exhausted
+  | fuel + 1, ctx, p, ty, e, structured, declaration =>
     match e with
     | .implicitValueInit _ _ => zeroInitStructured fuel ctx p ty structured
     -- Clang wraps nested aggregate initializers in ConstantExpr nodes even
@@ -271,20 +271,20 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
     -- value-position InitListExpr is intentionally loud.
     | .constExpr _ (some (.initList _ _ _ _)) _ _ =>
         initObject fuel ctx p ty
-          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured
+          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured declaration
     | .constExpr _ (some (.arrayInitList _ _ _ _ _)) _ _ =>
         initObject fuel ctx p ty
-          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured
+          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured declaration
     | .designatedUpdate base update _ _ => do
-        initObject fuel ctx p ty base structured
-        initObject fuel ctx p ty update structured
+        initObject fuel ctx p ty base structured declaration
+        initObject fuel ctx p ty update structured declaration
     | .arrayInitList inits filler field _ _ =>
         -- Clang's array_filler is [default filler, positional entries...].
         -- Only its implicit-zero default is in tier; retain and refuse other
         -- shapes rather than guessing their repeated initialization semantics.
         match inits, filler, ctx.layout.elem ty with
         | [], .implicitValueInit _ _ :: entries, some (et, n) =>
-            match ctx.layout.arrayElementSizeAt ty et with
+            match ctx.layout.arrayElementSizeDeclAt declaration ty et with
             | some esz => initElems fuel ctx p et esz n 0 entries
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | _, _, _ => refuseUnsupported "unsupported Clang array_filler initializer"
@@ -300,14 +300,14 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
           | some ms, e :: _ =>
               let target := field.getD ((ms.head?.map (·.1)).getD "")
               match ctx.layout.fieldOff initTy target with
-              | some off => initObject fuel ctx (Mem.member p off) (ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy) e
+              | some off => initObject fuel ctx (Mem.member p off) (ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy) e none none
               | none => refuseUnsupported s!"no offset for union member '{target}'"
           | _, _ => refuseUnsupported "union initializer has no member"
         else
         match ctx.layout.elem ty with
         -- an ARRAY: elements at i * sizeof(elem), then §6.7.11p10 on the tail
         | some (et, n) =>
-            match ctx.layout.arrayElementSizeAt ty et with
+            match ctx.layout.arrayElementSizeDeclAt declaration ty et with
             | some esz => initElems fuel ctx p et esz n 0 inits
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
@@ -332,7 +332,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
                   let padded := copied ++ List.replicate (n - copied.length) (CByte.conc 0)
                   liftEval (writeMem (fun m => m.storeBytes p padded))
                 else
-                  match ctx.layout.arrayElementSizeAt ty et with
+                  match ctx.layout.arrayElementSizeDeclAt declaration ty et with
                   | some esz =>
                       if esz > 0 && bytes.length % esz == 0 then
                         let copied := bytes.take (n * esz)
@@ -341,7 +341,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
                       else refuseUnsupported "wide string literal has incomplete element bytes"
                   | none => refuseUnsupported "wide string literal lacks element layout"
             | none =>
-                match ctx.layout.arrayElementSizeAt ty et with
+                match ctx.layout.arrayElementSizeDeclAt declaration ty et with
                 | some esz =>
                     if esz > 0 && bytes.length % esz == 0 then
                       let copied := bytes.take (n * esz)
@@ -369,7 +369,7 @@ def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List E
           -- §6.7.11p2 is a CONSTRAINT: more initializers than elements.
           refuseUnsupported "more initializers than array elements"
         else do
-          initObject fuel ctx (Mem.member p (i * esz)) et e
+          initObject fuel ctx (Mem.member p (i * esz)) et e none none
           initElems fuel ctx p et esz n (i + 1) rest
 
 /-- Structure members in declaration order, then zero-fill. -/
@@ -401,7 +401,7 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
                   | _ => evalE ctx e
                 liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off) v)
               else
-                initObject fuel ctx (Mem.member p off) mty e
+                initObject fuel ctx (Mem.member p off) mty e none none
           | none => refuseUnsupported s!"no offset for member '{nm}'"
           initMembers fuel ctx p ty mrest erest
 
@@ -419,7 +419,7 @@ def compoundInitCallback : Nat → Ctx → Nat → Env → IdEnv → Layout → 
   | depth, ctx, fuel, env, ids, layout, p, ty, e =>
       let nested := compoundInitContext depth
         { ctx with env := env, idEnv := ids, layout := layout }
-      initObject fuel nested p ty e
+      initObject fuel nested p ty e none none
 end
 
 def Ctx.withCompoundInit (ctx : Ctx) : Ctx :=
@@ -769,7 +769,7 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             | some e => do
                 -- §6.7.11 — scalar or aggregate, one entry point.
                 initObject fuel ctx' (Ptr.toObject o) ty e
-                  (id.bind ctx.layout.structuredType)
+                  (id.bind ctx.layout.structuredType) id
                 declare fuel ctx' ds
     | .empty _ => declare fuel ctx ds
     | .record _ _ _ _ _ | .enum _ _ _ | .typedef _ _ _ _ _ =>
