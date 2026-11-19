@@ -326,6 +326,20 @@ envelope carries its declaration identity, while its underlying typedef type
 is a separate declaration observation. -/
 def intTyOfStructured : LeanModels.Clang.QualType → Option IntTy
   | .qualified _ _ base => intTyOfStructured base
+  | .cBuiltinKind kind =>
+      match kind with
+      | .bool => some IntTy.bool_
+      | .char | .signedChar => some IntTy.char_
+      | .unsignedChar => some IntTy.uchar
+      | .short => some IntTy.short_
+      | .unsignedShort => some IntTy.ushort
+      | .int => some IntTy.int_
+      | .unsignedInt => some IntTy.uint
+      | .long | .longLong => some IntTy.long_
+      | .unsignedLong | .unsignedLongLong => some IntTy.ulong
+      | .int128 => some IntTy.int128_
+      | .uint128 => some IntTy.uint128
+      | _ => none
   | .cBuiltin name =>
       match name with
       | "char" | "signed char" => some IntTy.char_
@@ -357,6 +371,8 @@ def intTyOfStructured : LeanModels.Clang.QualType → Option IntTy
 
 def floatBitsOfStructured : LeanModels.Clang.QualType → Option Nat
   | .qualified _ _ base => floatBitsOfStructured base
+  | .cBuiltinKind .float => some 32
+  | .cBuiltinKind .double => some 64
   | .cBuiltin "float" => some 32
   | .cBuiltin "double" => some 64
   | _ => none

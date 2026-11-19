@@ -18,11 +18,33 @@ structure DeclarationHandle where
   value : String
   deriving Repr, BEq, Inhabited, Lean.ToExpr
 
+inductive CBuiltin where
+  | bool
+  | char
+  | signedChar
+  | unsignedChar
+  | short
+  | unsignedShort
+  | int
+  | unsignedInt
+  | long
+  | unsignedLong
+  | longLong
+  | unsignedLongLong
+  | float
+  | double
+  | longDouble
+  | wchar
+  | int128
+  | uint128
+  deriving Repr, BEq, Inhabited, Lean.ToExpr
+
 inductive QualType where
   | builtin (type : LeanModels.Cpp.CppIntType)
   /-- A C frontend builtin whose signedness/width is a parser fact that the
   C profile has not normalized into the C++ integer taxonomy yet. -/
   | cBuiltin (name : String)
+  | cBuiltinKind (kind : CBuiltin)
   | void
   | pointer (pointee : QualType)
   | array (element : QualType) (extent : Option Nat)
@@ -41,6 +63,7 @@ mutual
     | .void, .void => true
     | .builtin left, .builtin right => left == right
     | .cBuiltin left, .cBuiltin right => left == right
+    | .cBuiltinKind left, .cBuiltinKind right => left == right
     | .pointer left, .pointer right => QualType.beq left right
     | .array left le, .array right re =>
         QualType.beq left right && le == re

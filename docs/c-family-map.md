@@ -244,6 +244,13 @@ stripping, typedef resolution, pointer and array recognition, and record-tag
 lookup. No F2 store work starts until this checker reaches zero and the full
 survey is at least 1326/2214 with no DIVERGE.
 
+The parser-native builtin family now has an explicit `CBuiltin` constructor in
+the shared `QualType` representation. JSON ingestion maps Clang's builtin
+observations to that constructor, while C integer and floating projections use
+the constructor before retaining the legacy spelling fallback. This does not
+reduce the checker count yet because the remaining fallback is still required
+for older envelopes.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
