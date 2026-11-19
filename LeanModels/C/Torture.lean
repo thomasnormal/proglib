@@ -732,6 +732,8 @@ def layoutFor (envl : Envelope) : Layout :=
               else arraySeek rows
           | none => arraySeek rows
     arraySeek envl.typeLayouts
+  let observedUnion := fun t : CType =>
+    (recsWithObserved.find? (fun row => row.1 == t)).map (·.2.2) |>.getD false
   { size := fun t => match observedTypeSize t with
       | some sz => some sz
       | none => match observedFor t with
@@ -753,6 +755,7 @@ def layoutFor (envl : Envelope) : Layout :=
     fieldOffType := observedFieldOffType
     fieldOffDecl := declFieldOff
     elem := fun t => arrayOf (resolve tds 8 t)
+    isUnion := observedUnion
     fieldOff := fun t f => match observedPointeeFor t with
       | some (_, _, layout) =>
           layout.fields.find? (fun field => field.name == f)

@@ -547,6 +547,9 @@ structure Layout where
   §6.7.11p9 initializes members in order, so the order is load-bearing and
   not a convenience. `none` for a non-structure type. -/
   members : CType → Option (List (String × CType)) := fun _ => none
+  /-- Whether a record type is a union, from Clang's parser-native record
+  layout tag.  The default keeps layouts without that observation loud. -/
+  isUnion : CType → Bool := fun _ => false
   /-- **The spelling, normalized: qualifiers stripped and typedefs resolved.**
 
   A type name in the corpus is not a type. `ull` is `unsigned long` in
@@ -654,7 +657,7 @@ def Layout.unknown : Layout :=
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
     flexibleField := fun _ _ => false, flexibleFieldDecl := fun _ _ => false
-    elem := fun _ => none, members := fun _ => none
+    elem := fun _ => none, members := fun _ => none, isUnion := fun _ => false
     normalizeTy := id }
 
 /-! ## The evaluation context
