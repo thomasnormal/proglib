@@ -11700,6 +11700,11 @@ def _literal_function_return(expression):
         return (getattr(expression, "op", None) in BINARY_OPS
                 and _literal_function_return(getattr(expression, "left", None))
                 and _literal_function_return(getattr(expression, "right", None)))
+    if kind == "CallExpression":
+        name = str(getattr(expression, "subroutineName", ""))
+        return (name in SYM_SYSCALLS
+                and all(_literal_function_return(arg)
+                        for arg in getattr(expression, "arguments", [])))
     return False
 
 
@@ -36198,16 +36203,16 @@ def _sym_function_node(sm, subroutine):
             return unsupported(sm, subroutine, "SubroutineSymbol:formal",
                                "function formals must be input-only")
         case_shape = _sym_case_function_shape(subroutine)
+        conditional_shape = None
         returned = _literal_function_result(subroutine)
         if returned is None and case_shape is None:
             returned = _sym_local_return_expression(subroutine)
         if returned is None and case_shape is None:
             shape = _sym_conditional_function_shape(subroutine)
-            if shape is not None:
-                return unsupported(sm, subroutine, "SubroutineSymbol:conditional",
-                                   "conditional function body is not yet a source-shaped return node")
-            return unsupported(sm, subroutine, "SubroutineSymbol:body",
-                               "function body is outside the straight-line return profile")
+            if shape is None:
+                return unsupported(sm, subroutine, "SubroutineSymbol:body",
+                                   "function body is outside the straight-line return profile")
+            conditional_shape = shape
         dtype, reason = _dtype_sym(sm, subroutine.returnType,
                                    _decl_type_syntax(subroutine), allow_signed=True)
         if dtype is None:
@@ -36229,7 +36234,26 @@ def _sym_function_node(sm, subroutine):
                                              "name": formal.name}))
         with _SymCallBinding(formal_bindings):
             if case_shape is None:
-                body = convert_expr(sm, returned)
+                if conditional_shape is None:
+                    body = convert_expr(sm, returned)
+                else:
+                    condition, then_expr, else_expr = conditional_shape
+                    cond_node = convert_expr(sm, condition)
+                    then_node = convert_expr(sm, then_expr)
+                    else_node = convert_expr(sm, else_expr)
+                    if (cond_node is None or then_node is None or else_node is None
+                            or any(node.get("kind") == "Unsupported"
+                                   for node in (cond_node, then_node, else_node))):
+                        body = None
+                    else:
+                        body = {
+                            "kind": "Ternary",
+                            "span": sym_span(sm, subroutine),
+                            "width": subroutine.returnType.bitWidth,
+                            "cond": cond_node,
+                            "then": then_node,
+                            "else": else_node,
+                        }
             else:
                 # Keep the declaration and each call source-shaped while
                 # representing the function-local case result as a nested
