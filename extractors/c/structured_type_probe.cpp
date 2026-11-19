@@ -83,6 +83,13 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
     case clang::BuiltinType::ULong: name = "unsigned long"; break;
     case clang::BuiltinType::LongLong: name = "long long"; break;
     case clang::BuiltinType::ULongLong: name = "unsigned long long"; break;
+    case clang::BuiltinType::Float: name = "float"; break;
+    case clang::BuiltinType::Double: name = "double"; break;
+    case clang::BuiltinType::LongDouble: name = "long double"; break;
+    case clang::BuiltinType::WChar_S: name = "wchar_t"; break;
+    case clang::BuiltinType::WChar_U: name = "wchar_t"; break;
+    case clang::BuiltinType::Int128: name = "__int128"; break;
+    case clang::BuiltinType::UInt128: name = "unsigned __int128"; break;
     default: break;
     }
     if (!name) return std::nullopt;

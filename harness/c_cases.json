@@ -851,6 +851,18 @@
     ]
   },
   {
+    "id": "structured-floating-object-layout",
+    "source": "int main(void) { double x = 1.5; return x == 1.5 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "floating literal lacks parser-native bits",
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "layout_envelope_checks": [
+      "type_layout"
+    ]
+  },
+  {
     "id": "structured-pointer-arithmetic",
     "source": "int main(void) { int a[3] = {1, 2, 3}; int *p = a; return *(p + 2) == 3 ? 0 : 1; }",
     "expect": "match",
