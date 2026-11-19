@@ -193,25 +193,21 @@ private def rvalue (j : Json) : Except String Rvalue := do
       match values with
       | [tag, operands] => do
           let args ← array operands >>= (·.mapM operand)
-          let tagName ←
+          let (tagName, tagValue) ←
             match tag with
-            | .str name => pure name
-            | .obj _ => pure "Adt"
+            | .str name => pure (name, .null)
+            | .obj _ => variant tag
             | _ => .error "MIR Aggregate tag is malformed"
           if tagName == "Adt" then
-            match tag with
-            | .obj _ =>
-                let (_, payload) ← variant tag
-                match payload with
-                | .arr values =>
-                    match values.toList.drop 1 |>.head? with
-                    | some (.num value) =>
-                        let variant? := value.toString.toNat?
-                        match variant? with
-                        | none => pure (.unsupported "Aggregate variant")
-                        | some variant =>
-                            pure (.adtAggregate variant args)
-                    | _ => pure (.unsupported "fieldless Aggregate")
+            match tagValue with
+            | .arr values =>
+                match values.toList.drop 1 |>.head? with
+                | some (.num value) =>
+                    let variant? := value.toString.toNat?
+                    match variant? with
+                    | none => pure (.unsupported "Aggregate variant")
+                    | some variant =>
+                        pure (.adtAggregate variant args)
                 | _ => pure (.unsupported "fieldless Aggregate")
             | _ => pure (.unsupported "fieldless Aggregate")
           else pure (.aggregate tagName args)
