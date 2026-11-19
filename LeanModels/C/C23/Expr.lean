@@ -986,7 +986,9 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
       if isPtrIntType ty structured then writeMem (fun m => Mem.storePtrInt m p q)
       else refuseUnsupported "pointer-integer value stored outside uintptr_t/intptr_t"
   | .int _ n => do
-      let t ← intTyOf ty
+      let t ← match structured.bind intTyOfStructured with
+        | some projected => pure projected
+        | none => intTyOf ty
       writeMem (fun m => Mem.storeIntChecked m alias p t ty n)
   | .float32 f => if ty == "float" then writeMem (fun m => Mem.storeFloat32 m p f)
                  else refuseUnsupported "floating store without a floating layout"
