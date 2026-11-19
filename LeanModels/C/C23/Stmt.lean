@@ -338,11 +338,11 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
                 | none => refuseUnsupported "wide string literal lacks element layout"
         | _, _ => do
             let v ← evalE ctx (.strLit value decoded ty default)
-            liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v)
+            liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v structured)
     -- §6.7.11p11 — a scalar initializer is a single expression.
     | _ => do
         let v ← evalE ctx e
-        liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v)
+        liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v structured)
 
 /-- Array elements, then zero-fill (§6.7.11p10). -/
 def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List Expr → ExecM Unit
@@ -863,7 +863,8 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
               | none => if lay.members ty |>.isSome then none else some ty
             let (m', o) := m.alloc .automatic sz storageTy
             set m'
-            liftEval (storeAt Mem.cAliasModel (Ptr.toObject o) (lay.normalizeTy ty) v)
+            liftEval (storeAt Mem.cAliasModel (Ptr.toObject o) (lay.normalizeTy ty) v
+              (id.bind lay.structuredTypeDecl))
             -- …and the ONLY difference an unnamed parameter makes is that
             -- no identifier denotes the object, which in this model is
             -- exactly one thing: no environment entry. This is the single
