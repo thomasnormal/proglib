@@ -1,6 +1,7 @@
 import Examples.«system-verilog».cores.picorv32.R2
 import Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary
 import LeanModels.Sv.Kernel.CoreMemFast
+import LeanModels.Refine.RvfiUpperMixed
 
 /-!
 # PicoRV32 canonical-E RVFI state adapter
@@ -436,6 +437,38 @@ theorem CoreStoreBoundary.to_rv32i_boundary
 
 #print axioms CoreLoadBoundary.to_rv32i_boundary
 #print axioms CoreStoreBoundary.to_rv32i_boundary
+
+/-! Upper-immediate rows retain their decoded instruction witness.  The
+    witness chooses LUI or AUIPC through `upperBoundary`, so this adapter does
+    not re-decode the source word or manufacture the architectural post-state.
+-/
+
+def CoreUpperBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (instruction : LeanModels.Refine.UpperInstruction) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.upperBoundary arch input instruction
+
+theorem CoreUpperBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {instruction : LeanModels.Refine.UpperInstruction}
+    (h : CoreUpperBoundary d st entry arch input instruction) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.UpperKind.next arch instruction.kind,
+          memory := input.memory }
+        (LeanModels.Refine.UpperKind.retirement arch input instruction.kind) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  exact LeanModels.Refine.RvfiObservation.upperBoundary_rv32i instruction hboundary
+
+#print axioms CoreUpperBoundary.to_rv32i_boundary
 
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
