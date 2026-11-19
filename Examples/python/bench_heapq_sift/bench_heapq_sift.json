@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/bench_heapq_sift/bench_heapq_sift.py",
   "source_sha256": "0ca9e5092dbe9518297351cffba189ba5959a4d148b1e6344017225ab642434a",
@@ -491,7 +491,46 @@
               "id": "newitem"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "heap",
+              "span": {
+                "lineno": 33,
+                "col_offset": 14,
+                "end_lineno": 33,
+                "end_col_offset": 18
+              }
+            },
+            {
+              "arg": "startpos",
+              "span": {
+                "lineno": 33,
+                "col_offset": 20,
+                "end_lineno": 33,
+                "end_col_offset": 28
+              }
+            },
+            {
+              "arg": "pos",
+              "span": {
+                "lineno": 33,
+                "col_offset": 30,
+                "end_lineno": 33,
+                "end_col_offset": 33
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -563,6 +602,8 @@
                 },
                 "id": "len"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1261,6 +1302,8 @@
                 },
                 "id": "_siftdown"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1297,7 +1340,37 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "heap",
+              "span": {
+                "lineno": 47,
+                "col_offset": 12,
+                "end_lineno": 47,
+                "end_col_offset": 16
+              }
+            },
+            {
+              "arg": "pos",
+              "span": {
+                "lineno": 47,
+                "col_offset": 18,
+                "end_lineno": 47,
+                "end_col_offset": 21
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

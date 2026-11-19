@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/bench_bisect/bench_bisect.py",
   "source_sha256": "235595f73f627e8cc2c8add57c86e2361e3e2be6a1f4260573706153a6023ed3",
@@ -183,6 +183,8 @@
                     },
                     "id": "ValueError"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -288,6 +290,8 @@
                     },
                     "id": "len"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -597,7 +601,81 @@
               "id": "lo"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 31,
+                "col_offset": 17,
+                "end_lineno": 31,
+                "end_col_offset": 18
+              }
+            },
+            {
+              "arg": "x",
+              "span": {
+                "lineno": 31,
+                "col_offset": 20,
+                "end_lineno": 31,
+                "end_col_offset": 21
+              }
+            },
+            {
+              "arg": "lo",
+              "span": {
+                "lineno": 31,
+                "col_offset": 23,
+                "end_lineno": 31,
+                "end_col_offset": 25
+              }
+            },
+            {
+              "arg": "hi",
+              "span": {
+                "lineno": 31,
+                "col_offset": 29,
+                "end_lineno": 31,
+                "end_col_offset": 31
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 31,
+                "col_offset": 26,
+                "end_lineno": 31,
+                "end_col_offset": 27
+              },
+              "value": {
+                "type": "int",
+                "repr": "0"
+              }
+            },
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 31,
+                "col_offset": 32,
+                "end_lineno": 31,
+                "end_col_offset": 36
+              },
+              "value": {
+                "type": "none"
+              }
+            }
+          ]
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -750,6 +828,8 @@
                     },
                     "id": "ValueError"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -855,6 +935,8 @@
                     },
                     "id": "len"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -1164,7 +1246,81 @@
               "id": "lo"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 53,
+                "col_offset": 16,
+                "end_lineno": 53,
+                "end_col_offset": 17
+              }
+            },
+            {
+              "arg": "x",
+              "span": {
+                "lineno": 53,
+                "col_offset": 19,
+                "end_lineno": 53,
+                "end_col_offset": 20
+              }
+            },
+            {
+              "arg": "lo",
+              "span": {
+                "lineno": 53,
+                "col_offset": 22,
+                "end_lineno": 53,
+                "end_col_offset": 24
+              }
+            },
+            {
+              "arg": "hi",
+              "span": {
+                "lineno": 53,
+                "col_offset": 28,
+                "end_lineno": 53,
+                "end_col_offset": 30
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 53,
+                "col_offset": 25,
+                "end_lineno": 53,
+                "end_col_offset": 26
+              },
+              "value": {
+                "type": "int",
+                "repr": "0"
+              }
+            },
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 53,
+                "col_offset": 31,
+                "end_lineno": 53,
+                "end_col_offset": 35
+              },
+              "value": {
+                "type": "none"
+              }
+            }
+          ]
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

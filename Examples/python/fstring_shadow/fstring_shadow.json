@@ -130,7 +130,28 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 9,
+                "col_offset": 13,
+                "end_lineno": 9,
+                "end_col_offset": 14
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -196,7 +217,28 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 14,
+                "col_offset": 14,
+                "end_lineno": 14,
+                "end_col_offset": 15
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -269,6 +311,8 @@
                   },
                   "id": "str"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [
                   {
                     "kind": "Name",
@@ -286,7 +330,28 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 18,
+                "col_offset": 17,
+                "end_lineno": 18,
+                "end_col_offset": 18
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

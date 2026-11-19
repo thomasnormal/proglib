@@ -121,6 +121,8 @@
                 },
                 "id": "iter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -163,6 +165,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -270,6 +274,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -301,7 +307,35 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 11,
+                    "end_lineno": 8,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "Pass",
+                    "span": {
+                      "lineno": 9,
+                      "col_offset": 8,
+                      "end_lineno": 9,
+                      "end_col_offset": 12
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Return",
@@ -329,6 +363,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -358,7 +394,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -471,6 +518,8 @@
                 },
                 "id": "iter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -513,6 +562,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -620,6 +671,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -664,7 +717,35 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 20,
+                    "col_offset": 11,
+                    "end_lineno": 20,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "Pass",
+                    "span": {
+                      "lineno": 21,
+                      "col_offset": 8,
+                      "end_lineno": 21,
+                      "end_col_offset": 12
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Return",
@@ -692,6 +773,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -708,7 +791,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -821,6 +915,8 @@
                 },
                 "id": "iter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -863,6 +959,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1004,6 +1102,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -1059,7 +1159,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 32,
+                    "col_offset": 11,
+                    "end_lineno": 32,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 33,
+                      "col_offset": 8,
+                      "end_lineno": 33,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 33,
+                        "col_offset": 8,
+                        "end_lineno": 33,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 33,
+                        "col_offset": 20,
+                        "end_lineno": 33,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Expr",
@@ -1097,6 +1249,8 @@
                 },
                 "attr": "clear"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -1194,6 +1348,8 @@
                 },
                 "id": "range"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -1248,6 +1404,8 @@
                         },
                         "id": "next"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Name",
@@ -1316,7 +1474,59 @@
                     }
                   }
                 ],
-                "try_unsupported": null
+                "try_unsupported": null,
+                "machine_handlers": [
+                  {
+                    "type": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 39,
+                        "col_offset": 15,
+                        "end_lineno": 39,
+                        "end_col_offset": 27
+                      },
+                      "id": "RuntimeError"
+                    },
+                    "name": null,
+                    "body": [
+                      {
+                        "kind": "AugAssign",
+                        "span": {
+                          "lineno": 40,
+                          "col_offset": 12,
+                          "end_lineno": 40,
+                          "end_col_offset": 25
+                        },
+                        "target": {
+                          "kind": "Name",
+                          "span": {
+                            "lineno": 40,
+                            "col_offset": 12,
+                            "end_lineno": 40,
+                            "end_col_offset": 20
+                          },
+                          "id": "failures"
+                        },
+                        "op": "Add",
+                        "value": {
+                          "kind": "Constant",
+                          "span": {
+                            "lineno": 40,
+                            "col_offset": 24,
+                            "end_lineno": 40,
+                            "end_col_offset": 25
+                          },
+                          "value": {
+                            "type": "int",
+                            "repr": "1"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "machine_orelse": [],
+                "machine_finalbody": []
               }
             ],
             "orelse": []
@@ -1340,7 +1550,18 @@
               "id": "failures"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1453,6 +1674,8 @@
                 },
                 "id": "iter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1526,6 +1749,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1667,6 +1892,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -1722,7 +1949,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 53,
+                    "col_offset": 11,
+                    "end_lineno": 53,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 54,
+                      "col_offset": 8,
+                      "end_lineno": 54,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 54,
+                        "col_offset": 8,
+                        "end_lineno": 54,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 54,
+                        "col_offset": 20,
+                        "end_lineno": 54,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Expr",
@@ -1760,6 +2039,8 @@
                 },
                 "attr": "clear"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -1856,6 +2137,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -1924,7 +2207,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 59,
+                    "col_offset": 11,
+                    "end_lineno": 59,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 60,
+                      "col_offset": 8,
+                      "end_lineno": 60,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 60,
+                        "col_offset": 8,
+                        "end_lineno": 60,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 60,
+                        "col_offset": 20,
+                        "end_lineno": 60,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Return",
@@ -1945,7 +2280,18 @@
               "id": "failures"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2058,6 +2404,8 @@
                 },
                 "id": "iter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -2100,6 +2448,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -2207,6 +2557,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -2238,7 +2590,35 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 71,
+                    "col_offset": 11,
+                    "end_lineno": 71,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "Pass",
+                    "span": {
+                      "lineno": 72,
+                      "col_offset": 8,
+                      "end_lineno": 72,
+                      "end_col_offset": 12
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Expr",
@@ -2276,6 +2656,8 @@
                 },
                 "attr": "clear"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -2375,6 +2757,8 @@
                 },
                 "id": "iter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -2426,6 +2810,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -2459,6 +2845,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -2490,7 +2878,18 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2603,6 +3002,8 @@
                 },
                 "id": "iter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -2744,6 +3145,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -2799,7 +3202,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 86,
+                    "col_offset": 11,
+                    "end_lineno": 86,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 87,
+                      "col_offset": 8,
+                      "end_lineno": 87,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 87,
+                        "col_offset": 8,
+                        "end_lineno": 87,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 87,
+                        "col_offset": 20,
+                        "end_lineno": 87,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Expr",
@@ -2837,6 +3292,8 @@
                 },
                 "attr": "clear"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -2933,6 +3390,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -3001,7 +3460,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 11,
+                    "end_lineno": 92,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 93,
+                      "col_offset": 8,
+                      "end_lineno": 93,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 93,
+                        "col_offset": 8,
+                        "end_lineno": 93,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 93,
+                        "col_offset": 20,
+                        "end_lineno": 93,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Return",
@@ -3022,7 +3533,18 @@
               "id": "failures"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3135,6 +3657,8 @@
                 },
                 "id": "enumerate"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -3177,6 +3701,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -3318,6 +3844,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -3373,7 +3901,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 105,
+                    "col_offset": 11,
+                    "end_lineno": 105,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 106,
+                      "col_offset": 8,
+                      "end_lineno": 106,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 106,
+                        "col_offset": 8,
+                        "end_lineno": 106,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 106,
+                        "col_offset": 20,
+                        "end_lineno": 106,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Expr",
@@ -3411,6 +3991,8 @@
                 },
                 "attr": "clear"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -3508,6 +4090,8 @@
                 },
                 "id": "range"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -3562,6 +4146,8 @@
                         },
                         "id": "next"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Name",
@@ -3630,7 +4216,59 @@
                     }
                   }
                 ],
-                "try_unsupported": null
+                "try_unsupported": null,
+                "machine_handlers": [
+                  {
+                    "type": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 112,
+                        "col_offset": 15,
+                        "end_lineno": 112,
+                        "end_col_offset": 27
+                      },
+                      "id": "RuntimeError"
+                    },
+                    "name": null,
+                    "body": [
+                      {
+                        "kind": "AugAssign",
+                        "span": {
+                          "lineno": 113,
+                          "col_offset": 12,
+                          "end_lineno": 113,
+                          "end_col_offset": 25
+                        },
+                        "target": {
+                          "kind": "Name",
+                          "span": {
+                            "lineno": 113,
+                            "col_offset": 12,
+                            "end_lineno": 113,
+                            "end_col_offset": 20
+                          },
+                          "id": "failures"
+                        },
+                        "op": "Add",
+                        "value": {
+                          "kind": "Constant",
+                          "span": {
+                            "lineno": 113,
+                            "col_offset": 24,
+                            "end_lineno": 113,
+                            "end_col_offset": 25
+                          },
+                          "value": {
+                            "type": "int",
+                            "repr": "1"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "machine_orelse": [],
+                "machine_finalbody": []
               }
             ],
             "orelse": []
@@ -3654,7 +4292,18 @@
               "id": "failures"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3767,6 +4416,8 @@
                 },
                 "id": "enumerate"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -3853,6 +4504,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -3994,6 +4647,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -4049,7 +4704,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 126,
+                    "col_offset": 11,
+                    "end_lineno": 126,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 127,
+                      "col_offset": 8,
+                      "end_lineno": 127,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 127,
+                        "col_offset": 8,
+                        "end_lineno": 127,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 127,
+                        "col_offset": 20,
+                        "end_lineno": 127,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Expr",
@@ -4087,6 +4794,8 @@
                 },
                 "attr": "clear"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -4183,6 +4892,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -4251,7 +4962,59 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 132,
+                    "col_offset": 11,
+                    "end_lineno": 132,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "AugAssign",
+                    "span": {
+                      "lineno": 133,
+                      "col_offset": 8,
+                      "end_lineno": 133,
+                      "end_col_offset": 21
+                    },
+                    "target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 133,
+                        "col_offset": 8,
+                        "end_lineno": 133,
+                        "end_col_offset": 16
+                      },
+                      "id": "failures"
+                    },
+                    "op": "Add",
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 133,
+                        "col_offset": 20,
+                        "end_lineno": 133,
+                        "end_col_offset": 21
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Return",
@@ -4272,7 +5035,18 @@
               "id": "failures"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -4349,6 +5123,27 @@
             "orelse": []
           }
         ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "mapping",
+              "span": {
+                "lineno": 137,
+                "col_offset": 16,
+                "end_lineno": 137,
+                "end_col_offset": 23
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null,
         "is_generator": true
       },
       {
@@ -4462,6 +5257,8 @@
                 },
                 "id": "dict_stream"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -4504,6 +5301,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -4611,6 +5410,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -4642,7 +5443,35 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 149,
+                    "col_offset": 11,
+                    "end_lineno": 149,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "Pass",
+                    "span": {
+                      "lineno": 150,
+                      "col_offset": 8,
+                      "end_lineno": 150,
+                      "end_col_offset": 12
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Expr",
@@ -4680,6 +5509,8 @@
                 },
                 "attr": "clear"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -4776,6 +5607,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -4822,6 +5655,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -4853,7 +5688,18 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -4966,6 +5812,8 @@
                 },
                 "id": "dict_stream"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -5008,6 +5856,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -5115,6 +5965,8 @@
                     },
                     "id": "next"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -5146,7 +5998,35 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 163,
+                    "col_offset": 11,
+                    "end_lineno": 163,
+                    "end_col_offset": 23
+                  },
+                  "id": "RuntimeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "Pass",
+                    "span": {
+                      "lineno": 164,
+                      "col_offset": 8,
+                      "end_lineno": 164,
+                      "end_col_offset": 12
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           },
           {
             "kind": "Return",
@@ -5174,6 +6054,8 @@
                 },
                 "id": "next"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -5190,7 +6072,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

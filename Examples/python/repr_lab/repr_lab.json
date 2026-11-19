@@ -61,6 +61,8 @@
             },
             "id": "namedtuple"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Constant",
@@ -105,6 +107,20 @@
         "class_unsupported": null,
         "creation_effects": false,
         "body": [
+          {
+            "kind": "Pass",
+            "span": {
+              "lineno": 8,
+              "col_offset": 4,
+              "end_lineno": 8,
+              "end_col_offset": 8
+            }
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
           {
             "kind": "Pass",
             "span": {
@@ -173,7 +189,101 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 12,
+                    "col_offset": 17,
+                    "end_lineno": 12,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 12,
+              "col_offset": 4,
+              "end_lineno": 13,
+              "end_col_offset": 23
+            },
+            "name": "__repr__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 12,
+                  "col_offset": 17,
+                  "end_lineno": 12,
+                  "end_col_offset": 21
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 13,
+                  "col_offset": 8,
+                  "end_lineno": 13,
+                  "end_col_offset": 23
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 13,
+                    "col_offset": 15,
+                    "end_lineno": 13,
+                    "end_col_offset": 23
+                  },
+                  "value": {
+                    "type": "str",
+                    "value": "custom"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 12,
+                    "col_offset": 17,
+                    "end_lineno": 12,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -226,6 +336,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -242,7 +354,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "value",
+              "span": {
+                "lineno": 16,
+                "col_offset": 7,
+                "end_lineno": 16,
+                "end_col_offset": 12
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -283,6 +416,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Tuple",
@@ -443,7 +578,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -484,6 +630,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -503,6 +651,8 @@
                     },
                     "id": "Pair"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -563,7 +713,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -604,6 +765,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Tuple",
@@ -632,6 +795,8 @@
                         },
                         "id": "range"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Constant",
@@ -668,6 +833,8 @@
                         },
                         "id": "range"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Constant",
@@ -730,6 +897,8 @@
                         },
                         "id": "range"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Constant",
@@ -791,7 +960,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -873,6 +1053,8 @@
                 },
                 "attr": "append"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -915,6 +1097,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -931,7 +1115,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1057,6 +1252,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1073,7 +1270,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1159,6 +1367,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Tuple",
@@ -1196,7 +1406,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1268,6 +1489,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Tuple",
@@ -1306,6 +1529,8 @@
                         },
                         "attr": "append"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Constant",
@@ -1341,7 +1566,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1382,12 +1618,25 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1428,6 +1677,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -1460,7 +1711,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1541,6 +1803,8 @@
                     },
                     "id": "repr"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Call",
@@ -1570,6 +1834,8 @@
                         },
                         "attr": "append"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Constant",
@@ -1616,6 +1882,8 @@
                         },
                         "attr": "append"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Constant",
@@ -1662,6 +1930,8 @@
                         },
                         "attr": "append"
                       },
+                      "starargs": [],
+                      "kwargs": [],
                       "args": [
                         {
                           "kind": "Constant",
@@ -1710,9 +1980,58 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 66,
+                    "col_offset": 11,
+                    "end_lineno": 66,
+                    "end_col_offset": 20
+                  },
+                  "id": "TypeError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "Return",
+                    "span": {
+                      "lineno": 67,
+                      "col_offset": 8,
+                      "end_lineno": 67,
+                      "end_col_offset": 21
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 67,
+                        "col_offset": 15,
+                        "end_lineno": 67,
+                        "end_col_offset": 21
+                      },
+                      "id": "values"
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1753,6 +2072,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "BinOp",
@@ -1795,7 +2116,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1836,6 +2168,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -1891,7 +2225,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1932,6 +2277,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [
                 {
@@ -1954,7 +2301,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1988,7 +2346,18 @@
               "id": "repr"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2070,6 +2439,8 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -2086,7 +2457,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "value",
+              "span": {
+                "lineno": 86,
+                "col_offset": 15,
+                "end_lineno": 86,
+                "end_col_offset": 20
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2127,6 +2519,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -2146,6 +2540,8 @@
                     },
                     "id": "Plain"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -2155,7 +2551,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2196,6 +2603,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -2215,6 +2624,8 @@
                     },
                     "id": "Custom"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -2224,7 +2635,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2265,6 +2687,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -2284,6 +2708,8 @@
                     },
                     "id": "set"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "List",
@@ -2331,7 +2757,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2382,6 +2819,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [],
             "closure_unsupported": null
           },
@@ -2411,6 +2859,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -2427,7 +2877,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2468,6 +2929,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "GeneratorExp",
@@ -2542,7 +3005,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2623,6 +3097,27 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "value",
+                  "span": {
+                    "lineno": 114,
+                    "col_offset": 13,
+                    "end_lineno": 114,
+                    "end_col_offset": 18
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [],
             "closure_unsupported": null
           },
@@ -2652,6 +3147,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -2671,7 +3168,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2722,6 +3230,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -2741,7 +3251,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "repr",
+              "span": {
+                "lineno": 119,
+                "col_offset": 21,
+                "end_lineno": 119,
+                "end_col_offset": 25
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2822,6 +3353,27 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "value",
+                  "span": {
+                    "lineno": 124,
+                    "col_offset": 13,
+                    "end_lineno": 124,
+                    "end_col_offset": 18
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [],
             "closure_unsupported": null
           },
@@ -2851,6 +3403,8 @@
                 },
                 "id": "tuple"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "GeneratorExp",
@@ -2878,6 +3432,8 @@
                       },
                       "id": "repr"
                     },
+                    "starargs": [],
+                    "kwargs": [],
                     "args": [
                       {
                         "kind": "Name",
@@ -2948,7 +3504,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2999,6 +3566,8 @@
                 },
                 "id": "len"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -3018,6 +3587,8 @@
                     },
                     "id": "repr"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "BinOp",
@@ -3084,7 +3655,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "digits",
+              "span": {
+                "lineno": 129,
+                "col_offset": 17,
+                "end_lineno": 129,
+                "end_col_offset": 23
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3179,6 +3771,8 @@
                 },
                 "id": "range"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -3266,6 +3860,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -3282,7 +3878,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "depth",
+              "span": {
+                "lineno": 133,
+                "col_offset": 9,
+                "end_lineno": 133,
+                "end_col_offset": 14
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

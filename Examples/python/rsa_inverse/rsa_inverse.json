@@ -921,7 +921,126 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 35,
+                "col_offset": 17,
+                "end_lineno": 35,
+                "end_col_offset": 23
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 35,
+                  "col_offset": 20,
+                  "end_lineno": 35,
+                  "end_col_offset": 23
+                },
+                "id": "int"
+              }
+            },
+            {
+              "arg": "b",
+              "span": {
+                "lineno": 35,
+                "col_offset": 25,
+                "end_lineno": 35,
+                "end_col_offset": 31
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 35,
+                  "col_offset": 28,
+                  "end_lineno": 35,
+                  "end_col_offset": 31
+                },
+                "id": "int"
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": {
+          "kind": "Subscript",
+          "span": {
+            "lineno": 35,
+            "col_offset": 36,
+            "end_lineno": 35,
+            "end_col_offset": 63
+          },
+          "value": {
+            "kind": "Attribute",
+            "span": {
+              "lineno": 35,
+              "col_offset": 36,
+              "end_lineno": 35,
+              "end_col_offset": 48
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 35,
+                "col_offset": 36,
+                "end_lineno": 35,
+                "end_col_offset": 42
+              },
+              "id": "typing"
+            },
+            "attr": "Tuple"
+          },
+          "index": {
+            "kind": "Tuple",
+            "span": {
+              "lineno": 35,
+              "col_offset": 49,
+              "end_lineno": 35,
+              "end_col_offset": 62
+            },
+            "elts": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 35,
+                  "col_offset": 49,
+                  "end_lineno": 35,
+                  "end_col_offset": 52
+                },
+                "id": "int"
+              },
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 35,
+                  "col_offset": 54,
+                  "end_lineno": 35,
+                  "end_col_offset": 57
+                },
+                "id": "int"
+              },
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 35,
+                  "col_offset": 59,
+                  "end_lineno": 35,
+                  "end_col_offset": 62
+                },
+                "id": "int"
+              }
+            ]
+          }
+        }
       },
       {
         "kind": "FunctionDef",
@@ -1046,6 +1165,8 @@
                 },
                 "id": "extended_gcd"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1144,6 +1265,8 @@
                     },
                     "id": "NotRelativePrimeError"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Name",
@@ -1202,7 +1325,66 @@
               "id": "inv"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "x",
+              "span": {
+                "lineno": 59,
+                "col_offset": 12,
+                "end_lineno": 59,
+                "end_col_offset": 18
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 59,
+                  "col_offset": 15,
+                  "end_lineno": 59,
+                  "end_col_offset": 18
+                },
+                "id": "int"
+              }
+            },
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 59,
+                "col_offset": 20,
+                "end_lineno": 59,
+                "end_col_offset": 26
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 59,
+                  "col_offset": 23,
+                  "end_lineno": 59,
+                  "end_col_offset": 26
+                },
+                "id": "int"
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": {
+          "kind": "Name",
+          "span": {
+            "lineno": 59,
+            "col_offset": 31,
+            "end_lineno": 59,
+            "end_col_offset": 34
+          },
+          "id": "int"
+        }
       }
     ]
   },

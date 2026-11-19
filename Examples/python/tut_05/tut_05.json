@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/tut_05/tut_05.py",
   "source_sha256": "cfd2b01384feeffec86acce7a2640b0164692bf43c4c03e560a8ee5a39372f0d",
@@ -81,7 +81,37 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 1,
+                "col_offset": 10,
+                "end_lineno": 1,
+                "end_col_offset": 11
+              }
+            },
+            {
+              "arg": "b",
+              "span": {
+                "lineno": 1,
+                "col_offset": 13,
+                "end_lineno": 1,
+                "end_col_offset": 14
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -207,7 +237,28 @@
               "id": "n"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 5,
+                "col_offset": 14,
+                "end_lineno": 5,
+                "end_col_offset": 15
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

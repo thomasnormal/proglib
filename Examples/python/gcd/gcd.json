@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/gcd/gcd.py",
   "source_sha256": "4349b240058e5d34c3bbdee3e2e95c9adc1da9aa770b946fd4fa3b09e9ed8786",
@@ -203,7 +203,66 @@
               "id": "a"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 1,
+                "col_offset": 8,
+                "end_lineno": 1,
+                "end_col_offset": 14
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 11,
+                  "end_lineno": 1,
+                  "end_col_offset": 14
+                },
+                "id": "int"
+              }
+            },
+            {
+              "arg": "b",
+              "span": {
+                "lineno": 1,
+                "col_offset": 16,
+                "end_lineno": 1,
+                "end_col_offset": 22
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 19,
+                  "end_lineno": 1,
+                  "end_col_offset": 22
+                },
+                "id": "int"
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": {
+          "kind": "Name",
+          "span": {
+            "lineno": 1,
+            "col_offset": 27,
+            "end_lineno": 1,
+            "end_col_offset": 30
+          },
+          "id": "int"
+        }
       }
     ]
   },

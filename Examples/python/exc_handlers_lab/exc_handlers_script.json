@@ -76,6 +76,8 @@
                 },
                 "id": "divmod"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -105,6 +107,8 @@
                     },
                     "attr": "append"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -151,6 +155,8 @@
                     },
                     "attr": "append"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -197,6 +203,8 @@
                     },
                     "attr": "append"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -263,6 +271,8 @@
                 },
                 "id": "len"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -280,7 +290,82 @@
             }
           }
         ],
-        "try_unsupported": null
+        "try_unsupported": null,
+        "machine_handlers": [
+          {
+            "type": {
+              "kind": "Name",
+              "span": {
+                "lineno": 4,
+                "col_offset": 7,
+                "end_lineno": 4,
+                "end_col_offset": 16
+              },
+              "id": "TypeError"
+            },
+            "name": null,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 4,
+                  "end_lineno": 5,
+                  "end_col_offset": 22
+                },
+                "targets": [
+                  {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 5,
+                      "col_offset": 4,
+                      "end_lineno": 5,
+                      "end_col_offset": 8
+                    },
+                    "id": "mark"
+                  }
+                ],
+                "value": {
+                  "kind": "Call",
+                  "span": {
+                    "lineno": 5,
+                    "col_offset": 11,
+                    "end_lineno": 5,
+                    "end_col_offset": 22
+                  },
+                  "func": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 5,
+                      "col_offset": 11,
+                      "end_lineno": 5,
+                      "end_col_offset": 14
+                    },
+                    "id": "len"
+                  },
+                  "starargs": [],
+                  "kwargs": [],
+                  "args": [
+                    {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 5,
+                        "col_offset": 15,
+                        "end_lineno": 5,
+                        "end_col_offset": 21
+                      },
+                      "id": "values"
+                    }
+                  ],
+                  "keywords": [],
+                  "call_unsupported": null
+                }
+              }
+            ]
+          }
+        ],
+        "machine_orelse": [],
+        "machine_finalbody": []
       },
       {
         "kind": "FunctionDef",
@@ -314,7 +399,18 @@
               "id": "mark"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "Expr",
@@ -342,6 +438,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -361,6 +459,8 @@
                 },
                 "id": "read_mark"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -396,6 +496,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Name",

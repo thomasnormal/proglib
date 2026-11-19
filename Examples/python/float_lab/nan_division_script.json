@@ -36,6 +36,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Constant",
@@ -81,6 +83,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "BinOp",
@@ -108,6 +112,8 @@
                   },
                   "id": "float"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [
                   {
                     "kind": "Constant",
@@ -145,6 +151,8 @@
                   },
                   "id": "float"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [
                   {
                     "kind": "Constant",

@@ -192,6 +192,27 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "x",
+                  "span": {
+                    "lineno": 18,
+                    "col_offset": 14,
+                    "end_lineno": 18,
+                    "end_col_offset": 15
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a",
               "b"
@@ -224,6 +245,8 @@
                 },
                 "id": "inner"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -243,7 +266,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 15,
+                "col_offset": 10,
+                "end_lineno": 15,
+                "end_col_offset": 11
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -324,6 +368,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -355,12 +410,35 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 23,
+                "col_offset": 15,
+                "end_lineno": 23,
+                "end_col_offset": 16
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -481,6 +559,50 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "x",
+                  "span": {
+                    "lineno": 30,
+                    "col_offset": 10,
+                    "end_lineno": 30,
+                    "end_col_offset": 11
+                  }
+                },
+                {
+                  "arg": "k",
+                  "span": {
+                    "lineno": 30,
+                    "col_offset": 13,
+                    "end_lineno": 30,
+                    "end_col_offset": 14
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 30,
+                    "col_offset": 15,
+                    "end_lineno": 30,
+                    "end_col_offset": 17
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "10"
+                  }
+                }
+              ]
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -520,6 +642,8 @@
                   },
                   "id": "f"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [
                   {
                     "kind": "Constant",
@@ -557,6 +681,8 @@
                   },
                   "id": "f"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [
                   {
                     "kind": "Constant",
@@ -590,7 +716,28 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 29,
+                "col_offset": 17,
+                "end_lineno": 29,
+                "end_col_offset": 18
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -671,6 +818,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -723,6 +881,8 @@
                       },
                       "id": "f"
                     },
+                    "starargs": [],
+                    "kwargs": [],
                     "args": [],
                     "keywords": [],
                     "call_unsupported": null
@@ -744,6 +904,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "f"
             ],
@@ -775,12 +946,35 @@
                 },
                 "id": "g"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 35,
+                "col_offset": 10,
+                "end_lineno": 35,
+                "end_col_offset": 11
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -861,6 +1055,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -885,7 +1090,28 @@
               "id": "f"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 45,
+                "col_offset": 8,
+                "end_lineno": 45,
+                "end_col_offset": 9
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -948,6 +1174,8 @@
                 },
                 "id": "_mk"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -990,12 +1218,35 @@
                 },
                 "id": "g"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 51,
+                "col_offset": 11,
+                "end_lineno": 51,
+                "end_col_offset": 12
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1053,6 +1304,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -1091,6 +1353,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -1218,7 +1491,28 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 57,
+                "col_offset": 18,
+                "end_lineno": 57,
+                "end_col_offset": 19
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1276,6 +1570,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -1347,7 +1652,28 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 66,
+                "col_offset": 19,
+                "end_lineno": 66,
+                "end_col_offset": 20
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1398,6 +1724,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [],
             "closure_unsupported": null
           },
@@ -1427,6 +1764,8 @@
                 },
                 "id": "len"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -1443,7 +1782,18 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1709,6 +2059,17 @@
                 "orelse": []
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "is_generator": true,
             "captures": [
               "lim"
@@ -1785,6 +2146,8 @@
                 },
                 "id": "g"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -1863,7 +2226,28 @@
               "id": "t"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 80,
+                "col_offset": 16,
+                "end_lineno": 80,
+                "end_col_offset": 17
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2078,6 +2462,17 @@
                 "orelse": []
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "is_generator": true,
             "captures": [
               "n"
@@ -2110,6 +2505,8 @@
                 },
                 "id": "sorted"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -2129,6 +2526,8 @@
                     },
                     "id": "g"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -2155,7 +2554,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 94,
+                "col_offset": 23,
+                "end_lineno": 94,
+                "end_col_offset": 24
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2374,6 +2794,17 @@
                 "orelse": []
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "is_generator": true,
             "captures": [
               "n"
@@ -2406,6 +2837,8 @@
                 },
                 "id": "any"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -2425,6 +2858,8 @@
                     },
                     "id": "g"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -2434,7 +2869,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 103,
+                "col_offset": 20,
+                "end_lineno": 103,
+                "end_col_offset": 21
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2492,6 +2948,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>a"
             ],
@@ -2577,12 +3044,35 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 112,
+                "col_offset": 18,
+                "end_lineno": 112,
+                "end_col_offset": 19
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2640,6 +3130,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>a"
             ],
@@ -2683,6 +3184,8 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -2810,13 +3313,36 @@
                   },
                   "id": "f"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [],
                 "keywords": [],
                 "call_unsupported": null
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 122,
+                "col_offset": 20,
+                "end_lineno": 122,
+                "end_col_offset": 21
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -2874,6 +3400,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>a"
             ],
@@ -2935,6 +3472,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>a"
             ],
@@ -3036,6 +3584,8 @@
                     },
                     "id": "f"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -3074,13 +3624,36 @@
                   },
                   "id": "g"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [],
                 "keywords": [],
                 "call_unsupported": null
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 132,
+                "col_offset": 26,
+                "end_lineno": 132,
+                "end_col_offset": 27
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3158,6 +3731,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>later",
               "n"
@@ -3244,12 +3828,35 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 143,
+                "col_offset": 24,
+                "end_lineno": 143,
+                "end_col_offset": 25
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3349,6 +3956,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "is_generator": true,
             "captures": [
               "<cell>a"
@@ -3479,6 +4097,8 @@
                 },
                 "id": "g"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -3557,7 +4177,28 @@
               "id": "t"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 152,
+                "col_offset": 25,
+                "end_lineno": 152,
+                "end_col_offset": 26
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3615,6 +4256,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>a"
             ],
@@ -3693,7 +4345,28 @@
               "id": "f"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 165,
+                "col_offset": 17,
+                "end_lineno": 165,
+                "end_col_offset": 18
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3756,6 +4429,8 @@
                 },
                 "id": "cell_escapes"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -3798,12 +4473,35 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 174,
+                "col_offset": 22,
+                "end_lineno": 174,
+                "end_col_offset": 23
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -3880,6 +4578,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "is_generator": true,
             "captures": [
               "<cell>a"
@@ -4010,6 +4719,8 @@
                 },
                 "id": "g"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -4142,7 +4853,28 @@
               "id": "t"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 182,
+                "col_offset": 24,
+                "end_lineno": 182,
+                "end_col_offset": 25
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -4278,6 +5010,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>c"
             ],
@@ -4309,6 +5052,8 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -4333,7 +5078,28 @@
               "id": "c"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 196,
+                "col_offset": 18,
+                "end_lineno": 196,
+                "end_col_offset": 19
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -4471,6 +5237,17 @@
                     }
                   }
                 ],
+                "machine_arguments": {
+                  "posonlyargs": [],
+                  "args": [],
+                  "vararg": null,
+                  "kwonlyargs": [],
+                  "kw_defaults": [],
+                  "kwarg": null,
+                  "defaults": []
+                },
+                "machine_decorators": [],
+                "machine_returns": null,
                 "captures": [
                   "<cell>a"
                 ],
@@ -4533,6 +5310,8 @@
                       },
                       "id": "f"
                     },
+                    "starargs": [],
+                    "kwargs": [],
                     "args": [],
                     "keywords": [],
                     "call_unsupported": null
@@ -4615,7 +5394,28 @@
               "id": "t"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 206,
+                "col_offset": 16,
+                "end_lineno": 206,
+                "end_col_offset": 17
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -4678,6 +5478,8 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -4716,6 +5518,17 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "a"
             ],
@@ -4740,7 +5553,28 @@
               "id": "r"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 216,
+                "col_offset": 15,
+                "end_lineno": 216,
+                "end_col_offset": 16
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -4986,6 +5820,8 @@
                 },
                 "id": "put"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -5048,6 +5884,8 @@
                 },
                 "id": "put"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -5090,7 +5928,46 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "s",
+              "span": {
+                "lineno": 224,
+                "col_offset": 14,
+                "end_lineno": 224,
+                "end_col_offset": 15
+              }
+            },
+            {
+              "arg": "i",
+              "span": {
+                "lineno": 224,
+                "col_offset": 17,
+                "end_lineno": 224,
+                "end_col_offset": 18
+              }
+            },
+            {
+              "arg": "p",
+              "span": {
+                "lineno": 224,
+                "col_offset": 20,
+                "end_lineno": 224,
+                "end_col_offset": 21
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -5263,6 +6140,8 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -5282,7 +6161,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 232,
+                "col_offset": 16,
+                "end_lineno": 232,
+                "end_col_offset": 17
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -5425,12 +6325,35 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 238,
+                "col_offset": 16,
+                "end_lineno": 238,
+                "end_col_offset": 17
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "ClassDef",
@@ -5533,7 +6456,28 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 255,
+                    "col_offset": 17,
+                    "end_lineno": 255,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -5850,6 +6794,8 @@
                             },
                             "attr": "tree"
                           },
+                          "starargs": [],
+                          "kwargs": [],
                           "args": [
                             {
                               "kind": "BinOp",
@@ -5957,6 +6903,17 @@
                     "orelse": []
                   }
                 ],
+                "machine_arguments": {
+                  "posonlyargs": [],
+                  "args": [],
+                  "vararg": null,
+                  "kwonlyargs": [],
+                  "kw_defaults": [],
+                  "kwarg": null,
+                  "defaults": []
+                },
+                "machine_decorators": [],
+                "machine_returns": null,
                 "is_generator": true,
                 "captures": [
                   "cut",
@@ -6035,6 +6992,8 @@
                     },
                     "id": "kids"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -6168,7 +7127,852 @@
                   "id": "t"
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 258,
+                    "col_offset": 13,
+                    "end_lineno": 258,
+                    "end_col_offset": 17
+                  }
+                },
+                {
+                  "arg": "n",
+                  "span": {
+                    "lineno": 258,
+                    "col_offset": 19,
+                    "end_lineno": 258,
+                    "end_col_offset": 20
+                  }
+                },
+                {
+                  "arg": "cut",
+                  "span": {
+                    "lineno": 258,
+                    "col_offset": 22,
+                    "end_lineno": 258,
+                    "end_col_offset": 25
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 247,
+              "col_offset": 4,
+              "end_lineno": 253,
+              "end_col_offset": 23
+            },
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 247,
+                "col_offset": 4,
+                "end_lineno": 253,
+                "end_col_offset": 23
+              },
+              "value": {
+                "type": "str",
+                "value": "bound() arc pass 2 (docs/memory-model.md \u00a7nested defs and\n    closures, recursion addendum): the bound() SHAPE \u2014 a nested\n    generator yielding recursive results THROUGH the captured self,\n    folded below with a cutoff that abandons the drain. Each depth\n    executes its own `def kids():` (a fresh closure, a fresh generator);\n    `nodes` is the laziness observable \u2014 subtrees behind an abandoned\n    yield never run."
+              }
+            }
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 255,
+              "col_offset": 4,
+              "end_lineno": 256,
+              "end_col_offset": 22
+            },
+            "name": "__init__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 255,
+                  "col_offset": 17,
+                  "end_lineno": 255,
+                  "end_col_offset": 21
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 256,
+                  "col_offset": 8,
+                  "end_lineno": 256,
+                  "end_col_offset": 22
+                },
+                "targets": [
+                  {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 256,
+                      "col_offset": 8,
+                      "end_lineno": 256,
+                      "end_col_offset": 18
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 256,
+                        "col_offset": 8,
+                        "end_lineno": 256,
+                        "end_col_offset": 12
+                      },
+                      "id": "self"
+                    },
+                    "attr": "nodes"
+                  }
+                ],
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 256,
+                    "col_offset": 21,
+                    "end_lineno": 256,
+                    "end_col_offset": 22
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "0"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 255,
+                    "col_offset": 17,
+                    "end_lineno": 255,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 258,
+              "col_offset": 4,
+              "end_lineno": 274,
+              "end_col_offset": 16
+            },
+            "name": "tree",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 258,
+                  "col_offset": 13,
+                  "end_lineno": 258,
+                  "end_col_offset": 17
+                }
+              },
+              {
+                "arg": "n",
+                "span": {
+                  "lineno": 258,
+                  "col_offset": 19,
+                  "end_lineno": 258,
+                  "end_col_offset": 20
+                }
+              },
+              {
+                "arg": "cut",
+                "span": {
+                  "lineno": 258,
+                  "col_offset": 22,
+                  "end_lineno": 258,
+                  "end_col_offset": 25
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 259,
+                  "col_offset": 8,
+                  "end_lineno": 259,
+                  "end_col_offset": 35
+                },
+                "targets": [
+                  {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 259,
+                      "col_offset": 8,
+                      "end_lineno": 259,
+                      "end_col_offset": 18
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 259,
+                        "col_offset": 8,
+                        "end_lineno": 259,
+                        "end_col_offset": 12
+                      },
+                      "id": "self"
+                    },
+                    "attr": "nodes"
+                  }
+                ],
+                "value": {
+                  "kind": "BinOp",
+                  "span": {
+                    "lineno": 259,
+                    "col_offset": 21,
+                    "end_lineno": 259,
+                    "end_col_offset": 35
+                  },
+                  "left": {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 259,
+                      "col_offset": 21,
+                      "end_lineno": 259,
+                      "end_col_offset": 31
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 259,
+                        "col_offset": 21,
+                        "end_lineno": 259,
+                        "end_col_offset": 25
+                      },
+                      "id": "self"
+                    },
+                    "attr": "nodes"
+                  },
+                  "op": "Add",
+                  "right": {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 259,
+                      "col_offset": 34,
+                      "end_lineno": 259,
+                      "end_col_offset": 35
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  }
+                }
+              },
+              {
+                "kind": "If",
+                "span": {
+                  "lineno": 260,
+                  "col_offset": 8,
+                  "end_lineno": 261,
+                  "end_col_offset": 20
+                },
+                "test": {
+                  "kind": "Compare",
+                  "span": {
+                    "lineno": 260,
+                    "col_offset": 11,
+                    "end_lineno": 260,
+                    "end_col_offset": 17
+                  },
+                  "left": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 260,
+                      "col_offset": 11,
+                      "end_lineno": 260,
+                      "end_col_offset": 12
+                    },
+                    "id": "n"
+                  },
+                  "ops": [
+                    "Eq"
+                  ],
+                  "comparators": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 260,
+                        "col_offset": 16,
+                        "end_lineno": 260,
+                        "end_col_offset": 17
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "0"
+                      }
+                    }
+                  ]
+                },
+                "body": [
+                  {
+                    "kind": "Return",
+                    "span": {
+                      "lineno": 261,
+                      "col_offset": 12,
+                      "end_lineno": 261,
+                      "end_col_offset": 20
+                    },
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 261,
+                        "col_offset": 19,
+                        "end_lineno": 261,
+                        "end_col_offset": 20
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    }
+                  }
+                ],
+                "orelse": []
+              },
+              {
+                "kind": "NestedDef",
+                "span": {
+                  "lineno": 263,
+                  "col_offset": 8,
+                  "end_lineno": 267,
+                  "end_col_offset": 25
+                },
+                "name": "kids",
+                "args": [],
+                "args_unsupported": null,
+                "locals_unsupported": null,
+                "body": [
+                  {
+                    "kind": "Assign",
+                    "span": {
+                      "lineno": 264,
+                      "col_offset": 12,
+                      "end_lineno": 264,
+                      "end_col_offset": 17
+                    },
+                    "targets": [
+                      {
+                        "kind": "Name",
+                        "span": {
+                          "lineno": 264,
+                          "col_offset": 12,
+                          "end_lineno": 264,
+                          "end_col_offset": 13
+                        },
+                        "id": "k"
+                      }
+                    ],
+                    "value": {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 264,
+                        "col_offset": 16,
+                        "end_lineno": 264,
+                        "end_col_offset": 17
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "0"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "While",
+                    "span": {
+                      "lineno": 265,
+                      "col_offset": 12,
+                      "end_lineno": 267,
+                      "end_col_offset": 25
+                    },
+                    "test": {
+                      "kind": "Compare",
+                      "span": {
+                        "lineno": 265,
+                        "col_offset": 18,
+                        "end_lineno": 265,
+                        "end_col_offset": 23
+                      },
+                      "left": {
+                        "kind": "Name",
+                        "span": {
+                          "lineno": 265,
+                          "col_offset": 18,
+                          "end_lineno": 265,
+                          "end_col_offset": 19
+                        },
+                        "id": "k"
+                      },
+                      "ops": [
+                        "Lt"
+                      ],
+                      "comparators": [
+                        {
+                          "kind": "Constant",
+                          "span": {
+                            "lineno": 265,
+                            "col_offset": 22,
+                            "end_lineno": 265,
+                            "end_col_offset": 23
+                          },
+                          "value": {
+                            "type": "int",
+                            "repr": "3"
+                          }
+                        }
+                      ]
+                    },
+                    "body": [
+                      {
+                        "kind": "Yield",
+                        "span": {
+                          "lineno": 266,
+                          "col_offset": 16,
+                          "end_lineno": 266,
+                          "end_col_offset": 43
+                        },
+                        "value": {
+                          "kind": "Call",
+                          "span": {
+                            "lineno": 266,
+                            "col_offset": 22,
+                            "end_lineno": 266,
+                            "end_col_offset": 43
+                          },
+                          "func": {
+                            "kind": "Attribute",
+                            "span": {
+                              "lineno": 266,
+                              "col_offset": 22,
+                              "end_lineno": 266,
+                              "end_col_offset": 31
+                            },
+                            "value": {
+                              "kind": "Name",
+                              "span": {
+                                "lineno": 266,
+                                "col_offset": 22,
+                                "end_lineno": 266,
+                                "end_col_offset": 26
+                              },
+                              "id": "self"
+                            },
+                            "attr": "tree"
+                          },
+                          "starargs": [],
+                          "kwargs": [],
+                          "args": [
+                            {
+                              "kind": "BinOp",
+                              "span": {
+                                "lineno": 266,
+                                "col_offset": 32,
+                                "end_lineno": 266,
+                                "end_col_offset": 37
+                              },
+                              "left": {
+                                "kind": "Name",
+                                "span": {
+                                  "lineno": 266,
+                                  "col_offset": 32,
+                                  "end_lineno": 266,
+                                  "end_col_offset": 33
+                                },
+                                "id": "n"
+                              },
+                              "op": "Sub",
+                              "right": {
+                                "kind": "Constant",
+                                "span": {
+                                  "lineno": 266,
+                                  "col_offset": 36,
+                                  "end_lineno": 266,
+                                  "end_col_offset": 37
+                                },
+                                "value": {
+                                  "type": "int",
+                                  "repr": "1"
+                                }
+                              }
+                            },
+                            {
+                              "kind": "Name",
+                              "span": {
+                                "lineno": 266,
+                                "col_offset": 39,
+                                "end_lineno": 266,
+                                "end_col_offset": 42
+                              },
+                              "id": "cut"
+                            }
+                          ],
+                          "keywords": [],
+                          "call_unsupported": null
+                        }
+                      },
+                      {
+                        "kind": "Assign",
+                        "span": {
+                          "lineno": 267,
+                          "col_offset": 16,
+                          "end_lineno": 267,
+                          "end_col_offset": 25
+                        },
+                        "targets": [
+                          {
+                            "kind": "Name",
+                            "span": {
+                              "lineno": 267,
+                              "col_offset": 16,
+                              "end_lineno": 267,
+                              "end_col_offset": 17
+                            },
+                            "id": "k"
+                          }
+                        ],
+                        "value": {
+                          "kind": "BinOp",
+                          "span": {
+                            "lineno": 267,
+                            "col_offset": 20,
+                            "end_lineno": 267,
+                            "end_col_offset": 25
+                          },
+                          "left": {
+                            "kind": "Name",
+                            "span": {
+                              "lineno": 267,
+                              "col_offset": 20,
+                              "end_lineno": 267,
+                              "end_col_offset": 21
+                            },
+                            "id": "k"
+                          },
+                          "op": "Add",
+                          "right": {
+                            "kind": "Constant",
+                            "span": {
+                              "lineno": 267,
+                              "col_offset": 24,
+                              "end_lineno": 267,
+                              "end_col_offset": 25
+                            },
+                            "value": {
+                              "type": "int",
+                              "repr": "1"
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "orelse": []
+                  }
+                ],
+                "machine_arguments": {
+                  "posonlyargs": [],
+                  "args": [],
+                  "vararg": null,
+                  "kwonlyargs": [],
+                  "kw_defaults": [],
+                  "kwarg": null,
+                  "defaults": []
+                },
+                "machine_decorators": [],
+                "machine_returns": null,
+                "is_generator": true,
+                "captures": [
+                  "cut",
+                  "n",
+                  "self"
+                ],
+                "closure_unsupported": null
+              },
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 269,
+                  "col_offset": 8,
+                  "end_lineno": 269,
+                  "end_col_offset": 13
+                },
+                "targets": [
+                  {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 269,
+                      "col_offset": 8,
+                      "end_lineno": 269,
+                      "end_col_offset": 9
+                    },
+                    "id": "t"
+                  }
+                ],
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 269,
+                    "col_offset": 12,
+                    "end_lineno": 269,
+                    "end_col_offset": 13
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "0"
+                  }
+                }
+              },
+              {
+                "kind": "For",
+                "span": {
+                  "lineno": 270,
+                  "col_offset": 8,
+                  "end_lineno": 273,
+                  "end_col_offset": 21
+                },
+                "target": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 270,
+                    "col_offset": 12,
+                    "end_lineno": 270,
+                    "end_col_offset": 13
+                  },
+                  "id": "v"
+                },
+                "iter": {
+                  "kind": "Call",
+                  "span": {
+                    "lineno": 270,
+                    "col_offset": 17,
+                    "end_lineno": 270,
+                    "end_col_offset": 23
+                  },
+                  "func": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 270,
+                      "col_offset": 17,
+                      "end_lineno": 270,
+                      "end_col_offset": 21
+                    },
+                    "id": "kids"
+                  },
+                  "starargs": [],
+                  "kwargs": [],
+                  "args": [],
+                  "keywords": [],
+                  "call_unsupported": null
+                },
+                "body": [
+                  {
+                    "kind": "Assign",
+                    "span": {
+                      "lineno": 271,
+                      "col_offset": 12,
+                      "end_lineno": 271,
+                      "end_col_offset": 21
+                    },
+                    "targets": [
+                      {
+                        "kind": "Name",
+                        "span": {
+                          "lineno": 271,
+                          "col_offset": 12,
+                          "end_lineno": 271,
+                          "end_col_offset": 13
+                        },
+                        "id": "t"
+                      }
+                    ],
+                    "value": {
+                      "kind": "BinOp",
+                      "span": {
+                        "lineno": 271,
+                        "col_offset": 16,
+                        "end_lineno": 271,
+                        "end_col_offset": 21
+                      },
+                      "left": {
+                        "kind": "Name",
+                        "span": {
+                          "lineno": 271,
+                          "col_offset": 16,
+                          "end_lineno": 271,
+                          "end_col_offset": 17
+                        },
+                        "id": "t"
+                      },
+                      "op": "Add",
+                      "right": {
+                        "kind": "Name",
+                        "span": {
+                          "lineno": 271,
+                          "col_offset": 20,
+                          "end_lineno": 271,
+                          "end_col_offset": 21
+                        },
+                        "id": "v"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "If",
+                    "span": {
+                      "lineno": 272,
+                      "col_offset": 12,
+                      "end_lineno": 273,
+                      "end_col_offset": 21
+                    },
+                    "test": {
+                      "kind": "Compare",
+                      "span": {
+                        "lineno": 272,
+                        "col_offset": 15,
+                        "end_lineno": 272,
+                        "end_col_offset": 23
+                      },
+                      "left": {
+                        "kind": "Name",
+                        "span": {
+                          "lineno": 272,
+                          "col_offset": 15,
+                          "end_lineno": 272,
+                          "end_col_offset": 16
+                        },
+                        "id": "t"
+                      },
+                      "ops": [
+                        "GtE"
+                      ],
+                      "comparators": [
+                        {
+                          "kind": "Name",
+                          "span": {
+                            "lineno": 272,
+                            "col_offset": 20,
+                            "end_lineno": 272,
+                            "end_col_offset": 23
+                          },
+                          "id": "cut"
+                        }
+                      ]
+                    },
+                    "body": [
+                      {
+                        "kind": "Break",
+                        "span": {
+                          "lineno": 273,
+                          "col_offset": 16,
+                          "end_lineno": 273,
+                          "end_col_offset": 21
+                        }
+                      }
+                    ],
+                    "orelse": []
+                  }
+                ],
+                "orelse": []
+              },
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 274,
+                  "col_offset": 8,
+                  "end_lineno": 274,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 274,
+                    "col_offset": 15,
+                    "end_lineno": 274,
+                    "end_col_offset": 16
+                  },
+                  "id": "t"
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 258,
+                    "col_offset": 13,
+                    "end_lineno": 258,
+                    "end_col_offset": 17
+                  }
+                },
+                {
+                  "arg": "n",
+                  "span": {
+                    "lineno": 258,
+                    "col_offset": 19,
+                    "end_lineno": 258,
+                    "end_col_offset": 20
+                  }
+                },
+                {
+                  "arg": "cut",
+                  "span": {
+                    "lineno": 258,
+                    "col_offset": 22,
+                    "end_lineno": 258,
+                    "end_col_offset": 25
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -6242,6 +8046,8 @@
                 },
                 "id": "TreeCounter"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -6295,6 +8101,8 @@
                 },
                 "attr": "tree"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -6371,7 +8179,37 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 277,
+                "col_offset": 12,
+                "end_lineno": 277,
+                "end_col_offset": 13
+              }
+            },
+            {
+              "arg": "cut",
+              "span": {
+                "lineno": 277,
+                "col_offset": 15,
+                "end_lineno": 277,
+                "end_col_offset": 18
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -6538,6 +8376,8 @@
                       },
                       "id": "f"
                     },
+                    "starargs": [],
+                    "kwargs": [],
                     "args": [
                       {
                         "kind": "BinOp",
@@ -6579,6 +8419,27 @@
                 }
               }
             ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "k",
+                  "span": {
+                    "lineno": 286,
+                    "col_offset": 10,
+                    "end_lineno": 286,
+                    "end_col_offset": 11
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
             "captures": [
               "<cell>f"
             ],
@@ -6610,6 +8471,8 @@
                 },
                 "id": "f"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -6626,7 +8489,28 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 283,
+                "col_offset": 20,
+                "end_lineno": 283,
+                "end_col_offset": 21
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

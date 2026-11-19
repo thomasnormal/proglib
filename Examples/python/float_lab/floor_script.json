@@ -42,7 +42,18 @@
               "id": "value"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "Assign",
@@ -137,6 +148,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -156,6 +169,8 @@
                 },
                 "id": "read"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -224,6 +239,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -243,6 +260,8 @@
                 },
                 "id": "read"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -278,6 +297,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -297,6 +318,8 @@
                 },
                 "id": "divmod"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -346,6 +369,8 @@
                 },
                 "id": "divmod"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "UnaryOp",
@@ -418,6 +443,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -437,6 +464,8 @@
                 },
                 "id": "divmod"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -469,6 +498,8 @@
                     },
                     "id": "float"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -509,6 +540,8 @@
                 },
                 "id": "divmod"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "UnaryOp",
@@ -551,6 +584,8 @@
                     },
                     "id": "float"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -604,6 +639,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "ListComp",
@@ -631,6 +668,8 @@
                   },
                   "id": "divmod"
                 },
+                "starargs": [],
+                "kwargs": [],
                 "args": [
                   {
                     "kind": "Constant",
@@ -1004,6 +1043,8 @@
                             },
                             "id": "divmod"
                           },
+                          "starargs": [],
+                          "kwargs": [],
                           "args": [
                             {
                               "kind": "Constant",
@@ -1071,6 +1112,8 @@
                     },
                     "id": "print"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -1101,7 +1144,83 @@
                 }
               }
             ],
-            "try_unsupported": null
+            "try_unsupported": null,
+            "machine_handlers": [
+              {
+                "type": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 21,
+                    "col_offset": 11,
+                    "end_lineno": 21,
+                    "end_col_offset": 26
+                  },
+                  "id": "ArithmeticError"
+                },
+                "name": null,
+                "body": [
+                  {
+                    "kind": "Expr",
+                    "span": {
+                      "lineno": 22,
+                      "col_offset": 8,
+                      "end_lineno": 22,
+                      "end_col_offset": 27
+                    },
+                    "value": {
+                      "kind": "Call",
+                      "span": {
+                        "lineno": 22,
+                        "col_offset": 8,
+                        "end_lineno": 22,
+                        "end_col_offset": 27
+                      },
+                      "func": {
+                        "kind": "Name",
+                        "span": {
+                          "lineno": 22,
+                          "col_offset": 8,
+                          "end_lineno": 22,
+                          "end_col_offset": 13
+                        },
+                        "id": "print"
+                      },
+                      "starargs": [],
+                      "kwargs": [],
+                      "args": [
+                        {
+                          "kind": "Constant",
+                          "span": {
+                            "lineno": 22,
+                            "col_offset": 14,
+                            "end_lineno": 22,
+                            "end_col_offset": 20
+                          },
+                          "value": {
+                            "type": "str",
+                            "value": "zero"
+                          }
+                        },
+                        {
+                          "kind": "Name",
+                          "span": {
+                            "lineno": 22,
+                            "col_offset": 22,
+                            "end_lineno": 22,
+                            "end_col_offset": 26
+                          },
+                          "id": "mode"
+                        }
+                      ],
+                      "keywords": [],
+                      "call_unsupported": null
+                    }
+                  }
+                ]
+              }
+            ],
+            "machine_orelse": [],
+            "machine_finalbody": []
           }
         ],
         "orelse": []

@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/nested_flow/nested_flow.py",
   "source_sha256": "e71175c87d91a048d4cf0867087aa423367624543596b52137e2822f62d8f88b",
@@ -482,7 +482,47 @@
               "id": "n"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 1,
+                "col_offset": 17,
+                "end_lineno": 1,
+                "end_col_offset": 23
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 20,
+                  "end_lineno": 1,
+                  "end_col_offset": 23
+                },
+                "id": "int"
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": {
+          "kind": "Name",
+          "span": {
+            "lineno": 1,
+            "col_offset": 28,
+            "end_lineno": 1,
+            "end_col_offset": 31
+          },
+          "id": "int"
+        }
       }
     ]
   },
