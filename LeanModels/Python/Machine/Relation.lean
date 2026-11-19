@@ -1071,10 +1071,10 @@ def rRenderPrintWithSep (separator : String) : List RVal → Option String
         | .int n => some (toString n)
         | .str text => some text
         | _ => none
-      match rendered, rRenderPrintWithSep separator rest with
-      | some text, some tail =>
-          if tail.isEmpty then some text else some (text ++ separator ++ tail)
-      | _, _ => none
+      match rendered, rest, rRenderPrintWithSep separator rest with
+      | some text, [], _ => some text
+      | some text, _ :: _, some tail => some (text ++ separator ++ tail)
+      | _, _, _ => none
 
 def rRenderPrint : List RVal → Option String := rRenderPrintWithSep " "
 
