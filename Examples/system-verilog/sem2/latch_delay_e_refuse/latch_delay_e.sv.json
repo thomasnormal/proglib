@@ -1,0 +1,124 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "latch_delay_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/latch_delay_e_refuse/latch_delay_e.sv",
+      "sha256": "06115296a1193487f2c43a03f5352f5ee4a1f73bfb807586aafc01c83b9b91c8"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "latch_delay_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 34,
+              "end_line": 2,
+              "end_col": 36
+            },
+            "name": "en",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 50,
+              "end_line": 2,
+              "end_col": 51
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 66,
+              "end_line": 2,
+              "end_col": 67
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysLatch",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 6,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Unsupported",
+              "span": {
+                "line": 0,
+                "col": 0,
+                "end_line": 0,
+                "end_col": 0
+              },
+              "sv_kind": "InvalidStatement",
+              "text": "begin\n    #1;\n    if (en) q = a;\n  end"
+            }
+          }
+        ],
+        "generates": [],
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 4,
+              "col": 5,
+              "end_line": 4,
+              "end_col": 5
+            },
+            "sv_kind": "SlangError:TimingInFuncNotAllowed",
+            "text": "latch_delay_e.sv:4: statements that pass time are not allowed in this context"
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
