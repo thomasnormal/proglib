@@ -658,5 +658,15 @@
     "source": "harness/scripts/machine_function_alias_rebind.py",
     "envelope": "harness/scripts/machine_function_alias_rebind.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_unbound_local_read.py",
+    "envelope": "harness/scripts/machine_unbound_local_read.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_unbound_local_delete.py",
+    "envelope": "harness/scripts/machine_unbound_local_delete.json",
+    "expect": "match"
   }
 ]

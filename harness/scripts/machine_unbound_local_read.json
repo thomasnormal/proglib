@@ -1,0 +1,193 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_unbound_local_read.py",
+  "source_sha256": "506150644cc1b14a44d9dd1d7f2b85ff983ed1a867c125f8aa9f6f3a70f0019b",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 10
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "value",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 8,
+            "end_lineno": 1,
+            "end_col_offset": 10
+          },
+          "value": {
+            "type": "int",
+            "repr": "10"
+          }
+        }
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 5,
+          "end_col_offset": 13
+        },
+        "name": "read_before_assign",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 16
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 4,
+                "col_offset": 4,
+                "end_lineno": 4,
+                "end_col_offset": 16
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 4,
+                  "end_lineno": 4,
+                  "end_col_offset": 9
+                },
+                "id": "print",
+                "machine_context": "Load"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [
+                {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 4,
+                    "col_offset": 10,
+                    "end_lineno": 4,
+                    "end_col_offset": 15
+                  },
+                  "id": "value",
+                  "machine_context": "Load"
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 5,
+              "col_offset": 4,
+              "end_lineno": 5,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 4,
+                  "end_lineno": 5,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 5,
+                "col_offset": 12,
+                "end_lineno": 5,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          }
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 7,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 20
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 7,
+            "col_offset": 0,
+            "end_lineno": 7,
+            "end_col_offset": 20
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 7,
+              "col_offset": 0,
+              "end_lineno": 7,
+              "end_col_offset": 18
+            },
+            "id": "read_before_assign",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ],
+    "machine_type_ignores": []
+  },
+  "lean_blocks": []
+}
