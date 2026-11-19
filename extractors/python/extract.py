@@ -779,7 +779,9 @@ def convert_expr(node):
             # Starred displays remain a whole-node boundary until BUILD_* with
             # unpacking has a native semantic case.
             if isinstance(node.ctx, ast.Load):
-                return unsupported(node, "Starred:display")
+                out = unsupported(node, "Starred:display", machine_kind=type(node).__name__)
+                out["machine_elts"] = [convert_expr(e) for e in node.elts]
+                return out
             # Store/Del is an assignment or `for` TARGET — position 2 of the
             # design, deliberately NOT landed. It must be refused as a WHOLE
             # node. Keeping the structural tuple (whose starred element
@@ -806,7 +808,11 @@ def convert_expr(node):
         # `{k: v, ...}` — structured (H0, docs/memory-model.md). A None key
         # is `**expansion`; keep the whole node Unsupported then.
         if any(k is None for k in node.keys):
-            return unsupported(node, "Dict:unpack")
+            out = unsupported(node, "Dict:unpack", machine_kind="Dict")
+            out["machine_keys"] = [convert_expr(k) if k is not None else None
+                                    for k in node.keys]
+            out["machine_values"] = [convert_expr(v) for v in node.values]
+            return out
         return {
             "kind": "Dict",
             "span": span(node),
