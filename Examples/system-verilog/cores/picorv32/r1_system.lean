@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiSystem
+import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
 # PicoRV32 R1 system-transfer class
@@ -25,6 +26,15 @@ theorem system_decodes :
     Fetched.decode (.word mretWord) = some (.system .mret) ∧
     Fetched.decode (.word wfiWord) = some (.system .wfi) := by
   decide
+
+def ecallInstruction : SystemInstruction :=
+  { word := ecallWord, kind := .ecall, decode := system_decodes.1 }
+def ebreakInstruction : SystemInstruction :=
+  { word := ebreakWord, kind := .ebreak, decode := system_decodes.2.1 }
+def mretInstruction : SystemInstruction :=
+  { word := mretWord, kind := .mret, decode := system_decodes.2.2.1 }
+def wfiInstruction : SystemInstruction :=
+  { word := wfiWord, kind := .wfi, decode := system_decodes.2.2.2 }
 
 theorem picorv32_ecall_class_step (state : ArchState) (memory : Memory) :
     isaStepMemWith cv32e40pProfile state memory (.word ecallWord) 0 =
@@ -89,6 +99,66 @@ theorem picorv32_wfi_class_commit (state : ArchState) (memory : Memory) :
           .wfi) := by
   exact rvMachineWith_system cv32e40pProfile state memory wfiWord .wfi
     system_decodes.2.2.2
+
+theorem picorv32_ecall_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.systemBoundary arch input ecallWord .ecall) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation' { arch := systemNext arch .ecall, memory := input.memory }
+        (systemRetirement arch input .ecall) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreSystemBoundary d st entry arch input ecallInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [ecallInstruction] using hboundary
+  simpa [ecallInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_ebreak_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.systemBoundary arch input ebreakWord .ebreak) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := systemNext arch .ebreak, memory := input.memory } (systemRetirement arch input .ebreak) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreSystemBoundary d st entry arch input ebreakInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [ebreakInstruction] using hboundary
+  simpa [ebreakInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_mret_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.systemBoundary arch input mretWord .mret) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := systemNext arch .mret, memory := input.memory } (systemRetirement arch input .mret) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreSystemBoundary d st entry arch input mretInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [mretInstruction] using hboundary
+  simpa [mretInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_wfi_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.systemBoundary arch input wfiWord .wfi) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := systemNext arch .wfi, memory := input.memory } (systemRetirement arch input .wfi) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreSystemBoundary d st entry arch input wfiInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [wfiInstruction] using hboundary
+  simpa [wfiInstruction] using h.to_rv32i_boundary
+
+#print axioms picorv32_ecall_loaded_rv32i_boundary_of_step
+#print axioms picorv32_ebreak_loaded_rv32i_boundary_of_step
+#print axioms picorv32_mret_loaded_rv32i_boundary_of_step
+#print axioms picorv32_wfi_loaded_rv32i_boundary_of_step
 
 #print axioms picorv32_ecall_class_step
 #print axioms picorv32_ecall_class_commit
