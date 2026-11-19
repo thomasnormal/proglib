@@ -782,7 +782,9 @@ partial def mExprHasRaw : MExpr → Bool
   | .slice value lower upper step _ =>
       mExprHasRaw value || lower.any mExprHasRaw || upper.any mExprHasRaw || step.any mExprHasRaw
   | .list elts _ | .tuple elts _ => elts.any mExprHasRaw
-  | .dict keys values _ => keys.any (fun key => key.any mExprHasRaw) || values.any mExprHasRaw
+  -- a missing key is a `**` expansion, which the compatibility `Expr` cannot express
+  | .dict keys values _ =>
+      keys.any (fun key => key.isNone || key.any mExprHasRaw) || values.any mExprHasRaw
   | .namedExpr _ value _ => mExprHasRaw value
   | .namedExprNode _ _ _ => true
 
@@ -850,6 +852,113 @@ private def mParams (args : MArguments) : Array RParam :=
           variadic := false, keywordVariadic := true } : RParam)]
     | none => #[]
   positionalOnly ++ positional ++ vararg ++ keywordOnly ++ kwarg
+
+/-! ### Scope declarations
+
+CPython applies a function's `global` and `nonlocal` declarations to its whole body at compile time, and
+rejects (SyntaxError) a declaration after a use of the name, for a parameter, a `nonlocal` outside a
+function, and a `nonlocal` name that no enclosing function binds. `ast.parse` performs none of these
+checks. The machine applies a declaration when its statement runs, so it admits only the placements
+where that is the same: declarations at the head of a function body, for names bound by an enclosing
+function. Everything else is refused. -/
+
+private def mParamNames (args : MArguments) : List String :=
+  ((args.positionalOnly ++ args.positional ++ args.keywordOnly).map (·.name)).toList ++
+    (args.vararg.map (·.name)).toList ++ (args.kwarg.map (·.name)).toList
+
+/-- Whether a statement list contains a `global` or `nonlocal` statement, in any suite but not inside a
+nested function or class. -/
+private partial def mDeclaresScope (stmts : Array MStmt) : Bool :=
+  stmts.any fun stmt =>
+    match stmt with
+    | .global _ _ | .nonlocal _ _ => true
+    | .ifStmt _ body orelse _ | .whileStmt _ body orelse _ =>
+        mDeclaresScope body || mDeclaresScope orelse
+    | .forStmt _ _ body orelse _ _ => mDeclaresScope body || mDeclaresScope orelse
+    | .withStmt _ body _ _ => mDeclaresScope body
+    | .tryStmt body handlers orelse finalbody _ =>
+        mDeclaresScope body || handlers.any (fun handler => mDeclaresScope handler.2.2) ||
+          mDeclaresScope orelse || mDeclaresScope finalbody
+    | _ => false
+
+private def mScopeHeader (stmt : MStmt) : Bool :=
+  match stmt with
+  | .global _ _ | .nonlocal _ _ | .pass _ | .expr (.constant _ _) _ => true
+  | _ => false
+
+private def mHeaderNames (body : Array MStmt) : List String × List String :=
+  (body.toList.takeWhile mScopeHeader).foldl (fun names stmt =>
+    match stmt with
+    | .global declared _ => (names.1 ++ declared.toList, names.2)
+    | .nonlocal declared _ => (names.1, names.2 ++ declared.toList)
+    | _ => names) (([] : List String), ([] : List String))
+
+/-- Declarations only in the head of the body (after docstrings and `pass`), none for a parameter, and
+no name both global and nonlocal. -/
+private def mScopeDeclarationsAdmitted (args : MArguments) (body : Array MStmt) : Bool :=
+  let header := body.toList.takeWhile mScopeHeader
+  let rest := (body.toList.drop header.length).toArray
+  let names := mHeaderNames body
+  let params := mParamNames args
+  !mDeclaresScope rest && (names.1 ++ names.2).all (fun name => !params.contains name) &&
+    names.1.all (fun name => !names.2.contains name)
+
+private partial def mTargetNames : MExpr → List String
+  | .name id _ => [id]
+  | .tuple elts _ | .list elts _ => elts.toList.flatMap mTargetNames
+  | .starred value _ => mTargetNames value
+  | _ => []
+
+/-- Names a function body binds by assignment, `for`, `with`, `except ... as`, `del`, `import`, `def`
+and `class`, in any suite but not inside nested scopes (an under-approximation: a name it misses only
+makes the machine refuse more). -/
+private partial def mBoundNames (stmts : Array MStmt) : List String :=
+  stmts.toList.flatMap fun stmt =>
+    match stmt with
+    | .assign targets _ _ => targets.toList.flatMap mTargetNames
+    | .augAssign target _ _ _ | .annAssign target _ _ _ _ => mTargetNames target
+    | .unpackAssign before star after _ _ => before.toList ++ [star] ++ after.toList
+    | .delete targets _ => targets.toList.flatMap mTargetNames
+    | .forStmt target _ body orelse _ _ =>
+        mTargetNames target ++ mBoundNames body ++ mBoundNames orelse
+    | .ifStmt _ body orelse _ | .whileStmt _ body orelse _ => mBoundNames body ++ mBoundNames orelse
+    | .withStmt items body _ _ =>
+        items.toList.flatMap (fun item => (item.2.map mTargetNames).getD []) ++ mBoundNames body
+    | .tryStmt body handlers orelse finalbody _ =>
+        mBoundNames body ++
+          handlers.toList.flatMap (fun handler => handler.2.1.toList ++ mBoundNames handler.2.2) ++
+          mBoundNames orelse ++ mBoundNames finalbody
+    | .functionDef name _ _ _ _ _ | .asyncFunctionDef name _ _ _ _ _ => [name]
+    | .classDef name _ _ _ _ _ | .classDefNode name _ _ _ _ _ => [name]
+    | .import names _ | .importFrom _ names _ _ =>
+        names.toList.filterMap (fun alias => alias.asname <|> (if alias.name.contains '.' then none else some alias.name))
+    | _ => []
+
+/-- Every `nonlocal` is inside a function and names a variable some enclosing function binds (and does
+not declare global). `enclosing` holds those names; `own` the current function's (empty outside one). -/
+private partial def mNonlocalsBound (inFunction : Bool) (enclosing own : List String)
+    (stmts : Array MStmt) : Bool :=
+  stmts.all fun stmt =>
+    match stmt with
+    | .nonlocal names _ => inFunction && names.all (fun name => enclosing.contains name)
+    | .functionDef _ args _ _ body _ | .asyncFunctionDef _ args _ _ body _ =>
+        let outer := if inFunction then enclosing ++ own else enclosing
+        let globals := (mHeaderNames body).1
+        let bound := (mParamNames args ++ mBoundNames body).filter (fun name => !globals.contains name)
+        mNonlocalsBound true outer bound body
+    | .classDef _ _ _ _ body _ | .classDefNode _ _ _ _ body _ =>
+        mNonlocalsBound false (if inFunction then enclosing ++ own else enclosing) [] body
+    | .ifStmt _ body orelse _ | .whileStmt _ body orelse _ =>
+        mNonlocalsBound inFunction enclosing own body && mNonlocalsBound inFunction enclosing own orelse
+    | .forStmt _ _ body orelse _ _ =>
+        mNonlocalsBound inFunction enclosing own body && mNonlocalsBound inFunction enclosing own orelse
+    | .withStmt _ body _ _ => mNonlocalsBound inFunction enclosing own body
+    | .tryStmt body handlers orelse finalbody _ =>
+        mNonlocalsBound inFunction enclosing own body &&
+          handlers.all (fun handler => mNonlocalsBound inFunction enclosing own handler.2.2) &&
+          mNonlocalsBound inFunction enclosing own orelse &&
+          mNonlocalsBound inFunction enclosing own finalbody
+    | _ => true
 
 mutual
 partial def mStmtToStmt : MStmt → RStmt
@@ -929,7 +1038,9 @@ partial def mStmtToStmtClean : MStmt → RStmt
         .forStmt (mExprToExpr target) (mExprToExpr iter)
           (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
   | .functionDef name args decorators returns body span =>
-      if !decorators.isEmpty || returns.isSome then
+      if !mScopeDeclarationsAdmitted args body then
+        .unsupported "FunctionDef" "machine scope declaration placement" span
+      else if !decorators.isEmpty || returns.isSome then
         .functionDefFull name (mParams args) (args.defaults.map mExprToExpr)
           (decorators.map mExprToExpr) (returns.map mExprToExpr)
           (body.map mStmtToStmt) span
@@ -947,7 +1058,11 @@ partial def mStmtToStmtClean : MStmt → RStmt
 end
 
 def compileMachineModule (module : MModule) : RModule :=
-  { body := module.body.map mStmtToStmt }
+  if mNonlocalsBound false [] [] module.body then
+    { body := module.body.map mStmtToStmt }
+  else
+    { body := #[.unsupported "Nonlocal" "machine nonlocal declaration without an enclosing binding"
+      default] }
 
 private def ingestSpan : Json :=
   Lean.Json.mkObj [("lineno", Lean.toJson (1 : Nat)), ("col_offset", Lean.toJson (0 : Nat)),
