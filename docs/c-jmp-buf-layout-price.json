@@ -1,0 +1,96 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 2,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20210505-1.c",
+   "sha256": "f89abf070a7dae85ad9026f5113b7fa91e4f6f3c9eb2f03a9514de8910222d57",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id64",
+     "element_size_bytes": 200,
+     "size_bytes": 200,
+     "type": "jmp_buf"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id65",
+     "size_bytes": 1,
+     "type": "_Bool"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "void (*)(void)"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr56982.c",
+   "sha256": "fc4d0e1d5628334268e1ad3d64cdfdda29a47b8cd4d130ae1a4f2bbd26eadca3",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id76",
+     "element_size_bytes": 200,
+     "size_bytes": 200,
+     "type": "jmp_buf"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "int *"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id109",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id116",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "char **"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id148",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "unsupported:no layout for declared type 'jmp_buf'"
+}
