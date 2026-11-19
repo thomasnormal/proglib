@@ -130,6 +130,8 @@ obligation:
   all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
   `CoreRvfiMachine.to_reset_addi_refinement` composes that invariant with the
   all-prefix reset contract once initial relation and progress are supplied.
+  `r1_addi.picorv32_loaded_addi_invariant` packages those exact premises at
+  the pinned loaded design boundary while retaining the loader equality.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.

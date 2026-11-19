@@ -216,6 +216,53 @@ theorem picorv32_loaded_addi_exact_cycle_step_refines
 
 #print axioms picorv32_loaded_addi_exact_cycle_step_refines
 
+/-! This is the packaged first R1 invariant at the loaded design boundary.
+    Its exact source-step, decoder, architectural post-state, relation, and
+    order premises remain explicit. -/
+
+theorem picorv32_loaded_addi_invariant
+    (core : PicoRV32LoadedCanonicalE)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep
+              (PicoRV32LoadedCanonicalE.design core) state
+              ((rvfi_core_adapter.CoreRvfiMachine.encode
+                (PicoRV32LoadedCanonicalE.machine core)) state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            ∃ w rd rs1 imm,
+              input.memory = memoryState.memory ∧
+              observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
+              rel next
+                { arch := addiNext memoryState.arch rd rs1 imm,
+                  memory := memoryState.memory }
+          else rel next memoryState))
+    (horder : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input)
+      (next : LeanModels.Sv.Kernel.CoreMemState)
+      (observation : RvfiObservation),
+      rel state memoryState → admit input →
+      rvfi_core_adapter.rvfiStep
+          (PicoRV32LoadedCanonicalE.design core) state
+          ((rvfi_core_adapter.CoreRvfiMachine.encode
+            (PicoRV32LoadedCanonicalE.machine core)) state input) =
+        .ok (next, observation) →
+      if observation.valid then observation.order = start else True) :
+    picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
+      Rv32iAddiInvariant
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+          (PicoRV32LoadedCanonicalE.machine core)) rel admit := by
+  refine ⟨PicoRV32LoadedCanonicalE.loaded core, ?_⟩
+  exact (PicoRV32LoadedCanonicalE.machine core).to_addi_invariant hstep horder
+
+#print axioms picorv32_loaded_addi_invariant
+
 
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact
