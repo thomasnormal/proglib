@@ -874,18 +874,18 @@ def isCharacterType : QualType → Bool
 
 def cAliasCompatible : CType → CType → Bool := fun used eff =>
     let unqual : CType → CType
-      | "volatile char" => "char"
-      | "volatile signed char" => "signed char"
-      | "volatile unsigned char" => "unsigned char"
-      | "volatile short" => "short"
-      | "volatile unsigned short" => "unsigned short"
-      | "volatile int" => "int"
-      | "volatile unsigned int" => "unsigned int"
-      | "volatile long" => "long"
-      | "volatile unsigned long" => "unsigned long"
-      | "volatile long long" => "long long"
-      | "volatile unsigned long long" => "unsigned long long"
-      | "volatile _Bool" => "_Bool"
+      | "const char" | "volatile char" => "char"
+      | "const signed char" | "volatile signed char" => "signed char"
+      | "const unsigned char" | "volatile unsigned char" => "unsigned char"
+      | "const short" | "volatile short" => "short"
+      | "const unsigned short" | "volatile unsigned short" => "unsigned short"
+      | "const int" | "volatile int" => "int"
+      | "const unsigned int" | "volatile unsigned int" => "unsigned int"
+      | "const long" | "volatile long" => "long"
+      | "const unsigned long" | "volatile unsigned long" => "unsigned long"
+      | "const long long" | "volatile long long" => "long long"
+      | "const unsigned long long" | "volatile unsigned long long" => "unsigned long long"
+      | "const _Bool" | "volatile _Bool" => "_Bool"
       | t => t
     let used' := unqual used
     let eff' := unqual eff
