@@ -487,7 +487,15 @@ def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
              | none => pure []
              | some a => do
                  let xs ← a.getArr?
-                 xs.toList.mapM parseStructuredType }
+                 xs.toList.mapM parseStructuredType
+           recordKinds := ← match getOptNode j "record_kinds" with
+             | none => pure []
+             | some a => do
+                 let xs ← a.getArr?
+                 xs.toList.mapM (fun row => do
+                   let id ← DeclarationId.mk <$> getStr row "decl_id"
+                   let isUnion ← getBool row "is_union"
+                   pure (id, isUnion)) }
 
 def parseEnvelopeString (s : String) : Except String Envelope := do
   match Json.parse s with
