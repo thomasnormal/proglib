@@ -16,24 +16,19 @@ structure Pointer where
   projection : List Projection := []
 deriving Repr, Inhabited, BEq, DecidableEq
 
-inductive FieldValue where
-  | int (n : Int)
-  | pointer (p : Pointer)
-deriving Repr, Inhabited, BEq, DecidableEq
-
 inductive Cell where
   | int (n : Int)
   | pointer (p : Pointer)
-  | aggregate (fields : List FieldValue)
-  | enum (variant : Nat) (fields : List FieldValue)
+  | aggregate (fields : List Cell)
+  | enum (variant : Nat) (fields : List Cell)
   | unit
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 inductive Slot where
   | uninit
   | value (n : Int)
   | cell (value : Cell)
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 structure State where
   locals : List (Nat × Slot) := []
@@ -41,7 +36,7 @@ structure State where
   types : List TypeLayout := []
   allocations : List Allocation := []
   provenance : List (Nat × Nat) := []
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 inductive Event where
   | storageLive (localId : Nat)
@@ -51,17 +46,17 @@ inductive Event where
   | placeMention (localId : Nat)
   | call (callee : String)
   | drop (localId : Nat)
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 structure Trace where
   state : State
   events : List Event
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 inductive Refusal where
   | unsupported (what : String)
   | malformed (what : String)
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 inductive Outcome where
   | returned (trace : Trace)
@@ -69,13 +64,13 @@ inductive Outcome where
   | ub (kind : String)
   | refused (reason : Refusal)
   | outOfFuel
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 inductive CheckedOutcome where
   | value (n : Int)
   | overflow
   | divideByZero
-deriving Repr, Inhabited, BEq, DecidableEq
+deriving Repr, Inhabited, BEq
 
 def Outcome.isReturned : Outcome → Bool
   | .returned _ => true
@@ -150,16 +145,6 @@ def cellInt : Cell → Option Int
   | .int value => some value
   | _ => none
 
-def cellField : Cell → Option FieldValue
-  | .int value => some (.int value)
-  | .pointer pointer => some (.pointer pointer)
-  | .enum _ _ => none
-  | _ => none
-
-def fieldCell : FieldValue → Cell
-  | .int value => .int value
-  | .pointer pointer => .pointer pointer
-
 def cellSlot : Cell → Slot
   | .int value => .value value
   | value => .cell value
@@ -205,9 +190,9 @@ def projectFields (s : State) (cell : Cell) : List Projection → Option Cell
   | .field index _ :: rest =>
       match cell with
       | .aggregate fields =>
-          fields.drop index |>.head? |>.map fieldCell |>.bind (projectFields s · rest)
+          fields.drop index |>.head? |>.bind (projectFields s · rest)
       | .enum _ fields =>
-          fields.drop index |>.head? |>.map fieldCell |>.bind (projectFields s · rest)
+          fields.drop index |>.head? |>.bind (projectFields s · rest)
       | _ => none
   | .downcast variant :: rest =>
       match cell with
@@ -233,9 +218,9 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | .field index _ :: rest =>
       match cell with
       | .aggregate fields =>
-          fields.drop index |>.head? |>.map fieldCell |>.bind (projectCell s · rest)
+          fields.drop index |>.head? |>.bind (projectCell s · rest)
       | .enum _ fields =>
-          fields.drop index |>.head? |>.map fieldCell |>.bind (projectCell s · rest)
+          fields.drop index |>.head? |>.bind (projectCell s · rest)
       | _ => none
   | .downcast variant :: rest =>
       match cell with
@@ -246,21 +231,27 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
 def readCell (s : State) (place : Place) : Option Cell :=
   localSlot s place.localId |>.bind slotCell |>.bind (projectCell s · place.projection)
 
+def updateCellProjection : Cell → List Projection → Cell → Option Cell
+  | cell, [], value => some value
+  | .aggregate fields, .field index _ :: rest, value => do
+      let old ← fields.drop index |>.head?
+      let updated ← updateCellProjection old rest value
+      pure (.aggregate (fields.set index updated))
+  | .enum variant fields, .field index _ :: rest, value => do
+      let old ← fields.drop index |>.head?
+      let updated ← updateCellProjection old rest value
+      pure (.enum variant (fields.set index updated))
+  | .enum variant fields, .downcast expected :: rest, value =>
+      if variant == expected then updateCellProjection (.enum variant fields) rest value else none
+  | _, .field _ _ :: _, _ | _, .downcast _ :: _, _ => none
+  | _, .deref :: _ , _ | _, .unsupported _ :: _, _ => none
+
 def writeLocalProjection (s : State) (localId : Nat) : List Projection → Cell → Option State
   | [], value => some (setSlot s localId (cellSlot value))
-  | .field index _ :: rest, value =>
-      if rest.isEmpty then
-        localSlot s localId |>.bind slotCell |>.bind fun cell =>
-          match cell with
-          | .aggregate fields =>
-              fields.drop index |>.head? |>.bind fun _old =>
-                some (setSlot s localId
-                  (match value with
-                  | .int n => .cell (.aggregate (fields.set index (.int n)))
-                  | _ => .cell (.aggregate fields)))
-          | _ => none
-      else none
-  | (.deref :: _), _ | (.downcast _ :: _), _ | (.unsupported _ :: _), _ => none
+  | projections, value => do
+      let cell ← localSlot s localId |>.bind slotCell
+      let updated ← updateCellProjection cell projections value
+      pure (setSlot s localId (cellSlot updated))
 
 def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
   match place.projection with
@@ -376,15 +367,14 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .addressOf _ place =>
       some (.pointer { provenance := place.localId, address := placementOf s place.localId, projection := place.projection })
   | .aggregate _ fields => do
-      let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
+      let values ← fields.mapM (operandCell s)
       pure (.aggregate values)
   | .adtAggregate variant fields => do
-      let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
+      let values ← fields.mapM (operandCell s)
       pure (.enum variant values)
   | .repeat operand count => do
       let value ← operandCell s operand
-      let field ← cellField value
-      pure (.aggregate (List.replicate count field))
+      pure (.aggregate (List.replicate count value))
   | .zstAggregate => some (.enum 0 [])
   | .discriminant place =>
       match readCell s place with
