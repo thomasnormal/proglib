@@ -32,6 +32,7 @@ deriving Repr, Inhabited, BEq
 
 structure State where
   locals : List (Nat × Slot) := []
+  sharedLocals : List (Nat × Slot) := []
   placements : List (Nat × Nat) := []
   types : List TypeLayout := []
   allocations : List Allocation := []
@@ -154,8 +155,17 @@ def cellSlot : Cell → Slot
   | .int value => .value value
   | value => .cell value
 
+def shareCell : Cell → Cell
+  | .pointer pointer => .pointer { pointer with isLocal := false }
+  | .aggregate fields => .aggregate (fields.map shareCell)
+  | .enum variant fields => .enum variant (fields.map shareCell)
+  | value => value
+
 def localSlot (s : State) (localId : Nat) : Option Slot :=
   s.locals.find? (fun item => item.1 == localId) |>.map (·.2)
+
+def sharedSlot (s : State) (localId : Nat) : Option Slot :=
+  s.sharedLocals.find? (fun item => item.1 == localId) |>.map (·.2)
 
 def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
   let layout := s.types.find? (fun item => item.id == toString ty)
@@ -212,16 +222,27 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
       | .pointer pointer =>
           let target :=
             if pointer.isLocal then
-              (localSlot s pointer.provenance).bind slotCell |>.bind
+              ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s pointer.provenance)).bind slotCell |>.bind
                 (projectFields s · pointer.projection)
             else
-              match pointer.pointeeType with
-              | some ty => allocationCell s pointer.provenance (some ty)
-              | none => allocationCell s pointer.provenance none
+              match sharedSlot s pointer.provenance with
+              | some slot => slotCell slot |>.bind (projectFields s · pointer.projection)
+              | none => match pointer.pointeeType with
+                | some ty => allocationCell s pointer.provenance (some ty)
+                | none => allocationCell s pointer.provenance none
           target.bind (projectCell s · rest)
       | _ => none
   | .field index _ :: rest =>
       match cell with
+      | .pointer pointer =>
+          let target :=
+            if pointer.isLocal then ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s pointer.provenance)).bind slotCell
+            else match sharedSlot s pointer.provenance with
+              | some slot => slotCell slot
+              | none => match pointer.pointeeType with
+                | some ty => allocationCell s pointer.provenance (some ty)
+                | none => allocationCell s pointer.provenance none
+          target.bind (projectFields s · (.field index 0 :: rest))
       | .aggregate fields =>
           fields.drop index |>.head? |>.bind (projectCell s · rest)
       | .enum _ fields =>
@@ -599,7 +620,7 @@ def bindEvaluatedCells : State → List Cell → Nat → State
 
 def bindCallCellsFresh (caller callee : State) (args : List Operand) (localId : Nat) : Option State := do
   let values ← args.mapM (operandCell caller)
-  pure (bindEvaluatedCells callee values localId)
+  pure (bindEvaluatedCells { callee with sharedLocals := caller.locals } (values.map shareCell) localId)
 
 def returnValue (trace : Trace) : Option Int :=
   (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item =>
