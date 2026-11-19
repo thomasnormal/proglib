@@ -253,15 +253,16 @@ recognition, and record-tag lookup. No F2 store work starts until this checker
 reaches zero and the full survey is at least 1326/2214 with no DIVERGE.
 
 **Focused differential receipt (2026-11-19).** The committed `harness/c_cases.json`
-battery without optional probes reports 83 MATCH, 38 REFUSE, and 0 DIVERGE
+battery without optional probes reports 63 MATCH, 58 REFUSE, and 0 DIVERGE
 against pinned Clang 21.1.8. The refusal rows name missing optional parser
 observations for function-pointer layouts, floating literal bits, pointee
 strides, and anonymous bit-field layouts. The receipt is a focused battery,
 not a full corpus survey. The approved record-layout, structured-type, and
 floating-bit probe sources are present in `extractors/c`; on the pinned
 Clang development environment their deterministic plugin-backed focused
-receipt is 13 MATCH, 0 REFUSE, and 0 DIVERGE for the rows requiring those
-observations. The no-plugin receipt remains the default when those optional
+receipt is 10 MATCH, 3 REFUSE, and 0 DIVERGE for the rows requiring those
+observations. The three refusals are explicit field-offset observation
+boundaries in the current evaluator. The no-plugin receipt remains the default when those optional
 binaries are unavailable. The rerunnable pinned C1 sample cache currently
 contains the registered 300-file slice. A fresh batch run on 2026-11-19
 reported 172 passed, 0 failed, 88 refused-unsupported, 9 refused-ub, 30

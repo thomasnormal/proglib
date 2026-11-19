@@ -561,67 +561,34 @@ def sizeAlign (tds : List (CType × CType))
                   | _, _ => none
                 (r.2.1.foldl step (some (0, 1))).map fun p => (roundUp p.1 p.2, p.2)
 
-/-- A member's byte offset, by the same rule and the same walk.
-
-The base spelling arrives as the EXPRESSION's type — `Pos` for `x.f` and
-`const Pos *` for `p->f` — so the qualifiers and one level of pointer are
-peeled before the tag is read. -/
-def fieldOffIn (tds : List (CType × CType))
-    (recs : List (String × List (String × CType) × Bool))
-    (fuel : Nat) (base : CType) (fld : String) : Option Nat :=
-  let t0 := stripQuals 8 base
-  let t1 := if t0.endsWith "*" then stripQuals 8 (t0.dropEnd 1).toString.trimAsciiEnd.toString else t0
-  let t := resolve tds 8 t1
-  let record := recs.find? (·.1 == t)
-  match record with
-    | none => none
-    | some r =>
-        let isUnion := r.2.2
-        let step := fun (acc : Option Nat × Option Nat) (m : String × CType) =>
-          match acc with
-          | (some _, _) => acc                     -- already found
-          | (none, off?) =>
-            match off?, sizeAlign tds recs fuel m.2 with
-            | some off, some (msz, mal) =>
-                let here := if isUnion then 0 else roundUp off mal
-                if m.1 == fld then (some here, none)
-                else (none, some (if isUnion then 0 else here + msz))
-            | _, _ => (none, none)
-        (r.2.1.foldl step (none, some 0)).1
-
 /-- The layout for ONE test, built from its own envelope. -/
 def layoutFor (envl : Envelope) : Layout :=
   let ds := allDecls envl
   let tds := typedefsOf envl
   let recs := recordsOf envl
   let observed := observedRecordFacts envl
-  let declFieldOff := fun did f =>
-    match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
-          ds.any (fun r => match r with
-            | .record (some rrid) _ fields (some layout) _ =>
-                rrid == rid && (checkedRecordLayout? fields layout).isSome
-            | _ => false)
-      | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _) =>
-        match ds.find? (fun q => match q with
-          | .record (some rrid) _ _ _ _ => rrid == rid
-          | _ => false) with
-        | some (.record (some rrid) _ fields _ _) =>
-            match observedRecordLayout? envl rrid with
-            | some layout =>
-              match checkedRecordLayout? fields layout with
-              | some checked =>
-                  checked.fields.find? (fun field => field.name == f)
-                    |>.map (fun field => field.offsetBits / 8)
-              | none => none
-            | none => none
-        | _ => none
-    | _ => none
   let structuredRecordIdFor := fun did =>
     match (envl.structuredTypeFor did).map LeanModels.Clang.QualType.unqualified with
     | some (.record handle) => some { value := handle.value }
     | _ => none
+  let declFieldOff := fun did f =>
+    let recordFact := fun (rid : DeclarationId) =>
+      match ds.find? (fun q : Decl => match q with
+        | .record (some rrid) _ _ _ _ => rrid == rid
+        | _ => false) with
+      | some (.record (some rrid) _ fields _ _) =>
+          match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
+          | some checked =>
+              checked.fields.find? (fun field : RecordLayoutField => field.name == f)
+                |>.map (fun field : RecordLayoutField => field.offsetBits / 8)
+          | none => none
+      | _ => none
+    recordFact did |>.orElse (fun _ =>
+      match ds.find? (fun q : Decl => match q with
+        | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did
+        | _ => false) with
+      | some (.var _ _ _ _ _ (some rid) _ _) => recordFact rid
+      | _ => structuredRecordIdFor did |>.bind (fun rid => recordFact rid))
   let parentRecordIdFor := fun did =>
     if (observedRecordLayout? envl did).isSome then some did else
       match ds.find? (fun q => match q with
@@ -852,7 +819,7 @@ def layoutFor (envl : Envelope) : Layout :=
       | some (_, _, layout) =>
           layout.fields.find? (fun field => field.name == f)
             |>.map (fun field => field.offsetBits / 8)
-      | none => fieldOffIn tds recsWithObserved 16 t f
+      | none => none
     fieldBits := fun t f => match observedPointeeFor t with
       | some (_, _, layout) =>
           layout.fields.find? (fun field => field.name == f)
