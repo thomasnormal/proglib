@@ -80,8 +80,9 @@ obligation:
 * `rvfi_core_adapter.lean` for the refusal-preserving canonical RVFI adapter,
   the `CoreAddiBoundary` state relation, and its exact canonical-step
   constructors for the measured first and second ADDI rows.  Its
-  `r1_addi.picorv32_addi1_loaded_rv32i_boundary_of_step` wrapper carries the
-  measured first row into the same indexed dispatcher used by the universal
+  `r1_addi.picorv32_addi1_loaded_rv32i_boundary_of_step` and
+  `picorv32_addi2_loaded_rv32i_boundary_of_step` wrappers carry the measured
+  first two rows into the same indexed dispatcher used by the universal
   invariant, while retaining the source-step and exact-port-sample premises.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a

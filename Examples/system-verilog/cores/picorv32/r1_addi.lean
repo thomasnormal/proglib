@@ -160,4 +160,29 @@ theorem picorv32_addi1_loaded_rv32i_boundary_of_step
 
 #print axioms picorv32_addi1_loaded_rv32i_boundary_of_step
 
+theorem picorv32_addi2_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState}
+    (hstep : d.step st entry = .ok next)
+    (hsample : rvfi_core_adapter.rvfiPortSample d next =
+      rvfi_addi_boundary.addi2PortSample) :
+    ∃ next' observation, rvfi_core_adapter.rvfiStep d st entry =
+      .ok (next', observation) ∧
+      Rv32iBoundary rvfi_addi_boundary.addi2State
+        rvfi_addi_boundary.addi2Input observation
+        { arch := addiNext rvfi_addi_boundary.addi2State 3 2 1,
+          memory := rvfi_addi_boundary.addi2Input.memory }
+        (addiRetirement rvfi_addi_boundary.addi2State
+          rvfi_addi_boundary.addi2Input 3 2 1) := by
+  obtain ⟨next', observation, hrun, hboundary⟩ :=
+    rvfi_core_adapter.pinned_addi2_core_boundary_of_step hstep hsample
+  have hcore : rvfi_core_adapter.CoreAddiBoundary d st entry
+      rvfi_addi_boundary.addi2State rvfi_addi_boundary.addi2Input
+      0x00110193 3 2 1 :=
+    ⟨next', observation, hrun, hboundary⟩
+  exact hcore.to_rv32i_boundary
+
+#print axioms picorv32_addi2_loaded_rv32i_boundary_of_step
+
 end Examples.«system-verilog».cores.picorv32.r1_addi
