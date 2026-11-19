@@ -433,6 +433,9 @@ partial def mStmtToStmt : MStmt → RStmt
       .classDef name (bases.map mExprToExpr)
         (keywords.map (fun pair => (pair.1, mExprToExpr pair.2)))
         (decorators.map mExprToExpr) (body.map mStmtToStmt) span
+  | .withStmt items body isAsync span =>
+      RStmt.withStmt (items.map (fun pair => (mExprToExpr pair.1, pair.2.map mExprToExpr)))
+        (body.map mStmtToStmt) isAsync span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
@@ -451,7 +454,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .annAssign _ _ _ _ span
-  | .tryStmt _ _ _ _ span | .withStmt _ _ _ span =>
+  | .tryStmt _ _ _ _ span =>
       .unsupported "machine statement" "machine ingestion frontier" span
 
 def compileMachineModule (module : MModule) : RModule :=
