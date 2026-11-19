@@ -1,0 +1,216 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_fstring_raw_boundary.py",
+  "source_sha256": "cea7a270110752cc4516aef9dcfa217242d07e6c20d8c921032aa8ec93fbae52",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 15
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 15
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "JoinedStr",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 14
+              },
+              "values": [
+                {
+                  "kind": "FormattedValue",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 6,
+                    "end_lineno": 1,
+                    "end_col_offset": 14
+                  },
+                  "value": {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 9,
+                      "end_lineno": 1,
+                      "end_col_offset": 10
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  "conversion": 97,
+                  "format_spec": null
+                }
+              ]
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 20
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 2,
+            "col_offset": 0,
+            "end_lineno": 2,
+            "end_col_offset": 20
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Unsupported",
+              "span": {
+                "lineno": 2,
+                "col_offset": 6,
+                "end_lineno": 2,
+                "end_col_offset": 19
+              },
+              "py_kind": "JoinedStr:format_spec",
+              "text": "f'{1:{2}{3}}'",
+              "machine_kind": "JoinedStr",
+              "machine_value": null,
+              "machine_values": [
+                {
+                  "kind": "FormattedValue",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 6,
+                    "end_lineno": 2,
+                    "end_col_offset": 19
+                  },
+                  "value": {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 2,
+                      "col_offset": 9,
+                      "end_lineno": 2,
+                      "end_col_offset": 10
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  "conversion": -1,
+                  "format_spec": {
+                    "kind": "JoinedStr",
+                    "span": {
+                      "lineno": 2,
+                      "col_offset": 6,
+                      "end_lineno": 2,
+                      "end_col_offset": 19
+                    },
+                    "values": [
+                      {
+                        "kind": "FormattedValue",
+                        "span": {
+                          "lineno": 2,
+                          "col_offset": 6,
+                          "end_lineno": 2,
+                          "end_col_offset": 19
+                        },
+                        "value": {
+                          "kind": "Constant",
+                          "span": {
+                            "lineno": 2,
+                            "col_offset": 12,
+                            "end_lineno": 2,
+                            "end_col_offset": 13
+                          },
+                          "value": {
+                            "type": "int",
+                            "repr": "2"
+                          }
+                        },
+                        "conversion": -1,
+                        "format_spec": null
+                      },
+                      {
+                        "kind": "FormattedValue",
+                        "span": {
+                          "lineno": 2,
+                          "col_offset": 6,
+                          "end_lineno": 2,
+                          "end_col_offset": 19
+                        },
+                        "value": {
+                          "kind": "Constant",
+                          "span": {
+                            "lineno": 2,
+                            "col_offset": 15,
+                            "end_lineno": 2,
+                            "end_col_offset": 16
+                          },
+                          "value": {
+                            "type": "int",
+                            "repr": "3"
+                          }
+                        },
+                        "conversion": -1,
+                        "format_spec": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

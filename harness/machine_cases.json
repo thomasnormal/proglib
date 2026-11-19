@@ -485,6 +485,11 @@
     "expect": "unsupported"
   },
   {
+    "source": "harness/scripts/machine_fstring_raw_boundary.py",
+    "envelope": "harness/scripts/machine_fstring_raw_boundary.json",
+    "expect": "unsupported"
+  },
+  {
     "source": "harness/scripts/machine_set_boundary.py",
     "envelope": "harness/scripts/machine_set_boundary.json",
     "expect": "unsupported"
