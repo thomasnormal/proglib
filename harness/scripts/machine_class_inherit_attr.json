@@ -1,0 +1,317 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_class_inherit_attr.py",
+  "source_sha256": "1f856e4bc6310e53a835763ae644e52613b9deadf4a14508e8ad0e42f64084b2",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 13
+        },
+        "name": "Base",
+        "class_unsupported": "class-level statements (class attributes)",
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "7"
+              }
+            }
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "7"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 8
+        },
+        "name": "Child",
+        "class_unsupported": null,
+        "creation_effects": true,
+        "body": [
+          {
+            "kind": "Pass",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 8
+            }
+          }
+        ],
+        "machine_bases": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 12,
+              "end_lineno": 3,
+              "end_col_offset": 16
+            },
+            "id": "Base",
+            "machine_context": "Load"
+          }
+        ],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Pass",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 8
+            }
+          }
+        ],
+        "base": "Base"
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 5,
+          "end_col_offset": 11
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 0,
+              "end_lineno": 5,
+              "end_col_offset": 1
+            },
+            "id": "b",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 5,
+            "col_offset": 4,
+            "end_lineno": 5,
+            "end_col_offset": 11
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 4,
+              "end_lineno": 5,
+              "end_col_offset": 9
+            },
+            "id": "Child",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 14
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 6,
+            "col_offset": 0,
+            "end_lineno": 6,
+            "end_col_offset": 14
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 6,
+              "col_offset": 0,
+              "end_lineno": 6,
+              "end_col_offset": 5
+            },
+            "id": "print",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Attribute",
+              "span": {
+                "lineno": 6,
+                "col_offset": 6,
+                "end_lineno": 6,
+                "end_col_offset": 13
+              },
+              "value": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 6,
+                  "end_lineno": 6,
+                  "end_col_offset": 7
+                },
+                "id": "b",
+                "machine_context": "Load"
+              },
+              "attr": "value",
+              "machine_context": "Load"
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 7,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 18
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 7,
+            "col_offset": 0,
+            "end_lineno": 7,
+            "end_col_offset": 18
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 7,
+              "col_offset": 0,
+              "end_lineno": 7,
+              "end_col_offset": 5
+            },
+            "id": "print",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Attribute",
+              "span": {
+                "lineno": 7,
+                "col_offset": 6,
+                "end_lineno": 7,
+                "end_col_offset": 17
+              },
+              "value": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 7,
+                  "col_offset": 6,
+                  "end_lineno": 7,
+                  "end_col_offset": 11
+                },
+                "id": "Child",
+                "machine_context": "Load"
+              },
+              "attr": "value",
+              "machine_context": "Load"
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ],
+    "machine_type_ignores": []
+  },
+  "lean_blocks": []
+}
