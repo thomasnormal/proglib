@@ -349,6 +349,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clk", 1, clock=True), Port("rst_n", 1, reset_active_low=True),
              Port("sel", 2), Port("d", 4)), (Port("q", 4),),
             retain_proc_rewrites=True),
+    Fixture("latch_casez_e.sv", "latch_casez_e",
+            (Port("en", 1), Port("sel", 2), Port("d", 4)), (Port("q", 4),)),
     Fixture("bits_package_repro.sv", "bits_package_repro",
             (Port("x", 4),), (Port("y", 1),)),
     Fixture("bits_package_param_e.sv", "bits_package_param_e",
