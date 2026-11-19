@@ -59,6 +59,30 @@ def rvfiStep (d : CoreMemDesign) (st : CoreMemState) (entry : SvState) :
     | none => .unsupported "RVFI decode refused canonical post-state"
   pure (next, row)
 
+/-! A universal invariant may use a total `RvfiCycleMachine` only after its
+    environment encoder proves that every admitted cycle succeeds in the exact
+    adapter above.  This wrapper carries that success proof explicitly. -/
+
+structure CoreRvfiMachine (d : CoreMemDesign) where
+  encode : LeanModels.Refine.Input → SvState
+  step : CoreMemState → LeanModels.Refine.Input →
+    CoreMemState × RvfiObservation
+  exact : ∀ (state : CoreMemState) (input : LeanModels.Refine.Input),
+    rvfiStep d state (encode input) = .ok (step state input)
+
+def CoreRvfiMachine.toRvfiCycleMachine
+    {d : CoreMemDesign} (machine : CoreRvfiMachine d) :
+    LeanModels.Refine.RvfiCycleMachine CoreMemState where
+  init := d.initial
+  step := machine.step
+
+theorem CoreRvfiMachine.step_exact
+    {d : CoreMemDesign} (machine : CoreRvfiMachine d)
+    (state : CoreMemState) (input : LeanModels.Refine.Input) :
+    rvfiStep d state (machine.encode input) =
+      .ok ((machine.toRvfiCycleMachine).step state input) := by
+  exact machine.exact state input
+
 theorem rvfiStep_ok_of_fast_and_decode
     {d : CoreMemDesign} {st next : CoreMemState} {entry : SvState}
     {row : RvfiObservation}
