@@ -533,14 +533,15 @@ theorem PicoRV32R2Statement.safety {E : ESig} {b : PicoRV32Backend E}
         (∀ address width value,
           b.environment.programRegion address = true →
             storeVal b.environment.program width address value = b.environment.program)
-        (∃ env, b.admit env) (b.loaded = picorv32RISCVFormalDesign)
+        (∃ env, b.admit env)
+        (b.design = b.toE picorv32RISCVFormalDesign)
         (decodePost "rvfi_") samples) := by
   intro ch env samples hadmit hdisc hbeh
   have hgeneric := s.invariant.safe ch env samples hadmit hdisc hbeh
   obtain ⟨rows, instructions, hdecode, htrace⟩ := hgeneric
   obtain ⟨probes, ⟨trace, hrun, hprobes⟩, hsamples⟩ := hbeh
   refine ⟨s.initialMemory, s.resetPc, b.environment.programReadOnly,
-    s.environmentInhabited, b.loadedIsPinned,
+    s.environmentInhabited, b.design_is_pinned,
     rows, instructions, hdecode, ?_, htrace⟩
   subst probes
   subst samples
