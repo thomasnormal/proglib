@@ -57,6 +57,7 @@ inductive MExpr where
   | namedExpr (target : String) (value : MExpr) (span : Span)
   | namedExprNode (target : MExpr) (value : MExpr) (span : Span)
   | starred (value : MExpr) (span : Span)
+  | rawNode (kind : String) (children : Array MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
 deriving Repr, Inhabited, BEq
 
@@ -331,6 +332,9 @@ partial def mExpr (j : Json) : Except String MExpr := do
           pure (.setComp (← mExpr (← mField j "machine_elt"))
             (← mExpr (← mField j "machine_target"))
             (← mExpr (← mField j "machine_iter")) (← ifs.mapM mExpr) #[] span)
+      | .ok (.str "Comprehension") =>
+          let children ← (← mField j "machine_children").getArr?
+          pure (.rawNode kind (← children.mapM mExpr) span)
       | _ => pure (.unsupported kind span)
   | "Lambda" =>
       let parseParam := fun param => do
@@ -634,6 +638,7 @@ partial def mExprToExpr : MExpr → Expr
       match value with
       | .name name _ => .unsupported "Starred" name span
       | _ => .unsupported "Starred" "" span
+  | .rawNode kind _ span => .unsupported kind "machine comprehension frontier" span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .set _ span | .joinedStr _ span | .formattedValue _ _ _ span
   | .listComp _ _ _ _ _ span | .setComp _ _ _ _ _ span
@@ -701,11 +706,12 @@ partial def mExprToRaw : MExpr → RRawExpr
   | .namedExprNode target value span =>
       .node "NamedExpr" #[mExprToRaw target, mExprToRaw value] span
   | .starred value span => .node "Starred" #[mExprToRaw value] span
+  | .rawNode kind children span => .node kind (children.map mExprToRaw) span
   | .unsupported kind span => .node kind #[] span
 
 partial def mExprHasRaw : MExpr → Bool
   | .constant _ _ | .name _ _ => false
-  | .unsupported _ _ => true
+  | .unsupported _ _ | .rawNode _ _ _ => true
   | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
   | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true

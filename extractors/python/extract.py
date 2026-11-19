@@ -976,7 +976,13 @@ def convert_expr(node):
                 return _convert_comprehension(node, g)
             finally:
                 _COMP_DEPTH[0] -= 1
-        return unsupported(node, type(node).__name__)
+        out = unsupported(node, type(node).__name__, machine_kind="Comprehension")
+        out["machine_children"] = [convert_expr(node.elt)]
+        for generator in gens:
+            out["machine_children"].append(convert_expr(generator.target))
+            out["machine_children"].append(_in_enclosing_scope(generator.iter))
+            out["machine_children"].extend(convert_expr(i) for i in generator.ifs)
+        return out
 
     return unsupported(node)
 
