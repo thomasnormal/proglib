@@ -312,6 +312,23 @@ theorem picorv32_loaded_addi_program_refinement_from_initial_relation
 
 #print axioms picorv32_loaded_addi_program_refinement_from_initial_relation
 
+/-! The explicit program-image reset relation also supplies the WF premise
+    for an ADDI-only architectural prefix. -/
+
+theorem picorv32_loaded_addi_program_state_preserves_WF
+    (core : PicoRV32LoadedCanonicalE)
+    (program : Memory)
+    (initialArch : ArchState)
+    (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF)
+    (instructions : List AddiInstruction) :
+    (addiProgramState initialArch instructions).WF := by
+  have hreset := picoRV32_reset_relation_initial
+    (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf
+  exact addiProgramState_preserves_WF initialArch instructions hreset.arch_wf
+
+#print axioms picorv32_loaded_addi_program_state_preserves_WF
+
 
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact
