@@ -2098,3 +2098,14 @@ cycle-by-cycle kernel proof. The next R1 slice must expose a derived cycle
 model together with a refinement theorem back to canonical E, or wait for the
 general lane's kernel-cheap store. No universal ADDI invariant is claimed by
 this measurement.
+
+## 2026-11-19 canonical-E kernel-cost measurement
+
+The proof-budget measurement used `tools/lean_memory_gate.py` with `MemoryMax=12G`
+and swap disabled. Compiling the loaded canonical-E entry point
+`input_drive_core.lean` completed in 36.354 seconds and peaked at 0.253 GiB.
+A one-cycle reset-release replay through the same `CoreMemDesign.fastStep` path
+returned `one-cycle-ok` in 21.896 seconds and peaked at 0.263 GiB. Both runs
+were single-threaded and stayed below the 8 GiB warning threshold. The ADDI
+invariant can therefore use the exact loaded-E path without introducing a
+derived cycle model.
