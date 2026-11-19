@@ -312,7 +312,9 @@ def recordsOf (envl : Envelope) : List (String × List (String × CType) × Bool
             layout.tagKind == "union"))
     | .record (some rid) (some nm) fields none _ =>
         (fieldsOf fields).map (fun fs =>
-          (nm, fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
+          (if envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false
+           then "union " ++ nm else "struct " ++ nm,
+           fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
     | .record none (some nm) fields none _ =>
         (fieldsOf fields).map (fun fs => (nm, fs, false))
     | _ => none
