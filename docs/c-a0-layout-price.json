@@ -1,0 +1,282 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 1,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "va-arg-22.c",
+   "sha256": "9761b4035e92a4db16471a7d3567043633029d827fe5f9c636558f14c770c17f",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id36",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id36",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 0,
+     "type": "A0"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 1,
+     "type": "A1"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 2,
+     "type": "A2"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 3,
+     "type": "A3"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 4,
+     "type": "A4"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 5,
+     "type": "A5"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 6,
+     "type": "A6"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 7,
+     "type": "A7"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 8,
+     "type": "A8"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 9,
+     "type": "A9"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 10,
+     "type": "A10"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 11,
+     "type": "A11"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 12,
+     "type": "A12"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 13,
+     "type": "A13"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 14,
+     "type": "A14"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 15,
+     "type": "A15"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 16,
+     "type": "A16"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 31,
+     "type": "A31"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 32,
+     "type": "A32"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 35,
+     "type": "A35"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 72,
+     "type": "A72"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id236",
+     "element_size_bytes": 24,
+     "size_bytes": 24,
+     "type": "va_list"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id238",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 0,
+     "type": "A0"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 1,
+     "type": "A1"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 2,
+     "type": "A2"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 3,
+     "type": "A3"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 4,
+     "type": "A4"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 5,
+     "type": "A5"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 6,
+     "type": "A6"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 7,
+     "type": "A7"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 8,
+     "type": "A8"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 9,
+     "type": "A9"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 10,
+     "type": "A10"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 11,
+     "type": "A11"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 12,
+     "type": "A12"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 13,
+     "type": "A13"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 14,
+     "type": "A14"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 15,
+     "type": "A15"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 16,
+     "type": "A16"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 31,
+     "type": "A31"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 32,
+     "type": "A32"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 35,
+     "type": "A35"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 72,
+     "type": "A72"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id878",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "unsupported:no layout for declared type 'A0'",
+ "walls": [
+  "unsupported:no layout for declared type 'A0'"
+ ]
+}
