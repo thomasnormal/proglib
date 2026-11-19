@@ -89,3 +89,43 @@ wall, not a semantic refusal, so no whole-design E row or theorem is claimed.
 The remaining Step 12 implementation work is the kernel-cheap edge/NBA path
 for that dynamic cell target. The existing memory guards continue to cover
 valid, x/z, negative, and out-of-range indices plus issue-order NBA commit.
+
+## Time-zero settle receipt — 2026-11-19
+
+The clocked route's `initialState` now performs the source-shaped continuous
+assignment settle after declaration and initial-process effects. This follows
+IEEE 1800-2017 §§4.5 and 10.3: a continuous assignment is an active-region
+driver whose update must be visible at the first stable observation. The
+change is recorded by `e245ebc5d` and is deliberately outside the clocked
+step theorem until its settled-state premise is repaired.
+
+The distinguishing clean-room row is
+`sem2/initial_quiet_assign`. Before the change, the declaration view is
+`y=x`; after it, canonical E returns `y=1`. Icarus Verilog 13.0 reports an
+active-region value of `1` and settled rows `1,1`. Xcelium 24.03-s004 reports
+an active-region value of `x` and the same settled rows `1,1`. The active
+value is therefore not used as an oracle, while both simulators agree on the
+post-`#0` and post-`#1` observations. The conservative claim is exact: an
+admitted design whose continuous assignments leave its declaration-initialized
+view unchanged has the same `initialState` result before and after the change.
+Only designs whose first stable observation depends on a continuous driver can
+change.
+
+The declaration-width correction in `af38185ce` keeps an INT-class constant
+initializer at the declared width under §§6.8 and 11.8. The source-shaped
+`memory_unary_initializer` row therefore initializes a two-bit cell from
+`value = -1` and settles `q=11`. Canonical E, Icarus Verilog 13.0, and
+Xcelium 24.03-s004 agree on that row. Signal-dependent initializers still
+refuse, so the correction cannot alter a previously admitted signal-driven
+design. The related one-rank memory rows cover the same initializer at the
+parameter points recorded above.
+
+The runtime-initial-system-task guard in `b453d8ac4` follows IEEE 1800-2017
+§6.3.1 and the open scheduling choice of §4.7. A branch whose condition reads
+an unknown input cannot be assigned a simulator-specific truth value, so E
+returns `Initial:runtime` before executing the task. The retained
+`sem2/initial_syscall_e` receipt has source rows for `x`, `0`, and `1`.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 both accept the source and produce
+the same `y=x` observations, while canonical E records the loud refusal. No
+previously admitted E design contains a runtime initial system task, so this
+guard is conservative over the admitted set.
