@@ -545,6 +545,13 @@ def convert_expr(node):
     if isinstance(node, ast.JoinedStr):
         return convert_fstring(node)
 
+    if isinstance(node, ast.Await):
+        return {
+            "kind": "Await",
+            "span": span(node),
+            "value": convert_expr(node.value),
+        }
+
     if isinstance(node, ast.NamedExpr):
         # H7+ (docs/memory-model.md §the walrus operator): `(x := e)` in
         # general expression position binds `x` in the frame that
