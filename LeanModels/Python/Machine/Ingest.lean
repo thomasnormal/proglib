@@ -556,6 +556,33 @@ partial def mStmt (j : Json) : Except String MStmt := do
           let orelse ← (← (← mField j "machine_orelse").getArr?).mapM mStmt
           let finalbody ← (← (← mField j "machine_finalbody").getArr?).mapM mStmt
           pure (.tryStmt body handlers orelse finalbody span)
+  | "Unsupported" =>
+      match j.getObjVal? "machine_kind" with
+      | .ok (.str "Import") =>
+          let names ← (← mField j "machine_names").getArr?
+          let aliases ← names.mapM fun alias => do
+            pure { name := ← (← mField alias "name").getStr?
+                   asname := match alias.getObjVal? "asname" with
+                     | .ok .null | .error _ => none
+                     | .ok value => value.getStr?.toOption }
+          pure (.import aliases span)
+      | .ok (.str "ImportFrom") =>
+          let names ← (← mField j "machine_names").getArr?
+          let aliases ← names.mapM fun alias => do
+            pure { name := ← (← mField alias "name").getStr?
+                   asname := match alias.getObjVal? "asname" with
+                     | .ok .null | .error _ => none
+                     | .ok value => value.getStr?.toOption }
+          let module := match j.getObjVal? "machine_module" with
+            | .ok .null | .error _ => none
+            | .ok value => value.getStr?.toOption
+          let level := match j.getObjVal? "machine_level" with
+            | .ok value => match value.getNat? with
+              | .ok n => n
+              | .error _ => 0
+            | _ => 0
+          pure (.importFrom module aliases level span)
+      | _ => pure (.unsupported kind span)
   | _ => pure (.unsupported kind span)
 
 private def mStmtKind : MStmt → String
