@@ -853,3 +853,18 @@ Canonical E refuses at the `FETCH_INSTR` untyped-width differential wall.
 Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the unchanged source
 before elaboration at the use-before-declared `instr`, so Quark E-RUN is
 **0/0**.
+
+## 2026-11-19 DarkRISCV dynamic memory NBA execution wall
+
+The clean-room fixture `darkriscv_dynamic_memory_nba.sv` preserves the first-clock
+shape reached in the pinned DarkRISCV source.  It uses a one-rank unpacked
+`REGS` memory, a run-time `DPTR` index, and a nonblocking assignment in the
+`posedge CLK` process.  The testbench drives reset, writes `32'h000000a5` to
+`REGS[2]`, then writes `32'h0000005a` to `REGS[1]`.
+
+Icarus Verilog 13.0 and Xcelium 24.03-s004 both print the same four rows.  The
+registers begin as x, the first write is visible after its clock edge, and the
+second write preserves `REGS[2]`.  The canonical-E probe loads the fixture and
+returns the same final memory cells, `REGS[2] = 32'h000000a5` and
+`REGS[1] = 32'h0000005a`.  No whole-core DarkRISCV E-RUN result is claimed by
+this clean-room receipt.
