@@ -517,13 +517,22 @@ def rDeleteClassAttr : List RClass → String → String → Option (List RClass
         | some updated => some (cls :: updated)
         | none => none
 
+def rClassBodySupportedAfterDoc : List RStmt → Bool
+  | [] => true
+  | .pass _ :: rest => rClassBodySupportedAfterDoc rest
+  | .assign (.name _ _) _ _ :: rest => rClassBodySupportedAfterDoc rest
+  | .functionDef _ _ _ _ _ :: rest => rClassBodySupportedAfterDoc rest
+  | .functionDefKw _ _ _ _ _ _ :: rest => rClassBodySupportedAfterDoc rest
+  | _ => false
+
 def rClassBodySupported : List RStmt → Bool
   | [] => true
-  | .pass _ :: rest => rClassBodySupported rest
-  | .assign (.name _ _) _ _ :: rest => rClassBodySupported rest
-  | .functionDef _ _ _ _ _ :: rest => rClassBodySupported rest
-  | .functionDefKw _ _ _ _ _ _ :: rest => rClassBodySupported rest
-  | _ => false
+  | .expr (.constant (.str _) _) _ :: rest => rClassBodySupportedAfterDoc rest
+  | statements => rClassBodySupportedAfterDoc statements
+
+def rClassDoc : List RStmt → Option RVal
+  | .expr (.constant (.str text) _) _ :: _ => some (.str text)
+  | _ => none
 
 def rDirectBaseIds (classes : List RClass) : List RVal → Option (Array Nat)
   | [] => some #[]
@@ -1648,7 +1657,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                         | _ :: tail =>
                             let classFrame : RFrame :=
                               { control := .statements body.toList
-                                locals := []
+                                locals := (rClassDoc body.toList).map (fun value => ("__doc__", value))
+                                  |>.toList
                                 globals := frame.globals
                                 module := frame.module
                                 completion := some (.classDef name #[] rest)
@@ -1863,7 +1873,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | some baseIds, caller :: tail =>
                   let classFrame : RFrame :=
                     { control := .statements body
-                      locals := []
+                      locals := (rClassDoc body).map (fun value => ("__doc__", value)) |>.toList
                       globals := caller.globals
                       module := caller.module
                       completion := some (.classDef name baseIds remaining)
