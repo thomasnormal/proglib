@@ -242,6 +242,21 @@ focused rows. The remaining `CType` alias is the last type-path debt. No F2
 store work starts until the checker reaches zero and the full survey is at
 least 1326/2214 with no DIVERGE.
 
+**CType migration price (2026-11-19).** Replacing `CType := String` requires
+one schema family. Every AST type field currently receives Clang's displayed
+`qualType`, while the approved structured probe is optional and declaration
+keyed. The transition therefore needs parser-carried `QualType` observations
+for every type-bearing AST node, JSON ingestion of those observations, typed
+`Expr` and `Decl` constructors, and layout/effective-type interfaces keyed by
+the resulting tree or its declaration identity. Legacy envelopes without the
+observation must refuse at ingestion or at the first type query. A raw-string
+coercion would keep the semantic parser alive under another name and would
+violate the parser-native boundary. The first wrapper experiment compiled the
+AST and expression layers, then stopped at three heterogeneous legacy layout
+joins in `Torture.lean`, before reaching the loader and evaluator call sites.
+This family is priced as a coordinated envelope, loader, layout, and
+semantics migration. No F2 store work starts before it is complete.
+
 **Focused differential receipt (2026-11-19).** The committed `harness/c_cases.json`
 battery without optional probes reports 27 MATCH, 94 REFUSE, and 0 DIVERGE
 against pinned Clang 21.1.8. The refusal rows name missing optional parser
