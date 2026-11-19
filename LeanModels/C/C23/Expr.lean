@@ -372,8 +372,6 @@ def floatBitsOfStructured : LeanModels.Clang.QualType → Option Nat
   | .qualified _ _ base => floatBitsOfStructured base
   | .cBuiltinKind .float => some 32
   | .cBuiltinKind .double => some 64
-  | .cBuiltin "float" => some 32
-  | .cBuiltin "double" => some 64
   | _ => none
 
 /-- Byte size for a scalar parser-native type.  Aggregate sizes remain a

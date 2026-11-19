@@ -60,6 +60,7 @@ private def isError : Except String α → Bool
 #guard LeanModels.C.C23.intTyOfStructured
   (.qualified true false (.cBuiltinKind .unsignedShort)) == some LeanModels.C.C23.IntTy.ushort
 #guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltinKind .double) == some 64
+#guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltin "double") == none
 #guard LeanModels.C.C23.intTyOfStructured
   (.cBuiltinKind .unsignedShort) == some LeanModels.C.C23.IntTy.ushort
 #guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltinKind .double) == some 64
