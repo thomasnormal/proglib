@@ -128,24 +128,6 @@ def torScalarSize : CType → Option Nat
   | "__int128" | "unsigned __int128" | "__uint128_t" => some 16
   | _ => none
 
-/-- `T[N]` → `(T, N)`. Constant nested arrays are walked from the outermost
-extent inward; variable extents still return `none`. -/
-def arrayOf (t : CType) : Option (CType × Nat) :=
-  if !t.endsWith "]" then none
-  else
-    match t.splitOn "[" with
-    | base :: ext :: rest =>
-        if !ext.endsWith "]" then none
-        else
-          match ext.dropEnd 1 |>.toString.toNat? with
-          | none => none
-          | some n => some (String.intercalate "[" (base :: rest), n)
-    | _ => none
-
--- The layout fragment is intentionally small and executable at elaboration:
--- nested constant arrays, pointer-to-array objects, and no variable extents.
-#guard arrayOf "int[2][1]" == some ("int[1]", 2)
-#guard arrayOf "int[n % 1000 + 1]" == none
 #guard torScalarSize "int (*)[1]" == none
 #guard torScalarSize "enum E" == none
 
@@ -524,11 +506,8 @@ def sizeAlign (tds : List (CType × CType))
       match if t == "float" then some 4 else if t == "double" then some 8 else torScalarSize t with
       | some sz => some (sz, sz)
       | none =>
-        match arrayOf t with
-        | some (e, k) => (sizeAlign tds recs n e).map fun p => (p.1 * k, p.2)
-        | none =>
-          let record := recs.find? (·.1 == t)
-          match record with
+        let record := recs.find? (·.1 == t)
+        match record with
             | none => none
             | some r =>
                 let isUnion := r.2.2
@@ -791,7 +770,7 @@ def layoutFor (envl : Envelope) : Layout :=
     fieldOffType := observedFieldOffType
     fieldOffTypeDecl := observedFieldOffTypeDeclFor
     fieldOffDecl := declFieldOff
-    elem := fun t => arrayOf (resolve tds 8 t)
+    elem := fun _ => none
     isUnion := observedUnion
     isUnionDecl := observedUnionDeclFor
     fieldOff := fun t f => match observedPointeeFor t with
