@@ -182,6 +182,43 @@ def self_test() -> int:
             print("c_torture_batch --self-test: missing language provenance was accepted",
                   file=sys.stderr)
             return 1
+
+        # A stale parser stamp is regenerated from the cache's source path
+        # before the child runner is allowed to see the envelope. Use a tiny
+        # fake extractor so this instrument test remains independent of clang.
+        cache = root / "cache" / "rev"
+        source = cache / "src" / "refresh.c"
+        envelope = cache / "env" / "refresh.json"
+        source.parent.mkdir(parents=True)
+        envelope.parent.mkdir(parents=True)
+        source.write_text("int main(void) { return 0; }\n")
+        fake_extractor = root / "fake_extract.py"
+        fake_extractor.write_text(
+            "import hashlib, json, pathlib, sys\n"
+            "src = pathlib.Path(sys.argv[1])\n"
+            "out = pathlib.Path(sys.argv[sys.argv.index('-o') + 1])\n"
+            "payload = {'schema_version':'c-0.1','language':'c',\n"
+            " 'source_sha256':hashlib.sha256(src.read_bytes()).hexdigest(),\n"
+            " 'extractor_sha256':hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()}\n"
+            "out.write_text(json.dumps(payload))\n")
+        fake_extractor.chmod(0o755)
+        envelope.write_text(json.dumps({'schema_version': 'c-0.1',
+                                        'language': 'c',
+                                        'source_sha256': 'stale',
+                                        'extractor_sha256': 'stale'}))
+        old_extractor = globals()['EXTRACTOR']
+        globals()['EXTRACTOR'] = fake_extractor
+        try:
+            stale_entry = {'name': 'refresh.c', 'status': 'parsed',
+                            'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'envelope': str(envelope)}
+            before = _static_row(stale_entry)
+            refreshed = _refresh_stale(stale_entry)
+            after = _static_row(stale_entry)
+        finally:
+            globals()['EXTRACTOR'] = old_extractor
+        if before[1] != 'not-ingested' or not refreshed or after != ('', '', ''):
+            print("c_torture_batch --self-test: stale envelope was not refreshed", file=sys.stderr)
+            return 1
     print("c_torture_batch --self-test: ok")
     return 0
 
