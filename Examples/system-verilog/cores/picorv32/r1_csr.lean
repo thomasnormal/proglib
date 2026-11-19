@@ -142,6 +142,61 @@ theorem csr_loaded_rv32i_boundary_of_step
     (⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode,
       hboundary⟩ : rvfi_core_adapter.CoreCsrBoundary d st entry arch input instruction)
 
+/-! The implemented Zicsr family has one exact-cycle consumer.  The retained
+    `CsrInstruction` carries both the operation and the checked table row into
+    the mixed dispatcher, leaving absent CSR rows on the illegal path. -/
+
+theorem picorv32_csr_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : CsrInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = csrProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.csrBoundary memoryState.arch input instruction.word
+              instruction.row instruction.kind ∧
+            rel next
+              { arch := csrNext memoryState.arch instruction.row instruction.kind,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState (.csr instruction))
+          (rv32iProgramRetirement memoryState (.csr instruction)) := by
+        simpa [hmem, hinput, csrProgramInput, rv32iProgramStep,
+          rv32iProgramRetirement] using
+          (RvfiObservation.csrBoundary_rv32i instruction.word instruction.row
+            instruction.kind hboundary)
+      simp only [↓reduceIte]
+      exact ⟨.csr instruction, by simpa [rv32iProgramInput] using hinput,
+        horder, hrvfi, hnext⟩
+
+#print axioms picorv32_csr_exact_cycle_step_refines
+
 theorem picorv32_csrrw_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
     {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}

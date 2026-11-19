@@ -115,7 +115,10 @@ obligation:
   `r1_illegal` provides undecodable and illegal-CSR consumers through the
   exact illegal boundary.
   `r1_csr` provides the six implemented Zicsr consumers through the decoded
-  CSR row and operation witness.
+  CSR row and operation witness.  Its
+  `r1_csr.picorv32_csr_exact_cycle_step_refines` theorem consumes the exact
+  implemented-row boundary in the mixed cycle dispatcher and retains the
+  checked CSR table lookup.
   `r1_mem_all` provides the five load and three store consumers through the
   memory-threaded MemInstruction witness.  Its
   `r1_mem_all.picorv32_mem_exact_cycle_step_refines` theorem consumes the
