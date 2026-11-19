@@ -366,6 +366,10 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("source", 4),), (Port("result", 4),),
             expected_ordinary_refusal="continuous target 'child.input_record' is undeclared",
             expected_source_refusals=("iverilog",)),
+    Fixture("port_connection_target_struct_array.sv", "register_parent",
+            (Port("d", 1),), (Port("y", 4),),
+            expected_loader_refusal="PortConnection:target",
+            expected_source_refusals=("iverilog",), retain_proc_rewrites=True),
     Fixture("primitive_gate_family_e.sv", "primitive_gate_family_e",
             (Port("a", 1), Port("b", 1)),
             (Port("y_and", 1), Port("y_or", 1), Port("y_xor", 1), Port("y_xnor", 1))),
@@ -813,8 +817,8 @@ def main() -> int:
             expected = ordinary.get(key, [])
             print(f"FIXTURE {fixture.top} {point.label}: ordinary={len(expected)} "
                   f"Icarus={iverilog_version} Xcelium={xrun_version}")
-            if len(expected) != CYCLES:
-                ordinary_error = ordinary_errors.get(key, "")
+            ordinary_error = ordinary_errors.get(key, "")
+            if len(expected) != CYCLES or ordinary_error:
                 expected_e_refusal = (fixture.expected_ordinary_refusal != "" and
                                       fixture.expected_ordinary_refusal in ordinary_error)
                 expected_e_refusal = expected_e_refusal or (
@@ -823,7 +827,8 @@ def main() -> int:
                 if expected_e_refusal:
                     print(f"  RUNS NO (expected ordinary refusal: {ordinary_error})")
                 else:
-                    print(f"  RUNS NO (ordinary route returned {len(expected)} cycles)")
+                    print(f"  RUNS NO (ordinary route returned {len(expected)} cycles; "
+                          f"diagnostic: {ordinary_error or 'none'})")
                 expected_refusals = set(fixture.expected_source_refusals)
                 if not expected_e_refusal:
                     all_match = False
