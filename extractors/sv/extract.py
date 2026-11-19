@@ -8344,6 +8344,55 @@ def _convert_expr(sm, e):
     if cname in (
             "SimpleAssignmentPatternExpression", "StructuredAssignmentPatternExpression",
             "ReplicatedAssignmentPatternExpression"):
+        # A one-dimensional packed integral `'{default: value}` is source-
+        # shaped and its element value is repeated at the declared target
+        # width at each parameter point (§10.9).  Reuse the existing
+        # source-shaped replication node, whose count is evaluated at each
+        # parameter point.  Keyed, replicated, unpacked, and effectful
+        # patterns remain loud below.
+        if (_SYM is not None
+                and cname == "StructuredAssignmentPatternExpression"
+                and not getattr(e, "typeSetters", [])
+                and not getattr(e, "indexSetters", [])
+                and not getattr(e, "memberSetters", [])
+                and getattr(e, "defaultSetter", None) is not None
+                and type(e.type.canonicalType).__name__ in (
+                    "PackedArrayType", "PredefinedIntegerType", "EnumType")):
+            default = _convert_expr(sm, e.defaultSetter)
+            if (default is not None and default.get("kind") != "Unsupported"
+                    and _case_source_expression_ok(e.defaultSetter)
+                    and width_of(default) is not None):
+                try:
+                    syntax = e.syntax
+                    while (syntax is not None
+                           and type(syntax).__name__ != "ParameterDeclarationSyntax"):
+                        syntax = getattr(syntax, "parent", None)
+                    type_syntax = getattr(syntax, "type", None)
+                    dimensions = list(getattr(type_syntax, "dimensions", []))
+                    if len(dimensions) == 1:
+                        specifier = dimensions[0].specifier
+                        ranges = [child for child in specifier
+                                  if type(child).__name__ == "RangeSelectSyntax"]
+                        if len(ranges) == 1:
+                            rng = ranges[0]
+                            left = _syntax_expr(sm, rng.left)
+                            right = _syntax_expr(sm, rng.right)
+                            count = {
+                                "kind": "Binary", "span": node_span(sm, e),
+                                "width": None, "op": "+",
+                                "left": {"kind": "Binary", "span": node_span(sm, e),
+                                         "width": None, "op": "-",
+                                         "left": left, "right": right},
+                                "right": {"kind": "Int", "span": node_span(sm, e),
+                                           "value": 1, "resolved_width": None},
+                            }
+                            return {"kind": "Repl", "span": node_span(sm, e),
+                                    "width": int(e.type.bitWidth),
+                                    "count": count, "operand": default,
+                                    "assignment_pattern_lowered": True,
+                                    "source_pattern": cname}
+                except Exception:
+                    pass
         # The packed-pattern converter is pure and width-exact.  In symbolic
         # mode keep parameter-dependent array geometry loud, but retain a
         # fixed packed struct/integer pattern from a package type.  Its field

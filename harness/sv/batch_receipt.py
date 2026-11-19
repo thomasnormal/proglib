@@ -224,6 +224,10 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("x", 4),), (Port("y", 4),),
             points=(Point("default", (0,)),),
             expected_source_refusals=("iverilog",)),
+    Fixture("assignment_pattern_param_width_e.sv", "assignment_pattern_param_width_e",
+            (Port("x", 4),), (Port("y", 4),),
+            points=(Point("W2", (2,)), Point("W4", (4,))),
+            expected_source_refusals=("iverilog",)),
     Fixture("assignment_pattern_packed_e.sv", "assignment_pattern_packed_e",
             (Port("x", 4),), (Port("y", 4),),
             expected_source_refusals=("iverilog",)),
@@ -716,6 +720,8 @@ def bits(value: int | str, width: int) -> str:
 
 
 def port_width(fixture: Fixture, point: Point, port: Port) -> int:
+    if fixture.top == "assignment_pattern_param_width_e" and point.args:
+        return point.args[0]
     if fixture.top == "localparam_shift" and point.args:
         return point.args[0]
     if fixture.top == "memory_edge_loop" and point.args:
@@ -852,6 +858,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "packed_enum_dimension_repro": ("W",),
             "packed_enum_case_e": ("W",),
             "assignment_pattern_param_e": ("P",),
+            "assignment_pattern_param_width_e": ("W",),
         }[fixture.top]
         params = "" if fixture.top == "assignment_pattern_param_e" else ("#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")")
     declarations = []
@@ -894,7 +901,14 @@ def lean_program(entries: list[tuple[Fixture, Point, Path, list[dict[str, int | 
         name = f"batch_{number}_{re.sub('[^A-Za-z0-9]', '_', fixture.top)}"
         loads.append(f'load_design_sv2 {name} from "{envelope}"')
         args = " ".join(str(x) for x in point.args)
-        family = f"{name}.e" + ((" " + args) if args else "")
+        if fixture.top == "assignment_pattern_param_width_e":
+            # The manifest drives the width while the standalone receipt
+            # checks the source default.  Supplying the equivalent zero
+            # override keeps this generic batch runner's positional binding
+            # total for the two-parameter design.
+            family = f"{name}.e {args} 0"
+        else:
+            family = f"{name}.e" + ((" " + args) if args else "")
         stim = lean_stimulus(rows, fixture, point)
         outs = "[" + ", ".join(f'"{p.name}"' for p in fixture.outputs) + "]"
         runs.append(f'#eval emit "{fixture.top}" "{point.label}" ({family}) {stim} {outs}')
