@@ -415,6 +415,18 @@ def rFunctionByToken : List RFunction → String → Option RFunction
 def rClassToken (id : Nat) : String :=
   "__machine_class:" ++ String.ofList (List.replicate id 'x')
 
+def rBoundMethodToken (functionToken : String) (address : Addr) : String :=
+  "__machine_bound:" ++ functionToken ++ "|" ++ toString address
+
+def rBoundMethodInfo (token : String) : Option (String × Addr) :=
+  if token.startsWith "__machine_bound:" then
+    let suffix := String.ofList (token.toList.drop "__machine_bound:".length)
+    match suffix.splitOn "|" with
+    | [functionToken, addressText] =>
+        addressText.toNat?.map (fun address => (functionToken, address))
+    | _ => none
+  else none
+
 def rClassByToken : List RClass → String → Option RClass
   | [], _ => none
   | cls :: rest, token =>
@@ -1096,7 +1108,14 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     Option (RLabel × RConfig) :=
   match callee with
   | .callable name =>
-      match rFunctionByToken config.functions name with
+      let boundMethod := rBoundMethodInfo name
+      let functionToken := match boundMethod with
+        | some (token, _) => token
+        | none => name
+      let callValues := match boundMethod with
+        | some (_, address) => (.ref address) :: values
+        | none => values
+      match rFunctionByToken config.functions functionToken with
       | some function =>
                 let builtKwargs :=
                   if keywords.isEmpty then (config.heap, none)
@@ -1108,7 +1127,7 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
                     | none => (config.heap, none)
                 match config.frames with
                 | caller :: tail =>
-                    match rCallFrame function values keywords builtKwargs.2 with
+                    match rCallFrame function callValues keywords builtKwargs.2 with
                     | some calleeFrame =>
                         let pushed := { calleeFrame with control :=
                           (.resourceChoice .framePush (.statements function.body.toList)) }
@@ -1895,12 +1914,31 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               match receiver with
               | .ref address =>
                   if rHeapIsInstance config.heap address then
-                    match rLookupInstanceClassAttr config.heap config.classes address attr with
+                    match rLookupInstanceAttr config.heap address attr with
                     | some value =>
                         some (.tau, config.setControl (.continueValue value continuation))
                     | none =>
-                        let error : RError := { errorClass := .attribute, args := [] }
-                        some (.event (.raise error), config.finish (.raise error))
+                        match config.heap.get? address with
+                        | some (.instance cls _) =>
+                            match rClassById config.classes cls with
+                            | some classValue =>
+                                match rLookupEnv classValue.attrs attr with
+                                | some (.callable token) =>
+                                    let bound := rBoundMethodToken token address
+                                    some (.tau, config.setControl
+                                      (.continueValue (.callable bound) continuation))
+                                | some value =>
+                                    some (.tau, config.setControl
+                                      (.continueValue value continuation))
+                                | none =>
+                                    let error : RError := { errorClass := .attribute, args := [] }
+                                    some (.event (.raise error), config.finish (.raise error))
+                            | none =>
+                                let error : RError := { errorClass := .attribute, args := [] }
+                                some (.event (.raise error), config.finish (.raise error))
+                        | _ =>
+                            let error : RError := { errorClass := .attribute, args := [] }
+                            some (.event (.raise error), config.finish (.raise error))
                   else some (.tau, config.setControl (.refusing "machine attribute"))
               | .callable token =>
                   match rClassByToken config.classes token with
