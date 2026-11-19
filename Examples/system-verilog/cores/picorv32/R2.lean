@@ -165,6 +165,9 @@ obligation:
   EBREAK, MRET, and WFI bridge with trap and wake semantics retained.
   `r1_fence.picorv32_fence_fields_isa_step` provides the exact memory-
   preserving bridge for FENCE and FENCE.I.
+  `r1_illegal.picorv32_illegal_fields_isa_step` and
+  `r1_illegal.picorv32_illegal_csr_fields_isa_step` provide the two exact
+  illegal-trap bridges while retaining decode failure versus absent CSR rows.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.

@@ -94,6 +94,42 @@ theorem picorv32_illegal_csr_class_commit (state : ArchState) (memory : Memory) 
   exact rvMachineWith_illegal_csr cv32e40pProfile state memory
     illegalCsrWord illegalCsrKind illegal_csr_decode illegal_csr_row
 
+/-! The raw trap fields determine the exact ISA step for both undecodable
+    words and decoded CSR operations whose address is unimplemented. -/
+
+theorem picorv32_illegal_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word)
+    (hfields : observation.illegalFields state input word) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (illegalNext state, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) = none := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_illegal profile state memory word hdecode
+
+theorem picorv32_illegal_csr_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (kind : CsrOpKind)
+    (hfields : observation.illegalCsrFields state input word kind) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (illegalNext state, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) = some kind.toInstr :=
+    hfields.2.2.1
+  have hrow : findCsr? kind.addr = none := hfields.2.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_illegal_csr profile state memory word kind hdecode hrow
+
+#print axioms picorv32_illegal_fields_isa_step
+#print axioms picorv32_illegal_csr_fields_isa_step
+
 #print axioms picorv32_illegal_class_step
 #print axioms picorv32_illegal_class_commit
 #print axioms picorv32_illegal_csr_class_step
