@@ -897,7 +897,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
           if storage == some "extern" then
             refuseUnsupported s!"extern object '{nm}' has no definition in the translation unit"
           else
-            match lay.size ty with
+            match lay.sizeAt declaration ty with
             | none => setupGlobalsWithIds fuel lay ds acc ids
             | some sz =>
               match init with
@@ -940,7 +940,7 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
   | d :: ds, acc, ids =>
     match d with
     | .var (some declaration) nm ty _ init _ _ _ => do
-        match lay.size ty with
+        match lay.sizeAt (some declaration) ty with
         | none => refuseUnsupported s!"no layout for declared type '{ty}'"
         | some sz => do
             let m ← get
