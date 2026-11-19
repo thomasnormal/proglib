@@ -134,6 +134,24 @@ theorem CoreRvfiMachine.to_addi_invariant
       (machine.step state input).1 (machine.step state input).2
       hrel hadmit hrun
 
+theorem CoreRvfiMachine.to_reset_addi_refinement
+    {d : CoreMemDesign} (profile : LeanModels.Rv.PlatformProfile)
+    (machine : CoreRvfiMachine d)
+    (rel : CoreMemState → LeanModels.Refine.RvMemoryState → Prop)
+    (admit : LeanModels.Refine.Input → Prop)
+    (invariant : LeanModels.Refine.Rv32iAddiInvariant
+      machine.toRvfiCycleMachine rel admit)
+    (hinit : rel machine.toRvfiCycleMachine.init
+      (LeanModels.Refine.rvMemoryMachineWith profile).init)
+    {schedule target : Nat → LeanModels.Refine.Input}
+    (hschedule : ∀ n, admit (schedule n))
+    (progress : LeanModels.Refine.Rv32iRetiresTarget
+      machine.toRvfiCycleMachine machine.toRvfiCycleMachine.init schedule target) :
+    LeanModels.Refine.Rv32iResetRefinement profile
+      machine.toRvfiCycleMachine rel schedule target := by
+  exact LeanModels.Refine.rv32i_reset_addi_refines_of_invariant profile
+    machine.toRvfiCycleMachine rel admit invariant hinit hschedule progress
+
 theorem rvfiStep_ok_of_fast_and_decode
     {d : CoreMemDesign} {st next : CoreMemState} {entry : SvState}
     {row : RvfiObservation}
