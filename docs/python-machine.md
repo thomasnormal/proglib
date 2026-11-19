@@ -61,10 +61,11 @@ Minimal classes with no decorators, keywords, or unsupported body statements
 now retain mutable class attributes, including later assignments and deletion
 through a class value. Plain methods without decorators or annotations are
 also stored as callable class attributes. Instantiation creates an instance
-with mutable attributes and class fallback. Single inheritance resolves class
-attributes, methods, and `__init__` through the base class. Missing attributes
-raise `AttributeError`, while multiple inheritance and other class metadata
-remain outside this slice. Static
+with mutable attributes and class fallback. Single inheritance and direct
+multiple inheritance resolve class attributes, methods, and `__init__` in
+base-list order. Missing attributes raise `AttributeError`. Multiple
+inheritance with inherited bases, cycles, and other class metadata remain
+outside this slice. Static
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
