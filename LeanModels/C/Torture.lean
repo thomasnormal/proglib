@@ -673,8 +673,12 @@ def layoutFor (envl : Envelope) : Layout :=
   let recsWithObserved := recs ++ observed.map (fun row =>
     (row.1, row.2.1, row.2.2.tagKind == "union"))
   let observedFor := fun t : CType =>
-    let t0 := resolve tds 8 (stripQuals 8 t)
-    observed.find? (fun row => row.1 == t0)
+    -- Prefer the exact parser-carried type key. The qualified spelling walk
+    -- remains only for envelopes produced before structured observations were
+    -- available.
+    observed.find? (fun row => row.1 == t) |>.orElse (fun _ =>
+      let t0 := resolve tds 8 (stripQuals 8 t)
+      observed.find? (fun row => row.1 == t0))
   -- Legacy type-spelling pointee lookup is deliberately absent. Member
   -- layout is keyed by the parser's declaration identity, and an envelope
   -- lacking that observation must refuse instead of peeling a display spelling.
