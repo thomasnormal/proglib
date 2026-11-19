@@ -62,6 +62,7 @@ public:
       const auto element = type->getArrayElementTypeNoTypeQual();
       if (!element->isIncompleteType()) {
         const auto elementSize = context->getTypeSizeInChars(element);
+        item["element_type"] = clang::QualType(element, 0).getAsString();
         item["element_size_bytes"] =
             static_cast<int64_t>(elementSize.getQuantity());
       }

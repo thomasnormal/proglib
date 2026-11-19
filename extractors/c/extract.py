@@ -277,6 +277,9 @@ def record_layout_records(path):
                     (type(record["pointee_size_bytes"]) is not int or
                      record["pointee_size_bytes"] < 0)):
                 die("record layout probe returned an invalid pointee size")
+            if (record.get("element_type") is not None and
+                    (not isinstance(record["element_type"], str) or not record["element_type"])):
+                die("record layout probe returned an invalid array element type")
             if (record.get("element_size_bytes") is not None and
                     (type(record["element_size_bytes"]) is not int or
                      record["element_size_bytes"] < 0)):
@@ -1133,6 +1136,8 @@ def extract(path, source_name=None, standard="c23"):
                           "alignment_bytes": r["alignment_bytes"],
                           **({"pointee_size_bytes": r["pointee_size_bytes"]}
                              if r.get("pointee_size_bytes") is not None else {}),
+                          **({"element_type": r["element_type"]}
+                             if r.get("element_type") is not None else {}),
                           **({"element_size_bytes": r["element_size_bytes"]}
                              if r.get("element_size_bytes") is not None else {})}
                          for r in ex.type_layouts],

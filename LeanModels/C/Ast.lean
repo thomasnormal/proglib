@@ -175,6 +175,8 @@ structure TypeLayout where
   This avoids parsing the flat pointer spelling when pointer arithmetic or
   subscripting needs its stride. -/
   pointeeSizeBytes : Option Nat := none
+  /-- For a declared array object, Clang's exact parser element type. -/
+  elementType : Option CType := none
   /-- For a declared array object, Clang's exact byte size of one element. -/
   elementSizeBytes : Option Nat := none
 deriving Repr, Inhabited, BEq, Lean.ToExpr

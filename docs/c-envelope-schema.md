@@ -92,8 +92,9 @@ covers declarator-shaped objects such as nested function pointers whose size
 has no `RecordLayout` node. A missing fact remains a loud layout refusal. For
 a declared pointer-to-array object, the optional
 `pointee_size_bytes` field carries Clang's exact byte extent for the pointee;
-pointer arithmetic consumes that parser fact without parsing the flat type
-spelling.
+array observations may carry `element_type` and `element_size_bytes` from the
+same parser node. Pointer arithmetic and aggregate initialization consume
+these parser facts without parsing the flat type spelling.
 
 `record_kinds` is an optional list of parser-native `RecordDecl.tagUsed`
 facts keyed by declaration identity. `is_union` is Clang's own struct/union

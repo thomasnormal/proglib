@@ -426,6 +426,7 @@ def parseTypeLayout (j : Json) : Except String TypeLayout := withCtx "type_layou
            sizeBytes := ← getNat j "size_bytes"
            alignmentBytes := ← getNat j "alignment_bytes"
            pointeeSizeBytes := ← getOptNat j "pointee_size_bytes"
+           elementType := ← getOptStr j "element_type"
            elementSizeBytes := ← getOptNat j "element_size_bytes" }
 
 partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.QualType := do
