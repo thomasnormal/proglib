@@ -2122,6 +2122,9 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             # FunctionDef/Lambda node, which ingestion refuses loudly
             "body": body,
             "machine_arguments": machine_arguments(a),
+            "machine_decorators": [convert_expr(d) for d in node.decorator_list],
+            "machine_returns": (convert_expr(node.returns)
+                                if node.returns is not None else None),
         }
         if isinstance(node, ast.AsyncFunctionDef):
             # Keep the approved AST distinction available to the machine

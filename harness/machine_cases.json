@@ -510,6 +510,11 @@
     "expect": "unsupported"
   },
   {
+    "source": "harness/scripts/machine_function_metadata_boundary.py",
+    "envelope": "harness/scripts/machine_function_metadata_boundary.json",
+    "expect": "unsupported"
+  },
+  {
     "source": "harness/scripts/machine_set_boundary.py",
     "envelope": "harness/scripts/machine_set_boundary.json",
     "expect": "unsupported"
