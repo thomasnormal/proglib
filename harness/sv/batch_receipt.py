@@ -180,6 +180,12 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("proc_local_automatic_ff_e.sv", "proc_local_automatic_ff_e",
             (Port("clk", 1, clock=True), Port("d", 8)), (Port("q", 8),),
             retain_proc_rewrites=True, expected_source_refusals=("iverilog",)),
+    # Automatic local in a plain always-star activation.
+    Fixture("proc_local_automatic_star_e.sv", "proc_local_automatic_star_e",
+            (Port("a", 8),), (Port("y", 8),),
+            retain_proc_rewrites=True,
+            expected_ordinary_refusal="E implicit body does not admit automatic procedural declarations",
+            expected_source_refusals=("iverilog",)),
     Fixture("proc_local_static_e.sv", "proc_local_static_e",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),)),
     Fixture("proc_local_static_init_e.sv", "proc_local_static_init_e",

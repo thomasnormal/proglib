@@ -2334,7 +2334,8 @@ def CoreMemDesign.execImplicitStmtFuel (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) : Nat → PStmt → Res CoreMemState
   | 0, _ => .timeout
   | fuel + 1, .localDecl _ _ _ => .ok st
-  | fuel + 1, .automaticDecl _ _ _ => .ok st
+  | fuel + 1, .automaticDecl .. =>
+      .unsupported "E implicit body does not admit automatic procedural declarations"
   | fuel + 1, .blockingAssign name value =>
       match E.scalarTarget name with
       | none => .unsupported s!"9.2.2.2: scalar implicit target '{name}' is undeclared"
