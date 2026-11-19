@@ -635,6 +635,20 @@ The rerank therefore sends the next work to the highest safe ladder item,
 the next complete PicoRV32 R1 family, until a general-lane scheduler landing
 or a newly reachable real-design wall changes these measurements.
 
+## 2026-11-20 fresh census rerank
+
+The stall-rule rerun used `harness/rv/core_census.py --self-test` and the
+current pinned PicoRV32 envelope.  It reproduces PicoRV32 at 360 admitted, 0
+refused, and 4 not reached.  The current source-overlay receipts for the
+follow-up cores remain DarkRISCV at 177 admitted, 0 refused, and 0 not reached
+and FemtoRV32 Quark at 130 admitted, 51 refused, and 0 not reached.
+
+The measured execution receipts are PicoRV32 220/220 canonical-E cycles,
+DarkRISCV 0/1 at its source-shaped first-clock wall, and Quark 0/0 at its
+untyped-width load wall.  The next census-ranked work is therefore the
+DarkRISCV one-rank memory route or the Quark width wall, with no further
+member-select receipt counted as a census change.
+
 ## 2026-11-18 aggregate-member red-fix handoff
 
 The general SV lane's aggregate-member landing made master red in exhaustive
