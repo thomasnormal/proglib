@@ -48,6 +48,8 @@ def _static_row(entry: dict) -> tuple[str, str, str]:
             return entry.get("name", ""), "not-ingested", "malformed parser envelope"
         if data.get("schema_version") != "c-0.1":
             return entry.get("name", ""), "not-ingested", "stale envelope schema"
+        if data.get("language") != "c":
+            return entry.get("name", ""), "not-ingested", "stale envelope language"
         if data.get("source_sha256") != entry.get("sha256"):
             return entry.get("name", ""), "not-ingested", "stale envelope source hash"
         expected = hashlib.sha256(EXTRACTOR.read_bytes()).hexdigest()
@@ -165,6 +167,20 @@ def self_test() -> int:
             print("c_torture_batch --self-test: failed", file=sys.stderr)
             print(proc.stdout, file=sys.stderr)
             print(proc.stderr, file=sys.stderr)
+            return 1
+        stale = root / "stale.json"
+        stale.write_text(json.dumps({
+            "schema_version": "c-0.1",
+            "source_sha256": "source",
+            "extractor_sha256": "extractor",
+        }))
+        status = _static_row({
+            "name": "stale.c", "status": "parsed", "sha256": "source",
+            "envelope": str(stale),
+        })
+        if status != ("stale.c", "not-ingested", "stale envelope language"):
+            print("c_torture_batch --self-test: missing language provenance was accepted",
+                  file=sys.stderr)
             return 1
     print("c_torture_batch --self-test: ok")
     return 0
