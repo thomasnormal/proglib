@@ -1,0 +1,349 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 5,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20030910-1.c",
+   "sha256": "f6ee2a7f1e037fc1e63bc9cbbc4220f10c7eae971bcb4b56cffd9706deaf72a7",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id30",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id32",
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "double *"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "960512-1.c",
+   "sha256": "0ba045de14f9208e1ec847d39fb4712a943f00ac2b9ad1e45abf5735852b2699",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id30",
+     "element_size_bytes": 4,
+     "size_bytes": 160,
+     "type": "int[40]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id32",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id54",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "complex-1.c",
+   "sha256": "346f9d33f635adfa96ba4f9d3d3602caccd1372396679900e34e22612adaf7cb",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id47",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id86",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "complex-2.c",
+   "sha256": "cf52b8d4e65f4c3a714bf35282345919b8ad83bd82bdf7b6e29f5c41c9136cfc",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id38",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id43",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "ieee/cdivchkd.c",
+   "sha256": "3534d6b68cb2ef9f715706c0f43d9275af460f2e1b929b6a47e7607ff63e7ffb",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id43",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id43",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id43",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id43",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id48",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id48",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id48",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id52",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "char **"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id235",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id235",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id235",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id235",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id240",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "double[4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id240",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "double[4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id240",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "double[4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id240",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "double[4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id240",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "double[4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id240",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "double[4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id247",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id247",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id250",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id252",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "unsupported:no layout for declared type '_Complex double'"
+}

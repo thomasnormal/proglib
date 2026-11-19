@@ -1,7 +1,7 @@
 {
  "all_rows_joined": true,
  "candidate_rows": 9,
- "interpretation": "The nine files are the survey's sole dynamic V-layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no vector semantics or corpus flip.",
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
  "rows": [
   {
    "corpus": "gcc.c-torture/execute",

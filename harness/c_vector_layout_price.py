@@ -35,8 +35,8 @@ def extract(source, clang, plugin, source_name):
         output.unlink(missing_ok=True)
 
 
-def price(survey, roots, clang, plugin):
-    rows = [row for row in survey.get("rows", []) if row.get("dynamic_wall") == WALL]
+def price(survey, roots, clang, plugin, wall=WALL):
+    rows = [row for row in survey.get("rows", []) if row.get("dynamic_wall") == wall]
     priced = []
     for row in rows:
         source = Path(roots[row["corpus"]]) / row["name"]
@@ -51,24 +51,25 @@ def price(survey, roots, clang, plugin):
         })
     return {
         "schema": "c-vector-layout-price-0.1",
-        "wall": WALL,
+        "wall": wall,
         "survey_commit": survey.get("measured_commit"),
         "survey_measured_at_utc": survey.get("measured_at_utc"),
         "candidate_rows": len(rows),
         "all_rows_joined": len(priced) == len(rows),
         "rows": priced,
         "interpretation": (
-            "The nine files are the survey's sole dynamic V-layout wall. "
+            "The selected files are the survey's sole dynamic layout wall. "
             "Every candidate has parser-native TypeLayout observations from "
             "the pinned Clang probe. The report prices the layout boundary only "
-            "and claims no vector semantics or corpus flip."
+            "and claims no semantics or corpus flip."
         ),
     }
 
 
 def render(report):
-    lines = ["# C parser-native vector layout price", "",
+    lines = ["# C parser-native layout price", "",
              "- survey commit: `%s`" % report.get("survey_commit", ""),
+             "- dynamic wall: `%s`" % report.get("wall", ""),
              "- candidate files: **%d**" % report.get("candidate_rows", 0),
              "- all rows joined: **%s**" % report.get("all_rows_joined", False), "",
              "| corpus | file | TypeLayout records | sizes / alignments |",
@@ -99,6 +100,7 @@ def main():
     parser.add_argument("--page")
     parser.add_argument("--clang", default=os.environ.get("LEAN_C_CLANG", "clang"))
     parser.add_argument("--plugin", required=False)
+    parser.add_argument("--wall", default=WALL)
     parser.add_argument("--c1-root", required=False)
     parser.add_argument("--c2-root", required=False)
     parser.add_argument("--c3-root", required=False)
@@ -112,7 +114,8 @@ def main():
     roots = {"gcc.c-torture/execute": args.c1_root,
              "c-testsuite/single-exec": args.c2_root,
              "gcc.c23-run": args.c3_root}
-    report = price(json.loads(Path(args.input).read_text()), roots, args.clang, args.plugin)
+    report = price(json.loads(Path(args.input).read_text()), roots, args.clang,
+                   args.plugin, args.wall)
     if args.json:
         Path(args.json).write_text(json.dumps(report, indent=1, sort_keys=True) + "\n")
     if args.page:

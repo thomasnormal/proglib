@@ -1,6 +1,7 @@
-# C parser-native vector layout price
+# C parser-native layout price
 
 - survey commit: `5fa6f5cf7`
+- dynamic wall: `unsupported:no layout for declared type 'V'`
 - candidate files: **9**
 - all rows joined: **True**
 
@@ -16,4 +17,4 @@
 | `gcc.c-torture/execute` | `pr94524-1.c` | 3 | `16/16, 16/16, 16/16` |
 | `gcc.c-torture/execute` | `pr94524-2.c` | 5 | `16/16, 16/16, 16/16, 16/16, 16/16` |
 
-The nine files are the survey's sole dynamic V-layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no vector semantics or corpus flip.
+The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.
