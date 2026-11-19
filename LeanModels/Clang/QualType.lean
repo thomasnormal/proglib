@@ -75,6 +75,13 @@ def QualType.recordLike : QualType → Bool
   | .qualified _ _ base => base.recordLike
   | _ => false
 
+/-- Remove parser-provided cv-qualification without inspecting a type
+spelling.  C and C++ use the same representation and both preserve the
+qualification node emitted by clang. -/
+def QualType.unqualified : QualType → QualType
+  | .qualified _ _ base => base.unqualified
+  | type => type
+
 /-- Whether the declared object itself is an aggregate. Pointer layers are
 objects with scalar pointer representation, even when their pointee is a
 record. -/
@@ -88,6 +95,20 @@ def QualType.aggregateObject : QualType → Bool
 def QualType.indexable : QualType → Bool
   | .pointer _ | .array _ _ => true
   | .qualified _ _ base => base.indexable
+  | _ => false
+
+/-- Whether the declared object is an array.  Arrays remain distinct from
+pointer objects because C's array-to-pointer conversion is a separate AST
+node. -/
+def QualType.arrayObject : QualType → Bool
+  | .array _ _ => true
+  | .qualified _ _ base => base.arrayObject
+  | _ => false
+
+/-- Whether a parser-native type can provide pointer or array indexing. -/
+def QualType.pointerOrArray : QualType → Bool
+  | .pointer _ | .array _ _ => true
+  | .qualified _ _ base => base.pointerOrArray
   | _ => false
 
 /-- Whether the object value itself is a pointer. Arrays remain distinct because

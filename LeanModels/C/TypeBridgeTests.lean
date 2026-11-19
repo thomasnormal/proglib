@@ -1,4 +1,5 @@
 import LeanModels.C.Ast
+import LeanModels.C.C23.Expr
 
 namespace LeanModels.C
 
@@ -42,6 +43,16 @@ private def isError : Except String α → Bool
   (.array (.cBuiltin "int") (some 4)))
 #guard !(LeanModels.Clang.QualType.aggregateObject
   (.pointer (.record {value := "record-1"})))
+#guard LeanModels.Clang.QualType.pointerObject
+  (.qualified true false (.pointer (.cBuiltin "int")))
+#guard LeanModels.Clang.QualType.arrayObject
+  (.qualified false true (.array (.cBuiltin "int") (some 4)))
+#guard LeanModels.Clang.QualType.pointerOrArray
+  (.qualified true false (.array (.cBuiltin "int") (some 4)))
+#guard LeanModels.C.C23.structuredPointerObject
+  (some (.qualified true false (.pointer (.cBuiltin "int")))) "not-a-pointer"
+#guard LeanModels.C.C23.structuredIndexable
+  (some (.qualified false true (.array (.cBuiltin "int") (some 4)))) "not-an-array"
 #guard isError (TypeNode.typedefRef none "T" |>.toQualType)
 #guard isError (TypeNode.enumeration none "enum E" |>.toQualType)
 
