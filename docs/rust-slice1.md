@@ -177,5 +177,7 @@ envelope contains the extracted `gcd` body from the Stage 0 corpus.  The
 diagnostic runner reaches that body for arbitrary initial `u32` locals, and the
 spec file checks a concrete `(48,18)` run.  The proof file proves the
 all-inputs Euclidean loop theorem with strong induction and the `Nat.gcd_rec`
-lemma.  The bridge from that invariant theorem to the loaded MIR relation
-remains the next proof step.
+lemma.  `gcd_all_inputs_cfg` bridges that invariant theorem to the loaded MIR
+entry relation for every pair of natural-number inputs.  The proof uses the
+typed layout table and preserves the exact local-state transitions from the
+extracted body.
