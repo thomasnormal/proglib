@@ -2059,8 +2059,9 @@ and all 32 observed outputs. The census counts are unchanged.
 [`e_run_input_check.py`](e_run_input_check.py) drives the loaded design with
 the reset sequence and memory responses from the unchanged 220-cycle probe.
 Its binary-output testbench preserves every 4-state output bit, and the Lean
-executor replays the same rows through the compiled `CoreMemDesign.fastStep`
-route. Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004
+executor replays the same rows through the exact
+`CoreMemDesign.fastStepCanonical` route. Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004
 agree on **220/220 cycles**. Canonical E agrees with both on **220/220 cycles
 and all 32 observed outputs**.
 

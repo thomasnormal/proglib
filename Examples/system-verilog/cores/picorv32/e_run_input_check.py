@@ -3,7 +3,7 @@
 
 The testbench prints every observed output in bit form, retaining mixed
 four-state values that hexadecimal formatting would hide.  The Lean side
-replays the same reset and memory-input rows through the compiled canonical-E
+replays the same reset and memory-input rows through the exact canonical-E
 executor and compares every printed output field at every cycle.
 """
 
@@ -143,8 +143,8 @@ def rows : List SvState := [
 def runRows (d : CoreMemDesign) (s : CoreMemState) : List SvState → Res (List CoreMemState)
  | [] => .ok []
  | row :: rest => do
-   let s' ← d.fastStep s (lowEntry "clk" row)
-   let s'' ← d.fastStep s' (highEntry "clk")
+   let s' ← d.fastStepCanonical s (lowEntry "clk" row)
+   let s'' ← d.fastStepCanonical s' (highEntry "clk")
    let tail ← runRows d s'' rest
    .ok (s'' :: tail)
 def sigs (d : CoreMemDesign) (ss : List CoreMemState) : List (List (String × String)) :=
