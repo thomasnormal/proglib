@@ -511,12 +511,17 @@ partial def mStmt (j : Json) : Except String MStmt := do
       (← (← (← mField j "orelse").getArr?).mapM mStmt)
       true span)
   | "FunctionDef" | "NestedDef" =>
-      let decorators ← match j.getObjVal? "decorator_list" with
+      let decorators ← match j.getObjVal? "machine_decorators" with
         | .ok value => (← value.getArr?).mapM mExpr
-        | .error _ => pure #[]
-      let returns ← match j.getObjVal? "returns" with
-        | .ok .null | .error _ => pure none
+        | .error _ => match j.getObjVal? "decorator_list" with
+          | .ok value => (← value.getArr?).mapM mExpr
+          | .error _ => pure #[]
+      let returns ← match j.getObjVal? "machine_returns" with
+        | .ok .null => pure none
         | .ok value => some <$> mExpr value
+        | .error _ => match j.getObjVal? "returns" with
+          | .ok .null | .error _ => pure none
+          | .ok value => some <$> mExpr value
       let name ← (← mField j "name").getStr?
       let argsJson ← match j.getObjVal? "machine_arguments" with
         | .ok value => pure value
