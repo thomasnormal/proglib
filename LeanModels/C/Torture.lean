@@ -433,7 +433,7 @@ def observedRecordFacts (envl : Envelope) :
                   let members := nested.filterMap fun field => match field with
                     | .field name mty _ _ _ _ => some (name.getD "", mty)
                     | _ => none
-                  let keyTy := (arrayOf ty).map (·.1) |>.getD ty
+                  let keyTy := ty
                   [(keyTy, members, checked)]
               | none => []
           | _ => []
@@ -475,7 +475,7 @@ def observedRecordFacts (envl : Envelope) :
                   let members := fields.filterMap fun field => match field with
                     | .field name ty _ _ _ _ => some (name.getD "", ty)
                     | _ => none
-                  let keyTy := (arrayOf ty).map (·.1) |>.getD ty
+                  let keyTy := ty
                   some (keyTy, members, checked)
         | none => match ds.find? (fun q => match q with
           | .typedef _ nm ty _ tsp =>
