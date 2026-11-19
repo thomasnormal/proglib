@@ -191,6 +191,11 @@ structure StructuredType where
   type : LeanModels.Clang.QualType
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
+structure StructuredExprType where
+  offset : Nat
+  type : LeanModels.Clang.QualType
+deriving Repr, Inhabited, BEq, Lean.ToExpr
+
 /-! ## The three layers
 
 C's grammar makes the layering, not us: a function DEFINITION is the only
@@ -374,6 +379,7 @@ structure Envelope where
   externals : List External
   typeLayouts : List TypeLayout := []
   structuredTypes : List StructuredType := []
+  structuredExprTypes : List StructuredExprType := []
   /-- Parser-native record tag facts keyed by declaration identity. -/
   recordKinds : List (DeclarationId × Bool) := []
 deriving Repr, Inhabited

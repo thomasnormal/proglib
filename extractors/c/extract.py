@@ -351,7 +351,7 @@ def structured_type_records(path):
     if not isinstance(records, list):
         die("structured type probe returned a non-array")
     for record in records:
-        if (not isinstance(record, dict) or record.get("kind") != "StructuredType" or
+        if (not isinstance(record, dict) or record.get("kind") not in ("StructuredType", "StructuredExprType") or
                 type(record.get("offset")) is not int or record["offset"] < 0 or
                 not isinstance(record.get("type"), dict)):
             die("structured type probe returned an invalid record")
@@ -1086,6 +1086,7 @@ def extract(path, source_name=None, standard="c23"):
     # offsets.  The tree itself remains a frontend observation.  Missing
     # identity is a loud refusal in the ingester, never a spelling fallback.
     structured_rows = []
+    structured_expr_rows = []
     if structured_types is not None:
         def join_type(value):
             if isinstance(value, dict):
@@ -1101,6 +1102,10 @@ def extract(path, source_name=None, standard="c23"):
                 return [join_type(item) for item in value]
             return value
         for record in structured_types:
+            if record.get("kind") == "StructuredExprType":
+                structured_expr_rows.append({"offset": record["offset"],
+                                             "type": join_type(record["type"])})
+                continue
             decl_id = decl_ids_by_offset.get(record["offset"])
             if decl_id is None:
                 die("structured type occurrence offset has no AST identity")
@@ -1146,6 +1151,7 @@ def extract(path, source_name=None, standard="c23"):
                              if r.get("element_size_bytes") is not None else {})}
                          for r in ex.type_layouts],
         "structured_types": structured_rows,
+        "structured_expr_types": structured_expr_rows,
         "record_kinds": record_kinds,
         "lean_blocks": [],
     }, ex.unsupported
