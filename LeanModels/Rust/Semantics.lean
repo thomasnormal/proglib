@@ -375,10 +375,18 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       pure (.int (if leftValue ≤ rightValue then 1 else 0))
+  | .binaryLt left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (.int (if leftValue < rightValue then 1 else 0))
   | .binaryBitAnd left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       pure (.int (Int.ofNat (leftValue.toNat &&& rightValue.toNat)))
+  | .binaryBitXor left right => do
+      let leftValue ← operandValue s left
+      let rightValue ← operandValue s right
+      pure (.int (Int.ofNat (leftValue.toNat ^^^ rightValue.toNat)))
   | .binaryDiv left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
@@ -580,8 +588,10 @@ def statementFailure : State → List Statement → Outcome
                   else .refused (.unsupported "use assignment")
           | .assign _ (.binaryNe _ _) => .refused (.unsupported "inequality assignment")
           | .assign _ (.binaryLe _ _) => .refused (.unsupported "less-equal assignment")
+          | .assign _ (.binaryLt _ _) => .refused (.unsupported "less-than assignment")
           | .assign _ (.binaryEq _ _) => .refused (.unsupported "equality assignment")
           | .assign _ (.binaryBitAnd _ _) => .refused (.unsupported "bitwise assignment")
+          | .assign _ (.binaryBitXor _ _) => .refused (.unsupported "bitwise-xor assignment")
           | .assign _ (.zstAggregate) => .refused (.unsupported "zst aggregate assignment")
           | .assign _ (.adtAggregate _ _) => .refused (.unsupported "adt aggregate assignment")
           | .assign _ (.discriminant _) => .refused (.unsupported "discriminant assignment")
