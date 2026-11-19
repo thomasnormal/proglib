@@ -349,6 +349,28 @@ theorem picorv32_addi1_boundary_of_reset_relation
 
 #print axioms picorv32_addi1_boundary_of_reset_relation
 
+/-! The same measured row is valid for every architectural state whose PC is
+    reset and whose x0 slot is well formed.  Nonzero reset registers remain
+    unresolved, while this ADDI reads only x0. -/
+
+theorem picorv32_addi1_fields_of_wf_state
+    (state : ArchState) (hpc : state.pc = 0) (hwf : state.WF) :
+    state.WF ∧
+      RvfiObservation.addiFields state
+        rvfi_addi_boundary.addiInput rvfi_proof.addi1
+        0x00500093 1 0 5 := by
+  refine ⟨hwf, ?_⟩
+  unfold RvfiObservation.addiFields
+  have hx0 : state.regs 0 = 0 := hwf
+  simp [rvfi_addi_boundary.addiInput, rvfi_proof.addi1,
+    ArchState.readReg, hpc, hx0]
+  constructor
+  · exact addi_boundary.addi5_decode
+  · change rvfi_proof.addi1.wellFormedB = true
+    decide
+
+#print axioms picorv32_addi1_fields_of_wf_state
+
 
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact

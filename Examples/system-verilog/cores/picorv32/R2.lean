@@ -139,6 +139,9 @@ obligation:
   reset relation's x0 invariant through an ADDI-only architectural prefix.
   `r1_addi.picorv32_addi1_boundary_of_reset_relation` consumes an explicit
   reset relation while keeping the measured first-row state equality visible.
+  `r1_addi.picorv32_addi1_fields_of_wf_state` proves the same row's wire
+  fields for every reset-PC state with a well-formed x0, leaving nonzero reset
+  registers unresolved.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.
