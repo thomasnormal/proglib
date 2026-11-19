@@ -1,0 +1,221 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_land2_del_class_attr_via_instance_bare.py",
+  "source_sha256": "1552e2826a69d8cab87b919b7d676de722699c5fec71f3bd96cbac383da44e50",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 9
+        },
+        "name": "A",
+        "class_unsupported": "class-level statements (class attributes)",
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 9
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 5
+                },
+                "id": "x",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 8,
+                "end_lineno": 2,
+                "end_col_offset": 9
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 9
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 5
+                },
+                "id": "x",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 8,
+                "end_lineno": 2,
+                "end_col_offset": 9
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 5,
+          "end_col_offset": 7
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 0,
+              "end_lineno": 5,
+              "end_col_offset": 1
+            },
+            "id": "a",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 5,
+            "col_offset": 4,
+            "end_lineno": 5,
+            "end_col_offset": 7
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 4,
+              "end_lineno": 5,
+              "end_col_offset": 5
+            },
+            "id": "A",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "DeleteAttribute",
+        "span": {
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 7
+        },
+        "recv": {
+          "kind": "Name",
+          "span": {
+            "lineno": 6,
+            "col_offset": 4,
+            "end_lineno": 6,
+            "end_col_offset": 5
+          },
+          "id": "a",
+          "machine_context": "Load"
+        },
+        "attr": "x"
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 7,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 16
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 7,
+            "col_offset": 0,
+            "end_lineno": 7,
+            "end_col_offset": 16
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 7,
+              "col_offset": 0,
+              "end_lineno": 7,
+              "end_col_offset": 5
+            },
+            "id": "print",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 7,
+                "col_offset": 6,
+                "end_lineno": 7,
+                "end_col_offset": 15
+              },
+              "value": {
+                "type": "str",
+                "value": "deleted"
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

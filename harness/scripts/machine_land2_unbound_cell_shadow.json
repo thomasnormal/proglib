@@ -1,0 +1,254 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_land2_unbound_cell_shadow.py",
+  "source_sha256": "1b16d6d36875c7737c1f3117588a08e0760f8bf86f0a96e4672d35e0f9f94565",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 11
+        },
+        "name": "outer",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 9
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 5
+                },
+                "id": "x",
+                "machine_context": "Store"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 8,
+                "end_lineno": 2,
+                "end_col_offset": 9
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          },
+          {
+            "kind": "NestedDef",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 13
+            },
+            "name": "inner",
+            "args": [],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Expr",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 8,
+                  "end_lineno": 5,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "kind": "Call",
+                  "span": {
+                    "lineno": 5,
+                    "col_offset": 8,
+                    "end_lineno": 5,
+                    "end_col_offset": 16
+                  },
+                  "func": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 5,
+                      "col_offset": 8,
+                      "end_lineno": 5,
+                      "end_col_offset": 13
+                    },
+                    "id": "print",
+                    "machine_context": "Load"
+                  },
+                  "starargs": [],
+                  "kwargs": [],
+                  "args": [
+                    {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 5,
+                        "col_offset": 14,
+                        "end_lineno": 5,
+                        "end_col_offset": 15
+                      },
+                      "id": "x",
+                      "machine_context": "Load"
+                    }
+                  ],
+                  "keywords": [],
+                  "call_unsupported": null
+                }
+              },
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 8,
+                  "end_lineno": 6,
+                  "end_col_offset": 13
+                },
+                "targets": [
+                  {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 6,
+                      "col_offset": 8,
+                      "end_lineno": 6,
+                      "end_col_offset": 9
+                    },
+                    "id": "x",
+                    "machine_context": "Store"
+                  }
+                ],
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 6,
+                    "col_offset": 12,
+                    "end_lineno": 6,
+                    "end_col_offset": 13
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null,
+            "captures": [],
+            "closure_unsupported": null
+          },
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 7,
+              "col_offset": 4,
+              "end_lineno": 7,
+              "end_col_offset": 11
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 7,
+                "col_offset": 4,
+                "end_lineno": 7,
+                "end_col_offset": 11
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 7,
+                  "col_offset": 4,
+                  "end_lineno": 7,
+                  "end_col_offset": 9
+                },
+                "id": "inner",
+                "machine_context": "Load"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          }
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 10,
+          "col_offset": 0,
+          "end_lineno": 10,
+          "end_col_offset": 7
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 10,
+            "col_offset": 0,
+            "end_lineno": 10,
+            "end_col_offset": 7
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 10,
+              "col_offset": 0,
+              "end_lineno": 10,
+              "end_col_offset": 5
+            },
+            "id": "outer",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

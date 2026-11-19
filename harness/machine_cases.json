@@ -1103,5 +1103,140 @@
     "source": "harness/scripts/machine_review_nested_shadow.py",
     "envelope": "harness/scripts/machine_review_nested_shadow.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_attr_shadow_method.py",
+    "envelope": "harness/scripts/machine_land2_attr_shadow_method.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_class_attr_function_call.py",
+    "envelope": "harness/scripts/machine_land2_class_attr_function_call.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_class_attr_later.py",
+    "envelope": "harness/scripts/machine_land2_class_attr_later.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_class_body_closure.py",
+    "envelope": "harness/scripts/machine_land2_class_body_closure.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_class_doc_none.py",
+    "envelope": "harness/scripts/machine_land2_class_doc_none.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_class_in_function_closure.py",
+    "envelope": "harness/scripts/machine_land2_class_in_function_closure.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_class_in_function_leak.py",
+    "envelope": "harness/scripts/machine_land2_class_in_function_leak.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_classattr_list_shared.py",
+    "envelope": "harness/scripts/machine_land2_classattr_list_shared.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_ctor_kwargs.py",
+    "envelope": "harness/scripts/machine_land2_ctor_kwargs.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_del_class_attr_via_instance_bare.py",
+    "envelope": "harness/scripts/machine_land2_del_class_attr_via_instance_bare.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_dunder_class_attr.py",
+    "envelope": "harness/scripts/machine_land2_dunder_class_attr.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_eq_self_false.py",
+    "envelope": "harness/scripts/machine_land2_eq_self_false.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_hash_eq_key.py",
+    "envelope": "harness/scripts/machine_land2_hash_eq_key.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_in_list_eq.py",
+    "envelope": "harness/scripts/machine_land2_in_list_eq.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_kwargs_dup.py",
+    "envelope": "harness/scripts/machine_land2_kwargs_dup.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_kwargs_empty.py",
+    "envelope": "harness/scripts/machine_land2_kwargs_empty.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_kwargs_named.py",
+    "envelope": "harness/scripts/machine_land2_kwargs_named.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_local_after_loop.py",
+    "envelope": "harness/scripts/machine_land2_local_after_loop.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_mro_order.py",
+    "envelope": "harness/scripts/machine_land2_mro_order.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_neg_inherited.py",
+    "envelope": "harness/scripts/machine_land2_neg_inherited.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_print_empty_str.py",
+    "envelope": "harness/scripts/machine_land2_print_empty_str.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_radd_subclass.py",
+    "envelope": "harness/scripts/machine_land2_radd_subclass.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_truthy_len.py",
+    "envelope": "harness/scripts/machine_land2_truthy_len.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_land2_unbound_cell_shadow.py",
+    "envelope": "harness/scripts/machine_land2_unbound_cell_shadow.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_unbound_nested_if.py",
+    "envelope": "harness/scripts/machine_land2_unbound_nested_if.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_land2_unbound_with_tuple_target.py",
+    "envelope": "harness/scripts/machine_land2_unbound_with_tuple_target.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_dunder_xor.py",
+    "envelope": "harness/scripts/machine_class_dunder_xor.json",
+    "expect": "match"
   }
 ]
