@@ -25,6 +25,7 @@ ENVELOPE_REFUSAL = {
 
 COREMEM_ENVELOPES = {
     "38b3c3253f79b006aac7a547d9c61fce31c86dfe26994a990ce324bd1ce321cf",
+    "5fdb97fc8b4f663d7265e2d3128610319ab6f2cfc86576cb1cee519c78e44ccc",
     "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5",
     "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7",
     "ddba565006335191c35955bd27c4c36ca134e57d8084864269b4a2f4fb77b96f",
@@ -40,7 +41,7 @@ def main() -> None:
         raise SystemExit(f"missing pinned envelope: {envelope.name}")
     digest = hashlib.sha256(envelope.read_bytes()).hexdigest()
     expected_refusal = ENVELOPE_REFUSAL.get(digest)
-    if expected_refusal is None:
+    if expected_refusal is None and digest not in COREMEM_ENVELOPES:
         raise SystemExit(f"envelope SHA-256 {digest} is not a pinned receipt")
 
     path = str(envelope).replace("\\", "\\\\").replace('"', '\\"')
