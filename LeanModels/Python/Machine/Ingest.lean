@@ -303,6 +303,17 @@ partial def mExpr (j : Json) : Except String MExpr := do
   | "Await" => pure (.awaitExpr (← mExpr (← mField j "value")) span)
   | "Unsupported" =>
       match j.getObjVal? "machine_kind" with
+      | .ok (.str "List") =>
+          let elts ← (← mField j "machine_elts").getArr?
+          pure (.list (← elts.mapM mExpr) span)
+      | .ok (.str "Tuple") =>
+          let elts ← (← mField j "machine_elts").getArr?
+          pure (.tuple (← elts.mapM mExpr) span)
+      | .ok (.str "Dict") =>
+          let keys ← (← mField j "machine_keys").getArr? >>= (·.mapM fun key =>
+            match key with | .null => pure none | _ => some <$> mExpr key)
+          let values ← (← mField j "machine_values").getArr? >>= (·.mapM mExpr)
+          pure (.dict keys values span)
       | .ok (.str "Yield") =>
           let value ← match j.getObjVal? "machine_value" with
             | .ok .null | .error _ => pure none
