@@ -1,0 +1,109 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 2,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c23-run",
+   "name": "gcc/testsuite/gcc.dg/c23-tag-5.c",
+   "sha256": "0dc510dd608e787173112876c29fde1266d59f37a564784a612d0dfe446a47c3",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 24,
+     "type": "struct product_iSfd_"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 24,
+     "type": "struct product_iSfd_"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 24,
+     "type": "struct product_iSfd_"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 24,
+     "size_bytes": 8,
+     "type": "struct product_iSfd_ *"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id56",
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 24,
+     "size_bytes": 8,
+     "type": "struct product_iSid_ *"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id80",
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 24,
+     "type": "struct product_iSid_"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c23-run",
+   "name": "gcc/testsuite/gcc.dg/c23-tag-alias-7.c",
+   "sha256": "4d60df32f4ba3aa8352cdba680fc16845571b1203d50d88bc24f141ab19b2107",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id19",
+     "size_bytes": 4,
+     "type": "struct foo"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "struct foo *"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "void *"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id34",
+     "size_bytes": 4,
+     "type": "struct foo"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id36",
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "typeof (*(1 ? &x : &y)) *"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id54",
+     "size_bytes": 4,
+     "type": "struct foo"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "multiple",
+ "walls": [
+  "unsupported:no layout for declared type 'struct product_iSfd_'",
+  "unsupported:no layout for declared type 'typeof (*(1 ? &x "
+ ]
+}
