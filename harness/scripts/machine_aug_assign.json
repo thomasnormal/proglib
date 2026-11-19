@@ -1,0 +1,191 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_aug_assign.py",
+  "source_sha256": "dc75f0b60f291f8ae9a66a2ea80011d4771fa3066db28c1be861cb9541cffc76",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 5
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 1
+            },
+            "id": "x"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 4,
+            "end_lineno": 1,
+            "end_col_offset": 5
+          },
+          "value": {
+            "type": "int",
+            "repr": "2"
+          }
+        }
+      },
+      {
+        "kind": "AugAssign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 6
+        },
+        "target": {
+          "kind": "Name",
+          "span": {
+            "lineno": 2,
+            "col_offset": 0,
+            "end_lineno": 2,
+            "end_col_offset": 1
+          },
+          "id": "x"
+        },
+        "op": "Add",
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 2,
+            "col_offset": 5,
+            "end_lineno": 2,
+            "end_col_offset": 6
+          },
+          "value": {
+            "type": "int",
+            "repr": "3"
+          }
+        }
+      },
+      {
+        "kind": "AugAssign",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 6
+        },
+        "target": {
+          "kind": "Name",
+          "span": {
+            "lineno": 3,
+            "col_offset": 0,
+            "end_lineno": 3,
+            "end_col_offset": 1
+          },
+          "id": "x"
+        },
+        "op": "Mult",
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 3,
+            "col_offset": 5,
+            "end_lineno": 3,
+            "end_col_offset": 6
+          },
+          "value": {
+            "type": "int",
+            "repr": "4"
+          }
+        }
+      },
+      {
+        "kind": "AugAssign",
+        "span": {
+          "lineno": 4,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 6
+        },
+        "target": {
+          "kind": "Name",
+          "span": {
+            "lineno": 4,
+            "col_offset": 0,
+            "end_lineno": 4,
+            "end_col_offset": 1
+          },
+          "id": "x"
+        },
+        "op": "Sub",
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 4,
+            "col_offset": 5,
+            "end_lineno": 4,
+            "end_col_offset": 6
+          },
+          "value": {
+            "type": "int",
+            "repr": "5"
+          }
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 5,
+          "end_col_offset": 8
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 5,
+            "col_offset": 0,
+            "end_lineno": 5,
+            "end_col_offset": 8
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 5,
+              "col_offset": 0,
+              "end_lineno": 5,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "Name",
+              "span": {
+                "lineno": 5,
+                "col_offset": 6,
+                "end_lineno": 5,
+                "end_col_offset": 7
+              },
+              "id": "x"
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

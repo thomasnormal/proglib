@@ -363,5 +363,10 @@
     "source": "harness/scripts/machine_star_unpack_noniterable.py",
     "envelope": "harness/scripts/machine_star_unpack_noniterable.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_aug_assign.py",
+    "envelope": "harness/scripts/machine_aug_assign.json",
+    "expect": "match"
   }
 ]
