@@ -182,6 +182,9 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("generate_parameter.sv", "generate_parameter",
             (Port("x", 1),), (Port("y", 1),),
             (Point("W8", (8,)), Point("W3", (3,)))),
+    Fixture("generate_typed_localparam.sv", "generate_typed_localparam",
+            (Port("x", 1),), (Port("y", 1),),
+            (Point("W8", (8,)), Point("W3", (3,)))),
     Fixture("initial_syscall.sv", "initial_syscall",
             (Port("x", 1),), (Port("y", 1),),
             expected_ordinary_refusal="Initial:runtime"),
@@ -818,6 +821,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
         names = {
             "constant_width_conversion": ("E",),
             "generate_parameter": ("W",),
+            "generate_typed_localparam": ("W",),
             "localparam_shift": ("E",),
             "memory_edge_loop": ("W", "N"),
             "parameterized_unpacked_storage": ("N",),

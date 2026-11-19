@@ -689,17 +689,22 @@ shadowing priority required by IEEE 1800 section 27.4. -/
 structure CoreMemScope where
   genvars : List (String × Int) := []
   localParams : List (String × Int) := []
+  /-- Non-INT generate-local constants retain their declared width and
+  signedness while their lexical scope is substituted. -/
+  localNParams : List (String × (Int × Nat × Bool)) := []
 deriving Repr, Inhabited
 
 def coreMemScopeEnv (env : IEnv) (scope : CoreMemScope) : IEnv :=
   let env := scope.localParams.reverse.foldl
     (fun e (n, v) => e.bindVal n v) env
+  let env := scope.localNParams.reverse.foldl
+    (fun e (n, (v, w, s)) => e.bindNVal n v w s) env
   scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env
 
 /-! Evaluate a generate-local parameter in the active lexical scope.  The
 canonical memory executor carries integer constants across generated
-source-shaped nodes; non-INT constants remain loud rather than being replaced
-by an untyped integer with different width or signedness. -/
+source-shaped nodes and preserves the declared width and signedness of a
+non-INT constant. IEEE 1800-2023 §§6.20.2 and 27.4. -/
 def coreMemBindLocalParam (env : IEnv) (scope : CoreMemScope) (p : PLocalParam) :
     Res CoreMemScope :=
   match bindLocal (coreMemScopeEnv env scope) p with
@@ -708,8 +713,12 @@ def coreMemBindLocalParam (env : IEnv) (scope : CoreMemScope) (p : PLocalParam) 
   | .ok env' =>
       match env'.intVal? p.name with
       | some v => .ok { scope with localParams := (p.name, v) :: scope.localParams }
-      | none => .unsupported
-          s!"GenerateDecl:LocalParam: generate-local parameter '{p.name}': non-INT type is outside the canonical E scope"
+      | none =>
+          match env'.nvals.lookup p.name with
+          | some (v, w, s) =>
+              .ok { scope with localNParams := (p.name, (v, w, s)) :: scope.localNParams }
+          | none => .unsupported
+              s!"GenerateDecl:LocalParam: generate-local parameter '{p.name}': non-INT type is outside the canonical E scope"
 
 def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
   | .genvarRef n =>
@@ -719,7 +728,12 @@ def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
   | .paramRef n none =>
       match scope.localParams.lookup n with
       | some v => .int v
-      | none => .paramRef n none
+      | none =>
+          match scope.localNParams.lookup n with
+          | some (v, w, s) =>
+              if s then .signedResize w (.lit (.ofInt w v))
+              else .lit (.ofInt w v)
+          | none => .paramRef n none
   | .unary op a => .unary op (coreMemSubstExpr scope a)
   | .binary op a b => .binary op (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .ternary c a b => .ternary (coreMemSubstExpr scope c) (coreMemSubstExpr scope a)
@@ -820,6 +834,8 @@ end
 def coreMemBindVals (env : IEnv) (scope : CoreMemScope) : IEnv :=
   let env := scope.localParams.reverse.foldl
     (fun e (n, v) => e.bindVal n v) env
+  let env := scope.localNParams.reverse.foldl
+    (fun e (n, (v, w, s)) => e.bindNVal n v w s) env
   scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env
 
 /-! Active generated declarations are collected from the same source-shaped
