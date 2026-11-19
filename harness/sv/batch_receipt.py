@@ -297,6 +297,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("hierarchy_parameterized.sv", "hierarchy_parameterized",
             (Port("a", 8),), (Port("y", 8),),
             (Point("W8", (8,)),)),
+    # Both parameter points exercise the inactive direct branch and active
+    # child-instance branch of the source-shaped generate-if.
     Fixture("inactive_generate_child_e.sv", "inactive_generate_child_e",
             (Port("a", 1),), (Port("y", 1),),
             (Point("USE0", (0,)), Point("USE1", (1,)))),
