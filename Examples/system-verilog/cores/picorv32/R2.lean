@@ -128,6 +128,10 @@ obligation:
   `r1_system.picorv32_system_exact_cycle_step_refines` theorem consumes the
   exact system boundary in the mixed cycle dispatcher while retaining trap
   and wake semantics.
+  Its
+  `r1_system.picorv32_loaded_system_program_refinement_of_total` theorem
+  packages one retained system instruction into the loaded reset-specialized
+  all-prefix contract from total canonical execution.
   `r1_illegal` provides undecodable and illegal-CSR consumers through the
   exact illegal boundary.  Its
   `r1_illegal.picorv32_illegal_exact_cycle_step_refines` theorem consumes the
