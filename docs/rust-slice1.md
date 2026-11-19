@@ -48,6 +48,12 @@ tuple passed to a three-argument closure body.  The tuple fields bind to the two
 integer locals, the checked addition and assertion execute, and the row now
 returns normally under both Miri models.
 
+The atomic-load path decodes the extracted `Atomic<usize>` aggregate from its
+allocation bytes and projects field zero through the type argument layout.  The
+`study_drop_struct` row therefore passes the atomic operation and reaches its
+next boundary, the missing MIR body for `caller_location`.  That foreign runtime
+helper remains a named refusal with no guessed panic metadata.
+
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
 `IntToInt` through the target integer layout and preserves provenance for
