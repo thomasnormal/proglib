@@ -576,10 +576,14 @@ def Layout.fieldOffAt (layout : Layout) (base : Expr) (field : String) :
 
 /-- Resolve a member extent from parser-native facts, then from the declared
 field type, with the legacy field-size table as the final fallback. -/
-def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field fieldTy : CType) :
-    Option Nat :=
-  (layout.fieldSizeAt base field).orElse
-    (fun _ => layout.size (layout.normalizeTy fieldTy))
+def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field fieldTy : CType)
+    (recordLike : Bool) : Option Nat :=
+  if recordLike then
+    layout.fieldSizeAt base field |>.orElse
+      (fun _ => layout.size (layout.normalizeTy fieldTy))
+  else
+    (layout.size (layout.normalizeTy fieldTy)).orElse
+      (fun _ => layout.fieldSizeAt base field)
 
 def Layout.arrayElementSizeAt (layout : Layout) (arrayTy elementTy : CType) :
     Option Nat :=
@@ -2027,7 +2031,9 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
           ctx.layout.fieldOffAt base field
   match off? with
   | some off =>
-      let fieldSize := ctx.layout.fieldExtentAt base field fieldTy
+      let recordLike := (ctx.layout.structuredTypeAt base).map
+        LeanModels.Clang.QualType.recordLike |>.getD false
+      let fieldSize := ctx.layout.fieldExtentAt base field fieldTy recordLike
       match fieldSize with
       | some sz => pure (Mem.memberRange basePtr off sz)
       | none => refuseUnsupported s!"no layout for field '{field}'"
