@@ -32,7 +32,14 @@ def gcdCore : Body := {
     .assign {localId:=3,projection:=[]} (.use (.constant 4 [] 3 none true)),
     .storageDead 14, .storageDead 5, .storageDead 3,
     .assign {localId:=0,projection:=[]} (.use (.copy {localId:=1,projection:=[]}))], terminator := .ret }
- ]}
+ ],
+ locals := [
+   {localId := 0, ty := 1}, {localId := 1, ty := 1}, {localId := 2, ty := 1},
+   {localId := 3, ty := 3}, {localId := 4, ty := 3}, {localId := 5, ty := 7},
+   {localId := 6, ty := 1}, {localId := 7, ty := 1}, {localId := 8, ty := 1},
+   {localId := 9, ty := 1}, {localId := 10, ty := 7}, {localId := 11, ty := 1},
+   {localId := 12, ty := 1}, {localId := 13, ty := 8}, {localId := 14, ty := 3},
+   {localId := 15, ty := 8} ]}
 
 
 
