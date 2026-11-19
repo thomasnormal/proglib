@@ -40,7 +40,7 @@ def rows(output: str) -> list[str]:
 
 def main() -> int:
     run(["lake", "env", "lean", str(HERE / "probe.lean")], ROOT)
-    print("canonical E: exact SysCall refusal, no environment-dependent value claimed")
+    print("canonical E: SysCall admitted with explicit plus-argument input")
     if shutil.which("iverilog") is None or shutil.which("vvp") is None:
         raise RuntimeError("Icarus Verilog 13.0 is required")
     if shutil.which("xrun") is None:
