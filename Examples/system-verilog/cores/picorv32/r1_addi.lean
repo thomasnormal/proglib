@@ -1,6 +1,7 @@
 import LeanModels.Refine.RvfiAddiProgress
 import Examples.«system-verilog».cores.picorv32.addi_boundary
 import Examples.«system-verilog».cores.picorv32.R2
+import Examples.«system-verilog».cores.picorv32.input_drive_core
 import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
@@ -167,6 +168,53 @@ theorem picorv32_addi_exact_cycle_step_refines
   exact (machine.to_addi_invariant hstep horder).toMixedStep
 
 #print axioms picorv32_addi_exact_cycle_step_refines
+
+/-! The same obligation at the actual loaded canonical-E entry point.  The
+    result carries the loader certificate together with the mixed-cycle
+    refinement, so a later PicoRV32 proof cannot silently substitute a
+    different design for the one used by the E-RUN. -/
+
+theorem picorv32_loaded_addi_exact_cycle_step_refines
+    (core : PicoRV32LoadedCanonicalE)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core) state
+              ((rvfi_core_adapter.CoreRvfiMachine.encode
+                (PicoRV32LoadedCanonicalE.machine core)) state input) =
+              .ok (next, observation) ∧
+          (if observation.valid then
+            ∃ w rd rs1 imm,
+              input.memory = memoryState.memory ∧
+              observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
+              rel next
+                { arch := addiNext memoryState.arch rd rs1 imm,
+                  memory := memoryState.memory }
+          else rel next memoryState))
+    (horder : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input)
+      (next : LeanModels.Sv.Kernel.CoreMemState)
+      (observation : RvfiObservation),
+      rel state memoryState → admit input →
+      rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core) state
+          ((rvfi_core_adapter.CoreRvfiMachine.encode
+            (PicoRV32LoadedCanonicalE.machine core)) state input) =
+        .ok (next, observation) →
+      if observation.valid then observation.order = start else True) :
+    picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
+      Rv32iCycleStepRefines
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+          (PicoRV32LoadedCanonicalE.machine core)) rel admit := by
+  refine ⟨PicoRV32LoadedCanonicalE.loaded core, ?_⟩
+  exact picorv32_addi_exact_cycle_step_refines
+    (PicoRV32LoadedCanonicalE.machine core) hstep horder
+
+#print axioms picorv32_loaded_addi_exact_cycle_step_refines
 
 
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
