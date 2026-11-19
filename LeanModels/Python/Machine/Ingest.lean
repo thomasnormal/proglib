@@ -390,10 +390,12 @@ partial def mStmtToStmt : MStmt → RStmt
       else
         .functionDefKw name (mParams args) (args.defaults.map mExprToExpr)
           (args.kwDefaults.map (·.map mExprToExpr)) (body.map mStmtToStmt) span
+  | .global names span => .global names span
+  | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .augAssign _ _ _ span | .annAssign _ _ _ _ span | .delete _ span
   | .classDef _ _ _ _ _ span | .import _ span
-  | .importFrom _ _ _ span | .global _ span | .nonlocal _ span | .raise _ _ span
+  | .importFrom _ _ _ span | .raise _ _ span
   | .tryStmt _ _ _ _ span | .withStmt _ _ _ span | .brk span | .cont span =>
       .unsupported "machine statement" "machine ingestion frontier" span
 
@@ -433,12 +435,34 @@ private def ingestKwargModule : Json :=
       ("name", Lean.toJson "collectKw"), ("args", ingestKwargArguments),
       ("body", Lean.Json.arr #[])]] )])]
 
+private def ingestGlobalFunction : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [
+    ("kind", Lean.toJson "Module"),
+    ("body", Lean.toJson #[Lean.Json.mkObj [
+      ("kind", Lean.toJson "FunctionDef"), ("span", ingestSpan),
+      ("name", Lean.toJson "update"), ("args", Lean.Json.arr #[]),
+      ("body", Lean.toJson #[
+        Lean.Json.mkObj [("kind", Lean.toJson "Global"), ("span", ingestSpan),
+          ("names", Lean.toJson #[("value" : String)])],
+        Lean.Json.mkObj [("kind", Lean.toJson "Assign"), ("span", ingestSpan),
+          ("targets", Lean.toJson #[ingestName "value"]),
+          ("value", Lean.Json.mkObj [("kind", Lean.toJson "Constant"),
+            ("span", ingestSpan), ("value", Lean.Json.mkObj [
+              ("type", Lean.toJson "int"), ("repr", Lean.toJson "7")])])]])]])])]
+
 #guard match parseMachineModule ingestModule with
   | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _] _ _] } => true
   | _ => false
 
 #guard match parseMachineModule ingestKwargModule with
   | .ok { body := #[.functionDef _ args _ _ _ _] } => args.kwarg.isSome
+  | _ => false
+
+#guard match parseMachineModule ingestGlobalFunction with
+  | .ok module =>
+      match (compileMachineModule module).body.toList with
+      | [.functionDef _ _ _ #[.global #["value"] _, .assign _ _ _] _] => true
+      | _ => false
   | _ => false
 
 private def ingestDefaultArguments : Json :=
