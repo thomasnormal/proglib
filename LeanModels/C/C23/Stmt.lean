@@ -217,7 +217,7 @@ def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM 
             | some esz => zeroElems fuel ctx p et esz n 0
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
-          match ctx.layout.members ty with
+          match ctx.layout.membersDeclAt declaration ty with
           | some ms => zeroMembers fuel ctx p ty ms declaration
           | none => refuseUnsupported s!"cannot zero-initialize '{ty}'"
 
@@ -295,7 +295,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         -- walk first; treating the whole declarator as a union loses the
         -- element initializers and reports a fabricated missing member.
         if (ctx.layout.elemDeclAt declaration initTy).isNone && ctx.layout.isUnion initTy then
-          match ctx.layout.members initTy, inits with
+          match ctx.layout.membersDeclAt declaration initTy, inits with
           | some _, [] => zeroInit fuel ctx p initTy declaration
           | some ms, e :: _ =>
               let target := field.getD ((ms.head?.map (·.1)).getD "")
@@ -311,7 +311,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
             | some esz => initElems fuel ctx p et esz n 0 inits
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
-          match ctx.layout.members ty with
+          match ctx.layout.membersDeclAt declaration ty with
           -- a STRUCTURE: members in declaration order, then p10 on the rest
           | some ms => initMembers fuel ctx p ty ms inits declaration
           | none => refuseUnsupported s!"cannot initialize aggregate '{ty}'"
