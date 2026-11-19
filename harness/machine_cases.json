@@ -418,5 +418,15 @@
     "source": "harness/scripts/machine_loop_control_boundary.py",
     "envelope": "harness/scripts/machine_loop_control_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_import_boundary.py",
+    "envelope": "harness/scripts/machine_import_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_import_from_boundary.py",
+    "envelope": "harness/scripts/machine_import_from_boundary.json",
+    "expect": "unsupported"
   }
 ]
