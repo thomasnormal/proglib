@@ -873,17 +873,29 @@ def isCharacterType : QualType → Bool
   | _ => false
 
 def cAliasCompatible : CType → CType → Bool := fun used eff =>
-    let scalar := match eff with
+    let unqual : CType → CType
+      | "volatile char" => "char"
+      | "volatile signed char" => "signed char"
+      | "volatile unsigned char" => "unsigned char"
+      | "volatile short" => "short"
+      | "volatile unsigned short" => "unsigned short"
+      | "volatile int" => "int"
+      | "volatile unsigned int" => "unsigned int"
+      | "volatile long" => "long"
+      | "volatile unsigned long" => "unsigned long"
+      | "volatile long long" => "long long"
+      | "volatile unsigned long long" => "unsigned long long"
+      | "volatile _Bool" => "_Bool"
+      | t => t
+    let used' := unqual used
+    let eff' := unqual eff
+    let scalar := match eff' with
       | "char" | "signed char" | "unsigned char" | "short" |
           "unsigned short" | "int" | "unsigned int" | "long" |
-          "unsigned long" | "long long" | "unsigned long long" | "_Bool" |
-          "volatile char" | "volatile signed char" | "volatile unsigned char" |
-          "volatile short" | "volatile unsigned short" | "volatile int" |
-          "volatile unsigned int" | "volatile long" | "volatile unsigned long" |
-          "volatile long long" | "volatile unsigned long long" | "volatile _Bool" => true
+          "unsigned long" | "long long" | "unsigned long long" | "_Bool" => true
       | _ => false
-    scalar == false || used == eff || used == "char" ||
-      used == "signed char" || used == "unsigned char"
+    scalar == false || used' == eff' || used' == "char" ||
+      used' == "signed char" || used' == "unsigned char"
 
 def cAliasModel : AliasModel where
   compatible := cAliasCompatible
