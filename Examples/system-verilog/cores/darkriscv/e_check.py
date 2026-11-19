@@ -19,11 +19,14 @@ ENVELOPE_REFUSAL = {
         "decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)",
     "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7":
         "decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)",
+    "ddba565006335191c35955bd27c4c36ca134e57d8084864269b4a2f4fb77b96f":
+        "decl 'REGS': unpacked array storage outside E (UnpackedDecl:memory)",
 }
 
 COREMEM_ENVELOPES = {
     "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5",
     "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7",
+    "ddba565006335191c35955bd27c4c36ca134e57d8084864269b4a2f4fb77b96f",
 }
 
 
