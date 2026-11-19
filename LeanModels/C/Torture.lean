@@ -305,21 +305,23 @@ def allDecls (envl : Envelope) : List Decl :=
     | .decl d => declTree d
     | .fn f => (f.body.map stmtDecls |>.getD []).flatMap declTree
 
-def recordsOf (envl : Envelope) : List (String × List (String × CType)) :=
+def recordsOf (envl : Envelope) : List (String × List (String × CType) × Bool) :=
   let ds := allDecls envl
   let records := ds.filterMap fun d => match d with
     | .record _ (some nm) fields (some layout) _ =>
         (fieldsOf fields).map (fun fs =>
-          ((if layout.tagKind == "union" then "union " else "struct ") ++ nm, fs))
+          ((if layout.tagKind == "union" then "union " else "struct ") ++ nm, fs,
+            layout.tagKind == "union"))
     | .record _ (some nm) fields none _ =>
-        (fieldsOf fields).map (fun fs => (nm, fs))
+        (fieldsOf fields).map (fun fs => (nm, fs, false))
     | _ => none
   let anonymous := ds.filterMap fun d => match d with
     | .var _ _ ty _ _ (some rid) _ _ =>
         match ds.find? (fun q => match q with
           | .record id none _ _ _ => id == some rid
           | _ => false) with
-        | some (.record _ none fields _ _) => (fieldsOf fields).map (fun fs => (ty, fs))
+        | some (.record _ none fields _ _) =>
+            (fieldsOf fields).map (fun fs => (ty, fs, false))
         | _ => none
     | _ => none
   records ++ anonymous
@@ -515,18 +517,19 @@ structure's. Splitting them would be two walks that must agree.
 * a **union** puts every member at 0 and takes the largest size, rounded up
   the same way.
 
-**Union-ness is read from the SPELLING**, because the `c-0.1` envelope does
-not carry clang's `tagUsed` — `Decl.record` has a name and fields and no
-struct/union bit. That is exact for the type being sized and has one
-failure mode worth naming rather than hiding: a translation unit declaring
-BOTH `struct u` and `union u` would collide on the tag. Nothing in the
-corpus does; if one did, the tag lookup would find whichever came first,
-so this is a named limit and not a silent one.
+**Union-ness is carried by the parser-native `RecordLayout.tagKind` bit** in
+the fallback table. The recursive size and offset walks consume that bit
+directly, so they do not inspect a `struct`/`union` display spelling. A
+declaration without a layout observation remains in the legacy table with
+the conservative struct fallback and is covered by the existing loud
+refusal when its members cannot be sized. A translation unit declaring both
+`struct u` and `union u` therefore keeps distinct parser-native keys rather
+than relying on a spelling test in the walk.
 
 A tag with no declaration in the unit gets `none` — a loud refusal at the
 use site, which is what an incomplete type deserves. -/
 def sizeAlign (tds : List (CType × CType))
-    (recs : List (String × List (String × CType))) :
+    (recs : List (String × List (String × CType) × Bool)) :
     Nat → CType → Option (Nat × Nat)
   | 0, _ => none
   | n + 1, t0 =>
@@ -548,14 +551,14 @@ def sizeAlign (tds : List (CType × CType))
           match record with
             | none => none
             | some r =>
-                let isUnion := t.startsWith "union "
+                let isUnion := r.2.2
                 let step := fun (acc : Option (Nat × Nat)) (m : String × CType) =>
                   match acc, sizeAlign tds recs n m.2 with
                   | some (off, al), some (msz, mal) =>
                       if isUnion then some (Nat.max off msz, Nat.max al mal)
                       else some (roundUp off mal + msz, Nat.max al mal)
                   | _, _ => none
-                (r.2.foldl step (some (0, 1))).map fun p => (roundUp p.1 p.2, p.2)
+                (r.2.1.foldl step (some (0, 1))).map fun p => (roundUp p.1 p.2, p.2)
 
 /-- A member's byte offset, by the same rule and the same walk.
 
@@ -563,7 +566,7 @@ The base spelling arrives as the EXPRESSION's type — `Pos` for `x.f` and
 `const Pos *` for `p->f` — so the qualifiers and one level of pointer are
 peeled before the tag is read. -/
 def fieldOffIn (tds : List (CType × CType))
-    (recs : List (String × List (String × CType)))
+    (recs : List (String × List (String × CType) × Bool))
     (fuel : Nat) (base : CType) (fld : String) : Option Nat :=
   let t0 := stripQuals 8 base
   let t1 := if t0.endsWith "*" then stripQuals 8 (t0.dropEnd 1).toString.trimAsciiEnd.toString else t0
@@ -572,7 +575,7 @@ def fieldOffIn (tds : List (CType × CType))
   match record with
     | none => none
     | some r =>
-        let isUnion := t.startsWith "union "
+        let isUnion := r.2.2
         let step := fun (acc : Option Nat × Option Nat) (m : String × CType) =>
           match acc with
           | (some _, _) => acc                     -- already found
@@ -583,7 +586,7 @@ def fieldOffIn (tds : List (CType × CType))
                 if m.1 == fld then (some here, none)
                 else (none, some (if isUnion then 0 else here + msz))
             | _, _ => (none, none)
-        (r.2.foldl step (none, some 0)).1
+        (r.2.1.foldl step (none, some 0)).1
 
 /-- The layout for ONE test, built from its own envelope. -/
 def layoutFor (envl : Envelope) : Layout :=
@@ -618,7 +621,8 @@ def layoutFor (envl : Envelope) : Layout :=
   -- fallback too.  An anonymous typedef such as `Data` has no named
   -- RecordDecl in `recordsOf`, but its observed declaration identity still
   -- supplies the element size for `Data[4]` (§6.7.6.2).
-  let recsWithObserved := recs ++ observed.map (fun row => (row.1, row.2.1))
+  let recsWithObserved := recs ++ observed.map (fun row =>
+    (row.1, row.2.1, row.2.2.tagKind == "union"))
   let observedFor := fun t : CType =>
     let t0 := resolve tds 8 (stripQuals 8 t)
     observed.find? (fun row => row.1 == t0)
@@ -776,7 +780,7 @@ def layoutFor (envl : Envelope) : Layout :=
       | none =>
           let rt := resolve tds 8 (stripQuals 8 t)
           let r := recs.find? (·.1 == rt)
-          r.map (·.2)
+          r.map (·.2.1)
     -- The evaluator's own normalizer, built from THIS unit's typedefs. The
     -- table in `intTyOf?` cannot do this job: `ull` is `unsigned long` in one
     -- test and `unsigned long long` in another, so the answer is a property
