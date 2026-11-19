@@ -964,6 +964,7 @@ def coreMemSignalNames : PExpr → List String
   | .concat xs | .functionCall _ xs => coreMemSignalNamesList xs
   | .aggregateMember n _ => [n]
   | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _
+  | .typeBits ..
   | .unsupported _ _ => []
 
 def coreMemSignalNamesList : List PExpr → List String
@@ -1005,7 +1006,7 @@ def coreMemPExprHasMemory : PExpr → Bool
   | .bitSel a b | .repl a b => coreMemPExprHasMemory a || coreMemPExprHasMemory b
   | .partSel a b c => coreMemPExprHasMemory a || coreMemPExprHasMemory b || coreMemPExprHasMemory c
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
-  | .fill _ | .unsupported .. => false
+  | .typeBits .. | .fill _ | .unsupported .. => false
 
 def coreMemPExprHasMemoryList : List PExpr → Bool
   | [] => false
@@ -1369,7 +1370,7 @@ def LeanModels.Sv.PExpr.hasAggregateMember : PExpr → Bool
   | .arrayPart _ indices _ a b => PExpr.hasAggregateMemberList indices ||
       LeanModels.Sv.PExpr.hasAggregateMember a || LeanModels.Sv.PExpr.hasAggregateMember b
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
-  | .fill _ | .unsupported .. => false
+  | .typeBits .. | .fill _ | .unsupported .. => false
 
 def LeanModels.Sv.PExpr.hasAggregateMemberList : List PExpr → Bool
   | [] => false
@@ -1391,7 +1392,7 @@ def LeanModels.Sv.PExpr.hasMemoryRead : PExpr → Bool
       LeanModels.Sv.PExpr.hasMemoryRead b || LeanModels.Sv.PExpr.hasMemoryRead c
   | .aggregateMember .. => true
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
-  | .fill _ | .unsupported .. => false
+  | .typeBits .. | .fill _ | .unsupported .. => false
 
 def LeanModels.Sv.PExpr.hasMemoryReadList : List PExpr → Bool
   | [] => false
@@ -1420,7 +1421,7 @@ def LeanModels.Sv.PExpr.hasFunctionCall : PExpr → Bool
   -- `evalAggregateMember` above.
   | .aggregateMember .. => true
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
-  | .fill _ | .unsupported .. => false
+  | .typeBits .. | .fill _ | .unsupported .. => false
 
 def LeanModels.Sv.PExpr.hasFunctionCallList : List PExpr → Bool
   | [] => false
@@ -1452,7 +1453,7 @@ def coreMemReadExprs : PExpr → List PExpr
       coreMemReadExprs a ++ coreMemReadExprs b ++ coreMemReadExprs c
   | .concat xs | .functionCall _ xs => coreMemReadExprsList xs
   | .lit _ | .fill _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
-  | .unsupported .. => []
+  | .typeBits .. | .unsupported .. => []
 
 def coreMemReadExprsList : List PExpr → List PExpr
   | [] => []

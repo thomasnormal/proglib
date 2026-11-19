@@ -300,6 +300,9 @@ inductive PExpr where
   /-- 4-state → 2-state squash (self-check-tier node; outside M0). -/
   | squash2 (width : Nat) (arg : PExpr)
   | sysCall (fn : SysFn) (arg : PExpr)
+  /-- `$bits(type)` type inspection.  The width is parser-resolved and
+  fixed for the admitted type, while the query remains source-shaped. -/
+  | typeBits (name : String) (width : Nat)
   /-- Semantic tier (phase 2): bit/element select `base[index]` — over a
   multi-dim packed base this reads one `elemW`-bit chunk (the element
   width comes from the declaration's dims at instantiation). -/
@@ -1025,7 +1028,7 @@ expression is evaluated width-exactly by `evalSized`. A `ParamRef` is INT
 exactly when the name is bound in `IEnv.vals` (non-INT typed parameters
 live in `IEnv.nvals`). -/
 def PExpr.isInt (env : IEnv) : PExpr → Bool
-  | .int _ | .genvarRef _ | .sysCall .. => true
+  | .int _ | .genvarRef _ | .sysCall .. | .typeBits .. => true
   | .paramRef n none =>
       (env.vals.lookup n).isSome ||
         match env.nvals.lookup n with
@@ -1057,7 +1060,7 @@ def PExpr.mentionsAny (names : List String) : PExpr → Bool
   | .aggregateMember .. => false
   | .functionCall _ args => PExpr.mentionsAnyList names args
   | .lit _ | .ident _ | .genvarRef _ | .enumRef .. | .int _ | .fill _
-  | .unsupported .. => false
+  | .typeBits .. | .unsupported .. => false
 
 /-- `PExpr.mentionsAny` over a list. -/
 def PExpr.mentionsAnyList (names : List String) : List PExpr → Bool
@@ -1070,7 +1073,7 @@ end
 predicate.  `instantiate2` stores signed 32-bit INT values in `nvals`; this
 view exposes that class without changing the unbounded `evalInt` API. -/
 def PExpr.isIntExact (env : IEnv) : PExpr → Bool
-  | .int _ | .genvarRef _ | .sysCall .. => true
+  | .int _ | .genvarRef _ | .sysCall .. | .typeBits .. => true
   | .paramRef n none =>
       (env.vals.lookup n).isSome ||
         match env.nvals.lookup n with
@@ -1099,7 +1102,7 @@ def PExpr.readsSignalConst : PExpr → Bool
   | .partSel b m l | .ternary b m l =>
       b.readsSignalConst || m.readsSignalConst || l.readsSignalConst
   | .concat ps => PExpr.readsSignalConstList ps
-  | .lit _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
+  | .lit _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _ | .typeBits ..
   | .fill _ | .functionCall .. | .aggregateMember .. | .unsupported .. => false
 
 def PExpr.readsSignalConstList : List PExpr → Bool
@@ -1303,6 +1306,7 @@ their operands, signed iff both are; comparisons/logical/`!`/selects
 unsigned; shifts and `**` the left operand's type. -/
 def ctype (env : IEnv) : PExpr → Except String (Nat × Bool)
   | .int _ | .genvarRef _ | .sysCall .. => .ok (32, true)
+  | .typeBits _ _ => .ok (32, true)
   | .lit v => .ok (v.width, false)
   | .ident n => .error s!"signal '{n}' in a constant context"
   | .paramRef n none =>
@@ -1403,6 +1407,7 @@ envelope's typing and ours must agree — a missing `signed` field shows up
 here, never as a silently different answer). -/
 def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
   | .int v => .ok (convertConst 32 ty.1 ty.2 v)
+  | .typeBits _ width => .ok (convertConst 32 ty.1 ty.2 width)
   | .lit v =>
       match v.toNat? with
       | some n => .ok (convertConst v.width ty.1 ty.2 n)
@@ -1809,6 +1814,7 @@ the node to `evalSized`, the width-exact §11.6/§11.8 evaluation — see the
 module docstring. -/
 def evalInt (env : IEnv) : PExpr → Except String Int
   | .int v => .ok v
+  | .typeBits _ width => .ok width
   | .lit v =>
       match v.toNat? with
       | some n => .ok (n : Int)
@@ -2244,6 +2250,7 @@ def selfWidth (env : IEnv) : PExpr → Option Nat
   | .lit v => some v.width
   | .ident n => env.widths.lookup n
   | .paramRef .. | .genvarRef _ | .int _ | .sysCall .. => some 32
+  | .typeBits _ _ => some 32
   | .enumRef ty _ pkg => env.enumWidth ty pkg
   | .fill _ => none
   | .unary op a =>
@@ -2290,6 +2297,7 @@ def divOperandWidth (env : IEnv) : PExpr → Option Nat
   | .paramRef name none => some ((env.pwidths.lookup name).getD 32)
   | .paramRef name (some pkg) => (env.packageConstType pkg name).map Prod.fst
   | .genvarRef _ | .int _ | .sysCall .. => some 32
+  | .typeBits _ _ => some 32
   | .enumRef name _ pkg => env.enumWidth name pkg
   | .fill _ => none
   | .unary (.m0 .lnot) _ => some 1
@@ -2346,6 +2354,7 @@ def instExpr (env : IEnv) (ctx : Option Nat) : PExpr → Expr
   | .lit v => .lit v
   | .ident n => .ident n
   | .int v => intLit ctx v
+  | .typeBits _ width => intLit ctx width
   | .fill b =>
       match ctx with
       | some w => .lit (LVec.replicate w b)

@@ -31964,6 +31964,19 @@ def _sym_expr_syscall(sm, e):
             return value if value.get("kind") != "Unsupported" else None
         if name not in SYM_SYSCALLS:
             return None
+        if name == "$bits" and len(e.arguments) == 1 \
+                and type(e.arguments[0]).__name__ == "DataTypeExpression":
+            resolved = None
+            try:
+                resolved = _cv_int(e.constant)
+            except Exception:
+                pass
+            if not isinstance(resolved, int) or resolved < 0:
+                return unsupported(sm, e, "SysCall:$bits:type")
+            arg = e.arguments[0]
+            return {"kind": "TypeBits", "span": node_span(sm, e),
+                    "name": str(arg.syntax).strip() if arg.syntax is not None else "<type>",
+                    "width": resolved}
         args = [_convert_expr(sm, a) for a in e.arguments]
     except Exception:
         return None

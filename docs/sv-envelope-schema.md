@@ -1338,6 +1338,7 @@ Key order: `kind`, `span`, `name`, `imports`, `params`, `types`, `ports`,
 | `TypeRef` | `kind`, `name`, `from_package`, `resolved` — a declaration's type given by (enum) type name |
 | `PackedType` | `kind`, `packed` (`[{msb, lsb}]` symbolic bounds per packed dimension, `[]` scalar, `null` unrecoverable), `resolved` (total bit width) |
 | `SysCall` (expression position) | `kind`, `span`, `name` (`"$clog2" \| "$bits" \| "$high" \| "$size"`), `args`, `resolved` — distinct from the statement-position `SysCall` (`$display`/..., which has `format`/`args`/`arg_signed`) |
+| `TypeBits` | `kind`, `span`, `name` (source-shaped type spelling), `width` (fixed elaborated bit width) — `$bits(type)` in a constant expression, IEEE 1800-2023 §20.6.2 |
 | `Int` | `kind`, `span`, `value` (int), `resolved_width` — an *unsized* integer literal (sized literals stay `Literal`) |
 | `Fill` | `kind`, `span`, `bit` (`"0" \| "1" \| "x" \| "z"`), `resolved_width` — an unbased-unsized literal (`'0`/`'1`/`'x`/`'z`); its width is context-propagated, i.e. potentially parameter-dependent, so it is never emitted as a folded `Literal` in this mode |
 | `Import` | see above |

@@ -30,6 +30,7 @@ private def hExpr (pfx : String) : PExpr → PExpr
   | .signedResize w a => .signedResize w (hExpr pfx a)
   | .squash2 w a => .squash2 w (hExpr pfx a)
   | .sysCall f a => .sysCall f (hExpr pfx a)
+  | .typeBits n w => .typeBits n w
   | .reduce o a => .reduce o (hExpr pfx a)
   | .cast s a => .cast s (hExpr pfx a)
   | .repl n a => .repl (hExpr pfx n) (hExpr pfx a)

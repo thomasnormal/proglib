@@ -113,6 +113,7 @@ def PExpr.readsSignal : PExpr → Bool
   | .concat ps => PExpr.readsSignalList ps
   | .functionCall _ args => PExpr.readsSignalList args
   | .lit _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _ | .fill _
+  | .typeBits ..
   | .unsupported .. => false
 
 /-- `PExpr.readsSignal` over a list (concatenation parts). -/
@@ -514,6 +515,7 @@ def selfWidth2 (env : IEnv) (elems : List (String × Nat)) : PExpr → Option Na
   | .paramRef n none => some ((env.pwidths.lookup n).getD (paramNWidth env n))
   | .paramRef n (some pkg) => (env.packageConstType pkg n).map Prod.fst
   | .genvarRef _ | .int _ | .sysCall .. => some 32
+  | .typeBits _ _ => some 32
   | .enumRef ty _ pkg => env.enumWidth ty pkg
   | .fill _ => none
   | .unary op a =>
@@ -599,6 +601,7 @@ def divOperandWidth2 (env : IEnv) (elems : List (String × Nat)) : PExpr → Opt
   | .paramRef _ none => some 32
   | .paramRef name (some pkg) => (env.packageConstType pkg name).map Prod.fst
   | .genvarRef _ | .int _ | .sysCall .. => some 32
+  | .typeBits _ _ => some 32
   | .enumRef name _ pkg => env.enumWidth name pkg
   | .functionCall .. => none
   | .aggregateMember .. => none
@@ -816,6 +819,7 @@ def substFunction (bindings : List (String × PExpr)) : PExpr → PExpr
   | .genvarRef n => .genvarRef n
   | .enumRef t m p => .enumRef t m p
   | .int v => .int v
+  | .typeBits n w => .typeBits n w
   | .fill b => .fill b
   | .unary op a => .unary op (substFunction bindings a)
   | .binary op l r => .binary op (substFunction bindings l) (substFunction bindings r)
@@ -911,6 +915,7 @@ def instExpr2 (env : IEnv) (elems : List (String × Nat)) (ctx : Option Nat) :
       .unsupported "MemberAccessExpression:aggregate"
         "source-shaped aggregate member path requires the E aggregate store"
   | .int v => intLit2 ctx v
+  | .typeBits _ width => intLit2 ctx width
   | .fill b =>
       match ctx with
       | some w => .lit (LVec.replicate w b)

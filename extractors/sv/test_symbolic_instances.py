@@ -276,6 +276,22 @@ endmodule
         self.assertEqual([m["name"] for m in env["design"]["modules"]],
                          ["top", "child"])
 
+    def test_package_type_bits_constant_is_source_shaped(self):
+        env = self.extract("""
+package widths;
+  typedef logic [3:0] word_t;
+endpackage
+module top(input logic [3:0] x, output logic y);
+  localparam int W = $bits(widths::word_t);
+  assign y = (W == 4) ? x[0] : 1'b0;
+endmodule
+""")
+        expr = env["design"]["modules"][0]["params"][0]["expr"]
+        while expr["kind"] == "Squash2":
+            expr = expr["operand"]
+        self.assertEqual(expr["kind"], "TypeBits")
+        self.assertEqual(expr["width"], 4)
+
     def test_untaken_branch_unknown_definition_stays_loud(self):
         env = self.extract("""
 module top #(parameter bit E = 0) (input logic a, output logic y);

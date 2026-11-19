@@ -350,6 +350,8 @@ partial def parsePExpr (j : Json) : Except String PExpr := do
         match args with
         | [a] => return .sysCall fn a
         | _ => return .unsupported "SysCall:arity" s!"{fn.sym} with {args.length} args"
+    | "TypeBits" =>
+        return .typeBits (← getStrField j "name") (← getNatField j "width")
     | "ArraySel" =>
         -- A packed-array select path (raw declared labels; Param2 lowers
         -- it against the declaration's dimensions).
@@ -1945,6 +1947,8 @@ private def unsupMemberText : String := r#"{
 -- SysCall arity ≠ 1 is representable but loud (unsupported node, not a parse error).
 #guard (Json.parse r#"{"kind": "SysCall", "name": "$size", "args": []}"# >>= parsePExpr).toOption
         == some (.unsupported "SysCall:arity" "$size with 0 args")
+#guard (Json.parse r#"{"kind":"TypeBits","name":"pkg::word_t","width":4}"# >>= parsePExpr).toOption
+        == some (.typeBits "pkg::word_t" 4)
 #guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "width": {"kind": "PackedType", "packed": [], "resolved": 1}, "init": null}"# >>= parsePStmt).toOption
         == some (.unsupported "LocalDecl" "block-local declaration requires scoped procedural storage")
 #guard (Json.parse r#"{"kind": "CompoundAssign", "span": null, "target": {"kind": "Ident", "name": "v"}, "op": "+", "value": {"kind": "Int", "value": 1}}"# >>= parsePStmt).toOption
