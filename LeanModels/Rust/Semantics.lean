@@ -373,6 +373,8 @@ def rvalueCell (s : State) : Rvalue → Option Cell
           | _ => none
       | projection =>
           some (.pointer { provenance := place.localId, address := placementOf s place.localId, projection := projection })
+  | .addressOf _ place =>
+      some (.pointer { provenance := place.localId, address := placementOf s place.localId, projection := place.projection })
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
@@ -519,6 +521,7 @@ def statementFailure : State → List Statement → Outcome
                   | .overflow | .value _ => .refused (.unsupported "checked arithmetic")
               | _, _ => .refused (.unsupported "checked arithmetic operands")
           | .assign _ (.ref _ ) => .refused (.unsupported "reference write")
+          | .assign _ (.addressOf _ _) => .refused (.unsupported "address-of write")
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
           | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
           | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")

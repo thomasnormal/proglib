@@ -5,7 +5,7 @@
       "id": "study_for_vec",
       "source": "measurement_programs/study/01_for_vec.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -42,8 +42,8 @@
           }
         }
       },
-      "extract_seconds": 18.145,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.157,
+      "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec"
     },
     {
       "id": "study_iterator_chain",
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.562,
+      "extract_seconds": 0.111,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.152,
+      "extract_seconds": 0.073,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.077,
+      "extract_seconds": 0.07,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.332,
+      "extract_seconds": 0.078,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -262,14 +262,14 @@
           }
         }
       },
-      "extract_seconds": 0.153,
+      "extract_seconds": 0.067,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
       "id": "study_question_mark",
       "source": "measurement_programs/study/07_question_mark.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:discriminant assignment",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -306,8 +306,8 @@
           }
         }
       },
-      "extract_seconds": 0.13,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.072,
+      "lean_outcome": "refused:unsupported:discriminant assignment"
     },
     {
       "id": "study_async",
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.339,
+      "extract_seconds": 0.093,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 1.192,
+      "extract_seconds": 0.358,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,14 +438,14 @@
           }
         }
       },
-      "extract_seconds": 0.108,
+      "extract_seconds": 0.083,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_ivec-pass-by-value",
       "source": "measurement_programs/rustc_run_pass/01_ivec-pass-by-value.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsbZvLFSCT5mK_24rustc_ivec_pass_by_value",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -482,8 +482,8 @@
           }
         }
       },
-      "extract_seconds": 0.176,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.103,
+      "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsbZvLFSCT5mK_24rustc_ivec_pass_by_value"
     },
     {
       "id": "rustc_vec-repeat-with-cast",
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.058,
+      "extract_seconds": 0.034,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.113,
+      "extract_seconds": 0.068,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.09,
+      "extract_seconds": 0.065,
       "lean_outcome": "refused:unsupported:aggregate write"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.07,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.105,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.066,
+      "extract_seconds": 0.039,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.084,
+      "extract_seconds": 0.039,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.091,
+      "extract_seconds": 0.062,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.089,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.1,
+      "extract_seconds": 0.064,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.076,
+      "extract_seconds": 0.043,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.186,
+      "extract_seconds": 0.039,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.05,
+      "extract_seconds": 0.03,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.133,
+      "extract_seconds": 0.094,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.067,
+      "extract_seconds": 0.041,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.086,
+      "extract_seconds": 0.068,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.056,
+      "extract_seconds": 0.042,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.047,
+      "extract_seconds": 0.032,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.074,
+      "extract_seconds": 0.048,
       "lean_outcome": "refused:unsupported:terminator"
     }
   ],
