@@ -5,7 +5,7 @@
       "id": "study_for_vec",
       "source": "measurement_programs/study/01_for_vec.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec",
+      "reason": "Lean outcome refused:unsupported:use assignment",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -42,8 +42,8 @@
           }
         }
       },
-      "extract_seconds": 5.752,
-      "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec"
+      "extract_seconds": 0.415,
+      "lean_outcome": "refused:unsupported:use assignment"
     },
     {
       "id": "study_iterator_chain",
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.514,
+      "extract_seconds": 0.132,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.221,
+      "extract_seconds": 0.097,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.118,
+      "extract_seconds": 0.095,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.188,
+      "extract_seconds": 0.112,
       "lean_outcome": "refused:unsupported:unresolved call"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.105,
+      "extract_seconds": 0.09,
       "lean_outcome": "returned"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.135,
+      "extract_seconds": 0.086,
       "lean_outcome": "refused:unsupported:discriminant assignment"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.215,
+      "extract_seconds": 0.129,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 2.346,
+      "extract_seconds": 0.453,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,14 +438,14 @@
           }
         }
       },
-      "extract_seconds": 0.758,
+      "extract_seconds": 0.107,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_ivec-pass-by-value",
       "source": "measurement_programs/rustc_run_pass/01_ivec-pass-by-value.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsbZvLFSCT5mK_24rustc_ivec_pass_by_value",
+      "reason": "Lean outcome refused:unsupported:use assignment",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -482,8 +482,8 @@
           }
         }
       },
-      "extract_seconds": 0.264,
-      "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsbZvLFSCT5mK_24rustc_ivec_pass_by_value"
+      "extract_seconds": 0.108,
+      "lean_outcome": "refused:unsupported:use assignment"
     },
     {
       "id": "rustc_vec-repeat-with-cast",
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.067,
+      "extract_seconds": 0.043,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.16,
+      "extract_seconds": 0.107,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.119,
+      "extract_seconds": 0.097,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.125,
+      "extract_seconds": 0.102,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.097,
+      "extract_seconds": 0.084,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.094,
+      "extract_seconds": 0.088,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.089,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.145,
+      "extract_seconds": 0.084,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.124,
+      "extract_seconds": 0.096,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.101,
+      "extract_seconds": 0.094,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.096,
+      "extract_seconds": 0.06,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.184,
+      "extract_seconds": 0.06,
       "lean_outcome": "returned"
     },
     {
@@ -1054,14 +1054,14 @@
           }
         }
       },
-      "extract_seconds": 0.062,
+      "extract_seconds": 0.052,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_vector-no-ann-2",
       "source": "measurement_programs/rustc_run_pass/15_vector-no-ann-2.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCs9qsj18IWarl_21rustc_vector_no_ann_2",
+      "reason": "Lean outcome refused:unsupported:use assignment",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -1098,8 +1098,8 @@
           }
         }
       },
-      "extract_seconds": 0.161,
-      "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCs9qsj18IWarl_21rustc_vector_no_ann_2"
+      "extract_seconds": 0.137,
+      "lean_outcome": "refused:unsupported:use assignment"
     },
     {
       "id": "rustc_generic-newtype-struct",
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.223,
+      "extract_seconds": 0.055,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.566,
+      "extract_seconds": 0.115,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.38,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.321,
+      "extract_seconds": 0.052,
       "lean_outcome": "returned"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.096,
+      "extract_seconds": 0.068,
       "lean_outcome": "returned"
     }
   ],

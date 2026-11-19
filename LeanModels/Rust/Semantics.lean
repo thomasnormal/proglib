@@ -21,6 +21,7 @@ inductive Cell where
   | pointer (p : Pointer)
   | aggregate (fields : List Cell)
   | enum (variant : Nat) (fields : List Cell)
+  | bytes (values : List Nat)
   | unit
 deriving Repr, Inhabited, BEq
 
@@ -328,8 +329,12 @@ def operandCell (s : State) : Operand → Option Cell
               info.kind.startsWith "RigidTy(FnPtr" then
             let resolved := resolveProvenance s target
             some (.pointer { provenance := resolved, address := placementOf s resolved, pointeeType := info.pointee, isLocal := false })
-          else typedBytesValue s ty bytes |>.map Cell.int
-      | _, _ => typedBytesValue s ty bytes |>.map Cell.int
+          else match typedBytesValue s ty bytes with
+            | some value => some (.int value)
+            | none => if bytes.all (· ≤ 255) then some (.bytes bytes) else none
+      | _, _ => match typedBytesValue s ty bytes with
+          | some value => some (.int value)
+          | none => if bytes.all (· ≤ 255) then some (.bytes bytes) else none
   | .copy place | .move place =>
       readCell s place
   | .unsupported _ => none
