@@ -13,6 +13,7 @@ structure Pointer where
   address : Nat
   pointeeType : Option Nat := none
   isLocal : Bool := true
+  projection : List Projection := []
 deriving Repr, Inhabited, BEq, DecidableEq
 
 inductive FieldValue where
@@ -199,6 +200,21 @@ def allocationCell (s : State) (provenance : Nat) (pointeeType : Option Nat) : O
 def resolveProvenance (s : State) (raw : Nat) : Nat :=
   (s.provenance.find? (fun item => item.1 == raw)).map (·.2) |>.getD raw
 
+def projectFields (s : State) (cell : Cell) : List Projection → Option Cell
+  | [] => some cell
+  | .field index _ :: rest =>
+      match cell with
+      | .aggregate fields =>
+          fields.drop index |>.head? |>.map fieldCell |>.bind (projectFields s · rest)
+      | .enum _ fields =>
+          fields.drop index |>.head? |>.map fieldCell |>.bind (projectFields s · rest)
+      | _ => none
+  | .downcast variant :: rest =>
+      match cell with
+      | .enum actual _ => if actual == variant then projectFields s cell rest else none
+      | _ => none
+  | .deref :: _ | .unsupported _ :: _ => none
+
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | [] => some cell
   | .deref :: rest =>
@@ -206,7 +222,8 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
       | .pointer pointer =>
           let target :=
             if pointer.isLocal then
-              (localSlot s pointer.provenance).bind slotCell
+              (localSlot s pointer.provenance).bind slotCell |>.bind
+                (projectFields s · pointer.projection)
             else
               match pointer.pointeeType with
               | some ty => allocationCell s pointer.provenance (some ty)
@@ -236,8 +253,10 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
       localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
         match cell with
         | .pointer pointer =>
-            if pointer.isLocal && rest.isEmpty then
-              some (setSlot s pointer.provenance (cellSlot value))
+            if pointer.isLocal then
+              if pointer.projection.isEmpty then
+                writeCell s ({ localId := pointer.provenance, projection := rest } : Place) value
+              else none
             else none
         | _ => none
   | .field index _ :: rest =>
@@ -340,11 +359,17 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .ref place =>
       match place.projection with
       | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
+      | projection =>
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId,
+            projection := projection })
       | .deref :: rest =>
           match localSlot s place.localId |>.bind slotCell with
-          | some (.pointer pointer) => if rest.isEmpty then some (.pointer pointer) else none
+          | some (.pointer pointer) =>
+              if pointer.projection.isEmpty then
+                some (.pointer { pointer with projection := rest })
+              else none
           | _ => none
-      | .field _ _ :: _ | .downcast _ :: _ | .unsupported _ :: _ => none
+      | .unsupported _ :: _ => none
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
