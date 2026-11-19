@@ -383,5 +383,15 @@
     "source": "harness/scripts/machine_ann_assign_no_value.py",
     "envelope": "harness/scripts/machine_ann_assign_no_value.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_delete.py",
+    "envelope": "harness/scripts/machine_delete.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_delete_missing.py",
+    "envelope": "harness/scripts/machine_delete_missing.json",
+    "expect": "unsupported"
   }
 ]

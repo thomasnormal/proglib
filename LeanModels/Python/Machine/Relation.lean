@@ -33,6 +33,7 @@ inductive RStmt where
   | unpackAssign (before : Array String) (star : String) (after : Array String)
       (value : Expr) (span : Span)
   | augAssign (target : Expr) (op : BinOp) (value : Expr) (span : Span)
+  | delete (target : Expr) (span : Span)
   | ifStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | whileStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | forStmt (target : Expr) (iter : Expr) (body : Array RStmt) (orelse : Array RStmt)
@@ -256,6 +257,21 @@ def rLookupEnv : REnv → String → Option RVal
   | [], _ => none
   | (name, value) :: rest, wanted =>
       if name == wanted then some value else rLookupEnv rest wanted
+
+def rDeleteEnv (env : REnv) (name : String) : Option REnv :=
+  if rLookupEnv env name |>.isSome then some (env.filter (fun binding => binding.1 != name)) else none
+
+def rDeleteModule : List (String × REnv) → String → String → Option (List (String × REnv))
+  | [], _, _ => none
+  | (current, env) :: rest, module, name =>
+      if current == module then
+        match rDeleteEnv env name with
+        | some updated => some ((current, updated) :: rest)
+        | none => none
+      else
+        match rDeleteModule rest module name with
+        | some updated => some ((current, env) :: updated)
+        | none => none
 
 def rReadCell (heap : Heap) (value : RVal) : Option RVal :=
   match value with
@@ -1154,6 +1170,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .augAssign _ _ _ _ =>
               some (.event (.refuse "machine augmented assignment target"),
                 config.finish (.refuse "machine augmented assignment target"))
+          | .delete (.name name _) _ =>
+              let locals := (rDeleteEnv frame.locals name).getD frame.locals
+              match rDeleteModule config.modules frame.module name with
+              | some modules =>
+                  let next := config.setTop { frame with control := .statements rest, locals := locals }
+                  some (.tau, { next with modules := modules })
+              | none => some (.tau, config.setControl (.refusing "machine delete name"))
+          | .delete _ _ =>
+              some (.event (.refuse "machine delete target"), config.finish (.refuse "machine delete target"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>

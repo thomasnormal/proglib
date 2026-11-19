@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_delete_missing.py",
+  "source_sha256": "db03c0cc0284a47cb5f4a844eae82013024dce15c56a32295bcf144d857e9fcf",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Delete",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 11
+        },
+        "names": [
+          "missing"
+        ]
+      }
+    ]
+  },
+  "lean_blocks": []
+}
