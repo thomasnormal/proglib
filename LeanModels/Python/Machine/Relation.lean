@@ -223,6 +223,7 @@ inductive RKont where
   | subscriptResult (continuation : RKont)
   | setitemResult (remaining : List RStmt)
   | compareResult (op : CmpOp) (continuation : RKont)
+  | unaryResult (continuation : RKont)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -2210,9 +2211,26 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue value (.unaryValue op continuation) =>
-          match rEvalUnary op value with
-          | some result => some (.tau, config.setControl (.continueValue result continuation))
-          | none => some (.tau, config.setControl (.refusing "machine unary operator"))
+          match op, value with
+          | .usub, .ref address =>
+              match config.heap.get? address with
+              | some (.instance cls _) =>
+                  match rLookupClassAttr config.classes cls "__neg__" with
+                  | some (.callable token) =>
+                      match rFunctionByToken config.functions token with
+                      | some function => rStartFunctionCall config function [value] []
+                          (.unaryResult continuation)
+                      | none => some (.event (.refuse "machine __neg__"),
+                          config.finish (.refuse "machine __neg__"))
+                  | some _ => some (.tau, config.setControl (.refusing "machine __neg__"))
+                  | none => some (.tau, config.setControl (.refusing "machine unary operator"))
+              | _ => some (.tau, config.setControl (.refusing "machine unary operator"))
+          | _, _ =>
+              match rEvalUnary op value with
+              | some result => some (.tau, config.setControl (.continueValue result continuation))
+              | none => some (.tau, config.setControl (.refusing "machine unary operator"))
+      | .continueValue value (.unaryResult continuation) =>
+          some (.tau, config.setControl (.continueValue value continuation))
       | .continueValue receiver (.subscriptValue index continuation) =>
           some (.tau, config.setControl (.evaluate index (.subscriptIndex receiver continuation)))
       | .continueValue receiver (.attributeValue attr continuation) =>
