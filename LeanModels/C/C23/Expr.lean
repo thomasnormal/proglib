@@ -657,8 +657,11 @@ def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : CType) :
 
 def Layout.arrayElementSizeDeclAt (layout : Layout) (decl : Option DeclarationId)
     (arrayTy elementTy : CType) : Option Nat :=
-  decl.bind layout.elementSizeDecl |>.orElse
-    (fun _ => layout.arrayElementSizeAt arrayTy elementTy)
+  match decl.bind layout.structuredType |>.map LeanModels.Clang.QualType.unqualified with
+  | some (.array _ _) => decl.bind layout.elementSizeDecl
+  | some _ => none
+  | none => decl.bind layout.elementSizeDecl |>.orElse
+      (fun _ => layout.arrayElementSizeAt arrayTy elementTy)
 
 def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
     Option LeanModels.Clang.QualType :=

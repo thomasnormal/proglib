@@ -129,6 +129,12 @@ private def isError : Except String α → Bool
   LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"}) "int[2]" "int" == some 4
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
+    if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 2)) else none
+  size := fun _ => some 4 } :
+  LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"})
+    "int[2]" "int" == none
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  structuredType := fun id =>
     if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 3)) else none
   arrayElementType := fun _ => some "int"
   elem := fun ty => if ty == "int[3]" then some ("int", 2) else none } :
