@@ -200,11 +200,12 @@ def census(envelope_path):
     while stack:
         node = stack.pop()
         if isinstance(node, dict):
-            if "kind" in node:
+            k = node.get("kind")
+            py = DECODED_AS_UNSUPPORTED.get(k) if isinstance(k, str) else None
+            if k is not None:
                 total += 1
-                k = node["kind"]
-                if k == "Unsupported":
-                    py = node.get("py_kind", "?")
+                if k == "Unsupported" or py is not None:
+                    py = py or node.get("py_kind", "?")
                     kinds.append(py)
                     if py in ("Import", "ImportFrom"):
                         if node.get("text", "") not in BENIGN_IMPORTS:
@@ -213,10 +214,30 @@ def census(envelope_path):
                         walls.add("node:" + py)
                 elif k == "ClassDef" and node.get("creation_effects"):
                     walls.add("class-creation")
-            stack.extend(node.values())
+            if py is None:
+                stack.extend(value for key, value in node.items()
+                             if not _machine_only(k, key))
         elif isinstance(node, list):
             stack.extend(node)
     return total, kinds, sorted(walls)
+
+
+# The census counts what the compatibility decoder (Json.lean) reads. The
+# machine fields of the shared envelope repeat subtrees it never reads (class
+# and try suites, call and display children), and these structured nodes are
+# decoded as the Unsupported nodes earlier envelopes carried, children unread.
+DECODED_AS_UNSUPPORTED = {
+    "Set": "Set:display",
+    "Lambda": "Lambda",
+    "Await": "Await",
+    "AsyncFor": "AsyncFor",
+    "AsyncWith": "AsyncWith",
+}
+
+
+def _machine_only(kind, key):
+    return key.startswith("machine_") or (
+        kind == "Call" and key in ("starargs", "kwargs"))
 
 
 # ---------------------------------------------------------------------------
