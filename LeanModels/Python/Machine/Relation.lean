@@ -173,6 +173,8 @@ inductive RKont where
   | assignSubscriptReceiver (receiver : Expr) (index : Expr) (remaining : List RStmt)
   | assignSubscriptIndex (value : RVal) (index : Expr) (remaining : List RStmt)
   | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
+  | assignAttributeReceiver (receiver : Expr) (attr : String) (remaining : List RStmt)
+  | assignAttributeValue (attr : String) (value : RVal) (remaining : List RStmt)
   | deleteSubscriptReceiver (index : Expr) (remaining : List RStmt)
   | deleteSubscriptIndex (receiver : RVal) (remaining : List RStmt)
   | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
@@ -403,6 +405,16 @@ def rClassByToken : List RClass → String → Option RClass
   | cls :: rest, token =>
       if rClassToken cls.id == token then some cls
       else rClassByToken rest token
+
+def rUpdateClassAttr : List RClass → String → String → RVal → Option (List RClass)
+  | [], _, _, _ => none
+  | cls :: rest, token, attr, value =>
+      if rClassToken cls.id == token then
+        some ({ cls with attrs := rSetEnv cls.attrs attr value } :: rest)
+      else
+        match rUpdateClassAttr rest token attr value with
+        | some updated => some (cls :: updated)
+        | none => none
 
 def rClassBodySupported : List RStmt → Bool
   | [] => true
@@ -1380,6 +1392,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .assign (.subscript receiver index _) value _ =>
               some (.tau, config.setControl
                 (.evaluate value (.assignSubscriptReceiver receiver index rest)))
+          | .assign (.attribute receiver attr _) value _ =>
+              some (.tau, config.setControl
+                (.evaluate value (.assignAttributeReceiver receiver attr rest)))
           | .unpackAssign before star after value _ =>
               some (.tau, config.setControl
                 (.evaluate value (.assignUnpack before star after rest)))
@@ -1639,6 +1654,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue receiver (.assignSubscriptIndex originalValue index remaining) =>
           some (.tau, config.setControl
             (.evaluate index (.assignSubscriptDone receiver originalValue remaining)))
+      | .continueValue originalValue (.assignAttributeReceiver receiver attr remaining) =>
+          some (.tau, config.setControl
+            (.evaluate receiver (.assignAttributeValue attr originalValue remaining)))
       | .continueValue index (.assignSubscriptDone receiver value remaining) =>
           match rUpdateDict config.heap receiver index value with
           | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
@@ -1646,6 +1664,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               match rUpdateList config.heap receiver index value with
               | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
               | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
+      | .continueValue receiver (.assignAttributeValue attr value remaining) =>
+          match receiver with
+          | .callable token =>
+              match rUpdateClassAttr config.classes token attr value with
+              | some classes =>
+                  some (.tau, { config with classes := classes }.setControl
+                    (.statements remaining))
+              | none => some (.tau, config.setControl (.refusing "machine attribute assignment"))
+          | _ => some (.tau, config.setControl (.refusing "machine attribute assignment"))
       | .continueValue receiver (.deleteSubscriptReceiver index remaining) =>
           some (.tau, config.setControl (.evaluate index (.deleteSubscriptIndex receiver remaining)))
       | .continueValue index (.deleteSubscriptIndex receiver remaining) =>

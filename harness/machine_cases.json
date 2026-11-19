@@ -668,5 +668,10 @@
     "source": "harness/scripts/machine_unbound_local_delete.py",
     "envelope": "harness/scripts/machine_unbound_local_delete.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_attribute_mutation.py",
+    "envelope": "harness/scripts/machine_class_attribute_mutation.json",
+    "expect": "match"
   }
 ]
