@@ -102,6 +102,29 @@ def csrrciInstruction : CsrInstruction :=
   { word := csrrciWord, kind := csrrciKind, row := mcauseRow,
     decode := csrrci_decode, rowLookup := csrrci_row }
 
+/-! The raw CSR fields determine the exact implemented-row ISA step.  The
+    explicit row lookup premise keeps unimplemented addresses on the separate
+    illegal-instruction path. -/
+
+theorem picorv32_csr_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (row : CsrBehavior)
+    (kind : CsrOpKind)
+    (hfields : observation.csrFields state input word row kind) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (csrNext state row kind, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) = some kind.toInstr :=
+    hfields.2.2.1
+  have hrow : findCsr? kind.addr = some row := hfields.2.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_csr profile state memory word row kind hdecode hrow
+
+#print axioms picorv32_csr_fields_isa_step
+
 theorem csr_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
     {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
