@@ -713,30 +713,59 @@ def rScopeNames : List RStmt → List String × List String
       (tail.1, names.toList ++ tail.2)
   | _ :: rest => rScopeNames rest
 
-def rTargetNames : Expr → List String
-  | .name name _ => [name]
-  | _ => []
+/-! ### The local names of a function body
 
-def rBoundNames : List RStmt → List String
-  | [] => []
-  | .assign target _ _ :: rest => rTargetNames target ++ rBoundNames rest
-  | .assignMany targets _ _ :: rest => targets.toList.flatMap rTargetNames ++ rBoundNames rest
-  | .unpackAssign before star after _ _ :: rest =>
-      before.toList ++ [star] ++ after.toList ++ rBoundNames rest
-  | .augAssign target _ _ _ :: rest => rTargetNames target ++ rBoundNames rest
-  | .delete target _ :: rest => rTargetNames target ++ rBoundNames rest
-  | .deleteMany targets _ :: rest => targets.toList.flatMap rTargetNames ++ rBoundNames rest
-  | .forStmt target _ _ _ _ :: rest => rTargetNames target ++ rBoundNames rest
-  | .asyncForStmt target _ _ _ _ :: rest => rTargetNames target ++ rBoundNames rest
-  | .ifStmt _ _ _ _ :: rest => rBoundNames rest
-  | .whileStmt _ _ _ _ :: rest => rBoundNames rest
-  | .functionDef name _ _ _ _ :: rest => name :: rBoundNames rest
-  | .functionDefFull name _ _ _ _ _ _ :: rest => name :: rBoundNames rest
-  | .functionDefKw name _ _ _ _ _ :: rest => name :: rBoundNames rest
-  | .classDef name _ _ _ _ _ :: rest => name :: rBoundNames rest
-  | .global names _ :: rest => (rBoundNames rest).filter (fun name => name ∉ names.toList)
-  | .nonlocal names _ :: rest => (rBoundNames rest).filter (fun name => name ∉ names.toList)
-  | _ :: rest => rBoundNames rest
+CPython makes a name local to a function when the function binds it anywhere in its body (assignment,
+augmented or annotated assignment, `for` and `with` targets, `except ... as`, `del`, `import`, `def`,
+`class`), in every suite but not inside a nested function or class, unless the body declares it
+`global` or `nonlocal`; a read of a local that is not bound raises UnboundLocalError and never looks
+outside the frame. The census walks a work list of statements and assignment targets. Walrus targets
+inside expressions are not collected (a recorded gap). -/
+
+/-- The names one statement or assignment target binds itself, and the statements and targets inside it
+that the census still has to read. -/
+def rCensusStep : RStmt ⊕ Expr → List String × List (RStmt ⊕ Expr)
+  | .inr (.name name _) => ([name], [])
+  | .inr (.tuple elts _) | .inr (.list elts _) => ([], elts.toList.map Sum.inr)
+  | .inr _ => ([], [])
+  | .inl stmt =>
+      match stmt with
+      | .assign target _ _ => ([], [.inr target])
+      | .assignMany targets _ _ => ([], targets.toList.map Sum.inr)
+      | .annAssign target _ _ _ _ => ([], [.inr target])
+      | .unpackAssign before star after _ _ => (before.toList ++ [star] ++ after.toList, [])
+      | .augAssign target _ _ _ => ([], [.inr target])
+      | .delete target _ => ([], [.inr target])
+      | .deleteMany targets _ => ([], targets.toList.map Sum.inr)
+      | .ifStmt _ body orelse _ | .whileStmt _ body orelse _ =>
+          ([], (body.toList ++ orelse.toList).map Sum.inl)
+      | .forStmt target _ body orelse _ | .asyncForStmt target _ body orelse _ =>
+          ([], .inr target :: (body.toList ++ orelse.toList).map Sum.inl)
+      | .withStmt items body _ _ =>
+          ([], items.toList.filterMap (fun item => item.2.map Sum.inr) ++ body.toList.map Sum.inl)
+      | .tryStmt body handlers orelse finalbody _ =>
+          (handlers.toList.filterMap (fun handler => handler.2.1),
+            (body.toList ++ handlers.toList.flatMap (fun handler => handler.2.2.toList) ++
+              orelse.toList ++ finalbody.toList).map Sum.inl)
+      | .functionDef name _ _ _ _ | .functionDefFull name _ _ _ _ _ _
+      | .functionDefKw name _ _ _ _ _ | .classDef name _ _ _ _ _ => ([name], [])
+      | .import module alias _ => ([alias.getD ((module.splitOn ".").headD module)], [])
+      | .importMany names _ =>
+          (names.toList.map (fun pair => pair.2.getD ((pair.1.splitOn ".").headD pair.1)), [])
+      | .importFrom _ names _ _ => (names.toList.map (fun pair => pair.2.getD pair.1), [])
+      | _ => ([], [])
+
+/-- The census with a step budget; `none` when the budget runs out. -/
+def rCensus : Nat → List (RStmt ⊕ Expr) → Option (List String)
+  | _, [] => some []
+  | 0, _ :: _ => none
+  | fuel + 1, item :: rest =>
+      let step := rCensusStep item
+      (rCensus fuel (step.2 ++ rest)).map (step.1 ++ ·)
+
+/-- The names a function body binds, in every suite (`none`: the body is beyond the census budget). -/
+def rBoundNames (body : List RStmt) : Option (List String) :=
+  rCensus 1000000 (body.map Sum.inl)
 
 def rBuildKwargs (heap : Heap) (keywords : List (String × RVal)) : Heap × RVal :=
   let entries := (keywords.map (fun pair =>
@@ -1227,12 +1256,9 @@ def rLookupFrameName (config : RConfig) (frame : RFrame) (name : String) : Optio
     | none => rLookupCaptured config.heap frame.locals name
   else if name ∈ frame.globalNames then readModule
   else if name ∈ frame.localNames then
-    match rLookupCaptured config.heap frame.locals name with
-    | some value => some value
-    | none =>
-        match rLookupCaptured config.heap frame.cells name with
-        | some value => some value
-        | none => none
+    -- a local is never looked up outside the frame (an enclosing cell of the same name is not it);
+    -- a local that a nested function captures is itself a cell in this frame's locals
+    rLookupCaptured config.heap frame.locals name
   else
     match rLookupCaptured config.heap frame.locals name with
     | some value => some value
@@ -2017,6 +2043,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   | none => some (.event (.refuse "machine default expression"),
                       config.finish (.refuse "machine default expression"))
                   | some defaultValues =>
+                    match rBoundNames body.toList with
+                    | none => some (.event (.refuse "machine scope census"),
+                        config.finish (.refuse "machine scope census"))
+                    | some boundNames =>
                       let defaultValues := defaultValues.toArray
                       let inClass := match current.completion with
                         | .classDef _ _ _ :: _ => true
@@ -2031,7 +2061,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                           defaultValues := defaultValues, keywordDefaultValues := #[], body := body,
                           globals := current.module, captured := captured.2.2,
                           globalNames := scopeNames.1, nonlocalNames := scopeNames.2,
-                          localNames := (rBoundNames body.toList).filter
+                          localNames := boundNames.filter
                             (fun name => name ∉ scopeNames.1 && name ∉ scopeNames.2) }
                       let defined :=
                         if inClass then config.defineMethod current tail function rest
@@ -2044,6 +2074,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   match rEvalDefaultValuesIn config current defaults.toList,
                       rEvalKeywordDefaultValuesIn config current keywordDefaults.toList with
                   | some defaultValues, some keywordDefaultValues =>
+                    match rBoundNames body.toList with
+                    | none => some (.event (.refuse "machine scope census"),
+                        config.finish (.refuse "machine scope census"))
+                    | some boundNames =>
                       let defaultValues := defaultValues.toArray
                       let inClass := match current.completion with
                         | .classDef _ _ _ :: _ => true
@@ -2059,7 +2093,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                           keywordDefaultValues := keywordDefaultValues.toArray,
                           body := body, globals := current.module, captured := captured.2.2,
                           globalNames := scopeNames.1, nonlocalNames := scopeNames.2,
-                          localNames := (rBoundNames body.toList).filter
+                          localNames := boundNames.filter
                             (fun name => name ∉ scopeNames.1 && name ∉ scopeNames.2) }
                       let defined :=
                         if inClass then config.defineMethod current tail function rest
