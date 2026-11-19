@@ -71,6 +71,27 @@ def andInstruction : AluInstruction :=
   { word := andWord, op := .and, rd := 3, src1 := .reg 1, src2 := .reg 2,
     decode := alu_decodes.2.2.2.2.2.2.2.2.2 }
 
+/-! The generic ALU fields determine the exact memory-threaded ISA step for
+    register, immediate, and pc-based source operands. -/
+
+theorem picorv32_alu_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (op : AluOp) (rd : Reg)
+    (src1 : Src1) (src2 : Src2)
+    (hfields : observation.aluFields state input word op rd src1 src2) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (aluNext state op rd src1 src2, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.alu op rd src1 src2) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_alu profile state memory word op rd src1 src2 hdecode
+
+#print axioms picorv32_alu_fields_isa_step
+
 theorem alu_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
     {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
