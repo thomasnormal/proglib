@@ -294,7 +294,8 @@ def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
 
 def pointerType (s : State) (target : Nat) : Bool :=
   match s.types.find? (fun item => item.id == toString target) with
-  | some info => info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref"
+  | some info => info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" ||
+      info.kind.startsWith "RigidTy(FnPtr"
   | none => false
 
 def operandCell (s : State) : Operand → Option Cell
@@ -302,7 +303,8 @@ def operandCell (s : State) : Operand → Option Cell
       if zeroSized then some (.int 0) else
       match s.types.find? (fun item => item.id == toString ty), provenance with
       | some info, some target =>
-          if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" then
+          if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" ||
+              info.kind.startsWith "RigidTy(FnPtr" then
             let resolved := resolveProvenance s target
             some (.pointer { provenance := resolved, address := placementOf s resolved, pointeeType := info.pointee, isLocal := false })
           else typedBytesValue s ty bytes |>.map Cell.int
@@ -351,6 +353,7 @@ def rvalueCell (s : State) : Rvalue → Option Cell
         | _ => none
   | .cast .transmute operand _target => operandCell s operand
   | .cast (.pointerCoercion _) operand _target => operandCell s operand
+  | .cast .pointerWithExposedProvenance operand _target => operandCell s operand
   | .cast _ _ _ => none
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left
