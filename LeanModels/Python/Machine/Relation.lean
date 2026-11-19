@@ -222,6 +222,7 @@ inductive RKont where
   | absResult (continuation : RKont)
   | subscriptResult (continuation : RKont)
   | setitemResult (remaining : List RStmt)
+  | compareResult (op : CmpOp) (continuation : RKont)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -1236,6 +1237,30 @@ def rStartInstanceDunderCall (config : RConfig) (value : RVal) (attrName : Strin
       | _ => some (.tau, config.setControl (.refusing ("machine " ++ attrName)))
   | _ => some (.tau, config.setControl (.refusing ("machine " ++ attrName)))
 
+def rStartContainsCall (config : RConfig) (op : CmpOp) (left right : RVal)
+    (continuation : RKont) : Option (RLabel × RConfig) :=
+  match right with
+  | .ref address =>
+      match config.heap.get? address with
+      | some (.instance cls _) =>
+          match rLookupClassAttr config.classes cls "__contains__" with
+          | some (.callable token) =>
+              match rFunctionByToken config.functions token with
+              | some function => rStartFunctionCall config function [right, left] []
+                  (.compareResult op continuation)
+              | none => some (.event (.refuse "machine __contains__"),
+                  config.finish (.refuse "machine __contains__"))
+          | some _ => some (.tau, config.setControl (.refusing "machine __contains__"))
+          | none => some (.tau, config.setControl (.refusing "machine comparison"))
+      | _ =>
+          match rEvalCompare config.heap op left right with
+          | some result => some (.tau, config.setControl (.continueValue result continuation))
+          | none => some (.tau, config.setControl (.refusing "machine comparison"))
+  | _ =>
+      match rEvalCompare config.heap op left right with
+      | some result => some (.tau, config.setControl (.continueValue result continuation))
+      | none => some (.tau, config.setControl (.refusing "machine comparison"))
+
 def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     (keywords : List (String × RVal)) (continuation : RKont) :
     Option (RLabel × RConfig) :=
@@ -2237,9 +2262,18 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue left (.compareLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.compareRight left op continuation)))
       | .continueValue right (.compareRight left op continuation) =>
-          match rEvalCompare config.heap op left right with
-          | some value => some (.tau, config.setControl (.continueValue value continuation))
-          | none => some (.tau, config.setControl (.refusing "machine comparison"))
+          if op == .inOp || op == .notIn then
+            rStartContainsCall config op left right continuation
+          else
+            match rEvalCompare config.heap op left right with
+            | some value => some (.tau, config.setControl (.continueValue value continuation))
+            | none => some (.tau, config.setControl (.refusing "machine comparison"))
+      | .continueValue value (.compareResult op continuation) =>
+          match value with
+          | .bool result =>
+              some (.tau, config.setControl (.continueValue
+                (if result then .bool (op == .inOp) else .bool (op != .inOp)) continuation))
+          | _ => some (.tau, config.setControl (.refusing "machine __contains__ result"))
       | .continueValue value (.ifBranch body orelse remaining) =>
           let selected := if rTruthy value then body else orelse
           some (.tau, config.setControl (.statements (selected ++ remaining)))

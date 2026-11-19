@@ -77,6 +77,8 @@ string result. Default instance string conversion remains refused.
 integer result. Unsupported absolute-value protocols remain refused.
 Subscription on an instance dispatches to an explicit `__getitem__` method;
 ordinary list and dictionary indexing continues through their existing paths.
+Containment on an instance dispatches to an explicit `__contains__` method,
+with the item passed before the container's bound receiver.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
