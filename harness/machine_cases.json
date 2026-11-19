@@ -132,7 +132,7 @@
   {
     "source": "harness/scripts/function_dynamic_default.py",
     "envelope": "harness/scripts/function_dynamic_default.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/function_keyword_only.py",

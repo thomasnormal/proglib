@@ -181,9 +181,6 @@ inductive RKont where
       (remaining : List RStmt)
   | forNext (target : Expr) (values : List RVal) (body : List RStmt)
       (orelse : List RStmt) (remaining : List RStmt)
-  /-- A `for` over a heap list: the live index of CPython's list iterator. -/
-  | forNextList (target : Expr) (address : Addr) (index : Nat) (body : List RStmt)
-      (orelse : List RStmt) (remaining : List RStmt)
   | ifExpression (body : Expr) (orelse : Expr) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
   | callArg (callee : RVal) (remaining : List Expr) (values : List RVal)
@@ -222,8 +219,7 @@ structure RFrame where
   globals : REnv
   module : String := "__main__"
   cells : REnv := []
-  /-- The loops whose body this frame is running, innermost first. -/
-  completion : List RKont := []
+  completion : Option RKont := none
   globalNames : List String := []
   nonlocalNames : List String := []
 deriving Repr, Inhabited, BEq
@@ -322,13 +318,6 @@ def rReadCell (heap : Heap) (value : RVal) : Option RVal :=
       | none => none
   | _ => some value
 
-def rIsCellRef (heap : Heap) : RVal → Bool
-  | .ref address =>
-      match heap.get? address with
-      | some (.cell _) => true
-      | _ => false
-  | _ => false
-
 def rLookupCaptured (heap : Heap) (env : REnv) (name : String) : Option RVal :=
   match rLookupEnv env name with
   | some value => rReadCell heap value
@@ -383,33 +372,6 @@ def rConstValue : Const → RVal
   | .float value => .float value
   | .str s => .str s
   | .bytes xs => .bytes xs
-
-def rConstExprValue : Expr → Option RVal
-  | .constant value _ => some (rConstValue value)
-  | .unaryOp .usub (.constant (.int value) _) _ => some (.int (-value))
-  | .unaryOp .uadd (.constant (.int value) _) _ => some (.int value)
-  | _ => none
-
-def rConstValues : List Expr → Option (List RVal)
-  | [] => some []
-  | expression :: rest =>
-      match rConstExprValue expression, rConstValues rest with
-      | some value, some values => some (value :: values)
-      | _, _ => none
-
-def rEvalDefaultValues (defaults : Array Expr) : Option (Array RVal) :=
-  (rConstValues defaults.toList).map List.toArray
-
-def rEvalKeywordDefaultValues : List (Option Expr) → Option (List (Option RVal))
-  | [] => some []
-  | none :: rest =>
-      match rEvalKeywordDefaultValues rest with
-      | some values => some (none :: values)
-      | none => none
-  | some expression :: rest =>
-      match rConstValues [expression], rEvalKeywordDefaultValues rest with
-      | some [value], some values => some (some value :: values)
-      | _, _ => none
 
 def rBindKeyword : REnv → List RParam → String → RVal → Option REnv
   | env, [], _, _ => none
@@ -538,149 +500,52 @@ def rBuildList (heap : Heap) (values : List RVal) : Heap × RVal :=
   let allocated := Heap.alloc heap (.list values.toArray)
   (allocated.1, .ref allocated.2)
 
-/-! ### Equality, membership and dictionary keys
+def rLookupDictEntries : List (RVal × RVal) → RVal → Option RVal
+  | [], _ => none
+  | (key, value) :: rest, index =>
+      if key == index then some value else rLookupDictEntries rest index
 
-Structural equality of `RVal` is not CPython's `==`: `1 == True` and `1 == 1.0` hold, lists compare their
-elements, and a dictionary finds a key by hash and `==`. The machine decides `==` only where it can do so
-exactly: `None`, `bool`, `int` (with `True == 1`), `str`, and tuples and lists whose elements are these.
-`none` means undecided, and every caller refuses on it. -/
-
-def rIsScalar : RVal → Bool
-  | .none | .bool _ | .int _ | .str _ => true
-  | _ => false
-
-def rEqualScalar : RVal → RVal → Option Bool
-  | .none, .none => some true
-  | .bool a, .bool b => some (a == b)
-  | .int a, .int b => some (a == b)
-  | .int a, .bool b => some (a == (if b then 1 else 0))
-  | .bool a, .int b => some ((if a then 1 else 0) == b)
-  | .str a, .str b => some (a == b)
-  | .none, .bool _ | .none, .int _ | .none, .str _ => some false
-  | .bool _, .none | .int _, .none | .str _, .none => some false
-  | .str _, .bool _ | .str _, .int _ | .bool _, .str _ | .int _, .str _ => some false
-  | _, _ => none
-
-def rEqualScalars : List RVal → List RVal → Option Bool
-  | [], [] => some true
-  | x :: xs, y :: ys =>
-      match rEqualScalar x y, rEqualScalars xs ys with
-      | some true, some rest => some rest
-      | some false, some _ => some false
-      | _, _ => none
-  | _, _ => some false
-
-/-- A tuple (`true`) or list (`false`) and its elements. -/
-def rSequenceIn (heap : Heap) : RVal → Option (Bool × List RVal)
-  | .tuple values => some (true, values.toList)
-  | .listV values => some (false, values.toList)
-  | .ref address =>
-      match heap.get? address with
-      | some (.list values) => some (false, values.toList)
-      | _ => none
-  | _ => none
-
-def rEqualIn (heap : Heap) (left right : RVal) : Option Bool :=
-  let structural : Option Bool :=
-    match rSequenceIn heap left, rSequenceIn heap right with
-    | some (leftTuple, xs), some (rightTuple, ys) =>
-        if leftTuple != rightTuple then some false
-        else if xs.all rIsScalar && ys.all rIsScalar then rEqualScalars xs ys
-        else none
-    | some _, none => if rIsScalar right then some false else none
-    | none, some _ => if rIsScalar left then some false else none
-    | none, none => rEqualScalar left right
-  match left, right with
-  -- one heap object: CPython's comparison of an object with itself is true for every
-  -- object the machine allocates (lists and dictionaries compare items by identity first)
-  | .ref a, .ref b => if a == b then some true else structural
-  | _, _ => structural
-
-/-- `probe in values` for a sequence: the first element equal to the probe decides. -/
-def rAnyEqual (heap : Heap) (probe : RVal) : List RVal → Option Bool
-  | [] => some false
-  | value :: rest =>
-      match rEqualIn heap value probe with
-      | some true => some true
-      | some false => rAnyEqual heap probe rest
-      | none => none
-
-/-- The keys whose hashing agrees with `rEqualIn`. Other probes (lists, dictionaries, floats, nested
-tuples) are refused rather than answered, since CPython would raise or hash them differently. -/
-def rHashableKey : RVal → Bool
-  | .tuple values => values.toList.all rIsScalar
-  | value => rIsScalar value
-
-/-- The value stored under a key equal to `probe`: `some (some v)` on a hit, `some none` when no key is
-equal, `none` when a key is outside `rHashableKey`. -/
-def rFindDictValue (heap : Heap) (probe : RVal) : List (RVal × RVal) → Option (Option RVal)
-  | [] => some none
-  | (key, value) :: rest =>
-      if !rHashableKey key then none
-      else
-        match rEqualIn heap key probe with
-        | some true => some (some value)
-        | some false => rFindDictValue heap probe rest
-        | none => none
-
-def rIsDict (heap : Heap) : RVal → Bool
-  | .ref address =>
-      match heap.get? address with
-      | some (.dict _ _) => true
-      | _ => false
-  | _ => false
-
-def rIsHeapList (heap : Heap) : RVal → Bool
-  | .ref address =>
-      match heap.get? address with
-      | some (.list _) => true
-      | _ => false
-  | _ => false
-
-def rDictLookup (heap : Heap) (receiver probe : RVal) : Option (Option RVal) :=
+def rLookupDict (heap : Heap) (receiver index : RVal) : Option RVal :=
   match receiver with
   | .ref address =>
       match heap.get? address with
       | some (.dict entries _) =>
-          if rHashableKey probe then rFindDictValue heap probe entries.toList else none
+          rLookupDictEntries entries.toList index
       | _ => none
   | _ => none
 
-/-- `probe in container` for tuples, lists and dictionaries (strings are refused: their `in` is a
-substring test). -/
-def rContainsIn (heap : Heap) (container probe : RVal) : Option Bool :=
-  match rSequenceIn heap container with
-  | some (_, values) => rAnyEqual heap probe values
-  | none =>
-      if rIsDict heap container then (rDictLookup heap container probe).map Option.isSome
-      else none
+def rDictContains (heap : Heap) (receiver index : RVal) : Bool :=
+  Option.isSome (rLookupDict heap receiver index)
 
-/-- Insert or replace under CPython's rule: an equal key keeps its original key object and position. -/
-def rStoreDictEntries (heap : Heap) (key value : RVal) :
-    List (RVal × RVal) → Option (List (RVal × RVal))
-  | [] => some [(key, value)]
-  | (currentKey, currentValue) :: rest =>
-      if !rHashableKey currentKey then none
-      else
-        match rEqualIn heap currentKey key with
-        | some true => some ((currentKey, value) :: rest)
-        | some false =>
-            (rStoreDictEntries heap key value rest).map (fun tail => (currentKey, currentValue) :: tail)
-        | none => none
+def rContains (heap : Heap) (receiver index : RVal) : Bool :=
+  match receiver with
+  | .tuple values | .listV values => values.toList.any (fun value => value == index)
+  | .ref address =>
+      match heap.get? address with
+      | some (.dict entries _) => entries.toList.any (fun entry => entry.1 == index)
+      | some (.list values) => values.toList.any (fun value => value == index)
+      | _ => false
+  | _ => false
 
-/-- Remove the entry under a key equal to `key`; `none` on a miss (CPython's KeyError, which the machine
-does not model) and on an undecided key. -/
-def rRemoveDictEntries (heap : Heap) (key : RVal) :
-    List (RVal × RVal) → Option (List (RVal × RVal))
-  | [] => none
-  | (currentKey, currentValue) :: rest =>
-      if !rHashableKey currentKey then none
+def rEqual (heap : Heap) (left right : RVal) : Bool :=
+  match left, right with
+  | .ref a, .ref b =>
+      if a == b then true
       else
-        match rEqualIn heap currentKey key with
-        | some true => some rest
-        | some false =>
-            (rRemoveDictEntries heap key rest).map (fun tail => (currentKey, currentValue) :: tail)
-        | none => none
+        match heap.get? a, heap.get? b with
+        | some (.list xs), some (.list ys) => xs.toList == ys.toList
+        | _, _ => false
+  | .ref a, .listV ys =>
+      match heap.get? a with
+      | some (.list xs) => xs.toList == ys.toList
+      | _ => false
+  | .listV xs, .ref b =>
+      match heap.get? b with
+      | some (.list ys) => xs.toList == ys.toList
+      | _ => false
+  | .tuple xs, .tuple ys => xs.toList == ys.toList
+  | .listV xs, .listV ys => xs.toList == ys.toList
+  | _, _ => left == right
 
 def rLookupAttribute (heap : Heap) (receiver : RVal) (attr : String) : Option RVal :=
   match receiver, attr with
@@ -702,15 +567,18 @@ def rLookupAttribute (heap : Heap) (receiver : RVal) (attr : String) : Option RV
       | _ => none
   | _, _ => none
 
+def rUpdateDictEntries : List (RVal × RVal) → RVal → RVal → List (RVal × RVal)
+  | [], key, value => [(key, value)]
+  | (currentKey, currentValue) :: rest, key, value =>
+      if currentKey == key then (key, value) :: rest
+      else (currentKey, currentValue) :: rUpdateDictEntries rest key value
+
 def rUpdateDict (heap : Heap) (receiver index value : RVal) : Option Heap :=
   match receiver with
   | .ref address =>
       match heap.get? address with
       | some (.dict entries version) =>
-          if rHashableKey index then
-            (rStoreDictEntries heap index value entries.toList).bind fun updated =>
-              Heap.update heap address (.dict updated.toArray (version + 1))
-          else none
+          Heap.update heap address (.dict (rUpdateDictEntries entries.toList index value).toArray (version + 1))
       | _ => none
   | _ => none
 
@@ -759,15 +627,19 @@ def rListInsert (heap : Heap) (receiver : RVal) (position : RVal) (value : RVal)
       | _ => none
   | _, _ => none
 
+def rDeleteDictEntries : List (RVal × RVal) → RVal → Option (List (RVal × RVal))
+  | [], _ => none
+  | (key, value) :: rest, wanted =>
+      if key == wanted then some rest
+      else rDeleteDictEntries rest wanted |>.map (fun tail => (key, value) :: tail)
+
 def rDeleteSubscript (heap : Heap) (receiver index : RVal) : Option Heap :=
   match receiver with
   | .ref address =>
       match heap.get? address with
       | some (.dict entries version) =>
-          if rHashableKey index then
-            rRemoveDictEntries heap index entries.toList |>.bind fun updated =>
-              Heap.update heap address (.dict updated.toArray (version + 1))
-          else none
+          rDeleteDictEntries entries.toList index |>.bind fun updated =>
+            Heap.update heap address (.dict updated.toArray (version + 1))
       | some (.list values) =>
           match index with
           | .int position =>
@@ -888,33 +760,25 @@ def rUnpackPatternValues (heap : Heap) (before : Array String) (star : String)
           (valueList.length - before.size - after.size)
         let prefixBindings := before.toList.zip prefixValues
         let suffixBindings := after.toList.zip suffixValues
-        -- CPython stores the targets left to right
-        some (prefixBindings ++ [(star, .listV middleValues.toArray)] ++ suffixBindings)
+        some ((star, .listV middleValues.toArray) ::
+          (prefixBindings ++ suffixBindings))
   | none => none
 
-/-- Store pattern bindings left to right exactly as the single-name assignment continuation stores one
-name: a declared global goes to the module namespace, a local or captured cell is written through,
-otherwise the local is set, and at module level the module namespace is updated as well. -/
-def rStoreBindings (config : RConfig) (frame : RFrame) :
-    List (String × RVal) → RConfig × RFrame
-  | [] => (config, frame)
-  | (name, value) :: rest =>
-      let declaredGlobal := frame.globalNames.contains name
-      let stored : RConfig × RFrame :=
-        if declaredGlobal then (config.setModules frame.module name value, frame)
-        else
-          match rWriteCell config.heap frame.locals name value with
-          | some heap => ({ config with heap := heap }, frame)
-          | none =>
-              match (if frame.nonlocalNames.contains name then rWriteCell config.heap frame.cells name value
-                     else none) with
-              | some heap => ({ config with heap := heap }, frame)
-              | none => (config, { frame with locals := rSetEnv frame.locals name value })
-      let withModule : RConfig × RFrame :=
-        if config.frames.tail.isEmpty && !declaredGlobal then
-          (stored.1.setModules frame.module name value, stored.2)
-        else stored
-      rStoreBindings withModule.1 withModule.2 rest
+def rAssignPattern (frame : RFrame) (target : Expr) (value : RVal) (remaining : List RStmt)
+    : Option RFrame :=
+  match rPatternValues target value with
+  | none => none
+  | some bindings =>
+      let locals := bindings.foldl (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
+      some { frame with control := .statements remaining, locals := locals }
+
+def rAssignUnpack (heap : Heap) (frame : RFrame) (before : Array String) (star : String)
+    (after : Array String) (value : RVal) (remaining : List RStmt) : Option RFrame :=
+  match rUnpackPatternValues heap before star after value with
+  | none => none
+  | some bindings =>
+      let locals := bindings.foldl (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
+      some { frame with control := .statements remaining, locals := locals }
 
 def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   match op, left, right with
@@ -926,8 +790,8 @@ def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
 
 def rEvalCompare (heap : Heap) (op : CmpOp) (left right : RVal) : Option RVal :=
   match op with
-  | .eq => (rEqualIn heap left right).map RVal.bool
-  | .notEq => (rEqualIn heap left right).map (fun equal => RVal.bool (!equal))
+  | .eq => some (.bool (rEqual heap left right))
+  | .notEq => some (.bool (!rEqual heap left right))
   | .lt => match left, right with
       | .int a, .int b => some (.bool (a < b))
       | _, _ => none
@@ -940,8 +804,8 @@ def rEvalCompare (heap : Heap) (op : CmpOp) (left right : RVal) : Option RVal :=
   | .gtE => match left, right with
       | .int a, .int b => some (.bool (a ≥ b))
       | _, _ => none
-  | .inOp => (rContainsIn heap right left).map RVal.bool
-  | .notIn => (rContainsIn heap right left).map (fun found => RVal.bool (!found))
+  | .inOp => some (.bool (rContains heap right left))
+  | .notIn => some (.bool (!rContains heap right left))
   | _ => none
 
 def rTruthy : RVal → Bool
@@ -955,25 +819,11 @@ def rTruthy : RVal → Bool
   | .ref _ => true
   | _ => true
 
-/-- Truthiness with the heap: an empty list or dictionary is false. Values whose truth the machine does
-not model (other heap objects, ranges) are undecided. -/
-def rTruthyIn (heap : Heap) (value : RVal) : Option Bool :=
-  match value with
-  | .ref address =>
-      match heap.get? address with
-      | some (.list values) => some (!values.isEmpty)
-      | some (.dict entries _) => some (!entries.isEmpty)
-      | _ => none
-  | .bytes values => some (!values.isEmpty)
-  | .ntuple _ _ values => some (!values.isEmpty)
-  | .rangeV _ _ _ => none
-  | value => some (rTruthy value)
-
-def rEvalUnary (heap : Heap) (op : UnaryOp) (value : RVal) : Option RVal :=
+def rEvalUnary (op : UnaryOp) (value : RVal) : Option RVal :=
   match op, value with
   | .usub, .int number => some (.int (-number))
   | .uadd, .int number => some (.int number)
-  | .not, value => (rTruthyIn heap value).map (fun truth => RVal.bool (!truth))
+  | .not, value => some (.bool (!rTruthy value))
   | _, _ => none
 
 def rLookupFrameName (config : RConfig) (frame : RFrame) (name : String) : Option RVal :=
@@ -995,6 +845,40 @@ def rLookupFrameName (config : RConfig) (frame : RFrame) (name : String) : Optio
             | some value => some value
             | none => readModule
 
+def rEvalDefaultExprIn (config : RConfig) (frame : RFrame) : Expr → Option RVal
+  | .constant value _ => some (rConstValue value)
+  | .name name _ => rLookupFrameName config frame name
+  | .unaryOp op operand _ =>
+      (rEvalDefaultExprIn config frame operand).bind (rEvalUnary op)
+  | .binOp left op right _ =>
+      match rEvalDefaultExprIn config frame left,
+          rEvalDefaultExprIn config frame right with
+      | some leftValue, some rightValue =>
+          match rEvalBinOp op leftValue rightValue with
+          | .ok value => some value
+          | _ => none
+      | _, _ => none
+  | _ => none
+
+def rEvalDefaultValuesIn (config : RConfig) (frame : RFrame) : List Expr → Option (List RVal)
+  | [] => some []
+  | expression :: rest =>
+      match rEvalDefaultExprIn config frame expression,
+          rEvalDefaultValuesIn config frame rest with
+      | some value, some values => some (value :: values)
+      | _, _ => none
+
+def rEvalKeywordDefaultValuesIn (config : RConfig) (frame : RFrame) :
+    List (Option Expr) → Option (List (Option RVal))
+  | [] => some []
+  | none :: rest =>
+      (rEvalKeywordDefaultValuesIn config frame rest).map (List.cons none)
+  | some expression :: rest =>
+      match rEvalDefaultExprIn config frame expression,
+          rEvalKeywordDefaultValuesIn config frame rest with
+      | some value, some values => some (some value :: values)
+      | _, _ => none
+
 def RConfig.finish (config : RConfig) (event : REvent) : RConfig :=
   { config with frames := [], status := .finished event }
 
@@ -1012,15 +896,11 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
       if name.startsWith "__machine_dict_get:" then
         match (name.drop "__machine_dict_get:".length).toNat?, values with
         | some address, [key] =>
-            match rDictLookup config.heap (.ref address) key with
-            | some found => some (.tau, config.setControl (.continueValue (found.getD .none) continuation))
-            | none => some (.event (.refuse "machine dict.get key"),
-                config.finish (.refuse "machine dict.get key"))
+            let result := (rLookupDict config.heap (.ref address) key).getD .none
+            some (.tau, config.setControl (.continueValue result continuation))
         | some address, [key, default] =>
-            match rDictLookup config.heap (.ref address) key with
-            | some found => some (.tau, config.setControl (.continueValue (found.getD default) continuation))
-            | none => some (.event (.refuse "machine dict.get key"),
-                config.finish (.refuse "machine dict.get key"))
+            let result := (rLookupDict config.heap (.ref address) key).getD default
+            some (.tau, config.setControl (.continueValue result continuation))
         | _, _ => some (.event (.refuse "machine dict.get"),
             config.finish (.refuse "machine dict.get"))
       else if name.startsWith "__machine_list_append:" then
@@ -1337,13 +1217,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, { config with heap := allocated.1 } |>.setControl
             (.continueValue allocated.2 continuation))
       | .statements [] =>
-          -- a finished loop body resumes the innermost pending loop (a stack, so nested
-          -- loops resume their outer loop afterwards)
           match frame.completion with
-          | continuation :: outer =>
+          | some continuation =>
               some (.tau, config.setTop
-                { frame with control := .continueValue .none continuation, completion := outer })
-          | [] =>
+                { frame with control := .continueValue .none continuation, completion := none })
+          | none =>
               if config.frames.tail.isEmpty then
                 some (.event (.return .none), config.finish (.return .none))
               else some (.tau, config.setControl (.continueValue .none .returnValue))
@@ -1367,17 +1245,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl
                 (.evaluate value (.assignUnpack before star after rest)))
           | .augAssign (.name name span) op value _ =>
-              -- in a function, `name += v` makes `name` local: unless it is declared global or
-              -- nonlocal it must already be bound in this frame (CPython raises
-              -- UnboundLocalError otherwise, which the machine does not model)
-              if !config.frames.tail.isEmpty && !frame.globalNames.contains name &&
-                  !frame.nonlocalNames.contains name && (rLookupEnv frame.locals name).isNone then
-                some (.event (.refuse "machine augmented assignment to an unbound local"),
-                  config.finish (.refuse "machine augmented assignment to an unbound local"))
-              else
-                some (.tau, config.setControl
-                  (.evaluate (.name name span)
-                    (.augAssignLeft name op value rest)))
+              some (.tau, config.setControl
+                (.evaluate (.name name span)
+                  (.augAssignLeft name op value rest)))
           | .augAssign _ _ _ _ =>
               some (.event (.refuse "machine augmented assignment target"),
                 config.finish (.refuse "machine augmented assignment target"))
@@ -1385,25 +1255,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               if config.functions.any (fun function => function.name == name) then
                 some (.event (.refuse "machine delete function"),
                   config.finish (.refuse "machine delete function"))
-              else if config.frames.tail.isEmpty || frame.globalNames.contains name then
+              else
                 let locals := (rDeleteEnv frame.locals name).getD frame.locals
                 match rDeleteModule config.modules frame.module name with
                 | some modules =>
                     let next := config.setTop
                       { frame with control := .statements rest, locals := locals }
                     some (.tau, { next with modules := modules })
-                | none => some (.tau, config.setControl (.refusing "machine delete name"))
-              else
-                -- in a function `del name` removes the local binding only; a cell or nonlocal
-                -- name (DELETE_DEREF) and an unbound local are not modelled
-                match rLookupEnv frame.locals name with
-                | some value =>
-                    if frame.nonlocalNames.contains name || rIsCellRef config.heap value then
-                      some (.tau, config.setControl (.refusing "machine delete cell"))
-                    else
-                      let locals := (rDeleteEnv frame.locals name).getD frame.locals
-                      some (.tau, config.setTop
-                        { frame with control := .statements rest, locals := locals })
                 | none => some (.tau, config.setControl (.refusing "machine delete name"))
           | .delete _ _ =>
               match stmt with
@@ -1474,15 +1332,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
-                  match rEvalDefaultValues defaults with
+                  match rEvalDefaultValuesIn config current defaults.toList with
                   | none => some (.event (.refuse "machine default expression"),
                       config.finish (.refuse "machine default expression"))
                   | some defaultValues =>
-                      -- a module-level function reads module names from the module namespace when it
-                      -- runs (CPython: LOAD_GLOBAL); only a function defined in a function closes over
-                      -- that function's variables
-                      let captured : Heap × RFrame × REnv :=
-                        if tail.isEmpty then (config.heap, current, []) else rCaptureLocals config.heap current
+                      let defaultValues := defaultValues.toArray
+                      let captured := rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
                       let function :=
@@ -1496,13 +1351,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .functionDefKw name params defaults keywordDefaults body span =>
               match config.frames with
               | current :: tail =>
-                  match rEvalDefaultValues defaults, rEvalKeywordDefaultValues keywordDefaults.toList with
+                  match rEvalDefaultValuesIn config current defaults.toList,
+                      rEvalKeywordDefaultValuesIn config current keywordDefaults.toList with
                   | some defaultValues, some keywordDefaultValues =>
-                      -- a module-level function reads module names from the module namespace when it
-                      -- runs (CPython: LOAD_GLOBAL); only a function defined in a function closes over
-                      -- that function's variables
-                      let captured : Heap × RFrame × REnv :=
-                        if tail.isEmpty then (config.heap, current, []) else rCaptureLocals config.heap current
+                      let defaultValues := defaultValues.toArray
+                      let captured := rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
                       let function :=
@@ -1620,10 +1473,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                 if config.frames.tail.isEmpty then some (.tau, next.setModules frame.module name value)
                 else some (.tau, next)
             | none =>
-              -- an enclosing function's cell is written only for a `nonlocal` name; any other
-              -- assignment in a function binds a local (CPython: STORE_FAST)
-              match (if frame.nonlocalNames.contains name then rWriteCell config.heap frame.cells name value
-                     else none) with
+              match rWriteCell config.heap frame.cells name value with
               | some heap =>
                   let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
                   if config.frames.tail.isEmpty then
@@ -1637,32 +1487,30 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   else
                     some (.tau, next)
       | .continueValue value (.assignPattern target remaining) =>
-          match rPatternValues target value with
-          | some bindings =>
-              let stored := rStoreBindings config frame bindings
-              some (.tau, stored.1.setTop { stored.2 with control := .statements remaining })
+          match rAssignPattern frame target value remaining with
+          | some updated => some (.tau, config.setTop updated)
           | none => some (.tau, config.setControl (.refusing "machine assignment pattern"))
       | .continueValue value (.assignUnpack before star after remaining) =>
-          match rUnpackPatternValues config.heap before star after value with
-          | some bindings =>
-              let stored := rStoreBindings config frame bindings
-              some (.tau, stored.1.setTop { stored.2 with control := .statements remaining })
+          match rAssignUnpack config.heap frame before star after value remaining with
+          | some updated => some (.tau, config.setTop updated)
           | none => some (.tau, config.setControl (.refusing "machine starred assignment"))
       | .continueValue left (.augAssignLeft name op value remaining) =>
           some (.tau, config.setControl (.evaluate value (.augAssignRight left name op remaining)))
       | .continueValue right (.augAssignRight left name op remaining) =>
           match rEvalBinOp op left right with
           | .ok result =>
-              -- the result is stored like an assignment to the name (a declared global goes to
-              -- the module namespace, a captured cell is written through)
-              some (.tau, config.setControl (.continueValue result (.assign name remaining)))
+              let next := config.setTop (rAssignedFrame frame name result remaining)
+              if config.frames.tail.isEmpty then
+                some (.tau, next.setModules frame.module name result)
+              else
+                some (.tau, next)
           | .exn _ => some (.tau, config.setControl (.refusing "machine augmented assignment"))
           | .unsupported reason => some (.tau, config.setControl (.refusing reason))
           | .timeout => some (.tau, config.setControl (.refusing "machine augmented assignment"))
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue value (.unaryValue op continuation) =>
-          match rEvalUnary config.heap op value with
+          match rEvalUnary op value with
           | some result => some (.tau, config.setControl (.continueValue result continuation))
           | none => some (.tau, config.setControl (.refusing "machine unary operator"))
       | .continueValue receiver (.subscriptValue index continuation) =>
@@ -1678,90 +1526,51 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none => some (.tau, config.setControl (.refusing "machine comparison"))
       | .continueValue value (.ifBranch body orelse remaining) =>
-          match rTruthyIn config.heap value with
-          | some truth =>
-              let selected := if truth then body else orelse
-              some (.tau, config.setControl (.statements (selected ++ remaining)))
-          | none => some (.tau, config.setControl (.refusing "machine truthiness"))
+          let selected := if rTruthy value then body else orelse
+          some (.tau, config.setControl (.statements (selected ++ remaining)))
       | .continueValue value (.whileBranch test body orelse remaining span) =>
-          match rTruthyIn config.heap value with
-          | some true =>
-              some (.tau, config.setControl
-                (.statements (body ++ [.whileStmt test body.toArray orelse.toArray span] ++ remaining)))
-          | some false =>
-              some (.tau, config.setControl (.statements (orelse ++ remaining)))
-          | none => some (.tau, config.setControl (.refusing "machine truthiness"))
-      | .continueValue value (.forIter target body orelse remaining) =>
-          if rIsHeapList config.heap value then
-            -- a list is iterated by a live index, as CPython's list iterator does, so changes the
-            -- body makes to the list are seen
-            match value with
-            | .ref address =>
-                some (.tau, config.setControl
-                  (.continueValue .none (.forNextList target address 0 body orelse remaining)))
-            | _ => some (.tau, config.setControl (.refusing "machine for iterable"))
+          if rTruthy value then
+            some (.tau, config.setControl
+              (.statements (body ++ [.whileStmt test body.toArray orelse.toArray span] ++ remaining)))
           else
-            match rIterValues config.heap value with
-            | some values =>
-                some (.tau, config.setControl
-                  (.continueValue .none (.forNext target values body orelse remaining)))
-            | none => some (.tau, config.setControl (.refusing "machine for iterable"))
-      | .continueValue _ (.forNext target values body orelse remaining) =>
+            some (.tau, config.setControl (.statements (orelse ++ remaining)))
+      | .continueValue value (.forIter target body orelse remaining) =>
+          match rIterValues config.heap value with
+          | some values =>
+              some (.tau, config.setControl
+                (.continueValue .none (.forNext target values body orelse remaining)))
+          | none => some (.tau, config.setControl (.refusing "machine for iterable"))
+      | .continueValue value (.forNext target values body orelse remaining) =>
           match values with
           | [] => some (.tau, config.setControl (.statements (orelse ++ remaining)))
           | next :: restValues =>
               match rPatternValues target next with
               | some bindings =>
-                  let stored := rStoreBindings config frame bindings
-                  some (.tau, stored.1.setTop { stored.2 with
+                  let locals := bindings.foldl
+                    (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
+                  some (.tau, config.setTop { frame with
                     control := .statements body,
-                    completion := .forNext target restValues body orelse remaining ::
-                      stored.2.completion })
+                    locals := locals,
+                    completion := some (.forNext target restValues body orelse remaining) })
               | none => some (.tau, config.setControl (.refusing "machine for target"))
-      | .continueValue _ (.forNextList target address index body orelse remaining) =>
-          match config.heap.get? address with
-          | some (.list values) =>
-              match values[index]? with
-              | some next =>
-                  match rPatternValues target next with
-                  | some bindings =>
-                      let stored := rStoreBindings config frame bindings
-                      some (.tau, stored.1.setTop { stored.2 with
-                        control := .statements body,
-                        completion := .forNextList target address (index + 1) body orelse remaining ::
-                          stored.2.completion })
-                  | none => some (.tau, config.setControl (.refusing "machine for target"))
-              | none => some (.tau, config.setControl (.statements (orelse ++ remaining)))
-          | _ => some (.tau, config.setControl (.refusing "machine for iterable"))
       | .continueValue value (.ifExpression body orelse continuation) =>
-          match rTruthyIn config.heap value with
-          | some truth =>
-              some (.tau, config.setControl
-                (.evaluate (if truth then body else orelse) continuation))
-          | none => some (.tau, config.setControl (.refusing "machine truthiness"))
+          some (.tau, config.setControl
+            (.evaluate (if rTruthy value then body else orelse) continuation))
       | .continueValue index (.subscriptIndex receiver continuation) =>
-          if rIsDict config.heap receiver then
-            -- a miss is CPython's KeyError, which the machine does not model
-            match rDictLookup config.heap receiver index with
-            | some (some value) => some (.tau, config.setControl (.continueValue value continuation))
-            | _ => some (.tau, config.setControl (.refusing "machine dictionary subscript"))
-          else
-            match rIndexHeapValue config.heap receiver index with
-            | some value => some (.tau, config.setControl (.continueValue value continuation))
-            | none =>
-                match rIndexValue receiver index with
-                | some value => some (.tau, config.setControl (.continueValue value continuation))
-                | none =>
-                    match receiver, index with
-                    | .tuple _, (.int _) | .listV _, (.int _) =>
-                        some (.event (.raise { errorClass := .index, args := [] }),
-                          config.finish (.raise { errorClass := .index, args := [] }))
-                    | .ref _, (.int _) =>
-                        if rIsHeapList config.heap receiver then
+          match rLookupDict config.heap receiver index with
+          | some value => some (.tau, config.setControl (.continueValue value continuation))
+          | none =>
+              match rIndexHeapValue config.heap receiver index with
+              | some value => some (.tau, config.setControl (.continueValue value continuation))
+              | none =>
+                  match rIndexValue receiver index with
+                  | some value => some (.tau, config.setControl (.continueValue value continuation))
+                  | none =>
+                      match receiver, index with
+                      | .tuple _, (.int _) | .listV _, (.int _) | .ref _, (.int _) =>
                           some (.event (.raise { errorClass := .index, args := [] }),
                             config.finish (.raise { errorClass := .index, args := [] }))
-                        else some (.tau, config.setControl (.refusing "machine subscript"))
-                    | _, _ => some (.tau, config.setControl (.refusing "machine subscript"))
+                      | _, _ => some (.tau, config.setControl (.refusing "machine subscript"))
       | .continueValue value (.tupleElements remaining values continuation) =>
           match remaining with
           | next :: rest =>
@@ -1783,17 +1592,14 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl
             (.evaluate value (.dictValue key remaining entries continuation)))
       | .continueValue value (.dictValue key remaining entries continuation) =>
-          -- a repeated key keeps its first key object and position and takes the later value
-          match (if rHashableKey key then rStoreDictEntries config.heap key value entries else none) with
-          | none => some (.tau, config.setControl (.refusing "machine dictionary key"))
-          | some updated =>
-              match remaining with
-              | (nextKey, nextValue) :: rest =>
-                  some (.tau, config.setControl
-                    (.evaluate nextKey (.dictKey nextValue rest updated continuation)))
-              | [] =>
-                  some (.tau, config.setControl
-                    (.resourceChoice .allocation (.allocateDict updated continuation)))
+          let updated := entries ++ [(key, value)]
+          match remaining with
+          | (nextKey, nextValue) :: rest =>
+              some (.tau, config.setControl
+                (.evaluate nextKey (.dictKey nextValue rest updated continuation)))
+          | [] =>
+              some (.tau, config.setControl
+                (.resourceChoice .allocation (.allocateDict updated continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
           match rEvalBinOp op left right with
           | .ok value => some (.tau, config.setControl (.continueValue value continuation))

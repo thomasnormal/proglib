@@ -6,7 +6,7 @@
     "version": "3.9.25"
   },
   "source_file": "harness/scripts/function_dynamic_default.py",
-  "source_sha256": "698ddea6695ae4f2634db10945c46f9122084cda3c5756c7568851869ef99da2",
+  "source_sha256": "77e2b9437542e6a1b5b6a0c521eb19ae68d4cf2a2719be5c40da0ba09d2d1ef3",
   "module": {
     "kind": "Module",
     "body": [
@@ -16,7 +16,7 @@
           "lineno": 1,
           "col_offset": 0,
           "end_lineno": 1,
-          "end_col_offset": 79
+          "end_col_offset": 76
         },
         "value": {
           "kind": "Constant",
@@ -24,20 +24,55 @@
             "lineno": 1,
             "col_offset": 0,
             "end_lineno": 1,
-            "end_col_offset": 79
+            "end_col_offset": 76
           },
           "value": {
             "type": "str",
-            "value": "Machine argument-binder row: dynamic defaults remain an explicit refusal."
+            "value": "Machine argument-binder row: defaults read globals at definition time."
+          }
+        }
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 8
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 4
+            },
+            "id": "base",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 3,
+            "col_offset": 7,
+            "end_lineno": 3,
+            "end_col_offset": 8
+          },
+          "value": {
+            "type": "int",
+            "repr": "3"
           }
         }
       },
       {
         "kind": "FunctionDef",
         "span": {
-          "lineno": 3,
+          "lineno": 5,
           "col_offset": 0,
-          "end_lineno": 4,
+          "end_lineno": 6,
           "end_col_offset": 12
         },
         "name": "answer",
@@ -45,9 +80,9 @@
           {
             "arg": "x",
             "span": {
-              "lineno": 3,
+              "lineno": 5,
               "col_offset": 11,
-              "end_lineno": 3,
+              "end_lineno": 5,
               "end_col_offset": 12
             }
           }
@@ -58,69 +93,167 @@
           {
             "kind": "Return",
             "span": {
-              "lineno": 4,
+              "lineno": 6,
               "col_offset": 4,
-              "end_lineno": 4,
+              "end_lineno": 6,
               "end_col_offset": 12
             },
             "value": {
               "kind": "Name",
               "span": {
-                "lineno": 4,
+                "lineno": 6,
                 "col_offset": 11,
-                "end_lineno": 4,
+                "end_lineno": 6,
                 "end_col_offset": 12
               },
-              "id": "x"
+              "id": "x",
+              "machine_context": "Load"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "x",
+              "span": {
+                "lineno": 5,
+                "col_offset": 11,
+                "end_lineno": 5,
+                "end_col_offset": 12
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": [
+            {
+              "kind": "BinOp",
+              "span": {
+                "lineno": 5,
+                "col_offset": 13,
+                "end_lineno": 5,
+                "end_col_offset": 21
+              },
+              "left": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 13,
+                  "end_lineno": 5,
+                  "end_col_offset": 17
+                },
+                "id": "base",
+                "machine_context": "Load"
+              },
+              "op": "Add",
+              "right": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 20,
+                  "end_lineno": 5,
+                  "end_col_offset": 21
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "4"
+                }
+              }
+            }
+          ]
+        },
+        "machine_decorators": [],
+        "machine_returns": null
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 8,
+          "col_offset": 0,
+          "end_lineno": 8,
+          "end_col_offset": 10
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 8,
+              "col_offset": 0,
+              "end_lineno": 8,
+              "end_col_offset": 4
+            },
+            "id": "base",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 8,
+            "col_offset": 7,
+            "end_lineno": 8,
+            "end_col_offset": 10
+          },
+          "value": {
+            "type": "int",
+            "repr": "100"
+          }
+        }
       },
       {
         "kind": "Expr",
         "span": {
-          "lineno": 6,
+          "lineno": 9,
           "col_offset": 0,
-          "end_lineno": 6,
+          "end_lineno": 9,
           "end_col_offset": 15
         },
         "value": {
           "kind": "Call",
           "span": {
-            "lineno": 6,
+            "lineno": 9,
             "col_offset": 0,
-            "end_lineno": 6,
+            "end_lineno": 9,
             "end_col_offset": 15
           },
           "func": {
             "kind": "Name",
             "span": {
-              "lineno": 6,
+              "lineno": 9,
               "col_offset": 0,
-              "end_lineno": 6,
+              "end_lineno": 9,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
               "span": {
-                "lineno": 6,
+                "lineno": 9,
                 "col_offset": 6,
-                "end_lineno": 6,
+                "end_lineno": 9,
                 "end_col_offset": 14
               },
               "func": {
                 "kind": "Name",
                 "span": {
-                  "lineno": 6,
+                  "lineno": 9,
                   "col_offset": 6,
-                  "end_lineno": 6,
+                  "end_lineno": 9,
                   "end_col_offset": 12
                 },
-                "id": "answer"
+                "id": "answer",
+                "machine_context": "Load"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [],
               "keywords": [],
               "call_unsupported": null
@@ -130,7 +263,8 @@
           "call_unsupported": null
         }
       }
-    ]
+    ],
+    "machine_type_ignores": []
   },
   "lean_blocks": []
 }
