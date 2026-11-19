@@ -6,7 +6,7 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1402 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
+implementation is 1482 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
 of AST declarations, 530 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
@@ -174,6 +174,18 @@ callee has no MIR body.  The runner reports an explicit allocator-registry
 refusal for all three rows.  It does not fabricate a fresh provenance, address,
 byte state, or validity result.  Adding that registry requires a relation rule
 for allocation and placement choices before these rows can advance.
+
+The memory layer now states the allocator transition explicitly.  An
+`AllocationChoice` supplies the concrete base address, while the relation
+requires a positive size, aligned address, and non-overlap with every live
+allocation.  The transition appends a fresh provenance allocation and returns a
+pointer carrying that provenance and chosen address.  Zeroed allocation marks
+its bytes initialized; ordinary allocation retains the bytes as uninitialized.
+`allocatorRun_in_step` proves the choice-parameterized executable transition is
+contained in `AllocatorStep`, and `allocatorStep_pointer_provenance` records
+the address-independent provenance result.  The call runner has not registered
+this transition yet, so the three corpus allocator rows remain explicit
+foreign-registry refusals.
 
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took

@@ -146,6 +146,67 @@ theorem pointer_address_independent (provenance address₁ address₂ : Nat) :
       { provenance, address := address₂ } := by
   rfl
 
+structure AllocationChoice where
+  address : Nat
+deriving Repr, Inhabited, BEq, DecidableEq
+
+def allocationDisjoint (base size otherBase otherSize : Nat) : Prop :=
+  base + size ≤ otherBase ∨ otherBase + otherSize ≤ base
+
+def allocationChoiceValid (s : State) (size align : Nat)
+    (choice : AllocationChoice) : Prop :=
+  0 < size ∧
+  0 < align ∧
+  choice.address % align = 0 ∧
+  ∀ allocation, allocation ∈ s.allocations →
+    ∀ base, allocation.address = some base →
+      allocationDisjoint choice.address size base allocation.bytes.length
+
+def allocatorStep (s : State) (size align : Nat) (zeroed : Bool)
+    (choice : AllocationChoice) : State × Cell :=
+  let provenance := s.allocations.length
+  let bytes := List.replicate size 0
+  let allocation : Allocation :=
+    { id := "foreign-allocation-" ++ toString provenance
+      bytes := bytes
+      bytesValid := zeroed
+      provenance := []
+      align := align
+      address := some choice.address }
+  let pointer : Pointer :=
+    { provenance := provenance
+      address := choice.address
+      pointeeType := none
+      isLocal := false
+      targetFrame := none
+      projection := [] }
+  ({ s with allocations := s.allocations ++ [allocation] }, .pointer pointer)
+
+def AllocatorStep (s s' : State) (size align : Nat) (zeroed : Bool)
+    (result : Cell) : Prop :=
+  ∃ choice, allocationChoiceValid s size align choice ∧
+    allocatorStep s size align zeroed choice = (s', result)
+
+def allocatorRun (s : State) (size align : Nat) (zeroed : Bool)
+    (choice : AllocationChoice) (_valid : allocationChoiceValid s size align choice) :
+    State × Cell :=
+  allocatorStep s size align zeroed choice
+
+theorem allocatorRun_in_step {s : State} {size align : Nat} {zeroed : Bool}
+    {choice : AllocationChoice} (valid : allocationChoiceValid s size align choice) :
+    AllocatorStep s (allocatorRun s size align zeroed choice valid).1 size align zeroed
+      (allocatorRun s size align zeroed choice valid).2 := by
+  exact ⟨choice, valid, rfl⟩
+
+theorem allocatorStep_pointer_provenance {s : State} {size align : Nat}
+    {zeroed : Bool} {choice : AllocationChoice} {s' : State} {pointer : Pointer}
+    (h : allocatorStep s size align zeroed choice = (s', .pointer pointer)) :
+    pointer.provenance = s.allocations.length ∧ pointer.address = choice.address := by
+  have hp := congrArg Prod.snd h
+  simp [allocatorStep] at hp
+  cases hp
+  exact ⟨rfl, rfl⟩
+
 def slotCell : Slot → Option Cell
   | .uninit => none
   | .value value => some (.int value)
