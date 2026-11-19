@@ -2451,6 +2451,19 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   | some _ => some (.tau, config.setControl (.refusing "machine __mul__"))
                   | none => some (.tau, config.setControl (.refusing "machine binary operator"))
               | _ => some (.tau, config.setControl (.refusing "machine binary operator"))
+          | .div, .ref address =>
+              match config.heap.get? address with
+              | some (.instance cls _) =>
+                  match rLookupClassAttr config.classes cls "__truediv__" with
+                  | some (.callable token) =>
+                      match rFunctionByToken config.functions token with
+                      | some function => rStartFunctionCall config function [left, right] []
+                          (.binaryResult continuation)
+                      | none => some (.event (.refuse "machine __truediv__"),
+                          config.finish (.refuse "machine __truediv__"))
+                  | some _ => some (.tau, config.setControl (.refusing "machine __truediv__"))
+                  | none => some (.tau, config.setControl (.refusing "machine binary operator"))
+              | _ => some (.tau, config.setControl (.refusing "machine binary operator"))
           | _, _ =>
               match rEvalBinOp op left right with
               | .ok value => some (.tau, config.setControl (.continueValue value continuation))
