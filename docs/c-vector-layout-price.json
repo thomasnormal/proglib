@@ -1,0 +1,306 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 9,
+ "interpretation": "The nine files are the survey's sole dynamic V-layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no vector semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr105613.c",
+   "sha256": "ef1b6447bd087e0497e08c05f9a3511793f9509d1c076474e33eb1ad7cf067f5",
+   "type_layouts": [
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 16,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id35",
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr110817-1.c",
+   "sha256": "9d921ab555c22fca9f4d94ccf579fecf2f237e6a793854b7ca5e4c50c92d05e9",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id18",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id22",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr110817-2.c",
+   "sha256": "eab8f48b7408ab359db88859a877532e33d9b594785c7a5423faa39f48325783",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id20",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id21",
+     "size_bytes": 1,
+     "type": "unsigned char"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id25",
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr110817-3.c",
+   "sha256": "72beab171d40035081c61052fe525e55934e0f847259e5b744c8de6de5c86b79",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id18",
+     "size_bytes": 4,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id19",
+     "size_bytes": 1,
+     "type": "unsigned char"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id23",
+     "size_bytes": 4,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id42",
+     "size_bytes": 4,
+     "type": "volatile int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr71626-1.c",
+   "sha256": "c1bfcceefba2299a1c0845dcbac9f29ad48117a29fdff72611c45039ba4f5ccf",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id21",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id33",
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr85169.c",
+   "sha256": "1386c7225fe40e53bbd5acdc75b3e4d7581a1c10a8ae2e0389c6fbd117d6869e",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 64,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 64,
+     "decl_id": "id21",
+     "size_bytes": 64,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 64,
+     "decl_id": "id41",
+     "size_bytes": 64,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 64,
+     "size_bytes": 64,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id52",
+     "size_bytes": 4,
+     "type": "unsigned int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr94412.c",
+   "sha256": "ae6eaf5973fd11db37e65266deea322d50bc6a4fd02544c56345abac9474c90e",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id56",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id65",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id74",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id74",
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr94524-1.c",
+   "sha256": "00b79046b77668975b2833a34acddc497fa45ee1aed8c4922c803666d23f6c11",
+   "type_layouts": [
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id35",
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr94524-2.c",
+   "sha256": "8db61e522f5d2c9b76e57bacc4df48e9ff4c2283dc915081d3aa9e4b33ee47c1",
+   "type_layouts": [
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id35",
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "unsupported:no layout for declared type 'V'"
+}
