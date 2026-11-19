@@ -2224,6 +2224,9 @@ def CoreMemDesign.execImplicitStmtFuel (E : CoreMemDesign) (env : IEnv)
               E.writeInitialCell env elems st target name md v
       | .arrayElem name _ =>
           .unsupported s!"9.2.2.2: memory implicit target '{name}' is not one-rank"
+      | .bitSel .. => do
+          let st' ← E.execScalarTarget env elems st target value
+          .ok st'
       | _ => .unsupported "9.2.2.2: packed or concatenated implicit target is outside this slice"
   | fuel + 1, .ifStmt cond yes no => do
       let cv ← E.evalExpr env elems st (some 1) cond
@@ -2355,6 +2358,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
                   match st.aggregates.write? decl.id steps (Val.ofLVec ty v) with
                   | none => .unsupported "9.2.2.2: aggregate always_comb target path is not writable"
                   | some aggregates' => .ok ({ st with aggregates := aggregates' }, view)
+      | .bitSel .. => do
+          let st' ← E.execScalarTarget env elems st target value
+          .ok (st', E.scalar.view st'.scalar)
       | _ => .unsupported "9.2.2.2: packed or concatenated always_comb target is outside this slice"
   | fuel + 1, .ifStmt cond yes no => do
       let cv ← E.evalCombExpr env elems st view (some 1) cond
