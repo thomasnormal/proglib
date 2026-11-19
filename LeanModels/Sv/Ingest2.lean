@@ -1955,6 +1955,8 @@ private def unsupMemberText : String := r#"{
 #guard (Json.parse r#"{"kind": "SysCall", "name": "$test$plusargs", "args": [{"kind": "Literal", "span": null, "width": 32, "bits": "00000000000000000000000000000000"}]}"# >>= parsePExpr).isOk
 #guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "lifetime": "automatic", "width": {"kind": "PackedType", "packed": [], "resolved": 1}, "init": null}"# >>= parsePStmt).toOption
         == some (.unsupported "LocalDecl" "automatic block-local declaration requires scoped procedural storage")
+#guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "width": 1, "init": null}"# >>= parsePStmt).toOption
+        == some (.localDecl "t" 1 none)
 #guard (Json.parse r#"{"kind": "CompoundAssign", "span": null, "target": {"kind": "Ident", "name": "v"}, "op": "+", "value": {"kind": "Int", "value": 1}}"# >>= parsePStmt).toOption
         == some (.unsupported "AssignmentExpression:compound"
           "source-level compound assignment is retained; a frozen Stmt2 compound node is not yet available")
