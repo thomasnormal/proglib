@@ -882,3 +882,14 @@ Canonical E loads the envelope, then refuses the first execution with
 `unsupported expression 'SysCall'`.  This is the current E boundary for the
 parser-retained system-function expression.  No whole-core DarkRISCV E-RUN
 result is claimed by this clean-room receipt.
+
+## 2026-11-19 member-element-index receipt correction
+
+The earlier wall-table status for the generated packed-member element index is
+now superseded by the canonical-E receipt in
+`Examples/system-verilog/sem2/member_index_canonical_e/`.  Its source-shaped
+`state.out_dis[i]` case retains the member index under the generated body and
+runs seven known, x, and z rows.  Icarus Verilog 13.0, Xcelium 24.03-s004, and
+canonical E agree on `x, 0, 1, 0, x, z, 1`.  The member-element-index clean-room
+wall is therefore closed for this shape.  No real-core census count is claimed
+by this correction.
