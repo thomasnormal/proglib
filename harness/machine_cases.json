@@ -393,5 +393,15 @@
     "source": "harness/scripts/machine_delete_missing.py",
     "envelope": "harness/scripts/machine_delete_missing.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_delete_subscript.py",
+    "envelope": "harness/scripts/machine_delete_subscript.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_delete_subscript_missing.py",
+    "envelope": "harness/scripts/machine_delete_subscript_missing.json",
+    "expect": "unsupported"
   }
 ]

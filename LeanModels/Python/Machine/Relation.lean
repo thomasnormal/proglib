@@ -127,6 +127,8 @@ inductive RKont where
   | assignSubscriptReceiver (receiver : Expr) (index : Expr) (remaining : List RStmt)
   | assignSubscriptIndex (value : RVal) (index : Expr) (remaining : List RStmt)
   | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
+  | deleteSubscriptReceiver (index : Expr) (remaining : List RStmt)
+  | deleteSubscriptIndex (receiver : RVal) (remaining : List RStmt)
   | binOpLeft (op : BinOp) (right : Expr) (continuation : RKont)
   | binOpRight (left : RVal) (op : BinOp) (continuation : RKont)
   | unaryValue (op : UnaryOp) (continuation : RKont)
@@ -612,6 +614,33 @@ def rListInsert (heap : Heap) (receiver : RVal) (position : RVal) (value : RVal)
           Heap.update heap address (.list (insertAt clamped.toNat values.toList).toArray)
       | _ => none
   | _, _ => none
+
+def rDeleteDictEntries : List (RVal × RVal) → RVal → Option (List (RVal × RVal))
+  | [], _ => none
+  | (key, value) :: rest, wanted =>
+      if key == wanted then some rest
+      else rDeleteDictEntries rest wanted |>.map (fun tail => (key, value) :: tail)
+
+def rDeleteSubscript (heap : Heap) (receiver index : RVal) : Option Heap :=
+  match receiver with
+  | .ref address =>
+      match heap.get? address with
+      | some (.dict entries version) =>
+          rDeleteDictEntries entries.toList index |>.bind fun updated =>
+            Heap.update heap address (.dict updated.toArray (version + 1))
+      | some (.list values) =>
+          match index with
+          | .int position =>
+              let normalized := if position < 0 then position + values.size else position
+              if normalized < 0 then none
+              else
+                let i := normalized.toNat
+                if h : i < values.size then
+                  Heap.update heap address (.list ((values.toList.eraseIdx i).toArray))
+                else none
+          | _ => none
+      | _ => none
+  | _ => none
 
 def rIndexValue (receiver index : RVal) : Option RVal :=
   let select (values : Array RVal) (position : Int) : Option RVal :=
@@ -1178,7 +1207,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   some (.tau, { next with modules := modules })
               | none => some (.tau, config.setControl (.refusing "machine delete name"))
           | .delete _ _ =>
-              some (.event (.refuse "machine delete target"), config.finish (.refuse "machine delete target"))
+              match stmt with
+              | .delete (.subscript receiver index _) _ =>
+                  some (.tau, config.setControl
+                    (.evaluate receiver (.deleteSubscriptReceiver index rest)))
+              | _ => some (.event (.refuse "machine delete target"),
+                  config.finish (.refuse "machine delete target"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
@@ -1323,6 +1357,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               match rUpdateList config.heap receiver index value with
               | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
               | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
+      | .continueValue receiver (.deleteSubscriptReceiver index remaining) =>
+          some (.tau, config.setControl (.evaluate index (.deleteSubscriptIndex receiver remaining)))
+      | .continueValue index (.deleteSubscriptIndex receiver remaining) =>
+          match rDeleteSubscript config.heap receiver index with
+          | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
+          | none => some (.tau, config.setControl (.refusing "machine subscript deletion"))
       | .continueValue value (.assign name remaining) =>
           if name ∈ frame.globalNames then
             let next := config.setTop { frame with control := .statements remaining }
