@@ -94,6 +94,8 @@ inductive MStmt where
       (isAsync : Bool) (span : Span)
   | functionDef (name : String) (args : MArguments) (decorators : Array MExpr)
       (returns : Option MExpr) (body : Array MStmt) (span : Span)
+  | asyncFunctionDef (name : String) (args : MArguments) (decorators : Array MExpr)
+      (returns : Option MExpr) (body : Array MStmt) (span : Span)
   | classDef (name : String) (bases : Array MExpr) (keywords : Array (String × MExpr))
       (decorators : Array MExpr) (body : Array MStmt) (span : Span)
   | import (names : Array MAlias) (span : Span)
@@ -453,9 +455,15 @@ partial def mStmt (j : Json) : Except String MStmt := do
       let returns ← match j.getObjVal? "returns" with
         | .ok .null | .error _ => pure none
         | .ok value => some <$> mExpr value
-      pure (.functionDef (← (← mField j "name").getStr?)
-        (← mFunctionArguments (← mField j "args")) decorators returns
-        (← (← (← mField j "body").getArr?).mapM mStmt) span)
+      let name ← (← mField j "name").getStr?
+      let args ← mFunctionArguments (← mField j "args")
+      let bodyJson ← mField j "body"
+      let bodyArray ← bodyJson.getArr?
+      let body ← bodyArray.mapM mStmt
+      match j.getObjVal? "machine_kind" with
+      | .ok (.str "AsyncFunctionDef") =>
+          pure (.asyncFunctionDef name args decorators returns body span)
+      | _ => pure (.functionDef name args decorators returns body span)
   | "Global" => pure (.global (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Nonlocal" => pure (.nonlocal (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Break" => pure (.brk span)
@@ -500,6 +508,7 @@ private def mStmtKind : MStmt → String
   | .whileStmt _ _ _ _ => "While"
   | .forStmt _ _ _ _ isAsync _ => if isAsync then "AsyncFor" else "For"
   | .functionDef _ _ _ _ _ _ => "FunctionDef"
+  | .asyncFunctionDef _ _ _ _ _ _ => "AsyncFunctionDef"
   | .classDef _ _ _ _ _ _ => "ClassDef"
   | .import _ _ => "Import"
   | .importFrom _ _ _ _ => "ImportFrom"
@@ -520,6 +529,7 @@ private def mStmtSpan : MStmt → Span
   | .annAssign _ _ _ _ span | .augAssign _ _ _ span | .ret _ span | .delete _ span
   | .deleteSubscript _ _ span | .deleteAttribute _ _ span | .ifStmt _ _ _ span
   | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span | .functionDef _ _ _ _ _ span
+  | .asyncFunctionDef _ _ _ _ _ span
   | .classDef _ _ _ _ _ span | .import _ span | .importFrom _ _ _ span
   | .global _ span | .nonlocal _ span | .raise _ _ span | .assertStmt _ _ span
   | .yieldStmt _ span | .yieldFrom _ span | .tryStmt _ _ _ _ span
@@ -666,6 +676,15 @@ private def mStmtExpressions : MStmt → Array MExpr
       let kwarg := args.kwarg.toArray.flatMap argPayload
       decorators ++ returns.toArray ++ args.defaults ++ args.kwDefaults.filterMap id ++
         argAnnotations ++ argDefaults ++ vararg ++ kwarg
+  | .asyncFunctionDef _ args decorators returns _ _ =>
+      let argExprs := args.positionalOnly ++ args.positional ++ args.keywordOnly
+      let argAnnotations := argExprs.filterMap (·.annotation)
+      let argDefaults := argExprs.filterMap (·.default)
+      let argPayload := fun arg => arg.annotation.toArray ++ arg.default.toArray
+      let vararg := args.vararg.toArray.flatMap argPayload
+      let kwarg := args.kwarg.toArray.flatMap argPayload
+      decorators ++ returns.toArray ++ args.defaults ++ args.kwDefaults.filterMap id ++
+        argAnnotations ++ argDefaults ++ vararg ++ kwarg
   | .classDef _ bases keywords decorators _ _ =>
       bases ++ keywords.map (·.2) ++ decorators
   | .import _ _ | .importFrom _ _ _ _ => #[]
@@ -781,6 +800,8 @@ partial def mStmtToStmtClean : MStmt → RStmt
       else
         .functionDefKw name (mParams args) (args.defaults.map mExprToExpr)
           (args.kwDefaults.map (·.map mExprToExpr)) (body.map mStmtToStmt) span
+  | .asyncFunctionDef _ _ _ _ _ span =>
+      .raw "AsyncFunctionDef" #[] span
   | .global names span => .global names span
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span

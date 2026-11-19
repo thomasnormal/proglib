@@ -2011,6 +2011,10 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             # FunctionDef/Lambda node, which ingestion refuses loudly
             "body": body,
         }
+        if isinstance(node, ast.AsyncFunctionDef):
+            # Keep the approved AST distinction available to the machine
+            # without changing the frozen compatibility FunctionDef view.
+            out["machine_kind"] = "AsyncFunctionDef"
         if _has_global(node):
             out["has_global"] = True
         if _is_generator(node):
