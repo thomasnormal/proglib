@@ -525,6 +525,8 @@ structure Layout where
   members : CType → Option (List (String × CType)) := fun _ => none
   /-- Parser-native member order keyed by the declaration owning the object. -/
   membersDecl : DeclarationId → Option (List (String × CType)) := fun _ => none
+  /-- Parser-native child-record identity keyed by parent object and field name. -/
+  memberRecordDecl : DeclarationId → String → Option DeclarationId := fun _ _ => none
   /-- Whether a record type is a union, from Clang's parser-native record
   layout tag.  The default keeps layouts without that observation loud. -/
   isUnion : CType → Bool := fun _ => false
@@ -685,6 +687,12 @@ def Layout.membersDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) : Option (List (String × CType)) :=
   decl.bind layout.membersDecl |>.orElse (fun _ => layout.members ty)
 
+/-- Resolve a nested record's declaration identity from the parent object and
+field name. Missing identity remains an explicit absence. -/
+def Layout.memberRecordDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (field : String) : Option DeclarationId :=
+  decl.bind (fun did => layout.memberRecordDecl did field)
+
 /-- Resolve union classification from the object's declaration before the
 legacy type-keyed record tag table. -/
 def Layout.isUnionDeclAt (layout : Layout) (decl : Option DeclarationId)
@@ -746,7 +754,8 @@ def Layout.unknown : Layout :=
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
     flexibleField := fun _ _ => false, flexibleFieldDecl := fun _ _ => false
-    elem := fun _ => none, members := fun _ => none, membersDecl := fun _ => none, isUnion := fun _ => false, isUnionDecl := fun _ => false
+    elem := fun _ => none, members := fun _ => none, membersDecl := fun _ => none
+    memberRecordDecl := fun _ _ => none, isUnion := fun _ => false, isUnionDecl := fun _ => false
     normalizeTy := id }
 
 /-! ## The evaluation context

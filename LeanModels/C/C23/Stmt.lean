@@ -244,7 +244,8 @@ def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → O
               liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off)
                 (.int ((intTyOf? (ctx.layout.normalizeTy mty)).getD IntTy.int_) 0))
             else
-              zeroInit fuel ctx (Mem.member p off) mty none
+              zeroInit fuel ctx (Mem.member p off) mty
+                (ctx.layout.memberRecordDeclAt declaration nm)
         | none => refuseUnsupported s!"no offset for member '{nm}'"
       zeroMembers fuel ctx p ty rest declaration
 
@@ -300,7 +301,9 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
           | some ms, e :: _ =>
               let target := field.getD ((ms.head?.map (·.1)).getD "")
               match ctx.layout.fieldOffDeclAt declaration initTy target with
-              | some off => initObject fuel ctx (Mem.member p off) (ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy) e none none
+              | some off => initObject fuel ctx (Mem.member p off) (ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy) e
+                (ctx.layout.memberRecordDeclAt declaration target |>.bind ctx.layout.structuredTypeDecl)
+                (ctx.layout.memberRecordDeclAt declaration target)
               | none => refuseUnsupported s!"no offset for union member '{target}'"
           | _, _ => refuseUnsupported "union initializer has no member"
         else
@@ -401,7 +404,9 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
                   | _ => evalE ctx e
                 liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off) v)
               else
-                initObject fuel ctx (Mem.member p off) mty e none none
+                initObject fuel ctx (Mem.member p off) mty e
+                  (ctx.layout.memberRecordDeclAt declaration nm |>.bind ctx.layout.structuredTypeDecl)
+                  (ctx.layout.memberRecordDeclAt declaration nm)
           | none => refuseUnsupported s!"no offset for member '{nm}'"
           initMembers fuel ctx p ty mrest erest declaration
 
