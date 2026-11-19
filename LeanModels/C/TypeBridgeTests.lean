@@ -135,7 +135,7 @@ private def isError : Except String α → Bool
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.isCharacterType (.cBuiltin "unsigned char")
-#guard !LeanModels.C.C23.Mem.cAliasCompatible "int" "volatile int"
+#guard LeanModels.C.C23.Mem.cAliasCompatible "int" "volatile int"
 #guard LeanModels.C.C23.Mem.cAliasModel.compatibleUsed
   (some (.cBuiltinKind .unsignedChar)) "short" "int"
 #guard (({ LeanModels.C.C23.Layout.unknown with
