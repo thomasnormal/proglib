@@ -329,6 +329,26 @@ theorem picorv32_loaded_addi_program_state_preserves_WF
 
 #print axioms picorv32_loaded_addi_program_state_preserves_WF
 
+/-! The measured first row is consumed only after the reset relation exposes
+    the exact architectural state used by that row.  The relation's WF field
+    is retained in the result rather than silently discarded. -/
+
+theorem picorv32_addi1_boundary_of_reset_relation
+    {design : LeanModels.Sv.Kernel.CoreMemDesign} {program : Memory}
+    {state : LeanModels.Sv.Kernel.CoreMemState}
+    {memoryState : RvMemoryState}
+    (hreset : PicoRV32ResetRelation design program state memoryState)
+    (harch : memoryState.arch = ArchState.init 0) :
+    memoryState.arch.WF ∧
+      RvfiObservation.addiBoundary memoryState.arch
+        rvfi_addi_boundary.addiInput rvfi_proof.addi1
+        0x00500093 1 0 5 := by
+  refine ⟨hreset.arch_wf, ?_⟩
+  rw [harch]
+  exact rvfi_addi_boundary.pinned_addi_boundary
+
+#print axioms picorv32_addi1_boundary_of_reset_relation
+
 
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact

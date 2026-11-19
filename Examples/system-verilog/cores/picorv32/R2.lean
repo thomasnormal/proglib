@@ -137,6 +137,8 @@ obligation:
   program-image all-prefix contract.
   `r1_addi.picorv32_loaded_addi_program_state_preserves_WF` carries the
   reset relation's x0 invariant through an ADDI-only architectural prefix.
+  `r1_addi.picorv32_addi1_boundary_of_reset_relation` consumes an explicit
+  reset relation while keeping the measured first-row state equality visible.
   `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
   consumer that applies this exact-cycle ADDI obligation to the mixed step
   dispatcher without weakening the source-step or order premises.
