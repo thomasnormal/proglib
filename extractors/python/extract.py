@@ -967,7 +967,11 @@ def convert_expr(node):
                     "iter": _in_enclosing_scope(g.iter),
                     "ifs": [],
                 }
-        return unsupported(node, "DictComp")
+        out = unsupported(node, "DictComp", machine_kind="Comprehension")
+        out["machine_comprehension_kind"] = "DictComp"
+        out["machine_components"] = [convert_expr(node.key), convert_expr(node.value)]
+        out["machine_generators"] = _machine_comprehension_generators(node.generators)
+        return out
 
     if isinstance(node, ast.SetComp):
         gens = node.generators
@@ -979,7 +983,11 @@ def convert_expr(node):
             out["machine_iter"] = _in_enclosing_scope(g.iter)
             out["machine_ifs"] = [convert_expr(i) for i in g.ifs]
             return out
-        return unsupported(node, "SetComp")
+        out = unsupported(node, "SetComp", machine_kind="Comprehension")
+        out["machine_comprehension_kind"] = "SetComp"
+        out["machine_components"] = [convert_expr(node.elt)]
+        out["machine_generators"] = _machine_comprehension_generators(node.generators)
+        return out
 
     if isinstance(node, (ast.GeneratorExp, ast.ListComp)):
         # H4: a generator EXPRESSION is structured only in the v0 shape --
@@ -998,11 +1006,9 @@ def convert_expr(node):
             finally:
                 _COMP_DEPTH[0] -= 1
         out = unsupported(node, type(node).__name__, machine_kind="Comprehension")
-        out["machine_children"] = [convert_expr(node.elt)]
-        for generator in gens:
-            out["machine_children"].append(convert_expr(generator.target))
-            out["machine_children"].append(_in_enclosing_scope(generator.iter))
-            out["machine_children"].extend(convert_expr(i) for i in generator.ifs)
+        out["machine_comprehension_kind"] = type(node).__name__
+        out["machine_components"] = [convert_expr(node.elt)]
+        out["machine_generators"] = _machine_comprehension_generators(gens)
         return out
 
     return unsupported(node)
@@ -1018,6 +1024,16 @@ def _in_enclosing_scope(e):
         return convert_expr(e)
     finally:
         _COMP_DEPTH[0] = saved
+
+
+def _machine_comprehension_generators(generators):
+    """Encode each CPython ``ast.comprehension`` without flattening fields."""
+    return [{
+        "target": convert_expr(generator.target),
+        "iter": _in_enclosing_scope(generator.iter),
+        "ifs": [convert_expr(i) for i in generator.ifs],
+        "is_async": bool(getattr(generator, "is_async", 0)),
+    } for generator in generators]
 
 
 def _convert_comprehension(node, g, kind=None, elt=None):

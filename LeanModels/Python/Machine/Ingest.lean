@@ -64,6 +64,8 @@ inductive MExpr where
   | namedExprNode (target : MExpr) (value : MExpr) (span : Span)
   | starred (value : MExpr) (context : MContext) (span : Span)
   | rawNode (kind : String) (children : Array MExpr) (span : Span)
+  | rawComprehension (kind : String) (components : Array MExpr)
+      (generators : Array (MExpr × MExpr × Array MExpr × Bool)) (span : Span)
   | unsupported (kind : String) (span : Span)
 deriving Repr, Inhabited, BEq
 
@@ -372,8 +374,25 @@ partial def mExpr (j : Json) : Except String MExpr := do
             (← mExpr (← mField j "machine_target"))
             (← mExpr (← mField j "machine_iter")) (← ifs.mapM mExpr) #[] span)
       | .ok (.str "Comprehension") =>
-          let children ← (← mField j "machine_children").getArr?
-          pure (.rawNode kind (← children.mapM mExpr) span)
+          match j.getObjVal? "machine_generators", j.getObjVal? "machine_components" with
+          | .ok generatorJson, .ok componentJson =>
+              let parseGenerator := fun generator => do
+                let target ← mExpr (← mField generator "target")
+                let iter ← mExpr (← mField generator "iter")
+                let ifs ← (← (← mField generator "ifs").getArr?).mapM mExpr
+                let isAsync := match generator.getObjVal? "is_async" with
+                  | .ok (.bool value) => value
+                  | _ => false
+                pure (target, iter, ifs, isAsync)
+              let generators ← (← generatorJson.getArr?).mapM parseGenerator
+              let components ← (← componentJson.getArr?).mapM mExpr
+              let comprehensionKind ← match j.getObjVal? "machine_comprehension_kind" with
+                | .ok (.str value) => pure value
+                | _ => pure "Comprehension"
+              pure (.rawComprehension comprehensionKind components generators span)
+          | _, _ =>
+              let children ← (← mField j "machine_children").getArr?
+              pure (.rawNode kind (← children.mapM mExpr) span)
       | _ => pure (.unsupported kind span)
   | "Lambda" =>
       let parseParam := fun param => do
@@ -745,6 +764,8 @@ partial def mExprToExpr : MExpr → Expr
       | .name name _ _ => .unsupported "Starred" name span
       | _ => .unsupported "Starred" "" span
   | .rawNode kind _ span => .unsupported kind "machine comprehension frontier" span
+  | .rawComprehension kind _ _ span =>
+      .unsupported kind "machine comprehension frontier" span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .set _ span | .joinedStr _ span | .formattedValue _ _ _ span
   | .listComp _ _ _ _ _ span | .setComp _ _ _ _ _ span
@@ -813,11 +834,14 @@ partial def mExprToRaw : MExpr → RRawExpr
       .node "NamedExpr" #[mExprToRaw target, mExprToRaw value] span
   | .starred value _ span => .node "Starred" #[mExprToRaw value] span
   | .rawNode kind children span => .node kind (children.map mExprToRaw) span
+  | .rawComprehension kind components generators span =>
+      .node kind ((components.map mExprToRaw) ++ generators.flatMap
+        (fun (target, iter, ifs, _) => #[mExprToRaw target, mExprToRaw iter] ++ ifs.map mExprToRaw)) span
   | .unsupported kind span => .node kind #[] span
 
 partial def mExprHasRaw : MExpr → Bool
   | .constant _ _ _ | .name _ _ _ => false
-  | .unsupported _ _ | .rawNode _ _ _ => true
+  | .unsupported _ _ | .rawNode _ _ _ | .rawComprehension _ _ _ _ => true
   | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
   | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ _ => true
@@ -1087,6 +1111,21 @@ private def ingestConstantKindModule : Json :=
         ("value", Lean.Json.mkObj [
           ("type", Lean.toJson "str"), ("value", Lean.toJson "raw")])])]])])]
 
+private def ingestComprehensionModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [
+    ("kind", Lean.toJson "Module"),
+    ("body", Lean.Json.arr #[Lean.Json.mkObj [
+      ("kind", Lean.toJson "Expr"), ("span", ingestSpan),
+      ("value", Lean.Json.mkObj [
+        ("kind", Lean.toJson "Unsupported"),
+        ("span", ingestSpan),
+        ("machine_kind", Lean.toJson "Comprehension"),
+        ("machine_comprehension_kind", Lean.toJson "ListComp"),
+        ("machine_components", Lean.Json.arr #[ingestName "x"]),
+        ("machine_generators", Lean.Json.arr #[Lean.Json.mkObj [
+          ("target", ingestName "x"), ("iter", ingestName "items"),
+          ("ifs", Lean.Json.arr #[]), ("is_async", Lean.toJson true)]])])]])])]
+
 #guard match parseMachineModule ingestModule with
   | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _ _] _ _], typeIgnores := #[] } => true
   | _ => false
@@ -1113,6 +1152,11 @@ private def ingestConstantKindModule : Json :=
 
 #guard match parseMachineModule ingestConstantKindModule with
   | .ok { body := #[.expr (.constant (.str "raw") (some "r") _) _], typeIgnores := #[] } => true
+  | _ => false
+
+#guard match parseMachineModule ingestComprehensionModule with
+  | .ok { body := #[.expr (.rawComprehension "ListComp" #[.name "x" _ _]
+      #[(.name "x" _ _, .name "items" _ _, #[], true)] _) _], typeIgnores := #[] } => true
   | _ => false
 
 private def ingestAnnAssignModule : Json :=
