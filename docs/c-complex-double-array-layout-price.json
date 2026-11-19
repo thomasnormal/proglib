@@ -1,0 +1,88 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 2,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20020411-1.c",
+   "sha256": "fffe831c2eba4bc557ea7c8d048dcd56f5b6ad0cdb49f9b90ac4aa7cfd8e03d8",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id30",
+     "element_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "_Complex float[1]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id74",
+     "element_size_bytes": 16,
+     "size_bytes": 16,
+     "type": "_Complex double[1]"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr49644.c",
+   "sha256": "228b6916df8f49eaf8bf4fce85958729fbd745ed87f88edd223b0acc98646e45",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id24",
+     "element_size_bytes": 16,
+     "size_bytes": 192,
+     "type": "_Complex double[12]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id24",
+     "pointee_size_bytes": 16,
+     "size_bytes": 8,
+     "type": "_Complex double *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id24",
+     "size_bytes": 16,
+     "type": "_Complex double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id34",
+     "element_size_bytes": 8,
+     "size_bytes": 96,
+     "type": "double[12]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id34",
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "double *"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id64",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "multiple",
+ "walls": [
+  "unsupported:no layout for declared type '_Complex double[12]'",
+  "unsupported:no layout for declared type '_Complex double[1]'"
+ ]
+}
