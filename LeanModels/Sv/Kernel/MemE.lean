@@ -393,7 +393,7 @@ def memEStmtReadExprs : PStmt → List PExpr
         memEStmtReadExprs body
   | .caseStmt subject items default? _ _ =>
       memEReadExprs subject ++ memECaseReadExprs items ++ memEStmtReadExprsOpt default?
-  | .localDecl _ _ init? => init?.toList.flatMap memEReadExprs
+  | .localDecl _ _ init? | .automaticDecl _ _ init? => init?.toList.flatMap memEReadExprs
   | .unsupported .. => []
 
 def memEStmtReadExprsOpt : Option PStmt → List PExpr
@@ -465,7 +465,7 @@ def execMemEForBody (d : MemEDesign) (s : MemEState) : PStmt → MemEExec
       .error "E memory edge loop body requires an NBA assignment"
   | .caseStmt .. => .error "E memory edge loop case is outside the first memory profile"
   | .forLoop .. => .error "nested E memory edge loops are outside the first memory profile"
-  | .localDecl .. => .error "E memory edge loop body does not admit static procedural declarations"
+  | .localDecl .. | .automaticDecl .. => .error "E memory edge loop body does not admit procedural declarations"
   | .unsupported k _ => .error s!"unsupported statement '{k}'"
 
 def execMemEForBodyList (d : MemEDesign) (s : MemEState) : List PStmt → MemEExec
@@ -545,7 +545,7 @@ def execMemEStmt (d : MemEDesign) (s : MemEState) : PStmt → MemEExec
   | .caseStmt .. => .error "E memory edge case is outside the first memory profile"
   | .forLoop iterator init condition step body =>
       execMemEFor d s iterator init condition step body
-  | .localDecl .. => .error "E memory edge body does not admit static procedural declarations"
+  | .localDecl .. | .automaticDecl .. => .error "E memory edge body does not admit procedural declarations"
   | .unsupported k _ => .error s!"unsupported statement '{k}'"
 
 def execMemEStmtOpt (d : MemEDesign) (s : MemEState) : Option PStmt → MemEExec
@@ -661,7 +661,7 @@ def execMemEImplicitBody (d : MemEDesign) (s : MemEState) : PStmt →
   | .forLoop .. => .error "E implicit body procedural loops are outside the memory profile"
   | .nbaAssign .. | .nbaAssignL .. =>
       .error "E implicit body requires blocking assignments"
-  | .localDecl .. => .error "E implicit body does not admit static procedural declarations"
+  | .localDecl .. | .automaticDecl .. => .error "E implicit body does not admit procedural declarations"
   | .unsupported k _ => .error s!"unsupported statement '{k}'"
 termination_by structural stmt => stmt
 
@@ -705,7 +705,7 @@ def memEImplicitBodyAdmission : PStmt → Except String Unit
       .error "E implicit body procedural loops are outside the current memory profile"
   | .nbaAssign .. | .nbaAssignL .. =>
       .error "E implicit body requires blocking assignments"
-  | .localDecl .. => .error "E implicit body does not admit static procedural declarations"
+  | .localDecl .. | .automaticDecl .. => .error "E implicit body does not admit procedural declarations"
   | .unsupported k _ => .error s!"unsupported statement '{k}'"
 
 def memEImplicitBodyListAdmission : List PStmt → Except String Unit
@@ -738,7 +738,7 @@ def memEForBodyAdmission : PStmt → Except String Unit
       .error "E memory edge loop body requires an NBA assignment"
   | .caseStmt .. => .error "E memory edge loop case is outside the first memory profile"
   | .forLoop .. => .error "nested E memory edge loops are outside the first memory profile"
-  | .localDecl .. => .error "E memory edge loop body does not admit static procedural declarations"
+  | .localDecl .. | .automaticDecl .. => .error "E memory edge loop body does not admit procedural declarations"
   | .unsupported k _ => .error s!"unsupported statement '{k}'"
 
 def memEForBodyListAdmission : List PStmt → Except String Unit
@@ -759,7 +759,7 @@ def memEEdgeBodyAdmission : PStmt → Except String Unit
   | .blockingAssign .. | .blockingAssignL .. =>
       .error "E memory edge body requires an NBA assignment"
   | .caseStmt .. => .error "E memory edge case is outside the first memory profile"
-  | .localDecl .. => .error "E memory edge body does not admit static procedural declarations"
+  | .localDecl .. | .automaticDecl .. => .error "E memory edge body does not admit procedural declarations"
   | .unsupported k _ => .error s!"unsupported statement '{k}'"
 
 def memEEdgeBodyListAdmission : List PStmt → Except String Unit

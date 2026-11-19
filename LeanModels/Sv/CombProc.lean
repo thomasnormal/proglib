@@ -1353,7 +1353,7 @@ def armLeaf? (ds : List DeclT) : PStmt → Except String (Acc × PLfR)
               else .error (leafRefusal v)
   | .nbaAssign .. | .nbaAssignL .. =>
       .error "nonblocking assignment in always_comb (outside the v1 fragment)"
-  | .localDecl .. =>
+  | .localDecl .. | .automaticDecl .. =>
       .error "local declaration in always_comb (outside the v1 fragment)"
   | .ifStmt .. | .block .. | .caseStmt .. | .unsupported .. | .forLoop .. =>
       .error "`case` arm is not a single assignment `t = v;` (the first fragment has no `begin … end`, `if` or `case` inside an arm)"
@@ -1456,7 +1456,7 @@ theorem armLeaf?_spec (ds : List DeclT) :
           · simp at h
   | .nbaAssign .., tg, a, h => by simp [armLeaf?] at h
   | .nbaAssignL .., tg, a, h => by simp [armLeaf?] at h
-  | .localDecl .., tg, a, h => by simp [armLeaf?] at h
+  | .localDecl .., tg, a, h | .automaticDecl .., tg, a, h => by simp [armLeaf?] at h
   | .ifStmt .., tg, a, h => by simp [armLeaf?] at h
   | .block .., tg, a, h => by simp [armLeaf?] at h
   | .caseStmt .., tg, a, h => by simp [armLeaf?] at h
@@ -1556,7 +1556,7 @@ def treeStmt? (ds : List DeclT) : PStmt → Except String (Acc × PTR)
   | .block ss => treeStmts? ds ss
   | .nbaAssign .. | .nbaAssignL .. =>
       .error "nonblocking assignment in always_comb (outside the v1 fragment)"
-  | .localDecl .. =>
+  | .localDecl .. | .automaticDecl .. =>
       .error "local declaration in always_comb (outside the v1 fragment)"
   | .caseStmt subj items dflt mode check => caseStmt? ds subj items dflt mode check
   | .unsupported k _ => .error s!"always_comb statement `{k}` (unsupported)"
@@ -1695,7 +1695,7 @@ theorem treeStmt?_spec (ds : List DeclT) : ∀ (s : PStmt) (tg : Acc) (ptr : PTR
       exact treeStmts?_spec ds ss tg ptr h
   | .nbaAssign t v, tg, ptr, h => by simp [treeStmt?] at h
   | .nbaAssignL t v, tg, ptr, h => by simp [treeStmt?] at h
-  | .localDecl .., tg, ptr, h => by simp [treeStmt?] at h
+  | .localDecl .., tg, ptr, h | .automaticDecl .., tg, ptr, h => by simp [treeStmt?] at h
   | .caseStmt subj items dflt mode check, tg, ptr, h => by
       unfold treeStmt? at h
       exact caseStmt?_spec ds subj items dflt mode check tg ptr h
