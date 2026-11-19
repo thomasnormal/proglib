@@ -205,14 +205,22 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
 def typedBytesAggregate (s : State) (ty : Nat) (bytes : List Nat) : Option Cell :=
   match (findTypeLayout s ty).orElse fun _ => findSourceTypeLayout s ty with
   | some info =>
-      if info.fieldOffsets.isEmpty || !info.kind.contains "std::alloc::Layout" then none
+      if info.fieldOffsets.isEmpty || !info.kind.contains "std::sync::atomic::Atomic" then none
       else
-        let fields := info.fieldOffsets.map fun offsetBits =>
-          let offsetBytes := offsetBits / 8
-          let chunk := (bytes.drop offsetBytes).take 8
-          (if chunk.length ≤ 8 ∧ chunk.all (· ≤ 255) then
-            some (.int (Int.ofNat (littleEndian chunk)))
-          else none).getD (.bytes chunk)
+        let rec fields : Nat → List Nat → List Cell
+          | _, [] => []
+          | index, offsetBits :: rest =>
+              let offsetBytes := offsetBits / 8
+              let chunk := (bytes.drop offsetBytes).take 8
+              let value := match info.typeArgs.drop index |>.head? with
+                | some fieldType =>
+                    (typedBytesValue s fieldType chunk).map Cell.int |>.getD (Cell.bytes chunk)
+                | none =>
+                    (if chunk.length ≤ 8 ∧ chunk.all (· ≤ 255) then
+                      some (.int (Int.ofNat (littleEndian chunk)))
+                    else none).getD (Cell.bytes chunk)
+              value :: fields (index + 1) rest
+        let fields := fields 0 info.fieldOffsets
         some (.aggregate fields)
   | none => none
 
