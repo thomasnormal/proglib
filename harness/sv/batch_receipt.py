@@ -306,6 +306,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("mode", 2),), (Port("result", 2),)),
     Fixture("bits_package_repro.sv", "bits_package_repro",
             (Port("x", 4),), (Port("y", 1),)),
+    Fixture("bits_package_param_e.sv", "bits_package_param_e",
+            (Port("x", 1),), (Port("y", 1),)),
     Fixture("bits_type_family_repro.sv", "bits_type_family_repro",
             (Port("x", 4),), (Port("y", 4),)),
     Fixture("bits_union_repro.sv", "bits_union_repro",
