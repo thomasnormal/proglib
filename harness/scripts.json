@@ -739,21 +739,6 @@
     "note": "Positional-only parameters are outside the frozen runner tier."
   },
   {
-    "file": "harness/scripts/machine_function_alias_rebind.py",
-    "expect": "match",
-    "note": "A function alias retains the original function object after the defining name is rebound."
-  },
-  {
-    "file": "harness/scripts/machine_unbound_local_read.py",
-    "expect": "match",
-    "note": "Static local binding makes a read before assignment raise UnboundLocalError."
-  },
-  {
-    "file": "harness/scripts/machine_unbound_local_delete.py",
-    "expect": "match",
-    "note": "Static local binding makes a delete before assignment raise UnboundLocalError."
-  },
-  {
     "file": "harness/scripts/type_comment_aug.py",
     "expect": "match",
     "note": "A type comment after an augmented assignment: CPython's run-time parse ignores it (the type-comment grammar would reject it)."
@@ -792,5 +777,10 @@
     "file": "harness/scripts/dictcomp_order_function.py",
     "expect": "match",
     "note": "Dictionary-comprehension insertion order inside a function body; master returned the keys reversed."
+  },
+  {
+    "file": "harness/scripts/machine_unbound_local_delete.py",
+    "expect": "match",
+    "note": "Static local binding makes a delete before assignment raise UnboundLocalError."
   }
 ]
