@@ -107,7 +107,7 @@ def canonicalize_ids(tree):
         if isinstance(value, dict):
             for key in list(value):
                 item = value[key]
-                if (key == "id" or key.endswith("Id")) and isinstance(item, str):
+                if (key == "id" or key.endswith("Id") or key == "referencedMemberDecl") and isinstance(item, str):
                     value[key] = canon(item)
                 else:
                     walk(item)
@@ -453,7 +453,7 @@ def nonempty(node):
 
 class Extractor:
     def __init__(self, target, source_text, string_bytes=None, floating_bits=None,
-                 record_layouts=None):
+                 record_layouts=None, member_record_ids=None):
         self.loc = Loc(target)
         self.text = source_text
         self.string_bytes = string_bytes
@@ -461,6 +461,7 @@ class Extractor:
         self.record_layouts = (record_layouts or {}).get("layouts", {})
         self.enum_values = (record_layouts or {}).get("enum_values", {})
         self.type_layouts = (record_layouts or {}).get("type_layouts", [])
+        self.member_record_ids = member_record_ids or {}
         self.lines = source_text.splitlines()
         self.labels = {}
         self.unsupported = 0
@@ -812,9 +813,14 @@ class Extractor:
 
     def e_MemberExpr(self, n):
         c = kids(n)
-        return {"base": self.node(c[0]) if c else None,
-                "member": n.get("name"), "arrow": bool(n.get("isArrow")),
-                "type": qual(n)}
+        member_ref = n.get("referencedMemberDecl")
+        member_id = member_ref if isinstance(member_ref, str) else (member_ref or {}).get("id")
+        out = {"base": self.node(c[0]) if c else None,
+               "member": n.get("name"), "arrow": bool(n.get("isArrow")),
+               "type": qual(n)}
+        if member_id in self.member_record_ids:
+            out["record_decl_id"] = self.member_record_ids[member_id]
+        return out
 
     def e_ArraySubscriptExpr(self, n):
         c = kids(n)
@@ -973,12 +979,25 @@ def extract(path, source_name=None, standard="c23"):
     check_profile()
     src = open(path, "rb").read()
     tu = canonicalize_ids(clang_json(path))
+    member_record_ids = {}
+    def collect_member_records(node, record_id=None):
+        if isinstance(node, dict):
+            current = node.get("id") if node.get("kind") == "RecordDecl" else record_id
+            if node.get("kind") == "FieldDecl" and node.get("id") and current:
+                member_record_ids[node["id"]] = current
+            for child in kids(node):
+                collect_member_records(child, current)
+        elif isinstance(node, list):
+            for child in node:
+                collect_member_records(child, record_id)
+    collect_member_records(tu)
     target = os.path.basename(path)
     string_bytes = string_byte_records(path)
     floating_bits = floating_bit_records(path)
     record_layouts = record_layout_records(path)
     structured_types = structured_type_records(path)
-    ex = Extractor(target, src.decode(), string_bytes, floating_bits, record_layouts)
+    ex = Extractor(target, src.decode(), string_bytes, floating_bits, record_layouts,
+                   member_record_ids)
     ex.collect_labels(tu)
 
     # Top-level decls attributed to the censused file, in document order.
@@ -1187,7 +1206,17 @@ def selftest():
           [{"decl_id": "id-union", "is_union": True},
            {"decl_id": "id-struct", "is_union": False}])
 
-    # 6. A field attribute is evidence carried alongside its FieldDecl. It
+    # 6. MemberExpr carries the referenced FieldDecl's owning record identity
+    # from Clang's AST. The semantic layout join consumes this identity for
+    # nested and pointer member access without peeling a display spelling.
+    ex.member_record_ids = {"id-field": "id-record"}
+    member = {"kind": "MemberExpr", "range": {}, "name": "x",
+              "isArrow": False, "referencedMemberDecl": "id-field",
+              "type": {"qualType": "int"}, "inner": []}
+    check("member parser record identity is retained",
+          ex.e_MemberExpr(member).get("record_decl_id"), "id-record")
+
+    # 7. A field attribute is evidence carried alongside its FieldDecl. It
     # must not replace the field: the layout probe supplies the exact offset,
     # while the AST still records why that offset differs from natural ABI
     # alignment.

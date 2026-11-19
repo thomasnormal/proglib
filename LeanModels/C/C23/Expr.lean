@@ -1497,7 +1497,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
       | none => refuseUnsupported s!"unbound name '{name}'"
   -- §6.5.3.4p4: `p->f` is DEFINED as `(*p).f`, so the two spellings are
   -- ONE rule here. 226 arrow sites, 184 dot.
-  | .member base field arrow ty _ => memberAddr ctx base field arrow ty
+  | .member base field arrow ty _ recordId => memberAddr ctx base field arrow ty recordId
   -- §6.5.3.2p2: `a[i]` is DEFINED as `*(a + i)`. The base arrives already
   -- decayed (clang inserts ArrayToPointerDecay), so it is a VALUE here.
   | .index base idx ty _ => indexAddr ctx base idx ty
@@ -1561,7 +1561,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | some id => pure (.funPtr id)
           | none =>
               match sub with
-              | .member base field arrow fieldTy _ =>
+              | .member base field arrow fieldTy _ _ =>
                   if ctx.layout.fieldBitsAt base field |>.isSome then
                     loadBitFieldAt ctx base.ty field fieldTy p (some base)
                   else
@@ -1702,7 +1702,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let p ← evalLValue ctx l
         let v ← evalExpr ctx r
         match l with
-        | .member base field arrow fieldTy _ =>
+        | .member base field arrow fieldTy _ _ =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
               storeBitFieldAt ctx base.ty field fieldTy p v (some base)
               -- §6.5.16.2: the assignment expression has the value after
@@ -1781,7 +1781,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let p ← evalLValue ctx sub
         let subStructured := ctx.layout.structuredTypeAt sub
         let old ← match sub with
-          | .member base field arrow fieldTy _ =>
+          | .member base field arrow fieldTy _ _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 loadBitFieldAt ctx base.ty field fieldTy p (some base)
               else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
@@ -1794,7 +1794,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             let nv ← evalArith ctx (if op == "++" then "+" else "-") old
               (.int IntTy.int_ 1) (ctx.layout.normalizeTy sub.ty)
             match sub with
-            | .member base field arrow fieldTy _ =>
+            | .member base field arrow fieldTy _ _ =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
                   storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
                 else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
@@ -1811,7 +1811,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                   | none => intTyOf (ctx.layout.normalizeTy sub.ty)
                 let stored := convert storedT nv
                 match sub with
-                | .member base field arrow fieldTy _ =>
+                | .member base field arrow fieldTy _ _ =>
                     if ctx.layout.fieldBitsAt base field |>.isSome then
                       storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
                     else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
@@ -1834,7 +1834,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       -- completed; this preserves writes made by a called RHS (for example
       -- `x |= foo()` where `foo` updates `x`).
       let old ← match l with
-        | .member base field arrow fieldTy _ =>
+        | .member base field arrow fieldTy _ _ =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p (some base)
             else
@@ -1851,7 +1851,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           -- performs the provenance, bound, and element-size checks.
           let nv ← evalArith ctx (compoundBase op) old rv computeResultType
           match l with
-          | .member base field arrow fieldTy _ =>
+          | .member base field arrow fieldTy _ _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
               else
@@ -1862,7 +1862,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | .float32 a, .float32 b => do
           let nv ← float32Binop (compoundBase op) a b
           match l with
-          | .member base field arrow fieldTy _ =>
+          | .member base field arrow fieldTy _ _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
@@ -1873,7 +1873,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | .float64 a, .float64 b => do
           let nv ← float64Binop (compoundBase op) a b
           match l with
-          | .member base field arrow fieldTy _ =>
+          | .member base field arrow fieldTy _ _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
@@ -1895,7 +1895,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let (_, nvN) ← asInt nv
           let stored := convert storageT nvN
           match l with
-          | .member base field arrow fieldTy _ =>
+          | .member base field arrow fieldTy _ _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
               else
@@ -1908,8 +1908,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- Clang wraps scalar reads in `LValueToRValue`, so these are the
   -- aggregate-valued cases; evaluating the address and loading is the rule
   -- either way (§6.3.2.1p2).
-  | .member base field arrow ty span => do
-      let p ← memberAddr ctx base field arrow ty
+  | .member base field arrow ty span recordId => do
+      let p ← memberAddr ctx base field arrow ty recordId
       if ctx.layout.fieldBitsAt base field |>.isSome then
         loadBitFieldAt ctx base.ty field ty p (some base)
       else
@@ -2087,24 +2087,20 @@ Takes `base` — a strict SUBTERM — rather than the reassembled node. The
 node this replaces was rebuilt as `.member base field arrow ty sp`, which
 is not a subterm of anything, and that is what defeated the recursion. -/
 def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
-    (fieldTy : CType) : EvalM Ptr := do
+    (fieldTy : CType) (recordId : Option DeclarationId) : EvalM Ptr := do
   let basePtr ← if arrow then (do let v ← evalExpr ctx base; asPtr v)
                 else evalLValue ctx base
   let off? := if field.isEmpty then
-      ctx.layout.fieldOffTypeDeclAt (directDeclId base) base.ty fieldTy
+      ctx.layout.fieldOffTypeDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty fieldTy
     else
       match ctx.layout.structuredTypeAt base with
       | some structuredType =>
           if structuredType.recordLike then
-            ctx.layout.fieldOffAt base field
+            ctx.layout.fieldOffDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty field
           else
-            -- A typedef reference is a parser-native identity node whose
-            -- underlying record is supplied by the translation unit's
-            -- checked layout facts.  Let that fact resolve the member while
-            -- retaining the loud fallback for scalar and function types.
-            ctx.layout.fieldOff base.ty field
+            ctx.layout.fieldOffDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty field
       | none =>
-          ctx.layout.fieldOffAt base field
+          ctx.layout.fieldOffDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty field
   match off? with
   | some off =>
       let recordLike := (ctx.layout.structuredTypeAt base).map
@@ -2367,7 +2363,8 @@ theorem Expr.isPure_cast {ck : String} {s : Expr} {t : CType} {sp : CSpan}
   exact h.2
 
 theorem Expr.isPure_member {b : Expr} {f : String} {a : Bool} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.member b f a t sp) = true) : Expr.isPure b = true := by
+    {recordId : Option DeclarationId}
+    (h : Expr.isPure (.member b f a t sp recordId) = true) : Expr.isPure b = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
@@ -2749,9 +2746,9 @@ needs an induction of its own: both take strict SUBTERMS, which is the
 same property that made the termination measure work. -/
 
 theorem MemInvariant.memberAddr' {ctx : Ctx} {base : Expr} {field : String} {arrow : Bool}
-    {fieldTy : CType}
+    {fieldTy : CType} {recordId : Option DeclarationId}
     (hv : MemInvariant (evalExpr ctx base)) (hl : MemInvariant (evalLValue ctx base)) :
-    MemInvariant (memberAddr ctx base field arrow fieldTy) := by
+    MemInvariant (memberAddr ctx base field arrow fieldTy recordId) := by
   first | simp only [memberAddr] | rw [memberAddr.eq_def]
   mem_inv
 
@@ -2832,10 +2829,10 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
               all_goals first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ |
                 (simp [loadBitFieldAt]; mem_inv) | mem_inv,
             by open_lvalue; mem_inv⟩
-      | member b f a fieldTy _ =>
+      | member b f a fieldTy _ recordId =>
           obtain ⟨i1, i2⟩ := ih b (by simp only [Expr.size_member] at he; omega)
             (Expr.isPure_member hp)
-          have hma : MemInvariant (memberAddr ctx b f a fieldTy) := MemInvariant.memberAddr' i1 i2
+          have hma : MemInvariant (memberAddr ctx b f a fieldTy recordId) := MemInvariant.memberAddr' i1 i2
           exact ⟨by open_eval; simp [loadBitFieldAt]; mem_inv,
             by open_lvalue; mem_inv⟩
       | index b i ty _ =>
