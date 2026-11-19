@@ -888,7 +888,22 @@
     "id": "long-double-floating-literal-refusal",
     "source": "int main(void) { return 1.5L == 1.5L ? 0 : 1; }",
     "expect": "refuse",
-    "error": "floating literal lacks parser-native bits"
+    "error": "long double floating literal",
+    "floating_envelope_checks": [
+      "floating_bits"
+    ]
+  },
+  {
+    "id": "long-double-object-layout-refusal",
+    "source": "int main(void) { long double x = 1.5L; return x == 1.5L ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "no layout for declared type 'long double'"
+  },
+  {
+    "id": "complex-long-double-layout-refusal",
+    "source": "int main(void) { _Complex long double z = 0; return z == 0 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "no layout for declared type '_Complex long double'"
   },
   {
     "id": "structured-pointer-arithmetic",

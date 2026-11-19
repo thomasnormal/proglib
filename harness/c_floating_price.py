@@ -17,7 +17,10 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 EXTRACTOR = ROOT / "extractors" / "c" / "extract.py"
-WALL = "unsupported:floating literal (floats are a named decision)"
+# The survey normalizes the current semantic boundary separately from the
+# binary32/binary64 parser wall.  Long double rows are priced here because the
+# approved Clang probe already exposes their 80-bit rounded patterns.
+WALL = "unsupported:long double floating literal"
 DEFAULT_INPUT = ROOT / "docs" / "c-survey.json"
 DEFAULT_JSON = ROOT / "docs" / "c-floating-price.json"
 DEFAULT_PAGE = ROOT / "docs" / "c-floating-price.md"
@@ -116,7 +119,8 @@ def price(data, roots=None, clang=None, plugin=None, manifest=None):
         "types_present": dict(sorted(types.items())),
         "rows": priced,
         "interpretation": (
-            "The 39 files are the survey's sole dynamic floating-literal wall. "
+            "The candidate files are the survey's sole dynamic long-double "
+            "floating-literal wall. "
             "Every FloatingLiteral observed in their approved Clang envelopes "
             "joined to a parser-native rounded bit pattern. This prices the "
             "frontend/value boundary only; no floating semantics or flip is claimed."
