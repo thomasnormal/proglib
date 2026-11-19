@@ -379,6 +379,9 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("x", 32),), (Port("y", 32),)),
     Fixture("packed_enum_package_repro.sv", "packed_enum_package_repro",
             (Port("mode", 1),), (Port("y", 1),)),
+    Fixture("packed_enum_param_e.sv", "packed_enum_param_e",
+            (Port("raw", 2),), (Port("y", 1),),
+            (Point("W2", (2,)), Point("W4", (4,)))),
     Fixture("parameterized_storage_structure.sv", "parameterized_storage_structure",
             (Port("x", 8),), (Port("y", 8),),
             (Point("N1", (1,)), Point("N2", (2,)))),
@@ -433,6 +436,9 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
         return point.args[0]
     if fixture.top == "packed_shift_register_canonical_e" and point.args \
             and port.name == "q":
+        return point.args[0]
+    if fixture.top == "packed_enum_param_e" and point.args \
+            and port.name == "raw":
         return point.args[0]
     if fixture.top == "generated_array_nested" and point.args \
             and port.name in ("x", "taps"):
@@ -525,6 +531,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "clk_arst_comma": ("N",),
             "latch_generate_e": ("N",),
             "proc_local_for_automatic": ("N",),
+            "packed_enum_param_e": ("W",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []

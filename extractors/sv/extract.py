@@ -31309,12 +31309,20 @@ def _sym_enum_values_point_dependent(t):
             if init is not None and _sym_syntax_point_dependent(init, scope):
                 return True
         # Round 7 folds (round 6 FOLDS verifier blocker 2): a BASE type whose
-        # width depends on the point makes every member value depend on it
-        # too (`{EA = -1}` is 2^N - 1, a value past 2^N is out of range), and
-        # Lean only truncates the default point's value to the point's base
-        # width (`Param.lean` `enumMemberVals`). A whole-class refusal: an
-        # enum over `logic [N-1:0]` whose members are plain literals (an FSM
-        # `{S0, S1, S2}`) is refused too, a recorded over-refusal.
+        # width depends on the point can change an implicit or width-sensitive
+        # member value (`{EA = -1}` is 2^N - 1, and an omitted member follows
+        # its predecessor).  A fully explicit list of fixed integral literals
+        # keeps the same integer member values at every point, so the source
+        # enum table can be rebound at the instantiated base width by
+        # `Param.lean` without retaining a default-point value.
+        members = [m for m in syn.members if type(m).__name__ != "Token"]
+        fixed_explicit = bool(members) and all(
+            getattr(member, "initializer", None) is not None
+            and not _sym_syntax_point_dependent(
+                getattr(member, "initializer", None), scope)
+            for member in members)
+        if fixed_explicit:
+            return False
         if (_sym_syntax_point_dependent(getattr(syn, "baseType", None), scope)
                 or _sym_syntax_point_dependent(getattr(syn, "dimensions", None), scope)):
             return True

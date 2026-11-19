@@ -116,6 +116,18 @@ module en7one (input logic [3:0] a, output logic [63:0] o1);
 endmodule
 """
 
+EXPLICIT_PARAM_ENUM = """
+module explicit_param_enum #(parameter int N = 2)
+  (input logic [N-1:0] a, output logic y);
+  typedef enum logic [N-1:0] {S0 = 0, S1 = 1} s_t;
+  s_t state;
+  always_comb begin
+    state = s_t'(a);
+    y = (state == S1);
+  end
+endmodule
+"""
+
 
 class EnumMemberWidths(unittest.TestCase):
     def procs(self, top):
@@ -137,6 +149,15 @@ class EnumMemberWidths(unittest.TestCase):
         ps = self.procs("en7")
         self.assertEqual(kinds(ps[3]), [])
         self.assertEqual(kinds(ps[4]), [])
+
+    def test_explicit_literals_in_parametric_base_stay(self):
+        ps = self.procs_from(EXPLICIT_PARAM_ENUM, "explicit_param_enum")
+        self.assertEqual(kinds(ps[0]), [])
+
+    def procs_from(self, source, top):
+        env = extract_sym(source, top)
+        mod = [m for m in env["design"]["modules"] if m["name"] == top][0]
+        return mod["processes"]
 
 
 SHIFT_OVERRIDES = """
