@@ -585,14 +585,14 @@
   {
     "id": "record-anonymous-typedef-member-layout",
     "source": "typedef struct { int x; int y; } S; int main(void) { S s = {1, 2}; return s.x + s.y == 3 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0,
     "layout_envelope_checks": [
       "record_layout",
       "type_layout"
-    ]
+    ],
+    "return_value": 0
   },
   {
     "id": "effective-type-const-qualified",
