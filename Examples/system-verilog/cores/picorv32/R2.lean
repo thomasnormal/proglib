@@ -156,6 +156,10 @@ obligation:
   same all-family program refinement directly from a total canonical
   `rvfiStep` witness, constructing the exact loaded machine while retaining
   the reset relation, admitted schedule, and progress premises.
+  `r1_rv32i.picorv32_loaded_rv32i_program_refinement_of_family_boundary`
+  packages the same loaded all-prefix contract when the invariant supplies
+  the parser-derived family-tagged boundary union, whose projection is
+  checked by `CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary`.
   `CoreRvfiMachine.ofTotal` packages a proved total canonical step and RVFI
   decode witness into the machine consumed by these R1 bridges, while
   `CoreRvfiMachine.ofTotal_exact` preserves the witness equality.
