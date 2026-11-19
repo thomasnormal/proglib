@@ -980,5 +980,11 @@
       "type_layout",
       "record_layout"
     ]
+  },
+  {
+    "id": "pointer-bytes-character-nonnull",
+    "source": "int main(void) { int x = 7; int *p = &x; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
   }
 ]
