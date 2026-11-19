@@ -1220,15 +1220,21 @@ class ExtractorTests(unittest.TestCase):
         self.assertEqual(e["kind"], "Unsupported")
         self.assertEqual(e["py_kind"], "Dict:unpack")
 
-    def test_set_display_lowers_to_existing_set_constructor(self):
+    # A set display is CPython's own `Set` node with its elements in order.
+    # The compatibility decoder (Json.lean) reads it as the loud
+    # `Unsupported "Set:display"` node it had before; LeanModels/Python/Tests.lean
+    # guards that side.
+    def test_set_display_is_a_structured_set_node(self):
         e = self._first_return_expr("def f(a):\n    return {1, True, a}\n")
-        self.assertEqual(e["kind"], "Unsupported")
-        self.assertEqual(e["py_kind"], "Set:display")
+        self.assertEqual(e["kind"], "Set")
+        self.assertEqual([x["kind"] for x in e["elts"]],
+                         ["Constant", "Constant", "Name"])
 
-    def test_set_display_unpack_reuses_starred_list_lowering(self):
+    def test_set_display_unpack_keeps_the_starred_element(self):
         e = self._first_return_expr("def f(xs):\n    return {*xs}\n")
-        self.assertEqual(e["kind"], "Unsupported")
-        self.assertEqual(e["py_kind"], "Set:display")
+        self.assertEqual(e["kind"], "Set")
+        self.assertEqual(e["elts"][0]["kind"], "Unsupported")
+        self.assertEqual(e["elts"][0]["py_kind"], "Starred")
 
     def test_set_comprehension_lowers_to_set_generator(self):
         e = self._first_return_expr(

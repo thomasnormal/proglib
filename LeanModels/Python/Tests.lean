@@ -28,6 +28,21 @@ private def sp : Span := default
   "P" ++ String.mk (List.replicate 49 'é') ++ "�"
 #guard parseConst (Lean.Json.mkObj [("type", Lean.toJson "bytes"),
     ("value", Lean.toJson (#[0, 128, 255] : Array Nat))]) matches .ok (.bytes #[0, 128, 255])
+
+-- The machine envelope keeps set displays, expression lambdas, `async for` and `async with` as
+-- CPython's own nodes. The compatibility decoder must still read them as the loud nodes, with the
+-- py_kinds, that envelopes carried before (an unknown kind fails the whole module's load).
+private def structuredSpan : Lean.Json :=
+  Lean.Json.mkObj [("lineno", Lean.toJson (1 : Nat)), ("col_offset", Lean.toJson (0 : Nat)),
+    ("end_lineno", Lean.toJson (1 : Nat)), ("end_col_offset", Lean.toJson (1 : Nat))]
+#guard parseExpr (Lean.Json.mkObj [("kind", Lean.toJson "Set"), ("span", structuredSpan),
+    ("elts", Lean.Json.arr #[])]) matches .ok (.unsupported "Set:display" _ _)
+#guard parseExpr (Lean.Json.mkObj [("kind", Lean.toJson "Lambda"), ("span", structuredSpan)])
+  matches .ok (.unsupported "Lambda" _ _)
+#guard parseStmt (Lean.Json.mkObj [("kind", Lean.toJson "AsyncFor"), ("span", structuredSpan)])
+  matches .ok (.unsupported "AsyncFor" _ _)
+#guard parseStmt (Lean.Json.mkObj [("kind", Lean.toJson "AsyncWith"), ("span", structuredSpan)])
+  matches .ok (.unsupported "AsyncWith" _ _)
 #guard parseConst (Lean.Json.mkObj [("type", Lean.toJson "bytes"),
     ("value", Lean.toJson (#[256] : Array Nat))]) matches .error _
 #guard parseConst (Lean.Json.mkObj [("type", Lean.toJson "bytes"),
