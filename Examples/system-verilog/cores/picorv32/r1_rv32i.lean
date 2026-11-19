@@ -51,6 +51,22 @@ theorem picorv32_loaded_rv32i_exact_cycle_step_refines
 
 #print axioms picorv32_loaded_rv32i_exact_cycle_step_refines
 
+/-! The loaded machine's reset state has a concrete canonical-E relation.
+    Register-file and program-memory correspondence remain separate fields of
+    the eventual R2 relation. -/
+
+theorem picorv32_loaded_reset_relation_initial
+    (core : PicoRV32LoadedCanonicalE) (program : Memory) :
+    PicoRV32ResetRelation
+      (PicoRV32LoadedCanonicalE.design core) program
+      (CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core)).init
+      { arch := ArchState.init 0, memory := program } := by
+  exact picoRV32_reset_relation_initial
+    (PicoRV32LoadedCanonicalE.design core) program
+
+#print axioms picorv32_loaded_reset_relation_initial
+
 /-! The loaded all-family step certificate composes with the public reset
     theorem.  Initial relation, admitted inputs, and progress stay explicit
     because none follows from a finite E-RUN receipt. -/
