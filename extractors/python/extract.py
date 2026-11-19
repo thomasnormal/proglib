@@ -636,6 +636,14 @@ def convert_expr(node):
             "kind": "Call",
             "span": span(node),
             "func": convert_expr(node.func),
+            # Machine ingestion reads these direct AST children.  The
+            # compatibility `args`/`keywords` fields below remain for the
+            # frozen interpreters, but the machine never reconstructs these
+            # nodes from their lowered wrappers.
+            "starargs": [convert_expr(a.value) for a in node.args
+                         if isinstance(a, ast.Starred)],
+            "kwargs": [convert_expr(kw.value) for kw in node.keywords
+                       if kw.arg is None],
             # A starred positional argument is represented by an unspellable
             # synthetic call.  The interpreter evaluates that wrapper to an
             # internal tuple marker, and the surrounding call expands it in
