@@ -124,6 +124,11 @@ def gcdStepState (a b : Int) : State :=
       (9, .uninit), (10, .value 0), (6, .uninit), (3, .uninit)],
     types := [gcdType] }
 
+theorem gcdStepState_mod_cast (a b : Nat) :
+    gcdStepState (b : Int) (a % b : Int) =
+      gcdStepState (b : Int) ((a : Int) % (b : Int)) := by
+  simp [gcdStepState, Int.natCast_emod]
+
 theorem gcd_nonzero_step (a b fuel : Nat) (hb : 0 < b) (hr : a % b ≠ 0) :
     cfgRunOutcome (fuel + 4) gcdCore 0 (gcdInput a b) =
       cfgRunOutcome fuel gcdCore 1 (gcdStepState b (a % b)) := by
