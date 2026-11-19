@@ -224,6 +224,7 @@ inductive RKont where
   | setitemResult (remaining : List RStmt)
   | compareResult (op : CmpOp) (continuation : RKont)
   | unaryResult (continuation : RKont)
+  | binaryResult (continuation : RKont)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -2410,10 +2411,27 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl
                 (.resourceChoice .allocation (.allocateDict updated continuation)))
       | .continueValue right (.binOpRight left op continuation) =>
-          match rEvalBinOp op left right with
-          | .ok value => some (.tau, config.setControl (.continueValue value continuation))
-          | _ => some (.event (.refuse "machine binary operator"),
-              config.finish (.refuse "machine binary operator"))
+          match op, left with
+          | .add, .ref address =>
+              match config.heap.get? address with
+              | some (.instance cls _) =>
+                  match rLookupClassAttr config.classes cls "__add__" with
+                  | some (.callable token) =>
+                      match rFunctionByToken config.functions token with
+                      | some function => rStartFunctionCall config function [left, right] []
+                          (.binaryResult continuation)
+                      | none => some (.event (.refuse "machine __add__"),
+                          config.finish (.refuse "machine __add__"))
+                  | some _ => some (.tau, config.setControl (.refusing "machine __add__"))
+                  | none => some (.tau, config.setControl (.refusing "machine binary operator"))
+              | _ => some (.tau, config.setControl (.refusing "machine binary operator"))
+          | _, _ =>
+              match rEvalBinOp op left right with
+              | .ok value => some (.tau, config.setControl (.continueValue value continuation))
+              | _ => some (.event (.refuse "machine binary operator"),
+                  config.finish (.refuse "machine binary operator"))
+      | .continueValue value (.binaryResult continuation) =>
+          some (.tau, config.setControl (.continueValue value continuation))
       | .continueValue callee (.callCallee args keywords continuation) =>
           match args, keywords with
           | [], [] => rStartCall config callee [] [] continuation
