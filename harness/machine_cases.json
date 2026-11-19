@@ -732,7 +732,7 @@
   {
     "source": "harness/scripts/machine_class_constructor.py",
     "envelope": "harness/scripts/machine_class_constructor.json",
-    "expect": "unsupported"
+    "expect": "match"
   },
   {
     "source": "harness/scripts/machine_instance_method.py",
