@@ -492,7 +492,7 @@
     "return_value": 1,
     "error": "no layout for declared type 'int *const'",
     "structured_expect": "match",
-    "structured_return_value": 0
+    "structured_return_value": 1
   },
   {
     "id": "subobject-array-overrun",
@@ -770,7 +770,9 @@
     "structured_envelope_checks": [
       "structured_types"
     ],
-    "error": "no layout for declared type 'int[2]'"
+    "error": "no layout for declared type 'int[2]'",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-array-partial-init",
