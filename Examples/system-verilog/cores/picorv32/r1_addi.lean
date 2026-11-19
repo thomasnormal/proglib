@@ -25,7 +25,8 @@ open Examples.«system-verilog».cores.picorv32
 
 /-! The loaded envelope contributes a concrete configuration fact to this R1
 class.  It keeps the ADDI theorem tied to the RISCV_FORMAL design pin while
-the canonical-E run is still stopped before its first symbolic cycle. -/
+the canonical-E run exercises the same loaded family.  The universal
+per-cycle invariant remains a separate obligation. -/
 
 theorem picorv32_loaded_addi_shape :
     picorv32_r2.pdesign.params.length = 26 ∧

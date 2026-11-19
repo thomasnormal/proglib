@@ -11,7 +11,7 @@ import LeanModels.Refine.RvfiRob
 The first four non-trapping RVFI rows from `rvfi_probe.v` are fed to the
 always-ready `rvMachine` adapter with explicit instruction and data memories.
 The theorem is a finite observation witness for the pinned real core; it is
-not a refinement theorem for the blocked RTL semantics.  The measured
+not a universal refinement theorem for the loaded RTL semantics.  The measured
 `ebreak` row is kept in `rvfi_proof.lean`, but is intentionally outside this
 trace equality because PicoRV32 reports `pcWdata = 16` on that trap while the
 architectural model enters `mtvec = 0`.

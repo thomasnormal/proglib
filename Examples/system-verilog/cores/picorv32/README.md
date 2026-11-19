@@ -23,8 +23,10 @@ The source SHA-256 is
 The checked-in envelope is 3,442,095 bytes with SHA-256
 `17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236`.
 It has one `picorv32` module and 26 named parameters.  The R2 statement
-records every pinned parameter value explicitly and retains the loader's
-loud refusal at the current `cpuregs` memory wall.
+records every pinned parameter value explicitly.  The current canonical-E
+memory route admits this loaded family and powers the input-driven E-RUN
+below.  The older ordinary scalar route's `cpuregs` refusal remains in
+the historical re-probe entries.
 
 Set `PINNED_PICORV32` to the read-only checkout at that commit.  The original
 symbolic envelope was generated from the single upstream `picorv32.v` source

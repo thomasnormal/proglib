@@ -5,9 +5,9 @@ import LeanModels.Refine.Rv32i
 
 This is the first concrete architecture-side milestone for the real-core
 proof.  It pins the measured `addi x1, x0, 5` word and checks the exact ISA
-boundary contract.  It is not a proof about the blocked PicoRV32 RTL; the
-future core invariant must use these equations after generated-member memory
-support lands.
+boundary contract.  It is not a universal refinement theorem for the loaded
+PicoRV32 RTL.  The future core invariant must use these equations together
+with a per-cycle canonical-E boundary.
 -/
 
 namespace Examples.«system-verilog».cores.picorv32.addi_boundary

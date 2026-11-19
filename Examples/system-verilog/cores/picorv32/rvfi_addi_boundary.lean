@@ -10,8 +10,8 @@ import Examples.«system-verilog».cores.picorv32.trace_proof
 This theorem checks the raw wire predicate against the reset architectural
 state, including the exact fetched word and decode, source and destination
 values, the no-trap/no-memory boundary, and the semantic `addiRetirement`
-equality.  It is a measured boundary witness, not a theorem about the
-currently blocked symbolic RTL load.
+equality.  It is a measured boundary witness, not a universal theorem about
+the loaded RTL invariant.
 -/
 
 namespace Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary
