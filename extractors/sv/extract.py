@@ -34785,7 +34785,8 @@ def _convert_uninstantiated_sym(sm, m):
                 expr_syntax = getattr(assignment, "expr", None)
                 if not _SYM_HIER_NAME.match(pname) or expr_syntax is None:
                     return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
-                expr = _sym_uninstantiated_port_expr(sm, expr_syntax)
+                expr = _sym_uninstantiated_port_expr(sm, expr_syntax,
+                                                     scope=m.parentScope)
                 if not isinstance(expr, dict) or expr.get("kind") == "Unsupported":
                     return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
                 params.append({"name": pname, "expr": expr})
@@ -34815,7 +34816,8 @@ def _convert_uninstantiated_sym(sm, m):
                 else:
                     node["target"] = None
             else:
-                expr = _sym_uninstantiated_port_expr(sm, expr_syntax)
+                expr = _sym_uninstantiated_port_expr(sm, expr_syntax,
+                                                     scope=m.parentScope)
                 if not isinstance(expr, dict) or expr.get("kind") == "Unsupported":
                     return unsupported(sm, m, "UninstantiatedDefSymbol:expression", pname)
                 if direction in ("in", "inout"):
@@ -34834,9 +34836,10 @@ def _convert_uninstantiated_sym(sm, m):
         return internal_error(exc)
 
 
-def _sym_uninstantiated_port_expr(sm, syntax):
+def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
     """Convert the small source-expression subset used by inactive ports."""
     try:
+        scope = scope or _SYM.scope
         while (type(syntax).__name__ in ("SimplePropertyExprSyntax",
                                          "SimpleSequenceExprSyntax")):
             children = _syntax_children(syntax)
@@ -34846,7 +34849,7 @@ def _sym_uninstantiated_port_expr(sm, syntax):
             syntax = children[0]
         if syntax.kind == SyntaxKind.ParenthesizedExpression:
             children = _syntax_children(syntax)
-            return (_sym_uninstantiated_port_expr(sm, children[0])
+            return (_sym_uninstantiated_port_expr(sm, children[0], scope)
                     if len(children) == 1 else _syntax_unsupported(
                         sm, syntax, "UninstantiatedDefSymbol:expression"))
         if syntax.kind in SYM_SYNTAX_UNOPS:
@@ -34854,7 +34857,7 @@ def _sym_uninstantiated_port_expr(sm, syntax):
             if len(children) != 1:
                 return _syntax_unsupported(sm, syntax,
                                            "UninstantiatedDefSymbol:expression")
-            operand = _sym_uninstantiated_port_expr(sm, children[0])
+            operand = _sym_uninstantiated_port_expr(sm, children[0], scope)
             if operand.get("kind") == "Unsupported":
                 return operand
             return {"kind": "Unary", "span": _syntax_span(sm, syntax),
@@ -34865,8 +34868,8 @@ def _sym_uninstantiated_port_expr(sm, syntax):
             if len(children) != 2:
                 return _syntax_unsupported(sm, syntax,
                                            "UninstantiatedDefSymbol:expression")
-            left = _sym_uninstantiated_port_expr(sm, children[0])
-            right = _sym_uninstantiated_port_expr(sm, children[1])
+            left = _sym_uninstantiated_port_expr(sm, children[0], scope)
+            right = _sym_uninstantiated_port_expr(sm, children[1], scope)
             if left.get("kind") == "Unsupported":
                 return left
             if right.get("kind") == "Unsupported":
@@ -34879,7 +34882,7 @@ def _sym_uninstantiated_port_expr(sm, syntax):
             if len(children) != 2:
                 return _syntax_unsupported(sm, syntax,
                                            "UninstantiatedDefSymbol:expression")
-            operand = _sym_uninstantiated_port_expr(sm, children[-1])
+            operand = _sym_uninstantiated_port_expr(sm, children[-1], scope)
             if operand.get("kind") == "Unsupported":
                 return operand
             width = None
@@ -34891,7 +34894,7 @@ def _sym_uninstantiated_port_expr(sm, syntax):
                     "width": width, "operand": operand}
         if syntax.kind == SyntaxKind.IdentifierName:
             name = str(syntax).strip()
-            symbol = _SYM.scope.lookupName(name)
+            symbol = scope.lookupName(name)
             if symbol is None or type(symbol).__name__ not in (
                     "VariableSymbol", "NetSymbol", "PortSymbol", "ParameterSymbol"):
                 return _syntax_unsupported(sm, syntax,
