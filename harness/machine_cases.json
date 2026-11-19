@@ -503,5 +503,25 @@
     "source": "harness/scripts/machine_dictcomp_boundary.py",
     "envelope": "harness/scripts/machine_dictcomp_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_assign_raw_boundary.py",
+    "envelope": "harness/scripts/machine_assign_raw_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_if_raw_boundary.py",
+    "envelope": "harness/scripts/machine_if_raw_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_return_raw_boundary.py",
+    "envelope": "harness/scripts/machine_return_raw_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_while_raw_boundary.py",
+    "envelope": "harness/scripts/machine_while_raw_boundary.json",
+    "expect": "unsupported"
   }
 ]

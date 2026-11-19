@@ -1,0 +1,162 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_return_raw_boundary.py",
+  "source_sha256": "97ddff88a0f9cceed051377ac2ef9e8ce2f3b3246b41838476a18b8c4be53c2a",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 36
+        },
+        "name": "f",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 36
+            },
+            "value": {
+              "kind": "ListComp",
+              "span": {
+                "lineno": 2,
+                "col_offset": 11,
+                "end_lineno": 2,
+                "end_col_offset": 36
+              },
+              "elt": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 12,
+                  "end_lineno": 2,
+                  "end_col_offset": 16
+                },
+                "id": "item"
+              },
+              "target": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 21,
+                  "end_lineno": 2,
+                  "end_col_offset": 25
+                },
+                "id": "item"
+              },
+              "iter": {
+                "kind": "List",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 29,
+                  "end_lineno": 2,
+                  "end_col_offset": 35
+                },
+                "elts": [
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 2,
+                      "col_offset": 30,
+                      "end_lineno": 2,
+                      "end_col_offset": 31
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 2,
+                      "col_offset": 33,
+                      "end_lineno": 2,
+                      "end_col_offset": 34
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "2"
+                    }
+                  }
+                ]
+              },
+              "ifs": [],
+              "walrus": []
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 10
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 3,
+            "col_offset": 0,
+            "end_lineno": 3,
+            "end_col_offset": 10
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 3,
+              "col_offset": 0,
+              "end_lineno": 3,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 3,
+                "col_offset": 6,
+                "end_lineno": 3,
+                "end_col_offset": 9
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 6,
+                  "end_lineno": 3,
+                  "end_col_offset": 7
+                },
+                "id": "f"
+              },
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
