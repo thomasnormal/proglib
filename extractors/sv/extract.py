@@ -23004,8 +23004,9 @@ def _local_scope_metadata(sm, symbol):
     declared-type field retains Slang's dimension AST, as module declarations
     do, and is never reconstructed from source text.
     """
-    dtype, reason = _dtype_sym(sm, symbol.type, _decl_type_syntax(symbol),
-                               allow_signed=True)
+    dtype, reason = _dtype_sym(
+        sm, symbol.type, _decl_type_syntax(symbol), allow_signed=True,
+        scope=getattr(symbol, "parentScope", None) or _SYM.scope)
     fields = {"lifetime": _procedural_lifetime(symbol.lifetime),
               "lexical_path": symbol.lexicalPath,
               "hierarchical_path": symbol.hierarchicalPath,
@@ -32092,21 +32093,21 @@ def _syntax_unsupported(sm, sn, tag=None):
     }
 
 
-def _syntax_expr(sm, sn):
+def _syntax_expr(sm, sn, scope=None):
     """Syntax expression -> symbolic node. Used only where slang keeps no
     bound expression (declared-type dimensions). Identifiers are resolved
     with lookupName on the top module's body scope."""
     try:
-        return _syntax_expr_inner(sm, sn)
+        return _syntax_expr_inner(sm, sn, scope)
     except Exception as exc:
         return internal_error(exc)
 
 
-def _syntax_expr_inner(sm, sn):
+def _syntax_expr_inner(sm, sn, scope=None):
     k = sn.kind
     if k == SyntaxKind.ParenthesizedExpression:
         kids = _syntax_children(sn)
-        return _syntax_expr(sm, kids[0]) if len(kids) == 1 \
+        return _syntax_expr(sm, kids[0], scope) if len(kids) == 1 \
             else _syntax_unsupported(sm, sn)
     if k == SyntaxKind.IntegerLiteralExpression:
         try:
@@ -32120,7 +32121,7 @@ def _syntax_expr_inner(sm, sn):
             return _syntax_unsupported(sm, sn)
     if k == SyntaxKind.IdentifierName:
         name = str(sn).strip()
-        return _syntax_name(sm, sn, _SYM.scope, name, None)
+        return _syntax_name(sm, sn, scope or _SYM.scope, name, None)
     if k == SyntaxKind.ScopedName:
         kids = _syntax_children(sn)
         if len(kids) == 2 and kids[0].kind == SyntaxKind.IdentifierName:
@@ -32143,8 +32144,8 @@ def _syntax_expr_inner(sm, sn):
             "span": _syntax_span(sm, sn),
             "width": None,
             "op": SYM_SYNTAX_BINOPS[k],
-            "left": _syntax_expr(sm, kids[0]),
-            "right": _syntax_expr(sm, kids[1]),
+            "left": _syntax_expr(sm, kids[0], scope),
+            "right": _syntax_expr(sm, kids[1], scope),
         }
     if k in SYM_SYNTAX_UNOPS:
         kids = _syntax_children(sn)
@@ -32155,7 +32156,7 @@ def _syntax_expr_inner(sm, sn):
             "span": _syntax_span(sm, sn),
             "width": None,
             "op": SYM_SYNTAX_UNOPS[k],
-            "operand": _syntax_expr(sm, kids[0]),
+            "operand": _syntax_expr(sm, kids[0], scope),
         }
     if k == SyntaxKind.ConditionalExpression:
         kids = _syntax_children(sn)
@@ -32176,9 +32177,9 @@ def _syntax_expr_inner(sm, sn):
                 "kind": "Ternary",
                 "span": _syntax_span(sm, sn),
                 "width": None,
-                "cond": _syntax_expr(sm, cond),
-                "then": _syntax_expr(sm, kids[1]),
-                "else": _syntax_expr(sm, kids[2]),
+                "cond": _syntax_expr(sm, cond, scope),
+                "then": _syntax_expr(sm, kids[1], scope),
+                "else": _syntax_expr(sm, kids[2], scope),
             }
         return _syntax_unsupported(sm, sn)
     if k == SyntaxKind.InvocationExpression:
@@ -32197,7 +32198,7 @@ def _syntax_expr_inner(sm, sn):
                                 SyntaxKind.SimpleSequenceExpr):
                             sub = _syntax_children(sub[0])
                         if len(sub) == 1:
-                            args.append(_syntax_expr(sm, sub[0]))
+                            args.append(_syntax_expr(sm, sub[0], scope))
                         else:
                             args.append(_syntax_unsupported(sm, a))
                     else:
@@ -32253,10 +32254,11 @@ def _syntax_name(sm, sn, scope, name, from_package):
     return _syntax_unsupported(sm, sn, "Syntax:Identifier:" + cls)
 
 
-def _syntax_packed_dims(sm, type_syntax):
+def _syntax_packed_dims(sm, type_syntax, scope=None):
     """[{msb, lsb}, ...] recovered from a LogicType/RegType/BitType syntax
     node's VariableDimension children, or None when any is irregular."""
     dims = []
+    scope = scope or _SYM.scope
     for c in _syntax_children(type_syntax):
         if c.kind != SyntaxKind.VariableDimension:
             continue
@@ -32275,8 +32277,8 @@ def _syntax_packed_dims(sm, type_syntax):
             return None
         with _SymPos():
             dims.append({
-                "msb": _syntax_expr(sm, lr[0]),
-                "lsb": _syntax_expr(sm, lr[1]),
+                "msb": _syntax_expr(sm, lr[0], scope),
+                "lsb": _syntax_expr(sm, lr[1], scope),
             })
     return dims if dims else None
 
@@ -32335,7 +32337,7 @@ def _syntax_unpacked_dims(sm, declarator):
 
 # --- symbolic declarations -------------------------------------------------
 
-def _dtype_sym(sm, t, type_syntax, allow_signed=False):
+def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
     """(dtype-node, None) or (None, reason-tag) for a declared type in
     symbolic mode: TypeRef for enums, PackedType (symbolic dims primary,
     resolved secondary) for integral scalars/packed vectors. Signed flat
@@ -32346,6 +32348,8 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False):
         # syntax node. Slang keeps the source-shaped target declaration on
         # the alias, so recover that parser node before projecting packed
         # dimensions.
+        if scope is None:
+            scope = getattr(t, "parentScope", None) or _SYM.scope
         if type_syntax is None or type(type_syntax).__name__ == "NamedTypeSyntax":
             target = getattr(t, "targetType", None)
             target_syntax = getattr(target, "typeSyntax", None)
@@ -32415,7 +32419,7 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False):
             if type_syntax is not None and type_syntax.kind in (
                     SyntaxKind.BitType, SyntaxKind.LogicType, SyntaxKind.RegType,
                     SyntaxKind.ImplicitType, SyntaxKind.IntegerType):
-                packed = _syntax_packed_dims(sm, type_syntax)
+                packed = _syntax_packed_dims(sm, type_syntax, scope)
                 if packed is not None and len(packed) != ndims:
                     packed = None
             return {
@@ -32493,7 +32497,9 @@ def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0):
                 elem = {"kind": "array", "msb": dim["msb"],
                         "lsb": dim["lsb"], "elem": elem}
             return elem
-        dtype, reason = _dtype_sym(sm, t, type_syntax, allow_signed=True)
+        dtype, reason = _dtype_sym(
+            sm, t, type_syntax, allow_signed=True,
+            scope=getattr(t, "parentScope", None) or _SYM.scope)
         if dtype is None or reason is not None:
             return None
         return {"kind": "scalar", "type": dtype,
@@ -32602,7 +32608,9 @@ def convert_port_sym(sm, m):
     if array_ports is not None:
         return array_ports
     tsyn = _decl_type_syntax(isym) if isym is not None else None
-    dtype, reason = _dtype_sym(sm, m.type, tsyn, allow_signed=True)
+    dtype, reason = _dtype_sym(
+        sm, m.type, tsyn, allow_signed=True,
+        scope=getattr(isym or m, "parentScope", None) or _SYM.scope)
     if dtype is None:
         return unsupported(sm, m, "PortSymbol:" + reason)
     net_port = False
@@ -32698,7 +32706,8 @@ def _convert_fixed_array_port_sym(sm, m, direction, isym):
         if width is None or reason is not None:
             return None
         dtype, dtype_reason = _dtype_sym(
-            sm, element_type, _decl_type_syntax(isym), allow_signed=True)
+            sm, element_type, _decl_type_syntax(isym), allow_signed=True,
+            scope=getattr(isym, "parentScope", None) or _SYM.scope)
         if (dtype is None or dtype_reason is not None
                 or dtype.get("kind") != "PackedType"):
             return None
@@ -32822,7 +32831,8 @@ def _convert_fixed_net_array_sym(sm, m):
         if driven is None or not driven:
             return None
         dtype, reason = _dtype_sym(
-            sm, element_type, _decl_type_syntax(m), allow_signed=False)
+            sm, element_type, _decl_type_syntax(m), allow_signed=False,
+            scope=getattr(m, "parentScope", None) or _SYM.scope)
         if dtype is None or reason is not None or dtype.get("kind") != "PackedType":
             return None
         left, right = dimensions[0]
@@ -33397,7 +33407,9 @@ def convert_var_sym(sm, m):
     array_decls = convert_fixed_array_vars_sym(sm, m)
     if array_decls is not None:
         return array_decls
-    dtype, reason = _dtype_sym(sm, m.type, _decl_type_syntax(m), allow_signed=True)
+    dtype, reason = _dtype_sym(
+        sm, m.type, _decl_type_syntax(m), allow_signed=True,
+        scope=getattr(m, "parentScope", None) or _SYM.scope)
     if dtype is None:
         return unsupported(sm, m, "VariableSymbol:" + reason)
     init = m.initializer
@@ -33443,7 +33455,9 @@ def _convert_unpacked_decl_sym(sm, m, direction=None, isym=None):
             return None
         _dimensions, leaf_type = shape
         syntax = _decl_type_syntax(symbol) or _decl_type_syntax(m)
-        dtype, reason = _dtype_sym(sm, leaf_type, syntax, allow_signed=True)
+        dtype, reason = _dtype_sym(
+            sm, leaf_type, syntax, allow_signed=True,
+            scope=getattr(symbol, "parentScope", None) or _SYM.scope)
         if dtype is None or reason is not None:
             return None
         unpacked = _syntax_unpacked_dims(sm, getattr(m, "syntax", None))
@@ -33497,7 +33511,8 @@ def convert_fixed_array_vars_sym(sm, m):
             if getattr(m, "initializer", None) is not None:
                 return None
             dtype, dtype_reason = _dtype_sym(
-                sm, leaf_type, _decl_type_syntax(m), allow_signed=True)
+                sm, leaf_type, _decl_type_syntax(m), allow_signed=True,
+                scope=getattr(m, "parentScope", None) or _SYM.scope)
             if (dtype is not None and dtype_reason is None
                     and dtype.get("kind") == "PackedType"
                     and dtype.get("packed") is None):
@@ -33549,7 +33564,8 @@ def convert_fixed_array_vars_sym(sm, m):
         # symbolic PackedType rather than an unrecoverable null-dimension
         # placeholder.
         dtype, dtype_reason = _dtype_sym(
-            sm, element_type, _decl_type_syntax(m), allow_signed=True)
+            sm, element_type, _decl_type_syntax(m), allow_signed=True,
+            scope=getattr(m, "parentScope", None) or _SYM.scope)
         if (dtype is not None and dtype_reason is None
                 and dtype.get("kind") == "PackedType"
                 and dtype.get("packed") is None):
@@ -34019,7 +34035,9 @@ def convert_net_sym(sm, m):
     # driver as the existing `Var`/`net_as_variable` shape, while retaining
     # `signed` for the expression operator paths.  Other signed nets keep the
     # historical loud `NetSymbol:signed` boundary below.
-    dtype, reason = _dtype_sym(sm, m.type, _decl_type_syntax(m), allow_signed=True)
+    dtype, reason = _dtype_sym(
+        sm, m.type, _decl_type_syntax(m), allow_signed=True,
+        scope=getattr(m, "parentScope", None) or _SYM.scope)
     if dtype is None:
         return unsupported(sm, m, "NetSymbol:" + reason)
     if m.type.isSigned and not _sym_net_z(m, dtype):
@@ -34185,7 +34203,9 @@ def convert_param_sym(sm, m):
     tsyn = _decl_type_syntax(m)
     ptype = None
     if tsyn is not None and tsyn.kind != SyntaxKind.ImplicitType:
-        ptype, _reason = _dtype_sym(sm, m.type, tsyn)
+        ptype, _reason = _dtype_sym(
+            sm, m.type, tsyn,
+            scope=getattr(m, "parentScope", None) or _SYM.scope)
         if ptype is None or _sym_param_legacy_width_type(m):
             ptype = _param_width_type(sm, m)
     elif _sym_implicit_ranged(tsyn):

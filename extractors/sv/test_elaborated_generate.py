@@ -157,6 +157,17 @@ class ElaboratedGenerate(unittest.TestCase):
         self.assertTrue(any(n.get('kind') == 'GenerateFor' for n in nodes(d)))
         self.assertFalse(any(n.get('elaboration_lowered') for n in nodes(d)))
 
+    def test_symbolic_generate_localparam_dimension_uses_lexical_scope(self):
+        d = symbolic('module divider #(parameter int N=2); '
+                     'if (N) begin:g localparam int W=4; '
+                     'logic [W-1:0] q; end endmodule')
+        self.assertFalse(walls(d))
+        q = next(n for n in nodes(d) if n.get('kind') == 'Var' and n.get('name') == 'q')
+        msb = q['width']['packed'][0]['msb']
+        self.assertEqual(msb['kind'], 'Binary')
+        self.assertEqual(msb['left']['kind'], 'ParamRef')
+        self.assertEqual(msb['left']['name'], 'W')
+
     def test_authored_runnable_sources_are_admitted(self):
         root = Path(__file__).resolve().parents[2]/'Examples/system-verilog/elaborated_generate'
         for name in ('scopes','loops','locals','captures','imports','parameters'):
