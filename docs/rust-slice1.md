@@ -200,6 +200,12 @@ constructs the corresponding `ForeignProgramStep` when the address choice,
 typed arguments, destination write, and normal continuation satisfy their
 premises.  The proof leaves the registry and address choice explicit.
 
+`Examples/rust/allocator` is a focused extracted envelope for a `Box<u8>`
+allocation.  Its Miri oracle is `ok` under both Stacked Borrows and Tree
+Borrows.  The loader now preserves null bytes from uninitialized constant
+allocations through an explicit `bytesValid` bit, and the row reaches the
+allocator-registry refusal without decoding those bytes as an integer.
+
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
 15.299 s and returned `ok` with status 0 under both borrow models.  The extra
