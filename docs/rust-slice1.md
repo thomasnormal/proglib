@@ -6,11 +6,15 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1000 lines in `LeanModels/Rust/Semantics.lean`, with 114 lines
-of AST declarations, 399 lines of JSON decoding, and 38 lines of the literal-envelope loader.
+implementation is 1335 lines in `LeanModels/Rust/Semantics.lean`, with 134 lines
+of AST declarations, 490 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
-The local fixture count is separate from the Stage 0 corpus.  The authoritative
-counter for this worktree is `SLICE1-ROWS 15/30, diverging 0`.
+The local fixture count is separate from the Stage 0 corpus.  The last measured
+counter is `SLICE1-ROWS 20/30, diverging 0`, at the lane's parked tip (the
+commit "rust: expose typed equality refusal operands").  It was not re-measured
+after the land1 review fixes recorded at the end of this file: the corpus
+envelopes are not checked in, and the audit re-extracts them with the pinned
+nightly extractor.
 
 The 30 non-printing Stage 0 rows were audited with the structured extractor:
 
@@ -18,21 +22,30 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 15 decided rows, 15 named refusals, and zero
+The report contains 30 rows, 20 decided rows, 10 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
-`runOutcome` in one kernel process, and compares successful returns with the
-Stage 0 Miri `ok` verdict. Refusal reasons retain the first unsupported MIR
-node family for the row.  The `println_once` control is excluded by
+`runOutcome` for all of them in one `lake env lean` process (`#eval`), and
+compares each return, panic or UB outcome with the Stage 0 Miri verdict; a
+refusal or fuel exhaustion is a named refusal.  Every row of this corpus exits
+0 under Miri, so a wrong value that still returns cannot show up as a
+divergence: panic and UB rows are needed before `diverging 0` carries weight.
+Refusal reasons name the MIR node at which the run stopped.  The `println_once` control is excluded by
 default and can be included with `--include-control`.  Each row records the
 extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
 
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
-`IntToInt` through the target integer layout, preserves provenance for
-`PtrToPtr`, and refuses transmute, exposed-provenance, pointer-coercion, and
-other cast kinds. The `rustc_vec-repeat-with-cast` corpus row is decided after
-its Repeat value reaches a zero-sized return.
+`IntToInt` through the target integer layout and preserves provenance for
+`PtrToPtr`.  A `Transmute` reinterprets an integer at an integer target's width
+and signedness, keeps an integer as an address without provenance at a raw
+pointer target, and keeps a pointer at a pointer target; every other transmute
+refuses.  `MutToConstPointer` and `Unsize` coercions keep their operand (the
+unsized metadata is not represented, and reading it refuses); the other pointer
+coercions refuse.  An exposed-provenance cast of an integer to a raw pointer is
+the address without provenance, and dereferencing it refuses.  The
+`rustc_vec-repeat-with-cast` corpus row is decided after its Repeat value
+reaches a zero-sized return.
 
 Pointer constants retain the extractor's global-allocation identity and
 resolve it through the envelope's global table before reading bytes. Local
@@ -43,6 +56,10 @@ addresses to differ.
 
 Enum aggregates retain their variant index and fields. `Downcast` checks that
 index before `Field` reads, and `Discriminant` exposes it as a typed integer.
+That is the discriminant only for enums with default discriminants: the
+envelope does not carry declared discriminant values, so for
+`enum E { A = 7, B = 9 }` a `match` reaches its `unreachable` arm in the model
+(a known wrong answer, listed below).
 The `Le` binary operation now uses the decoded signed or unsigned integer
 values from the layout table. These cases decide the negative-integer-range
 corpus row without treating its signed bytes as an unsigned order comparison.
@@ -63,7 +80,7 @@ Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
 were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
 diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
-the corpus counter remains `SLICE1-ROWS 15/30, diverging 0`.
+they do not change the corpus counter.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -137,18 +154,20 @@ continuation.  `Examples/rust/std_identity` proves the analogous trace for
 MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
-place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
-corpus counter remains `SLICE1-ROWS 15/30, diverging 0`.
+place-mention, control-flow, call, loop, and drop fixtures.  They do not
+change the Stage 0 corpus counter.  `run`, `cfgRunProgram` and `ProgramSteps`
+still use the older call rule (the callee state starts empty and the arguments
+are read from it), which `runOutcome` replaced; nothing relates the two runners.
 
 ## Slice 1 exit record
 
-The D1 corpus audit reports 30 rows, 15 decided rows, 15 named refusals, and
-zero diverging rows.  Each row's
+The D1 corpus audit reports 30 rows, 20 decided rows, 10 named refusals, and
+zero diverging rows (measured before the land1 fixes below).  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and
 its per-row extractor timings are recorded in `docs/rust-slice1-audit.json`.
 The pinned Stage 0 Miri report records the exit, panic, and UB verdict for all
-31 measured rows under both borrow models.  The Lean semantics is 1000 lines.
+31 measured rows under both borrow models.  The Lean semantics is 1335 lines.
 The checked-in theorem rows include a user loop, a resolved user call, and a
 standard-library identity call proved from its extracted MIR body.
 
@@ -177,10 +196,12 @@ envelope contains the extracted `gcd` body from the Stage 0 corpus.  The
 diagnostic runner reaches that body for arbitrary initial `u32` locals, and the
 spec file checks a concrete `(48,18)` run.  The proof file proves the
 all-inputs Euclidean loop theorem with strong induction and the `Nat.gcd_rec`
-lemma.  `gcd_all_inputs_cfg` bridges that invariant theorem to the loaded MIR
-entry relation for every pair of natural-number inputs.  The proof uses the
-typed layout table and preserves the exact local-state transitions from the
-extracted body.
+lemma.  `gcd_all_inputs_cfg` states, for every pair of natural numbers, that
+the single-body runner `cfgRunOutcome` on the extracted `gcd` body (checked
+equal to the loaded envelope's body by `rfl`) returns `Nat.gcd a b`.  The run
+starts from a hand-built state holding the two arguments and a one-entry `u32`
+layout table (`gcdType`), not the envelope's table, and the theorem goes
+through neither `main`, the program runner `runOutcome`, nor `ProgramSteps`.
 
 The proof-cost measurement was rerun from the repository root with
 
@@ -194,11 +215,39 @@ print(f"exit={result.returncode} elapsed_seconds={time.monotonic() - started:.3f
 PY
 ```
 
-The source has 12 lines and the proof file has 339 lines.  The MIR-facing
-theorems occupy lines 261--318, or 58 lines, which is 4.83 proof lines per
-source line.  Including the explicit extracted-body fixture and its transition
-lemmas, the checked-in proof is 28.25 lines per source line.  The measured
+The source has 12 lines and the proof file had 339 lines (349 after land1).
+The final induction theorems occupied lines 261--318, or 58 lines, which is
+4.83 proof lines per source line.  Including the explicit extracted-body
+fixture and its transition lemmas, the checked-in proof is 28.25 lines per
+source line.  Counted against the 8-line `gcd` function alone, the symbolic
+step lemmas and the induction are 200 non-blank lines, against 11 tactic lines
+for the Python lane's `gcd` proof with `py_vcgen`.  The measured
 incremental build took 6.208 seconds and exited 0.  The expensive part is the
 repeated symbolic execution of the extracted blocks and the bridge between
 `Nat` remainder facts and the signed `Int` cells.  The induction itself is the
 short portion of the proof.
+
+## Landing review (land1)
+
+The land1 review rebuilt every Rust target and added fixes on top of the
+parked lane commits.  Ten example proofs were red: `projectCell` had become
+well-founded recursion (the kernel cannot unfold it, so `decide` over `run` got
+stuck) and `DecidableEq` was dropped from the nested `Cell` type; the extracted
+gcd proof did not unfold the new `findTypeLayout`.  These were repaired without
+changing a statement.  The following silent wrong answers were turned into
+exact results or refusals:
+
+- overflow-checked `Add`/`Sub`/`Mul` were checked against the i32 range for
+  every type, and an unknown operator meant "overflow";
+- `Div` and `Rem` used Lean's Euclidean `/` and `%` (Rust truncates);
+- `BitAnd` and `BitXor` mapped negative operands to 0;
+- `Transmute` and every pointer coercion returned the operand unchanged;
+- a write through a pointer into a caller's frame was dropped on return, and a
+  pointer stored in a caller's local was resolved against the callee's locals;
+- a `Deref` whose target was a pointer followed it a second time.
+
+Known wrong answers that remain, because fixing them needs extractor data:
+
+- `Drop` terminators only mark the local uninitialized; no drop glue runs, so
+  a `Drop` impl that panics or exits is ignored;
+- `Discriminant` returns the variant index, not a declared discriminant value.
