@@ -421,6 +421,45 @@ def rClassByToken : List RClass → String → Option RClass
       if rClassToken cls.id == token then some cls
       else rClassByToken rest token
 
+def rClassById : List RClass → Nat → Option RClass
+  | [], _ => none
+  | cls :: rest, id =>
+      if cls.id == id then some cls else rClassById rest id
+
+def rLookupInstanceAttr (heap : Heap) (address : Addr) (attr : String) : Option RVal :=
+  match heap.get? address with
+  | some (.instance _ attrs) => rLookupEnv attrs.toList attr
+  | _ => none
+
+def rUpdateInstanceAttr (heap : Heap) (address : Addr) (attr : String) (value : RVal) : Option Heap :=
+  match heap.get? address with
+  | some (.instance cls attrs) =>
+      Heap.update heap address (.instance cls (rSetEnv attrs.toList attr value).toArray)
+  | _ => none
+
+def rDeleteInstanceAttr (heap : Heap) (address : Addr) (attr : String) : Option Heap :=
+  match heap.get? address with
+  | some (.instance cls attrs) =>
+      match rDeleteEnv attrs.toList attr with
+      | some updated => Heap.update heap address (.instance cls updated.toArray)
+      | none => none
+  | _ => none
+
+def rLookupInstanceClassAttr (heap : Heap) (classes : List RClass)
+    (address : Addr) (attr : String) : Option RVal :=
+  match heap.get? address with
+  | some (.instance cls attrs) =>
+      match rLookupEnv attrs.toList attr with
+      | some value => some value
+      | none => rClassById classes cls |>.bind (fun classValue =>
+          rLookupEnv classValue.attrs attr)
+  | _ => none
+
+def rHeapIsInstance (heap : Heap) (address : Addr) : Bool :=
+  match heap.get? address with
+  | some (.instance _ _) => true
+  | _ => false
+
 def rUpdateClassAttr : List RClass → String → String → RVal → Option (List RClass)
   | [], _, _, _ => none
   | cls :: rest, token, attr, value =>
@@ -951,8 +990,18 @@ def rEvalCompare (heap : Heap) (op : CmpOp) (left right : RVal) : Option RVal :=
   | .gtE => match left, right with
       | .int a, .int b => some (.bool (a ≥ b))
       | _, _ => none
-  | .inOp => some (.bool (rContains heap right left))
-  | .notIn => some (.bool (!rContains heap right left))
+  | .inOp =>
+      match left with
+      | .ref address =>
+          if rHeapIsInstance heap address then none
+          else some (.bool (rContains heap right left))
+      | _ => some (.bool (rContains heap right left))
+  | .notIn =>
+      match left with
+      | .ref address =>
+          if rHeapIsInstance heap address then none
+          else some (.bool (!rContains heap right left))
+      | _ => some (.bool (!rContains heap right left))
   | _ => none
 
 def rTruthy : RVal → Bool
@@ -1116,6 +1165,21 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
                 config.finish (.refuse "machine list.insert"))
         | _, _ => some (.event (.refuse "machine list.insert"),
             config.finish (.refuse "machine list.insert"))
+      else if Option.isSome (rClassByToken config.classes name) then
+        match rClassByToken config.classes name with
+        | some cls =>
+            if Option.isSome (rLookupEnv cls.attrs "__init__") then
+              some (.event (.refuse "machine class constructor"),
+                config.finish (.refuse "machine class constructor"))
+            else if values.isEmpty && keywords.isEmpty then
+              let allocated := Heap.alloc config.heap (.instance cls.id #[])
+              some (.tau, { config with heap := allocated.1 }.setControl
+                (.continueValue (.ref allocated.2) continuation))
+            else
+              let error : RError := { errorClass := .type, args := [] }
+              some (.event (.raise error), config.finish (.raise error))
+        | none => some (.event (.refuse "machine class"),
+            config.finish (.refuse "machine class"))
       else match rFunction config.functions name with
       | some function =>
           let builtKwargs :=
@@ -1711,6 +1775,16 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
       | .continueValue receiver (.assignAttributeValue attr value remaining) =>
           match receiver with
+          | .ref address =>
+              if rHeapIsInstance config.heap address then
+                match rUpdateInstanceAttr config.heap address attr value with
+                | some heap =>
+                    some (.tau, { config with heap := heap }.setControl
+                      (.statements remaining))
+                | none =>
+                    let error : RError := { errorClass := .attribute, args := [] }
+                    some (.event (.raise error), config.finish (.raise error))
+              else some (.tau, config.setControl (.refusing "machine attribute assignment"))
           | .callable token =>
               match rUpdateClassAttr config.classes token attr value with
               | some classes =>
@@ -1722,6 +1796,17 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.event (.raise error), config.finish (.raise error))
       | .continueValue receiver (.deleteAttributeReceiver attr remaining) =>
           match receiver with
+          | .ref address =>
+              if rHeapIsInstance config.heap address then
+                match rDeleteInstanceAttr config.heap address attr with
+                | some heap =>
+                    some (.tau, { config with heap := heap }.setControl
+                      (.statements remaining))
+                | none =>
+                    let error : RError := { errorClass := .attribute, args := [] }
+                    some (.event (.raise error), config.finish (.raise error))
+              else
+                some (.tau, config.setControl (.refusing "machine attribute deletion"))
           | .callable token =>
               match rDeleteClassAttr config.classes token attr with
               | some classes =>
@@ -1808,6 +1893,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none =>
               match receiver with
+              | .ref address =>
+                  if rHeapIsInstance config.heap address then
+                    match rLookupInstanceClassAttr config.heap config.classes address attr with
+                    | some value =>
+                        some (.tau, config.setControl (.continueValue value continuation))
+                    | none =>
+                        let error : RError := { errorClass := .attribute, args := [] }
+                        some (.event (.raise error), config.finish (.raise error))
+                  else some (.tau, config.setControl (.refusing "machine attribute"))
               | .callable token =>
                   match rClassByToken config.classes token with
                   | some cls =>
