@@ -235,12 +235,12 @@ def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → O
   | 0, _, _, _, _, _ => exhausted
   | _, _, _, _, [], _ => pure ()
   | fuel + 1, ctx, p, ty, (nm, mty) :: rest, declaration => do
-      if ctx.layout.flexibleField ty nm then
+      if ctx.layout.flexibleFieldDeclAt declaration ty nm then
         pure ()
       else
         match ctx.layout.fieldOffDeclAt declaration ty nm with
         | some off =>
-            if ctx.layout.fieldBits ty nm |>.isSome then
+            if ctx.layout.fieldBitsDeclAt declaration ty nm |>.isSome then
               liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off)
                 (.int ((intTyOf? (ctx.layout.normalizeTy mty)).getD IntTy.int_) 0))
             else
@@ -382,11 +382,11 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
     -- the list ran out: §6.7.11p10 zeroes every member it did not reach
     | rest, [] => zeroMembers fuel ctx p ty rest declaration
     | (nm, mty) :: mrest, e :: erest =>
-        if ctx.layout.flexibleField ty nm then
+        if ctx.layout.flexibleFieldDeclAt declaration ty nm then
           match e with
           | .implicitValueInit _ _ => initMembers fuel ctx p ty mrest erest declaration
           | _ => refuseUnsupported s!"explicit initializer for flexible array member '{nm}'"
-        else if nm.isEmpty && (ctx.layout.fieldBits ty nm).isSome then
+        else if nm.isEmpty && (ctx.layout.fieldBitsDeclAt declaration ty nm).isSome then
           -- §6.7.11p9: an unnamed bit-field has no member and consumes no
           -- initializer.  The parser-native layout still carries its
           -- storage range, but the initializer sequence skips it.
@@ -394,7 +394,7 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
         else do
           match ctx.layout.fieldOffDeclAt declaration ty nm with
           | some off =>
-              if ctx.layout.fieldBits ty nm |>.isSome then
+              if ctx.layout.fieldBitsDeclAt declaration ty nm |>.isSome then
                 let v ← match e with
                   | .implicitValueInit _ _ =>
                       pure (.int ((intTyOf? (ctx.layout.normalizeTy mty)).getD IntTy.int_) 0)
