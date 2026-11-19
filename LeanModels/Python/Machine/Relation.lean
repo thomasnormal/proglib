@@ -31,6 +31,8 @@ inductive RStmt where
   | expr (value : Expr) (span : Span)
   | assign (target : Expr) (value : Expr) (span : Span)
   | assignMany (targets : Array Expr) (value : Expr) (span : Span)
+  | annAssign (target : Expr) (annotation : Expr) (value : Option Expr)
+      (simple : Bool) (span : Span)
   | unpackAssign (before : Array String) (star : String) (after : Array String)
       (value : Expr) (span : Span)
   | augAssign (target : Expr) (op : BinOp) (value : Expr) (span : Span)
@@ -1251,6 +1253,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .assignMany _ _ _ =>
               some (.event (.refuse "machine multiple-target assignment"),
                 config.finish (.refuse "machine multiple-target assignment"))
+          | .annAssign _ _ _ _ _ =>
+              some (.event (.refuse "machine annotated assignment"),
+                config.finish (.refuse "machine annotated assignment"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
