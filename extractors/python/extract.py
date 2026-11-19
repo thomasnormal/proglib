@@ -949,6 +949,15 @@ def convert_expr(node):
         return unsupported(node, "DictComp")
 
     if isinstance(node, ast.SetComp):
+        gens = node.generators
+        if len(gens) == 1 and not getattr(gens[0], "is_async", 0):
+            g = gens[0]
+            out = unsupported(node, "SetComp", machine_kind="SetComp")
+            out["machine_elt"] = convert_expr(node.elt)
+            out["machine_target"] = convert_expr(g.target)
+            out["machine_iter"] = _in_enclosing_scope(g.iter)
+            out["machine_ifs"] = [convert_expr(i) for i in g.ifs]
+            return out
         return unsupported(node, "SetComp")
 
     if isinstance(node, (ast.GeneratorExp, ast.ListComp)):

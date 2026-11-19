@@ -1,0 +1,144 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_setcomp_boundary.py",
+  "source_sha256": "e5d21de14e5e41dc053c8e380b2f7a3dfad3f5cf05a9a7124c4efa329676ee86",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 30
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 30
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Unsupported",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 29
+              },
+              "py_kind": "SetComp",
+              "text": "{x * 2 for x in (1, 2)}",
+              "machine_kind": "SetComp",
+              "machine_value": null,
+              "machine_elt": {
+                "kind": "BinOp",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 7,
+                  "end_lineno": 1,
+                  "end_col_offset": 12
+                },
+                "left": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 7,
+                    "end_lineno": 1,
+                    "end_col_offset": 8
+                  },
+                  "id": "x"
+                },
+                "op": "Mult",
+                "right": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 11,
+                    "end_lineno": 1,
+                    "end_col_offset": 12
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              },
+              "machine_target": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 17,
+                  "end_lineno": 1,
+                  "end_col_offset": 18
+                },
+                "id": "x"
+              },
+              "machine_iter": {
+                "kind": "Tuple",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 22,
+                  "end_lineno": 1,
+                  "end_col_offset": 28
+                },
+                "elts": [
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 23,
+                      "end_lineno": 1,
+                      "end_col_offset": 24
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 26,
+                      "end_lineno": 1,
+                      "end_col_offset": 27
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "2"
+                    }
+                  }
+                ]
+              },
+              "machine_ifs": []
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
