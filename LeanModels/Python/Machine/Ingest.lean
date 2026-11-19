@@ -77,6 +77,7 @@ inductive MStmt where
   | augAssign (target : MExpr) (op : BinOp) (value : MExpr) (span : Span)
   | ret (value : Option MExpr) (span : Span)
   | delete (targets : Array MExpr) (span : Span)
+  | deleteSubscript (receiver : MExpr) (index : MExpr) (span : Span)
   | ifStmt (test : MExpr) (body : Array MStmt) (orelse : Array MStmt) (span : Span)
   | whileStmt (test : MExpr) (body : Array MStmt) (orelse : Array MStmt) (span : Span)
   | forStmt (target : MExpr) (iter : MExpr) (body : Array MStmt) (orelse : Array MStmt)
@@ -285,6 +286,8 @@ partial def mStmt (j : Json) : Except String MStmt := do
       let targets ← names.mapM (fun name => do
         return MExpr.name (← name.getStr?) span)
       pure (.delete targets span)
+  | "DeleteSubscript" => pure (.deleteSubscript
+      (← mExpr (← mField j "recv")) (← mExpr (← mField j "key")) span)
   | "UnpackAssign" => pure (.unpackAssign
       (← (← (← mField j "before").getArr?).mapM (·.getStr?))
       (← (← mField j "star").getStr?)
@@ -400,6 +403,8 @@ partial def mStmtToStmt : MStmt → RStmt
       match targets.toList with
       | [target] => .delete (mExprToExpr target) span
       | _ => .unsupported "Delete" "machine multiple-target deletion" span
+  | .deleteSubscript receiver index span =>
+      .delete (.subscript (mExprToExpr receiver) (mExprToExpr index) span) span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
