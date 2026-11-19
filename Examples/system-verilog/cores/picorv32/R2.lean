@@ -119,6 +119,10 @@ obligation:
   fence witness.  Its
   `r1_fence.picorv32_fence_exact_cycle_step_refines` theorem consumes the
   exact memory-preserving fence boundary while retaining the operation kind.
+  Its
+  `r1_fence.picorv32_loaded_fence_program_refinement_of_total` theorem
+  packages one retained FENCE or FENCE.I instruction into the loaded
+  reset-specialized all-prefix contract from total canonical execution.
   `r1_system` provides the ECALL, EBREAK, MRET, and WFI consumers through the
   decoded system witness.  Its
   `r1_system.picorv32_system_exact_cycle_step_refines` theorem consumes the
