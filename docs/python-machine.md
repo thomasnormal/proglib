@@ -89,6 +89,9 @@ Subtraction with an instance on the left dispatches to an explicit `__sub__`
 method; integer subtraction keeps its existing path.
 Multiplication with an instance on the left dispatches to an explicit
 `__mul__` method; integer multiplication keeps its existing path.
+True division with an instance on the left dispatches to an explicit
+`__truediv__` method. Scalar true division remains outside this relation
+frontier.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
