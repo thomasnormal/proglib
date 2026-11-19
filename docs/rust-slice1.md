@@ -186,12 +186,13 @@ normal continuation are named refusals in this slice.
 
 The allocator family was traced through `Global::allocate` and
 `alloc_impl_runtime` in the `study_for_vec`, `rustc_ivec-pass-by-value`, and
-`rustc_vector-no-ann-2` envelopes.  Their first unavailable target is the
-runtime allocation shim, which has no MIR body in the envelope.  The envelope
-contains constant allocations but no dynamic allocation result or placement
-record for that call, so the runner reports the exact missing target as a
-named refusal instead of manufacturing a pointer or an allocation.  These
-three rows remain in the ten-row refusal set.
+`rustc_vector-no-ann-2` envelopes.  Their first current boundary is the
+`Layout::size` read through a shared pointer whose target frame local is still
+`uninit`.  The later allocator shims have no MIR body and cannot be entered
+until that frame state is resolved.  The runner reports the exact pointer and
+target-frame refusal instead of manufacturing a layout value or allocation.
+An allocator registry would also require a state transition that chooses fresh
+provenance, address, bytes, and validity, which is outside this relation.
 
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
