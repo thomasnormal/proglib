@@ -12,6 +12,6 @@ theorem control_trace_in_steps :
         .assign 2 10, .placeMention 2, .storageDead 2,
         .assign 0 0, .storageDead 1] } := by
   apply LeanModels.Rust.run_in_steps
-  decide
+  rfl
 
 end Examples.rust.control

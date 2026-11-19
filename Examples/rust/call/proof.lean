@@ -10,7 +10,7 @@ theorem call_trace :
       events := [.storageLive 1,
         .call "_RNvCs05yil4iL4cj_4call6answer", .assign 0 7,
         .placeMention 1, .storageDead 1, .assign 0 0] } := by
-  decide
+  rfl
 
 theorem call_trace_in_steps :
     LeanModels.Rust.ProgramInSteps call {

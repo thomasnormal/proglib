@@ -16,7 +16,7 @@ theorem loop_trace :
         .assign 4 0, .assign 3 0, .storageDead 4, .storageLive 6,
         .assign 0 0, .storageDead 6, .storageDead 3, .storageDead 1,
         .storageDead 1, .assign 0 0] } := by
-  decide
+  rfl
 
 theorem loop_trace_in_steps :
     LeanModels.Rust.ProgramInSteps loop {

@@ -9,7 +9,7 @@ theorem place_mention_trace :
       state := { locals := [(1, .uninit), (0, .value 0)] },
       events := [.storageLive 1, .assign 1 3, .placeMention 1,
         .assign 0 0, .storageDead 1] } := by
-  decide
+  rfl
 
 theorem place_mention_trace_in_steps :
     LeanModels.Rust.ProgramInSteps placeMention {

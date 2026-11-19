@@ -20,6 +20,6 @@ theorem assert_trace_in_steps :
         .storageDead 4, .placeMention 3, .storageDead 3,
         .assign 0 0, .storageDead 2, .storageDead 1] } := by
   apply LeanModels.Rust.run_in_steps
-  decide
+  rfl
 
 end Examples.rust.assert
