@@ -33,7 +33,7 @@
      "alignment_bytes": 8,
      "decl_id": "id89",
      "size_bytes": 8,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050316-2.c:39:3)"
+     "type": "union (unnamed union at gcc.c-torture/execute/20050316-2.c:39:3)"
     },
     {
      "alignment_bytes": 8,
@@ -68,7 +68,7 @@
      "alignment_bytes": 8,
      "decl_id": "id76",
      "size_bytes": 8,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050316-3.c:27:3)"
+     "type": "union (unnamed union at gcc.c-torture/execute/20050316-3.c:27:3)"
     },
     {
      "alignment_bytes": 8,
@@ -87,13 +87,13 @@
      "alignment_bytes": 8,
      "decl_id": "id30",
      "size_bytes": 8,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050604-1.c:12:1)"
+     "type": "union (unnamed union at gcc.c-torture/execute/20050604-1.c:12:1)"
     },
     {
      "alignment_bytes": 16,
      "decl_id": "id34",
      "size_bytes": 16,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050604-1.c:18:1)"
+     "type": "union (unnamed union at gcc.c-torture/execute/20050604-1.c:18:1)"
     },
     {
      "alignment_bytes": 4,
@@ -626,7 +626,7 @@
      "alignment_bytes": 8,
      "decl_id": "id50",
      "size_bytes": 8,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/pr23135.c:23:1)"
+     "type": "union (unnamed union at gcc.c-torture/execute/pr23135.c:23:1)"
     },
     {
      "alignment_bytes": 4,
@@ -1720,7 +1720,7 @@
      "alignment_bytes": 8,
      "decl_id": "id182",
      "size_bytes": 8,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/simd-4.c:17:3)"
+     "type": "union (unnamed union at gcc.c-torture/execute/simd-4.c:17:3)"
     },
     {
      "alignment_bytes": 4,

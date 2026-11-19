@@ -17,13 +17,13 @@
      "alignment_bytes": 16,
      "decl_id": "id341",
      "size_bytes": 96,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strcmp-1.c:28:8)"
+     "type": "union (unnamed union at gcc.c-torture/execute/strcmp-1.c:28:8)"
     },
     {
      "alignment_bytes": 16,
      "decl_id": "id341",
      "size_bytes": 96,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strcmp-1.c:28:8)"
+     "type": "union (unnamed union at gcc.c-torture/execute/strcmp-1.c:28:8)"
     },
     {
      "alignment_bytes": 8,
@@ -130,7 +130,7 @@
      "alignment_bytes": 16,
      "decl_id": "id341",
      "size_bytes": 96,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strlen-1.c:28:8)"
+     "type": "union (unnamed union at gcc.c-torture/execute/strlen-1.c:28:8)"
     },
     {
      "alignment_bytes": 8,
@@ -179,13 +179,13 @@
      "alignment_bytes": 16,
      "decl_id": "id341",
      "size_bytes": 80,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strncmp-1.c:29:8)"
+     "type": "union (unnamed union at gcc.c-torture/execute/strncmp-1.c:29:8)"
     },
     {
      "alignment_bytes": 16,
      "decl_id": "id341",
      "size_bytes": 80,
-     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strncmp-1.c:29:8)"
+     "type": "union (unnamed union at gcc.c-torture/execute/strncmp-1.c:29:8)"
     },
     {
      "alignment_bytes": 8,

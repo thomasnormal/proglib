@@ -13,9 +13,34 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import re
 
 ROOT = Path(__file__).resolve().parent.parent
 WALL = "unsupported:no layout for declared type 'V'"
+
+
+def sanitize_type_paths(value, corpus, name):
+    """Keep parser facts while replacing Clang's absolute source path.
+
+    Clang includes the spelling location in anonymous aggregate type names.
+    Reports are public artifacts, so that location must use the repository
+    relative corpus/name pair rather than the checkout path used for a run.
+    """
+    if isinstance(value, str):
+        return re.sub(r" at /[^:\"]+/(?:src/)?[^:\":]+:(\d+:\d+)",
+                      rf" at {corpus}/{name}:\1", value)
+    if isinstance(value, list):
+        return [sanitize_type_paths(x, corpus, name) for x in value]
+    if isinstance(value, dict):
+        return {k: sanitize_type_paths(v, corpus, name) for k, v in value.items()}
+    return value
+
+
+def sanitize_report(report):
+    for row in report.get("rows", []):
+        row["type_layouts"] = sanitize_type_paths(
+            row.get("type_layouts", []), row["corpus"], row["name"])
+    return report
 
 
 def extract(source, clang, plugin, source_name):
@@ -48,7 +73,7 @@ def price(survey, roots, clang, plugin, wall=WALL):
         priced.append({
             "corpus": row["corpus"], "name": row["name"],
             "sha256": row.get("sha256"),
-            "type_layouts": layouts,
+            "type_layouts": sanitize_type_paths(layouts, row["corpus"], row["name"]),
         })
     return {
         "schema": "c-vector-layout-price-0.1",
@@ -107,9 +132,18 @@ def main():
     parser.add_argument("--c2-root", required=False)
     parser.add_argument("--c3-root", required=False)
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--rewrite-existing", nargs="+", metavar="JSON",
+                        help="sanitize existing reports in place")
     args = parser.parse_args()
     if args.self_test:
         self_test()
+        return 0
+    if args.rewrite_existing:
+        for report_path in args.rewrite_existing:
+            path = Path(report_path)
+            path.write_text(json.dumps(sanitize_report(json.loads(path.read_text())),
+                                       indent=1, sort_keys=True) + "\n")
+        print("c_vector_layout_price: sanitized %d existing reports" % len(args.rewrite_existing))
         return 0
     if not args.plugin or not args.c1_root or not args.c2_root or not args.c3_root:
         parser.error("--plugin and all corpus roots are required")
