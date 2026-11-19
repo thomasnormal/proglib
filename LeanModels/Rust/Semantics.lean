@@ -670,8 +670,14 @@ def cfgRunOutcome : Nat → Body → Nat → State → Outcome
 def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (CallEdge × Body) := do
   let edge ← program.calls.find? (fun edge => edge.caller == caller.instanceId ∧ edge.block == block)
   let calleeId ← edge.callee
-  let callee ← program.bodies.find? (fun body => body.instanceId == calleeId)
+  let callee ← (program.bodies.find? (fun body => body.instanceId == calleeId)).orElse fun _ =>
+    if calleeId.contains "atomic_load" then
+      some { instanceId := calleeId, blocks := [] }
+    else none
   pure (edge, callee)
+
+def atomicLoadCell (s : State) (operand : Operand) : Option Cell :=
+  operandCell s operand |>.bind (projectCell s · [.deref])
 
 def bodyRun (body : Body) : Option Trace :=
   cfgRun 4096 body 0 {}
@@ -761,6 +767,18 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                       match edge.callee with
                       | none => .refused (.unsupported "call without callee")
                       | some calleeId =>
+                          if callee.blocks.isEmpty && calleeId.contains "atomic_load" then
+                            match args with
+                            | [operand] =>
+                                match atomicLoadCell firstTrace.state operand with
+                                | some value =>
+                                    match writeCell firstTrace.state destination value with
+                                    | some callerState =>
+                                        cfgRunProgramOutcome fuel program body target callerState
+                                    | none => .refused (.unsupported "atomic load destination")
+                                | none => .refused (.unsupported ("atomic load target=" ++ toString (repr (operandCell firstTrace.state operand))))
+                            | _ => .refused (.unsupported "atomic load arguments")
+                          else
                           let callState : State :=
                             { placements := firstTrace.state.placements,
                               sharedLocals := firstTrace.state.sharedLocals,
@@ -768,7 +786,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                               allocations := firstTrace.state.allocations,
                               provenance := firstTrace.state.provenance,
                               localTypes := callee.locals.map (fun loc => (loc.localId, loc.ty)) }
-                          match bindCallCellsFresh firstTrace.state callState args 1 with
+                           match bindCallCellsFresh firstTrace.state callState args 1 with
                           | none => .refused (.unsupported ("call arguments for " ++ calleeId))
                           | some calleeState =>
                               match cfgRunProgramOutcome fuel program callee 0 calleeState with
