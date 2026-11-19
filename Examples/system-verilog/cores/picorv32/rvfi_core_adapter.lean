@@ -46,7 +46,28 @@ def rvfiObservation (d : CoreMemDesign) (st : CoreMemState) :
 theorem rvfiObservation_eq_decode (d : CoreMemDesign) (st : CoreMemState) :
     rvfiObservation d st = decode "rvfi_" (rvfiPortSample d st) := rfl
 
+/-! A failed canonical cycle or a refused RVFI decode remains a `Res` failure.
+    The wrapper is intentionally not a total `RvfiCycleMachine`: an invariant
+    must first prove that both execution and observation decoding succeed. -/
+
+def rvfiStep (d : CoreMemDesign) (st : CoreMemState) (entry : SvState) :
+    Res (CoreMemState × RvfiObservation) := do
+  let next ← d.fastStepCanonical st entry
+  let row ← match rvfiObservation d next with
+    | some row => .ok row
+    | none => .unsupported "RVFI decode refused canonical post-state"
+  pure (next, row)
+
+theorem rvfiStep_ok_of_fast_and_decode
+    {d : CoreMemDesign} {st next : CoreMemState} {entry : SvState}
+    {row : RvfiObservation}
+    (hstep : d.fastStepCanonical st entry = .ok next)
+    (hdecode : rvfiObservation d next = some row) :
+    rvfiStep d st entry = .ok (next, row) := by
+  simp [rvfiStep, hstep, hdecode]
+
 #print axioms rvfiPortSample_read
 #print axioms rvfiObservation_eq_decode
+#print axioms rvfiStep_ok_of_fast_and_decode
 
 end Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
