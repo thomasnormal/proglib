@@ -216,6 +216,7 @@ inductive RKont where
       (continuation : RKont)
   | callReturn (continuation : RKont)
   | callReturnInstance (instanceValue : RVal) (continuation : RKont)
+  | lenResult (continuation : RKont)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -1186,6 +1187,33 @@ def rStartClassCall (config : RConfig) (cls : RClass) (values : List RVal)
         let error : RError := { errorClass := .type, args := [] }
         some (.event (.raise error), config.finish (.raise error))
 
+def rStartFunctionCall (config : RConfig) (function : RFunction) (values : List RVal)
+    (keywords : List (String × RVal)) (continuation : RKont) :
+    Option (RLabel × RConfig) :=
+  let builtKwargs :=
+    if keywords.isEmpty then (config.heap, none)
+    else
+      match rKeywordVariadicName function.params.toList with
+      | some _ =>
+          let allocated := rBuildKwargs config.heap keywords
+          (allocated.1, some allocated.2)
+      | none => (config.heap, none)
+  match config.frames with
+  | caller :: tail =>
+      match rCallFrame function values keywords builtKwargs.2 with
+      | some calleeFrame =>
+          let pushed := { calleeFrame with control :=
+            (.resourceChoice .framePush (.statements function.body.toList)) }
+          let resumed := { caller with
+            control := .continueValue .none (.callReturn continuation) }
+          let updated := { config with heap := builtKwargs.1 }
+          some (.tau, { updated with frames := pushed :: resumed :: tail })
+      | none =>
+          let error : RError := { errorClass := .type, args := [] }
+          some (.event (.raise error), config.finish (.raise error))
+  | _ => some (.event (.refuse "machine call stack"),
+      config.finish (.refuse "machine call stack"))
+
 def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     (keywords : List (String × RVal)) (continuation : RKont) :
     Option (RLabel × RConfig) :=
@@ -1309,9 +1337,34 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
           else if name == "len" then
             match values with
             | [value] =>
-              match rLen config.heap value with
-              | some result => some (.tau, config.setControl (.continueValue result continuation))
-              | none => some (.tau, config.setControl (.refusing "machine len"))
+              match value with
+              | .ref address =>
+                  match config.heap.get? address with
+                  | some (.instance cls _) =>
+                      match rLookupClassAttr config.classes cls "__len__" with
+                      | some (.callable token) =>
+                          match rFunctionByToken config.functions token with
+                          | some function =>
+                              rStartFunctionCall config function [value] []
+                                (.lenResult continuation)
+                          | none => some (.event (.refuse "machine __len__"),
+                              config.finish (.refuse "machine __len__"))
+                      | some _ => some (.tau, config.setControl
+                          (.refusing "machine __len__"))
+                      | none =>
+                          match rLen config.heap value with
+                          | some result => some (.tau, config.setControl
+                              (.continueValue result continuation))
+                          | none => some (.tau, config.setControl (.refusing "machine len"))
+                  | _ =>
+                      match rLen config.heap value with
+                      | some result => some (.tau, config.setControl
+                          (.continueValue result continuation))
+                      | none => some (.tau, config.setControl (.refusing "machine len"))
+              | _ =>
+                  match rLen config.heap value with
+                  | some result => some (.tau, config.setControl (.continueValue result continuation))
+                  | none => some (.tau, config.setControl (.refusing "machine len"))
             | _ => some (.tau, config.setControl (.refusing "machine len"))
           else some (.event (.refuse ("unknown function: " ++ name)),
             config.finish (.refuse ("unknown function: " ++ name)))
@@ -1852,6 +1905,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | [_] => some (.event (.return value), config.finish (.return value))
           | [] => none
       | .continueValue _ .discardValue => some (.tau, config.setControl (.statements []))
+      | .continueValue value (.lenResult continuation) =>
+          match value with
+          | .int length =>
+              if length < 0 then some (.tau, config.setControl
+                (.refusing "machine __len__ result"))
+              else some (.tau, config.setControl (.continueValue value continuation))
+          | _ => some (.tau, config.setControl (.refusing "machine __len__ result"))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue _ (.classDef name bases remaining) =>
