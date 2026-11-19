@@ -36,7 +36,8 @@ def extract(source, clang, plugin, source_name):
 
 
 def price(survey, roots, clang, plugin, wall=WALL):
-    rows = [row for row in survey.get("rows", []) if row.get("dynamic_wall") == wall]
+    walls = [wall] if isinstance(wall, str) else list(wall)
+    rows = [row for row in survey.get("rows", []) if row.get("dynamic_wall") in walls]
     priced = []
     for row in rows:
         source = Path(roots[row["corpus"]]) / row["name"]
@@ -51,7 +52,8 @@ def price(survey, roots, clang, plugin, wall=WALL):
         })
     return {
         "schema": "c-vector-layout-price-0.1",
-        "wall": wall,
+        "wall": walls[0] if len(walls) == 1 else "multiple",
+        "walls": walls,
         "survey_commit": survey.get("measured_commit"),
         "survey_measured_at_utc": survey.get("measured_at_utc"),
         "candidate_rows": len(rows),
@@ -69,7 +71,7 @@ def price(survey, roots, clang, plugin, wall=WALL):
 def render(report):
     lines = ["# C parser-native layout price", "",
              "- survey commit: `%s`" % report.get("survey_commit", ""),
-             "- dynamic wall: `%s`" % report.get("wall", ""),
+             "- dynamic walls: %s" % ", ".join("`%s`" % wall for wall in report.get("walls", [report.get("wall", "")])),
              "- candidate files: **%d**" % report.get("candidate_rows", 0),
              "- all rows joined: **%s**" % report.get("all_rows_joined", False), "",
              "| corpus | file | TypeLayout records | sizes / alignments |",
@@ -100,7 +102,7 @@ def main():
     parser.add_argument("--page")
     parser.add_argument("--clang", default=os.environ.get("LEAN_C_CLANG", "clang"))
     parser.add_argument("--plugin", required=False)
-    parser.add_argument("--wall", default=WALL)
+    parser.add_argument("--wall", action="append")
     parser.add_argument("--c1-root", required=False)
     parser.add_argument("--c2-root", required=False)
     parser.add_argument("--c3-root", required=False)
@@ -115,7 +117,7 @@ def main():
              "c-testsuite/single-exec": args.c2_root,
              "gcc.c23-run": args.c3_root}
     report = price(json.loads(Path(args.input).read_text()), roots, args.clang,
-                   args.plugin, args.wall)
+                   args.plugin, args.wall or WALL)
     if args.json:
         Path(args.json).write_text(json.dumps(report, indent=1, sort_keys=True) + "\n")
     if args.page:

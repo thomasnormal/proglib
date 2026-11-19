@@ -1,0 +1,1928 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 26,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20050316-2.c",
+   "sha256": "e096ec82c6ec33d62c00335c4a3fc73b535ba2cd94b9bdf0532928e2ce2072d3",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V2SF"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V2SF"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V2SI"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "V2SF"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id89",
+     "size_bytes": 8,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050316-2.c:39:3)"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id122",
+     "size_bytes": 8,
+     "type": "V2SF"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id160",
+     "size_bytes": 8,
+     "type": "V2SI"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20050316-3.c",
+   "sha256": "05e257f48a4da395630ab47f31a09833f1db0b43ce32520e99062457c367714c",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V2SI"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V2SI"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id76",
+     "size_bytes": 8,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050316-3.c:27:3)"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "V2SI"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20050604-1.c",
+   "sha256": "bbae86866c6345203a57e5d18d0be4497517de5413554a07137169b336ef6e74",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id30",
+     "size_bytes": 8,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050604-1.c:12:1)"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id34",
+     "size_bytes": 16,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/20050604-1.c:18:1)"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id38",
+     "size_bytes": 4,
+     "type": "unsigned int"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "v4hi"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "v4sf"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20060420-1.c",
+   "sha256": "cd7d81ae9a017a0c0c308153fdb88bc5aa1992cca079b468821cbe62a288a828",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "float *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "float **"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id31",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id31",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id34",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id40",
+     "size_bytes": 4,
+     "type": "unsigned int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id73",
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id137",
+     "size_bytes": 16,
+     "type": "v4flt"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id156",
+     "size_bytes": 16,
+     "type": "v4flt"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id175",
+     "size_bytes": 16,
+     "type": "v4flt"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id194",
+     "size_bytes": 16,
+     "type": "v4flt"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id378",
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id420",
+     "element_size_bytes": 4,
+     "size_bytes": 256,
+     "type": "float[64]"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id424",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id426",
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "float *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id426",
+     "element_size_bytes": 8,
+     "size_bytes": 16,
+     "type": "float *[2]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id429",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "char *"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id545",
+     "size_bytes": 4,
+     "type": "float"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "ieee/fp-cmp-cond-1.c",
+   "sha256": "d2a50a6e55336715dae5056141bf7ecac07b39097c27eb1f6d05727925697cbe",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id22",
+     "size_bytes": 1,
+     "type": "const _Bool"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id30",
+     "size_bytes": 1,
+     "type": "const _Bool"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id60",
+     "size_bytes": 1,
+     "type": "const _Bool"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id68",
+     "size_bytes": 1,
+     "type": "const _Bool"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4si"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4si"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4sf"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4sf"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id104",
+     "size_bytes": 4,
+     "type": "const v4si"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id111",
+     "size_bytes": 4,
+     "type": "const v4si"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id134",
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id274",
+     "size_bytes": 4,
+     "type": "v4si"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id279",
+     "size_bytes": 4,
+     "type": "v4sf"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id284",
+     "size_bytes": 4,
+     "type": "v4sf"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "ieee/pr72824-2.c",
+   "sha256": "1fc556c64d9023c26fcf951078d04e2a1fe2ae7fe63544a56b2c5cbf39d9a996",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 16,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id23",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id45",
+     "element_size_bytes": 16,
+     "size_bytes": 512,
+     "type": "V[32]"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr105613.c",
+   "sha256": "ef1b6447bd087e0497e08c05f9a3511793f9509d1c076474e33eb1ad7cf067f5",
+   "type_layouts": [
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 16,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id35",
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr109040.c",
+   "sha256": "a64af2abb4056c41624955b9407b4fa7cdca2b0942f8aab24a274ccdca02e058",
+   "type_layouts": [
+    {
+     "alignment_bytes": 2,
+     "decl_id": "id18",
+     "size_bytes": 2,
+     "type": "unsigned short"
+    },
+    {
+     "alignment_bytes": 2,
+     "decl_id": "id18",
+     "size_bytes": 2,
+     "type": "unsigned short"
+    },
+    {
+     "alignment_bytes": 2,
+     "decl_id": "id18",
+     "size_bytes": 2,
+     "type": "unsigned short"
+    },
+    {
+     "alignment_bytes": 2,
+     "decl_id": "id18",
+     "size_bytes": 2,
+     "type": "unsigned short"
+    },
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 2,
+     "size_bytes": 8,
+     "type": "unsigned short *"
+    },
+    {
+     "alignment_bytes": 32,
+     "decl_id": "id27",
+     "size_bytes": 32,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 2,
+     "decl_id": "id45",
+     "size_bytes": 2,
+     "type": "unsigned short"
+    },
+    {
+     "alignment_bytes": 2,
+     "decl_id": "id77",
+     "size_bytes": 2,
+     "type": "unsigned short"
+    },
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr110817-1.c",
+   "sha256": "9d921ab555c22fca9f4d94ccf579fecf2f237e6a793854b7ca5e4c50c92d05e9",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id18",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id22",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr110817-2.c",
+   "sha256": "eab8f48b7408ab359db88859a877532e33d9b594785c7a5423faa39f48325783",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id20",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id21",
+     "size_bytes": 1,
+     "type": "unsigned char"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id25",
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr110817-3.c",
+   "sha256": "72beab171d40035081c61052fe525e55934e0f847259e5b744c8de6de5c86b79",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id18",
+     "size_bytes": 4,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id19",
+     "size_bytes": 1,
+     "type": "unsigned char"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id23",
+     "size_bytes": 4,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id42",
+     "size_bytes": 4,
+     "type": "volatile int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr23135.c",
+   "sha256": "200dc2f4424d09fed60a4cc2fe0996e43f346d8aab930e31192e2947df834558",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id38",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id42",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id46",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id50",
+     "size_bytes": 8,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/pr23135.c:23:1)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "siint"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "siint"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "siint"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "siint"
+    },
+    {
+     "alignment_bytes": 1,
+     "size_bytes": 131072,
+     "type": "big_t"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id76",
+     "size_bytes": 131072,
+     "type": "big_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id78",
+     "size_bytes": 8,
+     "type": "vecint"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr60960.c",
+   "sha256": "b70701c483980b963007b720f38d87bc8f5e8fe313a9fda32e57a1869f6e1276",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4qi"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4qi"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4qi"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4qi"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "v4qi"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id62",
+     "size_bytes": 4,
+     "type": "v4qi"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id73",
+     "size_bytes": 4,
+     "type": "v4qi"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id84",
+     "size_bytes": 4,
+     "type": "v4qi"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr70903.c",
+   "sha256": "07695a8d489a7a75c15865206b55d1611750f4ec97407874ab7fb89d99db49c6",
+   "type_layouts": [
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V64"
+    },
+    {
+     "alignment_bytes": 32,
+     "decl_id": "id28",
+     "size_bytes": 32,
+     "type": "V64"
+    },
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V8"
+    },
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V64"
+    },
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V32"
+    },
+    {
+     "alignment_bytes": 32,
+     "decl_id": "id61",
+     "size_bytes": 32,
+     "type": "V32"
+    },
+    {
+     "alignment_bytes": 32,
+     "size_bytes": 32,
+     "type": "V64"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr71626-1.c",
+   "sha256": "c1bfcceefba2299a1c0845dcbac9f29ad48117a29fdff72611c45039ba4f5ccf",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id21",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id33",
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr85169.c",
+   "sha256": "1386c7225fe40e53bbd5acdc75b3e4d7581a1c10a8ae2e0389c6fbd117d6869e",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 64,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 64,
+     "decl_id": "id21",
+     "size_bytes": 64,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 64,
+     "decl_id": "id41",
+     "size_bytes": 64,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 64,
+     "size_bytes": 64,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id52",
+     "size_bytes": 4,
+     "type": "unsigned int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr92618.c",
+   "sha256": "b14f56ce7c1d8f56996de35257f0d3e8f1948e64d030ad74a41fe89ceb3ac8d1",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id19",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "double[4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id20",
+     "element_size_bytes": 8,
+     "size_bytes": 32,
+     "type": "unsigned long long[4]"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id24",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__m128i"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id47",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__m128d"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "unsigned long long *"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id66",
+     "size_bytes": 16,
+     "type": "__m128i"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id71",
+     "size_bytes": 16,
+     "type": "__m128i"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "double *"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id126",
+     "size_bytes": 16,
+     "type": "__m128i"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id131",
+     "size_bytes": 16,
+     "type": "__m128i"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id185",
+     "size_bytes": 8,
+     "type": "unsigned long long"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id210",
+     "size_bytes": 8,
+     "type": "double"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr94412.c",
+   "sha256": "ae6eaf5973fd11db37e65266deea322d50bc6a4fd02544c56345abac9474c90e",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "V *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id56",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id65",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id74",
+     "size_bytes": 8,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id74",
+     "size_bytes": 8,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr94524-1.c",
+   "sha256": "00b79046b77668975b2833a34acddc497fa45ee1aed8c4922c803666d23f6c11",
+   "type_layouts": [
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id35",
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr94524-2.c",
+   "sha256": "8db61e522f5d2c9b76e57bacc4df48e9ff4c2283dc915081d3aa9e4b33ee47c1",
+   "type_layouts": [
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id35",
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "V"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "scal-to-vec1.c",
+   "sha256": "86fadd423bc2f8d9b5974f298a331098b39ac329aa4606143f3e7afd79029607",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id15",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "char **"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(8 * sizeof(short)))) short"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(8 * sizeof(short)))) short"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "scal-to-vec2.c",
+   "sha256": "6231c60dff198310469e13793cc8224fd91ed62819c9eca89b1b1c525f3df85c",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "char **"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(16 * sizeof(char)))) char"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(16 * sizeof(char)))) char"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(8 * sizeof(short)))) short"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(8 * sizeof(short)))) short"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(int)))) int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(int)))) int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(long)))) long"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(long)))) long"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "scal-to-vec3.c",
+   "sha256": "c379b84f208371ab67713fbe41a43552089241845e2df3fbc3cfb75d93866375",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "char **"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(4 * sizeof(float)))) float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "size_bytes": 16,
+     "type": "__attribute__((__vector_size__(2 * sizeof(double)))) double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "simd-4.c",
+   "sha256": "af07ae0d3adcb12a8c054c9747fdb1d548d15ef0c1ea42460fb694f56a38158e",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id168",
+     "size_bytes": 8,
+     "type": "int64_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "v2si"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id182",
+     "size_bytes": 8,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/simd-4.c:17:3)"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id189",
+     "size_bytes": 4,
+     "type": "int32_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "v2si"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "simd-5.c",
+   "sha256": "be2cc9a03a73182dfcc7c67a1ed0bd80a82e490e5e93a53281b98af9f16a0e74",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id24",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id24",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id24",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id24",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id48",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id48",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id48",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id48",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id56",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id66",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id66",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id105",
+     "size_bytes": 8,
+     "type": "Q"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id105",
+     "size_bytes": 8,
+     "type": "Q"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "simd-6.c",
+   "sha256": "1766f85f6143d717c4c19e4e8c992109221881be2935260ed105d6320ac7be2d",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "const void *"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "const void *"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "unsigned long"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "v8qi"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "v8qi"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id47",
+     "size_bytes": 8,
+     "type": "v8qi"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id66",
+     "size_bytes": 8,
+     "type": "v8qi"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id85",
+     "size_bytes": 8,
+     "type": "v8qi"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id104",
+     "size_bytes": 8,
+     "type": "v8qi"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "multiple",
+ "walls": [
+  "unsupported:no layout for declared type 'V'",
+  "unsupported:no layout for compound literal type 'V'",
+  "unsupported:no layout for compound literal type 'v2si'",
+  "unsupported:no layout for compound literal type 'v4hi'",
+  "unsupported:no layout for declared type 'V2SF'",
+  "unsupported:no layout for declared type 'V2SI'",
+  "unsupported:no layout for declared type 'V32'",
+  "unsupported:no layout for declared type 'V[32]'",
+  "unsupported:no layout for declared type '__attribute__((__vector_size__(16 * sizeof(char)))) char'",
+  "unsupported:no layout for declared type '__attribute__((__vector_size__(4 * sizeof(float)))) float'",
+  "unsupported:no layout for declared type '__attribute__((__vector_size__(8 * sizeof(short)))) short'",
+  "unsupported:no layout for declared type '__m128i'",
+  "unsupported:no layout for declared type 'v4qi'",
+  "unsupported:no layout for declared type 'v4si'",
+  "unsupported:no layout for declared type 'v8qi'",
+  "unsupported:no layout for declared type 'vecint'",
+  "unsupported:sizeof: no layout for operand type 'v4flt'",
+  "unsupported:no layout for declared type 'Q'"
+ ]
+}
