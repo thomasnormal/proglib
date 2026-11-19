@@ -1,0 +1,5 @@
+a, *rest, z = (1, 2, 3, 4)
+print(a)
+print(rest[0])
+print(rest[1])
+print(z)

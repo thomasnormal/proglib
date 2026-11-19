@@ -343,5 +343,10 @@
     "source": "harness/scripts/machine_left_error_order.py",
     "envelope": "harness/scripts/machine_left_error_order.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_star_unpack_assign.py",
+    "envelope": "harness/scripts/machine_star_unpack_assign.json",
+    "expect": "match"
   }
 ]

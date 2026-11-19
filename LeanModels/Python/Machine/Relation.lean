@@ -30,6 +30,8 @@ inductive RStmt where
   | ret (value : Option Expr) (span : Span)
   | expr (value : Expr) (span : Span)
   | assign (target : Expr) (value : Expr) (span : Span)
+  | unpackAssign (before : Array String) (star : String) (after : Array String)
+      (value : Expr) (span : Span)
   | ifStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | whileStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | forStmt (target : Expr) (iter : Expr) (body : Array RStmt) (orelse : Array RStmt)
@@ -116,6 +118,8 @@ inductive RKont where
   | sequence (remaining : List RStmt)
   | assign (name : String) (remaining : List RStmt)
   | assignPattern (target : Expr) (remaining : List RStmt)
+  | assignUnpack (before : Array String) (star : String) (after : Array String)
+      (remaining : List RStmt)
   | assignSubscriptReceiver (receiver : Expr) (index : Expr) (remaining : List RStmt)
   | assignSubscriptIndex (value : RVal) (index : Expr) (remaining : List RStmt)
   | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
@@ -673,18 +677,45 @@ def rPatternValues (target : Expr) (value : RVal) : Option (List (String × RVal
   match target, value with
   | .name name _, value => some [(name, value)]
   | .tuple targets _, .tuple values | .list targets _, .tuple values =>
+      let targetList := targets.toList
+      let valueList := values.toList
       if targets.size != values.size then none
       else
-        (targets.toList.zip values.toList).mapM fun pair =>
+        (targetList.zip valueList).mapM fun pair =>
           match pair.1 with
           | .name name _ => some (name, pair.2)
           | _ => none
   | .tuple targets _, .ref _ | .list targets _, .ref _ => none
   | _, _ => none
 
+def rUnpackPatternValues (before : Array String) (star : String) (after : Array String)
+    (value : RVal) : Option (List (String × RVal)) :=
+  match value with
+  | .tuple values =>
+      let valueList := values.toList
+      if valueList.length < before.size + after.size then none
+      else
+        let prefixValues := valueList.take before.size
+        let suffixValues := valueList.drop (valueList.length - after.size)
+        let middleValues := valueList.drop before.size |>.take
+          (valueList.length - before.size - after.size)
+        let prefixBindings := before.toList.zip prefixValues
+        let suffixBindings := after.toList.zip suffixValues
+        some ((star, .listV middleValues.toArray) ::
+          (prefixBindings ++ suffixBindings))
+  | _ => none
+
 def rAssignPattern (frame : RFrame) (target : Expr) (value : RVal) (remaining : List RStmt)
     : Option RFrame :=
   match rPatternValues target value with
+  | none => none
+  | some bindings =>
+      let locals := bindings.foldl (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
+      some { frame with control := .statements remaining, locals := locals }
+
+def rAssignUnpack (frame : RFrame) (before : Array String) (star : String)
+    (after : Array String) (value : RVal) (remaining : List RStmt) : Option RFrame :=
+  match rUnpackPatternValues before star after value with
   | none => none
   | some bindings =>
       let locals := bindings.foldl (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
@@ -1111,6 +1142,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .assign (.subscript receiver index _) value _ =>
               some (.tau, config.setControl
                 (.evaluate value (.assignSubscriptReceiver receiver index rest)))
+          | .unpackAssign before star after value _ =>
+              some (.tau, config.setControl
+                (.evaluate value (.assignUnpack before star after rest)))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
@@ -1286,6 +1320,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           match rAssignPattern frame target value remaining with
           | some updated => some (.tau, config.setTop updated)
           | none => some (.tau, config.setControl (.refusing "machine assignment pattern"))
+      | .continueValue value (.assignUnpack before star after remaining) =>
+          match rAssignUnpack frame before star after value remaining with
+          | some updated => some (.tau, config.setTop updated)
+          | none => some (.tau, config.setControl (.refusing "machine starred assignment"))
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue value (.unaryValue op continuation) =>
