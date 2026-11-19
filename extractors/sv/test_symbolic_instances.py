@@ -276,6 +276,24 @@ endmodule
         self.assertEqual([m["name"] for m in env["design"]["modules"]],
                          ["top", "child"])
 
+    def test_inactive_generate_instance_retains_named_parameter_override(self):
+        env = self.extract("""
+module child #(parameter int W = 4) (input logic [W-1:0] a, output logic [W-1:0] y);
+  assign y = a;
+endmodule
+module top #(parameter bit USE = 0) (input logic [3:0] a, output logic [3:0] y);
+  if (USE) begin : g
+    child #(.W(4)) u (.a(a), .y(y));
+  end else begin
+    assign y = a;
+  end
+endmodule
+""")
+        instance = env["design"]["modules"][0]["generates"][0]["then"][0]
+        self.assertEqual(instance["params"][0]["name"], "W")
+        self.assertEqual(instance["params"][0]["expr"]["kind"], "Int")
+        self.assertEqual(instance["params"][0]["expr"]["value"], 4)
+
     def test_package_type_bits_constant_is_source_shaped(self):
         env = self.extract("""
 package widths;
