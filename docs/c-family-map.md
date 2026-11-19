@@ -245,8 +245,9 @@ table. Aggregate initialization now reads the parser-native union tag through
 the layout interface. Enum scalar classification now refuses when the parser
 has not supplied an enumeration observation. The legacy layout helper follows
 the same boundary instead of fabricating a four-byte enum size. The live
-checker now reports 25 findings after the layout builder stopped peeling a
-pointer from a display spelling to recover pointee record facts. F1 remains
+checker now reports 22 findings after the layout builder stopped peeling a
+pointer from a display spelling and the declarator-admission guard was
+removed. F1 remains
 open with qualification stripping, typedef resolution, pointer and array
 recognition, and record-tag lookup. No F2 store work starts until this checker
 reaches zero and the full survey is at least 1326/2214 with no DIVERGE.

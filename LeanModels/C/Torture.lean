@@ -129,19 +129,6 @@ def torScalarSize : CType → Option Nat
   | t => if t.endsWith "*"
          then some 8 else none
 
-/-- The envelope's ordinary declaration types are flat Clang spellings.
-Admit only the closed spelling fragment consumed by the profile layout; any
-declarator grammar that this tier cannot represent as a tree is rejected at
-the layout boundary instead of being partially peeled into a different type.
-The guard is deliberately conservative for function-pointer and postfix-
-qualified forms, while admitting constant nested-array syntax. Pointer-to-array
-objects require a parser-native type-layout observation. Variable extents and
-elaborated scope spellings remain outside the fragment. -/
-def typeSpellingAdmitted (t : CType) : Bool :=
-  ((!t.contains "(*")) &&
-  !t.endsWith " restrict" && !t.endsWith "*restrict" &&
-  !t.contains "::"
-
 /-- Drop the qualifiers. Exact: `const`/`volatile` do not change a size. -/
 def stripQuals : Nat → CType → CType
   | 0, t => t
@@ -165,7 +152,7 @@ def stripQuals : Nat → CType → CType
 /-- `T[N]` → `(T, N)`. Constant nested arrays are walked from the outermost
 extent inward; variable extents still return `none`. -/
 def arrayOf (t : CType) : Option (CType × Nat) :=
-  if !typeSpellingAdmitted t || !t.endsWith "]" then none
+  if !t.endsWith "]" then none
   else
     match t.splitOn "[" with
     | base :: ext :: rest =>
@@ -182,7 +169,6 @@ def arrayOf (t : CType) : Option (CType × Nat) :=
 #guard arrayOf "int[n % 1000 + 1]" == none
 #guard torScalarSize "int (*)[1]" == none
 #guard torScalarSize "enum E" == none
-#guard typeSpellingAdmitted "int (*)(int)" == false
 
 /-- The unit's own typedefs, as a spelling map. A lookup, not a
 computation — so resolving through it invents nothing. -/
@@ -549,7 +535,6 @@ def sizeAlign (tds : List (CType × CType))
     Nat → CType → Option (Nat × Nat)
   | 0, _ => none
   | n + 1, t0 =>
-      if !typeSpellingAdmitted t0 then none else
       -- QUALIFIERS COME OFF BEFORE THE TYPEDEF IS RESOLVED, and both come off
       -- before anything is asked about the type. §6.2.5p28: a qualified type
       -- has the SAME representation and alignment as its unqualified version,
