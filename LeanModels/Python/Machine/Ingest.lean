@@ -131,6 +131,7 @@ deriving Repr, Inhabited, BEq
 
 structure MModule where
   body : Array MStmt
+  typeIgnores : Array (Nat × String) := #[]
 deriving Repr, Inhabited, BEq
 
 /-! The machine decoder reads the extractor's AST envelope directly.  It is
@@ -666,7 +667,12 @@ private def mStmtSpan : MStmt → Span
 def parseMachineModule (j : Json) : Except String MModule := do
   let module ← mField j "module"
   let body ← (← (← mField module "body").getArr?).mapM mStmt
-  pure { body }
+  let typeIgnores ← match module.getObjVal? "machine_type_ignores" with
+    | .error _ => pure #[]
+    | .ok values => (← values.getArr?).mapM fun value => do
+        pure ((← (← mField value "lineno").getNat?),
+          (← (← mField value "tag").getStr?))
+  pure { body, typeIgnores }
 
 partial def mExprToExpr : MExpr → Expr
   | .constant value span => .constant value span
@@ -1012,12 +1018,19 @@ private def ingestGlobalFunction : Json :=
             ("span", ingestSpan), ("value", Lean.Json.mkObj [
               ("type", Lean.toJson "int"), ("repr", Lean.toJson "7")])])]])]])])]
 
+private def ingestTypeIgnoreModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [
+    ("kind", Lean.toJson "Module"),
+    ("body", Lean.Json.arr #[]),
+    ("machine_type_ignores", Lean.Json.arr #[Lean.Json.mkObj [
+      ("lineno", Lean.toJson (3 : Nat)), ("tag", Lean.toJson "[assignment]")]])])]
+
 #guard match parseMachineModule ingestModule with
-  | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _] _ _] } => true
+  | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _] _ _], typeIgnores := #[] } => true
   | _ => false
 
 #guard match parseMachineModule ingestKwargModule with
-  | .ok { body := #[.functionDef _ args _ _ _ _] } => args.kwarg.isSome
+  | .ok { body := #[.functionDef _ args _ _ _ _], typeIgnores := #[] } => args.kwarg.isSome
   | _ => false
 
 #guard match parseMachineModule ingestGlobalFunction with
@@ -1025,6 +1038,10 @@ private def ingestGlobalFunction : Json :=
       match (compileMachineModule module).body.toList with
       | [.functionDef _ _ _ #[.global #["value"] _, .assign _ _ _] _] => true
       | _ => false
+  | _ => false
+
+#guard match parseMachineModule ingestTypeIgnoreModule with
+  | .ok { body := #[], typeIgnores := #[(3, "[assignment]")] } => true
   | _ => false
 
 private def ingestAnnAssignModule : Json :=

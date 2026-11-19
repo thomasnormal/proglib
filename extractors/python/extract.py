@@ -3227,7 +3227,11 @@ def process_file(source_path, companion_dir, out=None):
         "source_file": source_rel,
         "source_sha256": source_sha256,
         "module": {"kind": "Module",
-                   "body": convert_stmt_list(tree.body, module_scope=True)},
+                   "body": convert_stmt_list(tree.body, module_scope=True),
+                   "machine_type_ignores": [
+                       {"lineno": item.lineno, "tag": item.tag}
+                       for item in tree.type_ignores
+                   ]},
         "lean_blocks": blocks,
     }
 
