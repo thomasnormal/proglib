@@ -716,7 +716,10 @@ def convert_expr(node):
             const = {"type": "bytes", "value": list(v)}
         else:  # complex / ...
             return unsupported(node, "Constant:" + type(v).__name__)
-        return {"kind": "Constant", "span": span(node), "value": const}
+        out = {"kind": "Constant", "span": span(node), "value": const}
+        if node.kind is not None:
+            out["machine_constant_kind"] = node.kind
+        return out
 
     if isinstance(node, ast.Name):
         return {"kind": "Name", "span": span(node), "id": node.id,

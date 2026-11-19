@@ -24,7 +24,7 @@ inductive MContext where
 deriving Repr, Inhabited, BEq
 
 inductive MExpr where
-  | constant (value : Const) (span : Span)
+  | constant (value : Const) (constantKind : Option String) (span : Span)
   | name (id : String) (context : MContext) (span : Span)
   | binOp (left : MExpr) (op : BinOp) (right : MExpr) (span : Span)
   | unaryOp (op : UnaryOp) (operand : MExpr) (span : Span)
@@ -226,7 +226,12 @@ partial def mExpr (j : Json) : Except String MExpr := do
   let kind ← (← mField j "kind").getStr?
   let span ← mSpan (← mField j "span")
   match kind with
-  | "Constant" => pure (.constant (← mConst (← mField j "value")) span)
+  | "Constant" =>
+      let constantKind ← match j.getObjVal? "machine_constant_kind" with
+        | .error _ | .ok .null => pure none
+        | .ok (.str value) => pure (some value)
+        | .ok _ => throw "machine constant kind is not a string or null"
+      pure (.constant (← mConst (← mField j "value")) constantKind span)
   | "Name" => pure (.name (← (← mField j "id").getStr?) (← mContext j) span)
   | "BinOp" =>
       let opName ← (← mField j "op").getStr?
@@ -413,7 +418,7 @@ private def mArg (j : Json) : Except String MArg := do
   let default ← match j.getObjVal? "default" with
     | .ok value =>
         let span ← mSpan (← mField j "span")
-        some <$> (pure (.constant (← mConst value) span))
+        some <$> (pure (.constant (← mConst value) none span))
     | .error _ => pure none
   let typeComment ← match j.getObjVal? "type_comment" with
     | .ok .null | .error _ => pure none
@@ -704,7 +709,7 @@ def parseMachineModule (j : Json) : Except String MModule := do
   pure { body, typeIgnores }
 
 partial def mExprToExpr : MExpr → Expr
-  | .constant value span => .constant value span
+  | .constant value _ span => .constant value span
   | .name id _ span => .name id span
   | .binOp left op right span => .binOp (mExprToExpr left) op (mExprToExpr right) span
   | .unaryOp op operand span => .unaryOp op (mExprToExpr operand) span
@@ -744,7 +749,7 @@ partial def mExprToExpr : MExpr → Expr
       .unsupported "machine node" "" span
 
 partial def mExprToRaw : MExpr → RRawExpr
-  | .constant _ span => .node "Constant" #[] span
+  | .constant _ _ span => .node "Constant" #[] span
   | .name _ _ span => .node "Name" #[] span
   | .binOp left _ right span => .node "BinOp" #[mExprToRaw left, mExprToRaw right] span
   | .unaryOp _ operand span => .node "UnaryOp" #[mExprToRaw operand] span
@@ -808,7 +813,7 @@ partial def mExprToRaw : MExpr → RRawExpr
   | .unsupported kind span => .node kind #[] span
 
 partial def mExprHasRaw : MExpr → Bool
-  | .constant _ _ | .name _ _ _ => false
+  | .constant _ _ _ | .name _ _ _ => false
   | .unsupported _ _ | .rawNode _ _ _ => true
   | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
@@ -1068,6 +1073,17 @@ private def ingestContextModule : Json :=
         ("value", Lean.Json.mkObj [
           ("type", Lean.toJson "int"), ("repr", Lean.toJson "7")])])]])])]
 
+private def ingestConstantKindModule : Json :=
+  Lean.Json.mkObj [("module", Lean.Json.mkObj [
+    ("kind", Lean.toJson "Module"),
+    ("body", Lean.Json.arr #[Lean.Json.mkObj [
+      ("kind", Lean.toJson "Expr"), ("span", ingestSpan),
+      ("value", Lean.Json.mkObj [
+        ("kind", Lean.toJson "Constant"), ("span", ingestSpan),
+        ("machine_constant_kind", Lean.toJson "r"),
+        ("value", Lean.Json.mkObj [
+          ("type", Lean.toJson "str"), ("value", Lean.toJson "raw")])])]])])]
+
 #guard match parseMachineModule ingestModule with
   | .ok { body := #[.global #["counter"] _, .assign #[.name "value" _ _] _ _], typeIgnores := #[] } => true
   | _ => false
@@ -1090,6 +1106,10 @@ private def ingestContextModule : Json :=
 
 #guard match parseMachineModule ingestContextModule with
   | .ok { body := #[.assign #[.name "value" .store _] _ _], typeIgnores := #[] } => true
+  | _ => false
+
+#guard match parseMachineModule ingestConstantKindModule with
+  | .ok { body := #[.expr (.constant (.str "raw") (some "r") _) _], typeIgnores := #[] } => true
   | _ => false
 
 private def ingestAnnAssignModule : Json :=
