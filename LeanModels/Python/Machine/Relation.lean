@@ -47,6 +47,8 @@ inductive RStmt where
       (keywordDefaults : Array (Option Expr)) (body : Array RStmt) (span : Span)
   | classDef (name : String) (bases : Array Expr) (keywords : Array (String × Expr))
       (decorators : Array Expr) (body : Array RStmt) (span : Span)
+  | withStmt (items : Array (Expr × Option Expr)) (body : Array RStmt) (isAsync : Bool)
+      (span : Span)
   | import (module : String) (alias : Option String) (span : Span)
   | importFrom (module : Option String) (names : Array (String × Option String))
       (level : Nat) (span : Span)
@@ -1231,6 +1233,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.event (.refuse "machine import-from"), config.finish (.refuse "machine import-from"))
           | .classDef _ _ _ _ _ _ =>
               some (.event (.refuse "machine class"), config.finish (.refuse "machine class"))
+          | .withStmt _ _ _ _ =>
+              some (.event (.refuse "machine with"), config.finish (.refuse "machine with"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
