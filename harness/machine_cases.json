@@ -770,6 +770,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_class_dunder_str.py",
+    "envelope": "harness/scripts/machine_class_dunder_str.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/machine_class_dunder_repr.py",
     "envelope": "harness/scripts/machine_class_dunder_repr.json",
     "expect": "match"

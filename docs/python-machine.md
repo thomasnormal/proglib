@@ -71,6 +71,8 @@ Instances with an undecorated `__len__` method participate in `len()` through
 the same bound-method call path; invalid `__len__` results remain refused.
 `repr()` dispatches to an explicit instance `__repr__` method and accepts its
 string result. Default object rendering remains refused.
+`str()` dispatches to an explicit instance `__str__` method and accepts its
+string result. Default instance string conversion remains refused.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
