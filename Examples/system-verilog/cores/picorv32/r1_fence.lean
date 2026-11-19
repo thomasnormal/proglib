@@ -60,6 +60,26 @@ theorem picorv32_fenceI_class_commit (state : ArchState) (memory : Memory) :
   exact rvMachineWith_fence cv32e40pProfile state memory fenceIWord .fenceI
     fence_decodes.2
 
+/-! The raw fence fields determine the exact memory-preserving ISA step for
+    both `fence` and `fence.i`. -/
+
+theorem picorv32_fence_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (kind : FenceKind)
+    (hfields : observation.fenceFields state input word kind) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (fenceNext state kind, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.system kind.toSysOp) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_fence profile state memory word kind hdecode
+
+#print axioms picorv32_fence_fields_isa_step
+
 theorem picorv32_fence_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
     {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
