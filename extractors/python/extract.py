@@ -417,6 +417,36 @@ def unsupported(node, py_kind=None, machine_kind=None, machine_value_marker=None
     return out
 
 
+def machine_fstring_values(node):
+    """Encode every CPython ``JoinedStr`` child without semantic filtering."""
+    values = []
+    for part in node.values:
+        if isinstance(part, ast.Constant) and isinstance(part.value, str):
+            values.append({
+                "kind": "Constant",
+                "span": span(part),
+                "value": {"type": "str", "value": part.value},
+            })
+        elif isinstance(part, ast.FormattedValue):
+            format_spec = None
+            if part.format_spec is not None:
+                format_spec = {
+                    "kind": "JoinedStr",
+                    "span": span(part.format_spec),
+                    "values": machine_fstring_values(part.format_spec),
+                }
+            values.append({
+                "kind": "FormattedValue",
+                "span": span(part),
+                "value": convert_expr(part.value),
+                "conversion": part.conversion,
+                "format_spec": format_spec,
+            })
+        else:
+            raise ExtractError("unsupported JoinedStr child " + type(part).__name__)
+    return values
+
+
 def literal_const_payload(node):
     """The envelope const payload of a LITERAL expression (an ``ast.Constant``
     of int/bool/str/None — the same encoding as ``Constant`` nodes' ``value``
@@ -467,7 +497,9 @@ def convert_fstring(node):
         if isinstance(part, ast.FormattedValue):
             if part.format_spec is not None:
                 if not isinstance(part.format_spec, ast.JoinedStr):
-                    return unsupported(node, "JoinedStr:format_spec")
+                    out = unsupported(node, "JoinedStr:format_spec", machine_kind="JoinedStr")
+                    out["machine_values"] = machine_fstring_values(node)
+                    return out
                 spec_values = part.format_spec.values
                 literal_spec = (len(spec_values) == 1 and
                                  isinstance(spec_values[0], ast.Constant) and
@@ -475,9 +507,13 @@ def convert_fstring(node):
                 dynamic_spec = (len(spec_values) == 1 and
                                 isinstance(spec_values[0], ast.FormattedValue))
                 if spec_values and not (literal_spec or dynamic_spec):
-                    return unsupported(node, "JoinedStr:format_spec")
+                    out = unsupported(node, "JoinedStr:format_spec", machine_kind="JoinedStr")
+                    out["machine_values"] = machine_fstring_values(node)
+                    return out
             if part.conversion not in (-1, 97, 115, 114):
-                return unsupported(node, "JoinedStr:conversion")
+                out = unsupported(node, "JoinedStr:conversion", machine_kind="JoinedStr")
+                out["machine_values"] = machine_fstring_values(node)
+                return out
             parts.append({
                 "kind": "FormattedValue",
                 "span": span(part),
@@ -493,7 +529,10 @@ def convert_fstring(node):
                 "value": {"type": "str", "value": part.value},
             })
         else:  # not reachable from CPython's parser; loud rather than guessed
-            return unsupported(node, "JoinedStr:part:" + type(part).__name__)
+            out = unsupported(node, "JoinedStr:part:" + type(part).__name__,
+                              machine_kind="JoinedStr")
+            out["machine_values"] = machine_fstring_values(node)
+            return out
     return {"kind": "JoinedStr", "span": span(node), "values": parts}
 
 
