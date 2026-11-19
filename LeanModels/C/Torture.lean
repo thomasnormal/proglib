@@ -308,7 +308,11 @@ def allDecls (envl : Envelope) : List Decl :=
 def recordsOf (envl : Envelope) : List (String × List (String × CType)) :=
   let ds := allDecls envl
   let records := ds.filterMap fun d => match d with
-    | .record _ (some nm) fields _ _ => (fieldsOf fields).map (fun fs => (nm, fs))
+    | .record _ (some nm) fields (some layout) _ =>
+        (fieldsOf fields).map (fun fs =>
+          ((if layout.tagKind == "union" then "union " else "struct ") ++ nm, fs))
+    | .record _ (some nm) fields none _ =>
+        (fieldsOf fields).map (fun fs => (nm, fs))
     | _ => none
   let anonymous := ds.filterMap fun d => match d with
     | .var _ _ ty _ _ (some rid) _ _ =>
@@ -496,12 +500,6 @@ def observedRecordFacts (envl : Envelope) :
   offset := 0, tokenLength := 1, name := "S", tagKind := "struct",
   sizeBytes := 1, alignmentBytes := 1, fields := [] }
 
-/-- `struct s` / `union u` → the tag. -/
-def recordTag (t : CType) : Option String :=
-  if t.startsWith "struct " then some (t.drop 7).toString
-  else if t.startsWith "union " then some (t.drop 6).toString
-  else none
-
 /-- **SIZE AND ALIGNMENT TOGETHER**, under the profile's declared
 `natural_alignment` rule (`docs/c-profile.md` §4a, J.3.9(1)).
 
@@ -546,7 +544,7 @@ def sizeAlign (tds : List (CType × CType))
         match arrayOf t with
         | some (e, k) => (sizeAlign tds recs n e).map fun p => (p.1 * k, p.2)
         | none =>
-          let record := recs.find? (·.1 == t) |>.orElse (fun _ => recordTag t |>.bind (fun tag => recs.find? (·.1 == tag)))
+          let record := recs.find? (·.1 == t)
           match record with
             | none => none
             | some r =>
@@ -570,7 +568,7 @@ def fieldOffIn (tds : List (CType × CType))
   let t0 := stripQuals 8 base
   let t1 := if t0.endsWith "*" then stripQuals 8 (t0.dropEnd 1).toString.trimAsciiEnd.toString else t0
   let t := resolve tds 8 t1
-  let record := recs.find? (·.1 == t) |>.orElse (fun _ => recordTag t |>.bind (fun tag => recs.find? (·.1 == tag)))
+  let record := recs.find? (·.1 == t)
   match record with
     | none => none
     | some r =>
@@ -777,8 +775,7 @@ def layoutFor (envl : Envelope) : Layout :=
       | some (_, members, _) => some members
       | none =>
           let rt := resolve tds 8 (stripQuals 8 t)
-          let r := (recs.find? (·.1 == rt)).orElse (fun _ =>
-            (recordTag rt).bind (fun tag => recs.find? (·.1 == tag)))
+          let r := recs.find? (·.1 == rt)
           r.map (·.2)
     -- The evaluator's own normalizer, built from THIS unit's typedefs. The
     -- table in `intTyOf?` cannot do this job: `ull` is `unsigned long` in one
