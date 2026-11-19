@@ -303,6 +303,24 @@ def record_layout_records(path):
             "type_layouts": type_layouts}
 
 
+def record_kind_records(tree):
+    """Return parser-native struct/union tags keyed by canonical AST IDs."""
+    records = []
+    def visit(node):
+        if isinstance(node, dict):
+            if (node.get("kind") == "RecordDecl" and node.get("id") and
+                    node.get("tagUsed") in ("struct", "union")):
+                records.append({"decl_id": node["id"],
+                                "is_union": node["tagUsed"] == "union"})
+            for child in kids(node):
+                visit(child)
+        elif isinstance(node, list):
+            for child in node:
+                visit(child)
+    visit(tree)
+    return records
+
+
 def structured_type_records(path):
     """Observe Clang's recursive QualType tree through the pinned plugin.
 
@@ -1013,17 +1031,7 @@ def extract(path, source_name=None, standard="c23"):
     # Preserve Clang's parser-native record tag decision even when the
     # optional layout plugin is absent.  This is an AST fact, not a spelling
     # interpretation, and lets the fallback distinguish anonymous unions.
-    record_kinds = []
-    def collect_record_kinds(node):
-        if isinstance(node, dict):
-            if node.get("kind") == "RecordDecl" and node.get("id") and node.get("tagUsed") in ("struct", "union"):
-                record_kinds.append({"decl_id": node["id"], "is_union": node["tagUsed"] == "union"})
-            for child in kids(node):
-                collect_record_kinds(child)
-        elif isinstance(node, list):
-            for child in node:
-                collect_record_kinds(child)
-    collect_record_kinds(tu)
+    record_kinds = record_kind_records(tu)
 
     # Join parser-native TypeLayout observations to the owning VarDecl by
     # clang's AST declaration identity. The probe reports the same source
@@ -1170,7 +1178,16 @@ def selftest():
     check("file-scope anonymous record identity is retained",
           top[1].get("record_decl_id"), "id-record")
 
-    # 5. A field attribute is evidence carried alongside its FieldDecl. It
+    # 5. Parser record tags are retained as declaration-keyed facts.
+    tagged = {"kind": "TranslationUnit", "inner": [
+        {"kind": "RecordDecl", "id": "id-union", "tagUsed": "union", "inner": []},
+        {"kind": "RecordDecl", "id": "id-struct", "tagUsed": "struct", "inner": []},
+    ]}
+    check("parser record tags are retained", record_kind_records(tagged),
+          [{"decl_id": "id-union", "is_union": True},
+           {"decl_id": "id-struct", "is_union": False}])
+
+    # 6. A field attribute is evidence carried alongside its FieldDecl. It
     # must not replace the field: the layout probe supplies the exact offset,
     # while the AST still records why that offset differs from natural ABI
     # alignment.
