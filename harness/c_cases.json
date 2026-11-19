@@ -595,6 +595,12 @@
     ]
   },
   {
+    "id": "effective-type-const-qualified",
+    "source": "int main(void) { const int x = 7; return x == 7 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
     "id": "effective-type-volatile-qualified",
     "source": "int main(void) { volatile int x = 7; return x == 7 ? 0 : 1; }",
     "expect": "match",
