@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 32.297,
+      "extract_seconds": 18.145,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.924,
+      "extract_seconds": 0.562,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.239,
+      "extract_seconds": 0.152,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.141,
+      "extract_seconds": 0.077,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.234,
+      "extract_seconds": 0.332,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.165,
+      "extract_seconds": 0.153,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.14,
+      "extract_seconds": 0.13,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.296,
+      "extract_seconds": 0.339,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 1.29,
+      "extract_seconds": 1.192,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.134,
+      "extract_seconds": 0.108,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.221,
+      "extract_seconds": 0.176,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.084,
+      "extract_seconds": 0.058,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.104,
+      "extract_seconds": 0.113,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.104,
+      "extract_seconds": 0.09,
       "lean_outcome": "refused:unsupported:aggregate write"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.108,
+      "extract_seconds": 0.07,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.107,
+      "extract_seconds": 0.105,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.068,
+      "extract_seconds": 0.066,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.078,
+      "extract_seconds": 0.084,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.115,
+      "extract_seconds": 0.091,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.082,
+      "extract_seconds": 0.089,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.157,
+      "extract_seconds": 0.1,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.081,
+      "extract_seconds": 0.076,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.139,
+      "extract_seconds": 0.186,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.076,
+      "extract_seconds": 0.05,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.169,
+      "extract_seconds": 0.133,
       "lean_outcome": "refused:unsupported:terminator"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.096,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.108,
+      "extract_seconds": 0.086,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.085,
+      "extract_seconds": 0.056,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.071,
+      "extract_seconds": 0.047,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.098,
+      "extract_seconds": 0.074,
       "lean_outcome": "refused:unsupported:terminator"
     }
   ],

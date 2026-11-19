@@ -246,6 +246,22 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
 def readCell (s : State) (place : Place) : Option Cell :=
   localSlot s place.localId |>.bind slotCell |>.bind (projectCell s · place.projection)
 
+def writeLocalProjection (s : State) (localId : Nat) : List Projection → Cell → Option State
+  | [], value => some (setSlot s localId (cellSlot value))
+  | .field index _ :: rest, value =>
+      if rest.isEmpty then
+        localSlot s localId |>.bind slotCell |>.bind fun cell =>
+          match cell with
+          | .aggregate fields =>
+              fields.drop index |>.head? |>.bind fun _old =>
+                some (setSlot s localId
+                  (match value with
+                  | .int n => .cell (.aggregate (fields.set index (.int n)))
+                  | _ => .cell (.aggregate fields)))
+          | _ => none
+      else none
+  | (.deref :: _), _ | (.downcast _ :: _), _ | (.unsupported _ :: _), _ => none
+
 def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
   match place.projection with
   | [] => some (setSlot s place.localId (cellSlot value))
@@ -255,22 +271,11 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
         | .pointer pointer =>
             if pointer.isLocal then
               if pointer.projection.isEmpty then
-                writeCell s ({ localId := pointer.provenance, projection := rest } : Place) value
+                writeLocalProjection s pointer.provenance rest value
               else none
             else none
         | _ => none
-  | .field index _ :: rest =>
-      if rest.isEmpty then
-        localSlot s place.localId |>.bind slotCell |>.bind fun cell =>
-          match cell with
-          | .aggregate fields =>
-              fields.drop index |>.head? |>.bind fun _old =>
-                some (setSlot s place.localId
-                  (match value with
-                  | .int n => .cell (.aggregate (fields.set index (.int n)))
-                  | _ => .cell (.aggregate fields)))
-          | _ => none
-      else none
+  | .field index _ :: rest => writeLocalProjection s place.localId (.field index 0 :: rest) value
   | .downcast _ :: _ | .unsupported _ :: _ => none
 
 def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
@@ -359,9 +364,6 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .ref place =>
       match place.projection with
       | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId })
-      | projection =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId,
-            projection := projection })
       | .deref :: rest =>
           match localSlot s place.localId |>.bind slotCell with
           | some (.pointer pointer) =>
@@ -369,7 +371,8 @@ def rvalueCell (s : State) : Rvalue → Option Cell
                 some (.pointer { pointer with projection := rest })
               else none
           | _ => none
-      | .unsupported _ :: _ => none
+      | projection =>
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, projection := projection })
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s) >>= (·.mapM cellField)
       pure (.aggregate values)
