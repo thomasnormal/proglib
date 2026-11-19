@@ -688,11 +688,10 @@ def rPatternValues (target : Expr) (value : RVal) : Option (List (String × RVal
   | .tuple targets _, .ref _ | .list targets _, .ref _ => none
   | _, _ => none
 
-def rUnpackPatternValues (before : Array String) (star : String) (after : Array String)
-    (value : RVal) : Option (List (String × RVal)) :=
-  match value with
-  | .tuple values =>
-      let valueList := values.toList
+def rUnpackPatternValues (heap : Heap) (before : Array String) (star : String)
+    (after : Array String) (value : RVal) : Option (List (String × RVal)) :=
+  match rIterValues heap value with
+  | some valueList =>
       if valueList.length < before.size + after.size then none
       else
         let prefixValues := valueList.take before.size
@@ -703,7 +702,7 @@ def rUnpackPatternValues (before : Array String) (star : String) (after : Array 
         let suffixBindings := after.toList.zip suffixValues
         some ((star, .listV middleValues.toArray) ::
           (prefixBindings ++ suffixBindings))
-  | _ => none
+  | none => none
 
 def rAssignPattern (frame : RFrame) (target : Expr) (value : RVal) (remaining : List RStmt)
     : Option RFrame :=
@@ -713,9 +712,9 @@ def rAssignPattern (frame : RFrame) (target : Expr) (value : RVal) (remaining : 
       let locals := bindings.foldl (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
       some { frame with control := .statements remaining, locals := locals }
 
-def rAssignUnpack (frame : RFrame) (before : Array String) (star : String)
+def rAssignUnpack (heap : Heap) (frame : RFrame) (before : Array String) (star : String)
     (after : Array String) (value : RVal) (remaining : List RStmt) : Option RFrame :=
-  match rUnpackPatternValues before star after value with
+  match rUnpackPatternValues heap before star after value with
   | none => none
   | some bindings =>
       let locals := bindings.foldl (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
@@ -1321,7 +1320,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | some updated => some (.tau, config.setTop updated)
           | none => some (.tau, config.setControl (.refusing "machine assignment pattern"))
       | .continueValue value (.assignUnpack before star after remaining) =>
-          match rAssignUnpack frame before star after value remaining with
+          match rAssignUnpack config.heap frame before star after value remaining with
           | some updated => some (.tau, config.setTop updated)
           | none => some (.tau, config.setControl (.refusing "machine starred assignment"))
       | .continueValue value (.binOpLeft op right continuation) =>
