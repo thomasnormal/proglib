@@ -654,7 +654,7 @@ def Layout.bitFieldStorageSizeAt (layout : Layout) (base : Option Expr)
             layout.pointeeSizeAt (some expression) recordTy
           else
             layout.sizeAt (directDeclId expression) recordTy
-      | none => layout.size recordTy
+      | none => layout.sizeAt (directDeclId expression) recordTy
   | none => layout.size recordTy
 
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
