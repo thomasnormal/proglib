@@ -272,4 +272,15 @@ theorem picorv32_addi2_loaded_rv32i_boundary_of_step
 
 #print axioms picorv32_addi2_loaded_rv32i_boundary_of_step
 
+/-! The pinned ADDI class keeps the architectural x0 invariant required by
+    the loaded reset relation.  The other reset register values remain
+    arbitrary. -/
+
+theorem picorv32_addi_class_preserves_reset_wf
+    (state : ArchState) (hWF : state.WF) :
+    (addiNext state 1 0 5).WF := by
+  exact addiNext_preserves_WF state 1 0 5 hWF
+
+#print axioms picorv32_addi_class_preserves_reset_wf
+
 end Examples.«system-verilog».cores.picorv32.r1_addi
