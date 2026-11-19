@@ -733,6 +733,25 @@ def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
     globalNames := frame.globalNames
     nonlocalNames := frame.nonlocalNames }
 
+def rAssignName (config : RConfig) (frame : RFrame) (name : String) (value : RVal)
+    (remaining : List RStmt) : RConfig :=
+  if name ∈ frame.globalNames then
+    let next := config.setTop { frame with control := .statements remaining }
+    next.setModules frame.module name value
+  else
+    match rWriteCell config.heap frame.locals name value with
+    | some heap =>
+        let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
+        if config.frames.tail.isEmpty then next.setModules frame.module name value else next
+    | none =>
+        match rWriteCell config.heap frame.cells name value with
+        | some heap =>
+            let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
+            if config.frames.tail.isEmpty then next.setModules frame.module name value else next
+        | none =>
+            let next := config.setTop (rAssignedFrame frame name value remaining)
+            if config.frames.tail.isEmpty then next.setModules frame.module name value else next
+
 def rPatternValues (target : Expr) (value : RVal) : Option (List (String × RVal)) :=
   match target, value with
   | .name name _, value => some [(name, value)]
@@ -1463,29 +1482,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
           | none => some (.tau, config.setControl (.refusing "machine subscript deletion"))
       | .continueValue value (.assign name remaining) =>
-          if name ∈ frame.globalNames then
-            let next := config.setTop { frame with control := .statements remaining }
-            some (.tau, next.setModules frame.module name value)
-          else
-            match rWriteCell config.heap frame.locals name value with
-            | some heap =>
-                let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
-                if config.frames.tail.isEmpty then some (.tau, next.setModules frame.module name value)
-                else some (.tau, next)
-            | none =>
-              match rWriteCell config.heap frame.cells name value with
-              | some heap =>
-                  let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
-                  if config.frames.tail.isEmpty then
-                    some (.tau, next.setModules frame.module name value)
-                  else
-                    some (.tau, next)
-              | none =>
-                  let next := config.setTop (rAssignedFrame frame name value remaining)
-                  if config.frames.tail.isEmpty then
-                    some (.tau, next.setModules frame.module name value)
-                  else
-                    some (.tau, next)
+          some (.tau, rAssignName config frame name value remaining)
       | .continueValue value (.assignPattern target remaining) =>
           match rAssignPattern frame target value remaining with
           | some updated => some (.tau, config.setTop updated)
@@ -1499,11 +1496,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue right (.augAssignRight left name op remaining) =>
           match rEvalBinOp op left right with
           | .ok result =>
-              let next := config.setTop (rAssignedFrame frame name result remaining)
-              if config.frames.tail.isEmpty then
-                some (.tau, next.setModules frame.module name result)
-              else
-                some (.tau, next)
+              some (.tau, rAssignName config frame name result remaining)
           | .exn _ => some (.tau, config.setControl (.refusing "machine augmented assignment"))
           | .unsupported reason => some (.tau, config.setControl (.refusing reason))
           | .timeout => some (.tau, config.setControl (.refusing "machine augmented assignment"))
