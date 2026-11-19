@@ -621,6 +621,22 @@ def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : CType) :
         |>.bind LeanModels.Clang.QualType.pointee
         |>.bind scalarSizeOfStructured)
 
+/-! A bit-field's storage unit is the record object for a direct base and the
+parser-observed pointee for an arrow base.  Missing observations stay a loud
+layout absence. -/
+def Layout.bitFieldStorageSizeAt (layout : Layout) (base : Option Expr)
+    (recordTy : CType) : Option Nat :=
+  match base with
+  | some expression =>
+      match layout.structuredTypeAt expression with
+      | some structured =>
+          if (structured.unqualified.pointee).isSome then
+            layout.pointeeSizeAt (some expression) recordTy
+          else
+            layout.sizeAt (directDeclId expression) recordTy
+      | none => layout.size recordTy
+  | none => layout.size recordTy
+
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/
 def Layout.unknown : Layout :=
@@ -1286,10 +1302,9 @@ def bitFieldStoreBytes (bs : List CByte) (offset width value : Nat) : List CByte
 
 
 def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
-    (fieldTy : CType) (fieldPtr : Ptr) : EvalM CVal := do
-  let storageTy := if recordTy.endsWith "*" then
-      (recordTy.dropEnd 1).toString.trimAsciiEnd.toString else recordTy
-  match ctx.layout.fieldBits recordTy field, ctx.layout.size storageTy,
+    (fieldTy : CType) (fieldPtr : Ptr) (base : Option Expr := none) : EvalM CVal := do
+  match (base.map (ctx.layout.fieldBitsAt · field)).getD (ctx.layout.fieldBits recordTy field),
+      ctx.layout.bitFieldStorageSizeAt base recordTy,
       intTyOf? (ctx.layout.normalizeTy fieldTy) with
   | some (offsetBits, width), some recordSize, some storageTy =>
       if width > 52 || (storageTy.signed && width > 52) then
@@ -1308,10 +1323,9 @@ def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
   | none, _, _ => refuseUnsupported s!"no bit-field layout for '{field}'"
 
 def storeBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
-    (fieldTy : CType) (fieldPtr : Ptr) (v : CVal) : EvalM Unit := do
-  let storageRecordTy := if recordTy.endsWith "*" then
-      (recordTy.dropEnd 1).toString.trimAsciiEnd.toString else recordTy
-  match ctx.layout.fieldBits recordTy field, ctx.layout.size storageRecordTy,
+    (fieldTy : CType) (fieldPtr : Ptr) (v : CVal) (base : Option Expr := none) : EvalM Unit := do
+  match (base.map (ctx.layout.fieldBitsAt · field)).getD (ctx.layout.fieldBits recordTy field),
+      ctx.layout.bitFieldStorageSizeAt base recordTy,
       intTyOf? (ctx.layout.normalizeTy fieldTy), v with
   | some (offsetBits, width), some recordSize, some storageTy, .int _ n =>
       let fieldTy' := (intTyOf? (ctx.layout.normalizeTy fieldTy)).getD storageTy
@@ -1450,7 +1464,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               match sub with
               | .member base field arrow fieldTy _ =>
                   if ctx.layout.fieldBitsAt base field |>.isSome then
-                    loadBitFieldAt ctx base.ty field fieldTy p
+                    loadBitFieldAt ctx base.ty field fieldTy p (some base)
                   else
                     loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
                       (ctx.layout.size (ctx.layout.normalizeTy ty))
@@ -1591,12 +1605,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         match l with
         | .member base field arrow fieldTy _ =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
-              storeBitFieldAt ctx base.ty field fieldTy p v
+              storeBitFieldAt ctx base.ty field fieldTy p v (some base)
               -- §6.5.16.2: the assignment expression has the value after
               -- conversion to the assigned bit-field type.  Returning the
               -- RHS here would expose 1081 for an 11-bit field and disagree
               -- with Clang's truncation before the surrounding comparison.
-              loadBitFieldAt ctx base.ty field fieldTy p
+              loadBitFieldAt ctx base.ty field fieldTy p (some base)
             else
               storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
               match intTyOf? (ctx.layout.normalizeTy l.ty), v with
@@ -1664,7 +1678,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let old ← match sub with
           | .member base field arrow fieldTy _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
-                loadBitFieldAt ctx base.ty field fieldTy p
+                loadBitFieldAt ctx base.ty field fieldTy p (some base)
               else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
           | _ => loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty))
         match old with
@@ -1677,7 +1691,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             match sub with
             | .member base field arrow fieldTy _ =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
-                  storeBitFieldAt ctx base.ty field fieldTy p nv
+                  storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
                 else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
             | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
             pure (if post then old else nv)
@@ -1692,7 +1706,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                 match sub with
                 | .member base field arrow fieldTy _ =>
                     if ctx.layout.fieldBitsAt base field |>.isSome then
-                      storeBitFieldAt ctx base.ty field fieldTy p stored
+                      storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
                     else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored
                 | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored
                 pure (if post then old else stored)
@@ -1714,7 +1728,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       let old ← match l with
         | .member base field arrow fieldTy _ =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
-              loadBitFieldAt ctx base.ty field fieldTy p
+              loadBitFieldAt ctx base.ty field fieldTy p (some base)
             else
               loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty))
         | _ =>
@@ -1729,7 +1743,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match l with
           | .member base field arrow fieldTy _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
-                storeBitFieldAt ctx base.ty field fieldTy p nv
+                storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
               else
                 storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           | _ =>
@@ -1771,7 +1785,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match l with
           | .member base field arrow fieldTy _ =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
-                storeBitFieldAt ctx base.ty field fieldTy p stored
+                storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
               else
                 storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored
           | _ =>
@@ -1785,7 +1799,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .member base field arrow ty span => do
       let p ← memberAddr ctx base field arrow ty
       if ctx.layout.fieldBitsAt base field |>.isSome then
-        loadBitFieldAt ctx base.ty field ty p
+        loadBitFieldAt ctx base.ty field ty p (some base)
       else
         loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
   | .index base idx ty _ => do
