@@ -460,6 +460,7 @@ mutual
 
 def coreMemStmtWrites : PStmt → List String
   | .localDecl name _ _ => [name]
+  | .automaticDecl _ _ _ => []
   | .blockingAssign name _ | .nbaAssign name _ => [name]
   | .ifStmt _ yes none => coreMemStmtWrites yes
   | .ifStmt _ yes (some no) => coreMemStmtWrites yes ++ coreMemStmtWrites no
@@ -481,6 +482,7 @@ def coreMemCaseWrites : List (List PExpr × PStmt) → List String
 
 def coreMemStmtBlockingWrites : PStmt → List String
   | .localDecl name _ _ => [name]
+  | .automaticDecl _ _ _ => []
   | .blockingAssign name _ => [name]
   | .nbaAssign _ _ => []
   | .ifStmt _ yes none => coreMemStmtBlockingWrites yes
@@ -1122,6 +1124,7 @@ mutual
 
 def coreMemStmtReadNames : PStmt → List String
   | .localDecl _ _ init => init.toList.flatMap coreMemSignalNames
+  | .automaticDecl _ _ init => init.toList.flatMap coreMemSignalNames
   | .blockingAssign _ value | .nbaAssign _ value => coreMemSignalNames value
   | .blockingAssignL target value | .nbaAssignL target value =>
       coreMemLhsReadNames target ++ coreMemSignalNames value
@@ -1175,6 +1178,8 @@ mutual
 def coreMemStmtReadBeforeWritesFrom (written : List String) : PStmt → List String × List String
   | .localDecl name _ init =>
       ((init.toList.flatMap coreMemSignalNames).filter (fun n => !written.contains n), name :: written)
+  | .automaticDecl _ _ init =>
+      ((init.toList.flatMap coreMemSignalNames).filter (fun n => !written.contains n), written)
   | .blockingAssign name value | .nbaAssign name value =>
       ((coreMemSignalNames value).filter (fun n => !written.contains n), name :: written)
   | .blockingAssignL target value | .nbaAssignL target value =>
@@ -1243,8 +1248,8 @@ def coreMemReactiveReads : PProcess → List String
   | _ => []
 
 /-! Static block-local declarations are allocated in the same scalar store as
-their enclosing process. Automatic declarations are rejected by ingestion,
-so this source-shaped collection preserves the static lifetime exactly. -/
+their enclosing process. Automatic declarations stay in the activation-local
+environment and are therefore absent from this design-level declaration list. -/
 mutual
 def coreMemLocalDeclsStmt : PStmt → List PDecl
   | .localDecl name width init =>
@@ -1252,6 +1257,7 @@ def coreMemLocalDeclsStmt : PStmt → List PDecl
          type := .packed [{ msb := .int (Int.ofNat (width - 1)),
                             lsb := .int 0 }] (some width),
          init }]
+  | .automaticDecl _ _ _ => []
   | .block body => coreMemLocalDeclsList body
   | .ifStmt _ yes none => coreMemLocalDeclsStmt yes
   | .ifStmt _ yes (some no) => coreMemLocalDeclsStmt yes ++ coreMemLocalDeclsStmt no
@@ -1588,6 +1594,7 @@ def coreMemLhsReadExprsList : List PLhs → List PExpr
 
 def coreMemStmtReadExprs : PStmt → List PExpr
   | .localDecl _ _ init => init.toList.flatMap coreMemReadExprs
+  | .automaticDecl _ _ init => init.toList.flatMap coreMemReadExprs
   | .blockingAssign _ value | .nbaAssign _ value => coreMemReadExprs value
   | .blockingAssignL target value | .nbaAssignL target value =>
       coreMemLhsReadExprs target ++ coreMemReadExprs value
@@ -1953,6 +1960,8 @@ structure CoreMemExecResult where
   state : CoreMemState
   scalarQ : NbaQueue2
   memoryQ : MemNbaQueue
+  /-- Automatic procedural locals live only for this source activation. -/
+  locals : SvState := []
 
 abbrev CoreMemExec := Res CoreMemExecResult
 
@@ -2135,8 +2144,25 @@ def CoreMemExec.fromQueue (st : CoreMemState) : Res CoreMemQueue → CoreMemExec
   | .timeout => .timeout
   | .unsupported msg => .unsupported msg
 
+def CoreMemExec.withLocals (locals : SvState) : CoreMemExec → CoreMemExec
+  | .ok result => .ok { result with locals }
+  | .timeout => .timeout
+  | .unsupported msg => .unsupported msg
+
 def CoreMemExec.append (a b : CoreMemExecResult) : CoreMemExecResult :=
-  { state := b.state, scalarQ := a.scalarQ ++ b.scalarQ, memoryQ := a.memoryQ ++ b.memoryQ }
+  { state := b.state, scalarQ := a.scalarQ ++ b.scalarQ, memoryQ := a.memoryQ ++ b.memoryQ,
+    locals := b.locals }
+
+def setAutomaticLocal (locals : SvState) (name : String) (value : LVec) : SvState :=
+  SvState.set locals name value
+
+def CoreMemDesign.execAutomaticDecl (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (locals : SvState)
+    (name : String) (width : Nat) (init : Option PExpr) : Res SvState := do
+  let value ← match init with
+    | none => .ok (LVec.xVec width)
+    | some expr => E.evalExprLocals env elems st (some width) locals expr
+  .ok (setAutomaticLocal locals name (value.resizeU width))
 
 /-! ## Time-zero source statements
 
@@ -2166,6 +2192,7 @@ def CoreMemDesign.execInitialStmt (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) : Nat → PStmt → Res CoreMemState
   | 0, _ => .timeout
   | fuel + 1, .localDecl _ _ _ => .ok st
+  | fuel + 1, .automaticDecl _ _ _ => .ok st
   | fuel + 1, .blockingAssign name value =>
       match E.scalarTarget name with
       | none => .unsupported s!"11.5.1: scalar initial target '{name}' is undeclared"
@@ -2276,6 +2303,7 @@ def CoreMemDesign.execImplicitStmtFuel (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) : Nat → PStmt → Res CoreMemState
   | 0, _ => .timeout
   | fuel + 1, .localDecl _ _ _ => .ok st
+  | fuel + 1, .automaticDecl _ _ _ => .ok st
   | fuel + 1, .blockingAssign name value =>
       match E.scalarTarget name with
       | none => .unsupported s!"9.2.2.2: scalar implicit target '{name}' is undeclared"
@@ -2425,6 +2453,7 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
     Res (CoreMemState × SvState)
   | 0, _ => .timeout
   | fuel + 1, .localDecl _ _ _ => .ok (st, view)
+  | fuel + 1, .automaticDecl _ _ _ => .ok (st, view)
   | fuel + 1, .blockingAssign name value =>
       match E.scalarTarget name with
       | none => .unsupported s!"9.2.2.2: scalar always_comb target '{name}' is undeclared"
@@ -2695,110 +2724,135 @@ def CoreMemDesign.execBlockingTarget (E : CoreMemDesign) (env : IEnv)
           | _ => .unsupported s!"9.2.2.1: memory edge target '{name}' is not one-rank"
   | target => E.execScalarTarget env elems st target value
 
+def CoreMemDesign.execBlockingIdentLocal (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (locals : SvState)
+    (name : String) (value : PExpr) : Res (CoreMemState × SvState) :=
+  match SvState.lookup locals name with
+  | some old => do
+      let v ← E.evalExprLocals env elems st (some old.width) locals value
+      .ok (st, setAutomaticLocal locals name (v.resizeU old.width))
+  | none => do
+      let st' ← E.execBlockingTarget env elems st (.ident name) value
+      .ok (st', locals)
+
 mutual
 
 def CoreMemDesign.execStmtFuel (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
-    (st : CoreMemState) : Nat → PStmt → CoreMemExec
+    (st : CoreMemState) (locals : SvState) : Nat → PStmt → CoreMemExec
   | 0, _ => .timeout
-  | fuel + 1, .localDecl _ _ _ => .ok { state := st, scalarQ := [], memoryQ := [] }
+  | fuel + 1, .localDecl _ _ _ => .ok { state := st, scalarQ := [], memoryQ := [], locals }
+  | fuel + 1, .automaticDecl name width init => do
+      let locals' ← E.execAutomaticDecl env elems st locals name width init
+      .ok { state := st, scalarQ := [], memoryQ := [], locals := locals' }
   | fuel + 1, .nbaAssign target value =>
-      match E.scalarTarget target with
-      | none => .unsupported s!"11.5.1: scalar NBA target '{target}' is undeclared"
-      | some width => do
-          let v ← E.evalExpr env elems st (some width) value
-          CoreMemExec.fromQueue st (E.issueTarget env elems st (.ident target) v)
+      match SvState.lookup locals target with
+      | some _ => .unsupported "10.4.2: nonblocking assignment to an automatic local is outside this E activation"
+      | none =>
+          match E.scalarTarget target with
+          | none => .unsupported s!"11.5.1: scalar NBA target '{target}' is undeclared"
+          | some width => do
+              let v ← E.evalExprLocals env elems st (some width) locals value
+              CoreMemExec.withLocals locals (CoreMemExec.fromQueue st (E.issueTarget env elems st (.ident target) v))
   | fuel + 1, .nbaAssignL target value =>
       match target with
       | .ident name =>
-          match E.scalarTarget name with
-          | none => .unsupported s!"11.5.1: scalar NBA target '{name}' is undeclared"
-          | some width => do
-              let v ← E.evalExpr env elems st (some width) value
-              CoreMemExec.fromQueue st (E.issueTarget env elems st target v)
+          match SvState.lookup locals name with
+          | some _ => .unsupported "10.4.2: nonblocking assignment to an automatic local is outside this E activation"
+          | none =>
+              match E.scalarTarget name with
+              | none => .unsupported s!"11.5.1: scalar NBA target '{name}' is undeclared"
+              | some width => do
+                  let v ← E.evalExprLocals env elems st (some width) locals value
+                  CoreMemExec.withLocals locals (CoreMemExec.fromQueue st (E.issueTarget env elems st target v))
       | .arrayElem name indices =>
           match E.memDecl? name with
           | none => do
               let (_, width) ← E.scalarLhs2 env elems target
-              let v ← E.evalExpr env elems st (some width) value
-              CoreMemExec.fromQueue st (E.issueScalarTarget env elems st target v)
+              let v ← E.evalExprLocals env elems st (some width) locals value
+              CoreMemExec.withLocals locals (CoreMemExec.fromQueue st (E.issueScalarTarget env elems st target v))
           | some md =>
               match indices with
               | [_] => do
-                  let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
-                  CoreMemExec.fromQueue st (E.issueTarget env elems st target v)
+                  let v ← E.evalExprLocals env elems st (some md.shape.elemWidth) locals value
+                  CoreMemExec.withLocals locals (CoreMemExec.fromQueue st (E.issueTarget env elems st target v))
               | _ => .unsupported s!"11.5.1: memory target '{name}' is not one-rank"
       | target => do
           let (_, width) ← E.scalarLhs2 env elems target
-          let v ← E.evalExpr env elems st (some width) value
-          CoreMemExec.fromQueue st (E.issueScalarTarget env elems st target v)
+          let v ← E.evalExprLocals env elems st (some width) locals value
+          CoreMemExec.withLocals locals (CoreMemExec.fromQueue st (E.issueScalarTarget env elems st target v))
   | fuel + 1, .blockingAssign name value => do
-      let st' ← E.execBlockingTarget env elems st (.ident name) value
-      .ok { state := st', scalarQ := [], memoryQ := [] }
-  | fuel + 1, .blockingAssignL target value => do
-      let st' ← E.execBlockingTarget env elems st target value
-      .ok { state := st', scalarQ := [], memoryQ := [] }
+      let (st', locals') ← E.execBlockingIdentLocal env elems st locals name value
+      .ok { state := st', scalarQ := [], memoryQ := [], locals := locals' }
+  | fuel + 1, .blockingAssignL target value =>
+      match target with
+      | .ident name => do
+          let (st', locals') ← E.execBlockingIdentLocal env elems st locals name value
+          .ok { state := st', scalarQ := [], memoryQ := [], locals := locals' }
+      | _ => do
+          let st' ← E.execBlockingTarget env elems st target value
+          .ok { state := st', scalarQ := [], memoryQ := [], locals }
   | fuel + 1, .ifStmt cond yes no => do
-      let cv ← E.evalExpr env elems st (some 1) cond
-      if cv.condTrue then E.execStmtFuel env elems st fuel yes
+      let cv ← E.evalExprLocals env elems st (some 1) locals cond
+      if cv.condTrue then E.execStmtFuel env elems st locals fuel yes
       else match no with
-        | none => .ok { state := st, scalarQ := [], memoryQ := [] }
-        | some s => E.execStmtFuel env elems st fuel s
-  | fuel + 1, .block body => E.execStmtsFuel env elems st fuel body
+        | none => .ok { state := st, scalarQ := [], memoryQ := [], locals }
+        | some s => E.execStmtFuel env elems st locals fuel s
+  | fuel + 1, .block body => E.execStmtsFuel env elems st locals fuel body
   | fuel + 1, .forLoop iterator init condition step body =>
       match forValues2 env iterator init condition step with
       | .timeout => .timeout
       | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
-      | .ok values => E.execLoopValuesFuel env elems st fuel values body iterator
+      | .ok values => E.execLoopValuesFuel env elems st locals fuel values body iterator
   | fuel + 1, .caseStmt subject items default? mode check => do
-      let sv ← E.evalExpr env elems st none subject
+      let sv ← E.evalExprLocals env elems st none locals subject
       match check with
       | .none =>
           let selected ← coreMemSelectCase E env elems st sv mode items default?
           match selected with
-          | none => .ok { state := st, scalarQ := [], memoryQ := [] }
-          | some body => E.execStmtFuel env elems st fuel body
+          | none => .ok { state := st, scalarQ := [], memoryQ := [], locals }
+          | some body => E.execStmtFuel env elems st locals fuel body
       | qualifier =>
           let n ← coreMemCaseHits E env elems st sv mode items
           if caseClaimOk qualifier default?.isSome n then
             let selected ← coreMemSelectCase E env elems st sv mode items default?
             match selected with
-            | none => .ok { state := st, scalarQ := [], memoryQ := [] }
-            | some body => E.execStmtFuel env elems st fuel body
+            | none => .ok { state := st, scalarQ := [], memoryQ := [], locals }
+            | some body => E.execStmtFuel env elems st locals fuel body
           else
             .unsupported s!"12.5.3: {caseCheckName qualifier}"
   | fuel + 1, .unsupported kind text => .unsupported s!"{kind}: {text}"
 
 def CoreMemDesign.execStmtsFuel (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
-    (st : CoreMemState) : Nat → List PStmt → CoreMemExec
+    (st : CoreMemState) (locals : SvState) : Nat → List PStmt → CoreMemExec
   | 0, _ => .timeout
-  | fuel + 1, [] => .ok { state := st, scalarQ := [], memoryQ := [] }
+  | fuel + 1, [] => .ok { state := st, scalarQ := [], memoryQ := [], locals }
   | fuel + 1, stmt :: rest => do
-      let a ← E.execStmtFuel env elems st fuel stmt
-      let b ← E.execStmtsFuel env elems a.state fuel rest
+      let a ← E.execStmtFuel env elems st locals fuel stmt
+      let b ← E.execStmtsFuel env elems a.state a.locals fuel rest
       .ok (CoreMemExec.append a b)
 
 def CoreMemDesign.execLoopValuesFuel (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
-    (st : CoreMemState) : Nat → List Int → PStmt → String → CoreMemExec
+    (st : CoreMemState) (locals : SvState) : Nat → List Int → PStmt → String → CoreMemExec
   | 0, _, _, _ => .timeout
-  | fuel + 1, [], _, _ => .ok { state := st, scalarQ := [], memoryQ := [] }
+  | fuel + 1, [], _, _ => .ok { state := st, scalarQ := [], memoryQ := [], locals }
   | fuel + 1, i :: rest, body, iterator => do
-      let a ← E.execStmtFuel (env.bindVal iterator i) elems st fuel body
-      let b ← E.execLoopValuesFuel env elems a.state fuel rest body iterator
+      let a ← E.execStmtFuel (env.bindVal iterator i) elems st locals fuel body
+      let b ← E.execLoopValuesFuel env elems a.state a.locals fuel rest body iterator
       .ok (CoreMemExec.append a b)
 
 end
 
 def CoreMemDesign.execStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  E.execStmtFuel env elems st 4096 stmt
+  E.execStmtFuel env elems st [] 4096 stmt
 
 def CoreMemDesign.execStmts (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmts : List PStmt) : CoreMemExec :=
-  E.execStmtsFuel env elems st 4096 stmts
+  E.execStmtsFuel env elems st [] 4096 stmts
 
 def CoreMemDesign.execLoopValues (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (values : List Int) (body : PStmt) (iterator : String) : CoreMemExec :=
-  E.execLoopValuesFuel env elems st 4096 values body iterator
+  E.execLoopValuesFuel env elems st [] 4096 values body iterator
 
 /-! ## Slots, scalar E commit, and memory commit -/
 

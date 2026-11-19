@@ -690,13 +690,14 @@ partial def parsePStmt (j : Json) : Except String PStmt := do
           "system task is outside the frozen procedural statement tier"
     | "LocalDecl" =>
         let name ← getStrField j "name"
-        if getOptStr j "lifetime" == some "automatic" then
-          return .unsupported "LocalDecl" "automatic block-local declaration requires scoped procedural storage"
         let width ← getNatField j "width"
         let init ← match getOptField j "init" with
           | none => pure none
           | some ij => pure (some (← parsePExpr ij))
-        return .localDecl name width init
+        return if getOptStr j "lifetime" == some "automatic" then
+          .automaticDecl name width init
+        else
+          .localDecl name width init
     | "Break" =>
         -- Preserve the parser's loop-transfer node as a loud statement.  The
         -- frozen Stmt2 AST has no transfer constructor, so do not lower `break`
@@ -1953,8 +1954,8 @@ private def unsupMemberText : String := r#"{
 #guard (Json.parse r#"{"kind": "SysCall", "name": "$size", "args": []}"# >>= parsePExpr).toOption
         == some (.unsupported "SysCall:arity" "$size with 0 args")
 #guard (Json.parse r#"{"kind": "SysCall", "name": "$test$plusargs", "args": [{"kind": "Literal", "span": null, "width": 32, "bits": "00000000000000000000000000000000"}]}"# >>= parsePExpr).isOk
-#guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "lifetime": "automatic", "width": {"kind": "PackedType", "packed": [], "resolved": 1}, "init": null}"# >>= parsePStmt).toOption
-        == some (.unsupported "LocalDecl" "automatic block-local declaration requires scoped procedural storage")
+#guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "lifetime": "automatic", "width": 1, "init": null}"# >>= parsePStmt).toOption
+        == some (.automaticDecl "t" 1 none)
 #guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "width": 1, "init": null}"# >>= parsePStmt).toOption
         == some (.localDecl "t" 1 none)
 #guard (Json.parse r#"{"kind": "CompoundAssign", "span": null, "target": {"kind": "Ident", "name": "v"}, "op": "+", "value": {"kind": "Int", "value": 1}}"# >>= parsePStmt).toOption
