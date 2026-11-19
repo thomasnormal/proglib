@@ -423,6 +423,12 @@ partial def mStmtToStmt : MStmt → RStmt
       .raise (exception.map mExprToExpr) (cause.map mExprToExpr) span
   | .brk span => .brk span
   | .cont span => .cont span
+  | .import names span =>
+      match names.toList with
+      | [name] => .import name.name name.asname span
+      | _ => .unsupported "Import" "machine multiple imports" span
+  | .importFrom module names level span =>
+      .importFrom module (names.map (fun name => (name.name, name.asname))) level span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
@@ -441,8 +447,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .annAssign _ _ _ _ span
-  | .classDef _ _ _ _ _ span | .import _ span
-  | .importFrom _ _ _ span
+  | .classDef _ _ _ _ _ span
   | .tryStmt _ _ _ _ span | .withStmt _ _ _ span =>
       .unsupported "machine statement" "machine ingestion frontier" span
 
