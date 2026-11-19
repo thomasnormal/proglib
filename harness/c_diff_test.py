@@ -49,13 +49,16 @@ def oracle():
     return executable, first
 
 
-def model_env(clang, record_layout_plugin=None, structured_type_plugin=None):
+def model_env(clang, record_layout_plugin=None, structured_type_plugin=None,
+              floating_bits_plugin=None):
     env = dict(os.environ)
     env["LEAN_C_CLANG"] = clang
     if record_layout_plugin:
         env["LEAN_C_RECORD_LAYOUT_PLUGIN"] = record_layout_plugin
     if structured_type_plugin:
         env["LEAN_C_STRUCTURED_TYPE_PLUGIN"] = structured_type_plugin
+    if floating_bits_plugin:
+        env["LEAN_C_FLOATING_BITS_PLUGIN"] = floating_bits_plugin
     return env
 
 
@@ -123,6 +126,12 @@ def check_envelope(payload, checks, name):
                    not isinstance(row.get("decl_id"), str) or
                    not isinstance(row.get("type"), dict) for row in rows):
                 return name + ": malformed parser-native structured type"
+        elif check == "floating_bits":
+            if not any(n.get("kind") == "FloatingLiteral" and
+                       isinstance(n.get("float_bits_hex"), str) and
+                       isinstance(n.get("float_bit_width"), int)
+                       for n in nodes):
+                return name + ": missing parser-native floating bits"
         else:
             return name + ": unknown envelope check " + check
     return None
@@ -135,7 +144,8 @@ def selected(row, key, record_layout_plugin):
     return row.get(key)
 
 
-def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin=None):
+def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin=None,
+             floating_bits_plugin=None):
     source = work / (row["id"] + ".c")
     source.write_text(row["source"] + "\n", encoding="utf-8")
     native = work / row["id"]
@@ -150,7 +160,8 @@ def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin
     envelope = work / (row["id"] + ".json")
     extracted = run([sys.executable, "extractors/c/extract.py", str(source),
                      "-o", str(envelope)],
-                     env=model_env(clang, record_layout_plugin, structured_type_plugin))
+                     env=model_env(clang, record_layout_plugin, structured_type_plugin,
+                                   floating_bits_plugin))
     if extracted.returncode:
         return "EXTRACT", extracted.stderr[-800:]
     payload = json.loads(envelope.read_text(encoding="utf-8"))
@@ -159,6 +170,8 @@ def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin
         checks += row.get("layout_envelope_checks", [])
     if structured_type_plugin:
         checks += row.get("structured_envelope_checks", [])
+    if floating_bits_plugin:
+        checks += row.get("floating_envelope_checks", [])
     problem = check_envelope(payload, checks, row["id"])
     if problem:
         return "EXTRACT", problem
@@ -169,7 +182,8 @@ def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin
     runner = ROOT / ".lake" / "build" / "bin" / "c-torture-run"
     command = [str(runner)] if runner.exists() else ["lake", "exe", "c-torture-run"]
     model = run(command + ["--single", str(envelope), "512"],
-                env=model_env(clang, record_layout_plugin, structured_type_plugin), timeout=180)
+                env=model_env(clang, record_layout_plugin, structured_type_plugin,
+                              floating_bits_plugin), timeout=180)
     expected_kind = selected(row, "expect", record_layout_plugin)
     if expected_kind == "refuse":
         if model.returncode == 3:
@@ -217,6 +231,9 @@ def main():
     ap.add_argument("--structured-type-plugin", default=os.environ.get(
         "LEAN_C_STRUCTURED_TYPE_PLUGIN"),
         help="Clang plugin for parser-native recursive QualType observations")
+    ap.add_argument("--floating-bits-plugin", default=os.environ.get(
+        "LEAN_C_FLOATING_BITS_PLUGIN"),
+        help="Clang plugin for parser-native rounded floating literal bits")
     args = ap.parse_args()
     rows = json.loads(CASES.read_text(encoding="utf-8"))
     if args.ids:
@@ -240,7 +257,8 @@ def main():
         work = Path(temp)
         for row in rows:
             verdict, why = classify(row, clang, work, args.record_layout_plugin,
-                                    args.structured_type_plugin)
+                                    args.structured_type_plugin,
+                                    args.floating_bits_plugin)
             counts[verdict] = counts.get(verdict, 0) + 1
             results[row["id"]] = {"verdict": verdict, "detail": why}
             print(row["id"] + ": " + verdict + " " + why)

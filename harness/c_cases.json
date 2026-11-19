@@ -853,10 +853,32 @@
   {
     "id": "structured-floating-object-layout",
     "source": "int main(void) { double x = 1.5; return x == 1.5 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "floating literal lacks parser-native bits",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
+    ],
+    "floating_envelope_checks": [
+      "floating_bits"
+    ],
+    "layout_envelope_checks": [
+      "type_layout"
+    ]
+  },
+  {
+    "id": "structured-float-object-layout",
+    "source": "int main(void) { float x = 1.5f; return x == 1.5f ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "floating_envelope_checks": [
+      "floating_bits"
     ],
     "layout_envelope_checks": [
       "type_layout"
