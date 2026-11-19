@@ -438,6 +438,11 @@ def pointerType (s : State) (target : Nat) : Bool :=
       info.kind.startsWith "RigidTy(FnPtr"
   | none => false
 
+def rawPointerType (s : State) (target : Nat) : Bool :=
+  match findTypeLayout s target with
+  | some info => info.kind.startsWith "RigidTy(RawPtr"
+  | none => false
+
 def operandCell (s : State) : Operand → Option Cell
   | .constant _ bytes ty provenance zeroSized =>
       if zeroSized then some (.int 0) else
@@ -509,9 +514,30 @@ def rvalueCell (s : State) : Rvalue → Option Cell
         match ← operandCell s operand with
         | .pointer pointer => pure (.pointer pointer)
         | _ => none
-  | .cast .transmute operand _target => operandCell s operand
-  | .cast (.pointerCoercion _) operand _target => operandCell s operand
-  | .cast .pointerWithExposedProvenance operand _target => operandCell s operand
+  -- A transmute keeps its bits, which the cells represent exactly only here: an integer into
+  -- an integer type (the same-size bits reinterpreted at the target's signedness), an integer
+  -- into a raw-pointer type (an address without provenance; a dereference refuses), and a
+  -- pointer into a pointer type.  Targets with validity rules or another representation
+  -- (bool, char, enums, references from integers, floats, aggregates) refuse.
+  | .cast .transmute operand target => do
+      match ← operandCell s operand with
+      | .int value =>
+          if rawPointerType s target then pure (.int value)
+          else (castInt s target value).map Cell.int
+      | .pointer pointer => if pointerType s target then pure (.pointer pointer) else none
+      | _ => none
+  -- `MutToConstPointer` only retypes; `Unsize` keeps the data pointer (the slice length or
+  -- vtable it adds is not represented, and reading it refuses).  Function-pointer and
+  -- array-to-pointer coercions are not represented: refuse.
+  | .cast (.pointerCoercion kind) operand _target =>
+      if kind == "MutToConstPointer" || kind == "Unsize" then operandCell s operand else none
+  -- An integer cast to a raw pointer is the address without provenance: the exposed-provenance
+  -- choice is not modelled, so every dereference of the result refuses.
+  | .cast .pointerWithExposedProvenance operand target => do
+      if !rawPointerType s target then none else
+        match ← operandCell s operand with
+        | .int value => pure (.int value)
+        | _ => none
   | .cast _ _ _ => none
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left
