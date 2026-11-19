@@ -870,8 +870,6 @@ structure AliasModel where
 def isCharacterType : QualType → Bool
   | .qualified _ _ base => isCharacterType base
   | .cBuiltinKind .char | .cBuiltinKind .signedChar | .cBuiltinKind .unsignedChar => true
-  | .cBuiltin name =>
-      name == "char" || name == "signed char" || name == "unsigned char"
   | _ => false
 
 def cAliasCompatible : CType → CType → Bool := fun used eff =>
