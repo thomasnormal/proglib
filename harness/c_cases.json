@@ -885,6 +885,12 @@
     ]
   },
   {
+    "id": "long-double-floating-literal-refusal",
+    "source": "int main(void) { return 1.5L == 1.5L ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "floating literal lacks parser-native bits"
+  },
+  {
     "id": "structured-pointer-arithmetic",
     "source": "int main(void) { int a[3] = {1, 2, 3}; int *p = a; return *(p + 2) == 3 ? 0 : 1; }",
     "expect": "match",
