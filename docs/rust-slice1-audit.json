@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.332,
+      "extract_seconds": 5.752,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.222,
+      "extract_seconds": 0.514,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.108,
+      "extract_seconds": 0.221,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.107,
+      "extract_seconds": 0.118,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.195,
+      "extract_seconds": 0.188,
       "lean_outcome": "refused:unsupported:unresolved call"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.125,
+      "extract_seconds": 0.105,
       "lean_outcome": "returned"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.157,
+      "extract_seconds": 0.135,
       "lean_outcome": "refused:unsupported:discriminant assignment"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.113,
+      "extract_seconds": 0.215,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 1.039,
+      "extract_seconds": 2.346,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.117,
+      "extract_seconds": 0.758,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.191,
+      "extract_seconds": 0.264,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsbZvLFSCT5mK_24rustc_ivec_pass_by_value"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.062,
+      "extract_seconds": 0.067,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.09,
+      "extract_seconds": 0.16,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.087,
+      "extract_seconds": 0.119,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.094,
+      "extract_seconds": 0.125,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.065,
+      "extract_seconds": 0.094,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.07,
+      "extract_seconds": 0.089,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.087,
+      "extract_seconds": 0.145,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.098,
+      "extract_seconds": 0.124,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.098,
+      "extract_seconds": 0.101,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.086,
+      "extract_seconds": 0.096,
       "lean_outcome": "returned"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.06,
+      "extract_seconds": 0.184,
       "lean_outcome": "returned"
     },
     {
@@ -1054,7 +1054,7 @@
           }
         }
       },
-      "extract_seconds": 0.058,
+      "extract_seconds": 0.062,
       "lean_outcome": "returned"
     },
     {
@@ -1098,7 +1098,7 @@
           }
         }
       },
-      "extract_seconds": 0.149,
+      "extract_seconds": 0.161,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCs9qsj18IWarl_21rustc_vector_no_ann_2"
     },
     {
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.082,
+      "extract_seconds": 0.223,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.1,
+      "extract_seconds": 0.566,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.095,
+      "extract_seconds": 0.38,
       "lean_outcome": "returned"
     },
     {
@@ -1274,7 +1274,7 @@
           }
         }
       },
-      "extract_seconds": 0.059,
+      "extract_seconds": 0.321,
       "lean_outcome": "returned"
     },
     {
@@ -1318,7 +1318,7 @@
           }
         }
       },
-      "extract_seconds": 0.079,
+      "extract_seconds": 0.096,
       "lean_outcome": "returned"
     }
   ],
