@@ -47,6 +47,8 @@ inductive MExpr where
   | genExp (elt : MExpr) (target : MExpr) (iter : MExpr) (ifs : Array MExpr)
       (walrus : Array (String × MExpr)) (span : Span)
   | awaitExpr (value : MExpr) (span : Span)
+  | yieldExpr (value : Option MExpr) (span : Span)
+  | yieldFromExpr (value : MExpr) (span : Span)
   | lambdaExpr
       (params : Array (String × Bool × Bool × Bool × Bool × Option MExpr × Option MExpr))
       (body : MExpr) (span : Span)
@@ -280,6 +282,16 @@ partial def mExpr (j : Json) : Except String MExpr := do
       pure (.genExp (← mExpr (← mField j "elt"))
         (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs walrus span)
   | "Await" => pure (.awaitExpr (← mExpr (← mField j "value")) span)
+  | "Unsupported" =>
+      match j.getObjVal? "machine_kind" with
+      | .ok (.str "Yield") =>
+          let value ← match j.getObjVal? "machine_value" with
+            | .ok .null | .error _ => pure none
+            | .ok payload => some <$> mExpr payload
+          pure (.yieldExpr value span)
+      | .ok (.str "YieldFrom") =>
+          pure (.yieldFromExpr (← mExpr (← mField j "machine_value")) span)
+      | _ => pure (.unsupported kind span)
   | "Lambda" =>
       let parseParam := fun param => do
         let name ← (← mField param "arg").getStr?
@@ -565,6 +577,8 @@ partial def mExprToExpr : MExpr → Expr
   | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
   | .lambdaExpr _ _ span => .unsupported "Lambda" "machine lambda frontier" span
   | .awaitExpr _ span => .unsupported "Await" "machine await frontier" span
+  | .yieldExpr _ span => .unsupported "Yield" "machine yield frontier" span
+  | .yieldFromExpr _ span => .unsupported "YieldFrom" "machine yield-from frontier" span
   | .starred value span =>
       match value with
       | .name name _ => .unsupported "Starred" name span
@@ -621,6 +635,9 @@ partial def mExprToRaw : MExpr → RRawExpr
       .node "GeneratorExp" ((#[mExprToRaw elt, mExprToRaw target, mExprToRaw iter]) ++
         ifs.map mExprToRaw ++ walrus.map (fun pair => mExprToRaw pair.2)) span
   | .awaitExpr value span => .node "Await" #[mExprToRaw value] span
+  | .yieldExpr value span =>
+      .node "Yield" (value.map (fun expression => mExprToRaw expression) |>.toArray) span
+  | .yieldFromExpr value span => .node "YieldFrom" #[mExprToRaw value] span
   | .lambdaExpr params body span =>
       let parameterChildren := params.flatMap (fun (_, _, _, _, _, default, annotation) =>
         (default.toArray ++ annotation.toArray).map mExprToRaw)
@@ -636,6 +653,7 @@ partial def mExprHasRaw : MExpr → Bool
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
   | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true
   | .awaitExpr _ _ => true
+  | .yieldExpr _ _ | .yieldFromExpr _ _ => true
   | .lambdaExpr _ _ _ => true
   | .binOp left _ right _ => mExprHasRaw left || mExprHasRaw right
   | .unaryOp _ operand _ => mExprHasRaw operand

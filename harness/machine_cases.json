@@ -563,5 +563,10 @@
     "source": "harness/scripts/machine_async_function_boundary.py",
     "envelope": "harness/scripts/machine_async_function_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_yield_expr_boundary.py",
+    "envelope": "harness/scripts/machine_yield_expr_boundary.json",
+    "expect": "unsupported"
   }
 ]
