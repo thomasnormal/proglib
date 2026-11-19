@@ -119,4 +119,57 @@ theorem picorv32_loaded_rv32i_reset_refinement
 
 #print axioms picorv32_loaded_rv32i_reset_refinement
 
+/-! This specialization consumes the concrete reset relation instead of
+    asking a caller to restate that the loaded E machine starts at
+    `design.initial`.  The bridge into the eventual architectural relation is
+    still explicit, and the zero initial memory is kept distinct from any
+    program image supplied by a later environment theorem. -/
+
+theorem picorv32_loaded_rv32i_reset_refinement_from_initial_relation
+    (core : PicoRV32LoadedCanonicalE)
+    (profile : PlatformProfile)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState),
+      PicoRV32ResetRelation
+        (PicoRV32LoadedCanonicalE.design core) (fun _ => 0)
+        state memoryState → rel state memoryState)
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfiStep (PicoRV32LoadedCanonicalE.design core) state
+              ((CoreRvfiMachine.encode (PicoRV32LoadedCanonicalE.machine core))
+                state input) = .ok (next, observation) ∧
+          (if observation.valid then
+            ∃ instruction : Rv32iInstruction,
+              input = rv32iProgramInput memoryState instruction ∧
+              observation.order = start ∧
+              Rv32iBoundary memoryState.arch input observation
+                (rv32iProgramStep memoryState instruction)
+                (rv32iProgramRetirement memoryState instruction) ∧
+              rel next (rv32iProgramStep memoryState instruction)
+          else rel next memoryState))
+    {schedule target : Nat → Input}
+    (hschedule : ∀ n, admit (schedule n))
+    (progress : Rv32iRetiresTarget
+      (CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core))
+      (CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core)).init schedule target) :
+    picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
+      Rv32iResetRefinement profile
+        (CoreRvfiMachine.toRvfiCycleMachine
+          (PicoRV32LoadedCanonicalE.machine core)) rel schedule target := by
+  apply picorv32_loaded_rv32i_reset_refinement core profile hstep
+  exact hrel _ _ (picoRV32_reset_relation_initial
+    (PicoRV32LoadedCanonicalE.design core) (fun _ => 0))
+  · exact hschedule
+  · exact progress
+
+#print axioms picorv32_loaded_rv32i_reset_refinement_from_initial_relation
+
 end Examples.«system-verilog».cores.picorv32.r1_rv32i
