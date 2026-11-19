@@ -234,6 +234,15 @@ for a general `_Alignas` layout rule. F1 exits only after
 these type operations are removed from the semantics and each layout rule is
 decided by the parser-native library with differential coverage.
 
+**F1 type-string gate audit (2026-11-19).** `tools/check_c_type_strings.py`
+is now the repeatable gate for the five C type paths. Its self-test passes and
+the live audit reports the remaining `CType := String` alias and 91 candidate
+spelling-operation sites. F1 remains open with 92 findings, including
+qualification
+stripping, typedef resolution, pointer and array recognition, and record-tag
+lookup. No F2 store work starts until this checker reaches zero and the full
+survey is at least 1326/2214 with no DIVERGE.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
