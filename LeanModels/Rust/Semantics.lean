@@ -108,10 +108,15 @@ def checkedAdd32 (left right : Int) : CheckedOutcome :=
   let result := left + right
   if result < -(2 ^ 31) ∨ result > 2 ^ 31 - 1 then .overflow else .value result
 
+def checkedMul32 (left right : Int) : CheckedOutcome :=
+  let result := left * right
+  if result < -(2 ^ 31) ∨ result > 2 ^ 31 - 1 then .overflow else .value result
+
 def checkedBinaryOutcome (op : String) (left right : Int) : CheckedOutcome :=
   match op with
   | "Sub" => checkedSub32 left right
   | "Add" => checkedAdd32 left right
+  | "Mul" => checkedMul32 left right
   | "Div" => if right == 0 then .divideByZero else .value (left / right)
   | _ => .overflow
 
@@ -413,12 +418,12 @@ def terminatorStep (s : State) : Terminator → Option TermResult
   | .switchInt discr branches otherwise => do
       let value ← operandValue s discr
       some (.jump ((branches.find? (fun branch => branch.1 == value)).map (·.2) |>.getD otherwise))
-  | .assert cond expected target => do
+  | .assert cond expected target _cleanup => do
       let value ← operandValue s cond
       if value == (if expected then 1 else 0) then some (.jump target) else none
   | .drop place target cleanup =>
       if place.projection.isEmpty then some (.drop place target cleanup) else none
-  | .call _ _ _ _ | .resume | .unreachable | .unsupported _ => none
+  | .call _ _ _ _ _ | .resume | .unreachable | .unsupported _ => none
 
 def dropState (s : State) (place : Place) : Option (State × Event) :=
   if place.projection.isEmpty then
@@ -544,20 +549,22 @@ def cfgRunOutcome : Nat → Body → Nat → State → Outcome
                   match terminatorStep firstTrace.state block.terminator with
                   | some (.jump target) => cfgRunOutcome fuel body target firstTrace.state
                   | _ => .refused (.unsupported "switch operand")
-              | .assert cond expected target =>
+              | .assert cond expected target cleanup =>
                   match operandValue firstTrace.state cond with
                   | none => .refused (.unsupported "assert condition")
                   | some value =>
                       if value == (if expected then 1 else 0) then
                         cfgRunOutcome fuel body target firstTrace.state
-                      else .panicked
+                      else match cleanup with
+                        | some cleanupTarget => cfgRunOutcome fuel body cleanupTarget firstTrace.state
+                        | none => .panicked
               | .drop place target cleanup =>
                   match dropState firstTrace.state place with
                   | none => .refused (.unsupported "drop projection")
                   | some (dropState', _) => cfgRunOutcome fuel body target dropState'
               | .resume => .panicked
               | .unreachable => .ub "unreachable"
-              | .call _ _ _ _ | .unsupported _ => .refused (.unsupported "terminator")
+              | .call _ _ _ _ _ | .unsupported _ => .refused (.unsupported "terminator")
 
 def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (CallEdge × Body) := do
   let edge ← program.calls.find? (fun edge => edge.caller == caller.instanceId ∧ edge.block == block)
@@ -606,7 +613,7 @@ def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
       let block ← blockAt body.blocks blockId
       let firstTrace ← statementsRun block.statements state
       match block.terminator with
-      | .call _ args destination (some target) => do
+      | .call _ args destination (some target) _cleanup => do
           let (edge, callee) ← lookupCallBody program body blockId
           let calleeState ← bindCallArgs
             { placements := firstTrace.state.placements, types := firstTrace.state.types } args 1
@@ -617,7 +624,7 @@ def cfgRunProgram : Nat → Envelope → Body → Nat → State → Option Trace
           let calleeId ← edge.callee
           let events := firstTrace.events ++ (Event.call calleeId :: calleeTrace.events)
           pure { state := suffix.state, events := events ++ suffix.events }
-      | .call _ _ _ none => none
+      | .call _ _ _ none _cleanup => none
       | terminator => do
           let transition ← terminatorStep firstTrace.state terminator
           match transition with
@@ -640,7 +647,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
           | none => statementFailure state block.statements
           | some firstTrace =>
               match block.terminator with
-              | .call _ args destination (some target) =>
+              | .call _ args destination (some target) cleanup =>
                   match lookupCallBody program body blockId with
                   | none => .refused (.unsupported "unresolved call")
                   | some (edge, callee) =>
@@ -672,8 +679,13 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                                                       (calleeTrace.events ++ suffixTrace.events)) }
                                               .returned combined
                                           | outcome => outcome
+                              | .panicked =>
+                                  match cleanup with
+                                  | some cleanupTarget =>
+                                      cfgRunProgramOutcome fuel program body cleanupTarget firstTrace.state
+                                  | none => .panicked
                               | outcome => outcome
-              | .call _ args _ none =>
+              | .call _ args _ none _cleanup =>
                   match lookupCallBody program body blockId with
                   | none => .refused (.unsupported "unresolved diverging call")
                   | some (edge, callee) =>
@@ -697,13 +709,16 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                   match terminatorStep firstTrace.state block.terminator with
                   | some (.jump target) => cfgRunProgramOutcome fuel program body target firstTrace.state
                   | _ => .refused (.unsupported "switch operand")
-              | .assert cond expected target =>
+              | .assert cond expected target cleanup =>
                   match operandValue firstTrace.state cond with
                   | none => .refused (.unsupported "assert condition")
                   | some value =>
                       if value == (if expected then 1 else 0) then
                         cfgRunProgramOutcome fuel program body target firstTrace.state
-                      else .panicked
+                      else match cleanup with
+                        | some cleanupTarget =>
+                            cfgRunProgramOutcome fuel program body cleanupTarget firstTrace.state
+                        | none => .panicked
               | .drop place target _ =>
                   match dropState firstTrace.state place with
                   | none => .refused (.unsupported "drop projection")
@@ -737,10 +752,11 @@ inductive ProgramSteps (program : Envelope) : Body → Nat → State → Trace �
   | call {body : Body} {blockId target : Nat} {state : State}
       {block : Block} {first calleeTrace suffix : Trace} {calleeState : State}
       {func : Operand} {args : List Operand} {destination : Place}
+      {cleanup : Option Nat}
       {edge : CallEdge} {calleeId : String} {callee : Body} {value : Int}
       (hb : blockAt body.blocks blockId = some block)
       (hs : statementsRun block.statements state = some first)
-      (ht : block.terminator = .call func args destination (some target))
+      (ht : block.terminator = .call func args destination (some target) cleanup)
       (hl : lookupCallBody program body blockId = some (edge, callee))
       (he : edge.callee = some calleeId)
       (ha : bindCallArgs
@@ -868,7 +884,7 @@ theorem cfgRunProgram_in_steps {fuel : Nat} {program : Envelope} {body : Body}
           | none => simp_all
           | some firstTrace =>
               cases hterm : block.terminator with
-              | call func args destination target =>
+              | call func args destination target cleanup =>
                   simp [hterm] at h
                   cases target with
                   | none => simp_all
@@ -962,10 +978,10 @@ theorem cfgRunProgram_in_steps {fuel : Nat} {program : Envelope} {body : Body}
                           cases hv : operandValue firstTrace.state discr with
                           | none => simp [terminatorStep, hv] at ht0
                           | some value => simp [terminatorStep, hv] at ht0
-              | assert cond expected target =>
+              | assert cond expected target cleanup =>
                   simp [hterm] at h
                   generalize ht0 : terminatorStep firstTrace.state
-                      (Terminator.assert cond expected target) = transition at h
+                      (Terminator.assert cond expected target cleanup) = transition at h
                   cases transition with
                   | none => simp_all
                   | some transition =>
