@@ -75,6 +75,10 @@ private def isError : Except String α → Bool
   size := fun _ => some 4
   declSize := fun id => if id.value == "object-1" then some 8 else none } :
   LeanModels.C.C23.Layout).sizeAt (some {value := "object-1"}) "int" == some 8
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  structuredType := fun id =>
+    if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 2)) else none } :
+  LeanModels.C.C23.Layout).storageTypeAt (some {value := "array-1"}) "int[2]" == none
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.isCharacterType (.cBuiltin "unsigned char")

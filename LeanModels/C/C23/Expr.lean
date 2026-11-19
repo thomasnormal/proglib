@@ -593,6 +593,15 @@ def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
   (directDeclId base).bind layout.structuredTypeDecl
 
+/-- Effective-type metadata for a declaration allocation.  Parser-native
+aggregate observations suppress the scalar declaration type, while legacy
+layouts use their member and element tables for the same decision. -/
+def Layout.storageTypeAt (layout : Layout) (decl : Option DeclarationId)
+    (ty : CType) : Option CType :=
+  match decl.bind layout.structuredTypeDecl with
+  | some structured => if structured.aggregateObject then none else some ty
+  | none => if (layout.members ty).isSome || (layout.elem ty).isSome then none else some ty
+
 /-- Resolve a pointer stride from the declaration identity that owns the
 pointer expression, then from the parser-native type-layout table.  There is
 no spelling peel fallback here. -/

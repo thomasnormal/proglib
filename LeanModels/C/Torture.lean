@@ -903,7 +903,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
               match init with
               | none => do
                   let m ← get
-                  let (m', o) := m.allocZeroed .static_ sz (some ty)
+                  let (m', o) := m.allocZeroed .static_ sz (lay.storageTypeAt declaration ty)
                   set m'
                   setupGlobalsWithIds fuel lay ds ((nm, o) :: acc)
                     (match declaration with
@@ -911,7 +911,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
                     | none => ids)
               | some e => do
                   let m ← get
-                  let (m', o) := m.alloc .static_ sz (some ty)
+                  let (m', o) := m.alloc .static_ sz (lay.storageTypeAt declaration ty)
                   set m'
                   initObject fuel ({ env := acc, idEnv := ids, layout := lay } : Ctx).withCompoundInit
                     (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl)
@@ -945,8 +945,8 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
         | some sz => do
             let m ← get
             let (m', o) := match init with
-              | none => m.allocZeroed .static_ sz (some ty)
-              | some _ => m.alloc .static_ sz (some ty)
+              | none => m.allocZeroed .static_ sz (lay.storageTypeAt (some declaration) ty)
+              | some _ => m.alloc .static_ sz (lay.storageTypeAt (some declaration) ty)
             set m'
             let ids' := (declaration, o) :: ids
             match init with
