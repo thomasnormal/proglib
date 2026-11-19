@@ -702,7 +702,11 @@ def convert_expr(node):
         }
 
     if isinstance(node, ast.Set):
-        return unsupported(node, "Set:display")
+        return {
+            "kind": "Set",
+            "span": span(node),
+            "elts": [convert_expr(e) for e in node.elts],
+        }
 
     if isinstance(node, ast.Dict):
         # `{k: v, ...}` — structured (H0, docs/memory-model.md). A None key

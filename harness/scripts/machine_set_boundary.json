@@ -36,17 +36,45 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
-              "kind": "Unsupported",
+              "kind": "Set",
               "span": {
                 "lineno": 1,
                 "col_offset": 6,
                 "end_lineno": 1,
                 "end_col_offset": 12
               },
-              "py_kind": "Set:display",
-              "text": "{1, 2}"
+              "elts": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 7,
+                    "end_lineno": 1,
+                    "end_col_offset": 8
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                },
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 10,
+                    "end_lineno": 1,
+                    "end_col_offset": 11
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              ]
             }
           ],
           "keywords": [],
