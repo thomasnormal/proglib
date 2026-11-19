@@ -294,6 +294,30 @@ endmodule
         self.assertEqual(instance["params"][0]["expr"]["kind"], "Int")
         self.assertEqual(instance["params"][0]["expr"]["value"], 4)
 
+    def test_inactive_generate_instance_resolves_branch_local_port_expression(self):
+        env = self.extract("""
+module child (input logic a, output logic y);
+  assign y = a;
+endmodule
+module top #(parameter bit USE = 0) (input logic a, output logic y);
+  if (USE) begin : g_active
+    assign y = a;
+  end else begin : g_inactive
+    logic local_a;
+    assign local_a = a;
+    child u (.a(~local_a), .y(y));
+  end
+endmodule
+""")
+        instance = env["design"]["modules"][0]["generates"][0]["else"][2]
+        self.assertEqual(instance["kind"], "Instance")
+        self.assertEqual(instance["ports"][0]["expr"]["kind"], "Unary")
+        self.assertEqual(instance["ports"][0]["expr"]["operand"]["kind"],
+                         "Ident")
+        self.assertEqual(instance["ports"][0]["expr"]["operand"]["name"],
+                         "local_a")
+        self.assertEqual(instance["ports"][0]["expr"]["operand"]["width"], 1)
+
     def test_package_type_bits_constant_is_source_shaped(self):
         env = self.extract("""
 package widths;
