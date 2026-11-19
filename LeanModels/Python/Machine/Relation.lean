@@ -2220,9 +2220,22 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                       match rFunctionByToken config.functions token with
                       | some function => rStartFunctionCall config function [value] []
                           (.unaryResult continuation)
-                      | none => some (.event (.refuse "machine __neg__"),
-                          config.finish (.refuse "machine __neg__"))
-                  | some _ => some (.tau, config.setControl (.refusing "machine __neg__"))
+                      | none => some (.event (.refuse "machine unary dunder"),
+                          config.finish (.refuse "machine unary dunder"))
+                  | some _ => some (.tau, config.setControl (.refusing "machine unary dunder"))
+                  | none => some (.tau, config.setControl (.refusing "machine unary operator"))
+              | _ => some (.tau, config.setControl (.refusing "machine unary operator"))
+          | .uadd, .ref address =>
+              match config.heap.get? address with
+              | some (.instance cls _) =>
+                  match rLookupClassAttr config.classes cls "__pos__" with
+                  | some (.callable token) =>
+                      match rFunctionByToken config.functions token with
+                      | some function => rStartFunctionCall config function [value] []
+                          (.unaryResult continuation)
+                      | none => some (.event (.refuse "machine unary dunder"),
+                          config.finish (.refuse "machine unary dunder"))
+                  | some _ => some (.tau, config.setControl (.refusing "machine unary dunder"))
                   | none => some (.tau, config.setControl (.refusing "machine unary operator"))
               | _ => some (.tau, config.setControl (.refusing "machine unary operator"))
           | _, _ =>
