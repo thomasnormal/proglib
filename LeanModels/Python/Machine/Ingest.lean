@@ -70,6 +70,8 @@ inductive MStmt where
   | pass (span : Span)
   | expr (value : MExpr) (span : Span)
   | assign (targets : Array MExpr) (value : MExpr) (span : Span)
+  | unpackAssign (before : Array String) (star : String) (after : Array String)
+      (value : MExpr) (span : Span)
   | annAssign (target : MExpr) (annotation : MExpr) (value : Option MExpr)
       (simple : Bool) (span : Span)
   | augAssign (target : MExpr) (op : BinOp) (value : MExpr) (span : Span)
@@ -278,6 +280,11 @@ partial def mStmt (j : Json) : Except String MStmt := do
   | "Expr" => pure (.expr (← mExpr (← mField j "value")) span)
   | "Assign" => pure (.assign (← (← (← mField j "targets").getArr?).mapM mExpr)
       (← mExpr (← mField j "value")) span)
+  | "UnpackAssign" => pure (.unpackAssign
+      (← (← (← mField j "before").getArr?).mapM (·.getStr?))
+      (← (← mField j "star").getStr?)
+      (← (← (← mField j "after").getArr?).mapM (·.getStr?))
+      (← mExpr (← mField j "value")) span)
   | "AnnAssign" =>
       let value ← match ← mField j "value" with
         | .null => pure none
@@ -346,10 +353,14 @@ partial def mExprToExpr : MExpr → Expr
   | .dict keys values span => .dict (keys.map (fun key =>
       key.map mExprToExpr |>.getD (.constant .none span))) (values.map mExprToExpr) span
   | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
+  | .starred value span =>
+      match value with
+      | .name name _ => .unsupported "Starred" name span
+      | _ => .unsupported "Starred" "" span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .set _ span | .joinedStr _ span | .formattedValue _ _ _ span
   | .listComp _ _ span | .setComp _ _ span | .dictComp _ _ _ span
-  | .genExp _ _ span | .starred _ span => .unsupported "machine node" "" span
+  | .genExp _ _ span => .unsupported "machine node" "" span
 
 private def mParam (arg : MArg) (flags : Bool × Bool × Bool) : RParam :=
   { name := arg.name, positionalOnly := flags.1, keywordOnly := flags.2.1,
@@ -376,6 +387,8 @@ partial def mStmtToStmt : MStmt → RStmt
       match targets.toList with
       | [target] => .assign (mExprToExpr target) (mExprToExpr value) span
       | _ => .unsupported "Assign" "machine multiple-target assignment" span
+  | .unpackAssign before star after value span =>
+      .unpackAssign before star after (mExprToExpr value) span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
