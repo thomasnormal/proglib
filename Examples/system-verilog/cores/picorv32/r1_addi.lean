@@ -371,7 +371,6 @@ theorem picorv32_addi1_fields_of_wf_state
 
 #print axioms picorv32_addi1_fields_of_wf_state
 
-
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact
     port sample remain premises, so this theorem records a loaded-core
