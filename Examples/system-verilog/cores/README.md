@@ -834,3 +834,22 @@ census is **130 admitted / 51 refused / 0 not reached**. Canonical E refuses
 at `FETCH_INSTR`'s untyped-width differential wall. Both pinned simulators
 refuse the unmodified source before elaboration at the use-before-declared
 `instr` diagnostic, so Quark remains **E-RUN 0/0**.
+
+## 2026-11-19 fresh two-core census and E-RUN receipts
+
+The two nearest open-core follow-ups were re-extracted from fresh checkouts at
+their pinned revisions, with no RTL changes. The DarkRISCV envelope
+(`5fdb97fc8b4f663d7265e2d3128610319ab6f2cfc86576cb1cee519c78e44ccc`) has a
+source-overlay census of **177 admitted / 0 refused / 0 not reached**. Its
+Icarus Verilog 13.0 and Xcelium 24.03-s004 rows agree on **220/220**, while
+canonical E completes the staged reset, preparation, edge, and commit path
+(4/4), then the source-shaped first-clock probe reaches its 180-second exact
+step timeout. Its complete E-RUN is therefore **0/1** for that probe.
+
+The Quark envelope
+(`644b5ee318e42fe3362798172495e500cf001efeeded0b689eea4d7c9a355ccb`) has a
+source-overlay census of **130 admitted / 51 refused / 0 not reached**.
+Canonical E refuses at the `FETCH_INSTR` untyped-width differential wall.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the unchanged source
+before elaboration at the use-before-declared `instr`, so Quark E-RUN is
+**0/0**.
