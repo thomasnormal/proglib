@@ -155,12 +155,12 @@ private def operand (j : Json) : Except String Operand := do
       | .ok (.obj fields) =>
           match fields.toList with
           | [("Allocated", allocated)] =>
-              let bytes ← field allocated "bytes" >>= array >>= (·.mapM nat)
+              let (bytes, bytesValid) ← allocationBytes allocated
               let provenance := constantProvenance constant
-              pure (.constant id bytes ty provenance false)
-          | [("ZeroSized", _)] => pure (.constant id [] ty none true)
+              pure (.constant id bytes ty provenance false bytesValid)
+          | [("ZeroSized", _)] => pure (.constant id [] ty none true true)
           | _ => pure (.unsupported "Constant kind")
-      | .ok (.str "ZeroSized") => pure (.constant id [] ty none true)
+      | .ok (.str "ZeroSized") => pure (.constant id [] ty none true true)
       | .ok _ | .error _ => pure (.unsupported "Constant kind")
   | other => pure (.unsupported other)
 

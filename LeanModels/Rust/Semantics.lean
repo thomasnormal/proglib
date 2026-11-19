@@ -542,7 +542,7 @@ def placeType (s : State) (place : Place) : Option Nat :=
       | _ => none) (localType s place.localId)
 
 def operandType (s : State) : Operand → Option Nat
-  | .constant _ _ ty _ _ => some ty
+  | .constant _ _ ty _ _ _ => some ty
   | .copy place | .move place => placeType s place
   | .unsupported _ => none
 
@@ -580,7 +580,7 @@ def referencePointeeType (s : State) (localId : Nat) : Option Nat :=
       | none => some ty
 
 def operandCell (s : State) : Operand → Option Cell
-  | .constant _ bytes ty provenance zeroSized =>
+  | .constant _ bytes ty provenance zeroSized bytesValid =>
       if zeroSized then some (.int 0) else
       match findTypeLayout s ty, provenance with
       | some info, some target =>
@@ -588,19 +588,24 @@ def operandCell (s : State) : Operand → Option Cell
               info.kind.startsWith "RigidTy(FnPtr" then
             let resolved := resolveProvenance s target
             some (.pointer { provenance := resolved, address := placementOf s resolved, pointeeType := info.pointee, isLocal := false })
-          else match typedBytesValue s ty bytes with
-            | some value => some (.int value)
-            | none => if bytes.all (· ≤ 255) then some (.bytes bytes) else none
-      | _, _ => match typedBytesValue s ty bytes with
-          | some value => some (.int value)
-          | none => if bytes.all (· ≤ 255) then some (.bytes bytes) else none
+          else if bytesValid then
+            match typedBytesValue s ty bytes with
+              | some value => some (.int value)
+              | none => if bytes.all (· ≤ 255) then some (.bytes bytes) else none
+          else some (.bytes bytes)
+      | _, _ =>
+          if bytesValid then
+            match typedBytesValue s ty bytes with
+              | some value => some (.int value)
+              | none => if bytes.all (· ≤ 255) then some (.bytes bytes) else none
+          else some (.bytes bytes)
   | .copy place | .move place =>
       readCell s place
   | .unsupported _ => none
 
 def operandLocalId : Operand → Nat
   | .copy place | .move place => place.localId
-  | .constant _ _ _ _ _ | .unsupported _ => 0
+  | .constant _ _ _ _ _ _ | .unsupported _ => 0
 
 def operandValue (s : State) (operand : Operand) : Option Int :=
   operandCell s operand |>.bind cellInt
