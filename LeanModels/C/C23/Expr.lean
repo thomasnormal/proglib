@@ -786,6 +786,18 @@ spellings on expression nodes, every one ending in `*` or `]`. -/
 def isPtrType (ty : CType) : Bool :=
   ty.endsWith "*" || LeanModels.C.isConstPointerToArray ty
 
+/-! Parser-native type decisions.  The spelling fallback is retained only for
+older envelopes that have no structured observation.  When clang supplied a
+`QualType`, these predicates read its constructors and never inspect the
+display spelling. -/
+def structuredPointerObject (structured : Option LeanModels.Clang.QualType)
+    (fallback : CType) : Bool :=
+  structured.map LeanModels.Clang.QualType.pointerObject |>.getD (isPtrType fallback)
+
+def structuredIndexable (structured : Option LeanModels.Clang.QualType)
+    (fallback : CType) : Bool :=
+  structured.map LeanModels.Clang.QualType.indexable |>.getD (isPtrType fallback)
+
 def isPtrIntType (ty : CType) : Bool :=
   let t := ty.trimAscii.toString
   -- The pinned profile has 64-bit object pointers.  A 64-bit integer type
@@ -867,7 +879,7 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
     match intTyOf? ty with
     | some t => readMem (fun m => Mem.loadCharacter m p t)
     | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
-  else if structured.map LeanModels.Clang.QualType.pointerObject |>.getD (isPtrType ty) then do
+  else if structuredPointerObject structured ty then do
     let q ← readMem (fun m => Mem.loadPtr m p)
     pure (.ptr q)
   else do
@@ -1920,7 +1932,7 @@ never the rebuilt node. -/
 def indexAddr (ctx : Ctx) (base idx : Expr) (ty : CType) : EvalM Ptr := do
   match ctx.layout.structuredTypeAt base with
   | some structuredType =>
-      if !structuredType.indexable then
+      if !structuredIndexable (some structuredType) base.ty then
         refuseUnsupported "subscript base is not an array or pointer type"
   | none => pure ()
   let bv ← evalExpr ctx base

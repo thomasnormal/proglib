@@ -172,6 +172,17 @@ So the recursion below dispatches on the member's type. -/
 
 mutual
 
+/-- Declaration-backed zero initialization uses clang's recursive type
+observation when one is available.  Older envelopes still use the existing
+spelling fallback through `zeroInit`; the parser-native branch is selected
+before that fallback and therefore does not inspect the display type. -/
+def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
+    (structured : Option LeanModels.Clang.QualType) : ExecM Unit :=
+  if structuredPointerObject structured ty then
+    liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
+  else
+    zeroInit fuel ctx p ty
+
 /-- §6.7.11p10 — initialize an object to zero, as if it had static
 storage duration. Type-directed: see the section note. -/
 def zeroInit : Nat → Ctx → Ptr → CType → ExecM Unit
@@ -237,11 +248,12 @@ mutual
 A scalar initializer is an assignment (§6.7.11p11). A brace-enclosed list
 initializes an aggregate member by member (p9), **in declaration order**,
 and every member the list does not reach is zeroed (p10). -/
-def initObject : Nat → Ctx → Ptr → CType → Expr → ExecM Unit
-  | 0, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, ty, e =>
+def initObject : Nat → Ctx → Ptr → CType → Expr →
+    (structured : Option LeanModels.Clang.QualType := none) → ExecM Unit
+  | 0, _, _, _, _, _ => exhausted
+  | fuel + 1, ctx, p, ty, e, structured =>
     match e with
-    | .implicitValueInit _ _ => zeroInit fuel ctx p ty
+    | .implicitValueInit _ _ => zeroInitStructured fuel ctx p ty structured
     -- Clang wraps nested aggregate initializers in ConstantExpr nodes even
     -- when their value is the parser's InitListExpr. Preserve §6.7.11's
     -- aggregate walk instead of sending that wrapper to evalExpr, where the
@@ -748,6 +760,7 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             | some e => do
                 -- §6.7.11 — scalar or aggregate, one entry point.
                 initObject fuel ctx' (Ptr.toObject o) ty e
+                  (id.bind ctx.layout.structuredType)
                 declare fuel ctx' ds
     | .empty _ => declare fuel ctx ds
     | .record _ _ _ _ _ | .enum _ _ _ | .typedef _ _ _ _ _ =>
@@ -870,18 +883,20 @@ The declaration-identity rule therefore gives us no sound way to execute
 those bound side effects.  This structural shape is the small registered
 route's conservative guard: refuse it before the body rather than inventing
 the missing parser fact. -/
-def hasUnretainedParamArrayEffects : List LeanModels.C.Decl → Bool
-  | .param _ _ ty _ _ :: .param _ _ pty _ _ ::
-      .param _ _ ty₂ _ _ :: .param _ _ pty₂ _ _ :: _ =>
-      !isPtrType ty && isPtrType pty && !isPtrType ty₂ && isPtrType pty₂
+def hasUnretainedParamArrayEffects (lay : Layout) : List LeanModels.C.Decl → Bool
+  | .param id _ ty _ _ :: .param id' _ pty _ _ ::
+      .param id₂ _ ty₂ _ _ :: .param id₂' _ pty₂ _ _ :: _ =>
+      !structuredPointerObject (id.bind lay.structuredType) ty &&
+      structuredPointerObject (id'.bind lay.structuredType) pty &&
+      !structuredPointerObject (id₂.bind lay.structuredType) ty₂ &&
+      structuredPointerObject (id₂'.bind lay.structuredType) pty₂
   | _ => false
 
 def hasUnnamedPointerParam (lay : Layout) : List LeanModels.C.Decl → Bool
   | d :: ps =>
       match d with
       | .param (some id) none ty _ _ =>
-          let isPointer := (lay.structuredType id).map LeanModels.Clang.QualType.pointerObject
-            |>.getD (isPtrType ty)
+          let isPointer := structuredPointerObject (lay.structuredType id) ty
           isPointer || hasUnnamedPointerParam lay ps
       | _ => hasUnnamedPointerParam lay ps
   | [] => false
@@ -971,7 +986,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
           refuseUnsupported "more arguments than parameters"
         if hasUnnamedPointerParam prog.layout f.params then
           refuseUnsupported "unnamed pointer parameter (array-bound effects are not retained by clang)"
-        if hasUnretainedParamArrayEffects f.params then
+        if hasUnretainedParamArrayEffects prog.layout f.params then
           refuseUnsupported "parameter array-bound effects are not retained by clang"
         let m₀ ← get
         let base := m₀.count
