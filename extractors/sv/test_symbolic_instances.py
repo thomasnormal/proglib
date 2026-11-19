@@ -280,9 +280,13 @@ endmodule
         env = self.extract("""
 package widths;
   typedef logic [3:0] word_t;
+  typedef struct packed { logic [1:0] tag; logic [2:0] payload; } packet_t;
+  typedef enum logic [1:0] { IDLE = 2'b00, BUSY = 2'b01, DONE = 2'b10 } state_t;
 endpackage
 module top(input logic [3:0] x, output logic y);
   localparam int W = $bits(widths::word_t);
+  localparam int P = $bits(widths::packet_t);
+  localparam int S = $bits(widths::state_t);
   assign y = (W == 4) ? x[0] : 1'b0;
 endmodule
 """)
@@ -291,6 +295,9 @@ endmodule
             expr = expr["operand"]
         self.assertEqual(expr["kind"], "TypeBits")
         self.assertEqual(expr["width"], 4)
+        self.assertEqual([p["expr"]["operand"]["width"]
+                          for p in env["design"]["modules"][0]["params"]],
+                         [4, 5, 2])
 
     def test_untaken_branch_unknown_definition_stays_loud(self):
         env = self.extract("""
