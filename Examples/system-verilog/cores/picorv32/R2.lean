@@ -221,6 +221,9 @@ obligation:
   store and load step bridges with their memory effects explicit.
   `r1_mem_all.picorv32_mem_fields_isa_step` provides the shared exact bridge
   for byte, halfword, and word loads and stores, retaining signedness.
+  `r1_mem_all.picorv32_loaded_mem_program_refinement_of_total` packages one
+  retained load/store instruction into the loaded all-prefix contract from
+  total canonical execution.
   `r1_alu.picorv32_alu_fields_isa_step` provides the shared exact bridge for
   register, immediate, and pc-based ALU source forms.
   `r1_csr.picorv32_csr_fields_isa_step` provides the exact implemented-row
