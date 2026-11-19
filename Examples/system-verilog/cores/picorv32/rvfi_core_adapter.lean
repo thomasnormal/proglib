@@ -206,6 +206,24 @@ theorem CoreAddiBoundary.memoryMachineStep
   exact RvfiObservation.addiBoundary_rvMemoryMachineWith
     LeanModels.Rv.cv32e40pProfile observation arch input word rd rs1 imm hboundary
 
+theorem CoreAddiBoundary.exists_semantic_post
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word} {rd rs1 : LeanModels.Rv.Reg}
+    {imm : LeanModels.Refine.Word}
+    (h : CoreAddiBoundary d st entry arch input word rd rs1 imm) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      observation.addiBoundary arch input word rd rs1 imm ∧
+      LeanModels.Rv.isaStepMemWith LeanModels.Rv.cv32e40pProfile arch
+        input.memory input.fetched input.irq =
+        (LeanModels.Refine.addiNext arch rd rs1 imm, input.memory) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  exact ⟨next, observation, hrun, hboundary,
+    RvfiObservation.addiBoundary_isaStepMemWith
+      LeanModels.Rv.cv32e40pProfile observation arch input word rd rs1 imm hboundary⟩
+
 #print axioms rvfiPortSample_read
 #print axioms rvfiObservation_eq_decode
 #print axioms rvfiStep_ok_of_fast_and_decode
