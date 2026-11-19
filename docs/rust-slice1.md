@@ -181,3 +181,24 @@ lemma.  `gcd_all_inputs_cfg` bridges that invariant theorem to the loaded MIR
 entry relation for every pair of natural-number inputs.  The proof uses the
 typed layout table and preserves the exact local-state transitions from the
 extracted body.
+
+The proof-cost measurement was rerun from the repository root with
+
+```console
+wc -l harness/rust/measurement_programs/study/10_while_gcd.rs Examples/rust/gcd/proof.lean
+python3 - <<'PY'
+import subprocess, time
+started = time.monotonic()
+result = subprocess.run(["lake", "build", "Examples.rust.gcd.proof"])
+print(f"exit={result.returncode} elapsed_seconds={time.monotonic() - started:.3f}")
+PY
+```
+
+The source has 12 lines and the proof file has 339 lines.  The MIR-facing
+theorems occupy lines 261--318, or 58 lines, which is 4.83 proof lines per
+source line.  Including the explicit extracted-body fixture and its transition
+lemmas, the checked-in proof is 28.25 lines per source line.  The measured
+incremental build took 6.208 seconds and exited 0.  The expensive part is the
+repeated symbolic execution of the extracted blocks and the bridge between
+`Nat` remainder facts and the signed `Int` cells.  The induction itself is the
+short portion of the proof.
