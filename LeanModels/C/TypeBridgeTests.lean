@@ -67,6 +67,7 @@ private def isError : Except String α → Bool
   (some (.qualified true false (.cBuiltinKind .unsignedLong)))
 #guard LeanModels.C.C23.intTyOfStructured
   (.enumeration {value := "enum-1"}) == some LeanModels.C.C23.IntTy.int_
+#guard LeanModels.C.C23.intTyOf? "enum E" == none
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.cAliasCompatible "int" "volatile int"

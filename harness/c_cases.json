@@ -836,8 +836,11 @@
   {
     "id": "structured-enum-object-layout",
     "source": "enum E { E0 = 0, E1 = 1 }; int main(void) { enum E e = E1; return e == E1 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
+    "error": "not an integer type: 'enum E'",
     "return_value": 0,
+    "structured_expect": "match",
+    "structured_return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
     "structured_envelope_checks": [
@@ -850,7 +853,8 @@
   {
     "id": "structured-enum-array-init",
     "source": "enum E { E0 = 0, E1 = 1 }; int main(void) { enum E a[2] = {E1}; return a[0] == E1 && a[1] == E0 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
+    "error": "not an integer type: 'enum E'",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
