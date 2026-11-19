@@ -713,7 +713,9 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")
           | .assign place (.use operand) =>
               match rvalueCell state (.use operand) with
-              | none => .refused (.unsupported "use operand")
+              | none => .refused (.unsupported ("use operand cell=" ++
+                  toString (repr (operandCell state operand)) ++
+                  " operand=" ++ toString (repr operand)))
               | some cell =>
                   if (writeCell state place cell).isNone then
                     .refused (.unsupported ("use destination local " ++ toString place.localId))
