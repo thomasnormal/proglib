@@ -169,7 +169,10 @@ def shareCell (frameId : Nat) : Cell → Cell
   | value => value
 
 def normalizeAbiCell : Cell → Cell
-  | .aggregate [.pointer pointer] => .pointer pointer
+  | .aggregate [inner] =>
+      match normalizeAbiCell inner with
+      | .pointer pointer => .pointer pointer
+      | value => .aggregate [value]
   | .aggregate fields => .aggregate (fields.map normalizeAbiCell)
   | .enum variant fields => .enum variant (fields.map normalizeAbiCell)
   | value => value
