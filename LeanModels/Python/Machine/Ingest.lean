@@ -336,9 +336,16 @@ partial def mStmt (j : Json) : Except String MStmt := do
       (← (← (← mField j "body").getArr?).mapM mStmt)
       (← (← (← mField j "orelse").getArr?).mapM mStmt)
       false span)
-  | "FunctionDef" | "NestedDef" => pure (.functionDef (← (← mField j "name").getStr?)
-      (← mFunctionArguments (← mField j "args")) #[] none
-      (← (← (← mField j "body").getArr?).mapM mStmt) span)
+  | "FunctionDef" | "NestedDef" =>
+      let decorators ← match j.getObjVal? "decorator_list" with
+        | .ok value => (← value.getArr?).mapM mExpr
+        | .error _ => pure #[]
+      let returns ← match j.getObjVal? "returns" with
+        | .ok .null | .error _ => pure none
+        | .ok value => some <$> mExpr value
+      pure (.functionDef (← (← mField j "name").getStr?)
+        (← mFunctionArguments (← mField j "args")) decorators returns
+        (← (← (← mField j "body").getArr?).mapM mStmt) span)
   | "Global" => pure (.global (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Nonlocal" => pure (.nonlocal (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Break" => pure (.brk span)
@@ -451,8 +458,12 @@ partial def mStmtToStmt : MStmt → RStmt
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
   | .forStmt target iter body orelse _ span => .forStmt (mExprToExpr target)
       (mExprToExpr iter) (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
-  | .functionDef name args _ _ body span =>
-      if args.keywordOnly.isEmpty then
+  | .functionDef name args decorators returns body span =>
+      if !decorators.isEmpty || returns.isSome then
+        .functionDefFull name (mParams args) (args.defaults.map mExprToExpr)
+          (decorators.map mExprToExpr) (returns.map mExprToExpr)
+          (body.map mStmtToStmt) span
+      else if args.keywordOnly.isEmpty then
         .functionDef name (mParams args) (args.defaults.map mExprToExpr)
           (body.map mStmtToStmt) span
       else
@@ -561,6 +572,23 @@ private def ingestDefaultModule : Json :=
   | .ok module =>
       match (compileMachineModule module).body.toList with
       | [.functionDef _ _ defaults _ _] => defaults.size == 1
+      | _ => false
+  | _ => false
+
+private def ingestFunctionMetadata : Json :=
+  Lean.Json.mkObj [
+    ("module", Lean.Json.mkObj [("kind", Lean.toJson "Module"),
+      ("body", Lean.Json.arr #[Lean.Json.mkObj [
+        ("kind", Lean.toJson "FunctionDef"), ("span", ingestSpan),
+        ("name", Lean.toJson "decorated"), ("args", Lean.Json.arr #[]),
+        ("decorator_list", Lean.Json.arr #[ingestName "deco"]),
+        ("returns", ingestName "int"), ("body", Lean.Json.arr #[])]] )])]
+
+#guard match parseMachineModule ingestFunctionMetadata with
+  | .ok module =>
+      match (compileMachineModule module).body.toList with
+      | [.functionDefFull "decorated" #[] #[] #[.name "deco" _]
+          (some (.name "int" _)) #[] _] => true
       | _ => false
   | _ => false
 

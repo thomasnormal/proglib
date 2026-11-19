@@ -47,6 +47,8 @@ inductive RStmt where
       (span : Span)
   | functionDef (name : String) (params : Array RParam) (defaults : Array Expr)
       (body : Array RStmt) (span : Span)
+  | functionDefFull (name : String) (params : Array RParam) (defaults : Array Expr)
+      (decorators : Array Expr) (returns : Option Expr) (body : Array RStmt) (span : Span)
   | functionDefKw (name : String) (params : Array RParam) (defaults : Array Expr)
       (keywordDefaults : Array (Option Expr)) (body : Array RStmt) (span : Span)
   | classDef (name : String) (bases : Array Expr) (keywords : Array (String × Expr))
@@ -1256,6 +1258,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .annAssign _ _ _ _ _ =>
               some (.event (.refuse "machine annotated assignment"),
                 config.finish (.refuse "machine annotated assignment"))
+          | .functionDefFull _ _ _ _ _ _ _ =>
+              some (.event (.refuse "machine function metadata"),
+                config.finish (.refuse "machine function metadata"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
