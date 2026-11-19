@@ -272,6 +272,33 @@ class ExtractorTests(unittest.TestCase):
         for p in fn["args"]:
             self.assertEqual(sorted(p.keys()), ["arg", "span"])
 
+    # -- type comments: CPython's run-time parse ignores them -----------------
+
+    # compile() never reads type comments, so the extractor parses without
+    # type_comments=True: a comment that the type-comment grammar rejects
+    # (`x += 1  # type: int`, `print(x)  # type: int`) must not make the
+    # extractor refuse a program CPython runs, and the envelope of a program
+    # with type comments equals the envelope of the program without them
+    # (spans included).
+    def test_type_comments_do_not_change_the_envelope(self):
+        commented = ("x = 1  # type: ignore[assignment]\n"
+                     "x += 1  # type: int\n"
+                     "def f(a,  # type: int\n"
+                     "      b):\n"
+                     "    # type: (...) -> int\n"
+                     "    return a + b  # type: (\n"
+                     "print(f(x, 1))  # type: int\n")
+        plain = ("x = 1\n"
+                 "x += 1\n"
+                 "def f(a,\n"
+                 "      b):\n"
+                 "\n"
+                 "    return a + b\n"
+                 "print(f(x, 1))\n")
+        with_comments = self._envelope_of(commented, stem="commented")["module"]
+        without = self._envelope_of(plain, stem="plain")["module"]
+        self.assertEqual(with_comments, without)
+
     # -- F2: is / is not gated on a literal-None side ------------------------
 
     def _first_return_expr(self, source):

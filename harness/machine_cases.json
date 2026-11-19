@@ -515,33 +515,13 @@
     "expect": "unsupported"
   },
   {
-    "source": "harness/scripts/machine_type_comment_boundary.py",
-    "envelope": "harness/scripts/machine_type_comment_boundary.json",
-    "expect": "unsupported"
-  },
-  {
-    "source": "harness/scripts/machine_type_ignore_boundary.py",
-    "envelope": "harness/scripts/machine_type_ignore_boundary.json",
-    "expect": "match"
-  },
-  {
     "source": "harness/scripts/machine_context_boundary.py",
     "envelope": "harness/scripts/machine_context_boundary.json",
     "expect": "match"
   },
   {
-    "source": "harness/scripts/machine_argument_type_comment_boundary.py",
-    "envelope": "harness/scripts/machine_argument_type_comment_boundary.json",
-    "expect": "match"
-  },
-  {
     "source": "harness/scripts/machine_constant_kind_boundary.py",
     "envelope": "harness/scripts/machine_constant_kind_boundary.json",
-    "expect": "match"
-  },
-  {
-    "source": "harness/scripts/machine_function_type_comment_boundary.py",
-    "envelope": "harness/scripts/machine_function_type_comment_boundary.json",
     "expect": "match"
   },
   {
@@ -897,6 +877,26 @@
   {
     "source": "harness/scripts/machine_instance_attribute_aug.py",
     "envelope": "harness/scripts/machine_instance_attribute_aug.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/type_comment_aug.py",
+    "envelope": "harness/scripts/type_comment_aug.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/type_comment_ignore_code.py",
+    "envelope": "harness/scripts/type_comment_ignore_code.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/type_comment_malformed.py",
+    "envelope": "harness/scripts/type_comment_malformed.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/type_comment_signature.py",
+    "envelope": "harness/scripts/type_comment_signature.json",
     "expect": "match"
   }
 ]

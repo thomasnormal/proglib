@@ -1107,8 +1107,6 @@ def machine_argument(p):
     out = {"arg": p.arg, "span": span(p)}
     if p.annotation is not None:
         out["annotation"] = convert_expr(p.annotation)
-    if getattr(p, "type_comment", None) is not None:
-        out["type_comment"] = p.type_comment
     return out
 
 
@@ -2163,8 +2161,6 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             "machine_returns": (convert_expr(node.returns)
                                 if node.returns is not None else None),
         }
-        if node.type_comment is not None:
-            out["machine_type_comment"] = node.type_comment
         if isinstance(node, ast.AsyncFunctionDef):
             # Keep the approved AST distinction available to the machine
             # without changing the frozen compatibility FunctionDef view.
@@ -2431,15 +2427,12 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             # the ordinary tuple arity path inspect an inner Starred leaf too
             # late and fabricate an exception.
             return unsupported(node, "Starred:target")
-        out = {
+        return {
             "kind": "Assign",
             "span": span(node),
             "targets": [convert_expr(t) for t in node.targets],
             "value": convert_expr(node.value),
         }
-        if node.type_comment is not None:
-            out["machine_type_comment"] = node.type_comment
-        return out
 
     if isinstance(node, ast.AnnAssign):
         return convert_ann_assign(node, module_scope=module_scope,
@@ -2521,7 +2514,7 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             # remain a whole-node refusal rather than reaching the ordinary
             # tuple target walker and fabricating an arity error.
             return unsupported(node, "Starred:target")
-        out = {
+        return {
             "kind": "For",
             "span": span(node),
             "target": convert_expr(node.target),
@@ -2533,9 +2526,6 @@ def convert_stmt(node, enclosing=None, module_scope=False,
                                          module_scope=module_scope,
                                          func_scope=func_scope),
         }
-        if node.type_comment is not None:
-            out["machine_type_comment"] = node.type_comment
-        return out
 
     if isinstance(node, ast.AsyncFor):
         # Keep the CPython async-for node shape intact.  The machine tier
@@ -3144,7 +3134,10 @@ def process_file(source_path, companion_dir, out=None):
         raise ExtractError("%s: not valid UTF-8: %s" % (source_path, e))
 
     try:
-        tree = ast.parse(text, filename=source_path, type_comments=True)
+        # CPython's own parse of a module it runs: compile() does not read type
+        # comments, so neither does the extractor (with type_comments=True,
+        # `x += 1  # type: int` is a SyntaxError and statement spans change).
+        tree = ast.parse(text, filename=source_path)
     except SyntaxError as e:
         raise ExtractError("%s: syntax error: %s" % (source_path, e))
 
@@ -3266,11 +3259,7 @@ def process_file(source_path, companion_dir, out=None):
         "source_file": source_rel,
         "source_sha256": source_sha256,
         "module": {"kind": "Module",
-                   "body": convert_stmt_list(tree.body, module_scope=True),
-                   "machine_type_ignores": [
-                       {"lineno": item.lineno, "tag": item.tag}
-                       for item in tree.type_ignores
-                   ]},
+                   "body": convert_stmt_list(tree.body, module_scope=True)},
         "lean_blocks": blocks,
     }
 
