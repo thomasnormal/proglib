@@ -1,0 +1,98 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_attribute_assign_scalar.py",
+  "source_sha256": "5869bc3eb85451b8b0d2f8db8fabbca80b1028e6ebf8190d0e0513ac2bed1a13",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 5
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 1
+            },
+            "id": "x",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 1,
+            "col_offset": 4,
+            "end_lineno": 1,
+            "end_col_offset": 5
+          },
+          "value": {
+            "type": "int",
+            "repr": "1"
+          }
+        }
+      },
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 11
+        },
+        "targets": [
+          {
+            "kind": "Attribute",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 7
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 2,
+                "col_offset": 0,
+                "end_lineno": 2,
+                "end_col_offset": 1
+              },
+              "id": "x",
+              "machine_context": "Load"
+            },
+            "attr": "value",
+            "machine_context": "Store"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 2,
+            "col_offset": 10,
+            "end_lineno": 2,
+            "end_col_offset": 11
+          },
+          "value": {
+            "type": "int",
+            "repr": "2"
+          }
+        }
+      }
+    ],
+    "machine_type_ignores": []
+  },
+  "lean_blocks": []
+}

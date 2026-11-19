@@ -1698,7 +1698,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   some (.tau, { config with classes := classes }.setControl
                     (.statements remaining))
               | none => some (.tau, config.setControl (.refusing "machine attribute assignment"))
-          | _ => some (.tau, config.setControl (.refusing "machine attribute assignment"))
+          | _ =>
+              let error : RError := { errorClass := .attribute, args := [] }
+              some (.event (.raise error), config.finish (.raise error))
       | .continueValue receiver (.deleteAttributeReceiver attr remaining) =>
           match receiver with
           | .callable token =>
