@@ -210,6 +210,9 @@ obligation:
   `r1_upper.picorv32_upper_exact_cycle_step_refines` consumes the shared
   upper-immediate boundary in the mixed cycle dispatcher and embeds its
   retained LUI/AUIPC witness into the exact RV32I instruction union.
+  `r1_upper.picorv32_loaded_upper_program_refinement_of_total` packages one
+  retained LUI or AUIPC instruction into the loaded all-prefix contract from
+  total canonical execution.
   `r1_mem.picorv32_sw_fields_isa_step` and
   `r1_mem.picorv32_lw_fields_isa_step` provide the corresponding exact word
   store and load step bridges with their memory effects explicit.
