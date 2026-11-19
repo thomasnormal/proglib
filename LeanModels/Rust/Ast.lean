@@ -29,6 +29,8 @@ deriving Repr, Inhabited, BEq, Lean.ToExpr
 inductive CastKind where
   | intToInt
   | ptrToPtr
+  | transmute
+  | pointerCoercion (name : String)
   | unsupported (name : String)
 deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
