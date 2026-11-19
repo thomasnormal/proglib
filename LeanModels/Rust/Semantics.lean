@@ -466,6 +466,10 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .discriminant place =>
       match readCell s place with
       | some (.enum variant _) => some (.int variant)
+      | some (.aggregate [inner]) =>
+          match inner with
+          | .enum variant _ => some (.int variant)
+          | _ => none
       | _ => none
   | .unsupported _ => none
 
