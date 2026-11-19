@@ -128,12 +128,17 @@ private def castKind (j : Json) : Except String CastKind :=
   match j with
   | .str "IntToInt" => pure .intToInt
   | .str "PtrToPtr" => pure .ptrToPtr
+  | .str "Transmute" => pure .transmute
   | .str name => pure (.unsupported name)
   | .obj _ => do
       let (name, payload) ← variant j
       match payload with
-      | .str detail => pure (.unsupported (name ++ "::" ++ detail))
-      | _ => pure (.unsupported name)
+      | .str detail =>
+          if name == "PointerCoercion" then pure (.pointerCoercion detail)
+          else pure (.unsupported (name ++ "::" ++ detail))
+      | _ =>
+          if name == "PointerCoercion" then pure (.pointerCoercion name)
+          else pure (.unsupported name)
   | _ => .error "MIR Cast kind is malformed"
 
 private def operand (j : Json) : Except String Operand := do

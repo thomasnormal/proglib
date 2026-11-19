@@ -349,6 +349,8 @@ def rvalueCell (s : State) : Rvalue → Option Cell
         match ← operandCell s operand with
         | .pointer pointer => pure (.pointer pointer)
         | _ => none
+  | .cast .transmute operand _target => operandCell s operand
+  | .cast (.pointerCoercion _) operand _target => operandCell s operand
   | .cast _ _ _ => none
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left

@@ -42,7 +42,7 @@
           }
         }
       },
-      "extract_seconds": 0.174,
+      "extract_seconds": 0.213,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec"
     },
     {
@@ -86,7 +86,7 @@
           }
         }
       },
-      "extract_seconds": 0.151,
+      "extract_seconds": 0.147,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.082,
+      "extract_seconds": 0.101,
       "lean_outcome": "returned"
     },
     {
@@ -174,7 +174,7 @@
           }
         }
       },
-      "extract_seconds": 0.068,
+      "extract_seconds": 0.087,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -218,7 +218,7 @@
           }
         }
       },
-      "extract_seconds": 0.104,
+      "extract_seconds": 0.112,
       "lean_outcome": "refused:unsupported:unresolved call"
     },
     {
@@ -262,7 +262,7 @@
           }
         }
       },
-      "extract_seconds": 0.069,
+      "extract_seconds": 0.093,
       "lean_outcome": "returned"
     },
     {
@@ -306,7 +306,7 @@
           }
         }
       },
-      "extract_seconds": 0.083,
+      "extract_seconds": 0.088,
       "lean_outcome": "refused:unsupported:discriminant assignment"
     },
     {
@@ -350,7 +350,7 @@
           }
         }
       },
-      "extract_seconds": 0.137,
+      "extract_seconds": 0.124,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 0.384,
+      "extract_seconds": 0.401,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.094,
+      "extract_seconds": 0.161,
       "lean_outcome": "returned"
     },
     {
@@ -482,7 +482,7 @@
           }
         }
       },
-      "extract_seconds": 0.112,
+      "extract_seconds": 0.118,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsbZvLFSCT5mK_24rustc_ivec_pass_by_value"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.033,
+      "extract_seconds": 0.071,
       "lean_outcome": "returned"
     },
     {
@@ -570,7 +570,7 @@
           }
         }
       },
-      "extract_seconds": 0.075,
+      "extract_seconds": 0.072,
       "lean_outcome": "returned"
     },
     {
@@ -614,7 +614,7 @@
           }
         }
       },
-      "extract_seconds": 0.068,
+      "extract_seconds": 0.085,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.069,
+      "extract_seconds": 0.09,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.069,
+      "extract_seconds": 0.11,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.044,
+      "extract_seconds": 0.048,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.054,
+      "extract_seconds": 0.052,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.071,
+      "extract_seconds": 0.07,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.076,
+      "extract_seconds": 0.094,
       "lean_outcome": "returned"
     },
     {
@@ -922,14 +922,14 @@
           }
         }
       },
-      "extract_seconds": 0.065,
+      "extract_seconds": 0.076,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_const-prop-ice3",
       "source": "measurement_programs/rustc_run_pass/12_const-prop-ice3.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:cast write",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -966,8 +966,8 @@
           }
         }
       },
-      "extract_seconds": 0.046,
-      "lean_outcome": "refused:unsupported:cast write"
+      "extract_seconds": 0.059,
+      "lean_outcome": "returned"
     },
     {
       "id": "rustc_if-ret",
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.092,
+      "extract_seconds": 0.045,
       "lean_outcome": "returned"
     },
     {
@@ -1054,14 +1054,14 @@
           }
         }
       },
-      "extract_seconds": 0.035,
+      "extract_seconds": 0.039,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_vector-no-ann-2",
       "source": "measurement_programs/rustc_run_pass/15_vector-no-ann-2.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:cast write",
+      "reason": "Lean outcome refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCs9qsj18IWarl_21rustc_vector_no_ann_2",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -1098,8 +1098,8 @@
           }
         }
       },
-      "extract_seconds": 0.115,
-      "lean_outcome": "refused:unsupported:cast write"
+      "extract_seconds": 0.116,
+      "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCs9qsj18IWarl_21rustc_vector_no_ann_2"
     },
     {
       "id": "rustc_generic-newtype-struct",
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.045,
+      "extract_seconds": 0.05,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.082,
+      "extract_seconds": 0.075,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.047,
+      "extract_seconds": 0.057,
       "lean_outcome": "returned"
     },
     {
@@ -1274,14 +1274,14 @@
           }
         }
       },
-      "extract_seconds": 0.033,
+      "extract_seconds": 0.045,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
       "id": "rustc_empty-mutable-vec",
       "source": "measurement_programs/rustc_run_pass/20_empty-mutable-vec.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:cast write",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -1319,10 +1319,10 @@
         }
       },
       "extract_seconds": 0.055,
-      "lean_outcome": "refused:unsupported:cast write"
+      "lean_outcome": "returned"
     }
   ],
-  "decided_rows": 17,
-  "named_refusals": 13,
+  "decided_rows": 19,
+  "named_refusals": 11,
   "diverging": 0
 }
