@@ -348,5 +348,10 @@
     "source": "harness/scripts/machine_star_unpack_assign.py",
     "envelope": "harness/scripts/machine_star_unpack_assign.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_star_unpack_iterables.py",
+    "envelope": "harness/scripts/machine_star_unpack_iterables.json",
+    "expect": "match"
   }
 ]
