@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_if_raw_boundary.py",
+  "source_sha256": "b5316a3f4419723a2c3009226836feb46e8a357064139b933a4f763a52523a71",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "If",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 12
+        },
+        "test": {
+          "kind": "Unsupported",
+          "span": {
+            "lineno": 1,
+            "col_offset": 3,
+            "end_lineno": 1,
+            "end_col_offset": 6
+          },
+          "py_kind": "Set:display",
+          "text": "{1}"
+        },
+        "body": [
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 12
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 2,
+                "col_offset": 4,
+                "end_lineno": 2,
+                "end_col_offset": 12
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "print"
+              },
+              "args": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 10,
+                    "end_lineno": 2,
+                    "end_col_offset": 11
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          }
+        ],
+        "orelse": []
+      }
+    ]
+  },
+  "lean_blocks": []
+}

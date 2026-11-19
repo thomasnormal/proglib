@@ -284,6 +284,9 @@ partial def mExpr (j : Json) : Except String MExpr := do
   | _ => pure (.unsupported kind span)
 
 private def mArg (j : Json) : Except String MArg := do
+  let annotation ← match j.getObjVal? "annotation" with
+    | .ok .null | .error _ => pure none
+    | .ok value => some <$> mExpr value
   let default ← match j.getObjVal? "default" with
     | .ok value =>
         let span ← mSpan (← mField j "span")
@@ -294,7 +297,7 @@ private def mArg (j : Json) : Except String MArg := do
     | .ok (.bool value) => value
     | _ => false
   pure { name := ← (← mField j "arg").getStr?
-         annotation := none, default
+         annotation, default
          positionalOnly := flag "positional_only"
          keywordOnly := flag "keyword_only"
          variadic := flag "variadic"
@@ -426,6 +429,46 @@ partial def mStmt (j : Json) : Except String MStmt := do
   | "Continue" => pure (.cont span)
   | _ => pure (.unsupported kind span)
 
+private def mStmtKind : MStmt → String
+  | .pass _ => "Pass"
+  | .expr _ _ => "Expr"
+  | .assign _ _ _ => "Assign"
+  | .unpackAssign _ _ _ _ _ => "UnpackAssign"
+  | .annAssign _ _ _ _ _ => "AnnAssign"
+  | .augAssign _ _ _ _ => "AugAssign"
+  | .ret _ _ => "Return"
+  | .delete _ _ => "Delete"
+  | .deleteSubscript _ _ _ => "DeleteSubscript"
+  | .deleteAttribute _ _ _ => "DeleteAttribute"
+  | .ifStmt _ _ _ _ => "If"
+  | .whileStmt _ _ _ _ => "While"
+  | .forStmt _ _ _ _ isAsync _ => if isAsync then "AsyncFor" else "For"
+  | .functionDef _ _ _ _ _ _ => "FunctionDef"
+  | .classDef _ _ _ _ _ _ => "ClassDef"
+  | .import _ _ => "Import"
+  | .importFrom _ _ _ _ => "ImportFrom"
+  | .global _ _ => "Global"
+  | .nonlocal _ _ => "Nonlocal"
+  | .raise _ _ _ => "Raise"
+  | .assertStmt _ _ _ => "Assert"
+  | .yieldStmt _ _ => "Yield"
+  | .yieldFrom _ _ => "YieldFrom"
+  | .tryStmt _ _ _ _ _ => "Try"
+  | .withStmt _ _ isAsync _ => if isAsync then "AsyncWith" else "With"
+  | .brk _ => "Break"
+  | .cont _ => "Continue"
+  | .unsupported kind _ => kind
+
+private def mStmtSpan : MStmt → Span
+  | .pass span | .expr _ span | .assign _ _ span | .unpackAssign _ _ _ _ span
+  | .annAssign _ _ _ _ span | .augAssign _ _ _ span | .ret _ span | .delete _ span
+  | .deleteSubscript _ _ span | .deleteAttribute _ _ span | .ifStmt _ _ _ span
+  | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span | .functionDef _ _ _ _ _ span
+  | .classDef _ _ _ _ _ span | .import _ span | .importFrom _ _ _ span
+  | .global _ span | .nonlocal _ span | .raise _ _ span | .assertStmt _ _ span
+  | .yieldStmt _ span | .yieldFrom _ span | .tryStmt _ _ _ _ span
+  | .withStmt _ _ _ span | .brk span | .cont span | .unsupported _ span => span
+
 def parseMachineModule (j : Json) : Except String MModule := do
   let module ← mField j "module"
   let body ← (← (← mField module "body").getArr?).mapM mStmt
@@ -514,7 +557,8 @@ partial def mExprToRaw : MExpr → RRawExpr
   | .unsupported kind span => .node kind #[] span
 
 partial def mExprHasRaw : MExpr → Bool
-  | .constant _ _ | .name _ _ | .unsupported _ _ => false
+  | .constant _ _ | .name _ _ => false
+  | .unsupported _ _ => true
   | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
   | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true
@@ -534,6 +578,42 @@ partial def mExprHasRaw : MExpr → Bool
   | .dict keys values _ => keys.any (fun key => key.any mExprHasRaw) || values.any mExprHasRaw
   | .namedExpr _ value _ => mExprHasRaw value
 
+private def mStmtExpressions : MStmt → Array MExpr
+  | .pass _ | .global _ _ | .nonlocal _ _ | .brk _ | .cont _ | .unsupported _ _ => #[]
+  | .expr value _ => #[value]
+  | .assign targets value _ => targets ++ #[value]
+  | .unpackAssign _ _ _ value _ => #[value]
+  | .annAssign target annotation value _ _ =>
+      #[target, annotation] ++ value.toArray
+  | .augAssign target _ value _ => #[target, value]
+  | .ret value _ => value.toArray
+  | .delete targets _ => targets
+  | .deleteSubscript receiver index _ => #[receiver, index]
+  | .deleteAttribute receiver _ _ => #[receiver]
+  | .ifStmt test _ _ _ | .whileStmt test _ _ _ => #[test]
+  | .forStmt target iter _ _ _ _ => #[target, iter]
+  | .functionDef _ args decorators returns _ _ =>
+      let argExprs := args.positionalOnly ++ args.positional ++ args.keywordOnly
+      let argAnnotations := argExprs.filterMap (·.annotation)
+      let argDefaults := argExprs.filterMap (·.default)
+      let argPayload := fun arg => arg.annotation.toArray ++ arg.default.toArray
+      let vararg := args.vararg.toArray.flatMap argPayload
+      let kwarg := args.kwarg.toArray.flatMap argPayload
+      decorators ++ returns.toArray ++ args.defaults ++ args.kwDefaults.filterMap id ++
+        argAnnotations ++ argDefaults ++ vararg ++ kwarg
+  | .classDef _ bases keywords decorators _ _ =>
+      bases ++ keywords.map (·.2) ++ decorators
+  | .import _ _ | .importFrom _ _ _ _ => #[]
+  | .raise exception cause _ => exception.toArray ++ cause.toArray
+  | .assertStmt test msg _ => #[test] ++ msg.toArray
+  | .yieldStmt value _ => value.toArray
+  | .yieldFrom value _ => #[value]
+  | .tryStmt _ handlers _ _ _ => handlers.flatMap (·.1.toArray)
+  | .withStmt items _ _ _ => items.flatMap (fun item => #[item.1] ++ item.2.toArray)
+
+private def mStmtHasRawDirect (stmt : MStmt) : Bool :=
+  (mStmtExpressions stmt).any mExprHasRaw
+
 private def mParam (arg : MArg) (flags : Bool × Bool × Bool) : RParam :=
   { name := arg.name, positionalOnly := flags.1, keywordOnly := flags.2.1,
     variadic := flags.2.2 }
@@ -552,11 +632,20 @@ private def mParams (args : MArguments) : Array RParam :=
     | none => #[]
   positionalOnly ++ positional ++ vararg ++ keywordOnly ++ kwarg
 
+mutual
 partial def mStmtToStmt : MStmt → RStmt
-  | .pass span => .pass span
   | .expr value span =>
       if mExprHasRaw value then .exprRaw (mExprToRaw value) span
       else .expr (mExprToExpr value) span
+  | stmt =>
+      if mStmtHasRawDirect stmt then
+        .raw (mStmtKind stmt) ((mStmtExpressions stmt).map mExprToRaw) (mStmtSpan stmt)
+      else
+        mStmtToStmtClean stmt
+
+partial def mStmtToStmtClean : MStmt → RStmt
+  | .pass span => .pass span
+  | .expr value span => .expr (mExprToExpr value) span
   | .assign targets value span =>
       match targets.toList with
       | [target] => .assign (mExprToExpr target) (mExprToExpr value) span
@@ -625,6 +714,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .global names span => .global names span
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
+end
 
 def compileMachineModule (module : MModule) : RModule :=
   { body := module.body.map mStmtToStmt }
