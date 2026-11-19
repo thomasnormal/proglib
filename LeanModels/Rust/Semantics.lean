@@ -235,25 +235,35 @@ def projectFields (s : State) (cell : Cell) : List Projection → Option Cell
       | _ => none
   | .deref :: _ | .unsupported _ :: _ => none
 
+def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
+  if pointer.isLocal then
+    ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)).bind slotCell |>.bind
+      (projectFields s · pointer.projection)
+  else
+    match pointer.targetFrame with
+    | some frameId => (sharedSlot s frameId pointer.provenance).bind slotCell |>.bind
+        (projectFields s · pointer.projection)
+    | none => match pointer.pointeeType with
+        | some ty => allocationCell s pointer.provenance (some ty)
+        | none => allocationCell s pointer.provenance none
+
+def derefTwo (s : State) (pointer : Pointer) : Option Cell := do
+  let first ← pointerTarget s pointer
+  match first with
+  | .pointer nested =>
+      let second ← pointerTarget s nested
+      match second with
+      | .pointer _ => none
+      | value => some value
+  | value => some value
+
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | [] => some cell
   | .deref :: rest =>
       match cell with
       | .aggregate [inner] => projectCell s inner (.deref :: rest)
       | .pointer pointer =>
-          let target :=
-            if pointer.isLocal then
-              ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)).bind slotCell |>.bind
-                (projectFields s · pointer.projection)
-            else
-              match pointer.targetFrame with
-              | some frameId => match sharedSlot s frameId pointer.provenance with
-                | some slot => slotCell slot |>.bind (projectFields s · pointer.projection)
-                | none => none
-              | none => match pointer.pointeeType with
-                | some ty => allocationCell s pointer.provenance (some ty)
-                | none => allocationCell s pointer.provenance none
-          target.bind (projectCell s · rest)
+          (derefTwo s pointer).bind (projectCell s · rest)
       | _ => none
   | .field index _ :: rest =>
       match cell with
