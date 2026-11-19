@@ -142,6 +142,51 @@ def rv32iProgramStep (state : RvMemoryState) : Rv32iInstruction → RvMemoryStat
   | .trap _ =>
       { arch := illegalNext state.arch, memory := state.memory }
 
+/-! Every mixed RV32I transition preserves the architectural x0 invariant.
+    This is independent of the values held in the other registers. -/
+
+theorem rv32iProgramStep_preserves_WF (state : RvMemoryState)
+    (instruction : Rv32iInstruction) (hWF : state.arch.WF) :
+    (rv32iProgramStep state instruction).arch.WF := by
+  cases instruction with
+  | alu instruction =>
+      exact aluNext_preserves_WF state.arch instruction.op instruction.rd
+        instruction.src1 instruction.src2 hWF
+  | branch instruction =>
+      unfold rv32iProgramStep branchNext
+      exact hWF
+  | jump instruction =>
+      change (JumpKind.next state.arch instruction.kind).WF
+      cases instruction.kind with
+      | jal rd offset =>
+          exact ArchState.writeReg_preserves_WF state.arch rd
+            (state.arch.pc + 4) hWF
+      | jalr rd rs1 offset =>
+          exact ArchState.writeReg_preserves_WF state.arch rd
+            (state.arch.pc + 4) hWF
+  | memory instruction =>
+      change (memNext state.arch state.memory instruction.kind instruction.r
+        instruction.rs1 instruction.imm).WF
+      cases instruction.kind with
+      | load signed width =>
+          exact ArchState.writeReg_preserves_WF state.arch instruction.r _ hWF
+      | store width =>
+          exact hWF
+  | fence instruction =>
+      unfold rv32iProgramStep fenceNext
+      exact hWF
+  | system instruction =>
+      change (systemNext state.arch instruction.kind).WF
+      cases instruction.kind <;>
+        simpa [systemNext, trapEnter, mret, ArchState.WF] using hWF
+  | csr instruction =>
+      change (csrNext state.arch instruction.row instruction.kind).WF
+      exact ArchState.writeReg_preserves_WF state.arch instruction.kind.rd _ hWF
+  | trap instruction =>
+      simpa [rv32iProgramStep, illegalNext, trapEnter, ArchState.WF] using hWF
+
+#print axioms rv32iProgramStep_preserves_WF
+
 /-- The retirement emitted by one mixed instruction. -/
 def rv32iProgramRetirement (state : RvMemoryState)
     (instruction : Rv32iInstruction) : Retirement :=
@@ -182,6 +227,17 @@ def rv32iProgramState : RvMemoryState → List Rv32iInstruction → RvMemoryStat
   | state, [] => state
   | state, instruction :: program =>
       rv32iProgramState (rv32iProgramStep state instruction) program
+
+theorem rv32iProgramState_preserves_WF (state : RvMemoryState)
+    (program : List Rv32iInstruction) (hWF : state.arch.WF) :
+    (rv32iProgramState state program).arch.WF := by
+  induction program generalizing state with
+  | nil => exact hWF
+  | cons instruction program ih =>
+      apply ih
+      exact rv32iProgramStep_preserves_WF state instruction hWF
+
+#print axioms rv32iProgramState_preserves_WF
 
 /-- The exact retirement stream for a mixed program. -/
 def rv32iProgramRetirements : RvMemoryState → List Rv32iInstruction →
