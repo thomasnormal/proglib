@@ -36,7 +36,7 @@ PATTERNS = (
 NON_TYPE_RECEIVERS = re.compile(
     r"\b(?:nm|name|kind|text|callee|calleeName|allowed|args|es|rest|"
     r"bytes|source\.bytes|target\.bytes|fo\.bytes|string\.bytes|"
-    r"c\.bytes|chars|pattern|input|value|raw|spelling)\s*\."
+    r"c\.bytes|chars|pattern|input|value|raw|spelling|List)\s*\."
 )
 
 
@@ -44,6 +44,10 @@ def findings(paths: tuple[Path, ...] = PATHS) -> list[tuple[str, int, str]]:
     out: list[tuple[str, int, str]] = []
     for path in paths:
         for number, line in enumerate(path.read_text().splitlines(), 1):
+            # Kernel guards exercise string/list helpers as data. They are
+            # instrumentation, not semantic operations on a C type.
+            if line.lstrip().startswith("#guard"):
+                continue
             if (any(pattern.search(line) for pattern in PATTERNS) and
                     not NON_TYPE_RECEIVERS.search(line)):
                 out.append((str(path.relative_to(ROOT)), number, line.strip()))
