@@ -20,6 +20,7 @@ import tempfile
 ENVELOPE_HASHES = {
     "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5",
     "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7",
+    "ddba565006335191c35955bd27c4c36ca134e57d8084864269b4a2f4fb77b96f",
 }
 STAGED_CHECK = Path(__file__).with_name("e_check.py")
 TIMEOUT_SECONDS = 180
