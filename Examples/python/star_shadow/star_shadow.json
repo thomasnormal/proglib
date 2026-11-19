@@ -72,7 +72,8 @@
                   "end_lineno": 25,
                   "end_col_offset": 8
                 },
-                "id": "list"
+                "id": "list",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -106,7 +107,8 @@
                   "end_lineno": 26,
                   "end_col_offset": 5
                 },
-                "id": "a"
+                "id": "a",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -144,7 +146,8 @@
                     "repr": "2"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -187,8 +190,10 @@
                       "end_lineno": 27,
                       "end_col_offset": 14
                     },
-                    "id": "a"
-                  }
+                    "id": "a",
+                    "machine_context": "Load"
+                  },
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -198,9 +203,11 @@
                     "end_lineno": 27,
                     "end_col_offset": 17
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -266,7 +273,8 @@
                   "end_lineno": 33,
                   "end_col_offset": 5
                 },
-                "id": "a"
+                "id": "a",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -304,7 +312,8 @@
                     "repr": "2"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -347,8 +356,10 @@
                       "end_lineno": 34,
                       "end_col_offset": 14
                     },
-                    "id": "a"
-                  }
+                    "id": "a",
+                    "machine_context": "Load"
+                  },
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -358,9 +369,11 @@
                     "end_lineno": 34,
                     "end_col_offset": 17
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -460,9 +473,11 @@
                     "end_lineno": 40,
                     "end_col_offset": 19
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],

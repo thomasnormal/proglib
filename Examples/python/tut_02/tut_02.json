@@ -57,7 +57,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 12
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "op": "Mult",
               "right": {
@@ -68,7 +69,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 16
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               }
             }
           }

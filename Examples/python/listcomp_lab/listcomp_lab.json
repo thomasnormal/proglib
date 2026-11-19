@@ -87,7 +87,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 13
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Load"
                 },
                 "op": "Mult",
                 "right": {
@@ -98,7 +99,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 17
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Load"
                 }
               },
               "target": {
@@ -109,7 +111,8 @@
                   "end_lineno": 5,
                   "end_col_offset": 23
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "Call",
@@ -127,7 +130,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 32
                   },
-                  "id": "range"
+                  "id": "range",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],
@@ -140,7 +144,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 34
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   }
                 ],
                 "keywords": [],
@@ -228,7 +233,8 @@
                     "end_lineno": 9,
                     "end_col_offset": 13
                   },
-                  "id": "x"
+                  "id": "x",
+                  "machine_context": "Load"
                 },
                 "op": "Mult",
                 "right": {
@@ -253,7 +259,8 @@
                   "end_lineno": 9,
                   "end_col_offset": 23
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "Name",
@@ -263,7 +270,8 @@
                   "end_lineno": 9,
                   "end_col_offset": 29
                 },
-                "id": "xs"
+                "id": "xs",
+                "machine_context": "Load"
               },
               "ifs": [
                 {
@@ -282,7 +290,8 @@
                       "end_lineno": 9,
                       "end_col_offset": 34
                     },
-                    "id": "x"
+                    "id": "x",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Gt"
@@ -435,7 +444,8 @@
                   "end_lineno": 17,
                   "end_col_offset": 13
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "target": {
                 "kind": "Name",
@@ -445,7 +455,8 @@
                   "end_lineno": 17,
                   "end_col_offset": 19
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "Tuple",
@@ -482,7 +493,8 @@
                       "repr": "2"
                     }
                   }
-                ]
+                ],
+                "machine_context": "Load"
               },
               "ifs": [],
               "walrus": []
@@ -531,7 +543,8 @@
                   "end_lineno": 21,
                   "end_col_offset": 8
                 },
-                "id": "list"
+                "id": "list",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -572,7 +585,8 @@
                   "end_lineno": 22,
                   "end_col_offset": 13
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "target": {
                 "kind": "Name",
@@ -582,7 +596,8 @@
                   "end_lineno": 22,
                   "end_col_offset": 19
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "Tuple",
@@ -619,7 +634,8 @@
                       "repr": "2"
                     }
                   }
-                ]
+                ],
+                "machine_context": "Load"
               },
               "ifs": [],
               "walrus": []
@@ -751,7 +767,8 @@
                   "end_lineno": 30,
                   "end_col_offset": 13
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "target": {
                 "kind": "Name",
@@ -761,7 +778,8 @@
                   "end_lineno": 30,
                   "end_col_offset": 19
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "GeneratorExp",
@@ -779,7 +797,8 @@
                     "end_lineno": 30,
                     "end_col_offset": 25
                   },
-                  "id": "y"
+                  "id": "y",
+                  "machine_context": "Load"
                 },
                 "target": {
                   "kind": "Name",
@@ -789,7 +808,8 @@
                     "end_lineno": 30,
                     "end_col_offset": 31
                   },
-                  "id": "y"
+                  "id": "y",
+                  "machine_context": "Store"
                 },
                 "iter": {
                   "kind": "Call",
@@ -807,7 +827,8 @@
                       "end_lineno": 30,
                       "end_col_offset": 40
                     },
-                    "id": "range"
+                    "id": "range",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -820,7 +841,8 @@
                         "end_lineno": 30,
                         "end_col_offset": 42
                       },
-                      "id": "n"
+                      "id": "n",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -886,7 +908,8 @@
                   "end_lineno": 34,
                   "end_col_offset": 5
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -920,7 +943,8 @@
                   "end_lineno": 35,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -939,7 +963,8 @@
                   "end_lineno": 35,
                   "end_col_offset": 15
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "target": {
                 "kind": "Name",
@@ -949,7 +974,8 @@
                   "end_lineno": 35,
                   "end_col_offset": 21
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "Tuple",
@@ -986,7 +1012,8 @@
                       "repr": "2"
                     }
                   }
-                ]
+                ],
+                "machine_context": "Load"
               },
               "ifs": [],
               "walrus": []
@@ -1017,7 +1044,8 @@
                     "end_lineno": 36,
                     "end_col_offset": 12
                   },
-                  "id": "x"
+                  "id": "x",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -1027,9 +1055,11 @@
                     "end_lineno": 36,
                     "end_col_offset": 20
                   },
-                  "id": "values"
+                  "id": "values",
+                  "machine_context": "Load"
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],

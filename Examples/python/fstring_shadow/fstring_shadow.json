@@ -72,7 +72,8 @@
                   "end_lineno": 10,
                   "end_col_offset": 7
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -122,7 +123,8 @@
                       "end_lineno": 11,
                       "end_col_offset": 15
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   },
                   "conversion": -1,
                   "format_spec": null
@@ -209,7 +211,8 @@
                       "end_lineno": 15,
                       "end_col_offset": 15
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   },
                   "conversion": -1,
                   "format_spec": null
@@ -309,7 +312,8 @@
                     "end_lineno": 19,
                     "end_col_offset": 21
                   },
-                  "id": "str"
+                  "id": "str",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],
@@ -322,7 +326,8 @@
                       "end_lineno": 19,
                       "end_col_offset": 23
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   }
                 ],
                 "keywords": [],

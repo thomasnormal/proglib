@@ -59,7 +59,8 @@
                       "end_lineno": 2,
                       "end_col_offset": 9
                     },
-                    "id": "total"
+                    "id": "total",
+                    "machine_context": "Store"
                   },
                   {
                     "kind": "Name",
@@ -69,9 +70,11 @@
                       "end_lineno": 2,
                       "end_col_offset": 12
                     },
-                    "id": "i"
+                    "id": "i",
+                    "machine_context": "Store"
                   }
-                ]
+                ],
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -109,7 +112,8 @@
                     "repr": "0"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -136,7 +140,8 @@
                   "end_lineno": 3,
                   "end_col_offset": 11
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Load"
               },
               "ops": [
                 "LtE"
@@ -150,7 +155,8 @@
                     "end_lineno": 3,
                     "end_col_offset": 16
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
               ]
             },
@@ -171,7 +177,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 13
                   },
-                  "id": "total"
+                  "id": "total",
+                  "machine_context": "Store"
                 },
                 "op": "Add",
                 "value": {
@@ -182,7 +189,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 18
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Load"
                 }
               },
               {
@@ -201,7 +209,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 9
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Store"
                 },
                 "op": "Add",
                 "value": {
@@ -237,7 +246,8 @@
                 "end_lineno": 6,
                 "end_col_offset": 16
               },
-              "id": "total"
+              "id": "total",
+              "machine_context": "Load"
             }
           }
         ],

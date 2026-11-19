@@ -27,7 +27,8 @@
               "end_lineno": 1,
               "end_col_offset": 6
             },
-            "id": "values"
+            "id": "values",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -52,7 +53,8 @@
                 "repr": "0"
               }
             }
-          ]
+          ],
+          "machine_context": "Load"
         }
       },
       {
@@ -114,9 +116,11 @@
                     "end_lineno": 6,
                     "end_col_offset": 10
                   },
-                  "id": "values"
+                  "id": "values",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -151,7 +155,8 @@
                 "end_lineno": 5,
                 "end_col_offset": 20
               },
-              "id": "BaseException"
+              "id": "BaseException",
+              "machine_context": "Load"
             },
             "name": null,
             "body": [
@@ -187,9 +192,11 @@
                         "end_lineno": 6,
                         "end_col_offset": 10
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -286,9 +293,11 @@
                         "end_lineno": 12,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -323,7 +332,8 @@
                     "end_lineno": 11,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -359,9 +369,11 @@
                             "end_lineno": 12,
                             "end_col_offset": 14
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -427,9 +439,11 @@
                     "end_lineno": 14,
                     "end_col_offset": 10
                   },
-                  "id": "values"
+                  "id": "values",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -464,7 +478,8 @@
                 "end_lineno": 13,
                 "end_col_offset": 20
               },
-              "id": "BaseException"
+              "id": "BaseException",
+              "machine_context": "Load"
             },
             "name": null,
             "body": [
@@ -500,9 +515,11 @@
                         "end_lineno": 14,
                         "end_col_offset": 10
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -599,9 +616,11 @@
                         "end_lineno": 20,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -636,7 +655,8 @@
                     "end_lineno": 19,
                     "end_col_offset": 22
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -672,9 +692,11 @@
                             "end_lineno": 20,
                             "end_col_offset": 14
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -740,9 +762,11 @@
                     "end_lineno": 22,
                     "end_col_offset": 10
                   },
-                  "id": "values"
+                  "id": "values",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -777,7 +801,8 @@
                 "end_lineno": 21,
                 "end_col_offset": 20
               },
-              "id": "BaseException"
+              "id": "BaseException",
+              "machine_context": "Load"
             },
             "name": null,
             "body": [
@@ -813,9 +838,11 @@
                         "end_lineno": 22,
                         "end_col_offset": 10
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -861,7 +888,8 @@
               "end_lineno": 24,
               "end_col_offset": 7
             },
-            "id": "mapping"
+            "id": "mapping",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -938,7 +966,8 @@
                     "end_lineno": 26,
                     "end_col_offset": 11
                   },
-                  "id": "key"
+                  "id": "key",
+                  "machine_context": "Store"
                 },
                 {
                   "kind": "Name",
@@ -948,9 +977,11 @@
                     "end_lineno": 26,
                     "end_col_offset": 18
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Store"
                 }
-              ]
+              ],
+              "machine_context": "Store"
             },
             "iter": {
               "kind": "Call",
@@ -976,9 +1007,11 @@
                     "end_lineno": 26,
                     "end_col_offset": 29
                   },
-                  "id": "mapping"
+                  "id": "mapping",
+                  "machine_context": "Load"
                 },
-                "attr": "items"
+                "attr": "items",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1012,7 +1045,8 @@
                         "end_lineno": 27,
                         "end_col_offset": 15
                       },
-                      "id": "mapping"
+                      "id": "mapping",
+                      "machine_context": "Load"
                     },
                     "index": {
                       "kind": "Constant",
@@ -1026,7 +1060,8 @@
                         "type": "int",
                         "repr": "2"
                       }
-                    }
+                    },
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -1083,9 +1118,11 @@
                     "end_lineno": 29,
                     "end_col_offset": 10
                   },
-                  "id": "values"
+                  "id": "values",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1120,7 +1157,8 @@
                 "end_lineno": 28,
                 "end_col_offset": 20
               },
-              "id": "BaseException"
+              "id": "BaseException",
+              "machine_context": "Load"
             },
             "name": null,
             "body": [
@@ -1156,9 +1194,11 @@
                         "end_lineno": 29,
                         "end_col_offset": 10
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1211,7 +1251,8 @@
               "end_lineno": 31,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -1224,7 +1265,8 @@
                 "end_lineno": 31,
                 "end_col_offset": 12
               },
-              "id": "values"
+              "id": "values",
+              "machine_context": "Load"
             }
           ],
           "keywords": [],

@@ -50,7 +50,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 5
                 },
-                "id": "r"
+                "id": "r",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -84,7 +85,8 @@
                   "end_lineno": 3,
                   "end_col_offset": 5
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -125,7 +127,8 @@
                   "end_lineno": 4,
                   "end_col_offset": 11
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Load"
               },
               "ops": [
                 "LtE"
@@ -139,7 +142,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 16
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
               ]
             },
@@ -160,7 +164,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 9
                   },
-                  "id": "r"
+                  "id": "r",
+                  "machine_context": "Store"
                 },
                 "op": "Mult",
                 "value": {
@@ -171,7 +176,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 14
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Load"
                 }
               },
               {
@@ -190,7 +196,8 @@
                     "end_lineno": 6,
                     "end_col_offset": 9
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Store"
                 },
                 "op": "Add",
                 "value": {
@@ -226,7 +233,8 @@
                 "end_lineno": 7,
                 "end_col_offset": 12
               },
-              "id": "r"
+              "id": "r",
+              "machine_context": "Load"
             }
           }
         ],

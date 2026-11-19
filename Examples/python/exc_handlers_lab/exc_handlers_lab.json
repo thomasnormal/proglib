@@ -41,7 +41,8 @@
               "end_lineno": 1,
               "end_col_offset": 22
             },
-            "id": "Exception"
+            "id": "Exception",
+            "machine_context": "Load"
           }
         ],
         "machine_keywords": [],
@@ -152,7 +153,8 @@
                       "end_lineno": 11,
                       "end_col_offset": 11
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -218,7 +220,8 @@
                     "end_lineno": 14,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -233,7 +236,8 @@
                     "end_lineno": 13,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -253,7 +257,8 @@
                         "end_lineno": 14,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -331,7 +336,8 @@
                       "end_lineno": 19,
                       "end_col_offset": 20
                     },
-                    "id": "float"
+                    "id": "float",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -393,7 +399,8 @@
                     "end_lineno": 20,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -503,7 +510,8 @@
                       "end_lineno": 26,
                       "end_col_offset": 19
                     },
-                    "id": "left"
+                    "id": "left",
+                    "machine_context": "Load"
                   },
                   "op": "FloorDiv",
                   "right": {
@@ -514,7 +522,8 @@
                       "end_lineno": 26,
                       "end_col_offset": 28
                     },
-                    "id": "right"
+                    "id": "right",
+                    "machine_context": "Load"
                   }
                 }
               }
@@ -557,7 +566,8 @@
                     "end_lineno": 27,
                     "end_col_offset": 28
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -737,7 +747,8 @@
                     "end_lineno": 34,
                     "end_col_offset": 28
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -838,7 +849,8 @@
                       "end_lineno": 40,
                       "end_col_offset": 18
                     },
-                    "id": "int"
+                    "id": "int",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -851,7 +863,8 @@
                         "end_lineno": 40,
                         "end_col_offset": 23
                       },
-                      "id": "text"
+                      "id": "text",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -907,7 +920,8 @@
                     "end_lineno": 41,
                     "end_col_offset": 21
                   },
-                  "id": "ValueError"
+                  "id": "ValueError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1055,7 +1069,8 @@
                           "repr": "8"
                         }
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Name",
@@ -1065,8 +1080,10 @@
                       "end_lineno": 47,
                       "end_col_offset": 27
                     },
-                    "id": "index"
-                  }
+                    "id": "index",
+                    "machine_context": "Load"
+                  },
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1118,7 +1135,8 @@
                     "end_lineno": 48,
                     "end_col_offset": 21
                   },
-                  "id": "IndexError"
+                  "id": "IndexError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1223,7 +1241,8 @@
                   "end_lineno": 53,
                   "end_col_offset": 11
                 },
-                "id": "mapping"
+                "id": "mapping",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1299,7 +1318,8 @@
                       "end_lineno": 55,
                       "end_col_offset": 22
                     },
-                    "id": "mapping"
+                    "id": "mapping",
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Name",
@@ -1309,8 +1329,10 @@
                       "end_lineno": 55,
                       "end_col_offset": 26
                     },
-                    "id": "key"
-                  }
+                    "id": "key",
+                    "machine_context": "Load"
+                  },
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1362,7 +1384,8 @@
                     "end_lineno": 56,
                     "end_col_offset": 19
                   },
-                  "id": "KeyError"
+                  "id": "KeyError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1465,7 +1488,8 @@
                     "end_lineno": 62,
                     "end_col_offset": 36
                   },
-                  "id": "missing_handler_value"
+                  "id": "missing_handler_value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1507,7 +1531,8 @@
                     "end_lineno": 63,
                     "end_col_offset": 20
                   },
-                  "id": "NameError"
+                  "id": "NameError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1582,7 +1607,8 @@
                   "end_lineno": 68,
                   "end_col_offset": 9
                 },
-                "id": "value"
+                "id": "value",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1601,7 +1627,8 @@
                   "end_lineno": 68,
                   "end_col_offset": 15
                 },
-                "id": "Box"
+                "id": "Box",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1643,9 +1670,11 @@
                       "end_lineno": 70,
                       "end_col_offset": 20
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
-                  "attr": "missing"
+                  "attr": "missing",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1687,7 +1716,8 @@
                     "end_lineno": 71,
                     "end_col_offset": 25
                   },
-                  "id": "AttributeError"
+                  "id": "AttributeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1780,7 +1810,8 @@
                     "end_lineno": 77,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               },
               {
@@ -1854,7 +1885,8 @@
                     "end_lineno": 79,
                     "end_col_offset": 25
                   },
-                  "id": "AssertionError"
+                  "id": "AssertionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2023,7 +2055,8 @@
                   "end_lineno": 89,
                   "end_col_offset": 10
                 },
-                "id": "cursor"
+                "id": "cursor",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -2042,7 +2075,8 @@
                   "end_lineno": 89,
                   "end_col_offset": 28
                 },
-                "id": "empty_generator"
+                "id": "empty_generator",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2084,7 +2118,8 @@
                       "end_lineno": 91,
                       "end_col_offset": 19
                     },
-                    "id": "next"
+                    "id": "next",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2097,7 +2132,8 @@
                         "end_lineno": 91,
                         "end_col_offset": 26
                       },
-                      "id": "cursor"
+                      "id": "cursor",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -2143,7 +2179,8 @@
                     "end_lineno": 92,
                     "end_col_offset": 24
                   },
-                  "id": "StopIteration"
+                  "id": "StopIteration",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2218,7 +2255,8 @@
                   "end_lineno": 97,
                   "end_col_offset": 8
                 },
-                "id": "left"
+                "id": "left",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -2229,7 +2267,8 @@
                 "end_lineno": 97,
                 "end_col_offset": 13
               },
-              "elts": []
+              "elts": [],
+              "machine_context": "Load"
             }
           },
           {
@@ -2249,7 +2288,8 @@
                   "end_lineno": 98,
                   "end_col_offset": 9
                 },
-                "id": "right"
+                "id": "right",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -2260,7 +2300,8 @@
                 "end_lineno": 98,
                 "end_col_offset": 14
               },
-              "elts": []
+              "elts": [],
+              "machine_context": "Load"
             }
           },
           {
@@ -2295,9 +2336,11 @@
                     "end_lineno": 99,
                     "end_col_offset": 8
                   },
-                  "id": "left"
+                  "id": "left",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2310,7 +2353,8 @@
                     "end_lineno": 99,
                     "end_col_offset": 20
                   },
-                  "id": "left"
+                  "id": "left",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -2349,9 +2393,11 @@
                     "end_lineno": 100,
                     "end_col_offset": 9
                   },
-                  "id": "right"
+                  "id": "right",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2364,7 +2410,8 @@
                     "end_lineno": 100,
                     "end_col_offset": 22
                   },
-                  "id": "right"
+                  "id": "right",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -2404,7 +2451,8 @@
                       "end_lineno": 102,
                       "end_col_offset": 19
                     },
-                    "id": "left"
+                    "id": "left",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Eq"
@@ -2418,7 +2466,8 @@
                         "end_lineno": 102,
                         "end_col_offset": 28
                       },
-                      "id": "right"
+                      "id": "right",
+                      "machine_context": "Load"
                     }
                   ]
                 }
@@ -2462,7 +2511,8 @@
                     "end_lineno": 103,
                     "end_col_offset": 23
                   },
-                  "id": "RuntimeError"
+                  "id": "RuntimeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2537,7 +2587,8 @@
                   "end_lineno": 108,
                   "end_col_offset": 8
                 },
-                "id": "left"
+                "id": "left",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -2548,7 +2599,8 @@
                 "end_lineno": 108,
                 "end_col_offset": 13
               },
-              "elts": []
+              "elts": [],
+              "machine_context": "Load"
             }
           },
           {
@@ -2568,7 +2620,8 @@
                   "end_lineno": 109,
                   "end_col_offset": 9
                 },
-                "id": "right"
+                "id": "right",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -2579,7 +2632,8 @@
                 "end_lineno": 109,
                 "end_col_offset": 14
               },
-              "elts": []
+              "elts": [],
+              "machine_context": "Load"
             }
           },
           {
@@ -2614,9 +2668,11 @@
                     "end_lineno": 110,
                     "end_col_offset": 8
                   },
-                  "id": "left"
+                  "id": "left",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2629,7 +2685,8 @@
                     "end_lineno": 110,
                     "end_col_offset": 20
                   },
-                  "id": "left"
+                  "id": "left",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -2668,9 +2725,11 @@
                     "end_lineno": 111,
                     "end_col_offset": 9
                   },
-                  "id": "right"
+                  "id": "right",
+                  "machine_context": "Load"
                 },
-                "attr": "append"
+                "attr": "append",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2683,7 +2742,8 @@
                     "end_lineno": 111,
                     "end_col_offset": 22
                   },
-                  "id": "right"
+                  "id": "right",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -2723,7 +2783,8 @@
                       "end_lineno": 113,
                       "end_col_offset": 19
                     },
-                    "id": "left"
+                    "id": "left",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Eq"
@@ -2737,7 +2798,8 @@
                         "end_lineno": 113,
                         "end_col_offset": 28
                       },
-                      "id": "right"
+                      "id": "right",
+                      "machine_context": "Load"
                     }
                   ]
                 }
@@ -2781,7 +2843,8 @@
                     "end_lineno": 114,
                     "end_col_offset": 25
                   },
-                  "id": "RecursionError"
+                  "id": "RecursionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2864,7 +2927,8 @@
                     "end_lineno": 120,
                     "end_col_offset": 20
                   },
-                  "id": "Signal"
+                  "id": "Signal",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2906,7 +2970,8 @@
                     "end_lineno": 121,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3057,7 +3122,8 @@
                     "end_lineno": 128,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3218,7 +3284,8 @@
                     "end_lineno": 135,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3311,7 +3378,8 @@
                     "end_lineno": 141,
                     "end_col_offset": 20
                   },
-                  "id": "Signal"
+                  "id": "Signal",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3363,7 +3431,8 @@
                     "end_lineno": 142,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3448,7 +3517,8 @@
                   "end_lineno": 147,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -3459,7 +3529,8 @@
                 "end_lineno": 147,
                 "end_col_offset": 15
               },
-              "elts": []
+              "elts": [],
+              "machine_context": "Load"
             }
           },
           {
@@ -3512,9 +3583,11 @@
                             "end_lineno": 150,
                             "end_col_offset": 18
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3619,9 +3692,11 @@
                             "end_lineno": 153,
                             "end_col_offset": 18
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3656,7 +3731,8 @@
                         "end_lineno": 152,
                         "end_col_offset": 24
                       },
-                      "id": "TypeError"
+                      "id": "TypeError",
+                      "machine_context": "Load"
                     },
                     "name": null,
                     "body": [
@@ -3692,9 +3768,11 @@
                                 "end_lineno": 153,
                                 "end_col_offset": 18
                               },
-                              "id": "values"
+                              "id": "values",
+                              "machine_context": "Load"
                             },
-                            "attr": "append"
+                            "attr": "append",
+                            "machine_context": "Load"
                           },
                           "starargs": [],
                           "kwargs": [],
@@ -3760,9 +3838,11 @@
                         "end_lineno": 155,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3797,7 +3877,8 @@
                     "end_lineno": 154,
                     "end_col_offset": 28
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3833,9 +3914,11 @@
                             "end_lineno": 155,
                             "end_col_offset": 14
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3880,7 +3963,8 @@
                 "end_lineno": 156,
                 "end_col_offset": 17
               },
-              "id": "values"
+              "id": "values",
+              "machine_context": "Load"
             }
           }
         ],
@@ -3926,7 +4010,8 @@
                   "end_lineno": 160,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -3951,7 +4036,8 @@
                     "repr": "7"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -3987,7 +4073,8 @@
                       "end_lineno": 162,
                       "end_col_offset": 14
                     },
-                    "id": "divmod"
+                    "id": "divmod",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -4016,9 +4103,11 @@
                             "end_lineno": 162,
                             "end_col_offset": 21
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -4064,9 +4153,11 @@
                             "end_lineno": 162,
                             "end_col_offset": 39
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -4112,9 +4203,11 @@
                             "end_lineno": 162,
                             "end_col_offset": 57
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -4178,9 +4271,11 @@
                         "end_lineno": 164,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -4215,7 +4310,8 @@
                     "end_lineno": 163,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4251,9 +4347,11 @@
                             "end_lineno": 164,
                             "end_col_offset": 14
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -4298,7 +4396,8 @@
                 "end_lineno": 165,
                 "end_col_offset": 17
               },
-              "id": "values"
+              "id": "values",
+              "machine_context": "Load"
             }
           }
         ],
@@ -4344,7 +4443,8 @@
                   "end_lineno": 169,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -4369,7 +4469,8 @@
                     "repr": "0"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -4413,9 +4514,11 @@
                         "end_lineno": 171,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -4463,7 +4566,8 @@
                         "end_lineno": 172,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
                     "index": {
                       "kind": "Constant",
@@ -4477,7 +4581,8 @@
                         "type": "int",
                         "repr": "8"
                       }
-                    }
+                    },
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -4531,9 +4636,11 @@
                         "end_lineno": 174,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -4568,7 +4675,8 @@
                     "end_lineno": 173,
                     "end_col_offset": 21
                   },
-                  "id": "IndexError"
+                  "id": "IndexError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4604,9 +4712,11 @@
                             "end_lineno": 174,
                             "end_col_offset": 14
                           },
-                          "id": "values"
+                          "id": "values",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -4651,7 +4761,8 @@
                 "end_lineno": 175,
                 "end_col_offset": 17
               },
-              "id": "values"
+              "id": "values",
+              "machine_context": "Load"
             }
           }
         ],
@@ -4713,7 +4824,8 @@
                       "end_lineno": 180,
                       "end_col_offset": 18
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -4798,7 +4910,8 @@
                     "end_lineno": 181,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4921,7 +5034,8 @@
                           "end_lineno": 188,
                           "end_col_offset": 22
                         },
-                        "id": "len"
+                        "id": "len",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -5006,7 +5120,8 @@
                         "end_lineno": 189,
                         "end_col_offset": 24
                       },
-                      "id": "TypeError"
+                      "id": "TypeError",
+                      "machine_context": "Load"
                     },
                     "name": null,
                     "body": [
@@ -5100,7 +5215,8 @@
                     "end_lineno": 191,
                     "end_col_offset": 28
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5233,7 +5349,8 @@
                     "end_lineno": 199,
                     "end_col_offset": 20
                   },
-                  "id": "error"
+                  "id": "error",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5248,7 +5365,8 @@
                     "end_lineno": 198,
                     "end_col_offset": 28
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 },
                 "name": "error",
                 "body": [
@@ -5268,7 +5386,8 @@
                         "end_lineno": 199,
                         "end_col_offset": 20
                       },
-                      "id": "error"
+                      "id": "error",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -5406,7 +5525,8 @@
                         "end_lineno": 205,
                         "end_col_offset": 21
                       },
-                      "id": "TypeError"
+                      "id": "TypeError",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "Name",
@@ -5416,9 +5536,11 @@
                         "end_lineno": 205,
                         "end_col_offset": 40
                       },
-                      "id": "ZeroDivisionError"
+                      "id": "ZeroDivisionError",
+                      "machine_context": "Load"
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5519,7 +5641,8 @@
                       "end_lineno": 211,
                       "end_col_offset": 18
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -5581,7 +5704,8 @@
                     "end_lineno": 212,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5666,7 +5790,8 @@
                   "end_lineno": 217,
                   "end_col_offset": 13
                 },
-                "id": "TypeError"
+                "id": "TypeError",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -5753,7 +5878,8 @@
                     "end_lineno": 220,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5837,7 +5963,8 @@
                       "end_lineno": 226,
                       "end_col_offset": 17
                     },
-                    "id": "TypeError"
+                    "id": "TypeError",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -5878,7 +6005,8 @@
                       "end_lineno": 227,
                       "end_col_offset": 18
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -5940,7 +6068,8 @@
                     "end_lineno": 228,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6024,7 +6153,8 @@
                       "end_lineno": 234,
                       "end_col_offset": 17
                     },
-                    "id": "TypeError"
+                    "id": "TypeError",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -6125,7 +6255,8 @@
                     "end_lineno": 236,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6216,7 +6347,8 @@
                       "end_lineno": 242,
                       "end_col_offset": 18
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -6278,7 +6410,8 @@
                     "end_lineno": 243,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6327,7 +6460,8 @@
                   "end_lineno": 245,
                   "end_col_offset": 13
                 },
-                "id": "TypeError"
+                "id": "TypeError",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -6453,7 +6587,8 @@
                       "end_lineno": 252,
                       "end_col_offset": 18
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -6515,7 +6650,8 @@
                     "end_lineno": 253,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6666,7 +6802,8 @@
                     "end_lineno": 260,
                     "end_col_offset": 24
                   },
-                  "id": "BaseException"
+                  "id": "BaseException",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6817,7 +6954,8 @@
                     "end_lineno": 267,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6908,7 +7046,8 @@
                       "end_lineno": 273,
                       "end_col_offset": 17
                     },
-                    "elts": []
+                    "elts": [],
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Constant",
@@ -6922,7 +7061,8 @@
                       "type": "int",
                       "repr": "0"
                     }
-                  }
+                  },
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6964,7 +7104,8 @@
                     "end_lineno": 274,
                     "end_col_offset": 22
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7048,7 +7189,8 @@
                       "end_lineno": 280,
                       "end_col_offset": 13
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -7104,7 +7246,8 @@
                     "end_lineno": 281,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7150,7 +7293,8 @@
                     "end_lineno": 284,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7199,7 +7343,8 @@
                   "end_lineno": 288,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -7210,7 +7355,8 @@
                 "end_lineno": 288,
                 "end_col_offset": 15
               },
-              "elts": []
+              "elts": [],
+              "machine_context": "Load"
             }
           },
           {
@@ -7238,7 +7384,8 @@
                     "end_lineno": 290,
                     "end_col_offset": 21
                   },
-                  "id": "values"
+                  "id": "values",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7262,7 +7409,8 @@
                     "end_lineno": 292,
                     "end_col_offset": 17
                   },
-                  "elts": []
+                  "elts": [],
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7277,7 +7425,8 @@
                     "end_lineno": 291,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7297,7 +7446,8 @@
                         "end_lineno": 292,
                         "end_col_offset": 17
                       },
-                      "elts": []
+                      "elts": [],
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -7337,9 +7487,11 @@
                         "end_lineno": 294,
                         "end_col_offset": 14
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -7458,7 +7610,8 @@
                     "end_lineno": 300,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7495,7 +7648,8 @@
                     "end_lineno": 302,
                     "end_col_offset": 28
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7709,7 +7863,8 @@
                 "end_lineno": 314,
                 "end_col_offset": 20
               },
-              "id": "TypeError"
+              "id": "TypeError",
+              "machine_context": "Load"
             }
           }
         ],

@@ -50,7 +50,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 5
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -91,7 +92,8 @@
                   "end_lineno": 3,
                   "end_col_offset": 11
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Load"
               },
               "ops": [
                 "Lt"
@@ -105,7 +107,8 @@
                     "end_lineno": 3,
                     "end_col_offset": 15
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
               ]
             },
@@ -126,7 +129,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 9
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Store"
                 },
                 "op": "Add",
                 "value": {
@@ -162,7 +166,8 @@
                 "end_lineno": 5,
                 "end_col_offset": 12
               },
-              "id": "i"
+              "id": "i",
+              "machine_context": "Load"
             }
           }
         ],
@@ -244,7 +249,8 @@
                   "end_lineno": 9,
                   "end_col_offset": 12
                 },
-                "id": "a"
+                "id": "a",
+                "machine_context": "Load"
               },
               "op": "Div",
               "right": {
@@ -255,7 +261,8 @@
                   "end_lineno": 9,
                   "end_col_offset": 16
                 },
-                "id": "b"
+                "id": "b",
+                "machine_context": "Load"
               }
             }
           }
@@ -338,7 +345,8 @@
                   "end_lineno": 13,
                   "end_col_offset": 12
                 },
-                "id": "a"
+                "id": "a",
+                "machine_context": "Load"
               },
               "op": "Pow",
               "right": {

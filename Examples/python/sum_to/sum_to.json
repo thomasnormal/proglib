@@ -50,7 +50,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 5
                 },
-                "id": "s"
+                "id": "s",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -91,7 +92,8 @@
                   "end_lineno": 3,
                   "end_col_offset": 11
                 },
-                "id": "n"
+                "id": "n",
+                "machine_context": "Load"
               },
               "ops": [
                 "Gt"
@@ -129,7 +131,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 9
                   },
-                  "id": "s"
+                  "id": "s",
+                  "machine_context": "Store"
                 },
                 "op": "Add",
                 "value": {
@@ -140,7 +143,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 14
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
               },
               {
@@ -159,7 +163,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 9
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Store"
                 },
                 "op": "Sub",
                 "value": {
@@ -195,7 +200,8 @@
                 "end_lineno": 6,
                 "end_col_offset": 12
               },
-              "id": "s"
+              "id": "s",
+              "machine_context": "Load"
             }
           }
         ],
@@ -218,7 +224,8 @@
                   "end_lineno": 1,
                   "end_col_offset": 17
                 },
-                "id": "int"
+                "id": "int",
+                "machine_context": "Load"
               }
             }
           ],
@@ -237,7 +244,8 @@
             "end_lineno": 1,
             "end_col_offset": 25
           },
-          "id": "int"
+          "id": "int",
+          "machine_context": "Load"
         }
       }
     ]

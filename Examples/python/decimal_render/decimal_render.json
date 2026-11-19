@@ -40,7 +40,8 @@
               "end_lineno": 3,
               "end_col_offset": 4
             },
-            "id": "Pair"
+            "id": "Pair",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -59,7 +60,8 @@
               "end_lineno": 3,
               "end_col_offset": 17
             },
-            "id": "namedtuple"
+            "id": "namedtuple",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -142,7 +144,8 @@
                   "end_lineno": 7,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -155,7 +158,8 @@
                     "end_lineno": 7,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -255,9 +259,11 @@
                       "end_lineno": 11,
                       "end_col_offset": 24
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   }
-                ]
+                ],
+                "machine_context": "Load"
               }
             }
           }
@@ -354,9 +360,11 @@
                       "end_lineno": 15,
                       "end_col_offset": 24
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   }
-                ]
+                ],
+                "machine_context": "Load"
               }
             }
           }
@@ -453,9 +461,11 @@
                       "end_lineno": 19,
                       "end_col_offset": 24
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   }
-                ]
+                ],
+                "machine_context": "Load"
               }
             }
           }
@@ -529,7 +539,8 @@
                   "end_lineno": 23,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -551,9 +562,11 @@
                         "end_lineno": 23,
                         "end_col_offset": 21
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -630,7 +643,8 @@
                   "end_lineno": 27,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -652,9 +666,11 @@
                         "end_lineno": 27,
                         "end_col_offset": 21
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -731,7 +747,8 @@
                   "end_lineno": 31,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -753,7 +770,8 @@
                         "end_lineno": 31,
                         "end_col_offset": 21
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ],
                   "values": [
@@ -847,7 +865,8 @@
                   "end_lineno": 35,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -884,7 +903,8 @@
                         "end_lineno": 35,
                         "end_col_offset": 30
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 }
@@ -963,7 +983,8 @@
                   "end_lineno": 39,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -984,7 +1005,8 @@
                       "end_lineno": 39,
                       "end_col_offset": 20
                     },
-                    "id": "range"
+                    "id": "range",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -997,7 +1019,8 @@
                         "end_lineno": 39,
                         "end_col_offset": 26
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1078,7 +1101,8 @@
                   "end_lineno": 43,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1099,7 +1123,8 @@
                       "end_lineno": 43,
                       "end_col_offset": 20
                     },
-                    "id": "range"
+                    "id": "range",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1112,7 +1137,8 @@
                         "end_lineno": 43,
                         "end_col_offset": 26
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "Name",
@@ -1122,7 +1148,8 @@
                         "end_lineno": 43,
                         "end_col_offset": 33
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1203,7 +1230,8 @@
                   "end_lineno": 47,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1224,7 +1252,8 @@
                       "end_lineno": 47,
                       "end_col_offset": 20
                     },
-                    "id": "range"
+                    "id": "range",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1263,7 +1292,8 @@
                         "end_lineno": 47,
                         "end_col_offset": 32
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1344,7 +1374,8 @@
                   "end_lineno": 51,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1365,7 +1396,8 @@
                       "end_lineno": 51,
                       "end_col_offset": 19
                     },
-                    "id": "Pair"
+                    "id": "Pair",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1378,7 +1410,8 @@
                         "end_lineno": 51,
                         "end_col_offset": 25
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "Constant",
@@ -1481,7 +1514,8 @@
                       "end_lineno": 55,
                       "end_col_offset": 19
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "conversion": -1,
                   "format_spec": null
@@ -1568,7 +1602,8 @@
                   "end_lineno": 59,
                   "end_col_offset": 15
                 },
-                "id": "sign"
+                "id": "sign",
+                "machine_context": "Load"
               },
               "op": "Mult",
               "right": {
@@ -1609,7 +1644,8 @@
                       "end_lineno": 59,
                       "end_col_offset": 31
                     },
-                    "id": "digits"
+                    "id": "digits",
+                    "machine_context": "Load"
                   }
                 },
                 "op": "Sub",
@@ -1717,7 +1753,8 @@
                   "end_lineno": 63,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1738,7 +1775,8 @@
                       "end_lineno": 63,
                       "end_col_offset": 25
                     },
-                    "id": "scalar_str"
+                    "id": "scalar_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1759,7 +1797,8 @@
                           "end_lineno": 63,
                           "end_col_offset": 37
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -1772,7 +1811,8 @@
                             "end_lineno": 63,
                             "end_col_offset": 44
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -1782,7 +1822,8 @@
                             "end_lineno": 63,
                             "end_col_offset": 50
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -1885,7 +1926,8 @@
                   "end_lineno": 67,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1906,7 +1948,8 @@
                       "end_lineno": 67,
                       "end_col_offset": 23
                     },
-                    "id": "format_s"
+                    "id": "format_s",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1927,7 +1970,8 @@
                           "end_lineno": 67,
                           "end_col_offset": 35
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -1940,7 +1984,8 @@
                             "end_lineno": 67,
                             "end_col_offset": 42
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -1950,7 +1995,8 @@
                             "end_lineno": 67,
                             "end_col_offset": 48
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -2053,7 +2099,8 @@
                   "end_lineno": 71,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2074,7 +2121,8 @@
                       "end_lineno": 71,
                       "end_col_offset": 23
                     },
-                    "id": "format_r"
+                    "id": "format_r",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2095,7 +2143,8 @@
                           "end_lineno": 71,
                           "end_col_offset": 35
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2108,7 +2157,8 @@
                             "end_lineno": 71,
                             "end_col_offset": 42
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -2118,7 +2168,8 @@
                             "end_lineno": 71,
                             "end_col_offset": 48
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -2221,7 +2272,8 @@
                   "end_lineno": 75,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2242,7 +2294,8 @@
                       "end_lineno": 75,
                       "end_col_offset": 23
                     },
-                    "id": "format_d"
+                    "id": "format_d",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2263,7 +2316,8 @@
                           "end_lineno": 75,
                           "end_col_offset": 35
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2276,7 +2330,8 @@
                             "end_lineno": 75,
                             "end_col_offset": 42
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -2286,7 +2341,8 @@
                             "end_lineno": 75,
                             "end_col_offset": 48
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -2389,7 +2445,8 @@
                   "end_lineno": 79,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2410,7 +2467,8 @@
                       "end_lineno": 79,
                       "end_col_offset": 24
                     },
-                    "id": "tuple_str"
+                    "id": "tuple_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2431,7 +2489,8 @@
                           "end_lineno": 79,
                           "end_col_offset": 36
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2444,7 +2503,8 @@
                             "end_lineno": 79,
                             "end_col_offset": 43
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -2454,7 +2514,8 @@
                             "end_lineno": 79,
                             "end_col_offset": 49
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -2557,7 +2618,8 @@
                   "end_lineno": 83,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2578,7 +2640,8 @@
                       "end_lineno": 83,
                       "end_col_offset": 23
                     },
-                    "id": "list_str"
+                    "id": "list_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2599,7 +2662,8 @@
                           "end_lineno": 83,
                           "end_col_offset": 35
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2612,7 +2676,8 @@
                             "end_lineno": 83,
                             "end_col_offset": 42
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -2622,7 +2687,8 @@
                             "end_lineno": 83,
                             "end_col_offset": 48
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -2725,7 +2791,8 @@
                   "end_lineno": 87,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2746,7 +2813,8 @@
                       "end_lineno": 87,
                       "end_col_offset": 27
                     },
-                    "id": "dict_key_str"
+                    "id": "dict_key_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2767,7 +2835,8 @@
                           "end_lineno": 87,
                           "end_col_offset": 39
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2780,7 +2849,8 @@
                             "end_lineno": 87,
                             "end_col_offset": 46
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -2790,7 +2860,8 @@
                             "end_lineno": 87,
                             "end_col_offset": 52
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -2893,7 +2964,8 @@
                   "end_lineno": 91,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2914,7 +2986,8 @@
                       "end_lineno": 91,
                       "end_col_offset": 29
                     },
-                    "id": "dict_value_str"
+                    "id": "dict_value_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2935,7 +3008,8 @@
                           "end_lineno": 91,
                           "end_col_offset": 41
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2948,7 +3022,8 @@
                             "end_lineno": 91,
                             "end_col_offset": 48
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -2958,7 +3033,8 @@
                             "end_lineno": 91,
                             "end_col_offset": 54
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -3061,7 +3137,8 @@
                   "end_lineno": 95,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3082,7 +3159,8 @@
                       "end_lineno": 95,
                       "end_col_offset": 29
                     },
-                    "id": "range_stop_str"
+                    "id": "range_stop_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3103,7 +3181,8 @@
                           "end_lineno": 95,
                           "end_col_offset": 41
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3116,7 +3195,8 @@
                             "end_lineno": 95,
                             "end_col_offset": 48
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -3126,7 +3206,8 @@
                             "end_lineno": 95,
                             "end_col_offset": 54
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -3229,7 +3310,8 @@
                   "end_lineno": 99,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3250,7 +3332,8 @@
                       "end_lineno": 99,
                       "end_col_offset": 30
                     },
-                    "id": "range_start_str"
+                    "id": "range_start_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3271,7 +3354,8 @@
                           "end_lineno": 99,
                           "end_col_offset": 42
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3284,7 +3368,8 @@
                             "end_lineno": 99,
                             "end_col_offset": 49
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -3294,7 +3379,8 @@
                             "end_lineno": 99,
                             "end_col_offset": 55
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -3397,7 +3483,8 @@
                   "end_lineno": 103,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3418,7 +3505,8 @@
                       "end_lineno": 103,
                       "end_col_offset": 29
                     },
-                    "id": "range_step_str"
+                    "id": "range_step_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3439,7 +3527,8 @@
                           "end_lineno": 103,
                           "end_col_offset": 41
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3452,7 +3541,8 @@
                             "end_lineno": 103,
                             "end_col_offset": 48
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -3462,7 +3552,8 @@
                             "end_lineno": 103,
                             "end_col_offset": 54
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -3565,7 +3656,8 @@
                   "end_lineno": 107,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3586,7 +3678,8 @@
                       "end_lineno": 107,
                       "end_col_offset": 29
                     },
-                    "id": "namedtuple_str"
+                    "id": "namedtuple_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3607,7 +3700,8 @@
                           "end_lineno": 107,
                           "end_col_offset": 41
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3620,7 +3714,8 @@
                             "end_lineno": 107,
                             "end_col_offset": 48
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -3630,7 +3725,8 @@
                             "end_lineno": 107,
                             "end_col_offset": 54
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -3733,7 +3829,8 @@
                   "end_lineno": 111,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3754,7 +3851,8 @@
                       "end_lineno": 111,
                       "end_col_offset": 26
                     },
-                    "id": "fstring_str"
+                    "id": "fstring_str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3775,7 +3873,8 @@
                           "end_lineno": 111,
                           "end_col_offset": 38
                         },
-                        "id": "sized_value"
+                        "id": "sized_value",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -3788,7 +3887,8 @@
                             "end_lineno": 111,
                             "end_col_offset": 45
                           },
-                          "id": "digits"
+                          "id": "digits",
+                          "machine_context": "Load"
                         },
                         {
                           "kind": "Name",
@@ -3798,7 +3898,8 @@
                             "end_lineno": 111,
                             "end_col_offset": 51
                           },
-                          "id": "sign"
+                          "id": "sign",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],

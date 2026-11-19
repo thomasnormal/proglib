@@ -86,7 +86,8 @@
                 "end_lineno": 6,
                 "end_col_offset": 19
               },
-              "id": "Ellipsis"
+              "id": "Ellipsis",
+              "machine_context": "Load"
             }
           }
         ],
@@ -158,7 +159,8 @@
                       "end_lineno": 10,
                       "end_col_offset": 16
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Is"
@@ -194,7 +196,8 @@
                       "end_lineno": 10,
                       "end_col_offset": 30
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "IsNot"
@@ -246,7 +249,8 @@
                         "end_lineno": 10,
                         "end_col_offset": 55
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -282,11 +286,13 @@
                         "end_lineno": 10,
                         "end_col_offset": 73
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -368,7 +374,8 @@
                       "end_lineno": 14,
                       "end_col_offset": 16
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Eq"
@@ -404,7 +411,8 @@
                       "end_lineno": 14,
                       "end_col_offset": 30
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "NotEq"
@@ -456,7 +464,8 @@
                         "end_lineno": 14,
                         "end_col_offset": 51
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -492,11 +501,13 @@
                         "end_lineno": 14,
                         "end_col_offset": 65
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -568,7 +579,8 @@
                       "end_lineno": 18,
                       "end_col_offset": 14
                     },
-                    "id": "str"
+                    "id": "str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -605,7 +617,8 @@
                       "end_lineno": 18,
                       "end_col_offset": 25
                     },
-                    "id": "repr"
+                    "id": "repr",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -787,10 +800,12 @@
                           "type": "ellipsis"
                         }
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -862,7 +877,8 @@
                       "end_lineno": 22,
                       "end_col_offset": 15
                     },
-                    "id": "bool"
+                    "id": "bool",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -875,7 +891,8 @@
                         "end_lineno": 22,
                         "end_col_offset": 21
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -898,7 +915,8 @@
                       "end_lineno": 22,
                       "end_col_offset": 33
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   }
                 },
                 {
@@ -919,7 +937,8 @@
                         "end_lineno": 22,
                         "end_col_offset": 40
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "Constant",
@@ -954,7 +973,8 @@
                         "end_lineno": 22,
                         "end_col_offset": 53
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "Constant",
@@ -971,7 +991,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -1039,7 +1060,8 @@
                 "end_lineno": 26,
                 "end_col_offset": 16
               },
-              "id": "value"
+              "id": "value",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1117,7 +1139,8 @@
                 "end_lineno": 30,
                 "end_col_offset": 12
               },
-              "id": "value"
+              "id": "value",
+              "machine_context": "Load"
             },
             "body": [
               {
@@ -1218,7 +1241,8 @@
                   "end_lineno": 36,
                   "end_col_offset": 9
                 },
-                "id": "table"
+                "id": "table",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1285,7 +1309,8 @@
                     "end_lineno": 37,
                     "end_col_offset": 9
                   },
-                  "id": "table"
+                  "id": "table",
+                  "machine_context": "Load"
                 },
                 "index": {
                   "kind": "Name",
@@ -1295,8 +1320,10 @@
                     "end_lineno": 37,
                     "end_col_offset": 18
                   },
-                  "id": "Ellipsis"
-                }
+                  "id": "Ellipsis",
+                  "machine_context": "Load"
+                },
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1338,7 +1365,8 @@
                     "end_lineno": 38,
                     "end_col_offset": 9
                   },
-                  "id": "table"
+                  "id": "table",
+                  "machine_context": "Load"
                 },
                 "index": {
                   "kind": "Tuple",
@@ -1361,8 +1389,10 @@
                         "type": "ellipsis"
                       }
                     }
-                  ]
-                }
+                  ],
+                  "machine_context": "Load"
+                },
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1412,7 +1442,8 @@
                       "end_lineno": 39,
                       "end_col_offset": 14
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1425,7 +1456,8 @@
                         "end_lineno": 39,
                         "end_col_offset": 20
                       },
-                      "id": "table"
+                      "id": "table",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1447,7 +1479,8 @@
                       "end_lineno": 39,
                       "end_col_offset": 28
                     },
-                    "id": "table"
+                    "id": "table",
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Constant",
@@ -1460,7 +1493,8 @@
                     "value": {
                       "type": "ellipsis"
                     }
-                  }
+                  },
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Subscript",
@@ -1478,7 +1512,8 @@
                       "end_lineno": 39,
                       "end_col_offset": 40
                     },
-                    "id": "table"
+                    "id": "table",
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Tuple",
@@ -1497,10 +1532,13 @@
                           "end_lineno": 39,
                           "end_col_offset": 50
                         },
-                        "id": "Ellipsis"
+                        "id": "Ellipsis",
+                        "machine_context": "Load"
                       }
-                    ]
-                  }
+                    ],
+                    "machine_context": "Load"
+                  },
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Compare",
@@ -1534,7 +1572,8 @@
                         "end_lineno": 39,
                         "end_col_offset": 67
                       },
-                      "id": "table"
+                      "id": "table",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -1605,7 +1644,8 @@
                             "end_lineno": 39,
                             "end_col_offset": 90
                           },
-                          "id": "Ellipsis"
+                          "id": "Ellipsis",
+                          "machine_context": "Load"
                         }
                       ],
                       "values": [
@@ -1626,7 +1666,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -1672,7 +1713,8 @@
                   "end_lineno": 43,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1717,7 +1759,8 @@
                         "type": "ellipsis"
                       }
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Dict",
@@ -1756,7 +1799,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -1792,7 +1836,8 @@
                       "end_lineno": 44,
                       "end_col_offset": 14
                     },
-                    "id": "str"
+                    "id": "str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1805,7 +1850,8 @@
                         "end_lineno": 44,
                         "end_col_offset": 21
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1856,7 +1902,8 @@
                             "type": "ellipsis"
                           }
                         }
-                      ]
+                      ],
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -1905,7 +1952,8 @@
                             "type": "ellipsis"
                           }
                         }
-                      ]
+                      ],
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -1925,7 +1973,8 @@
                       "end_lineno": 44,
                       "end_col_offset": 58
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1946,7 +1995,8 @@
                           "end_lineno": 44,
                           "end_col_offset": 62
                         },
-                        "id": "set"
+                        "id": "set",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -1984,7 +2034,8 @@
                                 "type": "ellipsis"
                               }
                             }
-                          ]
+                          ],
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -1994,7 +2045,8 @@
                   "keywords": [],
                   "call_unsupported": null
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -2058,7 +2110,8 @@
                     "end_lineno": 48,
                     "end_col_offset": 19
                   },
-                  "id": "Ellipsis"
+                  "id": "Ellipsis",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Compare",
@@ -2092,7 +2145,8 @@
                         "end_lineno": 48,
                         "end_col_offset": 36
                       },
-                      "id": "Ellipsis"
+                      "id": "Ellipsis",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -2112,7 +2166,8 @@
                       "end_lineno": 48,
                       "end_col_offset": 41
                     },
-                    "id": "str"
+                    "id": "str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2133,7 +2188,8 @@
                   "keywords": [],
                   "call_unsupported": null
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -2209,7 +2265,8 @@
                 "end_lineno": 53,
                 "end_col_offset": 18
               },
-              "id": "Ellipsis"
+              "id": "Ellipsis",
+              "machine_context": "Load"
             }
           }
         ],
@@ -2263,7 +2320,8 @@
                   "end_lineno": 57,
                   "end_col_offset": 15
                 },
-                "id": "list"
+                "id": "list",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2284,7 +2342,8 @@
                       "end_lineno": 57,
                       "end_col_offset": 25
                     },
-                    "id": "generator"
+                    "id": "generator",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2347,7 +2406,8 @@
                   "end_lineno": 61,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2360,7 +2420,8 @@
                     "end_lineno": 61,
                     "end_col_offset": 17
                   },
-                  "elts": []
+                  "elts": [],
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2429,7 +2490,8 @@
                   "end_lineno": 65,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2456,7 +2518,8 @@
                         "repr": "1"
                       }
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2525,7 +2588,8 @@
                   "end_lineno": 69,
                   "end_col_offset": 15
                 },
-                "id": "list"
+                "id": "list",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2659,7 +2723,8 @@
                 "end_lineno": 77,
                 "end_col_offset": 25
               },
-              "id": "NotImplemented"
+              "id": "NotImplemented",
+              "machine_context": "Load"
             }
           }
         ],
@@ -2731,7 +2796,8 @@
                       "end_lineno": 81,
                       "end_col_offset": 16
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Is"
@@ -2745,7 +2811,8 @@
                         "end_lineno": 81,
                         "end_col_offset": 34
                       },
-                      "id": "NotImplemented"
+                      "id": "NotImplemented",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -2765,7 +2832,8 @@
                       "end_lineno": 81,
                       "end_col_offset": 50
                     },
-                    "id": "NotImplemented"
+                    "id": "NotImplemented",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Is"
@@ -2779,7 +2847,8 @@
                         "end_lineno": 81,
                         "end_col_offset": 59
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -2799,7 +2868,8 @@
                       "end_lineno": 81,
                       "end_col_offset": 66
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "IsNot"
@@ -2813,7 +2883,8 @@
                         "end_lineno": 81,
                         "end_col_offset": 88
                       },
-                      "id": "NotImplemented"
+                      "id": "NotImplemented",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -2833,7 +2904,8 @@
                       "end_lineno": 81,
                       "end_col_offset": 104
                     },
-                    "id": "NotImplemented"
+                    "id": "NotImplemented",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "IsNot"
@@ -2847,11 +2919,13 @@
                         "end_lineno": 81,
                         "end_col_offset": 117
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -2933,7 +3007,8 @@
                       "end_lineno": 85,
                       "end_col_offset": 16
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Eq"
@@ -2947,7 +3022,8 @@
                         "end_lineno": 85,
                         "end_col_offset": 34
                       },
-                      "id": "NotImplemented"
+                      "id": "NotImplemented",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -2967,7 +3043,8 @@
                       "end_lineno": 85,
                       "end_col_offset": 50
                     },
-                    "id": "NotImplemented"
+                    "id": "NotImplemented",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Eq"
@@ -2981,7 +3058,8 @@
                         "end_lineno": 85,
                         "end_col_offset": 59
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -3001,7 +3079,8 @@
                       "end_lineno": 85,
                       "end_col_offset": 66
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "NotEq"
@@ -3015,7 +3094,8 @@
                         "end_lineno": 85,
                         "end_col_offset": 84
                       },
-                      "id": "NotImplemented"
+                      "id": "NotImplemented",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -3035,7 +3115,8 @@
                       "end_lineno": 85,
                       "end_col_offset": 100
                     },
-                    "id": "NotImplemented"
+                    "id": "NotImplemented",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "NotEq"
@@ -3049,11 +3130,13 @@
                         "end_lineno": 85,
                         "end_col_offset": 109
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -3125,7 +3208,8 @@
                       "end_lineno": 89,
                       "end_col_offset": 14
                     },
-                    "id": "str"
+                    "id": "str",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3138,7 +3222,8 @@
                         "end_lineno": 89,
                         "end_col_offset": 29
                       },
-                      "id": "NotImplemented"
+                      "id": "NotImplemented",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -3160,7 +3245,8 @@
                       "end_lineno": 89,
                       "end_col_offset": 36
                     },
-                    "id": "repr"
+                    "id": "repr",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3173,7 +3259,8 @@
                         "end_lineno": 89,
                         "end_col_offset": 51
                       },
-                      "id": "NotImplemented"
+                      "id": "NotImplemented",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -3204,7 +3291,8 @@
                           "end_lineno": 89,
                           "end_col_offset": 71
                         },
-                        "id": "NotImplemented"
+                        "id": "NotImplemented",
+                        "machine_context": "Load"
                       },
                       "conversion": -1,
                       "format_spec": null
@@ -3238,7 +3326,8 @@
                           "end_lineno": 89,
                           "end_col_offset": 88
                         },
-                        "id": "NotImplemented"
+                        "id": "NotImplemented",
+                        "machine_context": "Load"
                       },
                       "conversion": 115,
                       "format_spec": null
@@ -3272,7 +3361,8 @@
                           "end_lineno": 89,
                           "end_col_offset": 107
                         },
-                        "id": "NotImplemented"
+                        "id": "NotImplemented",
+                        "machine_context": "Load"
                       },
                       "conversion": 114,
                       "format_spec": null
@@ -3318,7 +3408,8 @@
                           "end_lineno": 89,
                           "end_col_offset": 138
                         },
-                        "id": "NotImplemented"
+                        "id": "NotImplemented",
+                        "machine_context": "Load"
                       },
                       {
                         "kind": "Name",
@@ -3328,12 +3419,15 @@
                           "end_lineno": 89,
                           "end_col_offset": 154
                         },
-                        "id": "NotImplemented"
+                        "id": "NotImplemented",
+                        "machine_context": "Load"
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -3379,7 +3473,8 @@
                   "end_lineno": 93,
                   "end_col_offset": 9
                 },
-                "id": "table"
+                "id": "table",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -3399,7 +3494,8 @@
                     "end_lineno": 93,
                     "end_col_offset": 27
                   },
-                  "id": "NotImplemented"
+                  "id": "NotImplemented",
+                  "machine_context": "Load"
                 }
               ],
               "values": [
@@ -3444,7 +3540,8 @@
                     "end_lineno": 94,
                     "end_col_offset": 9
                   },
-                  "id": "table"
+                  "id": "table",
+                  "machine_context": "Load"
                 },
                 "index": {
                   "kind": "Name",
@@ -3454,8 +3551,10 @@
                     "end_lineno": 94,
                     "end_col_offset": 24
                   },
-                  "id": "NotImplemented"
-                }
+                  "id": "NotImplemented",
+                  "machine_context": "Load"
+                },
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -3505,7 +3604,8 @@
                       "end_lineno": 95,
                       "end_col_offset": 14
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -3518,7 +3618,8 @@
                         "end_lineno": 95,
                         "end_col_offset": 20
                       },
-                      "id": "table"
+                      "id": "table",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -3540,7 +3641,8 @@
                       "end_lineno": 95,
                       "end_col_offset": 28
                     },
-                    "id": "table"
+                    "id": "table",
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Name",
@@ -3550,8 +3652,10 @@
                       "end_lineno": 95,
                       "end_col_offset": 43
                     },
-                    "id": "NotImplemented"
-                  }
+                    "id": "NotImplemented",
+                    "machine_context": "Load"
+                  },
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Compare",
@@ -3569,7 +3673,8 @@
                       "end_lineno": 95,
                       "end_col_offset": 60
                     },
-                    "id": "NotImplemented"
+                    "id": "NotImplemented",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "In"
@@ -3583,7 +3688,8 @@
                         "end_lineno": 95,
                         "end_col_offset": 69
                       },
-                      "id": "table"
+                      "id": "table",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -3612,7 +3718,8 @@
                           "end_lineno": 95,
                           "end_col_offset": 86
                         },
-                        "id": "NotImplemented"
+                        "id": "NotImplemented",
+                        "machine_context": "Load"
                       }
                     ],
                     "values": [
@@ -3652,7 +3759,8 @@
                             "end_lineno": 95,
                             "end_col_offset": 109
                           },
-                          "id": "NotImplemented"
+                          "id": "NotImplemented",
+                          "machine_context": "Load"
                         }
                       ],
                       "values": [
@@ -3673,7 +3781,8 @@
                     }
                   ]
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],

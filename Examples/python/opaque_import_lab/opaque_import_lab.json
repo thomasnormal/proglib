@@ -237,9 +237,11 @@
                   "end_lineno": 15,
                   "end_col_offset": 17
                 },
-                "id": "typing"
+                "id": "typing",
+                "machine_context": "Load"
               },
-              "attr": "Tuple"
+              "attr": "Tuple",
+              "machine_context": "Load"
             }
           }
         ],
@@ -310,9 +312,11 @@
                     "end_lineno": 19,
                     "end_col_offset": 17
                   },
-                  "id": "typing"
+                  "id": "typing",
+                  "machine_context": "Load"
                 },
-                "attr": "Tuple"
+                "attr": "Tuple",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -381,7 +385,8 @@
                   "end_lineno": 23,
                   "end_col_offset": 15
                 },
-                "id": "bool"
+                "id": "bool",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -394,7 +399,8 @@
                     "end_lineno": 23,
                     "end_col_offset": 22
                   },
-                  "id": "typing"
+                  "id": "typing",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -461,7 +467,8 @@
                   "end_lineno": 27,
                   "end_col_offset": 9
                 },
-                "id": "print"
+                "id": "print",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -474,7 +481,8 @@
                     "end_lineno": 27,
                     "end_col_offset": 16
                   },
-                  "id": "typing"
+                  "id": "typing",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -563,7 +571,8 @@
                   "end_lineno": 32,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -576,7 +585,8 @@
                     "end_lineno": 32,
                     "end_col_offset": 21
                   },
-                  "id": "typing"
+                  "id": "typing",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],

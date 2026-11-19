@@ -34,7 +34,8 @@
               "end_lineno": 1,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -81,7 +82,8 @@
               "end_lineno": 2,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -110,7 +112,8 @@
                     "end_lineno": 2,
                     "end_col_offset": 11
                   },
-                  "id": "float"
+                  "id": "float",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],
@@ -149,7 +152,8 @@
                     "end_lineno": 2,
                     "end_col_offset": 26
                   },
-                  "id": "float"
+                  "id": "float",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],

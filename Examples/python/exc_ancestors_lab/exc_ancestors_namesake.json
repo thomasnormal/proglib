@@ -41,7 +41,8 @@
               "end_lineno": 1,
               "end_col_offset": 29
             },
-            "id": "Exception"
+            "id": "Exception",
+            "machine_context": "Load"
           }
         ],
         "machine_keywords": [],
@@ -90,7 +91,8 @@
               "end_lineno": 5,
               "end_col_offset": 31
             },
-            "id": "Exception"
+            "id": "Exception",
+            "machine_context": "Load"
           }
         ],
         "machine_keywords": [],
@@ -139,7 +141,8 @@
               "end_lineno": 9,
               "end_col_offset": 27
             },
-            "id": "Exception"
+            "id": "Exception",
+            "machine_context": "Load"
           }
         ],
         "machine_keywords": [],
@@ -195,7 +198,8 @@
                     "end_lineno": 15,
                     "end_col_offset": 27
                   },
-                  "id": "BaseException"
+                  "id": "BaseException",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -237,7 +241,8 @@
                     "end_lineno": 16,
                     "end_col_offset": 24
                   },
-                  "id": "BaseException"
+                  "id": "BaseException",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -328,7 +333,8 @@
                       "end_lineno": 22,
                       "end_col_offset": 18
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -390,7 +396,8 @@
                     "end_lineno": 23,
                     "end_col_offset": 24
                   },
-                  "id": "BaseException"
+                  "id": "BaseException",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -473,7 +480,8 @@
                     "end_lineno": 29,
                     "end_col_offset": 29
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -515,7 +523,8 @@
                     "end_lineno": 30,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -666,7 +675,8 @@
                     "end_lineno": 37,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -749,7 +759,8 @@
                     "end_lineno": 43,
                     "end_col_offset": 25
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -791,7 +802,8 @@
                     "end_lineno": 44,
                     "end_col_offset": 22
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -882,7 +894,8 @@
                       "end_lineno": 50,
                       "end_col_offset": 17
                     },
-                    "elts": []
+                    "elts": [],
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Constant",
@@ -896,7 +909,8 @@
                       "type": "int",
                       "repr": "0"
                     }
-                  }
+                  },
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -938,7 +952,8 @@
                     "end_lineno": 51,
                     "end_col_offset": 22
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
