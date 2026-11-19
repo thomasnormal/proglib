@@ -250,6 +250,13 @@ stripping, typedef resolution, pointer and array recognition, and record-tag
 lookup. No F2 store work starts until this checker reaches zero and the full
 survey is at least 1326/2214 with no DIVERGE.
 
+**Focused differential receipt (2026-11-19).** The committed `harness/c_cases.json`
+battery now reports 83 MATCH, 38 REFUSE, and 0 DIVERGE against pinned Clang
+21.1.8. The remaining refusal rows name missing optional parser observations
+for function-pointer layouts, floating literal bits, pointee strides, and
+anonymous bit-field layouts. The receipt is a focused battery, not a full
+corpus survey.
+
 The bit-field storage family now uses parser-native declaration and recursive
 `QualType` observations for record-member facts and pointee extent. When those
 observations are absent, the evaluator refuses instead of peeling a pointer
