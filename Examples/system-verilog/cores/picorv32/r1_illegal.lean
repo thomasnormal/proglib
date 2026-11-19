@@ -127,6 +127,60 @@ theorem picorv32_illegal_csr_fields_isa_step
       rw [hfetched, hirq]
       exact isaStepMemWith_illegal_csr profile state memory word kind hdecode hrow
 
+/-! The two trap shapes share one exact-cycle consumer.  The retained
+    `TrapInstruction` keeps undecodable words distinct from decoded CSR words
+    whose table row is absent, while both route to the illegal RV32I step. -/
+
+theorem picorv32_illegal_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : TrapInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = trapProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.illegalBoundary memoryState.arch input
+              instruction.wordOf ∧
+            rel next
+              { arch := illegalNext memoryState.arch,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState (.trap instruction))
+          (rv32iProgramRetirement memoryState (.trap instruction)) := by
+        simpa [hmem, hinput, trapProgramInput, rv32iProgramStep,
+          rv32iProgramRetirement] using
+          (RvfiObservation.illegalBoundary_rv32i instruction.wordOf hboundary)
+      simp only [↓reduceIte]
+      exact ⟨.trap instruction, by simpa [rv32iProgramInput] using hinput,
+        horder, hrvfi, hnext⟩
+
+#print axioms picorv32_illegal_exact_cycle_step_refines
+
 #print axioms picorv32_illegal_fields_isa_step
 #print axioms picorv32_illegal_csr_fields_isa_step
 

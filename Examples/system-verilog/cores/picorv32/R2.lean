@@ -118,7 +118,10 @@ obligation:
   exact system boundary in the mixed cycle dispatcher while retaining trap
   and wake semantics.
   `r1_illegal` provides undecodable and illegal-CSR consumers through the
-  exact illegal boundary.
+  exact illegal boundary.  Its
+  `r1_illegal.picorv32_illegal_exact_cycle_step_refines` theorem consumes the
+  two trap shapes through `TrapInstruction` while preserving their shared
+  illegal architectural transition and their distinct parser evidence.
   `r1_csr` provides the six implemented Zicsr consumers through the decoded
   CSR row and operation witness.  Its
   `r1_csr.picorv32_csr_exact_cycle_step_refines` theorem consumes the exact
