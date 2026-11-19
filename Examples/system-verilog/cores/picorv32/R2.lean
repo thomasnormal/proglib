@@ -90,8 +90,11 @@ obligation:
   all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
   `CoreRvfiMachine.to_reset_addi_refinement` composes that invariant with the
   all-prefix reset contract once initial relation and progress are supplied.
-  The machine's encoder is state-dependent because the concrete E-RUN memory
-  response is selected from the core's sampled address.  A conversion from
+  `CoreAddiBoundary.to_rv32i_boundary` lifts each exact ADDI witness into the
+  indexed RV32I dispatcher while retaining its architectural post-state and
+  retirement.  The machine's encoder is state-dependent because the concrete
+  E-RUN memory response is selected from the core's sampled address.
+  A conversion from
   four-state `mem_addr` to an architectural word remains an explicit loaded-
   core premise, not an inferred default.
 

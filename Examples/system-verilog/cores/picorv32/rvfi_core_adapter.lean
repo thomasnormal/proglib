@@ -339,6 +339,34 @@ theorem CoreAddiBoundary.memoryMachineStep
   exact RvfiObservation.addiBoundary_rvMemoryMachineWith
     LeanModels.Rv.cv32e40pProfile observation arch input word rd rs1 imm hboundary
 
+/-! The ADDI-specific boundary can also feed the indexed RV32I dispatcher.
+    Keeping the post-state and retirement in the conclusion prevents this
+    adapter from erasing the architectural result while changing boundary
+    representations. -/
+
+theorem CoreAddiBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word} {rd rs1 : LeanModels.Rv.Reg}
+    {imm : LeanModels.Refine.Word}
+    (h : CoreAddiBoundary d st entry arch input word rd rs1 imm) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.addiNext arch rd rs1 imm,
+          memory := input.memory }
+        (LeanModels.Refine.addiRetirement arch input rd rs1 imm) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  simpa [LeanModels.Refine.addiNext, LeanModels.Refine.addiRetirement,
+    LeanModels.Refine.aluNext, LeanModels.Refine.aluRetirement,
+    LeanModels.Refine.addiEffects, LeanModels.Refine.aluEffects,
+    LeanModels.Rv.aluSem, LeanModels.Rv.src1Val, LeanModels.Rv.src2Val] using
+    RvfiObservation.addiBoundary_rv32i word rd rs1 imm hboundary
+
+#print axioms CoreAddiBoundary.to_rv32i_boundary
+
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
