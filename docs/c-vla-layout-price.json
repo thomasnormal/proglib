@@ -1,0 +1,96 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 3,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20040811-1.c",
+   "sha256": "55a955c3a85bad3a49f0d9146976faf011784debea817d2b3a584c02fa00a0e0",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id15",
+     "size_bytes": 8,
+     "type": "void *volatile"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id19",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id25",
+     "element_size_bytes": 4,
+     "size_bytes": 0,
+     "type": "int[n % 1000 + 1]"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr43220.c",
+   "sha256": "e50c382fe365be74d8911fccf52172676bf987256c54e9ba21cf49850e4c44d5",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id15",
+     "size_bytes": 8,
+     "type": "void *volatile"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id19",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id26",
+     "element_size_bytes": 4,
+     "size_bytes": 0,
+     "type": "int[n % 1000 + 1]"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id51",
+     "element_size_bytes": 4,
+     "size_bytes": 0,
+     "type": "int[n % 1000 + 1]"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "vla-dealloc-1.c",
+   "sha256": "9efc981809576c0b9284ebbe5425aa3eb958bbcf432a411733f730a0b38d767c",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id15",
+     "size_bytes": 8,
+     "type": "void *volatile"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id19",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id28",
+     "element_size_bytes": 4,
+     "size_bytes": 0,
+     "type": "int[n % 1000 + 1]"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "unsupported:no layout for declared type 'int[n % 1000 + 1]'"
+}
