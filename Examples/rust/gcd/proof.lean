@@ -116,15 +116,23 @@ theorem gcd_zero_cfg (a : Nat) :
   rw [gcdBody_eq, cfgRunOutcome.eq_2, gcd_block0_eq]
   simp [gcdBlock0, statementsRun, statementStep, setSlot]
   rw [cfgRunOutcome.eq_2, gcd_block1_eq]
-  simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
+  have cfg8 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state 7
+  have cfg7 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state 6
+  simp only [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter]
-  rw [cfgRunOutcome.eq_2, gcd_block4_eq]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter,
+    Option.bind, Option.map, Option.getD, decide]
+  simp only [cfg8, cfg7, gcd_block4_eq]
   simp [gcdBlock4, statementsRun, statementStep, setSlot, operandCell,
     readCell, localSlot, slotCell, rvalueCell, typedBytesValue, littleEndian,
     projectCell, writeCell, eventForCell, returnValue, cellSlot, cellInt,
-    List.filter]
+    List.filter, findTypeLayout]
+  refine ⟨_, rfl, ?_⟩
+  rfl
+
 
 def gcdStepState (a b : Int) : State :=
   { locals := [(5, .uninit), (7, .uninit), (4, .value 0), (12, .uninit),
@@ -137,29 +145,39 @@ theorem gcdStepState_mod_cast (a b : Nat) :
       gcdStepState (b : Int) ((a : Int) % (b : Int)) := by
   simp [gcdStepState, Int.natCast_emod]
 
+set_option maxHeartbeats 2000000 in
 theorem gcd_nonzero_step (a b fuel : Nat) (hb : 0 < b) (hr : a % b ≠ 0) :
     cfgRunOutcome (fuel + 4) gcdCore 0 (gcdInput a b) =
       cfgRunOutcome fuel gcdCore 1 (gcdStepState b (a % b)) := by
   have hne : b ≠ 0 := by omega
+  have hb0 : ¬ b = 0 := by omega
   unfold gcdInput gcdType
   rw [cfgRunOutcome.eq_2, gcd_block0_eq]
   simp [gcdBlock0, statementsRun, statementStep, setSlot]
-  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  have cfg3 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state (fuel + 2)
+  have cfg2 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state (fuel + 1)
+  have cfg1 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state fuel
+  simp only [cfg3, gcd_block1_eq]
   simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hb, hne, hr]
+    eventForCell, cellSlot, cellInt, findTypeLayout, Nat.beq, Bool.and, Bool.not, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.ble, List.all, if_neg hb0, hb, hne, hr]
   all_goals try { rfl }
-  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+  simp [cfg2, gcd_block2_eq]
   simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne]
-  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, hne]
+  simp [cfg1, gcd_block3_eq]
   simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne, hr]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, hne, hr]
+  simp [gcdStepState, Int.natCast_emod, if_neg hb0]
+  all_goals simp [slotCell, cellInt, localSlot, List.find?, Option.bind, Option.map, Option.getD, Nat.beq, Nat.ble, List.all, hne, hb0, hr, hb]
   congr 1
 
 theorem gcd_loop_nonzero_step (a b fuel : Nat) (hb : 0 < b) (hr : a % b ≠ 0) :
@@ -171,22 +189,30 @@ theorem gcd_loop_nonzero_step (a b fuel : Nat) (hb : 0 < b) (hr : a % b ≠ 0) :
     apply hr
     rw [← Int.natCast_emod] at h
     exact_mod_cast h
-  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  have cfg3 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state (fuel + 2)
+  have cfg2 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state (fuel + 1)
+  have cfg1 := fun (body : Body) (block : Nat) (state : State) =>
+    @cfgRunOutcome.eq_2 body block state fuel
+  simp only [cfg3, gcd_block1_eq]
   simp [gcdType, gcdBlock1, gcdStepState, statementsRun, statementStep, setSlot,
     terminatorStep, List.find?, operandCell, operandValue, readCell, localSlot,
     slotCell, rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
-    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
-  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+    writeCell, eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hrem]
+  simp only [cfg2, gcd_block2_eq]
   simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne]
-  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne]
+  simp only [cfg1, gcd_block3_eq]
   simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hrem]
+  try simp [gcdStepState, gcdType, Int.natCast_emod]
 
+set_option maxHeartbeats 2000000 in
 theorem gcd_zero_remainder_cfg (a b : Nat) (hb : 0 < b) (hr : a % b = 0) :
     ∃ t, cfgRunOutcome 7 gcdBody 0 (gcdInput a b) = .returned t ∧
       returnValue t = some (Int.ofNat b) := by
@@ -195,34 +221,40 @@ theorem gcd_zero_remainder_cfg (a b : Nat) (hb : 0 < b) (hr : a % b = 0) :
     rw [← Int.natCast_emod, hr]
     rfl
   unfold gcdInput gcdType
+  have cfg6 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 5
+  have cfg5 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 4
+  have cfg4 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 3
+  have cfg3 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 2
+  have cfg2 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 1
   rw [gcdBody_eq, cfgRunOutcome.eq_2, gcd_block0_eq]
   simp [gcdBlock0, statementsRun, statementStep, setSlot]
-  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp only [cfg6, gcd_block1_eq]
   simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne, hr, hrem]
-  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hr, hrem]
+  simp only [cfg5, gcd_block2_eq]
   simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
-  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hrem]
+  simp only [cfg4, gcd_block3_eq]
   simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne, hr]
-  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hr]
+  simp only [cfg3, gcd_block1_eq]
   simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-    eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
-  rw [cfgRunOutcome.eq_2, gcd_block4_eq]
+    eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hrem]
+  simp only [cfg2, gcd_block4_eq]
   simp [gcdBlock4, statementsRun, statementStep, setSlot, operandCell,
     readCell, localSlot, slotCell, rvalueCell, typedBytesValue, littleEndian,
     projectCell, writeCell, eventForCell, returnValue, cellSlot, cellInt,
     List.filter]
 
+set_option maxHeartbeats 2000000 in
 theorem gcd_loop_zero_case (a b : Nat) (hb : 0 < b) (hr : a % b = 0) :
     ∃ t, cfgRunOutcome 5 gcdCore 1 (gcdStepState (a : Int) (b : Int)) = .returned t ∧
       returnValue t = some (Int.ofNat b) := by
@@ -230,32 +262,37 @@ theorem gcd_loop_zero_case (a b : Nat) (hb : 0 < b) (hr : a % b = 0) :
   have hrem : (a : Int) % (b : Int) = 0 := by
     have h := congrArg (fun n : Nat => (n : Int)) hr
     simpa [Int.natCast_emod] using h
-  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  have cfg5 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 4
+  have cfg4 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 3
+  have cfg3 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 2
+  have cfg2 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 1
+  have cfg1 := fun (body : Body) (block : Nat) (state : State) => @cfgRunOutcome.eq_2 body block state 0
+  simp only [cfg5, gcd_block1_eq]
   simp [gcdType, gcdStepState, gcdBlock1, statementsRun, statementStep,
       setSlot, terminatorStep, List.find?, operandCell, operandValue,
       readCell, localSlot, slotCell, rvalueCell, typedBytesValue,
       littleEndian, Nat.repr, projectCell, writeCell, eventForCell,
-    cellSlot, cellInt, List.filter, hne, hrem, hr]
-  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+    cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hrem, hr]
+  simp only [cfg4, gcd_block2_eq]
   simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
       List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
       rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
-    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
-  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+    writeCell, eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hrem]
+  simp only [cfg3, gcd_block3_eq]
   simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
       List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
       rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
-    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hr]
-  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+    writeCell, eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hr]
+  simp only [cfg2, gcd_block1_eq]
   simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
       List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
       rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
-    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
-  rw [cfgRunOutcome.eq_2, gcd_block4_eq]
+    writeCell, eventForCell, cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, hne, hrem]
+  simp only [cfg1, gcd_block4_eq]
   simp [gcdBlock4, statementsRun, statementStep, setSlot, operandCell,
       readCell, localSlot, slotCell, rvalueCell, typedBytesValue,
       littleEndian, projectCell, writeCell, eventForCell, returnValue,
-    cellSlot, cellInt, List.filter]
+    cellSlot, cellInt, findTypeLayout, List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq, Nat.ble, List.all, Nat.repr, Nat.toDigits, String.ofList, String.decEq]
 
 set_option maxHeartbeats 2000000 in
 set_option maxRecDepth 100000 in
@@ -272,7 +309,9 @@ theorem gcd_loop_cfg (a b : Nat) :
             terminatorStep, List.find?, operandCell,
             operandValue, readCell, localSlot, slotCell, rvalueCell,
             typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
-            eventForCell, returnValue, cellSlot, cellInt, List.filter]
+            eventForCell, returnValue, cellSlot, cellInt, findTypeLayout,
+            List.filter, Option.bind, Option.map, Option.getD, decide, Nat.beq,
+            Nat.ble, List.all]
       | succ b =>
           by_cases hr : a % (b + 1) = 0
           · obtain ⟨t, ht, hv⟩ := gcd_loop_zero_case a (b + 1) (by omega) hr
