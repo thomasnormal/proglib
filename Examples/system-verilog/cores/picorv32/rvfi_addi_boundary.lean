@@ -102,6 +102,63 @@ theorem pinned_addi1_port_decode :
 
 #guard decode "rvfi_" addi1PortSample == some addi1
 
+def addi2Payload : Payload :=
+  { order := .ofNat 64 3
+    insn := .ofNat 32 0x00110193
+    trap := .ofNat 1 0
+    halt := .ofNat 1 0
+    intr := .ofNat 1 0
+    mode := .ofNat 2 3
+    ixl := .ofNat 2 1
+    rs1Addr := .ofNat 5 2
+    rs2Addr := .ofNat 5 0
+    rs1Rdata := .ofNat 32 5
+    rs2Rdata := .ofNat 32 0
+    rdAddr := .ofNat 5 3
+    rdWdata := .ofNat 32 6
+    pcRdata := .ofNat 32 12
+    pcWdata := .ofNat 32 16
+    memAddr := .ofNat 32 0
+    memRmask := .ofNat 4 0
+    memWmask := .ofNat 4 0
+    memRdata := .ofNat 32 0
+    memWdata := .ofNat 32 0 }
+
+def addi2PortSample : PortSample :=
+  ⟨[ ("rvfi_valid", .ofBitVec (.ofNat 1 1))
+    , ("rvfi_order", .ofBitVec (.ofNat 64 3))
+    , ("rvfi_insn", .ofBitVec (.ofNat 32 0x00110193))
+    , ("rvfi_trap", .ofBitVec (.ofNat 1 0))
+    , ("rvfi_halt", .ofBitVec (.ofNat 1 0))
+    , ("rvfi_intr", .ofBitVec (.ofNat 1 0))
+    , ("rvfi_mode", .ofBitVec (.ofNat 2 3))
+    , ("rvfi_ixl", .ofBitVec (.ofNat 2 1))
+    , ("rvfi_rs1_addr", .ofBitVec (.ofNat 5 2))
+    , ("rvfi_rs2_addr", .ofBitVec (.ofNat 5 0))
+    , ("rvfi_rs1_rdata", .ofBitVec (.ofNat 32 5))
+    , ("rvfi_rs2_rdata", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_rd_addr", .ofBitVec (.ofNat 5 3))
+    , ("rvfi_rd_wdata", .ofBitVec (.ofNat 32 6))
+    , ("rvfi_pc_rdata", .ofBitVec (.ofNat 32 12))
+    , ("rvfi_pc_wdata", .ofBitVec (.ofNat 32 16))
+    , ("rvfi_mem_addr", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_mem_rmask", .ofBitVec (.ofNat 4 0))
+    , ("rvfi_mem_wmask", .ofBitVec (.ofNat 4 0))
+    , ("rvfi_mem_rdata", .ofBitVec (.ofNat 32 0))
+    , ("rvfi_mem_wdata", .ofBitVec (.ofNat 32 0)) ]⟩
+
+theorem pinned_addi2_port_projection :
+    RvfiPorts.PayloadProjection "rvfi_" addi2PortSample addi2Payload := by
+  constructor <;>
+    apply readBits_ofBitVec <;>
+    simp [PortSample.read, LeanModels.Sv.SvState.lookup, addi2PortSample,
+      addi2Payload, LeanModels.Sv.LVec.ofBitVec]
+
+theorem pinned_addi2_port_decode :
+    decode "rvfi_" addi2PortSample = some addi2Raw := by
+  apply RvfiPorts.decode_of_projection pinned_addi2_port_projection
+  decide
+
 theorem pinned_addi_boundary :
     RvfiObservation.addiBoundary (ArchState.init 0) addiInput addi1
       0x00500093 1 0 5 := by
@@ -186,6 +243,16 @@ theorem pinned_addi2_boundary :
   unfold RvfiObservation.addiBoundary RvfiObservation.addiFields
   unfold RvfiObservation.wellFormed RvfiObservation.toRetirement?
   decide
+
+theorem pinned_addi2_decoded_addi_boundary {row : RvfiObservation}
+    (hdecode : decode "rvfi_" addi2PortSample = some row) :
+    RvfiObservation.addiBoundary addi2State addi2Input row
+      0x00110193 3 2 1 := by
+  have hrow : row = addi2Raw := by
+    rw [← Option.some.injEq]
+    exact hdecode.symm.trans pinned_addi2_port_decode
+  subst row
+  exact pinned_addi2_boundary
 
 theorem pinned_addi2_isa_step :
     isaStepMemWith cv32e40pProfile addi2State addi2Input.memory
