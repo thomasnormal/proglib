@@ -12,6 +12,6 @@ theorem switch_trace_in_steps :
         .storageLive 3, .assign 3 20, .placeMention 3,
         .storageDead 3, .assign 0 0, .storageDead 1] } := by
   apply LeanModels.Rust.run_in_steps
-  decide
+  rfl
 
 end Examples.rust.switch

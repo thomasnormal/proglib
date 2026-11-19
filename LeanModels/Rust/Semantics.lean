@@ -317,11 +317,18 @@ def derefTwo (s : State) (pointer : Pointer) : Option Cell := do
       | value => some value
   | value => some value
 
+/-- Strip single-field aggregate wrappers.  A separate structural function, so that
+`projectCell` stays structural on its projection list: the runners must remain
+kernel-reducible, or every `decide`/`rfl` check over a run gets stuck. -/
+def unwrapSingleton : Cell → Cell
+  | .aggregate [inner] => unwrapSingleton inner
+  | value => value
+termination_by structural value => value
+
 def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | [] => some cell
   | .deref :: rest =>
-      match cell with
-      | .aggregate [inner] => projectCell s inner (.deref :: rest)
+      match unwrapSingleton cell with
       | .pointer pointer =>
           (derefTwo s pointer).bind (projectCell s · rest)
       | _ => none

@@ -9,7 +9,7 @@ theorem identity_trace :
         .storageLive 1,
         .call "_RINvNtCs9xW7P2vDFDD_4core7convert8identitylECsgoMeLM4tH1m_12std_identity",
         .assign 0 7, .placeMention 1, .storageDead 1, .assign 0 0] } := by
-  decide
+  rfl
 
 theorem identity_trace_in_steps :
     LeanModels.Rust.ProgramInSteps stdIdentity {
