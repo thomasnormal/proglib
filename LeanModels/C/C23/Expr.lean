@@ -481,6 +481,8 @@ structure Layout where
   /-- Frontend-observed byte stride keyed by the declaration identity of an
       array object. -/
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
+  /-- Frontend-observed parser element type for an array type. -/
+  arrayElementType : CType → Option CType := fun _ => none
   /-- Frontend-observed byte size of one element for an array type. -/
   arrayElementSize : CType → Option Nat := fun _ => none
   /-- `offsetof`, keyed on the BASE expression's spelling, so `p->f` and
@@ -677,7 +679,9 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
   | some structured =>
       match structured.unqualified with
       | .array _ (some extent) =>
-          layout.elem ty |>.map (fun (element, _) => (element, extent))
+          layout.arrayElementType ty
+            |>.orElse (fun _ => layout.elem ty |>.map (·.1))
+            |>.map (fun element => (element, extent))
       | _ => layout.elem ty
   | none => layout.elem ty
 
@@ -749,6 +753,7 @@ def Layout.unknown : Layout :=
     pointeeSize := fun _ => none
     pointeeSizeDecl := fun _ => none
     elementSizeDecl := fun _ => none
+    arrayElementType := fun _ => none
     arrayElementSize := fun _ => none
     fieldSize := fun _ _ => none, fieldSizeDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
