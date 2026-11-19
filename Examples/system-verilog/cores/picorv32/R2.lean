@@ -93,6 +93,8 @@ obligation:
   `r1_jump.picorv32_jal_loaded_rv32i_boundary_of_step` and
   `picorv32_jalr_loaded_rv32i_boundary_of_step` provide the corresponding
   JAL and JALR consumers through the decoded jump witness.
+  `r1_branch` provides the six conditional-branch consumers through one
+  condition-indexed decoded witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.

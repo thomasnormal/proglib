@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiBranch
+import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
 # PicoRV32 R1 conditional-branch class
@@ -29,6 +30,25 @@ theorem branch_decodes :
     Fetched.decode (.word bltuWord) = some (.branch .ltu 0 0 8) ∧
     Fetched.decode (.word bgeuWord) = some (.branch .geu 0 0 8) := by
   decide
+
+def beqInstruction : BranchInstruction :=
+  { word := beqWord, cond := .eq, rs1 := 0, rs2 := 0, offset := 8,
+    decode := branch_decodes.1 }
+def bneInstruction : BranchInstruction :=
+  { word := bneWord, cond := .ne, rs1 := 0, rs2 := 0, offset := 8,
+    decode := branch_decodes.2.1 }
+def bltInstruction : BranchInstruction :=
+  { word := bltWord, cond := .lt, rs1 := 0, rs2 := 0, offset := 8,
+    decode := branch_decodes.2.2.1 }
+def bgeInstruction : BranchInstruction :=
+  { word := bgeWord, cond := .ge, rs1 := 0, rs2 := 0, offset := 8,
+    decode := branch_decodes.2.2.2.1 }
+def bltuInstruction : BranchInstruction :=
+  { word := bltuWord, cond := .ltu, rs1 := 0, rs2 := 0, offset := 8,
+    decode := branch_decodes.2.2.2.2.1 }
+def bgeuInstruction : BranchInstruction :=
+  { word := bgeuWord, cond := .geu, rs1 := 0, rs2 := 0, offset := 8,
+    decode := branch_decodes.2.2.2.2.2 }
 
 theorem picorv32_beq_class_step (state : ArchState) (memory : Memory) :
     isaStepMemWith cv32e40pProfile state memory (.word beqWord) 0 =
@@ -119,6 +139,113 @@ theorem picorv32_bgeu_class_commit (state : ArchState) (memory : Memory) :
           { fetched := .word bgeuWord, memory := memory, irq := 0 } .geu 0 0 8) := by
   exact rvMachineWith_branch cv32e40pProfile state memory bgeuWord .geu 0 0 8
     branch_decodes.2.2.2.2.2
+
+/-! The six fixed branch rows share one loaded-core adapter.  Each wrapper
+    retains the exact source transition, decoded observation, and condition-
+    specific raw boundary before entering the indexed dispatcher. -/
+
+theorem picorv32_beq_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.branchBoundary arch input beqWord .eq 0 0 8) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation' { arch := branchNext arch .eq 0 0 8, memory := input.memory }
+        (branchRetirement arch input .eq 0 0 8) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreBranchBoundary d st entry arch input beqInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [beqInstruction] using hboundary
+  simpa [beqInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_bne_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.branchBoundary arch input bneWord .ne 0 0 8) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation' { arch := branchNext arch .ne 0 0 8, memory := input.memory }
+        (branchRetirement arch input .ne 0 0 8) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreBranchBoundary d st entry arch input bneInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [bneInstruction] using hboundary
+  simpa [bneInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_blt_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.branchBoundary arch input bltWord .lt 0 0 8) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation' { arch := branchNext arch .lt 0 0 8, memory := input.memory }
+        (branchRetirement arch input .lt 0 0 8) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreBranchBoundary d st entry arch input bltInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [bltInstruction] using hboundary
+  simpa [bltInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_bge_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.branchBoundary arch input bgeWord .ge 0 0 8) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation' { arch := branchNext arch .ge 0 0 8, memory := input.memory }
+        (branchRetirement arch input .ge 0 0 8) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreBranchBoundary d st entry arch input bgeInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [bgeInstruction] using hboundary
+  simpa [bgeInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_bltu_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.branchBoundary arch input bltuWord .ltu 0 0 8) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation' { arch := branchNext arch .ltu 0 0 8, memory := input.memory }
+        (branchRetirement arch input .ltu 0 0 8) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreBranchBoundary d st entry arch input bltuInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [bltuInstruction] using hboundary
+  simpa [bltuInstruction] using h.to_rv32i_boundary
+
+theorem picorv32_bgeu_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.branchBoundary arch input bgeuWord .geu 0 0 8) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation' { arch := branchNext arch .geu 0 0 8, memory := input.memory }
+        (branchRetirement arch input .geu 0 0 8) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  have h : rvfi_core_adapter.CoreBranchBoundary d st entry arch input bgeuInstruction := by
+    refine ⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode, ?_⟩
+    simpa [bgeuInstruction] using hboundary
+  simpa [bgeuInstruction] using h.to_rv32i_boundary
+
+#print axioms picorv32_beq_loaded_rv32i_boundary_of_step
+#print axioms picorv32_bne_loaded_rv32i_boundary_of_step
+#print axioms picorv32_blt_loaded_rv32i_boundary_of_step
+#print axioms picorv32_bge_loaded_rv32i_boundary_of_step
+#print axioms picorv32_bltu_loaded_rv32i_boundary_of_step
+#print axioms picorv32_bgeu_loaded_rv32i_boundary_of_step
 
 #print axioms picorv32_beq_class_step
 #print axioms picorv32_bne_class_step
