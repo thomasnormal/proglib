@@ -683,5 +683,20 @@
     "source": "harness/scripts/machine_class_attribute_aug.py",
     "envelope": "harness/scripts/machine_class_attribute_aug.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_attribute_create.py",
+    "envelope": "harness/scripts/machine_class_attribute_create.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_attribute_missing_aug.py",
+    "envelope": "harness/scripts/machine_class_attribute_missing_aug.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_attribute_assign_scalar.py",
+    "envelope": "harness/scripts/machine_attribute_assign_scalar.json",
+    "expect": "match"
   }
 ]
