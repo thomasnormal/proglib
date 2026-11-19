@@ -167,7 +167,7 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("proc_local_for_automatic.sv", "proc_local_for_automatic",
             (Port("a", 8),), (Port("y", 8),),
             points=(Point("N8", (8,)),),
-            expected_ordinary_refusal="ForLoop",
+            retain_loops=True, retain_proc_rewrites=True,
             expected_source_refusals=()),
     Fixture("darkriscv_nonliteral_initializer.sv", "nonliteral_initializer",
             (Port("a", 1),), (Port("q", 2),),
