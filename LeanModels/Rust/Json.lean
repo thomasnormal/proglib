@@ -358,6 +358,38 @@ private def signedField (shape : Json) : Option Bool :=
       | _ => none
   | _ => none
 
+private def intWidthBytes : Json → Option Nat
+  | .str "I8" => some 1
+  | .str "I16" => some 2
+  | .str "I32" => some 4
+  | .str "I64" => some 8
+  | .str "I128" => some 16
+  | _ => none
+
+private def directEnumInfo (shape : Json) : Option (Nat × Nat × Nat) := do
+  let fields ← (shape.getObjVal? "fields").toOption
+  let arbitrary ← (fields.getObjVal? "Arbitrary").toOption
+  let offsetsJson ← (arbitrary.getObjVal? "offsets").toOption
+  let offsets ← (array offsetsJson).toOption
+  let variants ← (shape.getObjVal? "variants").toOption
+  let multiple ← (variants.getObjVal? "Multiple").toOption
+  let encodingJson ← (multiple.getObjVal? "tag_encoding").toOption
+  let encoding ← (string encodingJson).toOption
+  if encoding != "Direct" then none else
+    let tagIndexJson ← (multiple.getObjVal? "tag_field").toOption
+    let tagIndex ← (nat tagIndexJson).toOption
+    let offset ← offsets.drop tagIndex |>.head?
+    let variantRowsJson ← (multiple.getObjVal? "variants").toOption
+    let variantRows ← (array variantRowsJson).toOption
+    let tag ← (multiple.getObjVal? "tag").toOption
+    let initialized ← (tag.getObjVal? "Initialized").toOption
+    let value ← (initialized.getObjVal? "value").toOption
+    let (_, intValue) ← (variant value).toOption
+    let length ← (intValue.getObjVal? "length").toOption
+    let width ← intWidthBytes length
+    let offsetBits ← (field offset "num_bits" >>= nat).toOption
+    some (offsetBits, width, variantRows.length)
+
 private def typeLayout (j : Json) : Except String TypeLayout := do
   let id ← field j "handle" >>= string
   let sourceId :=
@@ -371,6 +403,10 @@ private def typeLayout (j : Json) : Except String TypeLayout := do
     match j.getObjVal? "pointee" with
     | .ok (.str value) => value.toNat?
     | _ => none
+  let typeArgs :=
+    match j.getObjVal? "type_args" with
+    | .ok values => (array values >>= (·.mapM nat)).toOption.getD []
+    | .error _ => []
   let layout ←
     match ← field j "layout" with
     | layout =>
@@ -393,12 +429,12 @@ private def typeLayout (j : Json) : Except String TypeLayout := do
                       | .error _ => []
                   | .error _ => []
               | .error _ => []
-            pure (some (sizeBits, align, signedField shape, fieldOffsets))
+            pure (some (sizeBits, align, signedField shape, fieldOffsets, directEnumInfo shape))
         | .error _ => pure none
   match layout with
-  | some (sizeBits, align, signed, fieldOffsets) =>
-      pure { id, sourceId, kind, pointee, fieldOffsets, sizeBits, align, signed }
-  | none => pure { id, sourceId, kind, pointee, fieldOffsets := [], sizeBits := none, align := none, signed := none }
+  | some (sizeBits, align, signed, fieldOffsets, enumInfo) =>
+      pure { id := id, sourceId := sourceId, kind := kind, pointee := pointee, typeArgs := typeArgs, fieldOffsets := fieldOffsets, enumTagOffsetBits := enumInfo.map (·.1), enumTagBytes := enumInfo.map (·.2.1), enumVariantCount := enumInfo.map (·.2.2), enumDirect := enumInfo.isSome, sizeBits := sizeBits, align := align, signed := signed }
+  | none => pure { id, sourceId, kind, pointee, typeArgs, fieldOffsets := [], sizeBits := none, align := none, signed := none }
 
 private def allocation (j : Json) : Except String Allocation := do
   let id ← field j "id" >>= string

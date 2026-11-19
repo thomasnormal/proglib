@@ -335,6 +335,15 @@ impl Metadata {
             | TyKind::RigidTy(RigidTy::RawPtr(inner, _)) => Some(string(raw_key(inner))),
             _ => None,
         };
+        let type_args: Vec<Value> = match &kind {
+            TyKind::RigidTy(RigidTy::Adt(_, args)) => args.0.iter().filter_map(|argument| {
+                match argument {
+                    GenericArgKind::Type(inner) => Some(number(raw_key(inner))),
+                    _ => None,
+                }
+            }).collect(),
+            _ => Vec::new(),
+        };
         let layout = if has_dynamic_type(ty, &mut HashSet::new()) {
             object([( "error", string("layout refused: type contains a dynamic trait object") )])
         } else {
@@ -353,6 +362,7 @@ impl Metadata {
             ("handle", string(raw_key(&ty))),
             ("kind", string(format!("{kind:?}"))),
             ("pointee", pointee.unwrap_or_else(null)),
+            ("type_args", array(type_args)),
             ("layout", layout),
         ]);
     }

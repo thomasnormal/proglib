@@ -230,14 +230,38 @@ def typedBytesAggregate (s : State) (ty : Nat) (bytes : List Nat) : Option Cell 
         some (.aggregate fields)
   | none => none
 
+def typedBytesEnum (s : State) (ty : Nat) (bytes : List Nat) : Option Cell :=
+  match findTypeLayout s ty with
+  | some info =>
+      if !info.enumDirect then none else
+        match info.enumTagOffsetBits, info.enumTagBytes, info.enumVariantCount with
+        | some offsetBits, some tagBytes, some variantCount =>
+            let chunk := (bytes.drop (offsetBits / 8)).take tagBytes
+            if chunk.length == tagBytes && chunk.all (· ≤ 255) then
+              let variant := littleEndian chunk
+              if variant < variantCount then
+                let payload :=
+                  match variant, info.typeArgs.head? with
+                  | 0, _ => some []
+                  | _, some payloadType =>
+                      let payloadBytes := bytes.drop ((offsetBits / 8) + tagBytes)
+                      (typedBytesValue s payloadType payloadBytes).map (fun value => [Cell.int value])
+                  | _, none => none
+                payload.map (fun fields => .enum variant fields)
+              else none
+            else none
+        | _, _, _ => none
+  | none => none
+
 def allocationCell (s : State) (provenance : Nat) (pointeeType : Option Nat) : Option Cell :=
   match s.allocations.drop provenance |>.head? with
   | some allocation =>
       if allocation.bytesValid then
         match pointeeType with
         | some ty =>
-            (typedBytesAggregate s ty allocation.bytes).orElse fun _ =>
-              typedBytesValue s ty allocation.bytes |>.map Cell.int
+            (typedBytesEnum s ty allocation.bytes).orElse fun _ =>
+              (typedBytesAggregate s ty allocation.bytes).orElse fun _ =>
+                typedBytesValue s ty allocation.bytes |>.map Cell.int
         | none => none
       else none
   | none => none
@@ -269,13 +293,16 @@ def directPointerTarget (s : State) (pointer : Pointer) : Option Cell :=
     | some frameId => (sharedSlot s frameId pointer.provenance).bind slotCell |>.bind
         (projectFields s · pointer.projection)
     | none => match pointer.pointeeType with
-        | some ty => allocationCell s pointer.provenance (some ty)
-        | none => allocationCell s pointer.provenance none
+        | some ty => allocationCell s pointer.provenance (some ty) |>.bind
+            (projectFields s · pointer.projection)
+        | none => allocationCell s pointer.provenance none |>.bind
+            (projectFields s · pointer.projection)
 
 def pointerSlotCell (s : State) (pointer : Pointer) (slot : Slot) : Option Cell :=
   match slotCell slot, pointer.pointeeType with
   | some (.bytes bytes), some ty =>
-      (typedBytesAggregate s ty bytes).orElse fun _ => some (.bytes bytes)
+      (typedBytesEnum s ty bytes).orElse fun _ =>
+        (typedBytesAggregate s ty bytes).orElse fun _ => some (.bytes bytes)
   | value, _ => value
 
 def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
@@ -304,8 +331,10 @@ def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
             | _ => none
         | projection => target.bind (projectFields s · projection)
     | none => match pointer.pointeeType with
-        | some ty => allocationCell s pointer.provenance (some ty)
-        | none => allocationCell s pointer.provenance none
+        | some ty => allocationCell s pointer.provenance (some ty) |>.bind
+            (projectFields s · pointer.projection)
+        | none => allocationCell s pointer.provenance none |>.bind
+            (projectFields s · pointer.projection)
 
 def derefTwo (s : State) (pointer : Pointer) : Option Cell := do
   let first ← pointerTarget s pointer
@@ -420,6 +449,14 @@ def pointerType (s : State) (target : Nat) : Bool :=
       info.kind.startsWith "RigidTy(FnPtr"
   | none => false
 
+def referencePointeeType (s : State) (localId : Nat) : Option Nat :=
+  match localType s localId with
+  | none => none
+  | some ty =>
+      match findTypeLayout s ty with
+      | some info => info.pointee.orElse (fun _ => some ty)
+      | none => some ty
+
 def operandCell (s : State) : Operand → Option Cell
   | .constant _ bytes ty provenance zeroSized =>
       if zeroSized then some (.int 0) else
@@ -498,27 +535,25 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       | .divideByZero => none
   | .ref place =>
       match place.projection with
-      | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId })
-      | .deref :: rest =>
-          match localSlot s place.localId |>.bind slotCell with
-          | some (.pointer pointer) =>
-              if pointer.projection.isEmpty then
-                some (.pointer { pointer with projection := rest })
-              else none
-          | _ => none
-      | projection =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId, projection := projection })
-  | .addressOf _ place =>
-      match place.projection with
-      | [] =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId })
+      | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId })
       | .deref :: rest =>
           match localSlot s place.localId |>.bind slotCell with
           | some (.pointer pointer) =>
               some (.pointer { pointer with projection := pointer.projection ++ rest })
           | _ => none
       | projection =>
-          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId, projection := projection })
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, projection := projection })
+  | .addressOf _ place =>
+      match place.projection with
+      | [] =>
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId })
+      | .deref :: rest =>
+          match localSlot s place.localId |>.bind slotCell with
+          | some (.pointer pointer) =>
+              some (.pointer { pointer with projection := pointer.projection ++ rest })
+          | _ => none
+      | projection =>
+          some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := referencePointeeType s place.localId, projection := projection })
   | .aggregate _ fields => do
       let values ← fields.mapM (operandCell s)
       pure (.aggregate values)
@@ -667,7 +702,9 @@ def statementFailure : State → List Statement → Outcome
                   | .divideByZero => .panicked
                   | .overflow | .value _ => .refused (.unsupported "checked arithmetic")
               | _, _ => .refused (.unsupported "checked arithmetic operands")
-          | .assign _ (.ref _ ) => .refused (.unsupported "reference write")
+          | .assign place (.ref target) =>
+              .refused (.unsupported ("reference write place=" ++ toString (repr place) ++
+                " target=" ++ toString (repr target)))
           | .assign _ (.addressOf _ _) => .refused (.unsupported "address-of write")
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
           | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
@@ -692,7 +729,12 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.binaryBitXor _ _) => .refused (.unsupported "bitwise-xor assignment")
           | .assign _ (.zstAggregate) => .refused (.unsupported "zst aggregate assignment")
           | .assign _ (.adtAggregate _ _) => .refused (.unsupported "adt aggregate assignment")
-          | .assign _ (.discriminant _) => .refused (.unsupported "discriminant assignment")
+          | .assign place (.discriminant target) =>
+              .refused (.unsupported ("discriminant assignment place=" ++
+                toString (repr place) ++ " cell=" ++
+                toString (repr (readCell state target)) ++ " target=" ++
+                toString (repr target) ++ " slot=" ++
+                toString (repr (localSlot state target.localId))))
           | .assign _ (.unsupported kind) => .refused (.unsupported ("assignment " ++ kind))
           | .placeMention _ => .refused (.unsupported "place mention")
           | .storageLive _ | .storageDead _ | .unsupported _ =>
