@@ -68,6 +68,7 @@ with their concrete values (IEEE 1800-2023 §§6.20.2, 23.3.3). This is
 elaboration substitution, not a semantic lowering: process and declaration
 constructors remain the same nodes. -/
 
+mutual
 private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
   | .paramRef n none =>
       match vals.lookup n with
@@ -94,8 +95,26 @@ private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
   | .arrayPart n xs mode a b =>
       .arrayPart n (xs.map (hParamExpr vals)) mode (hParamExpr vals a) (hParamExpr vals b)
   | .functionCall n xs => .functionCall n (xs.map (hParamExpr vals))
-  | .aggregateMember n path => .aggregateMember n path
+  | .aggregateMember n path => .aggregateMember n (hParamPath vals path)
   | e => e
+
+private def hParamPath (vals : List (String × Int)) : List (Option String × Option PExpr) →
+    List (Option String × Option PExpr)
+  | [] => []
+  | (field, ix) :: rest => (field, hParamOpt vals ix) :: hParamPath vals rest
+
+private def hParamOpt (vals : List (String × Int)) : Option PExpr → Option PExpr
+  | none => none
+  | some e => some (hParamExpr vals e)
+end
+
+private def aggregateIndexParamProbe : PExpr :=
+  hParamExpr [("P", 3)] (.aggregateMember "state"
+    [(some "value", none), (none, some (.paramRef "P" none))])
+
+#guard aggregateIndexParamProbe ==
+  .aggregateMember "state"
+    [(some "value", none), (none, some (.int 3))]
 
 private def hParamDim (vals : List (String × Int)) (d : PDim) : PDim :=
   { msb := hParamExpr vals d.msb, lsb := hParamExpr vals d.lsb }
