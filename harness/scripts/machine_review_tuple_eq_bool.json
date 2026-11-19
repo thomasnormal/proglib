@@ -1,0 +1,112 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_tuple_eq_bool.py",
+  "source_sha256": "50a11e688ad72da927ed6ddecf873df1d97f51f65d7c26f1621cc8113820adf5",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 22
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 2,
+            "col_offset": 0,
+            "end_lineno": 2,
+            "end_col_offset": 22
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Compare",
+              "span": {
+                "lineno": 2,
+                "col_offset": 6,
+                "end_lineno": 2,
+                "end_col_offset": 21
+              },
+              "left": {
+                "kind": "Tuple",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 6,
+                  "end_lineno": 2,
+                  "end_col_offset": 10
+                },
+                "elts": [
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 2,
+                      "col_offset": 7,
+                      "end_lineno": 2,
+                      "end_col_offset": 8
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  }
+                ]
+              },
+              "ops": [
+                "Eq"
+              ],
+              "comparators": [
+                {
+                  "kind": "Tuple",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 14,
+                    "end_lineno": 2,
+                    "end_col_offset": 21
+                  },
+                  "elts": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 2,
+                        "col_offset": 15,
+                        "end_lineno": 2,
+                        "end_col_offset": 19
+                      },
+                      "value": {
+                        "type": "bool",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

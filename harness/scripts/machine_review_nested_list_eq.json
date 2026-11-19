@@ -1,0 +1,134 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_nested_list_eq.py",
+  "source_sha256": "9aeb6b57d1a885ee601dba71c121c1d2a3da351ccbc6b6bf44a1d4f977f3d7cf",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 21
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 2,
+            "col_offset": 0,
+            "end_lineno": 2,
+            "end_col_offset": 21
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Compare",
+              "span": {
+                "lineno": 2,
+                "col_offset": 6,
+                "end_lineno": 2,
+                "end_col_offset": 20
+              },
+              "left": {
+                "kind": "List",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 6,
+                  "end_lineno": 2,
+                  "end_col_offset": 11
+                },
+                "elts": [
+                  {
+                    "kind": "List",
+                    "span": {
+                      "lineno": 2,
+                      "col_offset": 7,
+                      "end_lineno": 2,
+                      "end_col_offset": 10
+                    },
+                    "elts": [
+                      {
+                        "kind": "Constant",
+                        "span": {
+                          "lineno": 2,
+                          "col_offset": 8,
+                          "end_lineno": 2,
+                          "end_col_offset": 9
+                        },
+                        "value": {
+                          "type": "int",
+                          "repr": "1"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "ops": [
+                "Eq"
+              ],
+              "comparators": [
+                {
+                  "kind": "List",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 15,
+                    "end_lineno": 2,
+                    "end_col_offset": 20
+                  },
+                  "elts": [
+                    {
+                      "kind": "List",
+                      "span": {
+                        "lineno": 2,
+                        "col_offset": 16,
+                        "end_lineno": 2,
+                        "end_col_offset": 19
+                      },
+                      "elts": [
+                        {
+                          "kind": "Constant",
+                          "span": {
+                            "lineno": 2,
+                            "col_offset": 17,
+                            "end_lineno": 2,
+                            "end_col_offset": 18
+                          },
+                          "value": {
+                            "type": "int",
+                            "repr": "1"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

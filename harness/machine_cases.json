@@ -613,5 +613,195 @@
     "source": "harness/scripts/machine_arguments_boundary.py",
     "envelope": "harness/scripts/machine_arguments_boundary.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_alias.py",
+    "envelope": "harness/scripts/machine_review_alias.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_aug_list.py",
+    "envelope": "harness/scripts/machine_review_aug_list.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_aug_subscript.py",
+    "envelope": "harness/scripts/machine_review_aug_subscript.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_aug_unbound.py",
+    "envelope": "harness/scripts/machine_review_aug_unbound.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_closure_late.py",
+    "envelope": "harness/scripts/machine_review_closure_late.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_del_local_shadow.py",
+    "envelope": "harness/scripts/machine_review_del_local_shadow.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_dict_bool_key.py",
+    "envelope": "harness/scripts/machine_review_dict_bool_key.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_dict_dup_keys.py",
+    "envelope": "harness/scripts/machine_review_dict_dup_keys.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_dict_eq.py",
+    "envelope": "harness/scripts/machine_review_dict_eq.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_dict_get_bool.py",
+    "envelope": "harness/scripts/machine_review_dict_get_bool.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_dict_miss_int.py",
+    "envelope": "harness/scripts/machine_review_dict_miss_int.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_dict_store_bool.py",
+    "envelope": "harness/scripts/machine_review_dict_store_bool.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_dict_unpack.py",
+    "envelope": "harness/scripts/machine_review_dict_unpack.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_eq_int_bool.py",
+    "envelope": "harness/scripts/machine_review_eq_int_bool.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_eq_int_float.py",
+    "envelope": "harness/scripts/machine_review_eq_int_float.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_for_empty_unbound.py",
+    "envelope": "harness/scripts/machine_review_for_empty_unbound.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_for_leak.py",
+    "envelope": "harness/scripts/machine_review_for_leak.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_for_mutate.py",
+    "envelope": "harness/scripts/machine_review_for_mutate.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_for_shrink.py",
+    "envelope": "harness/scripts/machine_review_for_shrink.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_global_aug.py",
+    "envelope": "harness/scripts/machine_review_global_aug.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_global_late.py",
+    "envelope": "harness/scripts/machine_review_global_late.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_global_param.py",
+    "envelope": "harness/scripts/machine_review_global_param.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_global_untaken.py",
+    "envelope": "harness/scripts/machine_review_global_untaken.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_in_bool_list.py",
+    "envelope": "harness/scripts/machine_review_in_bool_list.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_module_rebind_for.py",
+    "envelope": "harness/scripts/machine_review_module_rebind_for.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_module_rebind_unpack.py",
+    "envelope": "harness/scripts/machine_review_module_rebind_unpack.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_nested_for.py",
+    "envelope": "harness/scripts/machine_review_nested_for.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_nested_list_eq.py",
+    "envelope": "harness/scripts/machine_review_nested_list_eq.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_nested_list_in.py",
+    "envelope": "harness/scripts/machine_review_nested_list_in.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_nonlocal_unbound.py",
+    "envelope": "harness/scripts/machine_review_nonlocal_unbound.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_not_empty_list.py",
+    "envelope": "harness/scripts/machine_review_not_empty_list.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_star_append.py",
+    "envelope": "harness/scripts/machine_review_star_append.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_star_order.py",
+    "envelope": "harness/scripts/machine_review_star_order.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_str_in.py",
+    "envelope": "harness/scripts/machine_review_str_in.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_review_truthy_empty_dict.py",
+    "envelope": "harness/scripts/machine_review_truthy_empty_dict.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_truthy_empty_list.py",
+    "envelope": "harness/scripts/machine_review_truthy_empty_list.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_tuple_eq_bool.py",
+    "envelope": "harness/scripts/machine_review_tuple_eq_bool.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_while_pop.py",
+    "envelope": "harness/scripts/machine_review_while_pop.json",
+    "expect": "match"
   }
 ]

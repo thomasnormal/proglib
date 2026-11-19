@@ -1,0 +1,164 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_while_pop.py",
+  "source_sha256": "894d70883af381f9b6575eb26a3fc7c342b721e7b60922838b80d8f503dd600d",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 11
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 2
+            },
+            "id": "xs"
+          }
+        ],
+        "value": {
+          "kind": "List",
+          "span": {
+            "lineno": 2,
+            "col_offset": 5,
+            "end_lineno": 2,
+            "end_col_offset": 11
+          },
+          "elts": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 6,
+                "end_lineno": 2,
+                "end_col_offset": 7
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            },
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 9,
+                "end_lineno": 2,
+                "end_col_offset": 10
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "kind": "While",
+        "span": {
+          "lineno": 3,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 19
+        },
+        "test": {
+          "kind": "Name",
+          "span": {
+            "lineno": 3,
+            "col_offset": 6,
+            "end_lineno": 3,
+            "end_col_offset": 8
+          },
+          "id": "xs"
+        },
+        "body": [
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 4,
+              "col_offset": 4,
+              "end_lineno": 4,
+              "end_col_offset": 19
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 4,
+                "col_offset": 4,
+                "end_lineno": 4,
+                "end_col_offset": 19
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 4,
+                  "end_lineno": 4,
+                  "end_col_offset": 9
+                },
+                "id": "print"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [
+                {
+                  "kind": "Call",
+                  "span": {
+                    "lineno": 4,
+                    "col_offset": 10,
+                    "end_lineno": 4,
+                    "end_col_offset": 18
+                  },
+                  "func": {
+                    "kind": "Attribute",
+                    "span": {
+                      "lineno": 4,
+                      "col_offset": 10,
+                      "end_lineno": 4,
+                      "end_col_offset": 16
+                    },
+                    "value": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 4,
+                        "col_offset": 10,
+                        "end_lineno": 4,
+                        "end_col_offset": 12
+                      },
+                      "id": "xs"
+                    },
+                    "attr": "pop"
+                  },
+                  "starargs": [],
+                  "kwargs": [],
+                  "args": [],
+                  "keywords": [],
+                  "call_unsupported": null
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          }
+        ],
+        "orelse": []
+      }
+    ]
+  },
+  "lean_blocks": []
+}
