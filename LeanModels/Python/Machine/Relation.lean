@@ -98,6 +98,7 @@ structure RFunction where
   captured : REnv := []
   globalNames : List String := []
   nonlocalNames : List String := []
+  localNames : List String := []
 deriving Repr, Inhabited, BEq
 
 structure RModule where
@@ -113,6 +114,7 @@ inductive RErrClass where
   | recursion
   | memory
   | name
+  | unboundLocal
   | type
   | index
   | runtime
@@ -226,6 +228,7 @@ structure RFrame where
   completion : Option RKont := none
   globalNames : List String := []
   nonlocalNames : List String := []
+  localNames : List String := []
 deriving Repr, Inhabited, BEq
 
 structure RConfig where
@@ -284,7 +287,8 @@ def rDefinedFrame (frame : RFrame) (name : String) (id : Nat) (remaining : List 
     cells := frame.cells
     completion := frame.completion
     globalNames := frame.globalNames
-    nonlocalNames := frame.nonlocalNames }
+    nonlocalNames := frame.nonlocalNames
+    localNames := frame.localNames }
 
 def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFrame)
     (function : RFunction) (remaining : List RStmt) : RConfig :=
@@ -485,7 +489,8 @@ def rCallFrame (function : RFunction) (values : List RVal)
              module := function.globals
              cells := function.captured
              globalNames := function.globalNames
-             nonlocalNames := function.nonlocalNames }
+             nonlocalNames := function.nonlocalNames
+             localNames := function.localNames }
 
 def rKeywordVariadicName : List RParam → Option String
   | [] => none
@@ -502,6 +507,31 @@ def rScopeNames : List RStmt → List String × List String
       let tail := rScopeNames rest
       (tail.1, names.toList ++ tail.2)
   | _ :: rest => rScopeNames rest
+
+def rTargetNames : Expr → List String
+  | .name name _ => [name]
+  | _ => []
+
+def rBoundNames : List RStmt → List String
+  | [] => []
+  | .assign target _ _ :: rest => rTargetNames target ++ rBoundNames rest
+  | .assignMany targets _ _ :: rest => targets.toList.flatMap rTargetNames ++ rBoundNames rest
+  | .unpackAssign before star after _ _ :: rest =>
+      before.toList ++ [star] ++ after.toList ++ rBoundNames rest
+  | .augAssign target _ _ _ :: rest => rTargetNames target ++ rBoundNames rest
+  | .delete target _ :: rest => rTargetNames target ++ rBoundNames rest
+  | .deleteMany targets _ :: rest => targets.toList.flatMap rTargetNames ++ rBoundNames rest
+  | .forStmt target _ _ _ _ :: rest => rTargetNames target ++ rBoundNames rest
+  | .asyncForStmt target _ _ _ _ :: rest => rTargetNames target ++ rBoundNames rest
+  | .ifStmt _ _ _ _ :: rest => rBoundNames rest
+  | .whileStmt _ _ _ _ :: rest => rBoundNames rest
+  | .functionDef name _ _ _ _ :: rest => name :: rBoundNames rest
+  | .functionDefFull name _ _ _ _ _ _ :: rest => name :: rBoundNames rest
+  | .functionDefKw name _ _ _ _ _ :: rest => name :: rBoundNames rest
+  | .classDef name _ _ _ _ _ :: rest => name :: rBoundNames rest
+  | .global names _ :: rest => (rBoundNames rest).filter (fun name => name ∉ names.toList)
+  | .nonlocal names _ :: rest => (rBoundNames rest).filter (fun name => name ∉ names.toList)
+  | _ :: rest => rBoundNames rest
 
 def rBuildKwargs (heap : Heap) (keywords : List (String × RVal)) : Heap × RVal :=
   let entries := (keywords.map (fun pair =>
@@ -870,6 +900,13 @@ def rLookupFrameName (config : RConfig) (frame : RFrame) (name : String) : Optio
     | some value => some value
     | none => rLookupCaptured config.heap frame.locals name
   else if name ∈ frame.globalNames then readModule
+  else if name ∈ frame.localNames then
+    match rLookupCaptured config.heap frame.locals name with
+    | some value => some value
+    | none =>
+        match rLookupCaptured config.heap frame.cells name with
+        | some value => some value
+        | none => none
   else
     match rLookupCaptured config.heap frame.locals name with
     | some value => some value
@@ -1314,7 +1351,16 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.event (.refuse "machine augmented assignment target"),
                 config.finish (.refuse "machine augmented assignment target"))
           | .delete (.name name _) _ =>
-              if config.functions.any (fun function => function.name == name) then
+              if !config.frames.tail.isEmpty && name ∈ frame.localNames
+                  && name ∉ frame.globalNames && name ∉ frame.nonlocalNames then
+                match rDeleteEnv frame.locals name with
+                | some locals =>
+                    let updated := { frame with control := .statements rest, locals := locals }
+                    some (.tau, config.setTop updated)
+                | none =>
+                    let error : RError := { errorClass := .unboundLocal, args := [] }
+                    some (.event (.raise error), config.finish (.raise error))
+              else if config.functions.any (fun function => function.name == name) then
                 some (.event (.refuse "machine delete function"),
                   config.finish (.refuse "machine delete function"))
               else
@@ -1408,7 +1454,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                         { id := config.nextFunctionId, name := name, params := params, defaults := defaults,
                           defaultValues := defaultValues, keywordDefaultValues := #[], body := body,
                           globals := current.module, captured := captured.2.2,
-                          globalNames := scopeNames.1, nonlocalNames := scopeNames.2 }
+                          globalNames := scopeNames.1, nonlocalNames := scopeNames.2,
+                          localNames := (rBoundNames body.toList).filter
+                            (fun name => name ∉ scopeNames.1 && name ∉ scopeNames.2) }
                       let defined := config.defineFunction capturedFrame tail function rest
                       some (.tau, { defined with heap := captured.1 })
               | [] => none
@@ -1429,7 +1477,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                           defaultValues := defaultValues,
                           keywordDefaultValues := keywordDefaultValues.toArray,
                           body := body, globals := current.module, captured := captured.2.2,
-                          globalNames := scopeNames.1, nonlocalNames := scopeNames.2 }
+                          globalNames := scopeNames.1, nonlocalNames := scopeNames.2,
+                          localNames := (rBoundNames body.toList).filter
+                            (fun name => name ∉ scopeNames.1 && name ∉ scopeNames.2) }
                       let defined := config.defineFunction capturedFrame tail function rest
                       some (.tau, { defined with heap := captured.1 })
                   | _, _ => some (.event (.refuse "machine default expression"),
@@ -1446,10 +1496,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           match rLookupFrameName config frame name with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none =>
-              match rBuiltin config.builtins name with
-              | some value => some (.tau, config.setControl (.continueValue value continuation))
-              | none => some (.event (.refuse ("unbound name: " ++ name)),
-                  config.finish (.refuse ("unbound name: " ++ name)))
+              if !config.frames.tail.isEmpty && name ∈ frame.localNames
+                  && name ∉ frame.globalNames && name ∉ frame.nonlocalNames then
+                let error : RError := { errorClass := .unboundLocal, args := [] }
+                some (.event (.raise error), config.finish (.raise error))
+              else
+                match rBuiltin config.builtins name with
+                | some value => some (.tau, config.setControl (.continueValue value continuation))
+                | none => some (.event (.refuse ("unbound name: " ++ name)),
+                    config.finish (.refuse ("unbound name: " ++ name)))
       | .evaluate (.call function args keywords unsupported _) continuation =>
           match unsupported, keywords.toList with
           | some text, _ => some (.event (.refuse text), config.finish (.refuse text))
