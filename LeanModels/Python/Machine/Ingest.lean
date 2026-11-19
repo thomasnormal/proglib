@@ -280,6 +280,11 @@ partial def mStmt (j : Json) : Except String MStmt := do
   | "Expr" => pure (.expr (← mExpr (← mField j "value")) span)
   | "Assign" => pure (.assign (← (← (← mField j "targets").getArr?).mapM mExpr)
       (← mExpr (← mField j "value")) span)
+  | "Delete" =>
+      let names ← (← mField j "names").getArr?
+      let targets ← names.mapM (fun name => do
+        return MExpr.name (← name.getStr?) span)
+      pure (.delete targets span)
   | "UnpackAssign" => pure (.unpackAssign
       (← (← (← mField j "before").getArr?).mapM (·.getStr?))
       (← (← mField j "star").getStr?)
@@ -391,6 +396,10 @@ partial def mStmtToStmt : MStmt → RStmt
       .unpackAssign before star after (mExprToExpr value) span
   | .augAssign target op value span =>
       .augAssign (mExprToExpr target) op (mExprToExpr value) span
+  | .delete targets span =>
+      match targets.toList with
+      | [target] => .delete (mExprToExpr target) span
+      | _ => .unsupported "Delete" "machine multiple-target deletion" span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
@@ -408,7 +417,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .global names span => .global names span
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
-  | .annAssign _ _ _ _ span | .delete _ span
+  | .annAssign _ _ _ _ span
   | .classDef _ _ _ _ _ span | .import _ span
   | .importFrom _ _ _ span | .raise _ _ span
   | .tryStmt _ _ _ _ span | .withStmt _ _ _ span | .brk span | .cont span =>
