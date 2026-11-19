@@ -23,15 +23,18 @@ structure CoreMemFastState where
       array view so this bridge remains a full `CoreMemState` bridge. -/
   scalarCache : Array Val
   memory : MemState
+  aggregates : AggStore
 
 def CoreMemFastState.toState (s : CoreMemFastState) : CoreMemState :=
-  { scalar := s.scalar.store, scalarCache := s.scalarCache, memory := s.memory }
+  { scalar := s.scalar.store, scalarCache := s.scalarCache, memory := s.memory,
+    aggregates := s.aggregates }
 
 def CoreMemFastState.ofState (E : CoreMemDesign) (s : CoreMemState) : CoreMemFastState :=
   { scalar := FastConfig.ofConfig E.scalar
       { store := s.scalar, active := [], k := 0 }
     scalarCache := s.scalarCache
-    memory := s.memory }
+    memory := s.memory
+    aggregates := s.aggregates }
 
 theorem CoreMemFastState.ofState_toState (E : CoreMemDesign) (s : CoreMemState) :
     (CoreMemFastState.ofState E s).toState = s := by
@@ -113,6 +116,7 @@ def CoreMemDesign.fastSettleAssignAt (E : CoreMemDesign)
   | .implicit _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .latch _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .event _ _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
+  | .primitive _ _ _ :: rest => E.fastSettleAssignAt env elems s view (index + 1) rest
   | .assign target value :: rest =>
       E.fastSettleFallback env elems s view index (.assign target value :: rest)
   | .unsupported kind text :: _ => .unsupported s!"{kind}: {text}"
@@ -520,6 +524,32 @@ theorem CoreMemDesign.fastCommitScalar_preserves_memory
               · simp [CoreMemDesign.fastCommitScalar, hx, hp, hb] at h
           | cons head tail => simp [CoreMemDesign.fastCommitScalar, hx, hp] at h
 
+theorem CoreMemDesign.fastCommitScalar_preserves_aggregates
+    (E : CoreMemDesign) (s s' : CoreMemFastState) (q : NbaQueue2)
+    (h : E.fastCommitScalar s q = .ok s') : s'.aggregates = s.aggregates := by
+  induction q generalizing s s' with
+  | nil => simp [CoreMemDesign.fastCommitScalar] at h ⊢; cases h; rfl
+  | cons u rest ih =>
+      cases hx : E.scalarEdge.base.resolve u.1 with
+      | none => simp [CoreMemDesign.fastCommitScalar, hx] at h
+      | some x =>
+          cases hp : x.path with
+          | nil =>
+              by_cases hb : x.decl < s.scalar.cells.size
+              · let cells := s.scalar.cells.setIfInBounds x.decl
+                  ((s.scalar.cells.getD x.decl (s.scalar.fallback x)).write
+                    u.2.1 u.2.2)
+                let s1 : CoreMemFastState :=
+                  { s with
+                      scalar := { s.scalar with cells }
+                      scalarCache := cells }
+                have htail : E.fastCommitScalar s1 rest = .ok s' := by
+                  simpa [CoreMemDesign.fastCommitScalar, hx, hp, hb,
+                    s1, cells] using h
+                exact (ih s1 s' htail).trans rfl
+              · simp [CoreMemDesign.fastCommitScalar, hx, hp, hb] at h
+          | cons head tail => simp [CoreMemDesign.fastCommitScalar, hx, hp] at h
+
 def CoreMemDesign.flatScalarQueueB (E : CoreMemDesign) (s : CoreMemFastState) :
     NbaQueue2 → Bool
   | [] => true
@@ -578,12 +608,14 @@ def CoreMemDesign.fastCommitScalarState (E : CoreMemDesign)
 
 theorem CoreMemDesign.normalizeScalar_eq_of
     (E : CoreMemDesign) (a b : CoreMemState)
-    (store : Store) (hscalar : a.scalar = store) (hmemory : a.memory = b.memory) :
+    (store : Store) (hscalar : a.scalar = store) (hmemory : a.memory = b.memory)
+    (haggregates : a.aggregates = b.aggregates) :
     E.normalizeScalar a a.scalar = E.normalizeScalar b store := by
   cases a
   cases b
   cases hscalar
   cases hmemory
+  cases haggregates
   rfl
 
 theorem CoreMemDesign.fastCommitScalarState_eq
@@ -603,8 +635,12 @@ theorem CoreMemDesign.fastCommitScalarState_eq
       rw [hbase] at hs
       have hm := E.fastCommitScalar_preserves_memory
         (CoreMemFastState.ofState E st) fs' q hf
+      have ha := E.fastCommitScalar_preserves_aggregates
+        (CoreMemFastState.ofState E st) fs' q hf
+      have hagg : fs'.toState.aggregates = st.aggregates := by
+        simpa [CoreMemFastState.ofState, CoreMemFastState.toState] using ha
       have hnorm := E.normalizeScalar_eq_of fs'.toState st
-        (E.scalarEdge.commit st.scalar q) hs hm
+        (E.scalarEdge.commit st.scalar q) hs hm hagg
       simp [hf, hnorm]
 
 theorem CoreMemDesign.fastCommitScalarState_refines

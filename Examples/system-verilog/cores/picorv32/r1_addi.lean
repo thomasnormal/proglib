@@ -371,6 +371,28 @@ theorem picorv32_addi1_fields_of_wf_state
 
 #print axioms picorv32_addi1_fields_of_wf_state
 
+/-! The row fields alone determine the exact architectural ADDI step.  This
+    bridge intentionally does not require retirement equality, whose changed-
+    register list depends on the prior destination value. -/
+
+theorem picorv32_addi_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (rd rs1 : Reg) (imm : Word)
+    (hfields : observation.addiFields state input word rd rs1 imm) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (addiNext state rd rs1 imm, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.alu .add rd (.reg rs1) (.imm imm)) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      subst fetched
+      subst irq
+      exact isaStepMemWith_addi profile state memory word rd rs1 imm hdecode
+
+#print axioms picorv32_addi_fields_isa_step
+
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact
     port sample remain premises, so this theorem records a loaded-core
