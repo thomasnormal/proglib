@@ -13,6 +13,7 @@ structure Pointer where
   address : Nat
   pointeeType : Option Nat := none
   isLocal : Bool := true
+  targetFrame : Option Nat := none
   projection : List Projection := []
 deriving Repr, Inhabited, BEq, DecidableEq
 
@@ -33,7 +34,8 @@ deriving Repr, Inhabited, BEq
 
 structure State where
   locals : List (Nat × Slot) := []
-  sharedLocals : List (Nat × Slot) := []
+  sharedLocals : List (Nat × Nat × Slot) := []
+  frameId : Nat := 0
   placements : List (Nat × Nat) := []
   types : List TypeLayout := []
   allocations : List Allocation := []
@@ -91,9 +93,6 @@ def Outcome.label : Outcome → String
 
 def setSlot (s : State) (localId : Nat) (slot : Slot) : State :=
   { s with locals := (localId, slot) :: s.locals.filter (fun item => item.1 != localId) }
-
-def setSharedSlot (s : State) (localId : Nat) (slot : Slot) : State :=
-  { s with sharedLocals := (localId, slot) :: s.sharedLocals.filter (fun item => item.1 != localId) }
 
 def littleEndian (bytes : List Nat) (shift : Nat := 0) : Nat :=
   match bytes with
@@ -159,17 +158,24 @@ def cellSlot : Cell → Slot
   | .int value => .value value
   | value => .cell value
 
-def shareCell : Cell → Cell
-  | .pointer pointer => .pointer { pointer with isLocal := false }
-  | .aggregate fields => .aggregate (fields.map shareCell)
-  | .enum variant fields => .enum variant (fields.map shareCell)
+def shareCell (frameId : Nat) : Cell → Cell
+  | .pointer pointer =>
+      if pointer.isLocal then
+        .pointer { pointer with isLocal := false, targetFrame := some frameId }
+      else .pointer pointer
+  | .aggregate fields => .aggregate (fields.map (shareCell frameId))
+  | .enum variant fields => .enum variant (fields.map (shareCell frameId))
   | value => value
 
 def localSlot (s : State) (localId : Nat) : Option Slot :=
   s.locals.find? (fun item => item.1 == localId) |>.map (·.2)
 
-def sharedSlot (s : State) (localId : Nat) : Option Slot :=
-  s.sharedLocals.find? (fun item => item.1 == localId) |>.map (·.2)
+def sharedSlot (s : State) (frameId localId : Nat) : Option Slot :=
+  s.sharedLocals.find? (fun item => item.1 == frameId && item.2.1 == localId) |>.map (·.2.2)
+
+def sharedSlotsFrom (frameId : Nat) : List (Nat × Slot) → List (Nat × Nat × Slot)
+  | [] => []
+  | (localId, slot) :: rest => (frameId, localId, slot) :: sharedSlotsFrom frameId rest
 
 def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
   let layout := s.types.find? (fun item => item.id == toString ty)
@@ -226,11 +232,13 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
       | .pointer pointer =>
           let target :=
             if pointer.isLocal then
-              ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s pointer.provenance)).bind slotCell |>.bind
+              ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)).bind slotCell |>.bind
                 (projectFields s · pointer.projection)
             else
-              match sharedSlot s pointer.provenance with
-              | some slot => slotCell slot |>.bind (projectFields s · pointer.projection)
+              match pointer.targetFrame with
+              | some frameId => match sharedSlot s frameId pointer.provenance with
+                | some slot => slotCell slot |>.bind (projectFields s · pointer.projection)
+                | none => none
               | none => match pointer.pointeeType with
                 | some ty => allocationCell s pointer.provenance (some ty)
                 | none => allocationCell s pointer.provenance none
@@ -240,9 +248,9 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
       match cell with
       | .pointer pointer =>
           let target :=
-            if pointer.isLocal then ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s pointer.provenance)).bind slotCell
-            else match sharedSlot s pointer.provenance with
-              | some slot => slotCell slot
+            if pointer.isLocal then ((localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)).bind slotCell
+            else match pointer.targetFrame with
+              | some frameId => (sharedSlot s frameId pointer.provenance).bind slotCell
               | none => match pointer.pointeeType with
                 | some ty => allocationCell s pointer.provenance (some ty)
                 | none => allocationCell s pointer.provenance none
@@ -295,10 +303,14 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
                 writeLocalProjection s pointer.provenance rest value
               else none
             else do
-              let slot ← sharedSlot s pointer.provenance
+              let frameId ← pointer.targetFrame
+              let slot ← sharedSlot s frameId pointer.provenance
               let cell ← slotCell slot
               let updated ← updateCellProjection cell (pointer.projection ++ rest) value
-              pure (setSharedSlot s pointer.provenance (cellSlot updated))
+              pure { s with sharedLocals :=
+                (frameId, pointer.provenance, cellSlot updated) ::
+                  s.sharedLocals.filter (fun item =>
+                    !(item.1 == frameId && item.2.1 == pointer.provenance)) }
         | _ => none
   | .field index _ :: rest => writeLocalProjection s place.localId (.field index 0 :: rest) value
   | .downcast _ :: _ | .unsupported _ :: _ => none
@@ -646,8 +658,12 @@ def bindEvaluatedCells : State → List Cell → Nat → State
 
 def bindCallCellsFresh (caller callee : State) (args : List Operand) (localId : Nat) : Option State := do
   let values ← args.mapM (operandCell caller)
-  pure (bindEvaluatedCells { callee with sharedLocals := caller.locals ++ caller.sharedLocals }
-    (values.map shareCell) localId)
+  let frameState := { callee with frameId := caller.frameId + 1 }
+  let sharedState := { frameState with
+    sharedLocals := sharedSlotsFrom caller.frameId caller.locals ++ caller.sharedLocals }
+  pure (bindEvaluatedCells
+    sharedState
+    (values.map (shareCell caller.frameId)) localId)
 
 def returnValue (trace : Trace) : Option Int :=
   (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item =>
