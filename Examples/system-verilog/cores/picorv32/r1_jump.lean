@@ -63,6 +63,43 @@ theorem picorv32_jalr_class_commit (state : ArchState) (memory : Memory) :
   exact rvMachineWith_jalr cv32e40pProfile state memory jalrWord 1 0 0x100
     jump_decodes.2
 
+/-! The raw JAL and JALR fields determine their exact architectural steps.
+    The two decoder shapes remain separate so the bridge cannot erase JALR's
+    source-register read or low-bit target rule. -/
+
+theorem picorv32_jal_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (rd : Reg) (offset : Word)
+    (hfields : observation.jalFields state input word rd offset) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (jalNext state rd offset, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.jump rd .pc offset) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_jal profile state memory word rd offset hdecode
+
+theorem picorv32_jalr_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (rd rs1 : Reg) (offset : Word)
+    (hfields : observation.jalrFields state input word rd rs1 offset) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (jalrNext state rd rs1 offset, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.jump rd (.reg rs1) offset) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_jalr profile state memory word rd rs1 offset hdecode
+
+#print axioms picorv32_jal_fields_isa_step
+#print axioms picorv32_jalr_fields_isa_step
+
 /-! These wrappers connect exact loaded-core execution and decoder premises to
     the indexed dispatcher.  JAL and JALR retain distinct raw boundaries while
     sharing one decoded jump-family witness. -/
