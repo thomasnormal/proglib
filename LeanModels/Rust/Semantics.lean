@@ -92,6 +92,9 @@ def Outcome.label : Outcome → String
 def setSlot (s : State) (localId : Nat) (slot : Slot) : State :=
   { s with locals := (localId, slot) :: s.locals.filter (fun item => item.1 != localId) }
 
+def setSharedSlot (s : State) (localId : Nat) (slot : Slot) : State :=
+  { s with sharedLocals := (localId, slot) :: s.sharedLocals.filter (fun item => item.1 != localId) }
+
 def littleEndian (bytes : List Nat) (shift : Nat := 0) : Nat :=
   match bytes with
   | [] => 0
@@ -291,7 +294,11 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
               if pointer.projection.isEmpty then
                 writeLocalProjection s pointer.provenance rest value
               else none
-            else none
+            else do
+              let slot ← sharedSlot s pointer.provenance
+              let cell ← slotCell slot
+              let updated ← updateCellProjection cell (pointer.projection ++ rest) value
+              pure (setSharedSlot s pointer.provenance (cellSlot updated))
         | _ => none
   | .field index _ :: rest => writeLocalProjection s place.localId (.field index 0 :: rest) value
   | .downcast _ :: _ | .unsupported _ :: _ => none
@@ -551,7 +558,14 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
           | .assign _ (.repeat _ _) => .refused (.unsupported "repeat write")
           | .assign _ (.cast _ _ _) => .refused (.unsupported "cast write")
-          | .assign _ (.use _) => .refused (.unsupported "use assignment")
+          | .assign place (.use operand) =>
+              match rvalueCell state (.use operand) with
+              | none =>
+                  .refused (.unsupported "use operand")
+              | some cell =>
+                  if (writeCell state place cell).isNone then
+                    .refused (.unsupported ("use destination local " ++ toString place.localId))
+                  else .refused (.unsupported "use assignment")
           | .assign _ (.binaryNe _ _) => .refused (.unsupported "inequality assignment")
           | .assign _ (.binaryLe _ _) => .refused (.unsupported "less-equal assignment")
           | .assign _ (.binaryEq _ _) => .refused (.unsupported "equality assignment")
@@ -564,6 +578,13 @@ def statementFailure : State → List Statement → Outcome
           | .storageLive _ | .storageDead _ | .unsupported _ =>
               .refused (.unsupported "statement")
 
+def statementFailureAt (bodyId : String) (blockId : Nat) (state : State)
+    (statements : List Statement) : Outcome :=
+  match statementFailure state statements with
+  | .refused (.unsupported what) =>
+      .refused (.unsupported (what ++ " at " ++ bodyId ++ ":b" ++ toString blockId))
+  | outcome => outcome
+
 def cfgRunOutcome : Nat → Body → Nat → State → Outcome
   | 0, _, _, _ => .outOfFuel
   | fuel + 1, body, blockId, state =>
@@ -571,7 +592,7 @@ def cfgRunOutcome : Nat → Body → Nat → State → Outcome
       | none => .refused (.malformed "missing block")
       | some block =>
           match statementsRun block.statements state with
-          | none => statementFailure state block.statements
+          | none => statementFailureAt body.instanceId blockId state block.statements
           | some firstTrace =>
               match block.terminator with
               | .ret => .returned firstTrace
@@ -625,7 +646,8 @@ def bindEvaluatedCells : State → List Cell → Nat → State
 
 def bindCallCellsFresh (caller callee : State) (args : List Operand) (localId : Nat) : Option State := do
   let values ← args.mapM (operandCell caller)
-  pure (bindEvaluatedCells { callee with sharedLocals := caller.locals } (values.map shareCell) localId)
+  pure (bindEvaluatedCells { callee with sharedLocals := caller.locals ++ caller.sharedLocals }
+    (values.map shareCell) localId)
 
 def returnValue (trace : Trace) : Option Int :=
   (trace.state.locals.find? (fun item => item.1 == 0)).bind fun item =>
@@ -675,7 +697,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
       | none => .refused (.malformed "missing block")
       | some block =>
           match statementsRun block.statements state with
-          | none => statementFailure state block.statements
+          | none => statementFailureAt body.instanceId blockId state block.statements
           | some firstTrace =>
               match block.terminator with
               | .call _ args destination (some target) cleanup =>
@@ -687,6 +709,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                       | some calleeId =>
                           let callState : State :=
                             { placements := firstTrace.state.placements,
+                              sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
                               allocations := firstTrace.state.allocations,
                               provenance := firstTrace.state.provenance }
@@ -725,6 +748,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                       | some calleeId =>
                           let callState : State :=
                             { placements := firstTrace.state.placements,
+                              sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
                               allocations := firstTrace.state.allocations,
                               provenance := firstTrace.state.provenance }
