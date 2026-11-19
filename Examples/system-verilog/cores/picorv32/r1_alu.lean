@@ -221,6 +221,62 @@ theorem picorv32_and_loaded_rv32i_boundary_of_step
         (aluRetirement arch input .and 3 (.reg 1) (.reg 2)) := by
   simpa [andInstruction] using alu_loaded_rv32i_boundary_of_step andInstruction hstep hdecode hboundary
 
+/-! The complete ALU family has one exact-cycle mixed consumer.  Its retained
+    `AluInstruction` witness carries the operation and both source forms into
+    the RV32I dispatcher without selecting a separate decoded operation. -/
+
+theorem picorv32_alu_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : AluInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = aluProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.aluBoundary memoryState.arch input instruction.word
+              instruction.op instruction.rd instruction.src1 instruction.src2 ∧
+            rel next
+              { arch := aluNext memoryState.arch instruction.op instruction.rd
+                  instruction.src1 instruction.src2,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState (.alu instruction))
+          (rv32iProgramRetirement memoryState (.alu instruction)) := by
+        simpa [hmem, hinput, aluProgramInput, rv32iProgramStep,
+          rv32iProgramRetirement] using
+          (Rv32iBoundary.alu instruction.word instruction.op instruction.rd
+            instruction.src1 instruction.src2 hboundary)
+      simp only [↓reduceIte]
+      exact ⟨.alu instruction, by simpa [rv32iProgramInput] using hinput,
+        horder, hrvfi, by simpa [rv32iProgramStep] using hnext⟩
+
+#print axioms picorv32_alu_exact_cycle_step_refines
+
 theorem picorv32_add_class_step (state : ArchState) (memory : Memory) :
     isaStepMemWith cv32e40pProfile state memory (.word addWord) 0 =
       (aluNext state .add 3 (.reg 1) (.reg 2), memory) := by

@@ -102,7 +102,10 @@ obligation:
   common exact branch boundary directly in the mixed cycle dispatcher,
   retaining the source instruction and architectural continuation.
   `r1_alu` provides the ten register-register ALU consumers through one
-  operation-indexed decoded witness.
+  operation-indexed decoded witness.  Its
+  `r1_alu.picorv32_alu_exact_cycle_step_refines` theorem consumes the generic
+  exact ALU boundary in the mixed cycle dispatcher while retaining the
+  operation and source operands.
   `r1_alu_imm` provides the nine remaining immediate ALU consumers through
   the same operation-indexed witness.
   `r1_fence` provides the FENCE and FENCE.I consumers through the decoded
