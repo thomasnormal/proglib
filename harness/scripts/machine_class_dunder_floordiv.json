@@ -1,0 +1,333 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.12.14"
+  },
+  "source_file": "harness/scripts/machine_class_dunder_floordiv.py",
+  "source_sha256": "18f8f30b0f8ff6d618487473a6a83fae9f137932bdf7bf307c056e09dfcdc226",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "ClassDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 24
+        },
+        "name": "Box",
+        "class_unsupported": null,
+        "creation_effects": false,
+        "body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 3,
+              "end_col_offset": 24
+            },
+            "name": "__floordiv__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 21,
+                  "end_lineno": 2,
+                  "end_col_offset": 25
+                }
+              },
+              {
+                "arg": "other",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 27,
+                  "end_lineno": 2,
+                  "end_col_offset": 32
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 8,
+                  "end_lineno": 3,
+                  "end_col_offset": 24
+                },
+                "value": {
+                  "kind": "BinOp",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 15,
+                    "end_lineno": 3,
+                    "end_col_offset": 24
+                  },
+                  "left": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 15,
+                      "end_lineno": 3,
+                      "end_col_offset": 20
+                    },
+                    "id": "other",
+                    "machine_context": "Load"
+                  },
+                  "op": "Add",
+                  "right": {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 23,
+                      "end_lineno": 3,
+                      "end_col_offset": 24
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "5"
+                    }
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 21,
+                    "end_lineno": 2,
+                    "end_col_offset": 25
+                  }
+                },
+                {
+                  "arg": "other",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 27,
+                    "end_lineno": 2,
+                    "end_col_offset": 32
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 3,
+              "end_col_offset": 24
+            },
+            "name": "__floordiv__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 21,
+                  "end_lineno": 2,
+                  "end_col_offset": 25
+                }
+              },
+              {
+                "arg": "other",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 27,
+                  "end_lineno": 2,
+                  "end_col_offset": 32
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 3,
+                  "col_offset": 8,
+                  "end_lineno": 3,
+                  "end_col_offset": 24
+                },
+                "value": {
+                  "kind": "BinOp",
+                  "span": {
+                    "lineno": 3,
+                    "col_offset": 15,
+                    "end_lineno": 3,
+                    "end_col_offset": 24
+                  },
+                  "left": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 15,
+                      "end_lineno": 3,
+                      "end_col_offset": 20
+                    },
+                    "id": "other",
+                    "machine_context": "Load"
+                  },
+                  "op": "Add",
+                  "right": {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 3,
+                      "col_offset": 23,
+                      "end_lineno": 3,
+                      "end_col_offset": 24
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "5"
+                    }
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 21,
+                    "end_lineno": 2,
+                    "end_col_offset": 25
+                  }
+                },
+                {
+                  "arg": "other",
+                  "span": {
+                    "lineno": 2,
+                    "col_offset": 27,
+                    "end_lineno": 2,
+                    "end_col_offset": 32
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 4,
+          "col_offset": 0,
+          "end_lineno": 4,
+          "end_col_offset": 17
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 4,
+            "col_offset": 0,
+            "end_lineno": 4,
+            "end_col_offset": 17
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 4,
+              "col_offset": 0,
+              "end_lineno": 4,
+              "end_col_offset": 5
+            },
+            "id": "print",
+            "machine_context": "Load"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "BinOp",
+              "span": {
+                "lineno": 4,
+                "col_offset": 6,
+                "end_lineno": 4,
+                "end_col_offset": 16
+              },
+              "left": {
+                "kind": "Call",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 6,
+                  "end_lineno": 4,
+                  "end_col_offset": 11
+                },
+                "func": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 4,
+                    "col_offset": 6,
+                    "end_lineno": 4,
+                    "end_col_offset": 9
+                  },
+                  "id": "Box",
+                  "machine_context": "Load"
+                },
+                "starargs": [],
+                "kwargs": [],
+                "args": [],
+                "keywords": [],
+                "call_unsupported": null
+              },
+              "op": "FloorDiv",
+              "right": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 15,
+                  "end_lineno": 4,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "2"
+                }
+              }
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ],
+    "machine_type_ignores": []
+  },
+  "lean_blocks": []
+}

@@ -92,6 +92,8 @@ Multiplication with an instance on the left dispatches to an explicit
 True division with an instance on the left dispatches to an explicit
 `__truediv__` method. Scalar true division remains outside this relation
 frontier.
+Floor division with an instance on the left dispatches to an explicit
+`__floordiv__` method. Scalar floor division keeps its existing frontier.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
