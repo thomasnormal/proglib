@@ -52,16 +52,6 @@ def pinnedFrontendVersion : String :=
 frontend's string, deliberately unparsed. -/
 abbrev CType := String
 
-/-- A constant pointer-to-array spelling from clang's flat `qualType`.
-Only decimal extents are in the layout fragment; a VLA extent remains a
-loud refusal rather than being treated as a fixed pointer target. -/
-def isConstPointerToArray (ty : CType) : Bool :=
-  match ty.splitOn "[" with
-  | base :: extents =>
-      base.endsWith "(*)" && extents.all fun ext =>
-        ext.endsWith "]" && (ext.dropEnd 1).toString.toNat?.isSome
-  | _ => false
-
 /- Clang's declaration handle is an identity, not a source spelling. Keep it
    distinct from names even though the frontend currently serializes the
    token as text. -/
