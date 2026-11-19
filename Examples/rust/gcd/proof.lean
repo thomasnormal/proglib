@@ -8,6 +8,12 @@ open LeanModels.Rust
 -- step below must unfold it like the rest of the interpreter.
 attribute [local simp] findTypeLayout
 
+/-- On naturals Rust's truncating remainder (`Int.tmod`, what `Rem` computes) is the
+Euclidean `%` the proof below reasons with. -/
+theorem tmod_natCast (a b : Nat) : Int.tmod (a : Int) (b : Int) = (a : Int) % (b : Int) := rfl
+
+attribute [local simp] tmod_natCast
+
 def gcdCore : Body := {
  instanceId := "_RNvCsiQfy8kqUaFp_15study_while_gcd3gcd",
  blocks := [

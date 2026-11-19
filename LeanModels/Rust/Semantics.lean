@@ -486,14 +486,16 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
       pure (.int (Int.ofNat (leftValue.toNat ^^^ rightValue.toNat)))
+  -- Rust's integer `/` rounds toward zero and `%` takes the dividend's sign: `Int.tdiv` and
+  -- `Int.tmod`, not Lean's Euclidean `/` and `%` (which give -4 and 1 for -7 and 2).
   | .binaryDiv left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
-      if rightValue == 0 then none else pure (.int (leftValue / rightValue))
+      if rightValue == 0 then none else pure (.int (leftValue.tdiv rightValue))
   | .binaryRem left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
-      if rightValue == 0 then none else pure (.int (leftValue % rightValue))
+      if rightValue == 0 then none else pure (.int (leftValue.tmod rightValue))
   | .cast .intToInt operand target => do
       let value ← operandValue s operand
       let casted ← castInt s target value
@@ -676,7 +678,9 @@ def statementFailure : State → List Statement → Outcome
       | none =>
           match statement with
           | .assign _ (.binaryDiv _ right) | .assign _ (.binaryRem _ right) =>
-              if operandValue state right == some 0 then .panicked
+              -- MIR's `Div`/`Rem` by zero is undefined behaviour; the panic is the job of the
+              -- `Assert` rustc places before it.
+              if operandValue state right == some 0 then .ub "division by zero"
               else .refused (.unsupported "binary arithmetic")
           | .assign _ (.checkedBinary _ _ _) =>
               .refused (.unsupported "checked arithmetic operator, operands or integer type")
