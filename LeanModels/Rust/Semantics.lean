@@ -784,6 +784,15 @@ def lookupCallBody (program : Envelope) (caller : Body) (block : Nat) : Option (
     else none
   pure (edge, callee)
 
+def callMissingBodyReason (program : Envelope) (caller : Body) (block : Nat)
+    (defaultReason : String) : String :=
+  match program.calls.find? (fun edge => edge.caller == caller.instanceId ∧ edge.block == block) with
+  | none => defaultReason
+  | some edge =>
+      match edge.callee with
+      | none => defaultReason ++ " without callee"
+      | some calleeId => "call target has no MIR body: " ++ calleeId
+
 def atomicLoadCell (s : State) (operand : Operand) : Option Cell :=
   operandCell s operand |>.bind fun cell =>
     match cell with
@@ -877,7 +886,8 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
               match block.terminator with
               | .call _ args destination (some target) cleanup =>
                   match lookupCallBody program body blockId with
-                  | none => .refused (.unsupported "unresolved call")
+                  | none => .refused (.unsupported
+                      (callMissingBodyReason program body blockId "unresolved call"))
                   | some (edge, callee) =>
                       match edge.callee with
                       | none => .refused (.unsupported "call without callee")
@@ -931,7 +941,8 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                               | outcome => outcome
               | .call _ args _ none _cleanup =>
                   match lookupCallBody program body blockId with
-                  | none => .refused (.unsupported "unresolved diverging call")
+                  | none => .refused (.unsupported
+                      (callMissingBodyReason program body blockId "unresolved diverging call"))
                   | some (edge, callee) =>
                       match edge.callee with
                       | none => .refused (.unsupported "diverging call without callee")

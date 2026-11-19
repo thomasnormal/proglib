@@ -29,7 +29,8 @@ compares each return, panic or UB outcome with the Stage 0 Miri verdict; a
 refusal or fuel exhaustion is a named refusal.  Every row of this corpus exits
 0 under Miri, so a wrong value that still returns cannot show up as a
 divergence: panic and UB rows are needed before `diverging 0` carries weight.
-Refusal reasons name the MIR node at which the run stopped.  The `println_once` control is excluded by
+Refusal reasons name the MIR node at which the run stopped, or the call target that
+has no MIR body.  The `println_once` control is excluded by
 default and can be included with `--include-control`.  Each row records the
 extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
@@ -141,6 +142,15 @@ Miri returned `exit`, status 7, under both borrow models.  The two-model
 invocation measured 2.828 s.  Intrinsics, foreign calls without a registry
 entry, calls with a missing body, calls with cleanup unwind, and calls with no
 normal continuation are named refusals in this slice.
+
+The allocator family was traced through `Global::allocate` and
+`alloc_impl_runtime` in the `study_for_vec`, `rustc_ivec-pass-by-value`, and
+`rustc_vector-no-ann-2` envelopes.  Their first unavailable target is the
+runtime allocation shim, which has no MIR body in the envelope.  The envelope
+contains constant allocations but no dynamic allocation result or placement
+record for that call, so the runner reports the exact missing target as a
+named refusal instead of manufacturing a pointer or an allocation.  These
+three rows remain in the ten-row refusal set.
 
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
