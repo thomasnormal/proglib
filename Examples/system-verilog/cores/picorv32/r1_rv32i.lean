@@ -14,6 +14,7 @@ namespace Examples.«system-verilog».cores.picorv32.r1_rv32i
 
 open LeanModels.Rv
 open LeanModels.Sv
+open LeanModels.Sv.Kernel
 open LeanModels.Refine
 open Examples.«system-verilog».cores.picorv32
 open Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
@@ -68,6 +69,36 @@ theorem picorv32_loaded_reset_relation_initial
     (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf
 
 #print axioms picorv32_loaded_reset_relation_initial
+
+/-! The reset relation carries the architectural well-formedness premise
+    consumed by the mixed program fold.  This theorem transports that premise
+    through every architectural instruction prefix without making any claim
+    about the loaded core's future steps. -/
+
+theorem picorv32_reset_relation_program_state_preserves_WF
+    {design : CoreMemDesign} {program : Memory}
+    {state : CoreMemState} {memoryState : RvMemoryState}
+    (hreset : PicoRV32ResetRelation design program state memoryState)
+    (instructions : List Rv32iInstruction) :
+    (rv32iProgramState memoryState instructions).arch.WF := by
+  exact rv32iProgramState_preserves_WF memoryState instructions hreset.arch_wf
+
+#print axioms picorv32_reset_relation_program_state_preserves_WF
+
+/-! The loaded reset constructor supplies the explicit relation used by the
+    preceding transport theorem. -/
+
+theorem picorv32_loaded_initial_program_state_preserves_WF
+    (core : PicoRV32LoadedCanonicalE) (program : Memory)
+    (initialArch : ArchState) (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF) (instructions : List Rv32iInstruction) :
+    (rv32iProgramState
+      { arch := initialArch, memory := program } instructions).arch.WF := by
+  apply picorv32_reset_relation_program_state_preserves_WF
+    (instructions := instructions)
+  exact picorv32_loaded_reset_relation_initial core program initialArch hpc hwf
+
+#print axioms picorv32_loaded_initial_program_state_preserves_WF
 
 /-! The loaded all-family step certificate composes with the public reset
     theorem.  Initial relation, admitted inputs, and progress stay explicit

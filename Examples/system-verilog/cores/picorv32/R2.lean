@@ -109,6 +109,10 @@ obligation:
   CSR row and operation witness.
   `r1_mem_all` provides the five load and three store consumers through the
   memory-threaded MemInstruction witness.
+  `rv32iProgramState_preserves_WF` and
+  `picorv32_reset_relation_program_state_preserves_WF` preserve the
+  architectural x0 invariant from the explicit reset relation through every
+  mixed program prefix.
   `r1_rv32i.picorv32_loaded_rv32i_exact_cycle_step_refines` and
   `r1_rv32i.picorv32_loaded_rv32i_reset_refinement` are the
   PicoRV32-scoped all-family consumers.  They apply
