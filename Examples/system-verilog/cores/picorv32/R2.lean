@@ -109,6 +109,10 @@ obligation:
   CSR row and operation witness.
   `r1_mem_all` provides the five load and three store consumers through the
   memory-threaded MemInstruction witness.
+  `CoreRvfiMachine.to_rv32i_step_refines` is the all-family bridge from an
+  exact loaded-core step premise to the mixed cycle obligation. It retains the
+  decoded instruction, input, order, indexed post-state, retirement, and
+  relation continuation in one contract.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
