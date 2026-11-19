@@ -893,3 +893,21 @@ runs seven known, x, and z rows.  Icarus Verilog 13.0, Xcelium 24.03-s004, and
 canonical E agree on `x, 0, 1, 0, x, z, 1`.  The member-element-index clean-room
 wall is therefore closed for this shape.  No real-core census count is claimed
 by this correction.
+
+## 2026-11-20 dynamic member-element-index wall
+
+The repository-local `sem2/member_elem_loud` clean-room source retains a
+run-time element index through a packed struct member, `p.bytes[i_i]`, under
+IEEE 1800-2023 §11.5.1.  Canonical E loads the parser-shaped node, then refuses
+initial-state construction with the exact message
+`unsupported expression 'ElementSelectExpression:member-index'`.  The
+executable E guard is
+`darkriscv/walls/member_element_index_probe.lean`.
+
+Icarus Verilog 13.0 refuses the unchanged source during elaboration with
+`Array/part index expressions must be constant here`.  Xcelium 24.03-s004
+accepts it and produces the dynamic member rows `00011000`, `00100100`,
+`01000010`, and `10000001` for indices 0 through 3 on packed bytes
+`81 42 24 18`; all-x and all-z member data produce all-x and all-z outputs.
+The refusal is therefore retained exactly in E, with no simulator value
+substituted for the unsupported node.
