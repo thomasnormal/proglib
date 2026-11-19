@@ -12,9 +12,9 @@ import LeanModels.Refine.RvfiUpperProgress
 This is the first core-specific statement for R2.  The backend `E` remains an
 explicit parameter: the mixed E implementation will be supplied by the
 general lane.  The loaded design below is the unmodified YosysHQ
-`RISCV_FORMAL` build; its current E admission is intentionally a loud
-unsupported design, so this file states the obligations without claiming an
-RTL theorem.
+`RISCV_FORMAL` build, admitted by canonical E at the pinned parameter point.
+The file states the universal obligations separately from the finite E-RUN
+receipt, so no RTL theorem is claimed until its invariant premises are proved.
 
 The environment is deliberately fixed.  Program memory is always ready,
 reset is held for a named number of cycles, interrupts and `pcpi_ready` are
@@ -379,8 +379,8 @@ theorem picorv32_riscv_formal_param_names_pinned :
 #print axioms picorv32_riscv_formal_param_names_pinned
 
 /-! The loaded source contains one one-rank unpacked declaration, the
-register file at `cpuregs`.  This is the concrete declaration shape behind
-the current scalar-E instantiation wall. -/
+register file at `cpuregs`.  This is the concrete declaration shape consumed
+by the canonical one-rank memory relation. -/
 
 theorem picorv32_loaded_cpuregs_one_rank_unpacked :
     picorv32_r2.pdesign.decls.filterMap
