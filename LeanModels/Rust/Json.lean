@@ -327,7 +327,7 @@ private def body (instanceId : String) (j : Json) : Except String Body := do
   let blocks ← field j "blocks" >>= array >>= (·.mapM (withCtx "block" ∘ block))
   let argCount ←
     match j.getObjVal? "arg_count" with
-    | .ok value => nat value
+    | .ok value => (nat value).toOption.getD 0 |> pure
     | .error _ => pure 0
   let locals ←
     match j.getObjVal? "locals" with
