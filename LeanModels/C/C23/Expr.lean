@@ -681,7 +681,7 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
       | .array _ (some extent) =>
           layout.arrayElementType ty
             |>.map (fun element => (element, extent))
-      | _ => layout.elem ty
+      | .array _ none | _ => none
   | none => layout.elem ty
 
 /-- Resolve aggregate member order from the object's declaration before the

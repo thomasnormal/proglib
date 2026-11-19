@@ -130,8 +130,20 @@ private def isError : Except String α → Bool
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
     if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 3)) else none
+  arrayElementType := fun _ => some "int"
   elem := fun ty => if ty == "int[3]" then some ("int", 2) else none } :
   LeanModels.C.C23.Layout).elemDeclAt (some {value := "array-1"}) "int[3]" == some ("int", 3)
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  structuredType := fun id =>
+    if id.value == "vla-1" then some (.array (.cBuiltinKind .int) none) else none
+  arrayElementType := fun _ => some "int"
+  elem := fun _ => some ("int", 4) } :
+  LeanModels.C.C23.Layout).elemDeclAt (some {value := "vla-1"}) "int[n]" == none
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  structuredType := fun id =>
+    if id.value == "scalar-1" then some (.cBuiltinKind .int) else none
+  elem := fun _ => some ("int", 4) } :
+  LeanModels.C.C23.Layout).elemDeclAt (some {value := "scalar-1"}) "int" == none
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.isCharacterType (.cBuiltin "unsigned char")
