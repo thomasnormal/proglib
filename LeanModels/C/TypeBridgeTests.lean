@@ -57,6 +57,10 @@ private def isError : Except String α → Bool
   (.qualified true false (.array (.cBuiltinKind .int) (some 4)))
 #guard LeanModels.C.C23.structuredPointerObject
   (some (.qualified true false (.pointer (.cBuiltinKind .int)))) "not-a-pointer"
+#guard LeanModels.C.C23.isPtrType "not-a-pointer"
+  (some (.qualified true false (.pointer (.cBuiltinKind .int))))
+#guard !LeanModels.C.C23.isPtrType "int"
+  (some (.qualified true false (.array (.cBuiltinKind .int) (some 2))))
 #guard LeanModels.C.C23.structuredIndexable
   (some (.qualified false true (.array (.cBuiltinKind .int) (some 4)))) "not-an-array"
 #guard LeanModels.C.C23.intTyOfStructured

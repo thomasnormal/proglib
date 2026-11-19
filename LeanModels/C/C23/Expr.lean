@@ -963,8 +963,9 @@ def asInt (v : CVal) : EvalM (IntTy × Int) :=
 the tier carries clang's `qualType` string rather than a type tree
 (`docs/c-envelope-schema.md` §3). Measured: 199 distinct pointer/array
 spellings on expression nodes, every one ending in `*` or `]`. -/
-def isPtrType (ty : CType) : Bool :=
-  ty.endsWith "*"
+def isPtrType (ty : CType)
+    (structured : Option LeanModels.Clang.QualType := none) : Bool :=
+  structured.map (fun type => type.unqualified.pointerObject) |>.getD (ty.endsWith "*")
 
 /-! Parser-native type decisions.  The spelling fallback is retained only for
 older envelopes that have no structured observation.  When clang supplied a
@@ -1643,7 +1644,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           pure (.ptrInt p)
         else refuseUnsupported "pointer-to-integer conversion outside uintptr_t/intptr_t"
       else if ck == "IntegralToPointer" then
-        if isPtrType ty then do
+        if isPtrType ty (ctx.layout.structuredTypeAt sub) then do
           let v ← evalExpr ctx sub
           match v with
           | .ptrInt p => pure (.ptr p)
