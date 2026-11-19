@@ -609,15 +609,29 @@ def rBindKeyword : REnv → List RParam → String → RVal → Option REnv
         else some ((name, value) :: env)
       else rBindKeyword env rest name value
 
+/-- A parameter that a keyword argument of this name binds (CPython: not positional-only, not `*args`
+or `**kwargs`). -/
+def rKeywordTarget (params : List RParam) (name : String) : Bool :=
+  params.any (fun parameter => parameter.name == name && !parameter.positionalOnly &&
+    !parameter.variadic && !parameter.keywordVariadic)
+
+/-- The keyword arguments that go to `**kwargs`: those that name no parameter they can bind. -/
+def rExtraKeywords (params : List RParam) (keywords : List (String × RVal)) :
+    List (String × RVal) :=
+  keywords.filter (fun pair => !rKeywordTarget params pair.1)
+
 def rBindKeywords : REnv → List RParam → List (String × RVal) → Option REnv
   | env, _, [] => some env
   | env, params, (name, value) :: rest =>
-      match rBindKeyword env params name value with
-      | some updated => rBindKeywords updated params rest
-      | none =>
-          if params.any (fun parameter => parameter.keywordVariadic) then
-            rBindKeywords env params rest
-          else none
+      if rKeywordTarget params name then
+        -- a parameter already bound (positionally or by an earlier keyword) is CPython's
+        -- "got multiple values" TypeError, whether or not there is a `**kwargs`
+        match rBindKeyword env params name value with
+        | some updated => rBindKeywords updated params rest
+        | none => none
+      else if params.any (fun parameter => parameter.keywordVariadic) then
+        rBindKeywords env params rest
+      else none
 
 def rBindKeywordDefaults : REnv → List RParam → List (Option RVal) → Option REnv
   | env, [], _ => some env
@@ -1323,13 +1337,12 @@ def rStartClassCall (config : RConfig) (cls : RClass) (values : List RVal)
       match rFunctionByToken config.functions token, config.frames with
       | some function, caller :: tail =>
           let builtKwargs :=
-            if keywords.isEmpty then (allocated.1, none)
-            else
-              match rKeywordVariadicName function.params.toList with
-              | some _ =>
-                  let kwargs := rBuildKwargs allocated.1 keywords
-                  (kwargs.1, some kwargs.2)
-              | none => (allocated.1, none)
+            match rKeywordVariadicName function.params.toList with
+            | some _ =>
+                let kwargs := rBuildKwargs allocated.1
+                  (rExtraKeywords function.params.toList keywords)
+                (kwargs.1, some kwargs.2)
+            | none => (allocated.1, none)
           match rCallFrame function (instanceValue :: values) keywords builtKwargs.2 with
           | some calleeFrame =>
               let pushed := { calleeFrame with control :=
@@ -1358,13 +1371,12 @@ def rStartFunctionCall (config : RConfig) (function : RFunction) (values : List 
     (keywords : List (String × RVal)) (continuation : RKont) :
     Option (RLabel × RConfig) :=
   let builtKwargs :=
-    if keywords.isEmpty then (config.heap, none)
-    else
-      match rKeywordVariadicName function.params.toList with
-      | some _ =>
-          let allocated := rBuildKwargs config.heap keywords
-          (allocated.1, some allocated.2)
-      | none => (config.heap, none)
+    match rKeywordVariadicName function.params.toList with
+    | some _ =>
+        let allocated := rBuildKwargs config.heap
+          (rExtraKeywords function.params.toList keywords)
+        (allocated.1, some allocated.2)
+    | none => (config.heap, none)
   match config.frames with
   | caller :: tail =>
       match rCallFrame function values keywords builtKwargs.2 with
@@ -1437,13 +1449,12 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
       match rFunctionByToken config.functions functionToken with
       | some function =>
                 let builtKwargs :=
-                  if keywords.isEmpty then (config.heap, none)
-                  else
-                    match rKeywordVariadicName function.params.toList with
-                    | some _ =>
-                        let allocated := rBuildKwargs config.heap keywords
-                        (allocated.1, some allocated.2)
-                    | none => (config.heap, none)
+                  match rKeywordVariadicName function.params.toList with
+                  | some _ =>
+                      let allocated := rBuildKwargs config.heap
+                        (rExtraKeywords function.params.toList keywords)
+                      (allocated.1, some allocated.2)
+                  | none => (config.heap, none)
                 match config.frames with
                 | caller :: tail =>
                     match rCallFrame function callValues keywords builtKwargs.2 with
@@ -1515,13 +1526,12 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
       else match rFunction config.functions name with
       | some function =>
           let builtKwargs :=
-            if keywords.isEmpty then (config.heap, none)
-            else
-              match rKeywordVariadicName function.params.toList with
-              | some _ =>
-                  let allocated := rBuildKwargs config.heap keywords
-                  (allocated.1, some allocated.2)
-              | none => (config.heap, none)
+            match rKeywordVariadicName function.params.toList with
+            | some _ =>
+                let allocated := rBuildKwargs config.heap
+                  (rExtraKeywords function.params.toList keywords)
+                (allocated.1, some allocated.2)
+            | none => (config.heap, none)
           match config.frames with
           | caller :: tail =>
               match rCallFrame function values keywords builtKwargs.2 with
