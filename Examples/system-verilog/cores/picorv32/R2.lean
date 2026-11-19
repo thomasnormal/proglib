@@ -142,6 +142,10 @@ obligation:
   `r1_csr.picorv32_csr_exact_cycle_step_refines` theorem consumes the exact
   implemented-row boundary in the mixed cycle dispatcher and retains the
   checked CSR table lookup.
+  Its
+  `r1_csr.picorv32_loaded_csr_program_refinement_of_total` theorem packages
+  one retained implemented CSR operation into the loaded reset-specialized
+  all-prefix contract from total canonical execution.
   `r1_mem_all` provides the five load and three store consumers through the
   memory-threaded MemInstruction witness.  Its
   `r1_mem_all.picorv32_mem_exact_cycle_step_refines` theorem consumes the
