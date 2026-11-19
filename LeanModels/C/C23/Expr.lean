@@ -584,6 +584,14 @@ def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : CType) :
     Option Nat :=
   layout.sizeAt (directDeclId expression) ty
 
+/-- Resolve an indexed element stride from parser-native array or pointee
+observations before falling back to the expression's declaration size. -/
+def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : CType) :
+    Option Nat :=
+  (directDeclId base).bind (fun did =>
+      (layout.elementSizeDecl did).orElse (fun _ => layout.pointeeSizeDecl did))
+    |>.orElse (fun _ => layout.exprSizeAt base ty)
+
 def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
     Option LeanModels.Clang.QualType :=
   (layout.structuredType id).bind (LeanModels.Clang.QualType.resolveTypedefs
@@ -2038,9 +2046,7 @@ def indexAddr (ctx : Ctx) (base idx : Expr) (ty : CType) : EvalM Ptr := do
   let bp ← asPtr bv
   let iv ← evalExpr ctx idx
   let (_, i) ← asInt iv
-  let elementSize := (directDeclId base).bind (fun did =>
-      (ctx.layout.elementSizeDecl did).orElse (fun _ => ctx.layout.pointeeSizeDecl did))
-    |>.orElse (fun _ => ctx.layout.exprSizeAt base ty)
+  let elementSize := ctx.layout.elementSizeAt base ty
   match elementSize with
   | some esz => readMem (fun m => Mem.subscript m bp esz i)
   | none => refuseUnsupported s!"no size for element type '{ty}'"
