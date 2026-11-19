@@ -353,5 +353,15 @@
     "source": "harness/scripts/machine_star_unpack_iterables.py",
     "envelope": "harness/scripts/machine_star_unpack_iterables.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_star_unpack_too_short.py",
+    "envelope": "harness/scripts/machine_star_unpack_too_short.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_star_unpack_noniterable.py",
+    "envelope": "harness/scripts/machine_star_unpack_noniterable.json",
+    "expect": "unsupported"
   }
 ]
