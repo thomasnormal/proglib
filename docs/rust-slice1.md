@@ -218,6 +218,13 @@ constructs the corresponding `ForeignProgramStep` when the address choice,
 typed arguments, destination write, and normal continuation satisfy their
 premises.  The proof leaves the registry and address choice explicit.
 
+The derived `cfgRunProgramForeign` runner takes a registry and an explicit
+placement function.  Its allocator branch checks the typed size and alignment,
+requires the allocation-choice predicate, applies `allocatorStep`, writes the
+returned pointer to the MIR destination, and records the external call event.
+The ordinary `runOutcome` entry remains unchanged and continues to refuse
+foreign calls until this parameterized path is selected by a caller.
+
 `Examples/rust/allocator` is a focused extracted envelope for a `Box<u8>`
 allocation.  Its Miri oracle is `ok` under both Stacked Borrows and Tree
 Borrows.  The loader now preserves null bytes from uninitialized constant
