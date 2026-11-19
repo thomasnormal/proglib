@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiCsr
+import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
 # PicoRV32 R1 Zicsr class
@@ -81,6 +82,103 @@ theorem csrrsi_row : findCsr? csrrsiKind.addr = some mieRow := by
 
 theorem csrrci_row : findCsr? csrrciKind.addr = some mcauseRow := by
   rfl
+
+def csrrwInstruction : CsrInstruction :=
+  { word := csrrwWord, kind := csrrwKind, row := mscratchRow,
+    decode := csrrw_decode, rowLookup := csrrw_row }
+def csrrsInstruction : CsrInstruction :=
+  { word := csrrsWord, kind := csrrsKind, row := mstatusRow,
+    decode := csrrs_decode, rowLookup := csrrs_row }
+def csrrcInstruction : CsrInstruction :=
+  { word := csrrcWord, kind := csrrcKind, row := mepcRow,
+    decode := csrrc_decode, rowLookup := csrrc_row }
+def csrrwiInstruction : CsrInstruction :=
+  { word := csrrwiWord, kind := csrrwiKind, row := mscratchRow,
+    decode := csrrwi_decode, rowLookup := csrrwi_row }
+def csrrsiInstruction : CsrInstruction :=
+  { word := csrrsiWord, kind := csrrsiKind, row := mieRow,
+    decode := csrrsi_decode, rowLookup := csrrsi_row }
+def csrrciInstruction : CsrInstruction :=
+  { word := csrrciWord, kind := csrrciKind, row := mcauseRow,
+    decode := csrrci_decode, rowLookup := csrrci_row }
+
+theorem csr_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (instruction : CsrInstruction)
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.csrBoundary arch input instruction.word instruction.row instruction.kind) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation'
+        { arch := csrNext arch instruction.row instruction.kind, memory := input.memory }
+        (csrRetirement arch input instruction.row instruction.kind) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  exact rvfi_core_adapter.CoreCsrBoundary.to_rv32i_boundary
+    (⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode,
+      hboundary⟩ : rvfi_core_adapter.CoreCsrBoundary d st entry arch input instruction)
+
+theorem picorv32_csrrw_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.csrBoundary arch input csrrwWord mscratchRow csrrwKind) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := csrNext arch mscratchRow csrrwKind, memory := input.memory } (csrRetirement arch input mscratchRow csrrwKind) := by
+  simpa [csrrwInstruction] using csr_loaded_rv32i_boundary_of_step csrrwInstruction hstep hdecode hboundary
+
+theorem picorv32_csrrs_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.csrBoundary arch input csrrsWord mstatusRow csrrsKind) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := csrNext arch mstatusRow csrrsKind, memory := input.memory } (csrRetirement arch input mstatusRow csrrsKind) := by
+  simpa [csrrsInstruction] using csr_loaded_rv32i_boundary_of_step csrrsInstruction hstep hdecode hboundary
+
+theorem picorv32_csrrc_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.csrBoundary arch input csrrcWord mepcRow csrrcKind) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := csrNext arch mepcRow csrrcKind, memory := input.memory } (csrRetirement arch input mepcRow csrrcKind) := by
+  simpa [csrrcInstruction] using csr_loaded_rv32i_boundary_of_step csrrcInstruction hstep hdecode hboundary
+
+theorem picorv32_csrrwi_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.csrBoundary arch input csrrwiWord mscratchRow csrrwiKind) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := csrNext arch mscratchRow csrrwiKind, memory := input.memory } (csrRetirement arch input mscratchRow csrrwiKind) := by
+  simpa [csrrwiInstruction] using csr_loaded_rv32i_boundary_of_step csrrwiInstruction hstep hdecode hboundary
+
+theorem picorv32_csrrsi_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.csrBoundary arch input csrrsiWord mieRow csrrsiKind) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := csrNext arch mieRow csrrsiKind, memory := input.memory } (csrRetirement arch input mieRow csrrsiKind) := by
+  simpa [csrrsiInstruction] using csr_loaded_rv32i_boundary_of_step csrrsiInstruction hstep hdecode hboundary
+
+theorem picorv32_csrrci_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.csrBoundary arch input csrrciWord mcauseRow csrrciKind) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := csrNext arch mcauseRow csrrciKind, memory := input.memory } (csrRetirement arch input mcauseRow csrrciKind) := by
+  simpa [csrrciInstruction] using csr_loaded_rv32i_boundary_of_step csrrciInstruction hstep hdecode hboundary
+
+#print axioms picorv32_csrrw_loaded_rv32i_boundary_of_step
+#print axioms picorv32_csrrs_loaded_rv32i_boundary_of_step
+#print axioms picorv32_csrrc_loaded_rv32i_boundary_of_step
+#print axioms picorv32_csrrwi_loaded_rv32i_boundary_of_step
+#print axioms picorv32_csrrsi_loaded_rv32i_boundary_of_step
+#print axioms picorv32_csrrci_loaded_rv32i_boundary_of_step
 
 theorem picorv32_csrrw_class_step (state : ArchState) (memory : Memory) :
     isaStepMemWith cv32e40pProfile state memory (.word csrrwWord) 0 =
