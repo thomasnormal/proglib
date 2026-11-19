@@ -27,6 +27,8 @@ inductive MExpr where
   | ifExp (test : MExpr) (body : MExpr) (orelse : MExpr) (span : Span)
   | call (func : MExpr) (args : Array MExpr) (keywords : Array (String × MExpr))
       (starargs : Array MExpr) (kwargs : Array MExpr) (span : Span)
+  | callNode (func : MExpr) (args : Array MExpr)
+      (keywords : Array (Option String × MExpr)) (span : Span)
   | attribute (value : MExpr) (attr : String) (span : Span)
   | subscript (value : MExpr) (slice : MExpr) (span : Span)
   | slice (value : MExpr) (lower : Option MExpr) (upper : Option MExpr)
@@ -47,11 +49,15 @@ inductive MExpr where
   | genExp (elt : MExpr) (target : MExpr) (iter : MExpr) (ifs : Array MExpr)
       (walrus : Array (String × MExpr)) (span : Span)
   | awaitExpr (value : MExpr) (span : Span)
+  | yieldExpr (value : Option MExpr) (span : Span)
+  | yieldFromExpr (value : MExpr) (span : Span)
   | lambdaExpr
       (params : Array (String × Bool × Bool × Bool × Bool × Option MExpr × Option MExpr))
       (body : MExpr) (span : Span)
   | namedExpr (target : String) (value : MExpr) (span : Span)
+  | namedExprNode (target : MExpr) (value : MExpr) (span : Span)
   | starred (value : MExpr) (span : Span)
+  | rawNode (kind : String) (children : Array MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
 deriving Repr, Inhabited, BEq
 
@@ -79,6 +85,8 @@ inductive MStmt where
   | pass (span : Span)
   | expr (value : MExpr) (span : Span)
   | assign (targets : Array MExpr) (value : MExpr) (span : Span)
+  | assignTypeComment (targets : Array MExpr) (value : MExpr)
+      (typeComment : String) (span : Span)
   | unpackAssign (before : Array String) (star : String) (after : Array String)
       (value : MExpr) (span : Span)
   | annAssign (target : MExpr) (annotation : MExpr) (value : Option MExpr)
@@ -92,10 +100,17 @@ inductive MStmt where
   | whileStmt (test : MExpr) (body : Array MStmt) (orelse : Array MStmt) (span : Span)
   | forStmt (target : MExpr) (iter : MExpr) (body : Array MStmt) (orelse : Array MStmt)
       (isAsync : Bool) (span : Span)
+  | forTypeComment (target : MExpr) (iter : MExpr) (body : Array MStmt)
+      (orelse : Array MStmt) (isAsync : Bool) (typeComment : String) (span : Span)
   | functionDef (name : String) (args : MArguments) (decorators : Array MExpr)
+      (returns : Option MExpr) (body : Array MStmt) (span : Span)
+  | asyncFunctionDef (name : String) (args : MArguments) (decorators : Array MExpr)
       (returns : Option MExpr) (body : Array MStmt) (span : Span)
   | classDef (name : String) (bases : Array MExpr) (keywords : Array (String × MExpr))
       (decorators : Array MExpr) (body : Array MStmt) (span : Span)
+  | classDefNode (name : String) (bases : Array MExpr)
+      (keywords : Array (Option String × MExpr)) (decorators : Array MExpr)
+      (body : Array MStmt) (span : Span)
   | import (names : Array MAlias) (span : Span)
   | importFrom (module : Option String) (names : Array MAlias) (level : Nat) (span : Span)
   | global (names : Array String) (span : Span)
@@ -214,17 +229,33 @@ partial def mExpr (j : Json) : Except String MExpr := do
       | none => pure (.unsupported kind span)
   | "Call" =>
       let func ← mExpr (← mField j "func")
-      let args ← (← (← mField j "args").getArr?).mapM mExpr
-      let keywords ← (← (← mField j "keywords").getArr?).mapM fun kw => do
-        let name ← (← mField kw "arg").getStr?
-        pure (name, ← mExpr (← mField kw "value"))
-      let starargs ← match j.getObjVal? "starargs" with
-        | .ok value => (← value.getArr?).mapM mExpr
-        | .error _ => pure #[]
-      let kwargs ← match j.getObjVal? "kwargs" with
-        | .ok value => (← value.getArr?).mapM mExpr
-        | .error _ => pure #[]
-      pure (.call func args keywords starargs kwargs span)
+      let machineArgs ← match j.getObjVal? "machine_args" with
+        | .ok value => some <$> (← value.getArr?).mapM mExpr
+        | .error _ => pure none
+      let machineKeywords ← match j.getObjVal? "machine_keywords" with
+        | .ok value => some <$> (← value.getArr?).mapM fun kw => do
+            let name ← match mField kw "arg" with
+              | .error _ => pure none
+              | .ok field => match field with
+                | .null => pure none
+                | .str value => pure (some value)
+                | _ => throw "machine keyword arg is not a string or null"
+            pure (name, ← mExpr (← mField kw "value"))
+        | .error _ => pure none
+      match machineArgs, machineKeywords with
+      | some args, some keywords => pure (.callNode func args keywords span)
+      | _, _ =>
+          let args ← (← (← mField j "args").getArr?).mapM mExpr
+          let keywords ← (← (← mField j "keywords").getArr?).mapM fun kw => do
+            let name ← (← mField kw "arg").getStr?
+            pure (name, ← mExpr (← mField kw "value"))
+          let starargs ← match j.getObjVal? "starargs" with
+            | .ok value => (← value.getArr?).mapM mExpr
+            | .error _ => pure #[]
+          let kwargs ← match j.getObjVal? "kwargs" with
+            | .ok value => (← value.getArr?).mapM mExpr
+            | .error _ => pure #[]
+          pure (.call func args keywords starargs kwargs span)
   | "IfExp" => pure (.ifExp (← mExpr (← mField j "test"))
       (← mExpr (← mField j "body")) (← mExpr (← mField j "orelse")) span)
   | "Compare" =>
@@ -278,6 +309,40 @@ partial def mExpr (j : Json) : Except String MExpr := do
       pure (.genExp (← mExpr (← mField j "elt"))
         (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs walrus span)
   | "Await" => pure (.awaitExpr (← mExpr (← mField j "value")) span)
+  | "Unsupported" =>
+      match j.getObjVal? "machine_kind" with
+      | .ok (.str "List") =>
+          let elts ← (← mField j "machine_elts").getArr?
+          pure (.list (← elts.mapM mExpr) span)
+      | .ok (.str "Tuple") =>
+          let elts ← (← mField j "machine_elts").getArr?
+          pure (.tuple (← elts.mapM mExpr) span)
+      | .ok (.str "Dict") =>
+          let keys ← (← mField j "machine_keys").getArr? >>= (·.mapM fun key =>
+            match key with | .null => pure none | _ => some <$> mExpr key)
+          let values ← (← mField j "machine_values").getArr? >>= (·.mapM mExpr)
+          pure (.dict keys values span)
+      | .ok (.str "Yield") =>
+          let value ← match j.getObjVal? "machine_value" with
+            | .ok .null | .error _ => pure none
+            | .ok payload => some <$> mExpr payload
+          pure (.yieldExpr value span)
+      | .ok (.str "YieldFrom") =>
+          pure (.yieldFromExpr (← mExpr (← mField j "machine_value")) span)
+      | .ok (.str "Starred") =>
+          pure (.starred (← mExpr (← mField j "machine_value")) span)
+      | .ok (.str "JoinedStr") =>
+          let values ← (← mField j "machine_values").getArr?
+          pure (.joinedStr (← values.mapM mExpr) span)
+      | .ok (.str "SetComp") =>
+          let ifs ← (← mField j "machine_ifs").getArr?
+          pure (.setComp (← mExpr (← mField j "machine_elt"))
+            (← mExpr (← mField j "machine_target"))
+            (← mExpr (← mField j "machine_iter")) (← ifs.mapM mExpr) #[] span)
+      | .ok (.str "Comprehension") =>
+          let children ← (← mField j "machine_children").getArr?
+          pure (.rawNode kind (← children.mapM mExpr) span)
+      | _ => pure (.unsupported kind span)
   | "Lambda" =>
       let parseParam := fun param => do
         let name ← (← mField param "arg").getStr?
@@ -306,8 +371,11 @@ partial def mExpr (j : Json) : Except String MExpr := do
         | .ok value => some <$> mExpr value
       pure (.slice (← mExpr (← mField j "value")) (← component "lower")
         (← component "upper") (← component "step") span)
-  | "NamedExpr" => pure (.namedExpr (← (← mField j "target").getStr?)
-      (← mExpr (← mField j "value")) span)
+  | "NamedExpr" =>
+      let value ← mExpr (← mField j "value")
+      match j.getObjVal? "machine_target" with
+      | .ok target => pure (.namedExprNode (← mExpr target) value span)
+      | .error _ => pure (.namedExpr (← (← mField j "target").getStr?) value span)
   | "Starred" => pure (.starred (← mExpr (← mField j "value")) span)
   | _ => pure (.unsupported kind span)
 
@@ -373,8 +441,12 @@ partial def mStmt (j : Json) : Except String MStmt := do
   match kind with
   | "Pass" => pure (.pass span)
   | "Expr" => pure (.expr (← mExpr (← mField j "value")) span)
-  | "Assign" => pure (.assign (← (← (← mField j "targets").getArr?).mapM mExpr)
-      (← mExpr (← mField j "value")) span)
+  | "Assign" =>
+      let targets ← (← (← mField j "targets").getArr?).mapM mExpr
+      let value ← mExpr (← mField j "value")
+      match j.getObjVal? "machine_type_comment" with
+      | .ok (.str comment) => pure (.assignTypeComment targets value comment span)
+      | _ => pure (.assign targets value span)
   | "Delete" =>
       let names ← (← mField j "names").getArr?
       let targets ← names.mapM (fun name => do
@@ -436,26 +508,41 @@ partial def mStmt (j : Json) : Except String MStmt := do
   | "While" => pure (.whileStmt (← mExpr (← mField j "test"))
       (← (← (← mField j "body").getArr?).mapM mStmt)
       (← (← (← mField j "orelse").getArr?).mapM mStmt) span)
-  | "For" => pure (.forStmt (← mExpr (← mField j "target"))
-      (← mExpr (← mField j "iter"))
-      (← (← (← mField j "body").getArr?).mapM mStmt)
-      (← (← (← mField j "orelse").getArr?).mapM mStmt)
-      false span)
-  | "AsyncFor" => pure (.forStmt (← mExpr (← mField j "target"))
-      (← mExpr (← mField j "iter"))
-      (← (← (← mField j "body").getArr?).mapM mStmt)
-      (← (← (← mField j "orelse").getArr?).mapM mStmt)
-      true span)
+  | "For" | "AsyncFor" =>
+      let target ← mExpr (← mField j "target")
+      let iter ← mExpr (← mField j "iter")
+      let bodyJson ← mField j "body"
+      let body ← (← bodyJson.getArr?).mapM mStmt
+      let orelseJson ← mField j "orelse"
+      let orelse ← (← orelseJson.getArr?).mapM mStmt
+      let isAsync := kind == "AsyncFor"
+      match j.getObjVal? "machine_type_comment" with
+      | .ok (.str comment) => pure (.forTypeComment target iter body orelse isAsync comment span)
+      | _ => pure (.forStmt target iter body orelse isAsync span)
   | "FunctionDef" | "NestedDef" =>
-      let decorators ← match j.getObjVal? "decorator_list" with
+      let decorators ← match j.getObjVal? "machine_decorators" with
         | .ok value => (← value.getArr?).mapM mExpr
-        | .error _ => pure #[]
-      let returns ← match j.getObjVal? "returns" with
-        | .ok .null | .error _ => pure none
+        | .error _ => match j.getObjVal? "decorator_list" with
+          | .ok value => (← value.getArr?).mapM mExpr
+          | .error _ => pure #[]
+      let returns ← match j.getObjVal? "machine_returns" with
+        | .ok .null => pure none
         | .ok value => some <$> mExpr value
-      pure (.functionDef (← (← mField j "name").getStr?)
-        (← mFunctionArguments (← mField j "args")) decorators returns
-        (← (← (← mField j "body").getArr?).mapM mStmt) span)
+        | .error _ => match j.getObjVal? "returns" with
+          | .ok .null | .error _ => pure none
+          | .ok value => some <$> mExpr value
+      let name ← (← mField j "name").getStr?
+      let argsJson ← match j.getObjVal? "machine_arguments" with
+        | .ok value => pure value
+        | .error _ => mField j "args"
+      let args ← mFunctionArguments argsJson
+      let bodyJson ← mField j "body"
+      let bodyArray ← bodyJson.getArr?
+      let body ← bodyArray.mapM mStmt
+      match j.getObjVal? "machine_kind" with
+      | .ok (.str "AsyncFunctionDef") =>
+          pure (.asyncFunctionDef name args decorators returns body span)
+      | _ => pure (.functionDef name args decorators returns body span)
   | "Global" => pure (.global (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Nonlocal" => pure (.nonlocal (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Break" => pure (.brk span)
@@ -470,25 +557,69 @@ partial def mStmt (j : Json) : Except String MStmt := do
       let body ← (← (← mField j "body").getArr?).mapM mStmt
       pure (.withStmt items body (kind == "AsyncWith") span)
   | "Try" =>
-      let body ← (← (← mField j "body").getArr?).mapM mStmt
-      let handlers ← (← (← mField j "machine_handlers").getArr?).mapM fun handler => do
-        let exception ← match handler.getObjVal? "type" with
-          | .ok .null | .error _ => pure none
-          | .ok value => some <$> mExpr value
-        let name ← match handler.getObjVal? "name" with
-          | .ok .null | .error _ => pure none
-          | .ok value => some <$> value.getStr?
-        let handlerBody ← (← (← mField handler "body").getArr?).mapM mStmt
-        pure (exception, name, handlerBody)
-      let orelse ← (← (← mField j "machine_orelse").getArr?).mapM mStmt
-      let finalbody ← (← (← mField j "machine_finalbody").getArr?).mapM mStmt
-      pure (.tryStmt body handlers orelse finalbody span)
+      match j.getObjVal? "machine_handlers" with
+      | .error _ => pure (.unsupported kind span)
+      | .ok _ =>
+          let body ← (← (← mField j "body").getArr?).mapM mStmt
+          let handlers ← (← (← mField j "machine_handlers").getArr?).mapM fun handler => do
+            let exception ← match handler.getObjVal? "type" with
+              | .ok .null | .error _ => pure none
+              | .ok value => some <$> mExpr value
+            let name ← match handler.getObjVal? "name" with
+              | .ok .null | .error _ => pure none
+              | .ok value => some <$> value.getStr?
+            let handlerBody ← (← (← mField handler "body").getArr?).mapM mStmt
+            pure (exception, name, handlerBody)
+          let orelse ← (← (← mField j "machine_orelse").getArr?).mapM mStmt
+          let finalbody ← (← (← mField j "machine_finalbody").getArr?).mapM mStmt
+          pure (.tryStmt body handlers orelse finalbody span)
+  | "ClassDef" =>
+      match j.getObjVal? "machine_bases" with
+      | .error _ => pure (.unsupported kind span)
+      | .ok _ =>
+          let bases ← (← (← mField j "machine_bases").getArr?).mapM mExpr
+          let keywords ← (← (← mField j "machine_keywords").getArr?).mapM fun keyword => do
+            let arg := match keyword.getObjVal? "arg" with
+              | .ok .null | .error _ => none
+              | .ok value => value.getStr?.toOption
+            pure (arg, ← mExpr (← mField keyword "value"))
+          let decorators ← (← (← mField j "machine_decorators").getArr?).mapM mExpr
+          let body ← (← (← mField j "machine_body").getArr?).mapM mStmt
+          pure (.classDefNode (← (← mField j "name").getStr?) bases keywords decorators body span)
+  | "Unsupported" =>
+      match j.getObjVal? "machine_kind" with
+      | .ok (.str "Import") =>
+          let names ← (← mField j "machine_names").getArr?
+          let aliases ← names.mapM fun alias => do
+            pure { name := ← (← mField alias "name").getStr?
+                   asname := match alias.getObjVal? "asname" with
+                     | .ok .null | .error _ => none
+                     | .ok value => value.getStr?.toOption }
+          pure (.import aliases span)
+      | .ok (.str "ImportFrom") =>
+          let names ← (← mField j "machine_names").getArr?
+          let aliases ← names.mapM fun alias => do
+            pure { name := ← (← mField alias "name").getStr?
+                   asname := match alias.getObjVal? "asname" with
+                     | .ok .null | .error _ => none
+                     | .ok value => value.getStr?.toOption }
+          let module := match j.getObjVal? "machine_module" with
+            | .ok .null | .error _ => none
+            | .ok value => value.getStr?.toOption
+          let level := match j.getObjVal? "machine_level" with
+            | .ok value => match value.getNat? with
+              | .ok n => n
+              | .error _ => 0
+            | _ => 0
+          pure (.importFrom module aliases level span)
+      | _ => pure (.unsupported kind span)
   | _ => pure (.unsupported kind span)
 
 private def mStmtKind : MStmt → String
   | .pass _ => "Pass"
   | .expr _ _ => "Expr"
   | .assign _ _ _ => "Assign"
+  | .assignTypeComment _ _ _ _ => "Assign"
   | .unpackAssign _ _ _ _ _ => "UnpackAssign"
   | .annAssign _ _ _ _ _ => "AnnAssign"
   | .augAssign _ _ _ _ => "AugAssign"
@@ -499,8 +630,11 @@ private def mStmtKind : MStmt → String
   | .ifStmt _ _ _ _ => "If"
   | .whileStmt _ _ _ _ => "While"
   | .forStmt _ _ _ _ isAsync _ => if isAsync then "AsyncFor" else "For"
+  | .forTypeComment _ _ _ _ isAsync _ _ => if isAsync then "AsyncFor" else "For"
   | .functionDef _ _ _ _ _ _ => "FunctionDef"
+  | .asyncFunctionDef _ _ _ _ _ _ => "AsyncFunctionDef"
   | .classDef _ _ _ _ _ _ => "ClassDef"
+  | .classDefNode _ _ _ _ _ _ => "ClassDef"
   | .import _ _ => "Import"
   | .importFrom _ _ _ _ => "ImportFrom"
   | .global _ _ => "Global"
@@ -516,11 +650,15 @@ private def mStmtKind : MStmt → String
   | .unsupported kind _ => kind
 
 private def mStmtSpan : MStmt → Span
-  | .pass span | .expr _ span | .assign _ _ span | .unpackAssign _ _ _ _ span
+  | .pass span | .expr _ span | .assign _ _ span | .assignTypeComment _ _ _ span
+  | .unpackAssign _ _ _ _ span
   | .annAssign _ _ _ _ span | .augAssign _ _ _ span | .ret _ span | .delete _ span
   | .deleteSubscript _ _ span | .deleteAttribute _ _ span | .ifStmt _ _ _ span
-  | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span | .functionDef _ _ _ _ _ span
-  | .classDef _ _ _ _ _ span | .import _ span | .importFrom _ _ _ span
+  | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span
+  | .forTypeComment _ _ _ _ _ _ span | .functionDef _ _ _ _ _ span
+  | .asyncFunctionDef _ _ _ _ _ span
+  | .classDef _ _ _ _ _ span | .classDefNode _ _ _ _ _ span
+  | .import _ span | .importFrom _ _ _ span
   | .global _ span | .nonlocal _ span | .raise _ _ span | .assertStmt _ _ span
   | .yieldStmt _ span | .yieldFrom _ span | .tryStmt _ _ _ _ span
   | .withStmt _ _ _ span | .brk span | .cont span | .unsupported _ span => span
@@ -542,6 +680,7 @@ partial def mExprToExpr : MExpr → Expr
       (mExprToExpr body) (mExprToExpr orelse) span
   | .call func args keywords _ _ span => .call (mExprToExpr func) (args.map mExprToExpr)
       (keywords.map fun (name, value) => (name, mExprToExpr value)) none span
+  | .callNode _ _ _ span => .unsupported "Call" "machine call frontier" span
   | .attribute value attr span => .attribute (mExprToExpr value) attr span
   | .subscript value slice span => .subscript (mExprToExpr value) (mExprToExpr slice) span
   | .slice value lower upper step span =>
@@ -553,12 +692,16 @@ partial def mExprToExpr : MExpr → Expr
   | .dict keys values span => .dict (keys.map (fun key =>
       key.map mExprToExpr |>.getD (.constant .none span))) (values.map mExprToExpr) span
   | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
+  | .namedExprNode _ _ span => .unsupported "NamedExpr" "machine named expression frontier" span
   | .lambdaExpr _ _ span => .unsupported "Lambda" "machine lambda frontier" span
   | .awaitExpr _ span => .unsupported "Await" "machine await frontier" span
+  | .yieldExpr _ span => .unsupported "Yield" "machine yield frontier" span
+  | .yieldFromExpr _ span => .unsupported "YieldFrom" "machine yield-from frontier" span
   | .starred value span =>
       match value with
       | .name name _ => .unsupported "Starred" name span
       | _ => .unsupported "Starred" "" span
+  | .rawNode kind _ span => .unsupported kind "machine comprehension frontier" span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .set _ span | .joinedStr _ span | .formattedValue _ _ _ span
   | .listComp _ _ _ _ _ span | .setComp _ _ _ _ _ span
@@ -579,6 +722,9 @@ partial def mExprToRaw : MExpr → RRawExpr
       .node "Call" ((#[mExprToRaw func]) ++ args.map mExprToRaw ++
         keywords.map (fun pair => mExprToRaw pair.2) ++ starargs.map mExprToRaw ++
         kwargs.map mExprToRaw) span
+  | .callNode func args keywords span =>
+      .node "Call" ((#[mExprToRaw func]) ++ args.map mExprToRaw ++
+        keywords.map (fun pair => mExprToRaw pair.2)) span
   | .attribute value _ span => .node "Attribute" #[mExprToRaw value] span
   | .subscript value index span => .node "Subscript" #[mExprToRaw value, mExprToRaw index] span
   | .slice value lower upper step span =>
@@ -611,21 +757,29 @@ partial def mExprToRaw : MExpr → RRawExpr
       .node "GeneratorExp" ((#[mExprToRaw elt, mExprToRaw target, mExprToRaw iter]) ++
         ifs.map mExprToRaw ++ walrus.map (fun pair => mExprToRaw pair.2)) span
   | .awaitExpr value span => .node "Await" #[mExprToRaw value] span
+  | .yieldExpr value span =>
+      .node "Yield" (value.map (fun expression => mExprToRaw expression) |>.toArray) span
+  | .yieldFromExpr value span => .node "YieldFrom" #[mExprToRaw value] span
   | .lambdaExpr params body span =>
       let parameterChildren := params.flatMap (fun (_, _, _, _, _, default, annotation) =>
         (default.toArray ++ annotation.toArray).map mExprToRaw)
       .node "Lambda" (parameterChildren ++ #[mExprToRaw body]) span
-  | .namedExpr _ value span => .node "NamedExpr" #[mExprToRaw value] span
+  | .namedExpr target value span =>
+      .node "NamedExpr" #[mExprToRaw (.name target span), mExprToRaw value] span
+  | .namedExprNode target value span =>
+      .node "NamedExpr" #[mExprToRaw target, mExprToRaw value] span
   | .starred value span => .node "Starred" #[mExprToRaw value] span
+  | .rawNode kind children span => .node kind (children.map mExprToRaw) span
   | .unsupported kind span => .node kind #[] span
 
 partial def mExprHasRaw : MExpr → Bool
   | .constant _ _ | .name _ _ => false
-  | .unsupported _ _ => true
+  | .unsupported _ _ | .rawNode _ _ _ => true
   | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
   | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true
   | .awaitExpr _ _ => true
+  | .yieldExpr _ _ | .yieldFromExpr _ _ => true
   | .lambdaExpr _ _ _ => true
   | .binOp left _ right _ => mExprHasRaw left || mExprHasRaw right
   | .unaryOp _ operand _ => mExprHasRaw operand
@@ -635,6 +789,7 @@ partial def mExprHasRaw : MExpr → Bool
   | .call func args keywords starargs kwargs _ =>
       mExprHasRaw func || args.any mExprHasRaw || keywords.any (fun pair => mExprHasRaw pair.2) ||
         !starargs.isEmpty || !kwargs.isEmpty || starargs.any mExprHasRaw || kwargs.any mExprHasRaw
+  | .callNode _ _ _ _ => true
   | .attribute value _ _ => mExprHasRaw value
   | .subscript value index _ => mExprHasRaw value || mExprHasRaw index
   | .slice value lower upper step _ =>
@@ -642,11 +797,12 @@ partial def mExprHasRaw : MExpr → Bool
   | .list elts _ | .tuple elts _ => elts.any mExprHasRaw
   | .dict keys values _ => keys.any (fun key => key.any mExprHasRaw) || values.any mExprHasRaw
   | .namedExpr _ value _ => mExprHasRaw value
+  | .namedExprNode _ _ _ => true
 
 private def mStmtExpressions : MStmt → Array MExpr
   | .pass _ | .global _ _ | .nonlocal _ _ | .brk _ | .cont _ | .unsupported _ _ => #[]
   | .expr value _ => #[value]
-  | .assign targets value _ => targets ++ #[value]
+  | .assign targets value _ | .assignTypeComment targets value _ _ => targets ++ #[value]
   | .unpackAssign _ _ _ value _ => #[value]
   | .annAssign target annotation value _ _ =>
       #[target, annotation] ++ value.toArray
@@ -656,7 +812,7 @@ private def mStmtExpressions : MStmt → Array MExpr
   | .deleteSubscript receiver index _ => #[receiver, index]
   | .deleteAttribute receiver _ _ => #[receiver]
   | .ifStmt test _ _ _ | .whileStmt test _ _ _ => #[test]
-  | .forStmt target iter _ _ _ _ => #[target, iter]
+  | .forStmt target iter _ _ _ _ | .forTypeComment target iter _ _ _ _ _ => #[target, iter]
   | .functionDef _ args decorators returns _ _ =>
       let argExprs := args.positionalOnly ++ args.positional ++ args.keywordOnly
       let argAnnotations := argExprs.filterMap (·.annotation)
@@ -666,7 +822,18 @@ private def mStmtExpressions : MStmt → Array MExpr
       let kwarg := args.kwarg.toArray.flatMap argPayload
       decorators ++ returns.toArray ++ args.defaults ++ args.kwDefaults.filterMap id ++
         argAnnotations ++ argDefaults ++ vararg ++ kwarg
+  | .asyncFunctionDef _ args decorators returns _ _ =>
+      let argExprs := args.positionalOnly ++ args.positional ++ args.keywordOnly
+      let argAnnotations := argExprs.filterMap (·.annotation)
+      let argDefaults := argExprs.filterMap (·.default)
+      let argPayload := fun arg => arg.annotation.toArray ++ arg.default.toArray
+      let vararg := args.vararg.toArray.flatMap argPayload
+      let kwarg := args.kwarg.toArray.flatMap argPayload
+      decorators ++ returns.toArray ++ args.defaults ++ args.kwDefaults.filterMap id ++
+        argAnnotations ++ argDefaults ++ vararg ++ kwarg
   | .classDef _ bases keywords decorators _ _ =>
+      bases ++ keywords.map (·.2) ++ decorators
+  | .classDefNode _ bases keywords decorators _ _ =>
       bases ++ keywords.map (·.2) ++ decorators
   | .import _ _ | .importFrom _ _ _ _ => #[]
   | .raise exception cause _ => exception.toArray ++ cause.toArray
@@ -715,6 +882,7 @@ partial def mStmtToStmtClean : MStmt → RStmt
       match targets.toList with
       | [target] => .assign (mExprToExpr target) (mExprToExpr value) span
       | _ => .assignMany (targets.map mExprToExpr) (mExprToExpr value) span
+  | .assignTypeComment _ _ _ span => .raw "AssignTypeComment" #[] span
   | .unpackAssign before star after value span =>
       .unpackAssign before star after (mExprToExpr value) span
   | .annAssign target annotation value simple span =>
@@ -750,6 +918,10 @@ partial def mStmtToStmtClean : MStmt → RStmt
       .classDef name (bases.map mExprToExpr)
         (keywords.map (fun pair => (pair.1, mExprToExpr pair.2)))
         (decorators.map mExprToExpr) (body.map mStmtToStmt) span
+  | .classDefNode name bases keywords decorators body span =>
+      .raw "ClassDef"
+        ((bases ++ keywords.map (·.2) ++ decorators).map mExprToRaw)
+        span
   | .withStmt items body isAsync span =>
       RStmt.withStmt (items.map (fun pair => (mExprToExpr pair.1, pair.2.map mExprToExpr)))
         (body.map mStmtToStmt) isAsync span
@@ -770,6 +942,7 @@ partial def mStmtToStmtClean : MStmt → RStmt
       else
         .forStmt (mExprToExpr target) (mExprToExpr iter)
           (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
+  | .forTypeComment _ _ _ _ _ _ span => .raw "ForTypeComment" #[] span
   | .functionDef name args decorators returns body span =>
       if !decorators.isEmpty || returns.isSome then
         .functionDefFull name (mParams args) (args.defaults.map mExprToExpr)
@@ -781,6 +954,8 @@ partial def mStmtToStmtClean : MStmt → RStmt
       else
         .functionDefKw name (mParams args) (args.defaults.map mExprToExpr)
           (args.kwDefaults.map (·.map mExprToExpr)) (body.map mStmtToStmt) span
+  | .asyncFunctionDef _ _ _ _ _ span =>
+      .raw "AsyncFunctionDef" #[] span
   | .global names span => .global names span
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span

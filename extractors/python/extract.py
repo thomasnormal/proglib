@@ -2392,12 +2392,15 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             # the ordinary tuple arity path inspect an inner Starred leaf too
             # late and fabricate an exception.
             return unsupported(node, "Starred:target")
-        return {
+        out = {
             "kind": "Assign",
             "span": span(node),
             "targets": [convert_expr(t) for t in node.targets],
             "value": convert_expr(node.value),
         }
+        if node.type_comment is not None:
+            out["machine_type_comment"] = node.type_comment
+        return out
 
     if isinstance(node, ast.AnnAssign):
         return convert_ann_assign(node, module_scope=module_scope,
@@ -2479,7 +2482,7 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             # remain a whole-node refusal rather than reaching the ordinary
             # tuple target walker and fabricating an arity error.
             return unsupported(node, "Starred:target")
-        return {
+        out = {
             "kind": "For",
             "span": span(node),
             "target": convert_expr(node.target),
@@ -2491,6 +2494,9 @@ def convert_stmt(node, enclosing=None, module_scope=False,
                                          module_scope=module_scope,
                                          func_scope=func_scope),
         }
+        if node.type_comment is not None:
+            out["machine_type_comment"] = node.type_comment
+        return out
 
     if isinstance(node, ast.AsyncFor):
         # Keep the CPython async-for node shape intact.  The machine tier
@@ -3099,7 +3105,7 @@ def process_file(source_path, companion_dir, out=None):
         raise ExtractError("%s: not valid UTF-8: %s" % (source_path, e))
 
     try:
-        tree = ast.parse(text, filename=source_path)
+        tree = ast.parse(text, filename=source_path, type_comments=True)
     except SyntaxError as e:
         raise ExtractError("%s: syntax error: %s" % (source_path, e))
 
