@@ -687,6 +687,15 @@
     ]
   },
   {
+    "id": "pointer-array-zero-init",
+    "source": "int main(void) { int *a[2] = {}; return a[0] == 0 && a[1] == 0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "envelope_checks": [
+      "array_filler"
+    ]
+  },
+  {
     "id": "structured-array-zero-init",
     "source": "int main(void) { int a[4] = {}; return a[0] == 0 && a[2] == 0 && a[3] == 0 ? 0 : 1; }",
     "expect": "match",
