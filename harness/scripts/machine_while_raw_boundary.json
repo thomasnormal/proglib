@@ -1,0 +1,73 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_while_raw_boundary.py",
+  "source_sha256": "cc0f802eb0270e9f51e384d603f1f0c56cb4db70a25be9c387db45076c123605",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "While",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 8
+        },
+        "test": {
+          "kind": "BoolOp",
+          "span": {
+            "lineno": 1,
+            "col_offset": 6,
+            "end_lineno": 1,
+            "end_col_offset": 19
+          },
+          "op": "And",
+          "values": [
+            {
+              "kind": "Unsupported",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 9
+              },
+              "py_kind": "Set:display",
+              "text": "{1}"
+            },
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 1,
+                "col_offset": 14,
+                "end_lineno": 1,
+                "end_col_offset": 19
+              },
+              "value": {
+                "type": "bool",
+                "value": false
+              }
+            }
+          ]
+        },
+        "body": [
+          {
+            "kind": "Pass",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 8
+            }
+          }
+        ],
+        "orelse": []
+      }
+    ]
+  },
+  "lean_blocks": []
+}

@@ -36,6 +36,10 @@ inductive RStmt where
   | ret (value : Option Expr) (span : Span)
   | expr (value : Expr) (span : Span)
   | exprRaw (value : RRawExpr) (span : Span)
+  /-- A statement whose direct expression fields contain a machine-frontier
+      node.  Keep the statement kind and child order until its semantics is
+      implemented instead of converting through the compatibility `Expr`. -/
+  | raw (kind : String) (children : Array RRawExpr) (span : Span)
   | assign (target : Expr) (value : Expr) (span : Span)
   | assignMany (targets : Array Expr) (value : Expr) (span : Span)
   | annAssign (target : Expr) (annotation : Expr) (value : Option Expr)
@@ -1215,6 +1219,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .exprRaw _ _ =>
               some (.event (.refuse "machine raw expression"),
                 config.finish (.refuse "machine raw expression"))
+          | .raw kind _ _ =>
+              some (.event (.refuse ("machine raw statement: " ++ kind)),
+                config.finish (.refuse ("machine raw statement: " ++ kind)))
           | .assign (.name name _) value _ =>
               some (.tau, config.setControl (.evaluate value (.assign name rest)))
           | .assign (.subscript receiver index _) value _ =>
@@ -1231,12 +1238,17 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.event (.refuse "machine augmented assignment target"),
                 config.finish (.refuse "machine augmented assignment target"))
           | .delete (.name name _) _ =>
-              let locals := (rDeleteEnv frame.locals name).getD frame.locals
-              match rDeleteModule config.modules frame.module name with
-              | some modules =>
-                  let next := config.setTop { frame with control := .statements rest, locals := locals }
-                  some (.tau, { next with modules := modules })
-              | none => some (.tau, config.setControl (.refusing "machine delete name"))
+              if config.functions.any (fun function => function.name == name) then
+                some (.event (.refuse "machine delete function"),
+                  config.finish (.refuse "machine delete function"))
+              else
+                let locals := (rDeleteEnv frame.locals name).getD frame.locals
+                match rDeleteModule config.modules frame.module name with
+                | some modules =>
+                    let next := config.setTop
+                      { frame with control := .statements rest, locals := locals }
+                    some (.tau, { next with modules := modules })
+                | none => some (.tau, config.setControl (.refusing "machine delete name"))
           | .delete _ _ =>
               match stmt with
               | .delete (.subscript receiver index _) _ =>

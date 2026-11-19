@@ -1,0 +1,105 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_assign_raw_boundary.py",
+  "source_sha256": "b4541cf2e82ac15281169216a79fec1bde930c204167d6b976f1d06c4da025a0",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 33
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "value"
+          }
+        ],
+        "value": {
+          "kind": "ListComp",
+          "span": {
+            "lineno": 1,
+            "col_offset": 8,
+            "end_lineno": 1,
+            "end_col_offset": 33
+          },
+          "elt": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 9,
+              "end_lineno": 1,
+              "end_col_offset": 13
+            },
+            "id": "item"
+          },
+          "target": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 18,
+              "end_lineno": 1,
+              "end_col_offset": 22
+            },
+            "id": "item"
+          },
+          "iter": {
+            "kind": "List",
+            "span": {
+              "lineno": 1,
+              "col_offset": 26,
+              "end_lineno": 1,
+              "end_col_offset": 32
+            },
+            "elts": [
+              {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 27,
+                  "end_lineno": 1,
+                  "end_col_offset": 28
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "1"
+                }
+              },
+              {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 30,
+                  "end_lineno": 1,
+                  "end_col_offset": 31
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "2"
+                }
+              }
+            ]
+          },
+          "ifs": [],
+          "walrus": []
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
