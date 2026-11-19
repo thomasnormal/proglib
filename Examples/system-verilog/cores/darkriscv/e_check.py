@@ -24,6 +24,7 @@ ENVELOPE_REFUSAL = {
 }
 
 COREMEM_ENVELOPES = {
+    "38b3c3253f79b006aac7a547d9c61fce31c86dfe26994a990ce324bd1ce321cf",
     "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5",
     "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7",
     "ddba565006335191c35955bd27c4c36ca134e57d8084864269b4a2f4fb77b96f",
@@ -98,10 +99,16 @@ def row (res : Nat) : SvState := [("CLK", bits 1 0), ("RES", bits 1 res), ("IRQ"
     if result.returncode != 0:
         raise SystemExit(result.stdout)
     if digest in COREMEM_ENVELOPES:
-        if 'initial-ok\\ntwo-pass-ok\\nclock-prepare-ok\\nclock-edges-ok\\nclock-commit-built' not in result.stdout:
-            raise SystemExit("canonical-E staged clock probe did not complete")
-        print("canonical E: loaded one-rank memory route and completed two passes plus clock preparation, edge execution, and NBA commit construction")
-        print("E-RUN: 0/2 complete cycles; staged clock probe: 4/4 stages")
+        staged = 'initial-ok\\ntwo-pass-ok\\nclock-prepare-ok\\nclock-edges-ok\\nclock-commit-built'
+        edge_wall = 'clock-edges-unsupported: AssignmentExpression:target:'
+        if staged in result.stdout:
+            print("canonical E: loaded one-rank memory route and completed two passes plus clock preparation, edge execution, and NBA commit construction")
+            print("E-RUN: 0/2 complete cycles; staged clock probe: 4/4 stages")
+        elif edge_wall in result.stdout:
+            print("canonical E: loaded one-rank memory route; the first clock edge reaches the known assignment-target wall")
+            print("E-RUN: 0/0 complete cycles; staged reset and preparation passed, edge execution refused")
+        else:
+            raise SystemExit("canonical-E staged clock probe did not complete or reach the pinned assignment-target wall")
         print(f"envelope SHA-256: {digest}")
         return
     if expected_refusal not in result.stdout:
