@@ -698,5 +698,10 @@
     "source": "harness/scripts/machine_attribute_assign_scalar.py",
     "envelope": "harness/scripts/machine_attribute_assign_scalar.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_method.py",
+    "envelope": "harness/scripts/machine_class_method.json",
+    "expect": "match"
   }
 ]

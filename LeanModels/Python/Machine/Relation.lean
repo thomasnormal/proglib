@@ -327,6 +327,13 @@ def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFra
     choiceToken := config.choiceToken
     status := config.status }
 
+def RConfig.defineMethod (config : RConfig) (frame : RFrame) (tail : List RFrame)
+    (function : RFunction) (remaining : List RStmt) : RConfig :=
+  { config with
+    frames := rDefinedFrame frame function.name function.id remaining :: tail
+    functions := function :: config.functions
+    nextFunctionId := max config.nextFunctionId (function.id + 1) }
+
 def rLookupEnv : REnv → String → Option RVal
   | [], _ => none
   | (name, value) :: rest, wanted =>
@@ -440,6 +447,7 @@ def rClassBodySupported : List RStmt → Bool
   | [] => true
   | .pass _ :: rest => rClassBodySupported rest
   | .assign (.name _ _) _ _ :: rest => rClassBodySupported rest
+  | .functionDef _ _ _ _ _ :: rest => rClassBodySupported rest
   | _ => false
 
 def rFinishClass (config : RConfig) (classFrame : RFrame) (tail : List RFrame)
@@ -1547,8 +1555,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                       config.finish (.refuse "machine default expression"))
                   | some defaultValues =>
                       let defaultValues := defaultValues.toArray
+                      let inClass := match current.completion with
+                        | some (.classDef _ _) => true
+                        | _ => false
                       let captured :=
-                        if tail.isEmpty then (config.heap, current, [])
+                        if inClass || tail.isEmpty then (config.heap, current, [])
                         else rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
@@ -1559,7 +1570,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                           globalNames := scopeNames.1, nonlocalNames := scopeNames.2,
                           localNames := (rBoundNames body.toList).filter
                             (fun name => name ∉ scopeNames.1 && name ∉ scopeNames.2) }
-                      let defined := config.defineFunction capturedFrame tail function rest
+                      let defined :=
+                        if inClass then config.defineMethod current tail function rest
+                        else config.defineFunction capturedFrame tail function rest
                       some (.tau, { defined with heap := captured.1 })
               | [] => none
           | .functionDefKw name params defaults keywordDefaults body span =>
