@@ -83,6 +83,16 @@ theorem CoreRvfiMachine.step_exact
       .ok ((machine.toRvfiCycleMachine).step state input) := by
   exact machine.exact state input
 
+theorem CoreRvfiMachine.step_eq_of_exact
+    {d : CoreMemDesign} (machine : CoreRvfiMachine d)
+    {state next : CoreMemState} {input : LeanModels.Refine.Input}
+    {observation : RvfiObservation}
+    (h : rvfiStep d state (machine.encode input) =
+      .ok (next, observation)) :
+    machine.step state input = (next, observation) := by
+  have hexact := machine.exact state input
+  exact Res.ok.inj (hexact.symm.trans h)
+
 theorem rvfiStep_ok_of_fast_and_decode
     {d : CoreMemDesign} {st next : CoreMemState} {entry : SvState}
     {row : RvfiObservation}
