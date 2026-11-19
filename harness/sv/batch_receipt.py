@@ -122,6 +122,7 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("constant_width_conversion.sv", "constant_width_conversion",
             (Port("x", 1),), (Port("y", 1),),
             (Point("E8", (8,)), Point("E4", (4,)))),
+    # Localparam-dependent width family, exercised at E=8 and E=4.
     Fixture("localparam_shift.sv", "localparam_shift",
             (Port("x", 8),), (Port("y", 8),),
             (Point("E8", (8,)), Point("E4", (4,)))),
