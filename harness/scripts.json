@@ -777,5 +777,20 @@
     "file": "harness/scripts/structured_nodes_dead.py",
     "expect": "match",
     "note": "Set, Lambda, AsyncFor and AsyncWith nodes in code that never runs: the compatibility decoder loads the module and refuses them only when reached."
+  },
+  {
+    "file": "harness/scripts/walrus_comprehension_local.py",
+    "expect": "match",
+    "note": "A walrus in a two-clause comprehension makes its target a local of the enclosing function (UnboundLocalError on the earlier read); master read the module global."
+  },
+  {
+    "file": "harness/scripts/walrus_display_local.py",
+    "expect": "match",
+    "note": "A walrus in a starred display makes its target a function local; master read the module global."
+  },
+  {
+    "file": "harness/scripts/dictcomp_order_function.py",
+    "expect": "match",
+    "note": "Dictionary-comprehension insertion order inside a function body; master returned the keys reversed."
   }
 ]
