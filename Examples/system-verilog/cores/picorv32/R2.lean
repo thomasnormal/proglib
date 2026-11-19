@@ -107,6 +107,8 @@ obligation:
   exact illegal boundary.
   `r1_csr` provides the six implemented Zicsr consumers through the decoded
   CSR row and operation witness.
+  `r1_mem_all` provides the five load and three store consumers through the
+  memory-threaded MemInstruction witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.

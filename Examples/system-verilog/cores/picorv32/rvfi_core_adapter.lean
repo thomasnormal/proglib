@@ -8,6 +8,7 @@ import LeanModels.Refine.RvfiAluProgram
 import LeanModels.Refine.RvfiFenceProgram
 import LeanModels.Refine.RvfiSystemProgram
 import LeanModels.Refine.RvfiCsrProgram
+import LeanModels.Refine.RvfiMemProgram
 
 /-!
 # PicoRV32 canonical-E RVFI state adapter
@@ -675,6 +676,38 @@ theorem CoreCsrBoundary.to_rv32i_boundary
   exact Rv32iBoundary.csr instruction.word instruction.row instruction.kind hboundary
 
 #print axioms CoreCsrBoundary.to_rv32i_boundary
+
+def CoreMemBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (instruction : LeanModels.Refine.MemInstruction) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.memBoundary arch input instruction.word instruction.kind
+        instruction.r instruction.rs1 instruction.imm
+
+theorem CoreMemBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {instruction : LeanModels.Refine.MemInstruction}
+    (h : CoreMemBoundary d st entry arch input instruction) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.memNext arch input.memory instruction.kind
+            instruction.r instruction.rs1 instruction.imm,
+          memory := LeanModels.Refine.memAfter input.memory arch instruction.kind
+            instruction.r instruction.rs1 instruction.imm }
+        (LeanModels.Refine.memRetirement arch input instruction.kind instruction.r
+          instruction.rs1 instruction.imm) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  exact Rv32iBoundary.mem instruction.word instruction.kind instruction.r
+    instruction.rs1 instruction.imm hboundary
+
+#print axioms CoreMemBoundary.to_rv32i_boundary
 
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
