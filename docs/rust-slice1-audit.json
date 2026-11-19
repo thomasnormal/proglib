@@ -42,14 +42,14 @@
           }
         }
       },
-      "extract_seconds": 0.283,
+      "extract_seconds": 0.174,
       "lean_outcome": "refused:unsupported:call arguments for _RNvNtCsbIdfEBWNrsZ_5alloc5boxed14box_new_uninitCsd7FEqVnaBj8_13study_for_vec"
     },
     {
       "id": "study_iterator_chain",
       "source": "measurement_programs/study/02_iterator_chain.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:use assignment",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -86,8 +86,8 @@
           }
         }
       },
-      "extract_seconds": 0.16,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.151,
+      "lean_outcome": "refused:unsupported:use assignment"
     },
     {
       "id": "study_match_or_guard",
@@ -130,7 +130,7 @@
           }
         }
       },
-      "extract_seconds": 0.106,
+      "extract_seconds": 0.082,
       "lean_outcome": "returned"
     },
     {
@@ -174,14 +174,14 @@
           }
         }
       },
-      "extract_seconds": 0.079,
+      "extract_seconds": 0.068,
       "lean_outcome": "refused:unsupported:use assignment"
     },
     {
       "id": "study_drop_struct",
       "source": "measurement_programs/study/05_drop_struct.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:unresolved call",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -218,14 +218,14 @@
           }
         }
       },
-      "extract_seconds": 0.083,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.104,
+      "lean_outcome": "refused:unsupported:unresolved call"
     },
     {
       "id": "study_generic_trait",
       "source": "measurement_programs/study/06_generic_trait.rs",
-      "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "status": "decided",
+      "reason": "Lean returned; Miri Stage 0 verdict is ok",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -262,8 +262,8 @@
           }
         }
       },
-      "extract_seconds": 0.086,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.069,
+      "lean_outcome": "returned"
     },
     {
       "id": "study_question_mark",
@@ -306,14 +306,14 @@
           }
         }
       },
-      "extract_seconds": 0.1,
+      "extract_seconds": 0.083,
       "lean_outcome": "refused:unsupported:discriminant assignment"
     },
     {
       "id": "study_async",
       "source": "measurement_programs/study/08_async.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:cast write",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -350,8 +350,8 @@
           }
         }
       },
-      "extract_seconds": 0.099,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.137,
+      "lean_outcome": "refused:unsupported:cast write"
     },
     {
       "id": "study_derive",
@@ -394,7 +394,7 @@
           }
         }
       },
-      "extract_seconds": 0.413,
+      "extract_seconds": 0.384,
       "lean_outcome": "refused:unsupported:reference write"
     },
     {
@@ -438,7 +438,7 @@
           }
         }
       },
-      "extract_seconds": 0.101,
+      "extract_seconds": 0.094,
       "lean_outcome": "returned"
     },
     {
@@ -526,7 +526,7 @@
           }
         }
       },
-      "extract_seconds": 0.042,
+      "extract_seconds": 0.033,
       "lean_outcome": "returned"
     },
     {
@@ -570,14 +570,14 @@
           }
         }
       },
-      "extract_seconds": 0.073,
+      "extract_seconds": 0.075,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_closure-returning-closure",
       "source": "measurement_programs/rustc_run_pass/04_closure-returning-closure.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:aggregate write",
+      "reason": "Lean outcome refused:unsupported:use assignment",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -614,8 +614,8 @@
           }
         }
       },
-      "extract_seconds": 0.089,
-      "lean_outcome": "refused:unsupported:aggregate write"
+      "extract_seconds": 0.068,
+      "lean_outcome": "refused:unsupported:use assignment"
     },
     {
       "id": "rustc_move-arg",
@@ -658,7 +658,7 @@
           }
         }
       },
-      "extract_seconds": 0.07,
+      "extract_seconds": 0.069,
       "lean_outcome": "returned"
     },
     {
@@ -702,7 +702,7 @@
           }
         }
       },
-      "extract_seconds": 0.068,
+      "extract_seconds": 0.069,
       "lean_outcome": "returned"
     },
     {
@@ -746,7 +746,7 @@
           }
         }
       },
-      "extract_seconds": 0.066,
+      "extract_seconds": 0.044,
       "lean_outcome": "returned"
     },
     {
@@ -790,7 +790,7 @@
           }
         }
       },
-      "extract_seconds": 0.046,
+      "extract_seconds": 0.054,
       "lean_outcome": "returned"
     },
     {
@@ -834,7 +834,7 @@
           }
         }
       },
-      "extract_seconds": 0.083,
+      "extract_seconds": 0.071,
       "lean_outcome": "returned"
     },
     {
@@ -878,7 +878,7 @@
           }
         }
       },
-      "extract_seconds": 0.086,
+      "extract_seconds": 0.076,
       "lean_outcome": "returned"
     },
     {
@@ -922,7 +922,7 @@
           }
         }
       },
-      "extract_seconds": 0.084,
+      "extract_seconds": 0.065,
       "lean_outcome": "returned"
     },
     {
@@ -966,7 +966,7 @@
           }
         }
       },
-      "extract_seconds": 0.054,
+      "extract_seconds": 0.046,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
@@ -1010,7 +1010,7 @@
           }
         }
       },
-      "extract_seconds": 0.046,
+      "extract_seconds": 0.092,
       "lean_outcome": "returned"
     },
     {
@@ -1054,14 +1054,14 @@
           }
         }
       },
-      "extract_seconds": 0.043,
+      "extract_seconds": 0.035,
       "lean_outcome": "returned"
     },
     {
       "id": "rustc_vector-no-ann-2",
       "source": "measurement_programs/rustc_run_pass/15_vector-no-ann-2.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:cast write",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -1098,8 +1098,8 @@
           }
         }
       },
-      "extract_seconds": 0.109,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.115,
+      "lean_outcome": "refused:unsupported:cast write"
     },
     {
       "id": "rustc_generic-newtype-struct",
@@ -1142,7 +1142,7 @@
           }
         }
       },
-      "extract_seconds": 0.049,
+      "extract_seconds": 0.045,
       "lean_outcome": "returned"
     },
     {
@@ -1186,7 +1186,7 @@
           }
         }
       },
-      "extract_seconds": 0.079,
+      "extract_seconds": 0.082,
       "lean_outcome": "returned"
     },
     {
@@ -1230,7 +1230,7 @@
           }
         }
       },
-      "extract_seconds": 0.058,
+      "extract_seconds": 0.047,
       "lean_outcome": "returned"
     },
     {
@@ -1274,14 +1274,14 @@
           }
         }
       },
-      "extract_seconds": 0.038,
+      "extract_seconds": 0.033,
       "lean_outcome": "refused:unsupported:cast write"
     },
     {
       "id": "rustc_empty-mutable-vec",
       "source": "measurement_programs/rustc_run_pass/20_empty-mutable-vec.rs",
       "status": "named_refusal",
-      "reason": "Lean outcome refused:unsupported:terminator",
+      "reason": "Lean outcome refused:unsupported:cast write",
       "oracle": {
         "counts_equal_between_models": true,
         "models": {
@@ -1318,11 +1318,11 @@
           }
         }
       },
-      "extract_seconds": 0.06,
-      "lean_outcome": "refused:unsupported:terminator"
+      "extract_seconds": 0.055,
+      "lean_outcome": "refused:unsupported:cast write"
     }
   ],
-  "decided_rows": 16,
-  "named_refusals": 14,
+  "decided_rows": 17,
+  "named_refusals": 13,
   "diverging": 0
 }
