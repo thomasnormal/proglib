@@ -296,10 +296,10 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         -- element initializers and reports a fabricated missing member.
         if (ctx.layout.elem initTy).isNone && ctx.layout.isUnion initTy then
           match ctx.layout.members initTy, inits with
-          | some _, [] => zeroInit fuel ctx p initTy none
+          | some _, [] => zeroInit fuel ctx p initTy declaration
           | some ms, e :: _ =>
               let target := field.getD ((ms.head?.map (·.1)).getD "")
-              match ctx.layout.fieldOff initTy target with
+              match ctx.layout.fieldOffDeclAt declaration initTy target with
               | some off => initObject fuel ctx (Mem.member p off) (ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy) e none none
               | none => refuseUnsupported s!"no offset for union member '{target}'"
           | _, _ => refuseUnsupported "union initializer has no member"
