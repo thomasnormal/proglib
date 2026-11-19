@@ -662,17 +662,11 @@ def layoutFor (envl : Envelope) : Layout :=
   let observedFor := fun t : CType =>
     let t0 := resolve tds 8 (stripQuals 8 t)
     observed.find? (fun row => row.1 == t0)
-  let observedPointeeFor := fun t : CType =>
-    -- Resolve typedefs before peeling the pointer.  A parser-native
-    -- declaration such as `EP` may be a typedef for `struct E *`; checking
-    -- the raw spelling for a trailing `*` would miss its declaration-identity
-    -- layout and fabricate a field-layout refusal.
-    let t0 := resolve tds 8 (stripQuals 8 t)
-    let t1 := if t0.endsWith "*" then
-      stripQuals 8 (t0.dropEnd 1).toString.trimAsciiEnd.toString
-      else t0
-    let t2 := resolve tds 8 t1
-    observed.find? (fun row => row.1 == t2)
+  -- Legacy type-spelling pointee lookup is deliberately absent. Member
+  -- layout is keyed by the parser's declaration identity, and an envelope
+  -- lacking that observation must refuse instead of peeling a display spelling.
+  let observedPointeeFor : CType → Option (CType × List (String × CType) × RecordLayout) :=
+    fun _ => none
   let observedFieldSizeFor := fun (t : CType) (f : String) =>
     match observedPointeeFor t with
     | some (_, _, layout) => recordFieldSize layout f
