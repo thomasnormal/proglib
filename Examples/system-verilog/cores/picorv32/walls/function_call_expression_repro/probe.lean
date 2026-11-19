@@ -12,10 +12,20 @@ load_design_sv2 functionCallExpressionRepro
 
 #guard functionCallExpressionRepro.pdesign.others == []
 
-/- `$test$plusargs` is retained as a parser-native system-call expression.
-   Its value depends on the simulator invocation, so canonical E refuses it
-   at the declared-signal tier instead of selecting a plus-argument result. -/
+/- `$test$plusargs` remains a parser-native system-call expression.  The
+   canonical E route evaluates it only after the caller supplies its explicit
+   plus-argument environment. -/
 #guard functionCallExpressionRepro.sem.hasUnsupported
+
+private def flagArg : PExpr := .lit (LVec.ofNat 32 0x666c6167)
+
+#guard match functionCallExpressionRepro.e with
+  | .ok E =>
+        (E.withPlusargs []).evalSysCall E.env E.elems E.initial [] .testPlusargs flagArg ==
+          .ok (LVec.ofNat 1 0) &&
+        (E.withPlusargs ["flag"]).evalSysCall E.env E.elems E.initial [] .testPlusargs flagArg ==
+          .ok (LVec.ofNat 1 1)
+  | _ => false
 
 #guard match functionCallExpressionRepro.e with
   | .ok d => d.processes.size == 1
@@ -32,6 +42,6 @@ def eRunMessage : String := match functionCallExpressionRepro.e with
   | .timeout => "elaboration timeout"
   | .unsupported msg => msg
 
-#guard eRunMessage == "unsupported expression 'SysCall'"
+#guard eRunMessage == "ok"
 
 end Examples.«system-verilog».cores.picorv32.walls.function_call_expression_repro

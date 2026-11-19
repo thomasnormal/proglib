@@ -2,6 +2,7 @@ import LeanModels.Sv.Kernel.Core1Elab
 import LeanModels.Sv.Kernel.AggregateBridge
 import LeanModels.Sv.Kernel.MemElab
 import LeanModels.Sv.Loop2
+import LeanModels.Sv.Plusargs
 
 /-!
 # Source-shaped one-rank memories in canonical E
@@ -80,6 +81,9 @@ deriving Repr, Inhabited
 structure CoreMemDesign where
   name : String
   env : IEnv
+  /-- Command-line plus-arguments supplied to system functions such as
+      `$test$plusargs` (§20.2.2).  The host must provide this explicitly. -/
+  plusargs : List String := []
   /-- Element widths for the retained source declarations.  `instExpr2`
       needs this table to lower a packed bit select; keeping it beside the
       source-shaped design avoids manufacturing a second declaration view. -/
@@ -112,6 +116,12 @@ structure CoreMemDesign where
       records where the §6.6 resolver is applied while those nodes settle. -/
   resolvedNets : List String := []
 deriving Inhabited
+
+/-- Install the simulator's explicit plus-argument environment on a design.
+    This keeps `$test$plusargs` dependent on an input chosen by the caller,
+    rather than on an ambient process or a fixed simulator result. -/
+def CoreMemDesign.withPlusargs (E : CoreMemDesign) (plusargs : List String) : CoreMemDesign :=
+  { E with plusargs }
 
 /-! A structural admission predicate for the canonical memory family.  This is
 not a scalar `Design2` coercion: memory declarations remain source-shaped
@@ -1704,6 +1714,31 @@ def CoreMemDesign.evalFunction (E : CoreMemDesign) (env : IEnv) (elems : List (S
             let value ← E.evalScalarLocals env elems st (some returnWidth) bindings f.body
             .ok (if f.isSigned then value.resizeSigned returnWidth else value.resizeU returnWidth)
 
+/-! `$test$plusargs` takes a source string pattern.  String literals are
+    represented by the parser as known packed vectors, with the first source
+    character in the most-significant byte. -/
+
+def coreMemStringLiteral? : PExpr → Option String
+  | .lit value =>
+      if value.width == 0 || value.width % 8 != 0 || !value.allKnown then none
+      else
+        let bytes := value.width / 8
+        some (String.ofList ((List.range bytes).reverse.map fun index =>
+          Char.ofNat ((value.toNat / (2 ^ (8 * index))) % 256)))
+  | _ => none
+
+def CoreMemDesign.evalSysCall (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (locals : SvState)
+    (fn : SysFn) (arg : PExpr) : Res LVec :=
+  match fn with
+  | .testPlusargs =>
+      match coreMemStringLiteral? arg with
+      | some pattern =>
+          .ok (LVec.ofLogic (if Plusargs.test E.plusargs pattern then .l1 else .l0))
+      | none => .unsupported
+          "SysCall:$test$plusargs: argument must be a known string literal"
+  | _ => E.evalScalarLocals env elems st none locals (.sysCall fn arg)
+
 mutual
 
 def CoreMemDesign.evalIndexLocals (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
@@ -1836,7 +1871,7 @@ def CoreMemDesign.evalScalarAssignAtView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (ctx : Option Nat) (index : Nat) (value : PExpr) : Res LVec :=
   if LeanModels.Sv.PExpr.hasMemoryRead value ||
-            LeanModels.Sv.PExpr.hasFunctionCall value || LeanModels.Sv.PExpr.hasAggregateMember value then
+            LeanModels.Sv.PExpr.hasMemoryRead value || LeanModels.Sv.PExpr.hasAggregateMember value then
     E.evalExpr env elems st ctx value
   else
     match E.compiledAssigns[index]? with
@@ -2302,10 +2337,51 @@ route, with the parser-native plain/inside `case` node handled by the case
 matcher below.  `casez`/`casex`, NBA, loops, and unsupported statements remain
 loud at their own node; no statement is lowered into a second AST. -/
 
+mutual
+def LeanModels.Sv.PExpr.hasTestPlusargs : PExpr → Bool
+  | .sysCall .testPlusargs _ => true
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
+  | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasTestPlusargs a
+  | .binary _ a b => LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .ternary c a b => LeanModels.Sv.PExpr.hasTestPlusargs c ||
+      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .concat xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | .bitSel a b | .repl a b => LeanModels.Sv.PExpr.hasTestPlusargs a ||
+      LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .partSel a b c => LeanModels.Sv.PExpr.hasTestPlusargs a ||
+      LeanModels.Sv.PExpr.hasTestPlusargs b || LeanModels.Sv.PExpr.hasTestPlusargs c
+  | .arrayElem _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | .arrayPart _ xs _ a b => LeanModels.Sv.PExpr.hasTestPlusargsList xs ||
+      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .functionCall _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | _ => false
+
+def LeanModels.Sv.PExpr.hasTestPlusargsList : List PExpr → Bool
+  | [] => false
+  | x :: xs => LeanModels.Sv.PExpr.hasTestPlusargs x ||
+      LeanModels.Sv.PExpr.hasTestPlusargsList xs
+end
+
+def CoreMemDesign.evalRuntimeExpr (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (ctx : Option Nat)
+    (e : PExpr) : Res LVec :=
+  match e with
+  | .sysCall fn arg => E.evalSysCall env elems st [] fn arg
+  | .ternary c a b => do
+      let cv ← E.evalRuntimeExpr env elems st none c
+      let tv ← if LeanModels.Sv.PExpr.hasTestPlusargs a then E.evalRuntimeExpr env elems st ctx a
+        else E.evalExprLocals env elems st ctx [] a
+      let fv ← if LeanModels.Sv.PExpr.hasTestPlusargs b then E.evalRuntimeExpr env elems st ctx b
+        else E.evalExprLocals env elems st ctx [] b
+      .ok (LVec.ternary cv tv fv)
+  | _ => E.evalExprLocals env elems st ctx [] e
+
 def CoreMemDesign.evalCombExpr (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (ctx : Option Nat) (e : PExpr) : Res LVec :=
-  if !LeanModels.Sv.PExpr.hasMemoryRead e && !LeanModels.Sv.PExpr.hasFunctionCall e then
+  if LeanModels.Sv.PExpr.hasTestPlusargs e then
+    E.evalRuntimeExpr env elems st ctx e
+  else if !LeanModels.Sv.PExpr.hasMemoryRead e && !LeanModels.Sv.PExpr.hasFunctionCall e then
     evalPure2 view (instExpr2 env elems ctx e)
   else
     E.evalExpr env elems st ctx e
