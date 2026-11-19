@@ -213,6 +213,11 @@ event and delegates the memory result to `foreignAllocatorStep`.  The existing
 runner still reports a refusal for these calls until its executable path is
 extended with the same registry transition.
 
+`foreignAllocatorRun_in_step` proves that a successful registry-selected run
+constructs the corresponding `ForeignProgramStep` when the address choice,
+typed arguments, destination write, and normal continuation satisfy their
+premises.  The proof leaves the registry and address choice explicit.
+
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
 15.299 s and returned `ok` with status 0 under both borrow models.  The extra

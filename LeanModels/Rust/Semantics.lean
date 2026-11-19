@@ -622,6 +622,12 @@ def foreignAllocatorStep (s : State) (spec : ForeignSpec) (args : List Operand)
         let (size, align) ← allocatorArguments s args
         pure (allocatorStep s size align zeroed choice)
 
+def foreignAllocatorRun (registry : ForeignRegistry) (s : State) (callee : String)
+    (args : List Operand) (choice : AllocationChoice) : Option (State × Cell) :=
+  match registry callee with
+  | some spec => foreignAllocatorStep s spec args choice
+  | none => none
+
 def rvalueCell (s : State) : Rvalue → Option Cell
   | .use operand => operandCell s operand
   | .binaryEq left right => do
@@ -1263,6 +1269,34 @@ inductive ForeignProgramStep (program : Envelope) (registry : ForeignRegistry) :
       ForeignProgramStep program registry body blockId state
         { state := suffix.state,
           events := first.events ++ (Event.call calleeId :: suffix.events) }
+
+theorem foreignAllocatorRun_in_step
+    {program : Envelope} {registry : ForeignRegistry}
+    {body : Body} {blockId target : Nat} {state : State}
+    {block : Block} {first suffix : Trace} {edge : CallEdge}
+    {calleeId : String} {choice : AllocationChoice}
+    {args : List Operand} {destination : Place} {cleanup : Option Nat}
+    {foreignState : State} {value : Cell} {callerState : State}
+    {zeroed : Bool} {size align : Nat} {func : Operand}
+    (hb : blockAt body.blocks blockId = some block)
+    (hs : statementsRun block.statements state = some first)
+    (ht : block.terminator = .call func args destination (some target) cleanup)
+    (hl : program.calls.find? (fun candidate =>
+      candidate.caller == body.instanceId ∧ candidate.block == blockId) = some edge)
+    (he : edge.callee = some calleeId)
+    (hr : edge.resolved = true)
+    (hspec : registry calleeId = some (.allocator zeroed 2))
+    (ha : allocatorArguments first.state args = some (size, align))
+    (hv : allocationChoiceValid first.state size align choice)
+    (hRun : foreignAllocatorRun registry first.state calleeId args choice =
+      some (foreignState, value))
+    (hw : writeCell foreignState destination value = some callerState)
+    (rest : ProgramSteps program body target callerState suffix) :
+    ForeignProgramStep program registry body blockId state
+      { state := suffix.state,
+        events := first.events ++ (Event.call calleeId :: suffix.events) } := by
+  apply ForeignProgramStep.allocator hb hs ht hl he hr hspec ha hv ?_ hw rest
+  simpa [foreignAllocatorRun, hspec] using hRun
 
 def BodyInSteps (body : Body) (trace : Trace) : Prop :=
   ∃ fuel, CfgInSteps fuel body 0 {} trace
