@@ -310,6 +310,9 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("inactive_generate_child_e.sv", "inactive_generate_child_e",
             (Port("a", 1),), (Port("y", 1),),
             (Point("USE0", (0,)), Point("USE1", (1,)))),
+    Fixture("inactive_generate_child_param_e.sv", "inactive_generate_child_param_e",
+            (Port("a", 4),), (Port("y", 4),),
+            (Point("USE0", (0,)), Point("USE1", (1,)))),
     Fixture("generate_unbound_parameter.sv", "generate_unbound_parameter_top",
             (Port("x", 1),), (Port("y", 1),),
             retain_proc_rewrites=True),
@@ -737,6 +740,8 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
         return point.args[0]
     if fixture.top == "parameterized_constant_cast_e" and point.args:
         return point.args[0]
+    if fixture.top == "inactive_generate_child_param_e" and point.args:
+        return 4
     if fixture.top == "packed_shift_register_canonical_e" and point.args \
             and port.name == "q":
         return point.args[0]
@@ -837,6 +842,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generated_array_nested": ("W",),
             "hierarchy_parameterized": ("W",),
             "inactive_generate_child_e": ("USE",),
+            "inactive_generate_child_param_e": ("USE",),
             "parameterized_storage_structure": ("N",),
             "initial_parameter_check": ("N",),
             "constant_function_top": ("N",),

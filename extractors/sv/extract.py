@@ -34774,13 +34774,25 @@ def _convert_uninstantiated_sym(sm, m):
         path = _sym_instance_path(m)
         if path is None:
             return unsupported(sm, m, "UninstantiatedDefSymbol:path")
-        if list(getattr(m, "paramExpressions", [])):
-            return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
+        syntax = getattr(m, "syntax", None)
+        params = []
+        parameter_values = getattr(getattr(syntax, "parent", None), "parameters", None)
+        if parameter_values is not None:
+            for assignment in _syntax_children(parameter_values):
+                if type(assignment).__name__ != "NamedParamAssignmentSyntax":
+                    continue
+                pname = str(getattr(assignment, "name", "")).strip()
+                expr_syntax = getattr(assignment, "expr", None)
+                if not _SYM_HIER_NAME.match(pname) or expr_syntax is None:
+                    return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
+                expr = _syntax_expr(sm, expr_syntax)
+                if not isinstance(expr, dict) or expr.get("kind") == "Unsupported":
+                    return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
+                params.append({"name": pname, "expr": expr})
         port_defs = _sym_source_module_ports(dname)
         if port_defs is None:
             return unsupported(sm, m, "UninstantiatedDefSymbol:ports")
         by_name = dict(port_defs)
-        syntax = getattr(m, "syntax", None)
         connections = [c for c in getattr(syntax, "connections", [])
                        if type(c).__name__ == "NamedPortConnectionSyntax"]
         if len(connections) != len(port_defs):
@@ -34817,7 +34829,7 @@ def _convert_uninstantiated_sym(sm, m):
             _SYM.instance_modules.append(dname)
         return {"kind": "Instance", "span": sym_span(sm, m),
                 "name": iname, "module": dname, "path": path,
-                "params": [], "ports": ports}
+                "params": params, "ports": ports}
     except Exception as exc:
         return internal_error(exc)
 
@@ -34866,7 +34878,7 @@ def _sym_uninstantiated_port_expr(sm, syntax):
             name = str(syntax).strip()
             symbol = _SYM.scope.lookupName(name)
             if symbol is None or type(symbol).__name__ not in (
-                    "VariableSymbol", "NetSymbol", "PortSymbol"):
+                    "VariableSymbol", "NetSymbol", "PortSymbol", "ParameterSymbol"):
                 return _syntax_unsupported(sm, syntax,
                                            "Syntax:Identifier:unresolved")
             width = getattr(getattr(symbol, "type", None), "bitWidth", None)
