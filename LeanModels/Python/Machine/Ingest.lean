@@ -326,6 +326,11 @@ partial def mExpr (j : Json) : Except String MExpr := do
       | .ok (.str "JoinedStr") =>
           let values ← (← mField j "machine_values").getArr?
           pure (.joinedStr (← values.mapM mExpr) span)
+      | .ok (.str "SetComp") =>
+          let ifs ← (← mField j "machine_ifs").getArr?
+          pure (.setComp (← mExpr (← mField j "machine_elt"))
+            (← mExpr (← mField j "machine_target"))
+            (← mExpr (← mField j "machine_iter")) (← ifs.mapM mExpr) #[] span)
       | _ => pure (.unsupported kind span)
   | "Lambda" =>
       let parseParam := fun param => do
