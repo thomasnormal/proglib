@@ -39,6 +39,27 @@ inductive CBuiltin where
   | uint128
   deriving Repr, BEq, Inhabited, Lean.ToExpr
 
+def CBuiltin.ofName : String → Option CBuiltin
+  | "_Bool" => some .bool
+  | "char" => some .char
+  | "signed char" => some .signedChar
+  | "unsigned char" => some .unsignedChar
+  | "short" | "short int" => some .short
+  | "unsigned short" | "unsigned short int" => some .unsignedShort
+  | "int" | "signed int" => some .int
+  | "unsigned" | "unsigned int" => some .unsignedInt
+  | "long" | "long int" => some .long
+  | "unsigned long" | "unsigned long int" => some .unsignedLong
+  | "long long" | "long long int" => some .longLong
+  | "unsigned long long" | "unsigned long long int" => some .unsignedLongLong
+  | "float" => some .float
+  | "double" => some .double
+  | "long double" => some .longDouble
+  | "wchar_t" => some .wchar
+  | "__int128" => some .int128
+  | "unsigned __int128" | "__uint128_t" => some .uint128
+  | _ => none
+
 inductive QualType where
   | builtin (type : LeanModels.Cpp.CppIntType)
   /-- A C frontend builtin whose signedness/width is a parser fact that the

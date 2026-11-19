@@ -433,27 +433,9 @@ partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.
     | "builtin" =>
         let name ← getStr j "name"
         if name == "void" then .ok .void
-        else match name with
-        | "_Bool" => .ok (.cBuiltinKind .bool)
-        | "char" => .ok (.cBuiltinKind .char)
-        | "signed char" => .ok (.cBuiltinKind .signedChar)
-        | "unsigned char" => .ok (.cBuiltinKind .unsignedChar)
-        | "short" | "short int" => .ok (.cBuiltinKind .short)
-        | "unsigned short" | "unsigned short int" => .ok (.cBuiltinKind .unsignedShort)
-        | "int" | "signed int" => .ok (.cBuiltinKind .int)
-        | "unsigned" | "unsigned int" => .ok (.cBuiltinKind .unsignedInt)
-        | "long" | "long int" => .ok (.cBuiltinKind .long)
-        | "unsigned long" | "unsigned long int" => .ok (.cBuiltinKind .unsignedLong)
-        | "long long" | "long long int" => .ok (.cBuiltinKind .longLong)
-        | "unsigned long long" | "unsigned long long int" =>
-            .ok (.cBuiltinKind .unsignedLongLong)
-        | "float" => .ok (.cBuiltinKind .float)
-        | "double" => .ok (.cBuiltinKind .double)
-        | "long double" => .ok (.cBuiltinKind .longDouble)
-        | "wchar_t" => .ok (.cBuiltinKind .wchar)
-        | "__int128" => .ok (.cBuiltinKind .int128)
-        | "unsigned __int128" | "__uint128_t" => .ok (.cBuiltinKind .uint128)
-        | _ => .error s!"unsupported C builtin QualType {name.quote}"
+        else match LeanModels.Clang.CBuiltin.ofName name with
+        | some kind => .ok (.cBuiltinKind kind)
+        | none => .error s!"unsupported C builtin QualType {name.quote}"
     | "pointer" => .ok (.pointer (← parseStructuredQualType (← getField j "pointee")))
     | "array" =>
         .ok (.array (← parseStructuredQualType (← getField j "element"))
