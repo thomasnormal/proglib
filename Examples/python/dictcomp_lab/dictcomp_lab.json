@@ -81,7 +81,8 @@
                   "end_lineno": 5,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -100,7 +101,8 @@
                   "end_lineno": 5,
                   "end_col_offset": 15
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Load"
               },
               "value": {
                 "kind": "BinOp",
@@ -118,7 +120,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 18
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Load"
                 },
                 "op": "Mult",
                 "right": {
@@ -129,7 +132,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 22
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Load"
                 }
               },
               "target": {
@@ -140,7 +144,8 @@
                   "end_lineno": 5,
                   "end_col_offset": 28
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "Call",
@@ -158,7 +163,8 @@
                     "end_lineno": 5,
                     "end_col_offset": 37
                   },
-                  "id": "range"
+                  "id": "range",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],
@@ -171,7 +177,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 39
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   }
                 ],
                 "keywords": [],
@@ -213,7 +220,8 @@
                       "end_lineno": 6,
                       "end_col_offset": 15
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -226,7 +234,8 @@
                         "end_lineno": 6,
                         "end_col_offset": 22
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -256,9 +265,11 @@
                         "end_lineno": 6,
                         "end_col_offset": 31
                       },
-                      "id": "values"
+                      "id": "values",
+                      "machine_context": "Load"
                     },
-                    "attr": "get"
+                    "attr": "get",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -271,7 +282,8 @@
                         "end_lineno": 6,
                         "end_col_offset": 41
                       },
-                      "id": "probe"
+                      "id": "probe",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "UnaryOp",
@@ -300,7 +312,8 @@
                   "keywords": [],
                   "call_unsupported": null
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -375,7 +388,8 @@
                   "end_lineno": 10,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -402,7 +416,8 @@
                     "end_lineno": 10,
                     "end_col_offset": 15
                   },
-                  "id": "i"
+                  "id": "i",
+                  "machine_context": "Load"
                 },
                 "op": "Mod",
                 "right": {
@@ -427,7 +442,8 @@
                   "end_lineno": 10,
                   "end_col_offset": 22
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Load"
               },
               "target": {
                 "kind": "Name",
@@ -437,7 +453,8 @@
                   "end_lineno": 10,
                   "end_col_offset": 28
                 },
-                "id": "i"
+                "id": "i",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "Call",
@@ -455,7 +472,8 @@
                     "end_lineno": 10,
                     "end_col_offset": 37
                   },
-                  "id": "range"
+                  "id": "range",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],
@@ -468,7 +486,8 @@
                       "end_lineno": 10,
                       "end_col_offset": 39
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   }
                 ],
                 "keywords": [],
@@ -510,7 +529,8 @@
                       "end_lineno": 11,
                       "end_col_offset": 18
                     },
-                    "id": "values"
+                    "id": "values",
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Constant",
@@ -524,7 +544,8 @@
                       "type": "int",
                       "repr": "0"
                     }
-                  }
+                  },
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Subscript",
@@ -542,7 +563,8 @@
                       "end_lineno": 11,
                       "end_col_offset": 29
                     },
-                    "id": "values"
+                    "id": "values",
+                    "machine_context": "Load"
                   },
                   "index": {
                     "kind": "Constant",
@@ -556,9 +578,11 @@
                       "type": "int",
                       "repr": "1"
                     }
-                  }
+                  },
+                  "machine_context": "Load"
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -621,7 +645,8 @@
                   "end_lineno": 15,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -642,7 +667,8 @@
                       "end_lineno": 15,
                       "end_col_offset": 19
                     },
-                    "id": "dict"
+                    "id": "dict",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -663,7 +689,8 @@
                           "end_lineno": 15,
                           "end_col_offset": 21
                         },
-                        "id": "x"
+                        "id": "x",
+                        "machine_context": "Load"
                       },
                       "target": {
                         "kind": "Name",
@@ -673,7 +700,8 @@
                           "end_lineno": 15,
                           "end_col_offset": 27
                         },
-                        "id": "x"
+                        "id": "x",
+                        "machine_context": "Store"
                       },
                       "iter": {
                         "kind": "List",
@@ -697,7 +725,8 @@
                               "repr": "1"
                             }
                           }
-                        ]
+                        ],
+                        "machine_context": "Load"
                       },
                       "ifs": [],
                       "walrus": []
@@ -761,7 +790,8 @@
                   "end_lineno": 19,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -782,7 +812,8 @@
                       "end_lineno": 19,
                       "end_col_offset": 19
                     },
-                    "id": "dict"
+                    "id": "dict",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -812,9 +843,11 @@
                               "end_lineno": 19,
                               "end_col_offset": 22
                             },
-                            "id": "x"
+                            "id": "x",
+                            "machine_context": "Load"
                           }
-                        ]
+                        ],
+                        "machine_context": "Load"
                       },
                       "target": {
                         "kind": "Name",
@@ -824,7 +857,8 @@
                           "end_lineno": 19,
                           "end_col_offset": 30
                         },
-                        "id": "x"
+                        "id": "x",
+                        "machine_context": "Store"
                       },
                       "iter": {
                         "kind": "List",
@@ -848,7 +882,8 @@
                               "repr": "1"
                             }
                           }
-                        ]
+                        ],
+                        "machine_context": "Load"
                       },
                       "ifs": [],
                       "walrus": []
@@ -912,7 +947,8 @@
                   "end_lineno": 23,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -960,7 +996,8 @@
                           "repr": "2"
                         }
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   },
                   "value": {
                     "kind": "Constant",
@@ -983,7 +1020,8 @@
                       "end_lineno": 23,
                       "end_col_offset": 31
                     },
-                    "id": "_"
+                    "id": "_",
+                    "machine_context": "Store"
                   },
                   "iter": {
                     "kind": "List",
@@ -1007,7 +1045,8 @@
                           "repr": "0"
                         }
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   },
                   "ifs": []
                 }
@@ -1059,7 +1098,8 @@
                   "end_lineno": 27,
                   "end_col_offset": 5
                 },
-                "id": "y"
+                "id": "y",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1093,7 +1133,8 @@
                   "end_lineno": 28,
                   "end_col_offset": 10
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1124,7 +1165,8 @@
                 "end_lineno": 29,
                 "end_col_offset": 12
               },
-              "id": "y"
+              "id": "y",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1170,7 +1212,8 @@
                   "end_lineno": 33,
                   "end_col_offset": 5
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1237,7 +1280,8 @@
                     "end_lineno": 37,
                     "end_col_offset": 16
                   },
-                  "id": "x"
+                  "id": "x",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1252,7 +1296,8 @@
                     "end_lineno": 36,
                     "end_col_offset": 28
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1272,7 +1317,8 @@
                         "end_lineno": 37,
                         "end_col_offset": 16
                       },
-                      "id": "x"
+                      "id": "x",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -1324,7 +1370,8 @@
                   "end_lineno": 41,
                   "end_col_offset": 6
                 },
-                "id": "xs"
+                "id": "xs",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1375,7 +1422,8 @@
                     "repr": "3"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -1402,7 +1450,8 @@
                   "end_lineno": 42,
                   "end_col_offset": 14
                 },
-                "id": "len"
+                "id": "len",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1473,7 +1522,8 @@
                   "end_lineno": 46,
                   "end_col_offset": 13
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "value": {
                 "kind": "Name",
@@ -1483,7 +1533,8 @@
                   "end_lineno": 46,
                   "end_col_offset": 16
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "target": {
                 "kind": "Name",
@@ -1493,7 +1544,8 @@
                   "end_lineno": 46,
                   "end_col_offset": 22
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               },
               "iter": {
                 "kind": "List",
@@ -1503,7 +1555,8 @@
                   "end_lineno": 46,
                   "end_col_offset": 28
                 },
-                "elts": []
+                "elts": [],
+                "machine_context": "Load"
               },
               "ifs": []
             }

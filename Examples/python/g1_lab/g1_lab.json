@@ -61,7 +61,8 @@
                 "end_lineno": 16,
                 "end_col_offset": 12
               },
-              "id": "M"
+              "id": "M",
+              "machine_context": "Load"
             }
           }
         ],
@@ -124,7 +125,8 @@
                   "end_lineno": 20,
                   "end_col_offset": 9
                 },
-                "id": "print"
+                "id": "print",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -137,7 +139,8 @@
                     "end_lineno": 20,
                     "end_col_offset": 11
                   },
-                  "id": "x"
+                  "id": "x",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -160,7 +163,8 @@
                 "end_lineno": 21,
                 "end_col_offset": 12
               },
-              "id": "x"
+              "id": "x",
+              "machine_context": "Load"
             }
           }
         ],
@@ -203,7 +207,8 @@
               "end_lineno": 24,
               "end_col_offset": 1
             },
-            "id": "x"
+            "id": "x",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -244,7 +249,8 @@
               "end_lineno": 25,
               "end_col_offset": 7
             },
-            "id": "x"
+            "id": "x",
+            "machine_context": "Load"
           },
           "ops": [
             "Lt"
@@ -283,7 +289,8 @@
                   "end_lineno": 26,
                   "end_col_offset": 5
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -302,7 +309,8 @@
                   "end_lineno": 26,
                   "end_col_offset": 9
                 },
-                "id": "x"
+                "id": "x",
+                "machine_context": "Load"
               },
               "op": "Add",
               "right": {
@@ -340,7 +348,8 @@
               "end_lineno": 27,
               "end_col_offset": 1
             },
-            "id": "M"
+            "id": "M",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -351,7 +360,8 @@
             "end_lineno": 27,
             "end_col_offset": 5
           },
-          "id": "x"
+          "id": "x",
+          "machine_context": "Load"
         }
       }
     ]

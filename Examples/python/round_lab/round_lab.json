@@ -57,7 +57,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -70,7 +71,8 @@
                     "end_lineno": 2,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -146,7 +148,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 16
                     },
-                    "id": "round"
+                    "id": "round",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -184,7 +187,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 28
                     },
-                    "id": "round"
+                    "id": "round",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -222,7 +226,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 40
                     },
-                    "id": "round"
+                    "id": "round",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -260,7 +265,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 52
                     },
-                    "id": "round"
+                    "id": "round",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -308,7 +314,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 65
                     },
-                    "id": "round"
+                    "id": "round",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -356,7 +363,8 @@
                       "end_lineno": 5,
                       "end_col_offset": 78
                     },
-                    "id": "round"
+                    "id": "round",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -388,7 +396,8 @@
                   "keywords": [],
                   "call_unsupported": null
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           }
         ],
@@ -441,7 +450,8 @@
                   "end_lineno": 8,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -514,7 +524,8 @@
                   "end_lineno": 11,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -535,7 +546,8 @@
                       "end_lineno": 11,
                       "end_col_offset": 22
                     },
-                    "id": "float"
+                    "id": "float",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -612,7 +624,8 @@
                   "end_lineno": 14,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -633,7 +646,8 @@
                       "end_lineno": 14,
                       "end_col_offset": 22
                     },
-                    "id": "float"
+                    "id": "float",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -720,7 +734,8 @@
                   "end_lineno": 18,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -733,7 +748,8 @@
                     "end_lineno": 18,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -823,7 +839,8 @@
                   "end_lineno": 22,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -836,7 +853,8 @@
                     "end_lineno": 22,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -926,7 +944,8 @@
                   "end_lineno": 26,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -939,7 +958,8 @@
                     "end_lineno": 26,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1029,7 +1049,8 @@
                   "end_lineno": 30,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1042,7 +1063,8 @@
                     "end_lineno": 30,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1132,7 +1154,8 @@
                   "end_lineno": 34,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1145,7 +1168,8 @@
                     "end_lineno": 34,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1235,7 +1259,8 @@
                   "end_lineno": 38,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1248,7 +1273,8 @@
                     "end_lineno": 38,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1338,7 +1364,8 @@
                   "end_lineno": 42,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1351,7 +1378,8 @@
                     "end_lineno": 42,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1441,7 +1469,8 @@
                   "end_lineno": 46,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1454,7 +1483,8 @@
                     "end_lineno": 46,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1544,7 +1574,8 @@
                   "end_lineno": 50,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1557,7 +1588,8 @@
                     "end_lineno": 50,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1647,7 +1679,8 @@
                   "end_lineno": 54,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1660,7 +1693,8 @@
                     "end_lineno": 54,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1750,7 +1784,8 @@
                   "end_lineno": 58,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1763,7 +1798,8 @@
                     "end_lineno": 58,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1853,7 +1889,8 @@
                   "end_lineno": 62,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1866,7 +1903,8 @@
                     "end_lineno": 62,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -1956,7 +1994,8 @@
                   "end_lineno": 66,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1969,7 +2008,8 @@
                     "end_lineno": 66,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2059,7 +2099,8 @@
                   "end_lineno": 70,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2072,7 +2113,8 @@
                     "end_lineno": 70,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2162,7 +2204,8 @@
                   "end_lineno": 74,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2175,7 +2218,8 @@
                     "end_lineno": 74,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2265,7 +2309,8 @@
                   "end_lineno": 78,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2278,7 +2323,8 @@
                     "end_lineno": 78,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2368,7 +2414,8 @@
                   "end_lineno": 82,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2381,7 +2428,8 @@
                     "end_lineno": 82,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2471,7 +2519,8 @@
                   "end_lineno": 86,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2484,7 +2533,8 @@
                     "end_lineno": 86,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2574,7 +2624,8 @@
                   "end_lineno": 90,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2587,7 +2638,8 @@
                     "end_lineno": 90,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2677,7 +2729,8 @@
                   "end_lineno": 94,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2690,7 +2743,8 @@
                     "end_lineno": 94,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2780,7 +2834,8 @@
                   "end_lineno": 98,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2793,7 +2848,8 @@
                     "end_lineno": 98,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2883,7 +2939,8 @@
                   "end_lineno": 102,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2896,7 +2953,8 @@
                     "end_lineno": 102,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -2986,7 +3044,8 @@
                   "end_lineno": 106,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -2999,7 +3058,8 @@
                     "end_lineno": 106,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3089,7 +3149,8 @@
                   "end_lineno": 110,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3102,7 +3163,8 @@
                     "end_lineno": 110,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3192,7 +3254,8 @@
                   "end_lineno": 114,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3205,7 +3268,8 @@
                     "end_lineno": 114,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3295,7 +3359,8 @@
                   "end_lineno": 118,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3308,7 +3373,8 @@
                     "end_lineno": 118,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3398,7 +3464,8 @@
                   "end_lineno": 122,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3411,7 +3478,8 @@
                     "end_lineno": 122,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3501,7 +3569,8 @@
                   "end_lineno": 126,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3514,7 +3583,8 @@
                     "end_lineno": 126,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3604,7 +3674,8 @@
                   "end_lineno": 130,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3617,7 +3688,8 @@
                     "end_lineno": 130,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3707,7 +3779,8 @@
                   "end_lineno": 134,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3720,7 +3793,8 @@
                     "end_lineno": 134,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3810,7 +3884,8 @@
                   "end_lineno": 138,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3823,7 +3898,8 @@
                     "end_lineno": 138,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -3913,7 +3989,8 @@
                   "end_lineno": 142,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -3926,7 +4003,8 @@
                     "end_lineno": 142,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4016,7 +4094,8 @@
                   "end_lineno": 146,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4029,7 +4108,8 @@
                     "end_lineno": 146,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4119,7 +4199,8 @@
                   "end_lineno": 150,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4132,7 +4213,8 @@
                     "end_lineno": 150,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4222,7 +4304,8 @@
                   "end_lineno": 154,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4235,7 +4318,8 @@
                     "end_lineno": 154,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4325,7 +4409,8 @@
                   "end_lineno": 158,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4338,7 +4423,8 @@
                     "end_lineno": 158,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4428,7 +4514,8 @@
                   "end_lineno": 162,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4441,7 +4528,8 @@
                     "end_lineno": 162,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4531,7 +4619,8 @@
                   "end_lineno": 166,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4544,7 +4633,8 @@
                     "end_lineno": 166,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4634,7 +4724,8 @@
                   "end_lineno": 170,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4647,7 +4738,8 @@
                     "end_lineno": 170,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4737,7 +4829,8 @@
                   "end_lineno": 174,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4750,7 +4843,8 @@
                     "end_lineno": 174,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4840,7 +4934,8 @@
                   "end_lineno": 178,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4853,7 +4948,8 @@
                     "end_lineno": 178,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -4943,7 +5039,8 @@
                   "end_lineno": 182,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -4956,7 +5053,8 @@
                     "end_lineno": 182,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -5046,7 +5144,8 @@
                   "end_lineno": 186,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -5059,7 +5158,8 @@
                     "end_lineno": 186,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -5149,7 +5249,8 @@
                   "end_lineno": 190,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -5162,7 +5263,8 @@
                     "end_lineno": 190,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -5252,7 +5354,8 @@
                   "end_lineno": 194,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -5265,7 +5368,8 @@
                     "end_lineno": 194,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -5355,7 +5459,8 @@
                   "end_lineno": 198,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -5368,7 +5473,8 @@
                     "end_lineno": 198,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -5458,7 +5564,8 @@
                   "end_lineno": 202,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -5471,7 +5578,8 @@
                     "end_lineno": 202,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -5561,7 +5669,8 @@
                   "end_lineno": 206,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -5574,7 +5683,8 @@
                     "end_lineno": 206,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Constant",
@@ -5673,7 +5783,8 @@
                   "end_lineno": 210,
                   "end_col_offset": 16
                 },
-                "id": "round"
+                "id": "round",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -5686,7 +5797,8 @@
                     "end_lineno": 210,
                     "end_col_offset": 22
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -5696,7 +5808,8 @@
                     "end_lineno": 210,
                     "end_col_offset": 30
                   },
-                  "id": "digits"
+                  "id": "digits",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],

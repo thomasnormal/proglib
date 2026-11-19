@@ -57,7 +57,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 8
                 },
-                "id": "n"
+                "id": "n",
+                "machine_context": "Load"
               },
               "ops": [
                 "Lt"
@@ -95,7 +96,8 @@
                     "end_lineno": 3,
                     "end_col_offset": 16
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -133,7 +135,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 14
                   },
-                  "id": "fib"
+                  "id": "fib",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],
@@ -154,7 +157,8 @@
                         "end_lineno": 4,
                         "end_col_offset": 16
                       },
-                      "id": "n"
+                      "id": "n",
+                      "machine_context": "Load"
                     },
                     "op": "Sub",
                     "right": {
@@ -192,7 +196,8 @@
                     "end_lineno": 4,
                     "end_col_offset": 27
                   },
-                  "id": "fib"
+                  "id": "fib",
+                  "machine_context": "Load"
                 },
                 "starargs": [],
                 "kwargs": [],
@@ -213,7 +218,8 @@
                         "end_lineno": 4,
                         "end_col_offset": 29
                       },
-                      "id": "n"
+                      "id": "n",
+                      "machine_context": "Load"
                     },
                     "op": "Sub",
                     "right": {

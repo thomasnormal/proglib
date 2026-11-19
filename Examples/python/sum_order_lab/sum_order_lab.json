@@ -40,7 +40,8 @@
               "end_lineno": 4,
               "end_col_offset": 4
             },
-            "id": "Pair"
+            "id": "Pair",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -59,7 +60,8 @@
               "end_lineno": 4,
               "end_col_offset": 17
             },
-            "id": "namedtuple"
+            "id": "namedtuple",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -188,7 +190,8 @@
                   "end_lineno": 12,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -201,7 +204,8 @@
                     "end_lineno": 12,
                     "end_col_offset": 23
                   },
-                  "id": "iterable"
+                  "id": "iterable",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -211,7 +215,8 @@
                     "end_lineno": 12,
                     "end_col_offset": 30
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -297,7 +302,8 @@
                   "end_lineno": 16,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -349,7 +355,8 @@
                     "end_lineno": 16,
                     "end_col_offset": 28
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -426,7 +433,8 @@
                   "end_lineno": 20,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -476,7 +484,8 @@
                     "end_lineno": 20,
                     "end_col_offset": 28
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -553,7 +562,8 @@
                   "end_lineno": 24,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -593,7 +603,8 @@
                         "repr": "2"
                       }
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -603,7 +614,8 @@
                     "end_lineno": 24,
                     "end_col_offset": 28
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -680,7 +692,8 @@
                   "end_lineno": 28,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -701,7 +714,8 @@
                       "end_lineno": 28,
                       "end_col_offset": 20
                     },
-                    "id": "range"
+                    "id": "range",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -754,7 +768,8 @@
                     "end_lineno": 28,
                     "end_col_offset": 38
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -831,7 +846,8 @@
                   "end_lineno": 32,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -881,7 +897,8 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -891,7 +908,8 @@
                     "end_lineno": 32,
                     "end_col_offset": 30
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -968,7 +986,8 @@
                   "end_lineno": 36,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -989,7 +1008,8 @@
                       "end_lineno": 36,
                       "end_col_offset": 19
                     },
-                    "id": "Pair"
+                    "id": "Pair",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1032,7 +1052,8 @@
                     "end_lineno": 36,
                     "end_col_offset": 32
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -1148,7 +1169,8 @@
                   "end_lineno": 41,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1161,7 +1183,8 @@
                     "end_lineno": 41,
                     "end_col_offset": 23
                   },
-                  "id": "function"
+                  "id": "function",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Name",
@@ -1171,7 +1194,8 @@
                     "end_lineno": 41,
                     "end_col_offset": 30
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -1248,7 +1272,8 @@
                   "end_lineno": 45,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1269,7 +1294,8 @@
                       "end_lineno": 45,
                       "end_col_offset": 20
                     },
-                    "id": "Plain"
+                    "id": "Plain",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1285,7 +1311,8 @@
                     "end_lineno": 45,
                     "end_col_offset": 29
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -1456,7 +1483,8 @@
                   "end_lineno": 54,
                   "end_col_offset": 14
                 },
-                "id": "sum"
+                "id": "sum",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1477,7 +1505,8 @@
                       "end_lineno": 54,
                       "end_col_offset": 21
                     },
-                    "id": "values"
+                    "id": "values",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1493,7 +1522,8 @@
                     "end_lineno": 54,
                     "end_col_offset": 30
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -1563,7 +1593,8 @@
                   "end_lineno": 58,
                   "end_col_offset": 10
                 },
-                "id": "cursor"
+                "id": "cursor",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1582,7 +1613,8 @@
                   "end_lineno": 58,
                   "end_col_offset": 19
                 },
-                "id": "values"
+                "id": "values",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1624,7 +1656,8 @@
                       "end_lineno": 60,
                       "end_col_offset": 11
                     },
-                    "id": "sum"
+                    "id": "sum",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1637,7 +1670,8 @@
                         "end_lineno": 60,
                         "end_col_offset": 18
                       },
-                      "id": "cursor"
+                      "id": "cursor",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "Name",
@@ -1647,7 +1681,8 @@
                         "end_lineno": 60,
                         "end_col_offset": 25
                       },
-                      "id": "start"
+                      "id": "start",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1683,7 +1718,8 @@
                       "end_lineno": 62,
                       "end_col_offset": 19
                     },
-                    "id": "next"
+                    "id": "next",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1696,7 +1732,8 @@
                         "end_lineno": 62,
                         "end_col_offset": 26
                       },
-                      "id": "cursor"
+                      "id": "cursor",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1715,7 +1752,8 @@
                     "end_lineno": 61,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1743,7 +1781,8 @@
                           "end_lineno": 62,
                           "end_col_offset": 19
                         },
-                        "id": "next"
+                        "id": "next",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -1756,7 +1795,8 @@
                             "end_lineno": 62,
                             "end_col_offset": 26
                           },
-                          "id": "cursor"
+                          "id": "cursor",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -1832,7 +1872,8 @@
                   "end_lineno": 66,
                   "end_col_offset": 10
                 },
-                "id": "cursor"
+                "id": "cursor",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -1851,7 +1892,8 @@
                   "end_lineno": 66,
                   "end_col_offset": 22
                 },
-                "id": "enumerate"
+                "id": "enumerate",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1878,7 +1920,8 @@
                         "repr": "5"
                       }
                     }
-                  ]
+                  ],
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -1918,7 +1961,8 @@
                       "end_lineno": 68,
                       "end_col_offset": 11
                     },
-                    "id": "sum"
+                    "id": "sum",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1931,7 +1975,8 @@
                         "end_lineno": 68,
                         "end_col_offset": 18
                       },
-                      "id": "cursor"
+                      "id": "cursor",
+                      "machine_context": "Load"
                     },
                     {
                       "kind": "Name",
@@ -1941,7 +1986,8 @@
                         "end_lineno": 68,
                         "end_col_offset": 25
                       },
-                      "id": "start"
+                      "id": "start",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -1977,7 +2023,8 @@
                       "end_lineno": 70,
                       "end_col_offset": 19
                     },
-                    "id": "next"
+                    "id": "next",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1990,7 +2037,8 @@
                         "end_lineno": 70,
                         "end_col_offset": 26
                       },
-                      "id": "cursor"
+                      "id": "cursor",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -2009,7 +2057,8 @@
                     "end_lineno": 69,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2037,7 +2086,8 @@
                           "end_lineno": 70,
                           "end_col_offset": 19
                         },
-                        "id": "next"
+                        "id": "next",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2050,7 +2100,8 @@
                             "end_lineno": 70,
                             "end_col_offset": 26
                           },
-                          "id": "cursor"
+                          "id": "cursor",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],
@@ -2126,7 +2177,8 @@
                   "end_lineno": 74,
                   "end_col_offset": 11
                 },
-                "id": "effects"
+                "id": "effects",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -2137,7 +2189,8 @@
                 "end_lineno": 74,
                 "end_col_offset": 16
               },
-              "elts": []
+              "elts": [],
+              "machine_context": "Load"
             }
           },
           {
@@ -2185,9 +2238,11 @@
                         "end_lineno": 77,
                         "end_col_offset": 15
                       },
-                      "id": "effects"
+                      "id": "effects",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2294,9 +2349,11 @@
                         "end_lineno": 81,
                         "end_col_offset": 15
                       },
-                      "id": "effects"
+                      "id": "effects",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2335,7 +2392,8 @@
                     "end_lineno": 82,
                     "end_col_offset": 20
                   },
-                  "id": "start"
+                  "id": "start",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2389,7 +2447,8 @@
                       "end_lineno": 85,
                       "end_col_offset": 11
                     },
-                    "id": "sum"
+                    "id": "sum",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2410,7 +2469,8 @@
                           "end_lineno": 85,
                           "end_col_offset": 20
                         },
-                        "id": "iterable"
+                        "id": "iterable",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2434,7 +2494,8 @@
                           "end_lineno": 85,
                           "end_col_offset": 31
                         },
-                        "id": "initial"
+                        "id": "initial",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2476,7 +2537,8 @@
                       "end_lineno": 87,
                       "end_col_offset": 20
                     },
-                    "id": "tuple"
+                    "id": "tuple",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -2489,7 +2551,8 @@
                         "end_lineno": 87,
                         "end_col_offset": 28
                       },
-                      "id": "effects"
+                      "id": "effects",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -2508,7 +2571,8 @@
                     "end_lineno": 86,
                     "end_col_offset": 20
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2536,7 +2600,8 @@
                           "end_lineno": 87,
                           "end_col_offset": 20
                         },
-                        "id": "tuple"
+                        "id": "tuple",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -2549,7 +2614,8 @@
                             "end_lineno": 87,
                             "end_col_offset": 28
                           },
-                          "id": "effects"
+                          "id": "effects",
+                          "machine_context": "Load"
                         }
                       ],
                       "keywords": [],

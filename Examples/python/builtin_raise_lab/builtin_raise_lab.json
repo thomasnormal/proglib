@@ -61,7 +61,8 @@
                 "end_lineno": 5,
                 "end_col_offset": 23
               },
-              "id": "BaseException"
+              "id": "BaseException",
+              "machine_context": "Load"
             }
           }
         ],
@@ -125,7 +126,8 @@
                     "end_lineno": 10,
                     "end_col_offset": 27
                   },
-                  "id": "BaseException"
+                  "id": "BaseException",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -149,7 +151,8 @@
                     "end_lineno": 12,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -164,7 +167,8 @@
                     "end_lineno": 11,
                     "end_col_offset": 24
                   },
-                  "id": "BaseException"
+                  "id": "BaseException",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -184,7 +188,8 @@
                         "end_lineno": 12,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -245,7 +250,8 @@
                 "end_lineno": 16,
                 "end_col_offset": 19
               },
-              "id": "Exception"
+              "id": "Exception",
+              "machine_context": "Load"
             }
           }
         ],
@@ -309,7 +315,8 @@
                     "end_lineno": 21,
                     "end_col_offset": 23
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -333,7 +340,8 @@
                     "end_lineno": 23,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -348,7 +356,8 @@
                     "end_lineno": 22,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -368,7 +377,8 @@
                         "end_lineno": 23,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -429,7 +439,8 @@
                 "end_lineno": 27,
                 "end_col_offset": 25
               },
-              "id": "ArithmeticError"
+              "id": "ArithmeticError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -493,7 +504,8 @@
                     "end_lineno": 32,
                     "end_col_offset": 29
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -517,7 +529,8 @@
                     "end_lineno": 34,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -532,7 +545,8 @@
                     "end_lineno": 33,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -552,7 +566,8 @@
                         "end_lineno": 34,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -613,7 +628,8 @@
                 "end_lineno": 38,
                 "end_col_offset": 21
               },
-              "id": "LookupError"
+              "id": "LookupError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -677,7 +693,8 @@
                     "end_lineno": 43,
                     "end_col_offset": 25
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -701,7 +718,8 @@
                     "end_lineno": 45,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -716,7 +734,8 @@
                     "end_lineno": 44,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -736,7 +755,8 @@
                         "end_lineno": 45,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -797,7 +817,8 @@
                 "end_lineno": 49,
                 "end_col_offset": 19
               },
-              "id": "TypeError"
+              "id": "TypeError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -861,7 +882,8 @@
                     "end_lineno": 54,
                     "end_col_offset": 23
                   },
-                  "id": "TypeError"
+                  "id": "TypeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -885,7 +907,8 @@
                     "end_lineno": 56,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -900,7 +923,8 @@
                     "end_lineno": 55,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -920,7 +944,8 @@
                         "end_lineno": 56,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -981,7 +1006,8 @@
                 "end_lineno": 60,
                 "end_col_offset": 19
               },
-              "id": "NameError"
+              "id": "NameError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1045,7 +1071,8 @@
                     "end_lineno": 65,
                     "end_col_offset": 23
                   },
-                  "id": "NameError"
+                  "id": "NameError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1069,7 +1096,8 @@
                     "end_lineno": 67,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1084,7 +1112,8 @@
                     "end_lineno": 66,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1104,7 +1133,8 @@
                         "end_lineno": 67,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -1165,7 +1195,8 @@
                 "end_lineno": 71,
                 "end_col_offset": 27
               },
-              "id": "ZeroDivisionError"
+              "id": "ZeroDivisionError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1229,7 +1260,8 @@
                     "end_lineno": 76,
                     "end_col_offset": 31
                   },
-                  "id": "ZeroDivisionError"
+                  "id": "ZeroDivisionError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1253,7 +1285,8 @@
                     "end_lineno": 78,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1268,7 +1301,8 @@
                     "end_lineno": 77,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1288,7 +1322,8 @@
                         "end_lineno": 78,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -1349,7 +1384,8 @@
                 "end_lineno": 82,
                 "end_col_offset": 23
               },
-              "id": "OverflowError"
+              "id": "OverflowError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1413,7 +1449,8 @@
                     "end_lineno": 87,
                     "end_col_offset": 27
                   },
-                  "id": "OverflowError"
+                  "id": "OverflowError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1437,7 +1474,8 @@
                     "end_lineno": 89,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1452,7 +1490,8 @@
                     "end_lineno": 88,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1472,7 +1511,8 @@
                         "end_lineno": 89,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -1533,7 +1573,8 @@
                 "end_lineno": 93,
                 "end_col_offset": 20
               },
-              "id": "IndexError"
+              "id": "IndexError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1597,7 +1638,8 @@
                     "end_lineno": 98,
                     "end_col_offset": 24
                   },
-                  "id": "IndexError"
+                  "id": "IndexError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1621,7 +1663,8 @@
                     "end_lineno": 100,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1636,7 +1679,8 @@
                     "end_lineno": 99,
                     "end_col_offset": 22
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1656,7 +1700,8 @@
                         "end_lineno": 100,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -1717,7 +1762,8 @@
                 "end_lineno": 104,
                 "end_col_offset": 20
               },
-              "id": "ValueError"
+              "id": "ValueError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1781,7 +1827,8 @@
                     "end_lineno": 109,
                     "end_col_offset": 24
                   },
-                  "id": "ValueError"
+                  "id": "ValueError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1805,7 +1852,8 @@
                     "end_lineno": 111,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1820,7 +1868,8 @@
                     "end_lineno": 110,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -1840,7 +1889,8 @@
                         "end_lineno": 111,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -1901,7 +1951,8 @@
                 "end_lineno": 115,
                 "end_col_offset": 18
               },
-              "id": "KeyError"
+              "id": "KeyError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1965,7 +2016,8 @@
                     "end_lineno": 120,
                     "end_col_offset": 22
                   },
-                  "id": "KeyError"
+                  "id": "KeyError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -1989,7 +2041,8 @@
                     "end_lineno": 122,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2004,7 +2057,8 @@
                     "end_lineno": 121,
                     "end_col_offset": 22
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2024,7 +2078,8 @@
                         "end_lineno": 122,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -2085,7 +2140,8 @@
                 "end_lineno": 126,
                 "end_col_offset": 22
               },
-              "id": "RuntimeError"
+              "id": "RuntimeError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -2149,7 +2205,8 @@
                     "end_lineno": 131,
                     "end_col_offset": 26
                   },
-                  "id": "RuntimeError"
+                  "id": "RuntimeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2173,7 +2230,8 @@
                     "end_lineno": 133,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2188,7 +2246,8 @@
                     "end_lineno": 132,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2208,7 +2267,8 @@
                         "end_lineno": 133,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -2269,7 +2329,8 @@
                 "end_lineno": 137,
                 "end_col_offset": 24
               },
-              "id": "RecursionError"
+              "id": "RecursionError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -2333,7 +2394,8 @@
                     "end_lineno": 142,
                     "end_col_offset": 28
                   },
-                  "id": "RecursionError"
+                  "id": "RecursionError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2357,7 +2419,8 @@
                     "end_lineno": 144,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2372,7 +2435,8 @@
                     "end_lineno": 143,
                     "end_col_offset": 23
                   },
-                  "id": "RuntimeError"
+                  "id": "RuntimeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2392,7 +2456,8 @@
                         "end_lineno": 144,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -2453,7 +2518,8 @@
                 "end_lineno": 148,
                 "end_col_offset": 24
               },
-              "id": "AttributeError"
+              "id": "AttributeError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -2517,7 +2583,8 @@
                     "end_lineno": 153,
                     "end_col_offset": 28
                   },
-                  "id": "AttributeError"
+                  "id": "AttributeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2541,7 +2608,8 @@
                     "end_lineno": 155,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2556,7 +2624,8 @@
                     "end_lineno": 154,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2576,7 +2645,8 @@
                         "end_lineno": 155,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -2637,7 +2707,8 @@
                 "end_lineno": 159,
                 "end_col_offset": 24
               },
-              "id": "AssertionError"
+              "id": "AssertionError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -2701,7 +2772,8 @@
                     "end_lineno": 164,
                     "end_col_offset": 28
                   },
-                  "id": "AssertionError"
+                  "id": "AssertionError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2725,7 +2797,8 @@
                     "end_lineno": 166,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2740,7 +2813,8 @@
                     "end_lineno": 165,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2760,7 +2834,8 @@
                         "end_lineno": 166,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -2821,7 +2896,8 @@
                 "end_lineno": 170,
                 "end_col_offset": 18
               },
-              "id": "EOFError"
+              "id": "EOFError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -2885,7 +2961,8 @@
                     "end_lineno": 175,
                     "end_col_offset": 22
                   },
-                  "id": "EOFError"
+                  "id": "EOFError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2909,7 +2986,8 @@
                     "end_lineno": 177,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -2924,7 +3002,8 @@
                     "end_lineno": 176,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -2944,7 +3023,8 @@
                         "end_lineno": 177,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -3005,7 +3085,8 @@
                 "end_lineno": 181,
                 "end_col_offset": 23
               },
-              "id": "StopIteration"
+              "id": "StopIteration",
+              "machine_context": "Load"
             }
           }
         ],
@@ -3069,7 +3150,8 @@
                     "end_lineno": 186,
                     "end_col_offset": 27
                   },
-                  "id": "StopIteration"
+                  "id": "StopIteration",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3093,7 +3175,8 @@
                     "end_lineno": 188,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3108,7 +3191,8 @@
                     "end_lineno": 187,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3128,7 +3212,8 @@
                         "end_lineno": 188,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -3189,7 +3274,8 @@
                 "end_lineno": 192,
                 "end_col_offset": 21
               },
-              "id": "ImportError"
+              "id": "ImportError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -3253,7 +3339,8 @@
                     "end_lineno": 197,
                     "end_col_offset": 25
                   },
-                  "id": "ImportError"
+                  "id": "ImportError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3277,7 +3364,8 @@
                     "end_lineno": 199,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3292,7 +3380,8 @@
                     "end_lineno": 198,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3312,7 +3401,8 @@
                         "end_lineno": 199,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -3373,7 +3463,8 @@
                 "end_lineno": 203,
                 "end_col_offset": 29
               },
-              "id": "ModuleNotFoundError"
+              "id": "ModuleNotFoundError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -3437,7 +3528,8 @@
                     "end_lineno": 208,
                     "end_col_offset": 33
                   },
-                  "id": "ModuleNotFoundError"
+                  "id": "ModuleNotFoundError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3461,7 +3553,8 @@
                     "end_lineno": 210,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3476,7 +3569,8 @@
                     "end_lineno": 209,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3496,7 +3590,8 @@
                         "end_lineno": 210,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -3557,7 +3652,8 @@
                 "end_lineno": 214,
                 "end_col_offset": 26
               },
-              "id": "EnvironmentError"
+              "id": "EnvironmentError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -3621,7 +3717,8 @@
                     "end_lineno": 219,
                     "end_col_offset": 21
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3645,7 +3742,8 @@
                     "end_lineno": 221,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3660,7 +3758,8 @@
                     "end_lineno": 220,
                     "end_col_offset": 27
                   },
-                  "id": "EnvironmentError"
+                  "id": "EnvironmentError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3680,7 +3779,8 @@
                         "end_lineno": 221,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -3741,7 +3841,8 @@
                 "end_lineno": 225,
                 "end_col_offset": 17
               },
-              "id": "IOError"
+              "id": "IOError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -3805,7 +3906,8 @@
                     "end_lineno": 230,
                     "end_col_offset": 21
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3829,7 +3931,8 @@
                     "end_lineno": 232,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -3844,7 +3947,8 @@
                     "end_lineno": 231,
                     "end_col_offset": 18
                   },
-                  "id": "IOError"
+                  "id": "IOError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -3864,7 +3968,8 @@
                         "end_lineno": 232,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -3925,7 +4030,8 @@
                 "end_lineno": 236,
                 "end_col_offset": 28
               },
-              "id": "StopAsyncIteration"
+              "id": "StopAsyncIteration",
+              "machine_context": "Load"
             }
           }
         ],
@@ -3989,7 +4095,8 @@
                     "end_lineno": 241,
                     "end_col_offset": 32
                   },
-                  "id": "StopAsyncIteration"
+                  "id": "StopAsyncIteration",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4013,7 +4120,8 @@
                     "end_lineno": 243,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4028,7 +4136,8 @@
                     "end_lineno": 242,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4048,7 +4157,8 @@
                         "end_lineno": 243,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -4109,7 +4219,8 @@
                 "end_lineno": 247,
                 "end_col_offset": 17
               },
-              "id": "Warning"
+              "id": "Warning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -4173,7 +4284,8 @@
                     "end_lineno": 252,
                     "end_col_offset": 21
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4197,7 +4309,8 @@
                     "end_lineno": 254,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4212,7 +4325,8 @@
                     "end_lineno": 253,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4232,7 +4346,8 @@
                         "end_lineno": 254,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -4293,7 +4408,8 @@
                 "end_lineno": 258,
                 "end_col_offset": 22
               },
-              "id": "UnicodeError"
+              "id": "UnicodeError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -4357,7 +4473,8 @@
                     "end_lineno": 263,
                     "end_col_offset": 26
                   },
-                  "id": "UnicodeError"
+                  "id": "UnicodeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4381,7 +4498,8 @@
                     "end_lineno": 265,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4396,7 +4514,8 @@
                     "end_lineno": 264,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4416,7 +4535,8 @@
                         "end_lineno": 265,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -4477,7 +4597,8 @@
                 "end_lineno": 269,
                 "end_col_offset": 24
               },
-              "id": "UnicodeWarning"
+              "id": "UnicodeWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -4541,7 +4662,8 @@
                     "end_lineno": 274,
                     "end_col_offset": 28
                   },
-                  "id": "UnicodeWarning"
+                  "id": "UnicodeWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4565,7 +4687,8 @@
                     "end_lineno": 276,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4580,7 +4703,8 @@
                     "end_lineno": 275,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4600,7 +4724,8 @@
                         "end_lineno": 276,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -4661,7 +4786,8 @@
                 "end_lineno": 280,
                 "end_col_offset": 21
               },
-              "id": "UserWarning"
+              "id": "UserWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -4725,7 +4851,8 @@
                     "end_lineno": 285,
                     "end_col_offset": 25
                   },
-                  "id": "UserWarning"
+                  "id": "UserWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4749,7 +4876,8 @@
                     "end_lineno": 287,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4764,7 +4892,8 @@
                     "end_lineno": 286,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4784,7 +4913,8 @@
                         "end_lineno": 287,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -4845,7 +4975,8 @@
                 "end_lineno": 291,
                 "end_col_offset": 24
               },
-              "id": "RuntimeWarning"
+              "id": "RuntimeWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -4909,7 +5040,8 @@
                     "end_lineno": 296,
                     "end_col_offset": 28
                   },
-                  "id": "RuntimeWarning"
+                  "id": "RuntimeWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4933,7 +5065,8 @@
                     "end_lineno": 298,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -4948,7 +5081,8 @@
                     "end_lineno": 297,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -4968,7 +5102,8 @@
                         "end_lineno": 298,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -5029,7 +5164,8 @@
                 "end_lineno": 302,
                 "end_col_offset": 28
               },
-              "id": "DeprecationWarning"
+              "id": "DeprecationWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -5093,7 +5229,8 @@
                     "end_lineno": 307,
                     "end_col_offset": 32
                   },
-                  "id": "DeprecationWarning"
+                  "id": "DeprecationWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5117,7 +5254,8 @@
                     "end_lineno": 309,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5132,7 +5270,8 @@
                     "end_lineno": 308,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5152,7 +5291,8 @@
                         "end_lineno": 309,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -5213,7 +5353,8 @@
                 "end_lineno": 313,
                 "end_col_offset": 23
               },
-              "id": "FutureWarning"
+              "id": "FutureWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -5277,7 +5418,8 @@
                     "end_lineno": 318,
                     "end_col_offset": 27
                   },
-                  "id": "FutureWarning"
+                  "id": "FutureWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5301,7 +5443,8 @@
                     "end_lineno": 320,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5316,7 +5459,8 @@
                     "end_lineno": 319,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5336,7 +5480,8 @@
                         "end_lineno": 320,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -5397,7 +5542,8 @@
                 "end_lineno": 324,
                 "end_col_offset": 23
               },
-              "id": "ImportWarning"
+              "id": "ImportWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -5461,7 +5607,8 @@
                     "end_lineno": 329,
                     "end_col_offset": 27
                   },
-                  "id": "ImportWarning"
+                  "id": "ImportWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5485,7 +5632,8 @@
                     "end_lineno": 331,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5500,7 +5648,8 @@
                     "end_lineno": 330,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5520,7 +5669,8 @@
                         "end_lineno": 331,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -5581,7 +5731,8 @@
                 "end_lineno": 335,
                 "end_col_offset": 35
               },
-              "id": "PendingDeprecationWarning"
+              "id": "PendingDeprecationWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -5645,7 +5796,8 @@
                     "end_lineno": 340,
                     "end_col_offset": 39
                   },
-                  "id": "PendingDeprecationWarning"
+                  "id": "PendingDeprecationWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5669,7 +5821,8 @@
                     "end_lineno": 342,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5684,7 +5837,8 @@
                     "end_lineno": 341,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5704,7 +5858,8 @@
                         "end_lineno": 342,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -5765,7 +5920,8 @@
                 "end_lineno": 346,
                 "end_col_offset": 25
               },
-              "id": "ResourceWarning"
+              "id": "ResourceWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -5829,7 +5985,8 @@
                     "end_lineno": 351,
                     "end_col_offset": 29
                   },
-                  "id": "ResourceWarning"
+                  "id": "ResourceWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5853,7 +6010,8 @@
                     "end_lineno": 353,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -5868,7 +6026,8 @@
                     "end_lineno": 352,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -5888,7 +6047,8 @@
                         "end_lineno": 353,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -5949,7 +6109,8 @@
                 "end_lineno": 357,
                 "end_col_offset": 23
               },
-              "id": "SyntaxWarning"
+              "id": "SyntaxWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -6013,7 +6174,8 @@
                     "end_lineno": 362,
                     "end_col_offset": 27
                   },
-                  "id": "SyntaxWarning"
+                  "id": "SyntaxWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6037,7 +6199,8 @@
                     "end_lineno": 364,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6052,7 +6215,8 @@
                     "end_lineno": 363,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6072,7 +6236,8 @@
                         "end_lineno": 364,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -6133,7 +6298,8 @@
                 "end_lineno": 368,
                 "end_col_offset": 21
               },
-              "id": "SyntaxError"
+              "id": "SyntaxError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -6197,7 +6363,8 @@
                     "end_lineno": 373,
                     "end_col_offset": 25
                   },
-                  "id": "SyntaxError"
+                  "id": "SyntaxError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6221,7 +6388,8 @@
                     "end_lineno": 375,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6236,7 +6404,8 @@
                     "end_lineno": 374,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6256,7 +6425,8 @@
                         "end_lineno": 375,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -6317,7 +6487,8 @@
                 "end_lineno": 379,
                 "end_col_offset": 26
               },
-              "id": "IndentationError"
+              "id": "IndentationError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -6381,7 +6552,8 @@
                     "end_lineno": 384,
                     "end_col_offset": 30
                   },
-                  "id": "IndentationError"
+                  "id": "IndentationError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6405,7 +6577,8 @@
                     "end_lineno": 386,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6420,7 +6593,8 @@
                     "end_lineno": 385,
                     "end_col_offset": 22
                   },
-                  "id": "SyntaxError"
+                  "id": "SyntaxError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6440,7 +6614,8 @@
                         "end_lineno": 386,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -6501,7 +6676,8 @@
                 "end_lineno": 390,
                 "end_col_offset": 18
               },
-              "id": "TabError"
+              "id": "TabError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -6565,7 +6741,8 @@
                     "end_lineno": 395,
                     "end_col_offset": 22
                   },
-                  "id": "TabError"
+                  "id": "TabError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6589,7 +6766,8 @@
                     "end_lineno": 397,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6604,7 +6782,8 @@
                     "end_lineno": 396,
                     "end_col_offset": 27
                   },
-                  "id": "IndentationError"
+                  "id": "IndentationError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6624,7 +6803,8 @@
                         "end_lineno": 397,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -6685,7 +6865,8 @@
                 "end_lineno": 401,
                 "end_col_offset": 21
               },
-              "id": "SystemError"
+              "id": "SystemError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -6749,7 +6930,8 @@
                     "end_lineno": 406,
                     "end_col_offset": 25
                   },
-                  "id": "SystemError"
+                  "id": "SystemError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6773,7 +6955,8 @@
                     "end_lineno": 408,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6788,7 +6971,8 @@
                     "end_lineno": 407,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6808,7 +6992,8 @@
                         "end_lineno": 408,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -6869,7 +7054,8 @@
                 "end_lineno": 412,
                 "end_col_offset": 27
               },
-              "id": "UnboundLocalError"
+              "id": "UnboundLocalError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -6933,7 +7119,8 @@
                     "end_lineno": 417,
                     "end_col_offset": 31
                   },
-                  "id": "UnboundLocalError"
+                  "id": "UnboundLocalError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6957,7 +7144,8 @@
                     "end_lineno": 419,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -6972,7 +7160,8 @@
                     "end_lineno": 418,
                     "end_col_offset": 20
                   },
-                  "id": "NameError"
+                  "id": "NameError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -6992,7 +7181,8 @@
                         "end_lineno": 419,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -7053,7 +7243,8 @@
                 "end_lineno": 423,
                 "end_col_offset": 25
               },
-              "id": "BlockingIOError"
+              "id": "BlockingIOError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -7117,7 +7308,8 @@
                     "end_lineno": 428,
                     "end_col_offset": 29
                   },
-                  "id": "BlockingIOError"
+                  "id": "BlockingIOError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7141,7 +7333,8 @@
                     "end_lineno": 430,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7156,7 +7349,8 @@
                     "end_lineno": 429,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7176,7 +7370,8 @@
                         "end_lineno": 430,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -7237,7 +7432,8 @@
                 "end_lineno": 434,
                 "end_col_offset": 25
               },
-              "id": "BrokenPipeError"
+              "id": "BrokenPipeError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -7301,7 +7497,8 @@
                     "end_lineno": 439,
                     "end_col_offset": 29
                   },
-                  "id": "BrokenPipeError"
+                  "id": "BrokenPipeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7325,7 +7522,8 @@
                     "end_lineno": 441,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7340,7 +7538,8 @@
                     "end_lineno": 440,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7360,7 +7559,8 @@
                         "end_lineno": 441,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -7421,7 +7621,8 @@
                 "end_lineno": 445,
                 "end_col_offset": 21
               },
-              "id": "BufferError"
+              "id": "BufferError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -7485,7 +7686,8 @@
                     "end_lineno": 450,
                     "end_col_offset": 25
                   },
-                  "id": "BufferError"
+                  "id": "BufferError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7509,7 +7711,8 @@
                     "end_lineno": 452,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7524,7 +7727,8 @@
                     "end_lineno": 451,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7544,7 +7748,8 @@
                         "end_lineno": 452,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -7605,7 +7810,8 @@
                 "end_lineno": 456,
                 "end_col_offset": 22
               },
-              "id": "BytesWarning"
+              "id": "BytesWarning",
+              "machine_context": "Load"
             }
           }
         ],
@@ -7669,7 +7875,8 @@
                     "end_lineno": 461,
                     "end_col_offset": 26
                   },
-                  "id": "BytesWarning"
+                  "id": "BytesWarning",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7693,7 +7900,8 @@
                     "end_lineno": 463,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7708,7 +7916,8 @@
                     "end_lineno": 462,
                     "end_col_offset": 18
                   },
-                  "id": "Warning"
+                  "id": "Warning",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7728,7 +7937,8 @@
                         "end_lineno": 463,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -7789,7 +7999,8 @@
                 "end_lineno": 467,
                 "end_col_offset": 27
               },
-              "id": "ChildProcessError"
+              "id": "ChildProcessError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -7853,7 +8064,8 @@
                     "end_lineno": 472,
                     "end_col_offset": 31
                   },
-                  "id": "ChildProcessError"
+                  "id": "ChildProcessError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7877,7 +8089,8 @@
                     "end_lineno": 474,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -7892,7 +8105,8 @@
                     "end_lineno": 473,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -7912,7 +8126,8 @@
                         "end_lineno": 474,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -7973,7 +8188,8 @@
                 "end_lineno": 478,
                 "end_col_offset": 32
               },
-              "id": "ConnectionAbortedError"
+              "id": "ConnectionAbortedError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -8037,7 +8253,8 @@
                     "end_lineno": 483,
                     "end_col_offset": 36
                   },
-                  "id": "ConnectionAbortedError"
+                  "id": "ConnectionAbortedError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8061,7 +8278,8 @@
                     "end_lineno": 485,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8076,7 +8294,8 @@
                     "end_lineno": 484,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -8096,7 +8315,8 @@
                         "end_lineno": 485,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -8157,7 +8377,8 @@
                 "end_lineno": 489,
                 "end_col_offset": 25
               },
-              "id": "ConnectionError"
+              "id": "ConnectionError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -8221,7 +8442,8 @@
                     "end_lineno": 494,
                     "end_col_offset": 29
                   },
-                  "id": "ConnectionError"
+                  "id": "ConnectionError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8245,7 +8467,8 @@
                     "end_lineno": 496,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8260,7 +8483,8 @@
                     "end_lineno": 495,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -8280,7 +8504,8 @@
                         "end_lineno": 496,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -8341,7 +8566,8 @@
                 "end_lineno": 500,
                 "end_col_offset": 32
               },
-              "id": "ConnectionRefusedError"
+              "id": "ConnectionRefusedError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -8405,7 +8631,8 @@
                     "end_lineno": 505,
                     "end_col_offset": 36
                   },
-                  "id": "ConnectionRefusedError"
+                  "id": "ConnectionRefusedError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8429,7 +8656,8 @@
                     "end_lineno": 507,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8444,7 +8672,8 @@
                     "end_lineno": 506,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -8464,7 +8693,8 @@
                         "end_lineno": 507,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -8525,7 +8755,8 @@
                 "end_lineno": 511,
                 "end_col_offset": 30
               },
-              "id": "ConnectionResetError"
+              "id": "ConnectionResetError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -8589,7 +8820,8 @@
                     "end_lineno": 516,
                     "end_col_offset": 34
                   },
-                  "id": "ConnectionResetError"
+                  "id": "ConnectionResetError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8613,7 +8845,8 @@
                     "end_lineno": 518,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8628,7 +8861,8 @@
                     "end_lineno": 517,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -8648,7 +8882,8 @@
                         "end_lineno": 518,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -8709,7 +8944,8 @@
                 "end_lineno": 522,
                 "end_col_offset": 25
               },
-              "id": "FileExistsError"
+              "id": "FileExistsError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -8773,7 +9009,8 @@
                     "end_lineno": 527,
                     "end_col_offset": 29
                   },
-                  "id": "FileExistsError"
+                  "id": "FileExistsError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8797,7 +9034,8 @@
                     "end_lineno": 529,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8812,7 +9050,8 @@
                     "end_lineno": 528,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -8832,7 +9071,8 @@
                         "end_lineno": 529,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -8893,7 +9133,8 @@
                 "end_lineno": 533,
                 "end_col_offset": 27
               },
-              "id": "FileNotFoundError"
+              "id": "FileNotFoundError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -8957,7 +9198,8 @@
                     "end_lineno": 538,
                     "end_col_offset": 31
                   },
-                  "id": "FileNotFoundError"
+                  "id": "FileNotFoundError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8981,7 +9223,8 @@
                     "end_lineno": 540,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -8996,7 +9239,8 @@
                     "end_lineno": 539,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -9016,7 +9260,8 @@
                         "end_lineno": 540,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -9077,7 +9322,8 @@
                 "end_lineno": 544,
                 "end_col_offset": 28
               },
-              "id": "FloatingPointError"
+              "id": "FloatingPointError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -9141,7 +9387,8 @@
                     "end_lineno": 549,
                     "end_col_offset": 32
                   },
-                  "id": "FloatingPointError"
+                  "id": "FloatingPointError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9165,7 +9412,8 @@
                     "end_lineno": 551,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9180,7 +9428,8 @@
                     "end_lineno": 550,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -9200,7 +9449,8 @@
                         "end_lineno": 551,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -9261,7 +9511,8 @@
                 "end_lineno": 555,
                 "end_col_offset": 26
               },
-              "id": "InterruptedError"
+              "id": "InterruptedError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -9325,7 +9576,8 @@
                     "end_lineno": 560,
                     "end_col_offset": 30
                   },
-                  "id": "InterruptedError"
+                  "id": "InterruptedError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9349,7 +9601,8 @@
                     "end_lineno": 562,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9364,7 +9617,8 @@
                     "end_lineno": 561,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -9384,7 +9638,8 @@
                         "end_lineno": 562,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -9445,7 +9700,8 @@
                 "end_lineno": 566,
                 "end_col_offset": 27
               },
-              "id": "IsADirectoryError"
+              "id": "IsADirectoryError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -9509,7 +9765,8 @@
                     "end_lineno": 571,
                     "end_col_offset": 31
                   },
-                  "id": "IsADirectoryError"
+                  "id": "IsADirectoryError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9533,7 +9790,8 @@
                     "end_lineno": 573,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9548,7 +9806,8 @@
                     "end_lineno": 572,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -9568,7 +9827,8 @@
                         "end_lineno": 573,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -9629,7 +9889,8 @@
                 "end_lineno": 577,
                 "end_col_offset": 21
               },
-              "id": "MemoryError"
+              "id": "MemoryError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -9693,7 +9954,8 @@
                     "end_lineno": 582,
                     "end_col_offset": 25
                   },
-                  "id": "MemoryError"
+                  "id": "MemoryError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9717,7 +9979,8 @@
                     "end_lineno": 584,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9732,7 +9995,8 @@
                     "end_lineno": 583,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -9752,7 +10016,8 @@
                         "end_lineno": 584,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -9813,7 +10078,8 @@
                 "end_lineno": 588,
                 "end_col_offset": 28
               },
-              "id": "NotADirectoryError"
+              "id": "NotADirectoryError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -9877,7 +10143,8 @@
                     "end_lineno": 593,
                     "end_col_offset": 32
                   },
-                  "id": "NotADirectoryError"
+                  "id": "NotADirectoryError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9901,7 +10168,8 @@
                     "end_lineno": 595,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -9916,7 +10184,8 @@
                     "end_lineno": 594,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -9936,7 +10205,8 @@
                         "end_lineno": 595,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -9997,7 +10267,8 @@
                 "end_lineno": 599,
                 "end_col_offset": 29
               },
-              "id": "NotImplementedError"
+              "id": "NotImplementedError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -10061,7 +10332,8 @@
                     "end_lineno": 604,
                     "end_col_offset": 33
                   },
-                  "id": "NotImplementedError"
+                  "id": "NotImplementedError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10085,7 +10357,8 @@
                     "end_lineno": 606,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10100,7 +10373,8 @@
                     "end_lineno": 605,
                     "end_col_offset": 23
                   },
-                  "id": "RuntimeError"
+                  "id": "RuntimeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -10120,7 +10394,8 @@
                         "end_lineno": 606,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -10181,7 +10456,8 @@
                 "end_lineno": 610,
                 "end_col_offset": 25
               },
-              "id": "PermissionError"
+              "id": "PermissionError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -10245,7 +10521,8 @@
                     "end_lineno": 615,
                     "end_col_offset": 29
                   },
-                  "id": "PermissionError"
+                  "id": "PermissionError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10269,7 +10546,8 @@
                     "end_lineno": 617,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10284,7 +10562,8 @@
                     "end_lineno": 616,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -10304,7 +10583,8 @@
                         "end_lineno": 617,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -10365,7 +10645,8 @@
                 "end_lineno": 621,
                 "end_col_offset": 28
               },
-              "id": "ProcessLookupError"
+              "id": "ProcessLookupError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -10429,7 +10710,8 @@
                     "end_lineno": 626,
                     "end_col_offset": 32
                   },
-                  "id": "ProcessLookupError"
+                  "id": "ProcessLookupError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10453,7 +10735,8 @@
                     "end_lineno": 628,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10468,7 +10751,8 @@
                     "end_lineno": 627,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -10488,7 +10772,8 @@
                         "end_lineno": 628,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -10549,7 +10834,8 @@
                 "end_lineno": 632,
                 "end_col_offset": 24
               },
-              "id": "ReferenceError"
+              "id": "ReferenceError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -10613,7 +10899,8 @@
                     "end_lineno": 637,
                     "end_col_offset": 28
                   },
-                  "id": "ReferenceError"
+                  "id": "ReferenceError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10637,7 +10924,8 @@
                     "end_lineno": 639,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10652,7 +10940,8 @@
                     "end_lineno": 638,
                     "end_col_offset": 20
                   },
-                  "id": "Exception"
+                  "id": "Exception",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -10672,7 +10961,8 @@
                         "end_lineno": 639,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -10733,7 +11023,8 @@
                 "end_lineno": 643,
                 "end_col_offset": 22
               },
-              "id": "TimeoutError"
+              "id": "TimeoutError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -10797,7 +11088,8 @@
                     "end_lineno": 648,
                     "end_col_offset": 26
                   },
-                  "id": "TimeoutError"
+                  "id": "TimeoutError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10821,7 +11113,8 @@
                     "end_lineno": 650,
                     "end_col_offset": 20
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10836,7 +11129,8 @@
                     "end_lineno": 649,
                     "end_col_offset": 18
                   },
-                  "id": "OSError"
+                  "id": "OSError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -10856,7 +11150,8 @@
                         "end_lineno": 650,
                         "end_col_offset": 20
                       },
-                      "id": "value"
+                      "id": "value",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -10936,7 +11231,8 @@
                     "end_lineno": 655,
                     "end_col_offset": 26
                   },
-                  "id": "UnicodeError"
+                  "id": "UnicodeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -10978,7 +11274,8 @@
                     "end_lineno": 656,
                     "end_col_offset": 29
                   },
-                  "id": "UnicodeDecodeError"
+                  "id": "UnicodeDecodeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -11026,7 +11323,8 @@
                 "end_lineno": 658,
                 "end_col_offset": 16
               },
-              "id": "value"
+              "id": "value",
+              "machine_context": "Load"
             }
           }
         ],
@@ -11100,7 +11398,8 @@
                     "end_lineno": 663,
                     "end_col_offset": 26
                   },
-                  "id": "UnicodeError"
+                  "id": "UnicodeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -11142,7 +11441,8 @@
                     "end_lineno": 664,
                     "end_col_offset": 29
                   },
-                  "id": "UnicodeEncodeError"
+                  "id": "UnicodeEncodeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -11190,7 +11490,8 @@
                 "end_lineno": 666,
                 "end_col_offset": 16
               },
-              "id": "value"
+              "id": "value",
+              "machine_context": "Load"
             }
           }
         ],
@@ -11264,7 +11565,8 @@
                     "end_lineno": 671,
                     "end_col_offset": 26
                   },
-                  "id": "UnicodeError"
+                  "id": "UnicodeError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -11306,7 +11608,8 @@
                     "end_lineno": 672,
                     "end_col_offset": 32
                   },
-                  "id": "UnicodeTranslateError"
+                  "id": "UnicodeTranslateError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -11354,7 +11657,8 @@
                 "end_lineno": 674,
                 "end_col_offset": 16
               },
-              "id": "value"
+              "id": "value",
+              "machine_context": "Load"
             }
           }
         ],
@@ -11427,7 +11731,8 @@
                         "end_lineno": 680,
                         "end_col_offset": 31
                       },
-                      "id": "BaseException"
+                      "id": "BaseException",
+                      "machine_context": "Load"
                     }
                   }
                 ],
@@ -11469,7 +11774,8 @@
                         "end_lineno": 681,
                         "end_col_offset": 24
                       },
-                      "id": "Exception"
+                      "id": "Exception",
+                      "machine_context": "Load"
                     },
                     "name": null,
                     "body": [
@@ -11540,7 +11846,8 @@
                     "end_lineno": 683,
                     "end_col_offset": 24
                   },
-                  "id": "BaseException"
+                  "id": "BaseException",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -11632,7 +11939,8 @@
                         "end_lineno": 690,
                         "end_col_offset": 28
                       },
-                      "id": "ValueError"
+                      "id": "ValueError",
+                      "machine_context": "Load"
                     }
                   }
                 ],
@@ -11674,7 +11982,8 @@
                         "end_lineno": 691,
                         "end_col_offset": 24
                       },
-                      "id": "TypeError"
+                      "id": "TypeError",
+                      "machine_context": "Load"
                     },
                     "name": null,
                     "body": [
@@ -11745,7 +12054,8 @@
                     "end_lineno": 693,
                     "end_col_offset": 21
                   },
-                  "id": "ValueError"
+                  "id": "ValueError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -11820,7 +12130,8 @@
                   "end_lineno": 698,
                   "end_col_offset": 8
                 },
-                "id": "data"
+                "id": "data",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -11845,7 +12156,8 @@
                     "repr": "0"
                   }
                 }
-              ]
+              ],
+              "machine_context": "Load"
             }
           },
           {
@@ -11889,9 +12201,11 @@
                         "end_lineno": 700,
                         "end_col_offset": 12
                       },
-                      "id": "data"
+                      "id": "data",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -11930,7 +12244,8 @@
                     "end_lineno": 701,
                     "end_col_offset": 22
                   },
-                  "id": "KeyError"
+                  "id": "KeyError",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -11970,9 +12285,11 @@
                         "end_lineno": 703,
                         "end_col_offset": 12
                       },
-                      "id": "data"
+                      "id": "data",
+                      "machine_context": "Load"
                     },
-                    "attr": "append"
+                    "attr": "append",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -12007,7 +12324,8 @@
                     "end_lineno": 702,
                     "end_col_offset": 22
                   },
-                  "id": "LookupError"
+                  "id": "LookupError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -12043,9 +12361,11 @@
                             "end_lineno": 703,
                             "end_col_offset": 12
                           },
-                          "id": "data"
+                          "id": "data",
+                          "machine_context": "Load"
                         },
-                        "attr": "append"
+                        "attr": "append",
+                        "machine_context": "Load"
                       },
                       "starargs": [],
                       "kwargs": [],
@@ -12090,7 +12410,8 @@
                 "end_lineno": 704,
                 "end_col_offset": 15
               },
-              "id": "data"
+              "id": "data",
+              "machine_context": "Load"
             }
           }
         ],
@@ -12152,7 +12473,8 @@
                       "end_lineno": 709,
                       "end_col_offset": 27
                     },
-                    "id": "raise_OverflowError"
+                    "id": "raise_OverflowError",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -12200,7 +12522,8 @@
                     "end_lineno": 710,
                     "end_col_offset": 26
                   },
-                  "id": "ArithmeticError"
+                  "id": "ArithmeticError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -12296,7 +12619,8 @@
                 "end_lineno": 716,
                 "end_col_offset": 23
               },
-              "id": "StopIteration"
+              "id": "StopIteration",
+              "machine_context": "Load"
             }
           }
         ],
@@ -12446,7 +12770,8 @@
                   "end_lineno": 726,
                   "end_col_offset": 8
                 },
-                "id": "next"
+                "id": "next",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -12467,7 +12792,8 @@
                       "end_lineno": 726,
                       "end_col_offset": 24
                     },
-                    "id": "empty_generator"
+                    "id": "empty_generator",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -12524,7 +12850,8 @@
                   "end_lineno": 730,
                   "end_col_offset": 5
                 },
-                "id": "g"
+                "id": "g",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -12543,7 +12870,8 @@
                   "end_lineno": 730,
                   "end_col_offset": 22
                 },
-                "id": "stop_generator"
+                "id": "stop_generator",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -12569,7 +12897,8 @@
                   "end_lineno": 731,
                   "end_col_offset": 9
                 },
-                "id": "first"
+                "id": "first",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -12588,7 +12917,8 @@
                   "end_lineno": 731,
                   "end_col_offset": 16
                 },
-                "id": "next"
+                "id": "next",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -12601,7 +12931,8 @@
                     "end_lineno": 731,
                     "end_col_offset": 18
                   },
-                  "id": "g"
+                  "id": "g",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -12641,7 +12972,8 @@
                       "end_lineno": 733,
                       "end_col_offset": 12
                     },
-                    "id": "next"
+                    "id": "next",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -12654,7 +12986,8 @@
                         "end_lineno": 733,
                         "end_col_offset": 14
                       },
-                      "id": "g"
+                      "id": "g",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -12698,7 +13031,8 @@
                         "end_lineno": 735,
                         "end_col_offset": 20
                       },
-                      "id": "first"
+                      "id": "first",
+                      "machine_context": "Load"
                     },
                     "op": "Mult",
                     "right": {
@@ -12732,7 +13066,8 @@
                         "end_lineno": 735,
                         "end_col_offset": 32
                       },
-                      "id": "next"
+                      "id": "next",
+                      "machine_context": "Load"
                     },
                     "starargs": [],
                     "kwargs": [],
@@ -12745,7 +13080,8 @@
                           "end_lineno": 735,
                           "end_col_offset": 34
                         },
-                        "id": "g"
+                        "id": "g",
+                        "machine_context": "Load"
                       },
                       {
                         "kind": "Constant",
@@ -12778,7 +13114,8 @@
                     "end_lineno": 734,
                     "end_col_offset": 23
                   },
-                  "id": "RuntimeError"
+                  "id": "RuntimeError",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -12814,7 +13151,8 @@
                             "end_lineno": 735,
                             "end_col_offset": 20
                           },
-                          "id": "first"
+                          "id": "first",
+                          "machine_context": "Load"
                         },
                         "op": "Mult",
                         "right": {
@@ -12848,7 +13186,8 @@
                             "end_lineno": 735,
                             "end_col_offset": 32
                           },
-                          "id": "next"
+                          "id": "next",
+                          "machine_context": "Load"
                         },
                         "starargs": [],
                         "kwargs": [],
@@ -12861,7 +13200,8 @@
                               "end_lineno": 735,
                               "end_col_offset": 34
                             },
-                            "id": "g"
+                            "id": "g",
+                            "machine_context": "Load"
                           },
                           {
                             "kind": "Constant",
@@ -12938,7 +13278,8 @@
                   "end_lineno": 739,
                   "end_col_offset": 15
                 },
-                "id": "list"
+                "id": "list",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -12959,7 +13300,8 @@
                       "end_lineno": 739,
                       "end_col_offset": 30
                     },
-                    "id": "stop_generator"
+                    "id": "stop_generator",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -13022,7 +13364,8 @@
                   "end_lineno": 743,
                   "end_col_offset": 15
                 },
-                "id": "list"
+                "id": "list",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -13043,7 +13386,8 @@
                       "end_lineno": 743,
                       "end_col_offset": 35
                     },
-                    "id": "next_stop_generator"
+                    "id": "next_stop_generator",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -13107,7 +13451,8 @@
                     "end_lineno": 748,
                     "end_col_offset": 27
                   },
-                  "id": "StopIteration"
+                  "id": "StopIteration",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -13132,7 +13477,8 @@
                       "end_lineno": 750,
                       "end_col_offset": 13
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -13161,7 +13507,8 @@
                     "end_lineno": 749,
                     "end_col_offset": 24
                   },
-                  "id": "StopIteration"
+                  "id": "StopIteration",
+                  "machine_context": "Load"
                 },
                 "name": null,
                 "body": [
@@ -13182,7 +13529,8 @@
                           "end_lineno": 750,
                           "end_col_offset": 13
                         },
-                        "id": "value"
+                        "id": "value",
+                        "machine_context": "Store"
                       }
                     ],
                     "value": {
@@ -13221,7 +13569,8 @@
                 "end_lineno": 751,
                 "end_col_offset": 15
               },
-              "id": "value"
+              "id": "value",
+              "machine_context": "Load"
             }
           }
         ],
@@ -13275,7 +13624,8 @@
                   "end_lineno": 755,
                   "end_col_offset": 15
                 },
-                "id": "next"
+                "id": "next",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -13296,7 +13646,8 @@
                       "end_lineno": 755,
                       "end_col_offset": 28
                     },
-                    "id": "catches_stop"
+                    "id": "catches_stop",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -13361,7 +13712,8 @@
                 "end_lineno": 759,
                 "end_col_offset": 20
               },
-              "id": "ValueError"
+              "id": "ValueError",
+              "machine_context": "Load"
             }
           }
         ],
@@ -13416,7 +13768,8 @@
                 "end_lineno": 763,
                 "end_col_offset": 20
               },
-              "id": "ValueError"
+              "id": "ValueError",
+              "machine_context": "Load"
             }
           },
           {
@@ -13436,7 +13789,8 @@
                   "end_lineno": 764,
                   "end_col_offset": 14
                 },
-                "id": "ValueError"
+                "id": "ValueError",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -13503,7 +13857,8 @@
                   "end_lineno": 770,
                   "end_col_offset": 20
                 },
-                "id": "ValueError"
+                "id": "ValueError",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -13554,7 +13909,8 @@
                 "end_lineno": 774,
                 "end_col_offset": 20
               },
-              "id": "ValueError"
+              "id": "ValueError",
+              "machine_context": "Load"
             },
             "cause": {
               "kind": "Constant",
@@ -13611,7 +13967,8 @@
                 "end_lineno": 780,
                 "end_col_offset": 17
               },
-              "id": "OSError"
+              "id": "OSError",
+              "machine_context": "Load"
             }
           }
         ],

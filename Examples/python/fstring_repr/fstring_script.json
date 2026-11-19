@@ -27,7 +27,8 @@
               "end_lineno": 1,
               "end_col_offset": 3
             },
-            "id": "str"
+            "id": "str",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -61,7 +62,8 @@
               "end_lineno": 2,
               "end_col_offset": 4
             },
-            "id": "repr"
+            "id": "repr",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -102,7 +104,8 @@
               "end_lineno": 3,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -244,7 +247,8 @@
               "end_lineno": 4,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -287,7 +291,8 @@
                       "end_lineno": 4,
                       "end_col_offset": 12
                     },
-                    "id": "str"
+                    "id": "str",
+                    "machine_context": "Load"
                   },
                   "conversion": 114,
                   "format_spec": null
@@ -321,7 +326,8 @@
                       "end_lineno": 4,
                       "end_col_offset": 20
                     },
-                    "id": "repr"
+                    "id": "repr",
+                    "machine_context": "Load"
                   },
                   "conversion": 114,
                   "format_spec": null
@@ -370,7 +376,8 @@
                   "end_lineno": 8,
                   "end_col_offset": 14
                 },
-                "id": "str"
+                "id": "str",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -439,7 +446,8 @@
                   "end_lineno": 12,
                   "end_col_offset": 25
                 },
-                "id": "shadowed_builtin_call"
+                "id": "shadowed_builtin_call",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -477,7 +485,8 @@
                   "end_lineno": 14,
                   "end_col_offset": 9
                 },
-                "id": "print"
+                "id": "print",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -512,7 +521,8 @@
                 "end_lineno": 13,
                 "end_col_offset": 16
               },
-              "id": "TypeError"
+              "id": "TypeError",
+              "machine_context": "Load"
             },
             "name": null,
             "body": [
@@ -540,7 +550,8 @@
                       "end_lineno": 14,
                       "end_col_offset": 9
                     },
-                    "id": "print"
+                    "id": "print",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -586,7 +597,8 @@
               "end_lineno": 17,
               "end_col_offset": 6
             },
-            "id": "values"
+            "id": "values",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -597,7 +609,8 @@
             "end_lineno": 17,
             "end_col_offset": 11
           },
-          "elts": []
+          "elts": [],
+          "machine_context": "Load"
         }
       },
       {
@@ -624,7 +637,8 @@
               "end_lineno": 18,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -670,9 +684,11 @@
                           "end_lineno": 18,
                           "end_col_offset": 15
                         },
-                        "id": "values"
+                        "id": "values",
+                        "machine_context": "Load"
                       },
-                      "attr": "append"
+                      "attr": "append",
+                      "machine_context": "Load"
                     },
                     "starargs": [],
                     "kwargs": [],
@@ -726,7 +742,8 @@
                       "end_lineno": 18,
                       "end_col_offset": 36
                     },
-                    "id": "values"
+                    "id": "values",
+                    "machine_context": "Load"
                   },
                   "conversion": 114,
                   "format_spec": null
@@ -776,9 +793,11 @@
                           "end_lineno": 18,
                           "end_col_offset": 47
                         },
-                        "id": "values"
+                        "id": "values",
+                        "machine_context": "Load"
                       },
-                      "attr": "append"
+                      "attr": "append",
+                      "machine_context": "Load"
                     },
                     "starargs": [],
                     "kwargs": [],
@@ -832,7 +851,8 @@
                       "end_lineno": 18,
                       "end_col_offset": 68
                     },
-                    "id": "values"
+                    "id": "values",
+                    "machine_context": "Load"
                   },
                   "conversion": 114,
                   "format_spec": null
@@ -876,9 +896,11 @@
                 "end_lineno": 19,
                 "end_col_offset": 6
               },
-              "id": "values"
+              "id": "values",
+              "machine_context": "Load"
             },
-            "attr": "append"
+            "attr": "append",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -891,7 +913,8 @@
                 "end_lineno": 19,
                 "end_col_offset": 20
               },
-              "id": "values"
+              "id": "values",
+              "machine_context": "Load"
             }
           ],
           "keywords": [],
@@ -922,7 +945,8 @@
               "end_lineno": 20,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
@@ -952,7 +976,8 @@
                       "end_lineno": 20,
                       "end_col_offset": 15
                     },
-                    "id": "values"
+                    "id": "values",
+                    "machine_context": "Load"
                   },
                   "conversion": 114,
                   "format_spec": null
@@ -1011,7 +1036,8 @@
                   "end_lineno": 24,
                   "end_col_offset": 9
                 },
-                "id": "print"
+                "id": "print",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1024,7 +1050,8 @@
                     "end_lineno": 24,
                     "end_col_offset": 15
                   },
-                  "id": "value"
+                  "id": "value",
+                  "machine_context": "Load"
                 }
               ],
               "keywords": [],
@@ -1047,7 +1074,8 @@
                 "end_lineno": 25,
                 "end_col_offset": 16
               },
-              "id": "value"
+              "id": "value",
+              "machine_context": "Load"
             }
           }
         ],
@@ -1106,7 +1134,8 @@
                   "end_lineno": 29,
                   "end_col_offset": 9
                 },
-                "id": "print"
+                "id": "print",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1144,7 +1173,8 @@
                             "end_lineno": 29,
                             "end_col_offset": 19
                           },
-                          "id": "effect"
+                          "id": "effect",
+                          "machine_context": "Load"
                         },
                         "starargs": [],
                         "kwargs": [],
@@ -1266,7 +1296,8 @@
                             "end_lineno": 29,
                             "end_col_offset": 50
                           },
-                          "id": "effect"
+                          "id": "effect",
+                          "machine_context": "Load"
                         },
                         "starargs": [],
                         "kwargs": [],
@@ -1327,7 +1358,8 @@
                   "end_lineno": 31,
                   "end_col_offset": 9
                 },
-                "id": "print"
+                "id": "print",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1362,7 +1394,8 @@
                 "end_lineno": 30,
                 "end_col_offset": 24
               },
-              "id": "ZeroDivisionError"
+              "id": "ZeroDivisionError",
+              "machine_context": "Load"
             },
             "name": null,
             "body": [
@@ -1390,7 +1423,8 @@
                       "end_lineno": 31,
                       "end_col_offset": 9
                     },
-                    "id": "print"
+                    "id": "print",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -1443,7 +1477,8 @@
               "end_lineno": 33,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],

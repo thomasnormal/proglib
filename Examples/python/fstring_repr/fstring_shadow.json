@@ -57,7 +57,8 @@
                   "end_lineno": 2,
                   "end_col_offset": 16
                 },
-                "id": "value"
+                "id": "value",
+                "machine_context": "Load"
               },
               "op": "Add",
               "right": {
@@ -145,7 +146,8 @@
                   "end_lineno": 6,
                   "end_col_offset": 16
                 },
-                "id": "value"
+                "id": "value",
+                "machine_context": "Load"
               },
               "op": "Add",
               "right": {
@@ -242,7 +244,8 @@
                       "end_lineno": 10,
                       "end_col_offset": 19
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "conversion": -1,
                   "format_spec": null
@@ -276,7 +279,8 @@
                       "end_lineno": 10,
                       "end_col_offset": 27
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "conversion": 115,
                   "format_spec": null
@@ -310,7 +314,8 @@
                       "end_lineno": 10,
                       "end_col_offset": 37
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Load"
                   },
                   "conversion": 114,
                   "format_spec": null
@@ -378,7 +383,8 @@
                   "end_lineno": 14,
                   "end_col_offset": 16
                 },
-                "id": "tuple"
+                "id": "tuple",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -416,7 +422,8 @@
                             "end_lineno": 14,
                             "end_col_offset": 25
                           },
-                          "id": "value"
+                          "id": "value",
+                          "machine_context": "Load"
                         },
                         "conversion": 114,
                         "format_spec": null
@@ -450,7 +457,8 @@
                             "end_lineno": 14,
                             "end_col_offset": 35
                           },
-                          "id": "value"
+                          "id": "value",
+                          "machine_context": "Load"
                         },
                         "conversion": 115,
                         "format_spec": null
@@ -465,7 +473,8 @@
                       "end_lineno": 14,
                       "end_col_offset": 49
                     },
-                    "id": "value"
+                    "id": "value",
+                    "machine_context": "Store"
                   },
                   "iter": {
                     "kind": "Tuple",
@@ -502,7 +511,8 @@
                           "repr": "2"
                         }
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   },
                   "ifs": [],
                   "walrus": []

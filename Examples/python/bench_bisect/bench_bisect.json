@@ -135,7 +135,8 @@
                   "end_lineno": 42,
                   "end_col_offset": 9
                 },
-                "id": "lo"
+                "id": "lo",
+                "machine_context": "Load"
               },
               "ops": [
                 "Lt"
@@ -181,7 +182,8 @@
                       "end_lineno": 43,
                       "end_col_offset": 24
                     },
-                    "id": "ValueError"
+                    "id": "ValueError",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -231,7 +233,8 @@
                   "end_lineno": 44,
                   "end_col_offset": 9
                 },
-                "id": "hi"
+                "id": "hi",
+                "machine_context": "Load"
               },
               "ops": [
                 "Is"
@@ -269,7 +272,8 @@
                       "end_lineno": 45,
                       "end_col_offset": 10
                     },
-                    "id": "hi"
+                    "id": "hi",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -288,7 +292,8 @@
                       "end_lineno": 45,
                       "end_col_offset": 16
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -301,7 +306,8 @@
                         "end_lineno": 45,
                         "end_col_offset": 18
                       },
-                      "id": "a"
+                      "id": "a",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -335,7 +341,8 @@
                   "end_lineno": 46,
                   "end_col_offset": 12
                 },
-                "id": "lo"
+                "id": "lo",
+                "machine_context": "Load"
               },
               "ops": [
                 "Lt"
@@ -349,7 +356,8 @@
                     "end_lineno": 46,
                     "end_col_offset": 17
                   },
-                  "id": "hi"
+                  "id": "hi",
+                  "machine_context": "Load"
                 }
               ]
             },
@@ -371,7 +379,8 @@
                       "end_lineno": 47,
                       "end_col_offset": 11
                     },
-                    "id": "mid"
+                    "id": "mid",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -398,7 +407,8 @@
                         "end_lineno": 47,
                         "end_col_offset": 17
                       },
-                      "id": "lo"
+                      "id": "lo",
+                      "machine_context": "Load"
                     },
                     "op": "Add",
                     "right": {
@@ -409,7 +419,8 @@
                         "end_lineno": 47,
                         "end_col_offset": 20
                       },
-                      "id": "hi"
+                      "id": "hi",
+                      "machine_context": "Load"
                     }
                   },
                   "op": "FloorDiv",
@@ -452,7 +463,8 @@
                       "end_lineno": 49,
                       "end_col_offset": 12
                     },
-                    "id": "x"
+                    "id": "x",
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Lt"
@@ -474,7 +486,8 @@
                           "end_lineno": 49,
                           "end_col_offset": 16
                         },
-                        "id": "a"
+                        "id": "a",
+                        "machine_context": "Load"
                       },
                       "index": {
                         "kind": "Name",
@@ -484,8 +497,10 @@
                           "end_lineno": 49,
                           "end_col_offset": 20
                         },
-                        "id": "mid"
-                      }
+                        "id": "mid",
+                        "machine_context": "Load"
+                      },
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -507,7 +522,8 @@
                           "end_lineno": 49,
                           "end_col_offset": 25
                         },
-                        "id": "hi"
+                        "id": "hi",
+                        "machine_context": "Store"
                       }
                     ],
                     "value": {
@@ -518,7 +534,8 @@
                         "end_lineno": 49,
                         "end_col_offset": 31
                       },
-                      "id": "mid"
+                      "id": "mid",
+                      "machine_context": "Load"
                     }
                   }
                 ],
@@ -540,7 +557,8 @@
                           "end_lineno": 50,
                           "end_col_offset": 16
                         },
-                        "id": "lo"
+                        "id": "lo",
+                        "machine_context": "Store"
                       }
                     ],
                     "value": {
@@ -559,7 +577,8 @@
                           "end_lineno": 50,
                           "end_col_offset": 22
                         },
-                        "id": "mid"
+                        "id": "mid",
+                        "machine_context": "Load"
                       },
                       "op": "Add",
                       "right": {
@@ -598,7 +617,8 @@
                 "end_lineno": 51,
                 "end_col_offset": 13
               },
-              "id": "lo"
+              "id": "lo",
+              "machine_context": "Load"
             }
           }
         ],
@@ -780,7 +800,8 @@
                   "end_lineno": 64,
                   "end_col_offset": 9
                 },
-                "id": "lo"
+                "id": "lo",
+                "machine_context": "Load"
               },
               "ops": [
                 "Lt"
@@ -826,7 +847,8 @@
                       "end_lineno": 65,
                       "end_col_offset": 24
                     },
-                    "id": "ValueError"
+                    "id": "ValueError",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -876,7 +898,8 @@
                   "end_lineno": 66,
                   "end_col_offset": 9
                 },
-                "id": "hi"
+                "id": "hi",
+                "machine_context": "Load"
               },
               "ops": [
                 "Is"
@@ -914,7 +937,8 @@
                       "end_lineno": 67,
                       "end_col_offset": 10
                     },
-                    "id": "hi"
+                    "id": "hi",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -933,7 +957,8 @@
                       "end_lineno": 67,
                       "end_col_offset": 16
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -946,7 +971,8 @@
                         "end_lineno": 67,
                         "end_col_offset": 18
                       },
-                      "id": "a"
+                      "id": "a",
+                      "machine_context": "Load"
                     }
                   ],
                   "keywords": [],
@@ -980,7 +1006,8 @@
                   "end_lineno": 68,
                   "end_col_offset": 12
                 },
-                "id": "lo"
+                "id": "lo",
+                "machine_context": "Load"
               },
               "ops": [
                 "Lt"
@@ -994,7 +1021,8 @@
                     "end_lineno": 68,
                     "end_col_offset": 17
                   },
-                  "id": "hi"
+                  "id": "hi",
+                  "machine_context": "Load"
                 }
               ]
             },
@@ -1016,7 +1044,8 @@
                       "end_lineno": 69,
                       "end_col_offset": 11
                     },
-                    "id": "mid"
+                    "id": "mid",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -1043,7 +1072,8 @@
                         "end_lineno": 69,
                         "end_col_offset": 17
                       },
-                      "id": "lo"
+                      "id": "lo",
+                      "machine_context": "Load"
                     },
                     "op": "Add",
                     "right": {
@@ -1054,7 +1084,8 @@
                         "end_lineno": 69,
                         "end_col_offset": 20
                       },
-                      "id": "hi"
+                      "id": "hi",
+                      "machine_context": "Load"
                     }
                   },
                   "op": "FloorDiv",
@@ -1105,7 +1136,8 @@
                         "end_lineno": 71,
                         "end_col_offset": 12
                       },
-                      "id": "a"
+                      "id": "a",
+                      "machine_context": "Load"
                     },
                     "index": {
                       "kind": "Name",
@@ -1115,8 +1147,10 @@
                         "end_lineno": 71,
                         "end_col_offset": 16
                       },
-                      "id": "mid"
-                    }
+                      "id": "mid",
+                      "machine_context": "Load"
+                    },
+                    "machine_context": "Load"
                   },
                   "ops": [
                     "Lt"
@@ -1130,7 +1164,8 @@
                         "end_lineno": 71,
                         "end_col_offset": 21
                       },
-                      "id": "x"
+                      "id": "x",
+                      "machine_context": "Load"
                     }
                   ]
                 },
@@ -1152,7 +1187,8 @@
                           "end_lineno": 71,
                           "end_col_offset": 25
                         },
-                        "id": "lo"
+                        "id": "lo",
+                        "machine_context": "Store"
                       }
                     ],
                     "value": {
@@ -1171,7 +1207,8 @@
                           "end_lineno": 71,
                           "end_col_offset": 31
                         },
-                        "id": "mid"
+                        "id": "mid",
+                        "machine_context": "Load"
                       },
                       "op": "Add",
                       "right": {
@@ -1208,7 +1245,8 @@
                           "end_lineno": 72,
                           "end_col_offset": 16
                         },
-                        "id": "hi"
+                        "id": "hi",
+                        "machine_context": "Store"
                       }
                     ],
                     "value": {
@@ -1219,7 +1257,8 @@
                         "end_lineno": 72,
                         "end_col_offset": 22
                       },
-                      "id": "mid"
+                      "id": "mid",
+                      "machine_context": "Load"
                     }
                   }
                 ]
@@ -1243,7 +1282,8 @@
                 "end_lineno": 73,
                 "end_col_offset": 13
               },
-              "id": "lo"
+              "id": "lo",
+              "machine_context": "Load"
             }
           }
         ],

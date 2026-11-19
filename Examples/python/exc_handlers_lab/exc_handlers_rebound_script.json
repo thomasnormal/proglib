@@ -58,7 +58,8 @@
                       "end_lineno": 3,
                       "end_col_offset": 17
                     },
-                    "id": "TypeError"
+                    "id": "TypeError",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -99,7 +100,8 @@
                       "end_lineno": 4,
                       "end_col_offset": 11
                     },
-                    "id": "len"
+                    "id": "len",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],
@@ -164,7 +166,8 @@
                   "end_lineno": 8,
                   "end_col_offset": 9
                 },
-                "id": "print"
+                "id": "print",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -199,7 +202,8 @@
                 "end_lineno": 7,
                 "end_col_offset": 16
               },
-              "id": "TypeError"
+              "id": "TypeError",
+              "machine_context": "Load"
             },
             "name": null,
             "body": [
@@ -227,7 +231,8 @@
                       "end_lineno": 8,
                       "end_col_offset": 9
                     },
-                    "id": "print"
+                    "id": "print",
+                    "machine_context": "Load"
                   },
                   "starargs": [],
                   "kwargs": [],

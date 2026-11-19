@@ -98,7 +98,8 @@
                     "end_lineno": 19,
                     "end_col_offset": 9
                   },
-                  "id": "m"
+                  "id": "m",
+                  "machine_context": "Store"
                 },
                 "value": {
                   "kind": "BinOp",
@@ -116,7 +117,8 @@
                       "end_lineno": 19,
                       "end_col_offset": 14
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   },
                   "op": "Mult",
                   "right": {
@@ -170,7 +172,8 @@
                     "end_lineno": 20,
                     "end_col_offset": 16
                   },
-                  "id": "m"
+                  "id": "m",
+                  "machine_context": "Load"
                 }
               }
             ],
@@ -201,7 +204,8 @@
                   "end_lineno": 21,
                   "end_col_offset": 13
                 },
-                "id": "m"
+                "id": "m",
+                "machine_context": "Load"
               }
             }
           }
@@ -278,7 +282,8 @@
                   "end_lineno": 26,
                   "end_col_offset": 5
                 },
-                "id": "a"
+                "id": "a",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -306,7 +311,8 @@
                     "end_lineno": 26,
                     "end_col_offset": 10
                   },
-                  "id": "b"
+                  "id": "b",
+                  "machine_context": "Store"
                 },
                 "value": {
                   "kind": "BinOp",
@@ -324,7 +330,8 @@
                       "end_lineno": 26,
                       "end_col_offset": 15
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   },
                   "op": "Add",
                   "right": {
@@ -351,7 +358,8 @@
                   "end_lineno": 26,
                   "end_col_offset": 24
                 },
-                "id": "b"
+                "id": "b",
+                "machine_context": "Load"
               }
             }
           },
@@ -387,7 +395,8 @@
                     "end_lineno": 27,
                     "end_col_offset": 12
                   },
-                  "id": "a"
+                  "id": "a",
+                  "machine_context": "Load"
                 },
                 "op": "Mult",
                 "right": {
@@ -413,7 +422,8 @@
                   "end_lineno": 27,
                   "end_col_offset": 21
                 },
-                "id": "b"
+                "id": "b",
+                "machine_context": "Load"
               }
             }
           }
@@ -499,7 +509,8 @@
                     "end_lineno": 33,
                     "end_col_offset": 8
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Load"
                 },
                 {
                   "kind": "Compare",
@@ -526,7 +537,8 @@
                         "end_lineno": 33,
                         "end_col_offset": 15
                       },
-                      "id": "q"
+                      "id": "q",
+                      "machine_context": "Store"
                     },
                     "value": {
                       "kind": "BinOp",
@@ -544,7 +556,8 @@
                           "end_lineno": 33,
                           "end_col_offset": 20
                         },
-                        "id": "n"
+                        "id": "n",
+                        "machine_context": "Load"
                       },
                       "op": "Add",
                       "right": {
@@ -625,7 +638,8 @@
                 "end_lineno": 35,
                 "end_col_offset": 12
               },
-              "id": "q"
+              "id": "q",
+              "machine_context": "Load"
             }
           }
         ],
@@ -701,7 +715,8 @@
                   "end_lineno": 40,
                   "end_col_offset": 5
                 },
-                "id": "t"
+                "id": "t",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -751,7 +766,8 @@
                     "end_lineno": 41,
                     "end_col_offset": 12
                   },
-                  "id": "n"
+                  "id": "n",
+                  "machine_context": "Store"
                 },
                 "value": {
                   "kind": "BinOp",
@@ -769,7 +785,8 @@
                       "end_lineno": 41,
                       "end_col_offset": 17
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   },
                   "op": "Sub",
                   "right": {
@@ -824,7 +841,8 @@
                       "end_lineno": 42,
                       "end_col_offset": 9
                     },
-                    "id": "t"
+                    "id": "t",
+                    "machine_context": "Store"
                   }
                 ],
                 "value": {
@@ -843,7 +861,8 @@
                       "end_lineno": 42,
                       "end_col_offset": 13
                     },
-                    "id": "t"
+                    "id": "t",
+                    "machine_context": "Load"
                   },
                   "op": "Add",
                   "right": {
@@ -854,7 +873,8 @@
                       "end_lineno": 42,
                       "end_col_offset": 17
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   }
                 }
               }
@@ -877,7 +897,8 @@
                 "end_lineno": 43,
                 "end_col_offset": 12
               },
-              "id": "t"
+              "id": "t",
+              "machine_context": "Load"
             }
           }
         ],
@@ -953,7 +974,8 @@
                   "end_lineno": 48,
                   "end_col_offset": 5
                 },
-                "id": "r"
+                "id": "r",
+                "machine_context": "Store"
               }
             ],
             "value": {
@@ -972,7 +994,8 @@
                   "end_lineno": 48,
                   "end_col_offset": 11
                 },
-                "id": "max"
+                "id": "max",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1007,7 +1030,8 @@
                       "end_lineno": 48,
                       "end_col_offset": 17
                     },
-                    "id": "h"
+                    "id": "h",
+                    "machine_context": "Store"
                   },
                   "value": {
                     "kind": "BinOp",
@@ -1025,7 +1049,8 @@
                         "end_lineno": 48,
                         "end_col_offset": 22
                       },
-                      "id": "n"
+                      "id": "n",
+                      "machine_context": "Load"
                     },
                     "op": "Sub",
                     "right": {
@@ -1080,7 +1105,8 @@
                     "end_lineno": 49,
                     "end_col_offset": 12
                   },
-                  "id": "r"
+                  "id": "r",
+                  "machine_context": "Load"
                 },
                 "op": "Mult",
                 "right": {
@@ -1106,7 +1132,8 @@
                   "end_lineno": 49,
                   "end_col_offset": 22
                 },
-                "id": "h"
+                "id": "h",
+                "machine_context": "Load"
               }
             }
           }
@@ -1199,7 +1226,8 @@
                     "end_lineno": 54,
                     "end_col_offset": 13
                   },
-                  "id": "p"
+                  "id": "p",
+                  "machine_context": "Store"
                 },
                 "value": {
                   "kind": "BinOp",
@@ -1217,7 +1245,8 @@
                       "end_lineno": 54,
                       "end_col_offset": 18
                     },
-                    "id": "n"
+                    "id": "n",
+                    "machine_context": "Load"
                   },
                   "op": "Add",
                   "right": {
@@ -1252,7 +1281,8 @@
                     "end_lineno": 54,
                     "end_col_offset": 28
                   },
-                  "id": "p"
+                  "id": "p",
+                  "machine_context": "Load"
                 },
                 "op": "Mult",
                 "right": {
@@ -1359,7 +1389,8 @@
                   "end_lineno": 61,
                   "end_col_offset": 17
                 },
-                "id": "sorted"
+                "id": "sorted",
+                "machine_context": "Load"
               },
               "starargs": [],
               "kwargs": [],
@@ -1389,7 +1420,8 @@
                           "end_lineno": 61,
                           "end_col_offset": 21
                         },
-                        "id": "v"
+                        "id": "v",
+                        "machine_context": "Load"
                       },
                       {
                         "kind": "Name",
@@ -1399,9 +1431,11 @@
                           "end_lineno": 61,
                           "end_col_offset": 24
                         },
-                        "id": "m"
+                        "id": "m",
+                        "machine_context": "Load"
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   },
                   "target": {
                     "kind": "Name",
@@ -1411,7 +1445,8 @@
                       "end_lineno": 61,
                       "end_col_offset": 31
                     },
-                    "id": "m"
+                    "id": "m",
+                    "machine_context": "Store"
                   },
                   "iter": {
                     "kind": "Tuple",
@@ -1430,7 +1465,8 @@
                           "end_lineno": 61,
                           "end_col_offset": 37
                         },
-                        "id": "a"
+                        "id": "a",
+                        "machine_context": "Load"
                       },
                       {
                         "kind": "Name",
@@ -1440,7 +1476,8 @@
                           "end_lineno": 61,
                           "end_col_offset": 40
                         },
-                        "id": "b"
+                        "id": "b",
+                        "machine_context": "Load"
                       },
                       {
                         "kind": "Name",
@@ -1450,9 +1487,11 @@
                           "end_lineno": 61,
                           "end_col_offset": 43
                         },
-                        "id": "c"
+                        "id": "c",
+                        "machine_context": "Load"
                       }
-                    ]
+                    ],
+                    "machine_context": "Load"
                   },
                   "ifs": [
                     {
@@ -1481,7 +1520,8 @@
                               "end_lineno": 61,
                               "end_col_offset": 50
                             },
-                            "id": "v"
+                            "id": "v",
+                            "machine_context": "Load"
                           },
                           "ops": [
                             "GtE"
@@ -1510,7 +1550,8 @@
                             "end_lineno": 61,
                             "end_col_offset": 70
                           },
-                          "id": "m"
+                          "id": "m",
+                          "machine_context": "Load"
                         }
                       ]
                     }
@@ -1534,7 +1575,8 @@
                             "end_lineno": 61,
                             "end_col_offset": 55
                           },
-                          "id": "m"
+                          "id": "m",
+                          "machine_context": "Load"
                         },
                         "op": "Mult",
                         "right": {
@@ -1545,7 +1587,8 @@
                             "end_lineno": 61,
                             "end_col_offset": 59
                           },
-                          "id": "m"
+                          "id": "m",
+                          "machine_context": "Load"
                         }
                       }
                     }
