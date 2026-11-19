@@ -569,7 +569,7 @@ class Extractor:
         #
         # An unreadable width DIES rather than degrading to "not a bit-field",
         # because that degradation is exactly the silence this is fixing.
-        out = {"name": n.get("name"), "type": qual(n)}
+        out = {"decl_id": n.get("id"), "name": n.get("name"), "type": qual(n)}
         if n.get("isBitfield"):
             w = next((c for c in kids(n) if c.get("kind") == "ConstantExpr"), None)
             v = None if w is None else w.get("value")

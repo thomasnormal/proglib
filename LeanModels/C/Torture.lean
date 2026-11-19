@@ -239,7 +239,7 @@ tables has no size or member offsets, so every use refuses — the honest zero.
 No ABI packing rule is reconstructed from a type spelling. -/
 def recordHasBitfield (fields : List Decl) : Bool :=
   fields.any fun d => match d with
-    | .field _ _ (some _) _ _ => true
+    | .field _ _ (some _) _ _ _ => true
     | _ => false
 
 def recordHasUnsupported (fields : List Decl) : Bool :=
@@ -262,8 +262,8 @@ def recordHasBlockingUnsupported (fields : List Decl) : Bool :=
 def fieldsOf (fields : List Decl) : Option (List (String × CType)) :=
   if recordHasBitfield fields || recordHasUnsupported fields || fields.isEmpty then none
   else some (fields.filterMap fun d => match d with
-    | .field (some fn) fty _ _ _ => some (fn, fty)
-    | .field none _ _ _ _ => none
+    | .field (some fn) fty _ _ _ _ => some (fn, fty)
+    | .field none _ _ _ _ _ => none
     | _ => none)
 
 mutual
@@ -380,13 +380,13 @@ def recordFieldSize (layout : RecordLayout) (field : String) : Option Nat :=
 
 def recordLayoutMatchesFields : List Decl → List RecordLayoutField → Bool
   | [], [] => true
-  | .record _ _ _ _ _ :: .field none _ _ _ _ :: ds, field :: fs =>
+  | .record _ _ _ _ _ :: .field none _ _ _ _ _ :: ds, field :: fs =>
       -- An anonymous aggregate is represented twice by Clang's tree: the
       -- child RecordDecl and its nameless FieldDecl.  The layout dump has
       -- one blank slot for that aggregate, so consume both parser nodes.
       if field.name == "" then recordLayoutMatchesFields ds fs
       else false
-  | .field name _ bits _ _ :: ds, field :: fs =>
+  | .field name _ bits _ _ _ :: ds, field :: fs =>
       (match name with
        | some nm => field.name == nm
        | none => field.name == "") &&
@@ -414,9 +414,9 @@ def checkedRecordLayout? (fields : List Decl) (layout : RecordLayout) :
       recordLayoutMatchesFields fields layout.fields then some layout else none
 
 #guard recordLayoutMatchesFields
-   [.field (some "a") "int" none none default,
+   [.field (some "a") "int" none none none default,
    .record none none [] none default,
-   .field (some "b") "int" none none default]
+   .field (some "b") "int" none none none default]
   [{ name := "a", offsetBits := 0, bitfield := false },
    { name := "b", offsetBits := 32, bitfield := false }]
 #guard ("union (unnamed at x)".startsWith "union (unnamed")
@@ -435,17 +435,17 @@ def observedRecordFacts (envl : Envelope) :
     fields.flatMap fun child => match child with
       | .record (some childRecordId) none nested (some layout) childSpan =>
           match fields.find? (fun f => match f with
-            | .field _ _ty _ (some rid) fspan =>
+            | .field _ _ty _ _ (some rid) fspan =>
                 rid == childRecordId ||
                   (fspan.line == childSpan.line && fspan.col == childSpan.col)
-            | .field _ _ty _ none fspan =>
+            | .field _ _ty _ _ none fspan =>
                 fspan.line == childSpan.line && fspan.col == childSpan.col
             | _ => false) with
-          | some (.field _ ty _ _ _) =>
+          | some (.field _ ty _ _ _ _) =>
               match checkedRecordLayout? nested layout with
               | some checked =>
                   let members := nested.filterMap fun field => match field with
-                    | .field name mty _ _ _ => some (name.getD "", mty)
+                    | .field name mty _ _ _ _ => some (name.getD "", mty)
                     | _ => none
                   let keyTy := (arrayOf ty).map (·.1) |>.getD ty
                   [(keyTy, members, checked)]
@@ -465,7 +465,7 @@ def observedRecordFacts (envl : Envelope) :
             else
               let tag := if checked.tagKind == "union" then "union " else "struct "
               let members := fields.filterMap fun field => match field with
-                | .field name ty _ _ _ => some (name.getD "", ty)
+                | .field name ty _ _ _ _ => some (name.getD "", ty)
                 | _ => none
               some (tag ++ nm, members, checked)
     | .record (some recordId) none fields (some layout) sp =>
@@ -487,7 +487,7 @@ def observedRecordFacts (envl : Envelope) :
                 if recordHasBlockingUnsupported fields then none
                 else
                   let members := fields.filterMap fun field => match field with
-                    | .field name ty _ _ _ => some (name.getD "", ty)
+                    | .field name ty _ _ _ _ => some (name.getD "", ty)
                     | _ => none
                   let keyTy := (arrayOf ty).map (·.1) |>.getD ty
                   some (keyTy, members, checked)
@@ -502,7 +502,7 @@ def observedRecordFacts (envl : Envelope) :
                 if recordHasBlockingUnsupported fields then none
                 else
                   let members := fields.filterMap fun field => match field with
-                    | .field name ty _ _ _ => some (name.getD "", ty)
+                    | .field name ty _ _ _ _ => some (name.getD "", ty)
                     | _ => none
                   let tag := if checked.tagKind == "union" then "union " else "struct "
                   some (tag ++ nm, members, checked)
@@ -633,6 +633,34 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => none
         | _ => none
     | _ => none
+  let structuredRecordIdFor := fun did =>
+    match (envl.structuredTypeFor did).map LeanModels.Clang.QualType.unqualified with
+    | some (.record handle) => some { value := handle.value }
+    | _ => none
+  let parentRecordIdFor := fun did =>
+    if (observedRecordLayout? envl did).isSome then some did else
+      match ds.find? (fun q => match q with
+        | .var (some vid) _ _ _ _ rid _ _ => vid == did && rid.isSome
+        | _ => false) with
+      | some (.var _ _ _ _ _ (some rid) _ _) => some rid
+      | _ => structuredRecordIdFor did
+  let memberRecordDeclFor := fun (did : DeclarationId) (fieldName : String) =>
+    match parentRecordIdFor did with
+    | some parentId =>
+        match ds.find? (fun q => match q with
+          | .record (some rid) _ _ _ _ => rid == parentId
+          | _ => false) with
+        | some (.record _ _ fields _ _) =>
+            match fields.find? (fun field => match field with
+              | .field (some name) _ _ _ _ _ => name == fieldName
+              | _ => false) with
+            | some (.field _ _ _ (some fieldId) _ _) =>
+                match (envl.structuredTypeFor fieldId).map LeanModels.Clang.QualType.unqualified with
+                | some (.record handle) => some { value := handle.value }
+                | _ => none
+            | _ => none
+        | _ => none
+    | none => none
   let observedMembersDeclFor := fun (did : DeclarationId) =>
     match ds.find? (fun q => match q with
       | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
@@ -648,7 +676,7 @@ def layoutFor (envl : Envelope) : Layout :=
         | some (.record (some rrid) _ fields (some layout) _) =>
             match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
             | some _ => some (fields.filterMap fun field => match field with
-                | .field name mty _ _ _ => some (name.getD "", mty)
+                | .field name mty _ _ _ _ => some (name.getD "", mty)
                 | _ => none)
             | none => none
         | _ => none
@@ -748,7 +776,7 @@ def layoutFor (envl : Envelope) : Layout :=
             match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields ·) with
             | some layout =>
                 let members := fields.filterMap fun field => match field with
-                  | .field name mty _ _ _ => some (name.getD "", mty)
+                  | .field name mty _ _ _ _ => some (name.getD "", mty)
                   | _ => none
                 let rec seekDecl : List (String × CType) → List RecordLayoutField → Option Nat
                   | (_, ty) :: ms, field :: fs =>
@@ -861,6 +889,7 @@ def layoutFor (envl : Envelope) : Layout :=
           let r := recs.find? (·.1 == rt)
           r.map (·.2.1)
     membersDecl := observedMembersDeclFor
+    memberRecordDecl := memberRecordDeclFor
     -- The evaluator's own normalizer, built from THIS unit's typedefs. The
     -- table in `intTyOf?` cannot do this job: `ull` is `unsigned long` in one
     -- test and `unsigned long long` in another, so the answer is a property
