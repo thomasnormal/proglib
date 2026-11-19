@@ -224,7 +224,9 @@ def typedBytesAggregate (s : State) (ty : Nat) (bytes : List Nat) : Option Cell 
         let fields := info.fieldOffsets.map fun offsetBits =>
           let offsetBytes := offsetBits / 8
           let chunk := (bytes.drop offsetBytes).take 8
-          (typedBytesValue s ty chunk).map Cell.int |>.getD (.bytes chunk)
+          (if chunk.length ≤ 8 ∧ chunk.all (· ≤ 255) then
+            some (.int (Int.ofNat (littleEndian chunk)))
+          else none).getD (.bytes chunk)
         some (.aggregate fields)
   | none => none
 
@@ -680,7 +682,10 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.binaryNe _ _) => .refused (.unsupported "inequality assignment")
           | .assign _ (.binaryLe _ _) => .refused (.unsupported "less-equal assignment")
           | .assign _ (.binaryLt _ _) => .refused (.unsupported "less-than assignment")
-          | .assign _ (.binaryEq _ _) => .refused (.unsupported "equality assignment")
+          | .assign _ (.binaryEq left right) =>
+              .refused (.unsupported ("equality assignment left=" ++
+                toString (repr (operandCell state left)) ++ " right=" ++
+                toString (repr (operandCell state right))))
           | .assign _ (.binaryBitAnd _ _) => .refused (.unsupported "bitwise assignment")
           | .assign _ (.binaryBitXor _ _) => .refused (.unsupported "bitwise-xor assignment")
           | .assign _ (.zstAggregate) => .refused (.unsupported "zst aggregate assignment")
