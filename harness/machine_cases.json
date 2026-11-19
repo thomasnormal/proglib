@@ -703,5 +703,10 @@
     "source": "harness/scripts/machine_class_method.py",
     "envelope": "harness/scripts/machine_class_method.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_method_keyword.py",
+    "envelope": "harness/scripts/machine_class_method_keyword.json",
+    "expect": "match"
   }
 ]
