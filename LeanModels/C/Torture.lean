@@ -801,16 +801,20 @@ def layoutFor (envl : Envelope) : Layout :=
      This is only a bridge between two AST-derived views; no ABI size is
      reconstructed here. -/
   let observedArrayElem := fun t : CType =>
-    let rec arraySeek : List TypeLayout → Option Nat
-      | [] => none
-      | row :: rows =>
-          match arrayOf row.ty with
-          | some (elem, count) =>
-              if count > 0 && elem == t && row.sizeBytes % count == 0 then
-                some (row.sizeBytes / count)
-              else arraySeek rows
-          | none => arraySeek rows
-    arraySeek envl.typeLayouts
+    -- A parser TypeLayout for the exact array spelling already carries the
+    -- element stride. Use it before the legacy array spelling scan.
+    envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.elementSizeBytes)
+    |>.orElse (fun _ =>
+      let rec arraySeek : List TypeLayout → Option Nat
+        | [] => none
+        | row :: rows =>
+            match arrayOf row.ty with
+            | some (elem, count) =>
+                if count > 0 && elem == t && row.sizeBytes % count == 0 then
+                  some (row.sizeBytes / count)
+                else arraySeek rows
+            | none => arraySeek rows
+      arraySeek envl.typeLayouts)
   let observedUnion := fun t : CType =>
     (recsWithObserved.find? (fun row => row.1 == t)).map (·.2.2) |>.getD false
   let observedUnionDeclFor := fun (did : DeclarationId) =>
