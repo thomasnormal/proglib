@@ -73,8 +73,7 @@ deriving Repr, Inhabited, BEq
 
 inductive CheckedOutcome where
   | value (n : Int)
-  | overflow
-  | divideByZero
+  | overflow (wrapped : Int)
 deriving Repr, Inhabited, BEq
 
 def Outcome.isReturned : Outcome → Bool
@@ -104,26 +103,6 @@ def bytesValue (bytes : List Nat) : Option Int :=
   if bytes.length ≤ 8 ∧ bytes.all (· ≤ 255) then
     some (Int.ofNat (littleEndian bytes))
   else none
-
-def checkedSub32 (left right : Int) : CheckedOutcome :=
-  let result := left - right
-  if result < -(2 ^ 31) ∨ result > 2 ^ 31 - 1 then .overflow else .value result
-
-def checkedAdd32 (left right : Int) : CheckedOutcome :=
-  let result := left + right
-  if result < -(2 ^ 31) ∨ result > 2 ^ 31 - 1 then .overflow else .value result
-
-def checkedMul32 (left right : Int) : CheckedOutcome :=
-  let result := left * right
-  if result < -(2 ^ 31) ∨ result > 2 ^ 31 - 1 then .overflow else .value result
-
-def checkedBinaryOutcome (op : String) (left right : Int) : CheckedOutcome :=
-  match op with
-  | "Sub" => checkedSub32 left right
-  | "Add" => checkedAdd32 left right
-  | "Mul" => checkedMul32 left right
-  | "Div" => if right == 0 then .divideByZero else .value (left / right)
-  | _ => .overflow
 
 def placementOf (s : State) (localId : Nat) : Nat :=
   (s.placements.find? (fun item => item.1 == localId)).map (·.2) |>.getD localId
@@ -403,23 +382,55 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
   | .field index _ :: rest => writeLocalProjection s place.localId (.field index 0 :: rest) value
   | .downcast _ :: _ | .unsupported _ :: _ => none
 
-def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
-  match findTypeLayout s target with
+/-- Width and signedness of an integer type (`Int`/`Uint` kinds of 1 to 64 bits) from the
+layout table. -/
+def intShape (s : State) (ty : Nat) : Option (Nat × Bool) :=
+  match findTypeLayout s ty with
   | some info =>
       if !(info.kind.startsWith "RigidTy(Int(") &&
           !(info.kind.startsWith "RigidTy(Uint(") then none else
         match info.sizeBits, info.signed with
         | some width, some signed =>
-            if width == 0 then none
-            else if width ≤ 64 then
-              let modulus := (2 : Int) ^ width
-              let raw := value % modulus
-              if signed && raw ≥ 2 ^ (width - 1) then
-                some (raw - modulus)
-              else some raw
-            else none
+            if width == 0 || width > 64 then none else some (width, signed)
         | _, _ => none
   | none => none
+
+/-- Two's-complement wrap of `value` into a `width`-bit integer of the given signedness. -/
+def wrapInt (width : Nat) (signed : Bool) (value : Int) : Int :=
+  let modulus := (2 : Int) ^ width
+  let raw := value % modulus
+  if signed && raw ≥ 2 ^ (width - 1) then raw - modulus else raw
+
+def castInt (s : State) (target : Nat) (value : Int) : Option Int := do
+  let (width, signed) ← intShape s target
+  pure (wrapInt width signed value)
+
+/-- The type of a place: the local's declared type, followed through `Deref` by the layout
+table's pointee.  Field and downcast projections have no recorded field type: `none`. -/
+def placeType (s : State) (place : Place) : Option Nat :=
+  place.projection.foldl (fun ty projection => ty.bind fun t =>
+      match projection with
+      | .deref => (findTypeLayout s t).bind (·.pointee)
+      | _ => none) (localType s place.localId)
+
+def operandType (s : State) : Operand → Option Nat
+  | .constant _ _ ty _ _ => some ty
+  | .copy place | .move place => placeType s place
+  | .unsupported _ => none
+
+/-- MIR's `AddWithOverflow`, `SubWithOverflow` and `MulWithOverflow` at the operands' integer
+type: the wrapped result, and whether the exact result left the type's range.  An unknown
+operator, or an operand type that the layout table does not give as an integer, refuses. -/
+def checkedBinaryOutcome (s : State) (ty : Nat) (op : String) (left right : Int) :
+    Option CheckedOutcome := do
+  let (width, signed) ← intShape s ty
+  let exact ← match op with
+    | "Add" => some (left + right)
+    | "Sub" => some (left - right)
+    | "Mul" => some (left * right)
+    | _ => none
+  let wrapped := wrapInt width signed exact
+  pure (if wrapped == exact then .value exact else .overflow wrapped)
 
 def pointerType (s : State) (target : Nat) : Bool :=
   match findTypeLayout s target with
@@ -499,10 +510,10 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .checkedBinary op left right => do
       let leftValue ← operandValue s left
       let rightValue ← operandValue s right
-      match checkedBinaryOutcome op leftValue rightValue with
+      let ty ← operandType s left
+      match ← checkedBinaryOutcome s ty op leftValue rightValue with
       | .value value => pure (.aggregate [.int value, .int 0])
-      | .overflow => pure (.aggregate [.int 0, .int 1])
-      | .divideByZero => none
+      | .overflow wrapped => pure (.aggregate [.int wrapped, .int 1])
   | .ref place =>
       match place.projection with
       | [] => some (.pointer { provenance := place.localId, address := placementOf s place.localId, pointeeType := localType s place.localId })
@@ -667,13 +678,8 @@ def statementFailure : State → List Statement → Outcome
           | .assign _ (.binaryDiv _ right) | .assign _ (.binaryRem _ right) =>
               if operandValue state right == some 0 then .panicked
               else .refused (.unsupported "binary arithmetic")
-          | .assign _ (.checkedBinary op left right) =>
-              match operandValue state left, operandValue state right with
-              | some leftValue, some rightValue =>
-                  match checkedBinaryOutcome op leftValue rightValue with
-                  | .divideByZero => .panicked
-                  | .overflow | .value _ => .refused (.unsupported "checked arithmetic")
-              | _, _ => .refused (.unsupported "checked arithmetic operands")
+          | .assign _ (.checkedBinary _ _ _) =>
+              .refused (.unsupported "checked arithmetic operator, operands or integer type")
           | .assign _ (.ref _ ) => .refused (.unsupported "reference write")
           | .assign _ (.addressOf _ _) => .refused (.unsupported "address-of write")
           | .assign _ (.aggregate _ _) => .refused (.unsupported "aggregate write")
