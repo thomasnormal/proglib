@@ -36,6 +36,7 @@ LOG="${LS_C_TORTURE_LOG:-${TMPDIR:-/tmp}/c-torture-run.log}"
 # Survey fuel is spent at loops/calls; keep the wall controller as the
 # termination guard. Focused probes may override this explicitly.
 FUEL="${LS_C_TORTURE_FUEL:-1000000}"
+TIMEOUT="${LS_C_TORTURE_TIMEOUT:-30}"
 SB="$ROOT/docs/c-torture-scoreboard.json"
 FRESH="${TMPDIR:-/tmp}/c-torture-scoreboard.fresh.json"
 
@@ -50,7 +51,8 @@ python3 "$ROOT/harness/c_divergence_probe.py" || exit 1
 # --offline: verifies every cached file's sha256 against docs/c-torture-pin.json
 # and writes the manifest.  No network in a gate, ever.
 python3 "$ROOT/tools/c_corpus_fetch.py" --offline --manifest "$MANIFEST" || exit 1
-( cd "$ROOT" && lake exe c-torture-run "$MANIFEST" "$FUEL" ) > "$LOG" || exit 1
+( cd "$ROOT" && python3 tools/c_torture_batch.py "$MANIFEST" "$FUEL" \
+    --runner .lake/build/bin/c-torture-run --timeout "$TIMEOUT" ) > "$LOG" || exit 1
 python3 "$ROOT/harness/c_torture_score.py" "$LOG" --emit "$FRESH" || exit 1
 
 # THE PUBLISHED NUMBER IS A SECOND ARTIFACT (qol-21's law).  Correcting the

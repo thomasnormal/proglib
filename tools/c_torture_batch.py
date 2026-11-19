@@ -20,6 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 EXTRACTOR = ROOT / "extractors" / "c" / "extract.py"
+SUBDIR = "gcc/testsuite/gcc.c-torture/execute"
 
 
 def _why(entry: dict) -> str:
@@ -55,6 +56,23 @@ def _static_row(entry: dict) -> tuple[str, str, str]:
     return "", "", ""
 
 
+def _refresh_stale(entry: dict) -> bool:
+    """Regenerate one stale envelope from the pinned external source cache."""
+    envelope_name = entry.get("envelope")
+    name = entry.get("name")
+    if not envelope_name or not name:
+        return False
+    envelope = Path(envelope_name)
+    source = envelope.parent.parent / "src" / name
+    if not source.is_file():
+        return False
+    result = subprocess.run(
+        [sys.executable, str(EXTRACTOR), str(source), "--source-name",
+         "%s/%s" % (SUBDIR, name), "-o", str(envelope)],
+        cwd=ROOT, capture_output=True, text=True, check=False)
+    return result.returncode == 0
+
+
 def _parse_child(name: str, stdout: str) -> tuple[str, str, str] | None:
     for line in stdout.splitlines():
         parts = line.split("\t", 2)
@@ -80,6 +98,8 @@ def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
             print("\t".join(("", "runner-error", "manifest test is not an object")))
             continue
         static = _static_row(entry)
+        if static[1] == "not-ingested" and _refresh_stale(entry):
+            static = _static_row(entry)
         if static[0]:
             print("\t".join(static), flush=True)
             continue
