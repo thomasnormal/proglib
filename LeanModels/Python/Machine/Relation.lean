@@ -221,6 +221,7 @@ inductive RKont where
   | strResult (continuation : RKont)
   | absResult (continuation : RKont)
   | subscriptResult (continuation : RKont)
+  | setitemResult (remaining : List RStmt)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -2018,12 +2019,41 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl
             (.evaluate receiver (.assignAttributeValue attr originalValue remaining)))
       | .continueValue index (.assignSubscriptDone receiver value remaining) =>
-          match rUpdateDict config.heap receiver index value with
+          match receiver with
+          | .ref address =>
+              match config.heap.get? address with
+              | some (.instance cls _) =>
+                  match rLookupClassAttr config.classes cls "__setitem__" with
+                  | some (.callable token) =>
+                      match rFunctionByToken config.functions token with
+                      | some function =>
+                          rStartFunctionCall config function [receiver, index, value] []
+                            (.setitemResult remaining)
+                      | none => some (.event (.refuse "machine __setitem__"),
+                          config.finish (.refuse "machine __setitem__"))
+                  | some _ => some (.tau, config.setControl
+                      (.refusing "machine __setitem__"))
+                  | none => some (.tau, config.setControl
+                      (.refusing "machine subscript assignment"))
+              | _ =>
+                  match rUpdateDict config.heap receiver index value with
+                  | some heap => some (.tau, { config with heap := heap }.setControl
+                      (.statements remaining))
+                  | none =>
+                      match rUpdateList config.heap receiver index value with
+                      | some heap => some (.tau, { config with heap := heap }.setControl
+                          (.statements remaining))
+                      | none => some (.tau, config.setControl
+                          (.refusing "machine subscript assignment"))
+          | _ =>
+            match rUpdateDict config.heap receiver index value with
           | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
           | none =>
               match rUpdateList config.heap receiver index value with
               | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
               | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
+      | .continueValue _ (.setitemResult remaining) =>
+          some (.tau, config.setControl (.statements remaining))
       | .continueValue receiver (.assignAttributeValue attr value remaining) =>
           match receiver with
           | .ref address =>
