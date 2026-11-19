@@ -159,6 +159,59 @@ theorem picorv32_auipc_loaded_rv32i_boundary_of_step
 #print axioms picorv32_lui_loaded_rv32i_boundary_of_step
 #print axioms picorv32_auipc_loaded_rv32i_boundary_of_step
 
+/-! One mixed-cycle consumer covers LUI and AUIPC while retaining the
+    `UpperInstruction` witness and its exact source-shaped boundary. -/
+
+theorem picorv32_upper_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : UpperInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = upperProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.upperBoundary memoryState.arch input instruction ∧
+            rel next
+              { arch := UpperKind.next memoryState.arch instruction.kind,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState instruction.toRv32i)
+          (rv32iProgramRetirement memoryState instruction.toRv32i) := by
+        simpa [hmem, hinput, upperProgramInput, upper_toRv32i_step,
+          upper_toRv32i_retirement] using
+          (RvfiObservation.upperBoundary_rv32i instruction hboundary)
+      simp only [↓reduceIte]
+      exact ⟨instruction.toRv32i, by
+        simpa [upper_toRv32i_input] using hinput,
+        horder, hrvfi, by simpa [upper_toRv32i_step] using hnext⟩
+
+#print axioms picorv32_upper_exact_cycle_step_refines
+
 #print axioms picorv32_lui_class_step
 #print axioms picorv32_lui_class_commit
 #print axioms picorv32_auipc_class_step

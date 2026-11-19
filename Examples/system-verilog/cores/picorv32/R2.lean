@@ -171,6 +171,9 @@ obligation:
   `r1_upper.picorv32_lui_fields_isa_step` and
   `r1_upper.picorv32_auipc_fields_isa_step` provide the corresponding exact
   LUI and AUIPC step bridges while retaining their distinct source operands.
+  `r1_upper.picorv32_upper_exact_cycle_step_refines` consumes the shared
+  upper-immediate boundary in the mixed cycle dispatcher and embeds its
+  retained LUI/AUIPC witness into the exact RV32I instruction union.
   `r1_mem.picorv32_sw_fields_isa_step` and
   `r1_mem.picorv32_lw_fields_isa_step` provide the corresponding exact word
   store and load step bridges with their memory effects explicit.
