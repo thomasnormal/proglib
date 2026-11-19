@@ -351,6 +351,8 @@ FIXTURES: tuple[Fixture, ...] = (
             retain_proc_rewrites=True),
     Fixture("latch_casez_e.sv", "latch_casez_e",
             (Port("en", 1), Port("sel", 2), Port("d", 4)), (Port("q", 4),)),
+    Fixture("latch_casex_e.sv", "latch_casex_e",
+            (Port("en", 1), Port("sel", 2), Port("d", 4)), (Port("q", 4),)),
     Fixture("bits_package_repro.sv", "bits_package_repro",
             (Port("x", 4),), (Port("y", 1),)),
     Fixture("bits_package_param_e.sv", "bits_package_param_e",
