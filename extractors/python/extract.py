@@ -2147,6 +2147,8 @@ def convert_stmt(node, enclosing=None, module_scope=False,
             "machine_returns": (convert_expr(node.returns)
                                 if node.returns is not None else None),
         }
+        if node.type_comment is not None:
+            out["machine_type_comment"] = node.type_comment
         if isinstance(node, ast.AsyncFunctionDef):
             # Keep the approved AST distinction available to the machine
             # without changing the frozen compatibility FunctionDef view.
