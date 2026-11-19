@@ -45,6 +45,12 @@ def main() -> None:
         raise SystemExit(f"source SHA-256 {source_sha} is not the pinned {SOURCE_SHA256}")
 
     work = source.parent
+    iverilog_version_rc, iverilog_version = run(["iverilog", "-V"], work)
+    if iverilog_version_rc != 0 or "Icarus Verilog version 13.0" not in iverilog_version:
+        raise SystemExit("Icarus Verilog 13.0 is required for this receipt")
+    xrun_version_rc, xrun_version = run(["xrun", "-version"], work)
+    if xrun_version_rc != 0 or "24.03-s004" not in xrun_version:
+        raise SystemExit("Xcelium 24.03-s004 is required for this receipt")
     iverilog_rc, iverilog_out = run([
         "iverilog", "-g2012", "-s", "FemtoRV32", "-o", "/dev/null", str(source)
     ], work)
