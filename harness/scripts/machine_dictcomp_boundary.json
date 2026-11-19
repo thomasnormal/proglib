@@ -1,0 +1,125 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_dictcomp_boundary.py",
+  "source_sha256": "fa87bd3599cdf337a74829800994d8781e6f45dfe09391e726a6ef16267a72da",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 29
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 29
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "DictComp",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 28
+              },
+              "key": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 7,
+                  "end_lineno": 1,
+                  "end_col_offset": 8
+                },
+                "id": "q"
+              },
+              "value": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 10,
+                  "end_lineno": 1,
+                  "end_col_offset": 11
+                },
+                "id": "q"
+              },
+              "target": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 16,
+                  "end_lineno": 1,
+                  "end_col_offset": 17
+                },
+                "id": "q"
+              },
+              "iter": {
+                "kind": "List",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 21,
+                  "end_lineno": 1,
+                  "end_col_offset": 27
+                },
+                "elts": [
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 22,
+                      "end_lineno": 1,
+                      "end_col_offset": 23
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 25,
+                      "end_lineno": 1,
+                      "end_col_offset": 26
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "2"
+                    }
+                  }
+                ]
+              },
+              "ifs": []
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

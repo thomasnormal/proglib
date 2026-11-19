@@ -1,0 +1,116 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_comp_boundary.py",
+  "source_sha256": "aa22a1a9638022478c87869466d035869203bbbaaa93a261d4168dda8be35692",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 26
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 26
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "ListComp",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 25
+              },
+              "elt": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 7,
+                  "end_lineno": 1,
+                  "end_col_offset": 8
+                },
+                "id": "q"
+              },
+              "target": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 13,
+                  "end_lineno": 1,
+                  "end_col_offset": 14
+                },
+                "id": "q"
+              },
+              "iter": {
+                "kind": "List",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 18,
+                  "end_lineno": 1,
+                  "end_col_offset": 24
+                },
+                "elts": [
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 19,
+                      "end_lineno": 1,
+                      "end_col_offset": 20
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 1,
+                      "col_offset": 22,
+                      "end_lineno": 1,
+                      "end_col_offset": 23
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "2"
+                    }
+                  }
+                ]
+              },
+              "ifs": [],
+              "walrus": []
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

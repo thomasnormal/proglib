@@ -36,12 +36,16 @@ inductive MExpr where
   | set (elts : Array MExpr) (span : Span)
   | dict (keys : Array (Option MExpr)) (values : Array MExpr) (span : Span)
   | joinedStr (values : Array MExpr) (span : Span)
-  | formattedValue (value : MExpr) (conversion : Option Nat) (formatSpec : Option MExpr)
+  | formattedValue (value : MExpr) (conversion : Int) (formatSpec : Option MExpr)
       (span : Span)
-  | listComp (elt : MExpr) (generators : Array MExpr) (span : Span)
-  | setComp (elt : MExpr) (generators : Array MExpr) (span : Span)
-  | dictComp (key : MExpr) (value : MExpr) (generators : Array MExpr) (span : Span)
-  | genExp (elt : MExpr) (generators : Array MExpr) (span : Span)
+  | listComp (elt : MExpr) (target : MExpr) (iter : MExpr) (ifs : Array MExpr)
+      (walrus : Array (String × MExpr)) (span : Span)
+  | setComp (elt : MExpr) (target : MExpr) (iter : MExpr) (ifs : Array MExpr)
+      (walrus : Array (String × MExpr)) (span : Span)
+  | dictComp (key : MExpr) (value : MExpr) (target : MExpr) (iter : MExpr)
+      (ifs : Array MExpr) (span : Span)
+  | genExp (elt : MExpr) (target : MExpr) (iter : MExpr) (ifs : Array MExpr)
+      (walrus : Array (String × MExpr)) (span : Span)
   | namedExpr (target : String) (value : MExpr) (span : Span)
   | starred (value : MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
@@ -191,6 +195,14 @@ partial def mExpr (j : Json) : Except String MExpr := do
       match mUnaryOp opName with
       | some op => pure (.unaryOp op (← mExpr (← mField j "operand")) span)
       | none => pure (.unsupported kind span)
+  | "JoinedStr" =>
+      pure (.joinedStr (← (← (← mField j "values").getArr?).mapM mExpr) span)
+  | "FormattedValue" =>
+      let conversion ← (← mField j "conversion").getInt?
+      let formatSpec ← match j.getObjVal? "format_spec" with
+        | .ok .null | .error _ => pure none
+        | .ok value => some <$> mExpr value
+      pure (.formattedValue (← mExpr (← mField j "value")) conversion formatSpec span)
   | "BoolOp" =>
       let opName ← (← mField j "op").getStr?
       match mBoolOp opName with
@@ -224,6 +236,37 @@ partial def mExpr (j : Json) : Except String MExpr := do
         match key with | .null => pure none | _ => some <$> mExpr key
       let values ← (← (← mField j "values").getArr?).mapM mExpr
       pure (.dict keys values span)
+  | "ListComp" =>
+      let ifs ← (← (← mField j "ifs").getArr?).mapM mExpr
+      let walrus ← match j.getObjVal? "walrus" with
+        | .ok value => (← value.getArr?).mapM (fun item => do
+            pure ((← (← mField item "target").getStr?),
+              (← mExpr (← mField item "value"))))
+        | .error _ => pure #[]
+      pure (.listComp (← mExpr (← mField j "elt"))
+        (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs walrus span)
+  | "SetComp" =>
+      let ifs ← (← (← mField j "ifs").getArr?).mapM mExpr
+      let walrus ← match j.getObjVal? "walrus" with
+        | .ok value => (← value.getArr?).mapM (fun item => do
+            pure ((← (← mField item "target").getStr?),
+              (← mExpr (← mField item "value"))))
+        | .error _ => pure #[]
+      pure (.setComp (← mExpr (← mField j "elt"))
+        (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs walrus span)
+  | "DictComp" =>
+      let ifs ← (← (← mField j "ifs").getArr?).mapM mExpr
+      pure (.dictComp (← mExpr (← mField j "key")) (← mExpr (← mField j "value"))
+        (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs span)
+  | "GeneratorExp" =>
+      let ifs ← (← (← mField j "ifs").getArr?).mapM mExpr
+      let walrus ← match j.getObjVal? "walrus" with
+        | .ok value => (← value.getArr?).mapM (fun item => do
+            pure ((← (← mField item "target").getStr?),
+              (← mExpr (← mField item "value"))))
+        | .error _ => pure #[]
+      pure (.genExp (← mExpr (← mField j "elt"))
+        (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs walrus span)
   | "Attribute" => pure (.attribute (← mExpr (← mField j "value"))
       (← (← mField j "attr").getStr?) span)
   | "Subscript" => pure (.subscript (← mExpr (← mField j "value"))
@@ -417,8 +460,79 @@ partial def mExprToExpr : MExpr → Expr
       | _ => .unsupported "Starred" "" span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
   | .set _ span | .joinedStr _ span | .formattedValue _ _ _ span
-  | .listComp _ _ span | .setComp _ _ span | .dictComp _ _ _ span
-  | .genExp _ _ span => .unsupported "machine node" "" span
+  | .listComp _ _ _ _ _ span | .setComp _ _ _ _ _ span
+  | .dictComp _ _ _ _ _ span | .genExp _ _ _ _ _ span =>
+      .unsupported "machine node" "" span
+
+partial def mExprToRaw : MExpr → RRawExpr
+  | .constant _ span => .node "Constant" #[] span
+  | .name _ span => .node "Name" #[] span
+  | .binOp left _ right span => .node "BinOp" #[mExprToRaw left, mExprToRaw right] span
+  | .unaryOp _ operand span => .node "UnaryOp" #[mExprToRaw operand] span
+  | .boolOp _ values span => .node "BoolOp" (values.map mExprToRaw) span
+  | .compare left _ comparators span =>
+      .node "Compare" ((#[mExprToRaw left]) ++ comparators.map mExprToRaw) span
+  | .ifExp test body orelse span =>
+      .node "IfExp" #[mExprToRaw test, mExprToRaw body, mExprToRaw orelse] span
+  | .call func args keywords starargs kwargs span =>
+      .node "Call" ((#[mExprToRaw func]) ++ args.map mExprToRaw ++
+        keywords.map (fun pair => mExprToRaw pair.2) ++ starargs.map mExprToRaw ++
+        kwargs.map mExprToRaw) span
+  | .attribute value _ span => .node "Attribute" #[mExprToRaw value] span
+  | .subscript value index span => .node "Subscript" #[mExprToRaw value, mExprToRaw index] span
+  | .slice value lower upper step span =>
+      let noneRaw : RRawExpr := .node "None" #[] span
+      let lowerRaw := lower.map mExprToRaw |>.getD noneRaw
+      let upperRaw := upper.map mExprToRaw |>.getD noneRaw
+      let stepRaw := step.map mExprToRaw |>.getD noneRaw
+      .node "Slice" #[mExprToRaw value, lowerRaw, upperRaw, stepRaw] span
+  | .list elts span => .node "List" (elts.map mExprToRaw) span
+  | .tuple elts span => .node "Tuple" (elts.map mExprToRaw) span
+  | .set elts span => .node "Set" (elts.map mExprToRaw) span
+  | .dict keys values span =>
+      .node "Dict" ((keys.map (fun key => key.map mExprToRaw |>.getD
+        (.node "None" #[] span))) ++ values.map mExprToRaw) span
+  | .joinedStr values span => .node "JoinedStr" (values.map mExprToRaw) span
+  | .formattedValue value _ formatSpec span =>
+      let noneRaw : RRawExpr := .node "None" #[] span
+      let specRaw := formatSpec.map mExprToRaw |>.getD noneRaw
+      .node "FormattedValue" #[mExprToRaw value, specRaw] span
+  | .listComp elt target iter ifs walrus span =>
+      .node "ListComp" ((#[mExprToRaw elt, mExprToRaw target, mExprToRaw iter]) ++
+        ifs.map mExprToRaw ++ walrus.map (fun pair => mExprToRaw pair.2)) span
+  | .setComp elt target iter ifs walrus span =>
+      .node "SetComp" ((#[mExprToRaw elt, mExprToRaw target, mExprToRaw iter]) ++
+        ifs.map mExprToRaw ++ walrus.map (fun pair => mExprToRaw pair.2)) span
+  | .dictComp key value target iter ifs span =>
+      .node "DictComp" ((#[mExprToRaw key, mExprToRaw value, mExprToRaw target,
+        mExprToRaw iter]) ++ ifs.map mExprToRaw) span
+  | .genExp elt target iter ifs walrus span =>
+      .node "GeneratorExp" ((#[mExprToRaw elt, mExprToRaw target, mExprToRaw iter]) ++
+        ifs.map mExprToRaw ++ walrus.map (fun pair => mExprToRaw pair.2)) span
+  | .namedExpr _ value span => .node "NamedExpr" #[mExprToRaw value] span
+  | .starred value span => .node "Starred" #[mExprToRaw value] span
+  | .unsupported kind span => .node kind #[] span
+
+partial def mExprHasRaw : MExpr → Bool
+  | .constant _ _ | .name _ _ | .unsupported _ _ => false
+  | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
+  | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
+  | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true
+  | .binOp left _ right _ => mExprHasRaw left || mExprHasRaw right
+  | .unaryOp _ operand _ => mExprHasRaw operand
+  | .boolOp _ values _ => values.any mExprHasRaw
+  | .compare left _ comparators _ => mExprHasRaw left || comparators.any mExprHasRaw
+  | .ifExp test body orelse _ => mExprHasRaw test || mExprHasRaw body || mExprHasRaw orelse
+  | .call func args keywords starargs kwargs _ =>
+      mExprHasRaw func || args.any mExprHasRaw || keywords.any (fun pair => mExprHasRaw pair.2) ||
+        starargs.any mExprHasRaw || kwargs.any mExprHasRaw
+  | .attribute value _ _ => mExprHasRaw value
+  | .subscript value index _ => mExprHasRaw value || mExprHasRaw index
+  | .slice value lower upper step _ =>
+      mExprHasRaw value || lower.any mExprHasRaw || upper.any mExprHasRaw || step.any mExprHasRaw
+  | .list elts _ | .tuple elts _ => elts.any mExprHasRaw
+  | .dict keys values _ => keys.any (fun key => key.any mExprHasRaw) || values.any mExprHasRaw
+  | .namedExpr _ value _ => mExprHasRaw value
 
 private def mParam (arg : MArg) (flags : Bool × Bool × Bool) : RParam :=
   { name := arg.name, positionalOnly := flags.1, keywordOnly := flags.2.1,
@@ -440,7 +554,9 @@ private def mParams (args : MArguments) : Array RParam :=
 
 partial def mStmtToStmt : MStmt → RStmt
   | .pass span => .pass span
-  | .expr value span => .expr (mExprToExpr value) span
+  | .expr value span =>
+      if mExprHasRaw value then .exprRaw (mExprToRaw value) span
+      else .expr (mExprToExpr value) span
   | .assign targets value span =>
       match targets.toList with
       | [target] => .assign (mExprToExpr target) (mExprToExpr value) span
