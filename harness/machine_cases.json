@@ -520,6 +520,11 @@
     "expect": "unsupported"
   },
   {
+    "source": "harness/scripts/machine_type_ignore_boundary.py",
+    "envelope": "harness/scripts/machine_type_ignore_boundary.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/machine_set_boundary.py",
     "envelope": "harness/scripts/machine_set_boundary.json",
     "expect": "unsupported"
