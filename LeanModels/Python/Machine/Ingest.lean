@@ -78,6 +78,7 @@ inductive MStmt where
   | ret (value : Option MExpr) (span : Span)
   | delete (targets : Array MExpr) (span : Span)
   | deleteSubscript (receiver : MExpr) (index : MExpr) (span : Span)
+  | deleteAttribute (receiver : MExpr) (attr : String) (span : Span)
   | ifStmt (test : MExpr) (body : Array MStmt) (orelse : Array MStmt) (span : Span)
   | whileStmt (test : MExpr) (body : Array MStmt) (orelse : Array MStmt) (span : Span)
   | forStmt (target : MExpr) (iter : MExpr) (body : Array MStmt) (orelse : Array MStmt)
@@ -288,6 +289,8 @@ partial def mStmt (j : Json) : Except String MStmt := do
       pure (.delete targets span)
   | "DeleteSubscript" => pure (.deleteSubscript
       (← mExpr (← mField j "recv")) (← mExpr (← mField j "key")) span)
+  | "DeleteAttribute" => pure (.deleteAttribute
+      (← mExpr (← mField j "recv")) (← (← mField j "attr").getStr?) span)
   | "UnpackAssign" => pure (.unpackAssign
       (← (← (← mField j "before").getArr?).mapM (·.getStr?))
       (← (← mField j "star").getStr?)
@@ -405,6 +408,8 @@ partial def mStmtToStmt : MStmt → RStmt
       | _ => .unsupported "Delete" "machine multiple-target deletion" span
   | .deleteSubscript receiver index span =>
       .delete (.subscript (mExprToExpr receiver) (mExprToExpr index) span) span
+  | .deleteAttribute receiver attr span =>
+      .delete (.attribute (mExprToExpr receiver) attr span) span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
