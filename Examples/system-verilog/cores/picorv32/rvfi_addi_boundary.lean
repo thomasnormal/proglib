@@ -109,6 +109,16 @@ theorem pinned_addi_boundary :
   unfold RvfiObservation.wellFormed RvfiObservation.toRetirement?
   decide
 
+theorem pinned_addi1_decoded_addi_boundary {row : RvfiObservation}
+    (hdecode : decode "rvfi_" addi1PortSample = some row) :
+    RvfiObservation.addiBoundary (ArchState.init 0) addiInput row
+      0x00500093 1 0 5 := by
+  have hrow : row = addi1 := by
+    rw [← Option.some.injEq]
+    exact hdecode.symm.trans pinned_addi1_port_decode
+  subst row
+  exact pinned_addi_boundary
+
 theorem pinned_addi_boundary_fields :
     addi1.addiFields (ArchState.init 0) addiInput 0x00500093 1 0 5 := by
   exact pinned_addi_boundary.1
@@ -212,5 +222,8 @@ theorem pinned_addi2_stateful_machine_commit :
 #print axioms pinned_addi2_boundary
 #print axioms pinned_addi2_isa_step
 #print axioms pinned_addi2_stateful_machine_commit
+#print axioms pinned_addi1_port_projection
+#print axioms pinned_addi1_port_decode
+#print axioms pinned_addi1_decoded_addi_boundary
 
 end Examples.«system-verilog».cores.picorv32.rvfi_addi_boundary
