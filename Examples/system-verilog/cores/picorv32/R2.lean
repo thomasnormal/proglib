@@ -84,6 +84,9 @@ obligation:
   `picorv32_addi2_loaded_rv32i_boundary_of_step` wrappers carry the measured
   first two rows into the same indexed dispatcher used by the universal
   invariant, while retaining the source-step and exact-port-sample premises.
+  `r1_addi.picorv32_addi1_loaded_rv32i_boundary_of_reset_relation` additionally
+  carries the reset relation's architectural well-formedness into that first
+  loaded-row boundary.
   `r1_mem.picorv32_lw_loaded_rv32i_boundary_of_step` and
   `picorv32_sw_loaded_rv32i_boundary_of_step` provide the corresponding
   memory-row consumers with explicit load and store post-memory states.

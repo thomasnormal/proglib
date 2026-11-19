@@ -387,8 +387,7 @@ theorem picorv32_addi_fields_isa_step
       some (.alu .add rd (.reg rs1) (.imm imm)) := hfields.2.2.1
   cases input with
   | mk fetched memory irq =>
-      subst fetched
-      subst irq
+      rw [hfetched, hirq]
       exact isaStepMemWith_addi profile state memory word rd rs1 imm hdecode
 
 #print axioms picorv32_addi_fields_isa_step
@@ -422,6 +421,35 @@ theorem picorv32_addi1_loaded_rv32i_boundary_of_step
   exact hcore.to_rv32i_boundary
 
 #print axioms picorv32_addi1_loaded_rv32i_boundary_of_step
+
+/-! The loaded first-row consumer can retain the reset relation's architectural
+    well-formedness while exposing the same indexed RV32I boundary. -/
+
+theorem picorv32_addi1_loaded_rv32i_boundary_of_reset_relation
+    {design : LeanModels.Sv.Kernel.CoreMemDesign} {program : Memory}
+    {state : LeanModels.Sv.Kernel.CoreMemState} {memoryState : RvMemoryState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    (hreset : PicoRV32ResetRelation design program state memoryState)
+    (harch : memoryState.arch = ArchState.init 0)
+    (hstep : design.step state entry = .ok next)
+    (hsample : rvfi_core_adapter.rvfiPortSample design next =
+      rvfi_addi_boundary.addi1PortSample) :
+    memoryState.arch.WF ∧
+      ∃ next' observation, rvfi_core_adapter.rvfiStep design state entry =
+        .ok (next', observation) ∧
+        Rv32iBoundary memoryState.arch
+          rvfi_addi_boundary.addiInput observation
+          { arch := addiNext memoryState.arch 1 0 5,
+            memory := rvfi_addi_boundary.addiInput.memory }
+          (addiRetirement memoryState.arch
+            rvfi_addi_boundary.addiInput 1 0 5) := by
+  refine ⟨hreset.arch_wf, ?_⟩
+  obtain ⟨next', observation, hrun, hboundary⟩ :=
+    picorv32_addi1_loaded_rv32i_boundary_of_step hstep hsample
+  refine ⟨next', observation, hrun, ?_⟩
+  simpa [harch] using hboundary
+
+#print axioms picorv32_addi1_loaded_rv32i_boundary_of_reset_relation
 
 theorem picorv32_addi2_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
