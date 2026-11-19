@@ -108,6 +108,10 @@ private def isError : Except String α → Bool
   LeanModels.C.C23.Layout).flexibleFieldDeclAt (some {value := "record-1"})
     "struct R" "tail"
 #guard ({ LeanModels.C.C23.Layout.unknown with
+  membersDecl := fun id => if id.value == "record-1" then some [("x", "int")] else none } :
+  LeanModels.C.C23.Layout).membersDeclAt (some {value := "record-1"})
+    "struct R" == some [("x", "int")]
+#guard ({ LeanModels.C.C23.Layout.unknown with
   declSize := fun id => if id.value == "record-1" then some 8 else none } :
   LeanModels.C.C23.Layout).bitFieldStorageSizeAt
     (some (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default)) "struct R" == some 8

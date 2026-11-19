@@ -519,6 +519,8 @@ structure Layout where
   §6.7.11p9 initializes members in order, so the order is load-bearing and
   not a convenience. `none` for a non-structure type. -/
   members : CType → Option (List (String × CType)) := fun _ => none
+  /-- Parser-native member order keyed by the declaration owning the object. -/
+  membersDecl : DeclarationId → Option (List (String × CType)) := fun _ => none
   /-- Whether a record type is a union, from Clang's parser-native record
   layout tag.  The default keeps layouts without that observation loud. -/
   isUnion : CType → Bool := fun _ => false
@@ -663,6 +665,12 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
       | _ => layout.elem ty
   | none => layout.elem ty
 
+/-- Resolve aggregate member order from the object's declaration before the
+legacy type-keyed member table. -/
+def Layout.membersDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (ty : CType) : Option (List (String × CType)) :=
+  decl.bind layout.membersDecl |>.orElse (fun _ => layout.members ty)
+
 
 /-- Effective-type metadata for a declaration allocation.  Parser-native
 aggregate observations suppress the scalar declaration type, while legacy
@@ -716,7 +724,7 @@ def Layout.unknown : Layout :=
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
     flexibleField := fun _ _ => false, flexibleFieldDecl := fun _ _ => false
-    elem := fun _ => none, members := fun _ => none, isUnion := fun _ => false
+    elem := fun _ => none, members := fun _ => none, membersDecl := fun _ => none, isUnion := fun _ => false
     normalizeTy := id }
 
 /-! ## The evaluation context
