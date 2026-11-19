@@ -176,6 +176,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("proc_local_automatic_latch_e.sv", "proc_local_automatic_latch_e",
             (Port("en", 1), Port("d", 8)), (Port("q", 8),),
             retain_proc_rewrites=True, expected_source_refusals=("iverilog",)),
+    # Automatic local in an always_ff activation.
+    Fixture("proc_local_automatic_ff_e.sv", "proc_local_automatic_ff_e",
+            (Port("clk", 1, clock=True), Port("d", 8)), (Port("q", 8),),
+            retain_proc_rewrites=True, expected_source_refusals=("iverilog",)),
     Fixture("proc_local_static_e.sv", "proc_local_static_e",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),)),
     Fixture("proc_local_static_init_e.sv", "proc_local_static_init_e",
