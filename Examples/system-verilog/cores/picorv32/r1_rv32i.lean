@@ -57,14 +57,15 @@ theorem picorv32_loaded_rv32i_exact_cycle_step_refines
 
 theorem picorv32_loaded_reset_relation_initial
     (core : PicoRV32LoadedCanonicalE) (program : Memory)
-    (initialArch : ArchState) (hpc : initialArch.pc = 0) :
+    (initialArch : ArchState) (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF) :
     PicoRV32ResetRelation
       (PicoRV32LoadedCanonicalE.design core) program
       (CoreRvfiMachine.toRvfiCycleMachine
         (PicoRV32LoadedCanonicalE.machine core)).init
       { arch := initialArch, memory := program } := by
   exact picoRV32_reset_relation_initial
-    (PicoRV32LoadedCanonicalE.design core) program initialArch hpc
+    (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf
 
 #print axioms picorv32_loaded_reset_relation_initial
 
@@ -132,6 +133,7 @@ theorem picorv32_loaded_rv32i_program_refinement_from_initial_relation
     (program : Memory)
     (initialArch : ArchState)
     (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF)
     {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
     {admit : Input → Prop}
     (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
@@ -177,7 +179,7 @@ theorem picorv32_loaded_rv32i_program_refinement_from_initial_relation
         (PicoRV32LoadedCanonicalE.machine core)).init
       { arch := initialArch, memory := program } :=
     hrel _ _ (picoRV32_reset_relation_initial
-      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc)
+      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf)
   refine ⟨hloaded.1, ?_⟩
   exact rv32i_progress_refinement profile
     (CoreRvfiMachine.toRvfiCycleMachine

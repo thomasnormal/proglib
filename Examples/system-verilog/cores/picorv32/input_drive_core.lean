@@ -33,16 +33,17 @@ structure PicoRV32ResetRelation
     (state : CoreMemState) (memoryState : RvMemoryState) : Prop where
   state_eq : state = design.initial
   arch_pc : memoryState.arch.pc = 0
+  arch_wf : memoryState.arch.WF
   memory_eq : memoryState.memory = program
   scalar_store : state.scalar = design.scalarStore state.scalarCache
   scalar_size : state.scalarCache.size = design.scalar.decls.size
 
 theorem picoRV32_reset_relation_initial (design : CoreMemDesign)
     (program : Memory) (initialArch : ArchState)
-    (hpc : initialArch.pc = 0) :
+    (hpc : initialArch.pc = 0) (hwf : initialArch.WF) :
     PicoRV32ResetRelation design program design.initial
       { arch := initialArch, memory := program } := by
-  refine { state_eq := rfl, arch_pc := hpc, memory_eq := rfl, scalar_store := ?_, scalar_size := ?_ }
+  refine { state_eq := rfl, arch_pc := hpc, arch_wf := hwf, memory_eq := rfl, scalar_store := ?_, scalar_size := ?_ }
   · rfl
   · simp [CoreMemDesign.initial, CoreMemDesign.scalarCacheOf]
 
