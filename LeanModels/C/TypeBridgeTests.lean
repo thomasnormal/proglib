@@ -98,6 +98,11 @@ private def isError : Except String α → Bool
   LeanModels.C.C23.Layout).fieldOffDeclAt (some {value := "record-1"})
     "struct R" "x" == some 8
 #guard ({ LeanModels.C.C23.Layout.unknown with
+  fieldOffTypeDecl := fun id ty =>
+    if id.value == "record-1" && ty == "int" then some 8 else none } :
+  LeanModels.C.C23.Layout).fieldOffTypeDeclAt (some {value := "record-1"})
+    "struct R" "int" == some 8
+#guard ({ LeanModels.C.C23.Layout.unknown with
   fieldSizeDecl := fun id field =>
     if id.value == "record-1" && field == "x" then some 4 else none } :
   LeanModels.C.C23.Layout).fieldExtentAt

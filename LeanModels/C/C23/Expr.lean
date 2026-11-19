@@ -489,6 +489,9 @@ structure Layout where
   Anonymous records can have several empty field names; declaration order
   and the child type keep those members distinct without parsing a spelling. -/
   fieldOffType : CType → CType → Option Nat := fun _ _ => none
+  /-- Parser-native offset for an anonymous member keyed by its base
+      declaration identity and member type. -/
+  fieldOffTypeDecl : DeclarationId → CType → Option Nat := fun _ _ => none
   /-- Frontend-observed byte extent of a member.  This is needed when the
   member type is a function pointer, whose spelling is intentionally not
   re-parsed by the layout fallback. -/
@@ -603,6 +606,13 @@ def Layout.fieldOffDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty field : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffDecl did field)
     |>.orElse (fun _ => layout.fieldOff ty field)
+
+/-- Resolve an anonymous-member offset through the base declaration before
+the legacy type-keyed anonymous-member table. -/
+def Layout.fieldOffTypeDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (ty fieldTy : CType) : Option Nat :=
+  decl.bind (fun did => layout.fieldOffTypeDecl did fieldTy)
+    |>.orElse (fun _ => layout.fieldOffType ty fieldTy)
 
 /-- Resolve a member extent from parser-native facts, then from the declared
 field type, with the legacy field-size table as the final fallback. -/
@@ -725,7 +735,7 @@ def Layout.bitFieldStorageSizeAt (layout : Layout) (base : Option Expr)
 missing layout fact is a loud refusal rather than a guessed offset. -/
 def Layout.unknown : Layout :=
   { size := fun _ => none, declSize := fun _ => none, fieldOff := fun _ _ => none
-    fieldOffType := fun _ _ => none
+    fieldOffType := fun _ _ => none, fieldOffTypeDecl := fun _ _ => none
     typeSize := fun _ => none
     pointeeSize := fun _ => none
     pointeeSizeDecl := fun _ => none
