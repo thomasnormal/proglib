@@ -159,6 +159,11 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),),
             retain_proc_rewrites=True,
             expected_source_refusals=("iverilog",)),
+    # Automatic local reentry, where an untaken assignment exposes fresh x storage.
+    Fixture("proc_local_automatic_reentry.sv", "proc_local_automatic_reentry",
+            (Port("clk", 1, clock=True), Port("en", 1), Port("a", 8)),
+            (Port("y", 8),), retain_proc_rewrites=True,
+            expected_source_refusals=("iverilog",)),
     Fixture("proc_local_static_e.sv", "proc_local_static_e",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),)),
     Fixture("proc_local_static_init_e.sv", "proc_local_static_init_e",
