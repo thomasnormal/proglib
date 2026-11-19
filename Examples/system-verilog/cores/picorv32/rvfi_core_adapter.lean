@@ -66,8 +66,42 @@ theorem rvfiStep_ok_of_fast_and_decode
     rvfiStep d st entry = .ok (next, row) := by
   simp [rvfiStep, hstep, hdecode]
 
+theorem rvfiStep_ok_iff_fast_and_decode
+    {d : CoreMemDesign} {st next : CoreMemState} {entry : SvState}
+    {row : RvfiObservation} :
+    rvfiStep d st entry = .ok (next, row) ↔
+      d.fastStepCanonical st entry = .ok next ∧
+        rvfiObservation d next = some row := by
+  constructor
+  · intro h
+    unfold rvfiStep at h
+    cases hs : d.fastStepCanonical st entry with
+    | timeout => simp [hs] at h
+    | unsupported msg => simp [hs] at h
+    | ok a =>
+        simp only [hs, Res.ok_bind] at h
+        cases hd : rvfiObservation d a with
+        | none => simp [hd] at h
+        | some b =>
+            simp only [hd, pure] at h
+            cases h
+            exact ⟨rfl, hd⟩
+  · rintro ⟨hstep, hdecode⟩
+    exact rvfiStep_ok_of_fast_and_decode hstep hdecode
+
+theorem rvfiStep_ok_iff_step_and_decode
+    {d : CoreMemDesign} {st next : CoreMemState} {entry : SvState}
+    {row : RvfiObservation} :
+    rvfiStep d st entry = .ok (next, row) ↔
+      d.step st entry = .ok next ∧
+        rvfiObservation d next = some row := by
+  rw [rvfiStep_ok_iff_fast_and_decode]
+  rw [d.fastStepCanonical_eq_step]
+
 #print axioms rvfiPortSample_read
 #print axioms rvfiObservation_eq_decode
 #print axioms rvfiStep_ok_of_fast_and_decode
+#print axioms rvfiStep_ok_iff_fast_and_decode
+#print axioms rvfiStep_ok_iff_step_and_decode
 
 end Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
