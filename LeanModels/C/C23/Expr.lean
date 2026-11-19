@@ -792,11 +792,11 @@ older envelopes that have no structured observation.  When clang supplied a
 display spelling. -/
 def structuredPointerObject (structured : Option LeanModels.Clang.QualType)
     (fallback : CType) : Bool :=
-  structured.map LeanModels.Clang.QualType.pointerObject |>.getD (isPtrType fallback)
+  structured.map (fun type => type.unqualified.pointerObject) |>.getD (isPtrType fallback)
 
 def structuredIndexable (structured : Option LeanModels.Clang.QualType)
     (fallback : CType) : Bool :=
-  structured.map LeanModels.Clang.QualType.indexable |>.getD (isPtrType fallback)
+  structured.map (fun type => type.unqualified.indexable) |>.getD (isPtrType fallback)
 
 def isPtrIntType (ty : CType) : Bool :=
   let t := ty.trimAscii.toString
