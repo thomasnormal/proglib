@@ -70,6 +70,7 @@ deriving Repr, Inhabited, BEq
 structure MArg where
   name : String
   annotation : Option MExpr := none
+  typeComment : Option String := none
   default : Option MExpr := none
   positionalOnly : Bool := false
   keywordOnly : Bool := false
@@ -414,12 +415,15 @@ private def mArg (j : Json) : Except String MArg := do
         let span ← mSpan (← mField j "span")
         some <$> (pure (.constant (← mConst value) span))
     | .error _ => pure none
+  let typeComment ← match j.getObjVal? "type_comment" with
+    | .ok .null | .error _ => pure none
+    | .ok value => some <$> value.getStr?
   let flag := fun name =>
     match j.getObjVal? name with
     | .ok (.bool value) => value
     | _ => false
   pure { name := ← (← mField j "arg").getStr?
-         annotation, default
+         annotation, typeComment, default
          positionalOnly := flag "positional_only"
          keywordOnly := flag "keyword_only"
          variadic := flag "variadic"
@@ -1018,7 +1022,8 @@ private def ingestKwargArguments : Json :=
     ("posonlyargs", Lean.Json.arr #[]), ("args", Lean.Json.arr #[]),
     ("vararg", Lean.Json.null), ("kwonlyargs", Lean.Json.arr #[]),
     ("kw_defaults", Lean.Json.arr #[]),
-    ("kwarg", Lean.Json.mkObj [("arg", Lean.toJson "items")]),
+    ("kwarg", Lean.Json.mkObj [("arg", Lean.toJson "items"),
+      ("type_comment", Lean.toJson "dict[str, int]")]),
     ("defaults", Lean.Json.arr #[])]
 
 private def ingestKwargModule : Json :=
@@ -1068,7 +1073,8 @@ private def ingestContextModule : Json :=
   | _ => false
 
 #guard match parseMachineModule ingestKwargModule with
-  | .ok { body := #[.functionDef _ args _ _ _ _], typeIgnores := #[] } => args.kwarg.isSome
+  | .ok { body := #[.functionDef _ args _ _ _ _], typeIgnores := #[] } =>
+      args.kwarg.any (·.typeComment == some "dict[str, int]")
   | _ => false
 
 #guard match parseMachineModule ingestGlobalFunction with
