@@ -413,6 +413,11 @@ partial def mStmt (j : Json) : Except String MStmt := do
       (← (← (← mField j "body").getArr?).mapM mStmt)
       (← (← (← mField j "orelse").getArr?).mapM mStmt)
       false span)
+  | "AsyncFor" => pure (.forStmt (← mExpr (← mField j "target"))
+      (← mExpr (← mField j "iter"))
+      (← (← (← mField j "body").getArr?).mapM mStmt)
+      (← (← (← mField j "orelse").getArr?).mapM mStmt)
+      true span)
   | "FunctionDef" | "NestedDef" =>
       let decorators ← match j.getObjVal? "decorator_list" with
         | .ok value => (← value.getArr?).mapM mExpr
@@ -427,6 +432,15 @@ partial def mStmt (j : Json) : Except String MStmt := do
   | "Nonlocal" => pure (.nonlocal (← (← (← mField j "names").getArr?).mapM (·.getStr?)) span)
   | "Break" => pure (.brk span)
   | "Continue" => pure (.cont span)
+  | "With" | "AsyncWith" =>
+      let items ← (← (← mField j "items").getArr?).mapM fun item => do
+        let context ← mExpr (← mField item "context")
+        let target ← match item.getObjVal? "target" with
+          | .ok .null | .error _ => pure none
+          | .ok value => some <$> mExpr value
+        pure (context, target)
+      let body ← (← (← mField j "body").getArr?).mapM mStmt
+      pure (.withStmt items body (kind == "AsyncWith") span)
   | _ => pure (.unsupported kind span)
 
 private def mStmtKind : MStmt → String
@@ -698,8 +712,13 @@ partial def mStmtToStmtClean : MStmt → RStmt
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
   | .whileStmt test body orelse span => .whileStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
-  | .forStmt target iter body orelse _ span => .forStmt (mExprToExpr target)
-      (mExprToExpr iter) (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
+  | .forStmt target iter body orelse isAsync span =>
+      if isAsync then
+        .asyncForStmt (mExprToExpr target) (mExprToExpr iter)
+          (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
+      else
+        .forStmt (mExprToExpr target) (mExprToExpr iter)
+          (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
   | .functionDef name args decorators returns body span =>
       if !decorators.isEmpty || returns.isSome then
         .functionDefFull name (mParams args) (args.defaults.map mExprToExpr)

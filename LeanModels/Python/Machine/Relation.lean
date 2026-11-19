@@ -59,6 +59,8 @@ inductive RStmt where
   | whileStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | forStmt (target : Expr) (iter : Expr) (body : Array RStmt) (orelse : Array RStmt)
       (span : Span)
+  | asyncForStmt (target : Expr) (iter : Expr) (body : Array RStmt)
+      (orelse : Array RStmt) (span : Span)
   | functionDef (name : String) (params : Array RParam) (defaults : Array Expr)
       (body : Array RStmt) (span : Span)
   | functionDefFull (name : String) (params : Array RParam) (defaults : Array Expr)
@@ -1304,6 +1306,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .forStmt target iter body orelse _ =>
               some (.tau, config.setControl
                 (.evaluate iter (.forIter target body.toList orelse.toList rest)))
+          | .asyncForStmt _ _ _ _ _ =>
+              some (.event (.refuse "machine async-for"),
+                config.finish (.refuse "machine async-for"))
           | .global names _ =>
               let updated := { frame with control := .statements rest }
               some (.tau, config.setTop { updated with
