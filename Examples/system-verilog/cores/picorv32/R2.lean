@@ -103,6 +103,8 @@ obligation:
   fence witness.
   `r1_system` provides the ECALL, EBREAK, MRET, and WFI consumers through the
   decoded system witness.
+  `r1_illegal` provides undecodable and illegal-CSR consumers through the
+  exact illegal boundary.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.

@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiTrap
+import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
 # PicoRV32 R1 illegal-instruction class
@@ -31,6 +32,37 @@ theorem illegal_csr_decode :
 
 theorem illegal_csr_row : findCsr? illegalCsrKind.addr = none := by
   decide
+
+theorem picorv32_illegal_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.illegalBoundary arch input illegalWord) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation'
+        { arch := illegalNext arch, memory := input.memory }
+        (illegalRetirement arch input) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  exact rvfi_core_adapter.CoreIllegalBoundary.to_rv32i_boundary
+    (⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode,
+      hboundary⟩ : rvfi_core_adapter.CoreIllegalBoundary d st entry arch input illegalWord)
+
+theorem picorv32_illegal_csr_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.illegalBoundary arch input illegalCsrWord) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧ Rv32iBoundary arch input observation'
+      { arch := illegalNext arch, memory := input.memory } (illegalRetirement arch input) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  exact rvfi_core_adapter.CoreIllegalBoundary.to_rv32i_boundary
+    (⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode,
+      hboundary⟩ : rvfi_core_adapter.CoreIllegalBoundary d st entry arch input illegalCsrWord)
+
+#print axioms picorv32_illegal_loaded_rv32i_boundary_of_step
+#print axioms picorv32_illegal_csr_loaded_rv32i_boundary_of_step
 
 theorem picorv32_illegal_class_step (state : ArchState) (memory : Memory) :
     isaStepMemWith cv32e40pProfile state memory (.word illegalWord) 0 =

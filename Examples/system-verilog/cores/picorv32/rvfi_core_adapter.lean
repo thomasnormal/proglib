@@ -622,6 +622,32 @@ theorem CoreSystemBoundary.to_rv32i_boundary
 
 #print axioms CoreSystemBoundary.to_rv32i_boundary
 
+def CoreIllegalBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (word : LeanModels.Refine.Word) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.illegalBoundary arch input word
+
+theorem CoreIllegalBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word}
+    (h : CoreIllegalBoundary d st entry arch input word) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.illegalNext arch, memory := input.memory }
+        (LeanModels.Refine.illegalRetirement arch input) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  exact Rv32iBoundary.illegal word hboundary
+
+#print axioms CoreIllegalBoundary.to_rv32i_boundary
+
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
