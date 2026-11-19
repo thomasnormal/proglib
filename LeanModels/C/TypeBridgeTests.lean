@@ -53,6 +53,8 @@ private def isError : Except String α → Bool
   (some (.qualified true false (.pointer (.cBuiltin "int")))) "not-a-pointer"
 #guard LeanModels.C.C23.structuredIndexable
   (some (.qualified false true (.array (.cBuiltin "int") (some 4)))) "not-an-array"
+#guard LeanModels.C.C23.functionPointerBitCast
+  (.cast "BitCast" (.unsupported "Opaque" "" default) "opaque" default)
 #guard isError (TypeNode.typedefRef none "T" |>.toQualType)
 #guard isError (TypeNode.enumeration none "enum E" |>.toQualType)
 
