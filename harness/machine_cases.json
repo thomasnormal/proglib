@@ -648,5 +648,10 @@
     "source": "harness/scripts/machine_arguments_boundary.py",
     "envelope": "harness/scripts/machine_arguments_boundary.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_nonlocal_mutation.py",
+    "envelope": "harness/scripts/machine_nonlocal_mutation.json",
+    "expect": "match"
   }
 ]
