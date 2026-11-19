@@ -2643,6 +2643,15 @@ private def qEnv : IEnv :=
 #guard (evalInt qEnv (.sysCall .size (.ident "m"))).toOption == some 4
 #guard (evalInt qEnv (.sysCall .high (.ident "x"))).toOption.isNone
 
+/-! `$bits` reads the declared width of a four-state package parameter.  The
+constant query needs no integer view of the parameter value, so x/z payload
+bits do not make this width query refuse. -/
+private def packageBitsEnv : IEnv :=
+  IEnv.bindPackageFVal {} "pkg" "AttrDw" (LVec.lit "0000z000") 8 false
+
+#guard (evalInt packageBitsEnv
+  (.sysCall .bits (.paramRef "AttrDw" (some "pkg")))).toOption == some 8
+
 /-- A select of a parameter with a parameter-dependent range: exact while it
 is `[m:0]`, `m ≥ 0`, loud elsewhere (`paramSelectOk`). -/
 private def psEnv (lr : Int × Int) : IEnv :=

@@ -2009,12 +2009,15 @@ def evalInt (env : IEnv) : PExpr → Except String Int
               | some (_, w, _) => .ok (w : Int)
               | none => .error s!"$bits/$size of undeclared parameter '{n}'"
       | .bits, .paramRef n (some p) =>
-          match env.packageVal p n with
-          | some _ => .ok 32
+          match env.packageFVal p n with
+          | some (_, w, _) => .ok (w : Int)
           | none =>
-              match env.packageNVal p n with
-              | some (_, w, _) => .ok (w : Int)
-              | none => .error s!"$bits/$size of undeclared parameter '{p}::{n}'"
+              match env.packageVal p n with
+              | some _ => .ok 32
+              | none =>
+                  match env.packageNVal p n with
+                  | some (_, w, _) => .ok (w : Int)
+                  | none => .error s!"$bits/$size of undeclared parameter '{p}::{n}'"
       | .size, .ident n => dimQuery env "$size" n false
       | .high, .ident n => dimQuery env "$high" n true
       | f, _ => .error s!"{f.sym} argument outside the declared-signal tier"
