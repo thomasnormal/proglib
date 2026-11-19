@@ -718,6 +718,8 @@ def layoutFor (envl : Envelope) : Layout :=
     envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.elementType)
   let observedArrayElementSize := fun t : CType =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.elementSizeBytes)
+  let observedExprType := fun offset : Nat =>
+    envl.structuredExprTypes.find? (fun row => row.offset == offset) |>.map (·.type)
   /- A subscript asks for the element stride, while Clang's parser-native
      TypeLayout observation is attached to the declared array object.  Keep
      the observation as the source of the stride: divide the observed array
@@ -757,6 +759,7 @@ def layoutFor (envl : Envelope) : Layout :=
               (fun _ => (sizeAlign tds recsWithObserved 16 t).map (·.1))
     declSize := observedDeclSize
     structuredType := fun id => envl.structuredTypeFor id
+    structuredExprType := observedExprType
     typeSize := observedTypeSize
     pointeeSize := observedPointeeSize
     pointeeSizeDecl := observedDeclPointeeSize

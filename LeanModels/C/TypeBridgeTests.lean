@@ -140,6 +140,13 @@ private def isError : Except String α → Bool
   elem := fun ty => if ty == "int[3]" then some ("int", 2) else none } :
   LeanModels.C.C23.Layout).elemDeclAt (some {value := "array-1"}) "int[3]" == some ("int", 3)
 #guard ({ LeanModels.C.C23.Layout.unknown with
+  structuredExprType := fun offset =>
+    if offset == 12 then some (.pointer (.cBuiltinKind .int)) else none } :
+  LeanModels.C.C23.Layout).structuredTypeAt
+    (.declRef none "p" "VarDecl" "int *"
+      (CSpan.mk 1 (some 12) (some 1) 1 (some 13) (some 2) none none)) ==
+    some (.pointer (.cBuiltinKind .int))
+#guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
     if id.value == "vla-1" then some (.array (.cBuiltinKind .int) none) else none
   arrayElementType := fun _ => some "int"
