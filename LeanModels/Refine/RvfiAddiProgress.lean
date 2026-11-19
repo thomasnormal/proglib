@@ -56,6 +56,127 @@ theorem Rv32iAddiInvariant.toMixedStep
   exact rv32iCycleStepRefines_of_addi_memory machine rel admit
     invariant.step invariant.order
 
+/-! ## Typed finite prefixes
+
+The mixed bridge above intentionally forgets that every retiring row came
+from an ADDI.  The constructor below keeps that information for a finite
+cycle prefix.  It consumes the same memory-threaded step premise directly,
+so a loaded-core theorem can expose an `AddiInstruction` program rather than
+an arbitrary `Rv32iInstruction` list.
+-/
+
+theorem addiRvfiCycleTrace_of_step
+    {State : Type} (machine : RvfiCycleMachine State)
+    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
+    (hstep : ∀ (state : State) (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      let (state', observation) := machine.step state input
+      if observation.valid then
+        ∃ w rd rs1 imm,
+          input.memory = memoryState.memory ∧
+          observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
+          rel state'
+            { arch := addiNext memoryState.arch rd rs1 imm,
+              memory := memoryState.memory }
+      else rel state' memoryState)
+    (horder : ∀ (start : Nat) (state : State)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      let (_, observation) := machine.step state input
+      if observation.valid then observation.order = start else True)
+    {start : Nat} {coreState : State} {memoryState : RvMemoryState}
+    (cycles : List Input) (hrel : rel coreState memoryState)
+    (hall : ∀ input ∈ cycles, admit input) :
+    ∃ program : List AddiInstruction,
+      AddiRvfiCycleTrace machine memoryState.memory start coreState
+        memoryState.arch cycles program ∧
+      rel (rvfiStateAfter machine coreState cycles)
+        { arch := addiProgramState memoryState.arch program,
+          memory := memoryState.memory } := by
+  induction cycles generalizing start coreState memoryState with
+  | nil =>
+      refine ⟨[], .nil start coreState memoryState.arch, ?_⟩
+      simpa [rvfiStateAfter, addiProgramState] using hrel
+  | cons input cycles ih =>
+      have hadmit : admit input := hall input (by simp)
+      have htail : ∀ input' ∈ cycles, admit input' := by
+        intro input' hmem
+        exact hall input' (by simp [hmem])
+      have hcase := hstep coreState memoryState input hrel hadmit
+      have horderCase := horder start coreState memoryState input hrel hadmit
+      cases hmachine : machine.step coreState input with
+      | mk coreState' observation =>
+          simp only [hmachine] at hcase horderCase
+          by_cases hv : observation.valid = true
+          · have hcase' : ∃ w rd rs1 imm,
+                input.memory = memoryState.memory ∧
+                observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
+                rel coreState'
+                  { arch := addiNext memoryState.arch rd rs1 imm,
+                    memory := memoryState.memory } := by
+              simpa [hv] using hcase
+            rcases hcase' with
+              ⟨w, rd, rs1, imm, hmem, hboundary, hrel'⟩
+            have horder' : observation.order = start := by
+              simpa [hv] using horderCase
+            have hdecode : Fetched.decode (.word w) =
+                some (.alu .add rd (.reg rs1) (.imm imm)) :=
+              hboundary.1.2.2.1
+            let instruction : AddiInstruction :=
+              { word := w, rd := rd, rs1 := rs1, imm := imm,
+                decode := hdecode }
+            have hinput : input =
+                addiProgramInput memoryState.memory instruction := by
+              cases input with
+              | mk fetched memory irq =>
+                  have hfetched : fetched = .word w := by
+                    simpa using hboundary.1.2.1
+                  have hirq : irq = 0 := by
+                    simpa using hboundary.1.1
+                  cases hfetched
+                  cases hmem
+                  cases hirq
+                  rfl
+            have hboundary' :
+                Rv32iBoundary memoryState.arch
+                  (addiProgramInput memoryState.memory instruction)
+                  observation
+                  { arch := addiNext memoryState.arch rd rs1 imm,
+                    memory := memoryState.memory }
+                  (addiRetirement memoryState.arch
+                    (addiProgramInput memoryState.memory instruction)
+                    rd rs1 imm) := by
+              have hboundaryAlu :=
+                RvfiObservation.addiBoundary_rv32i w rd rs1 imm hboundary
+              rw [← hinput]
+              simpa [instruction, AddiInstruction.toAlu, addiNext,
+                aluNext, addiRetirement, aluRetirement, addiEffects,
+                aluEffects, src1Val, src2Val, aluSem, hmem] using
+                hboundaryAlu
+            obtain ⟨program, htrace, hfinal⟩ :=
+              ih (start := start + 1) (coreState := coreState')
+                (memoryState :=
+                  { arch := addiNext memoryState.arch rd rs1 imm,
+                    memory := memoryState.memory }) hrel' htail
+            refine ⟨instruction :: program, ?_, ?_⟩
+            · exact .retire hmachine hinput horder' hboundary' htrace
+            · simpa [rvfiStateAfter, addiProgramState, hmachine]
+                using hfinal
+          · have hv' : observation.valid = false := by
+              cases hvalue : observation.valid with
+              | false => exact rfl
+              | true => exact False.elim (hv hvalue)
+            have hrel' : rel coreState' memoryState := by
+              simpa [hv, hv'] using hcase
+            obtain ⟨program, htrace, hfinal⟩ :=
+              ih (start := start) (coreState := coreState')
+                (memoryState := memoryState) hrel' htail
+            refine ⟨program, ?_, ?_⟩
+            · exact .bubble hmachine hv' htrace
+            · simpa [rvfiStateAfter, hmachine] using hfinal
+
+#print axioms LeanModels.Refine.addiRvfiCycleTrace_of_step
+
 /-- The ADDI-only invariant establishes the full structure-valued reset
 refinement, retaining the decoded program and cycle certificate at every
 target prefix. -/
