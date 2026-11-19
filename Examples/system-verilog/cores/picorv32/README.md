@@ -2051,5 +2051,24 @@ map, and W5 cost measurement remains **360 ADMITTED / 0 REFUSED / 4 NOT
 REACHED** (`remaining=4`).  The four rows are inactive generate branches.  The
 first actionable real-core wall has moved past canonical E's reactive
 dependency-order refusal. The simulator baseline remains **220/220** per
-pinned simulator, while the full input-driven E-RUN comparison remains
-pending. The census counts are unchanged.
+pinned simulator, and the full input-driven E-RUN now agrees on all 220 rows
+and all 32 observed outputs. The census counts are unchanged.
+
+## 2026-11-19 input-driven canonical-E E-RUN
+
+[`e_run_input_check.py`](e_run_input_check.py) drives the loaded design with
+the reset sequence and memory responses from the unchanged 220-cycle probe.
+Its binary-output testbench preserves every 4-state output bit, and the Lean
+executor replays the same rows through the compiled `CoreMemDesign.fastStep`
+route. Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004
+agree on **220/220 cycles**. Canonical E agrees with both on **220/220 cycles
+and all 32 observed outputs**.
+
+The receipt pins source SHA-256
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`, envelope
+SHA-256
+`17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236`, and
+binary testbench SHA-256
+`d68991c0b78a5dca544b905b37e490fbae20b7f577a6a6fe7998e2f55f41d800`.
+The normalized binary cycle-row SHA-256 is
+`ebd3e54471927fc1387e502ba0ef7f33026de7eb890bd75cbff89627d09cf5ef`.
