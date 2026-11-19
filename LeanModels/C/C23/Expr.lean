@@ -577,6 +577,13 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
   decl.bind layout.declSize |>.orElse
     (fun _ => layout.size (layout.normalizeTy ty))
 
+/-- Resolve the byte size needed by an expression load through the
+declaration identity carried by that expression before consulting the
+legacy type-keyed layout table. -/
+def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : CType) :
+    Option Nat :=
+  layout.sizeAt (directDeclId expression) ty
+
 def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
     Option LeanModels.Clang.QualType :=
   (layout.structuredType id).bind (LeanModels.Clang.QualType.resolveTypedefs
@@ -1633,7 +1640,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             let pointee := (ctx.layout.structuredTypeAt sub).bind
               LeanModels.Clang.QualType.pointee
             loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
-              (ctx.layout.size (ctx.layout.normalizeTy ty)) pointee
+              (ctx.layout.exprSizeAt sub ty) pointee
       else if op == "!" then do
         -- §6.5.4.3p5 — `!x` is `(0 == x)`. 80 sites.
         let v ← evalExpr ctx sub
@@ -1720,9 +1727,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             if ctx.layout.fieldBitsAt base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p (some base)
             else
-              loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty)) lStructured
+              loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty)
+                (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
         | _ =>
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) (ctx.layout.size (ctx.layout.normalizeTy l.ty)) lStructured
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty)
+              (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
       match old, rv with
       | .ptr _, .int _ _ => do
           -- §6.5.17.3: pointer compound assignment uses the same
@@ -1799,7 +1808,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       let pointee := (ctx.layout.structuredTypeAt base).bind
         LeanModels.Clang.QualType.pointee
       loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
-        (ctx.layout.size (ctx.layout.normalizeTy ty)) pointee
+        (ctx.layout.exprSizeAt base ty) pointee
 
   -- ===== §6.4.4 — constants =====
   | .intLit v ty _ => do
@@ -2019,7 +2028,7 @@ def indexAddr (ctx : Ctx) (base idx : Expr) (ty : CType) : EvalM Ptr := do
   let (_, i) ← asInt iv
   let elementSize := (directDeclId base).bind (fun did =>
       (ctx.layout.elementSizeDecl did).orElse (fun _ => ctx.layout.pointeeSizeDecl did))
-    |>.orElse (fun _ => ctx.layout.size ty)
+    |>.orElse (fun _ => ctx.layout.exprSizeAt base ty)
   match elementSize with
   | some esz => readMem (fun m => Mem.subscript m bp esz i)
   | none => refuseUnsupported s!"no size for element type '{ty}'"
