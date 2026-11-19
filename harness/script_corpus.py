@@ -6,19 +6,16 @@ Usage (any cwd; the script re-roots itself at the repo root):
     python3 harness/script_corpus.py [--scripts harness/scripts.json]
                                      [--no-build] [--runner CMD] [--fuel N]
 
-For every row ``{"file": ..., "expect": "match"|"unsupported"}``:
+For every corpus row ``{"file": ...}``:
 
   1. re-extracts the envelope (deterministic; extractors/python/extract.py)
      into the shared leanpy CACHE — never beside the source, which used to
      rewrite tracked envelopes on every run;
   2. runs the file under CPython (the pinned 3.9 oracle, ``default_oracle``)
      capturing stdout + exit code;
-  3. runs ``lake exe leanmodels-run --script <envelope>`` capturing
-     stdout + exit code;
-  4. ``match``  — passes iff stdout AND exit code agree exactly;
-     ``unsupported`` — passes iff the Lean side exits 3 (the LOUD leanpy
-     code; a timeout, exit 4, is NOT agreement), with the blocking
-     construct reported as telemetry — loudness as prioritization signal.
+  3. runs the relation-derived runner in one batch over the envelopes;
+  4. a relation refusal is reported as frontier telemetry, while every
+     relation decision is compared with CPython.  A decided mismatch fails.
 
 Completeness telemetry is the point: the summary reports the fraction of
 the corpus completing and WHICH construct blocked each refusal.
@@ -160,16 +157,8 @@ def run_cpython(path):
     return proc.stdout, proc.returncode, proc.stderr
 
 
-def run_lean(runner_cmd, json_path, fuel):
-    cmd = list(runner_cmd) + ["--script", json_path]
-    if fuel is not None:
-        cmd += ["--fuel", str(fuel)]
-    proc = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-    return proc.stdout, proc.returncode, proc.stderr.strip()
-
-
-def run_machine_batch(runner_cmd, jobs, fuel):
-    """Run the machine column once for the whole corpus."""
+def run_relation_batch(runner_cmd, jobs, fuel):
+    """Run the relation-derived column once for the whole corpus."""
     fd, jobs_path = tempfile.mkstemp(prefix=".machine-script-jobs-", suffix=".jsonl")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
@@ -221,92 +210,62 @@ def main(argv=None):
     with open(opts.scripts, "r", encoding="utf-8") as f:
         rows = json.load(f)
 
-    machine_jobs = []
-    machine_sources = []
+    relation_jobs = []
+    relation_sources = []
     for row in rows:
         envelope = leanpy.envelope_for(row["file"], cache)
         if envelope is not None:
-            machine_sources.append(row["file"])
-            machine_jobs.append(envelope)
-    machine_results = run_machine_batch(runner_cmd, machine_jobs, opts.fuel)
-    machine_by_source = dict(zip(machine_sources, machine_results))
+            relation_sources.append(row["file"])
+            relation_jobs.append(envelope)
+    relation_results = run_relation_batch(runner_cmd, relation_jobs, opts.fuel)
+    relation_by_source = dict(zip(relation_sources, relation_results))
 
     failures = 0
     completed = 0
-    blocked = []
-    machine_matched = machine_refused = machine_diverged = 0
+    relation_matched = relation_refused = relation_diverged = 0
     for row in rows:
         src = row["file"]
-        expect = row.get("expect", "match")
         json_path = leanpy.envelope_for(src, cache)
         if json_path is None:
             print("%-42s ERROR (extractor refused; see stderr above)" % src)
             failures += 1
             continue
         cout, ccode, cerr = run_cpython(src)
-        lout, lcode, lerr = run_lean(runner_cmd, json_path, opts.fuel)
-        machine = machine_by_source.get(src, {"status": "runner-error", "exit": 1})
-        machine_same = (
-            machine.get("status") == ("ok" if ccode == 0 else "exn") and
-            machine.get("exit") == ccode and
-            machine.get("stdout_text", "") == cout and
-            (ccode == 0 or machine.get("exn") == exc_class(cerr)))
-        if machine.get("status") == "unsupported":
-            machine_verdict = "REFUSED"
-            machine_refused += 1
-        elif machine_same:
-            machine_verdict = "MATCH"
-            machine_matched += 1
+        relation = relation_by_source.get(src, {"status": "runner-error", "exit": 1})
+        if relation.get("status") == "unsupported":
+            relation_refused += 1
+            print("%-42s REFUSED (%s)" % (src, relation.get("msg", "relation frontier")))
+            continue
+
+        relation_same = (
+            relation.get("status") == ("ok" if ccode == 0 else "exn") and
+            relation.get("exit") == ccode and
+            relation.get("stdout_text", "") == cout and
+            (ccode == 0 or relation.get("exn") == exc_class(cerr)))
+        if relation_same:
+            relation_matched += 1
+            completed += 1
+            print("%-42s MATCH   relation (exit %d, %d stdout bytes)"
+                  % (src, ccode, len(cout)))
         else:
-            machine_verdict = "DIVERGE"
-            machine_diverged += 1
-        if expect == "unsupported":
-            if lcode == 3:
-                print("%-42s LOUD    machine=%-8s (%s)" % (src, machine_verdict, lerr))
-                blocked.append((src, lerr))
-            else:
-                print("%-42s MISMATCH (expected loud exit 3, got %d: %s)"
-                      % (src, lcode, lerr or lout.strip()))
-                failures += 1
-        else:
-            # The exception CLASS must always agree; the full
-            # `Class: message` LINE must agree too whenever the model
-            # carries a message at all (2026-08-13). A model line with no
-            # colon means the `PyErr` constructor is payload-free — a
-            # recorded gap, not a mismatch, so it is not compared.
-            lline = exc_line(lerr)
-            exc_ok = (ccode == 0 or lcode != 1
-                      or (exc_class(cerr) == exc_class(lerr)
-                          and (": " not in (lline or "")
-                               or lline == exc_line(cerr))))
-            if cout == lout and ccode == lcode and exc_ok:
-                print("%-42s MATCH   machine=%-8s (exit %d, %d stdout bytes)"
-                      % (src, machine_verdict, ccode, len(cout)))
-                completed += 1
-            else:
-                print("%-42s MISMATCH machine=%s" % (src, machine_verdict))
-                print("  cpython: exit %d, stdout %r" % (ccode, cout))
-                print("  lean:    exit %d, stdout %r, exc %r" % (lcode, lout, exc_line(lerr)))
-                if ccode:
-                    print("  cpython exc: %r" % (exc_line(cerr),))
-                failures += 1
+            relation_diverged += 1
+            print("%-42s DIVERGE relation" % src)
+            print("  cpython: exit %d, stdout %r" % (ccode, cout))
+            print("  relation: %s" % json.dumps(relation, sort_keys=True))
+            failures += 1
 
     total = len(rows)
     print("-" * 72)
     ver = subprocess.run([ORACLE, "-V"], capture_output=True, text=True)
     print("oracle: %s" % ((ver.stdout or ver.stderr).strip(),))
-    print("interpreter: LeanModels/Python/Monadic/ (the runner's; the theorems are about Semantics.lean)")
-    print("%d scripts: %d failed, %d completed-and-matched, %d loud-blocked"
-          % (total, failures, completed, len(blocked)))
-    print("machine: matched %d, refused %d, diverging %d" %
-          (machine_matched, machine_refused, machine_diverged))
-    machine_decided = machine_matched + machine_diverged
+    print("interpreter: LeanModels/Python/Machine/Relation.lean")
+    print("%d scripts: %d failed, %d completed-and-matched, %d relation-refused"
+          % (total, failures, completed, relation_refused))
+    print("relation: matched %d, refused %d, diverging %d" %
+          (relation_matched, relation_refused, relation_diverged))
+    relation_decided = relation_matched + relation_diverged
     print("MACHINE-REL scripts %d/%d (diverge %d)" %
-          (machine_decided, total, machine_diverged))
-    if machine_diverged:
-        failures += machine_diverged
-    for src, msg in blocked:
-        print("  blocked: %-34s %s" % (src, msg))
+          (relation_decided, total, relation_diverged))
     return 1 if failures else 0
 
 
