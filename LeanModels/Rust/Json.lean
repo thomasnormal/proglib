@@ -272,24 +272,26 @@ private def terminator (j : Json) : Except String Terminator := do
           let expected ← field value "expected" >>= Lean.Json.getBool?
           let target ← field value "target" >>= nat
           let unwind ← field value "unwind"
-          let unwindName ←
+          let cleanup ←
             match unwind with
-            | .str name => pure name
-            | _ => (variant unwind).map Prod.fst
-          if unwindName == "Continue" then pure (.assert cond expected target)
-          else pure (.unsupported "Assert with cleanup unwind")
+            | .obj _ => do
+                let (name, payload) ← variant unwind
+                if name == "Cleanup" then some <$> nat payload else pure none
+            | _ => pure none
+          pure (.assert cond expected target cleanup)
       | "Call" => do
           let func ← field value "func" >>= operand
           let args ← field value "args" >>= array >>= (·.mapM operand)
           let destination ← field value "destination" >>= place
           let target ← field value "target" >>= optionalNat
           let unwind ← field value "unwind"
-          let unwindName ←
+          let cleanup ←
             match unwind with
-            | .str name => pure name
-            | _ => (variant unwind).map Prod.fst
-          if unwindName == "Continue" then pure (.call func args destination target)
-          else pure (.unsupported "Call with cleanup unwind")
+            | .obj _ => do
+                let (name, payload) ← variant unwind
+                if name == "Cleanup" then some <$> nat payload else pure none
+            | _ => pure none
+          pure (.call func args destination target cleanup)
       | "Drop" => do
           let place ← field value "place" >>= place
           let target ← field value "target" >>= nat

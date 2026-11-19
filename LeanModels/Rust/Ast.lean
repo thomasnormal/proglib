@@ -64,8 +64,9 @@ inductive Terminator where
   | ret
   | goto (target : Nat)
   | switchInt (discr : Operand) (branches : List (Int × Nat)) (otherwise : Nat)
-  | assert (cond : Operand) (expected : Bool) (target : Nat)
+  | assert (cond : Operand) (expected : Bool) (target : Nat) (cleanup : Option Nat := none)
   | call (func : Operand) (args : List Operand) (destination : Place) (target : Option Nat)
+      (cleanup : Option Nat := none)
   | drop (place : Place) (target cleanup : Nat)
   | resume
   | unreachable
