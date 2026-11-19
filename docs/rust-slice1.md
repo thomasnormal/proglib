@@ -6,7 +6,7 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1391 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
+implementation is 1399 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
 of AST declarations, 530 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
@@ -51,6 +51,12 @@ transmutes a `usize` value into a raw pointer and then applies `PtrToPtr`. The
 current pointer representation requires provenance, so the operand is retained
 as an integer and the second cast reports a typed refusal with target layout 27.
 No provenance is fabricated from the integer address.
+
+The remaining `study_derive` refusal occurs in `core::fmt::Arguments::as_str`.
+Its MIR applies `BitAnd` between a pointer cell with provenance 28 and integer
+constant 1 while checking formatting metadata. The integer bitwise evaluator
+therefore refuses the mixed pointer/integer operands and reports both cells.
+The operation is not reduced to an address comparison.
 
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes

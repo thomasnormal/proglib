@@ -749,8 +749,14 @@ def statementFailure : State → List Statement → Outcome
               .refused (.unsupported ("equality assignment left=" ++
                 toString (repr (operandCell state left)) ++ " right=" ++
                 toString (repr (operandCell state right))))
-          | .assign _ (.binaryBitAnd _ _) => .refused (.unsupported "bitwise assignment")
-          | .assign _ (.binaryBitXor _ _) => .refused (.unsupported "bitwise-xor assignment")
+          | .assign place (.binaryBitAnd left right) =>
+              .refused (.unsupported ("bitwise assignment place=" ++ toString place.localId ++
+                " left=" ++ toString (repr (operandCell state left)) ++
+                " right=" ++ toString (repr (operandCell state right))))
+          | .assign place (.binaryBitXor left right) =>
+              .refused (.unsupported ("bitwise-xor assignment place=" ++ toString place.localId ++
+                " left=" ++ toString (repr (operandCell state left)) ++
+                " right=" ++ toString (repr (operandCell state right))))
           | .assign _ (.zstAggregate) => .refused (.unsupported "zst aggregate assignment")
           | .assign _ (.adtAggregate _ _) => .refused (.unsupported "adt aggregate assignment")
           | .assign place (.discriminant target) =>
