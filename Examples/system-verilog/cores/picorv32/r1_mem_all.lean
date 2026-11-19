@@ -81,6 +81,29 @@ def shInstruction : MemInstruction :=
 def swInstruction : MemInstruction :=
   { word := swWord, kind := .store .word, r := 3, rs1 := 1, imm := 0x100, decode := swWord_decode }
 
+/-! The common raw memory fields determine the exact threaded ISA step for
+    every width and load signedness.  The generic `MemOp` keeps those choices
+    explicit, so this bridge does not duplicate a mini-language per row. -/
+
+theorem picorv32_mem_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (kind : MemOp)
+    (r rs1 : Reg) (imm : Word)
+    (hfields : observation.memFields state input word kind r rs1 imm) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (memNext state input.memory kind r rs1 imm,
+        memAfter input.memory state kind r rs1 imm) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (kind.toInstr r rs1 imm) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_mem profile state memory word kind r rs1 imm hdecode
+
+#print axioms picorv32_mem_fields_isa_step
+
 theorem mem_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
     {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
