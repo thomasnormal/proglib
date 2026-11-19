@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/sum_to/sum_to.py",
   "source_sha256": "720479f83f5e888cbcd5df62645836fe1c70db613cc95a75233c123e0fb2173c",
@@ -198,7 +198,47 @@
               "id": "s"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 1,
+                "col_offset": 11,
+                "end_lineno": 1,
+                "end_col_offset": 17
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 14,
+                  "end_lineno": 1,
+                  "end_col_offset": 17
+                },
+                "id": "int"
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": {
+          "kind": "Name",
+          "span": {
+            "lineno": 1,
+            "col_offset": 22,
+            "end_lineno": 1,
+            "end_col_offset": 25
+          },
+          "id": "int"
+        }
       }
     ]
   },

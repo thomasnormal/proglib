@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/midpoint/midpoint.py",
   "source_sha256": "7886ea929aefb65cc7848c5cda287b2404318e971fe24539085f98597ef10b57",
@@ -104,7 +104,66 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 1,
+                "col_offset": 13,
+                "end_lineno": 1,
+                "end_col_offset": 19
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 16,
+                  "end_lineno": 1,
+                  "end_col_offset": 19
+                },
+                "id": "int"
+              }
+            },
+            {
+              "arg": "b",
+              "span": {
+                "lineno": 1,
+                "col_offset": 21,
+                "end_lineno": 1,
+                "end_col_offset": 27
+              },
+              "annotation": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 24,
+                  "end_lineno": 1,
+                  "end_col_offset": 27
+                },
+                "id": "int"
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": {
+          "kind": "Name",
+          "span": {
+            "lineno": 1,
+            "col_offset": 32,
+            "end_lineno": 1,
+            "end_col_offset": 35
+          },
+          "id": "int"
+        }
       }
     ]
   },

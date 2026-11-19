@@ -90,6 +90,16 @@
                   "end_col_offset": 18
                 },
                 "target": "m",
+                "machine_target": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 19,
+                    "col_offset": 8,
+                    "end_lineno": 19,
+                    "end_col_offset": 9
+                  },
+                  "id": "m"
+                },
                 "value": {
                   "kind": "BinOp",
                   "span": {
@@ -195,7 +205,28 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 17,
+                "col_offset": 12,
+                "end_lineno": 17,
+                "end_col_offset": 13
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -267,6 +298,16 @@
                   "end_col_offset": 19
                 },
                 "target": "b",
+                "machine_target": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 26,
+                    "col_offset": 9,
+                    "end_lineno": 26,
+                    "end_col_offset": 10
+                  },
+                  "id": "b"
+                },
                 "value": {
                   "kind": "BinOp",
                   "span": {
@@ -376,7 +417,28 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 24,
+                "col_offset": 12,
+                "end_lineno": 24,
+                "end_col_offset": 13
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -456,6 +518,16 @@
                       "end_col_offset": 24
                     },
                     "target": "q",
+                    "machine_target": {
+                      "kind": "Name",
+                      "span": {
+                        "lineno": 33,
+                        "col_offset": 14,
+                        "end_lineno": 33,
+                        "end_col_offset": 15
+                      },
+                      "id": "q"
+                    },
                     "value": {
                       "kind": "BinOp",
                       "span": {
@@ -556,7 +628,28 @@
               "id": "q"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 30,
+                "col_offset": 20,
+                "end_lineno": 30,
+                "end_col_offset": 21
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -650,6 +743,16 @@
                   "end_col_offset": 21
                 },
                 "target": "n",
+                "machine_target": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 11,
+                    "end_lineno": 41,
+                    "end_col_offset": 12
+                  },
+                  "id": "n"
+                },
                 "value": {
                   "kind": "BinOp",
                   "span": {
@@ -777,7 +880,28 @@
               "id": "t"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 38,
+                "col_offset": 12,
+                "end_lineno": 38,
+                "end_col_offset": 13
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -850,6 +974,8 @@
                 },
                 "id": "max"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -873,6 +999,16 @@
                     "end_col_offset": 26
                   },
                   "target": "h",
+                  "machine_target": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 48,
+                      "col_offset": 16,
+                      "end_lineno": 48,
+                      "end_col_offset": 17
+                    },
+                    "id": "h"
+                  },
                   "value": {
                     "kind": "BinOp",
                     "span": {
@@ -974,7 +1110,28 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 46,
+                "col_offset": 15,
+                "end_lineno": 46,
+                "end_col_offset": 16
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1034,6 +1191,16 @@
                   "end_col_offset": 22
                 },
                 "target": "p",
+                "machine_target": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 54,
+                    "col_offset": 12,
+                    "end_lineno": 54,
+                    "end_col_offset": 13
+                  },
+                  "id": "p"
+                },
                 "value": {
                   "kind": "BinOp",
                   "span": {
@@ -1104,7 +1271,28 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 52,
+                "col_offset": 12,
+                "end_lineno": 52,
+                "end_col_offset": 13
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -1173,6 +1361,8 @@
                 },
                 "id": "sorted"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "GeneratorExp",
@@ -1383,7 +1573,46 @@
               "call_unsupported": null
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "a",
+              "span": {
+                "lineno": 57,
+                "col_offset": 20,
+                "end_lineno": 57,
+                "end_col_offset": 21
+              }
+            },
+            {
+              "arg": "b",
+              "span": {
+                "lineno": 57,
+                "col_offset": 23,
+                "end_lineno": 57,
+                "end_col_offset": 24
+              }
+            },
+            {
+              "arg": "c",
+              "span": {
+                "lineno": 57,
+                "col_offset": 26,
+                "end_lineno": 57,
+                "end_col_offset": 27
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

@@ -101,6 +101,8 @@
                     },
                     "id": "len"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -164,6 +166,8 @@
                 },
                 "id": "print"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -184,7 +188,73 @@
             }
           }
         ],
-        "try_unsupported": null
+        "try_unsupported": null,
+        "machine_handlers": [
+          {
+            "type": {
+              "kind": "Name",
+              "span": {
+                "lineno": 7,
+                "col_offset": 7,
+                "end_lineno": 7,
+                "end_col_offset": 16
+              },
+              "id": "TypeError"
+            },
+            "name": null,
+            "body": [
+              {
+                "kind": "Expr",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 4,
+                  "end_lineno": 8,
+                  "end_col_offset": 36
+                },
+                "value": {
+                  "kind": "Call",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 4,
+                    "end_lineno": 8,
+                    "end_col_offset": 36
+                  },
+                  "func": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 8,
+                      "col_offset": 4,
+                      "end_lineno": 8,
+                      "end_col_offset": 9
+                    },
+                    "id": "print"
+                  },
+                  "starargs": [],
+                  "kwargs": [],
+                  "args": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 8,
+                        "col_offset": 10,
+                        "end_lineno": 8,
+                        "end_col_offset": 35
+                      },
+                      "value": {
+                        "type": "str",
+                        "value": "not the builtin handler"
+                      }
+                    }
+                  ],
+                  "keywords": [],
+                  "call_unsupported": null
+                }
+              }
+            ]
+          }
+        ],
+        "machine_orelse": [],
+        "machine_finalbody": []
       }
     ]
   },

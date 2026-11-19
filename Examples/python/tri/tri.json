@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/tri/tri.py",
   "source_sha256": "293da5a33fcf1c8a28e6a60ecc2881f9e17661e674db78c9a26d38ba0eb790c3",
@@ -240,7 +240,28 @@
               "id": "total"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 1,
+                "col_offset": 8,
+                "end_lineno": 1,
+                "end_col_offset": 9
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

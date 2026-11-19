@@ -164,10 +164,67 @@
                 "end_col_offset": 18
               },
               "py_kind": "Starred:display",
-              "text": "[*a, n]"
+              "text": "[*a, n]",
+              "machine_kind": "List",
+              "machine_value": null,
+              "machine_elts": [
+                {
+                  "kind": "Unsupported",
+                  "span": {
+                    "lineno": 27,
+                    "col_offset": 12,
+                    "end_lineno": 27,
+                    "end_col_offset": 14
+                  },
+                  "py_kind": "Starred",
+                  "text": "*a",
+                  "machine_kind": "Starred",
+                  "machine_value": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 27,
+                      "col_offset": 13,
+                      "end_lineno": 27,
+                      "end_col_offset": 14
+                    },
+                    "id": "a"
+                  }
+                },
+                {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 27,
+                    "col_offset": 16,
+                    "end_lineno": 27,
+                    "end_col_offset": 17
+                  },
+                  "id": "n"
+                }
+              ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 20,
+                "col_offset": 13,
+                "end_lineno": 20,
+                "end_col_offset": 14
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -267,10 +324,67 @@
                 "end_col_offset": 18
               },
               "py_kind": "Starred:display",
-              "text": "[*a, n]"
+              "text": "[*a, n]",
+              "machine_kind": "List",
+              "machine_value": null,
+              "machine_elts": [
+                {
+                  "kind": "Unsupported",
+                  "span": {
+                    "lineno": 34,
+                    "col_offset": 12,
+                    "end_lineno": 34,
+                    "end_col_offset": 14
+                  },
+                  "py_kind": "Starred",
+                  "text": "*a",
+                  "machine_kind": "Starred",
+                  "machine_value": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 34,
+                      "col_offset": 13,
+                      "end_lineno": 34,
+                      "end_col_offset": 14
+                    },
+                    "id": "a"
+                  }
+                },
+                {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 34,
+                    "col_offset": 16,
+                    "end_lineno": 34,
+                    "end_col_offset": 17
+                  },
+                  "id": "n"
+                }
+              ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 30,
+                "col_offset": 14,
+                "end_lineno": 30,
+                "end_col_offset": 15
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -351,7 +465,28 @@
               ]
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 37,
+                "col_offset": 18,
+                "end_lineno": 37,
+                "end_col_offset": 19
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

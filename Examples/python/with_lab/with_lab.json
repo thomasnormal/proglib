@@ -89,7 +89,28 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 5,
+                    "col_offset": 18,
+                    "end_lineno": 5,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -162,7 +183,249 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 17,
+                    "end_lineno": 8,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 23,
+                    "end_lineno": 8,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 33,
+                    "end_lineno": 8,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 38,
+                    "end_lineno": 8,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 5,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 17
+            },
+            "name": "__enter__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 18,
+                  "end_lineno": 5,
+                  "end_col_offset": 22
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 8,
+                  "end_lineno": 6,
+                  "end_col_offset": 17
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 6,
+                    "col_offset": 15,
+                    "end_lineno": 6,
+                    "end_col_offset": 17
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "40"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 5,
+                    "col_offset": 18,
+                    "end_lineno": 5,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 8,
+              "col_offset": 4,
+              "end_lineno": 9,
+              "end_col_offset": 19
+            },
+            "name": "__exit__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 17,
+                  "end_lineno": 8,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "exc_type",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 23,
+                  "end_lineno": 8,
+                  "end_col_offset": 31
+                }
+              },
+              {
+                "arg": "exc",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 33,
+                  "end_lineno": 8,
+                  "end_col_offset": 36
+                }
+              },
+              {
+                "arg": "tb",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 38,
+                  "end_lineno": 8,
+                  "end_col_offset": 40
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 9,
+                  "col_offset": 8,
+                  "end_lineno": 9,
+                  "end_col_offset": 19
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 9,
+                    "col_offset": 15,
+                    "end_lineno": 9,
+                    "end_col_offset": 19
+                  },
+                  "value": {
+                    "type": "none"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 17,
+                    "end_lineno": 8,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 23,
+                    "end_lineno": 8,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 33,
+                    "end_lineno": 8,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 38,
+                    "end_lineno": 8,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -207,6 +470,8 @@
                     },
                     "id": "Marker"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -268,7 +533,18 @@
               }
             ]
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -311,6 +587,8 @@
                     },
                     "id": "Marker"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -343,7 +621,18 @@
               }
             ]
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -420,6 +709,8 @@
                     },
                     "id": "Marker"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -489,7 +780,18 @@
               "id": "value"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -532,6 +834,8 @@
                     },
                     "id": "Marker"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -557,6 +861,8 @@
                     },
                     "id": "Marker"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -589,7 +895,18 @@
               }
             ]
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "ClassDef",
@@ -635,7 +952,28 @@
                   "end_col_offset": 12
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 35,
+                    "col_offset": 17,
+                    "end_lineno": 35,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -682,7 +1020,28 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 38,
+                    "col_offset": 18,
+                    "end_lineno": 38,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -755,7 +1114,304 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 17,
+                    "end_lineno": 41,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 23,
+                    "end_lineno": 41,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 33,
+                    "end_lineno": 41,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 38,
+                    "end_lineno": 41,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 35,
+              "col_offset": 4,
+              "end_lineno": 36,
+              "end_col_offset": 12
+            },
+            "name": "__init__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 35,
+                  "col_offset": 17,
+                  "end_lineno": 35,
+                  "end_col_offset": 21
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Pass",
+                "span": {
+                  "lineno": 36,
+                  "col_offset": 8,
+                  "end_lineno": 36,
+                  "end_col_offset": 12
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 35,
+                    "col_offset": 17,
+                    "end_lineno": 35,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 38,
+              "col_offset": 4,
+              "end_lineno": 39,
+              "end_col_offset": 16
+            },
+            "name": "__enter__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 38,
+                  "col_offset": 18,
+                  "end_lineno": 38,
+                  "end_col_offset": 22
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 39,
+                  "col_offset": 8,
+                  "end_lineno": 39,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 39,
+                    "col_offset": 15,
+                    "end_lineno": 39,
+                    "end_col_offset": 16
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 38,
+                    "col_offset": 18,
+                    "end_lineno": 38,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 41,
+              "col_offset": 4,
+              "end_lineno": 42,
+              "end_col_offset": 19
+            },
+            "name": "__exit__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 41,
+                  "col_offset": 17,
+                  "end_lineno": 41,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "exc_type",
+                "span": {
+                  "lineno": 41,
+                  "col_offset": 23,
+                  "end_lineno": 41,
+                  "end_col_offset": 31
+                }
+              },
+              {
+                "arg": "exc",
+                "span": {
+                  "lineno": 41,
+                  "col_offset": 33,
+                  "end_lineno": 41,
+                  "end_col_offset": 36
+                }
+              },
+              {
+                "arg": "tb",
+                "span": {
+                  "lineno": 41,
+                  "col_offset": 38,
+                  "end_lineno": 41,
+                  "end_col_offset": 40
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 42,
+                  "col_offset": 8,
+                  "end_lineno": 42,
+                  "end_col_offset": 19
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 42,
+                    "col_offset": 15,
+                    "end_lineno": 42,
+                    "end_col_offset": 19
+                  },
+                  "value": {
+                    "type": "none"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 17,
+                    "end_lineno": 41,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 23,
+                    "end_lineno": 41,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 33,
+                    "end_lineno": 41,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 41,
+                    "col_offset": 38,
+                    "end_lineno": 41,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -800,6 +1456,8 @@
                     },
                     "id": "ExplicitInit"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -832,7 +1490,18 @@
               }
             ]
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -875,6 +1544,8 @@
                     },
                     "id": "Marker"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -930,7 +1601,18 @@
               }
             ]
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "FunctionDef",
@@ -973,6 +1655,8 @@
                     },
                     "id": "Marker"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -1037,7 +1721,18 @@
               }
             ]
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "ClassDef",
@@ -1096,7 +1791,28 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 61,
+                    "col_offset": 18,
+                    "end_lineno": 61,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -1170,7 +1886,250 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 17,
+                    "end_lineno": 64,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 23,
+                    "end_lineno": 64,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 33,
+                    "end_lineno": 64,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 38,
+                    "end_lineno": 64,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 61,
+              "col_offset": 4,
+              "end_lineno": 62,
+              "end_col_offset": 16
+            },
+            "name": "__enter__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 61,
+                  "col_offset": 18,
+                  "end_lineno": 61,
+                  "end_col_offset": 22
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 62,
+                  "col_offset": 8,
+                  "end_lineno": 62,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 62,
+                    "col_offset": 15,
+                    "end_lineno": 62,
+                    "end_col_offset": 16
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 61,
+                    "col_offset": 18,
+                    "end_lineno": 61,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 64,
+              "col_offset": 4,
+              "end_lineno": 65,
+              "end_col_offset": 19
+            },
+            "name": "__exit__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 64,
+                  "col_offset": 17,
+                  "end_lineno": 64,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "exc_type",
+                "span": {
+                  "lineno": 64,
+                  "col_offset": 23,
+                  "end_lineno": 64,
+                  "end_col_offset": 31
+                }
+              },
+              {
+                "arg": "exc",
+                "span": {
+                  "lineno": 64,
+                  "col_offset": 33,
+                  "end_lineno": 64,
+                  "end_col_offset": 36
+                }
+              },
+              {
+                "arg": "tb",
+                "span": {
+                  "lineno": 64,
+                  "col_offset": 38,
+                  "end_lineno": 64,
+                  "end_col_offset": 40
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 65,
+                  "col_offset": 8,
+                  "end_lineno": 65,
+                  "end_col_offset": 19
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 65,
+                    "col_offset": 15,
+                    "end_lineno": 65,
+                    "end_col_offset": 19
+                  },
+                  "value": {
+                    "type": "bool",
+                    "value": true
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 17,
+                    "end_lineno": 64,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 23,
+                    "end_lineno": 64,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 33,
+                    "end_lineno": 64,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 64,
+                    "col_offset": 38,
+                    "end_lineno": 64,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -1215,6 +2174,8 @@
                     },
                     "id": "SuppressingExit"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -1292,7 +2253,18 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "ClassDef",
@@ -1351,7 +2323,28 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 75,
+                    "col_offset": 18,
+                    "end_lineno": 75,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -1435,7 +2428,260 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 17,
+                    "end_lineno": 78,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 23,
+                    "end_lineno": 78,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 33,
+                    "end_lineno": 78,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 38,
+                    "end_lineno": 78,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 75,
+              "col_offset": 4,
+              "end_lineno": 76,
+              "end_col_offset": 16
+            },
+            "name": "__enter__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 75,
+                  "col_offset": 18,
+                  "end_lineno": 75,
+                  "end_col_offset": 22
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 76,
+                  "col_offset": 8,
+                  "end_lineno": 76,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 76,
+                    "col_offset": 15,
+                    "end_lineno": 76,
+                    "end_col_offset": 16
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 75,
+                    "col_offset": 18,
+                    "end_lineno": 75,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 78,
+              "col_offset": 4,
+              "end_lineno": 79,
+              "end_col_offset": 24
+            },
+            "name": "__exit__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 78,
+                  "col_offset": 17,
+                  "end_lineno": 78,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "exc_type",
+                "span": {
+                  "lineno": 78,
+                  "col_offset": 23,
+                  "end_lineno": 78,
+                  "end_col_offset": 31
+                }
+              },
+              {
+                "arg": "exc",
+                "span": {
+                  "lineno": 78,
+                  "col_offset": 33,
+                  "end_lineno": 78,
+                  "end_col_offset": 36
+                }
+              },
+              {
+                "arg": "tb",
+                "span": {
+                  "lineno": 78,
+                  "col_offset": 38,
+                  "end_lineno": 78,
+                  "end_col_offset": 40
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 79,
+                  "col_offset": 8,
+                  "end_lineno": 79,
+                  "end_col_offset": 24
+                },
+                "value": {
+                  "kind": "UnaryOp",
+                  "span": {
+                    "lineno": 79,
+                    "col_offset": 15,
+                    "end_lineno": 79,
+                    "end_col_offset": 24
+                  },
+                  "op": "Not",
+                  "operand": {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 79,
+                      "col_offset": 19,
+                      "end_lineno": 79,
+                      "end_col_offset": 24
+                    },
+                    "value": {
+                      "type": "bool",
+                      "value": false
+                    }
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 17,
+                    "end_lineno": 78,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 23,
+                    "end_lineno": 78,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 33,
+                    "end_lineno": 78,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 78,
+                    "col_offset": 38,
+                    "end_lineno": 78,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -1480,6 +2726,8 @@
                     },
                     "id": "ComputedSuppressingExit"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -1557,7 +2805,18 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "ClassDef",
@@ -1616,7 +2875,28 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 89,
+                    "col_offset": 18,
+                    "end_lineno": 89,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -1713,7 +2993,273 @@
                   ]
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 17,
+                    "end_lineno": 92,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 23,
+                    "end_lineno": 92,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 33,
+                    "end_lineno": 92,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 38,
+                    "end_lineno": 92,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 89,
+              "col_offset": 4,
+              "end_lineno": 90,
+              "end_col_offset": 16
+            },
+            "name": "__enter__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 89,
+                  "col_offset": 18,
+                  "end_lineno": 89,
+                  "end_col_offset": 22
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 90,
+                  "col_offset": 8,
+                  "end_lineno": 90,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 90,
+                    "col_offset": 15,
+                    "end_lineno": 90,
+                    "end_col_offset": 16
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 89,
+                    "col_offset": 18,
+                    "end_lineno": 89,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 92,
+              "col_offset": 4,
+              "end_lineno": 93,
+              "end_col_offset": 35
+            },
+            "name": "__exit__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 92,
+                  "col_offset": 17,
+                  "end_lineno": 92,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "exc_type",
+                "span": {
+                  "lineno": 92,
+                  "col_offset": 23,
+                  "end_lineno": 92,
+                  "end_col_offset": 31
+                }
+              },
+              {
+                "arg": "exc",
+                "span": {
+                  "lineno": 92,
+                  "col_offset": 33,
+                  "end_lineno": 92,
+                  "end_col_offset": 36
+                }
+              },
+              {
+                "arg": "tb",
+                "span": {
+                  "lineno": 92,
+                  "col_offset": 38,
+                  "end_lineno": 92,
+                  "end_col_offset": 40
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 93,
+                  "col_offset": 8,
+                  "end_lineno": 93,
+                  "end_col_offset": 35
+                },
+                "value": {
+                  "kind": "Compare",
+                  "span": {
+                    "lineno": 93,
+                    "col_offset": 15,
+                    "end_lineno": 93,
+                    "end_col_offset": 35
+                  },
+                  "left": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 93,
+                      "col_offset": 15,
+                      "end_lineno": 93,
+                      "end_col_offset": 23
+                    },
+                    "id": "exc_type"
+                  },
+                  "ops": [
+                    "IsNot"
+                  ],
+                  "comparators": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 93,
+                        "col_offset": 31,
+                        "end_lineno": 93,
+                        "end_col_offset": 35
+                      },
+                      "value": {
+                        "type": "none"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 17,
+                    "end_lineno": 92,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 23,
+                    "end_lineno": 92,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 33,
+                    "end_lineno": 92,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 92,
+                    "col_offset": 38,
+                    "end_lineno": 92,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -1758,6 +3304,8 @@
                     },
                     "id": "ArgumentSensitiveExit"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -1835,7 +3383,18 @@
               }
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "ClassDef",
@@ -1894,7 +3453,28 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 103,
+                    "col_offset": 18,
+                    "end_lineno": 103,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -1967,7 +3547,55 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 17,
+                    "end_lineno": 106,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 23,
+                    "end_lineno": 106,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 33,
+                    "end_lineno": 106,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 38,
+                    "end_lineno": 106,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           },
           {
             "kind": "FunctionDef",
@@ -2014,7 +3642,290 @@
                   }
                 }
               }
-            ]
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 109,
+                    "col_offset": 17,
+                    "end_lineno": 109,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          }
+        ],
+        "machine_bases": [],
+        "machine_keywords": [],
+        "machine_decorators": [],
+        "machine_body": [
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 103,
+              "col_offset": 4,
+              "end_lineno": 104,
+              "end_col_offset": 16
+            },
+            "name": "__enter__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 103,
+                  "col_offset": 18,
+                  "end_lineno": 103,
+                  "end_col_offset": 22
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 104,
+                  "col_offset": 8,
+                  "end_lineno": 104,
+                  "end_col_offset": 16
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 104,
+                    "col_offset": 15,
+                    "end_lineno": 104,
+                    "end_col_offset": 16
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 103,
+                    "col_offset": 18,
+                    "end_lineno": 103,
+                    "end_col_offset": 22
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 106,
+              "col_offset": 4,
+              "end_lineno": 107,
+              "end_col_offset": 19
+            },
+            "name": "__exit__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 106,
+                  "col_offset": 17,
+                  "end_lineno": 106,
+                  "end_col_offset": 21
+                }
+              },
+              {
+                "arg": "exc_type",
+                "span": {
+                  "lineno": 106,
+                  "col_offset": 23,
+                  "end_lineno": 106,
+                  "end_col_offset": 31
+                }
+              },
+              {
+                "arg": "exc",
+                "span": {
+                  "lineno": 106,
+                  "col_offset": 33,
+                  "end_lineno": 106,
+                  "end_col_offset": 36
+                }
+              },
+              {
+                "arg": "tb",
+                "span": {
+                  "lineno": 106,
+                  "col_offset": 38,
+                  "end_lineno": 106,
+                  "end_col_offset": 40
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 107,
+                  "col_offset": 8,
+                  "end_lineno": 107,
+                  "end_col_offset": 19
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 107,
+                    "col_offset": 15,
+                    "end_lineno": 107,
+                    "end_col_offset": 19
+                  },
+                  "value": {
+                    "type": "none"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 17,
+                    "end_lineno": 106,
+                    "end_col_offset": 21
+                  }
+                },
+                {
+                  "arg": "exc_type",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 23,
+                    "end_lineno": 106,
+                    "end_col_offset": 31
+                  }
+                },
+                {
+                  "arg": "exc",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 33,
+                    "end_lineno": 106,
+                    "end_col_offset": 36
+                  }
+                },
+                {
+                  "arg": "tb",
+                  "span": {
+                    "lineno": 106,
+                    "col_offset": 38,
+                    "end_lineno": 106,
+                    "end_col_offset": 40
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
+          },
+          {
+            "kind": "FunctionDef",
+            "span": {
+              "lineno": 109,
+              "col_offset": 4,
+              "end_lineno": 110,
+              "end_col_offset": 30
+            },
+            "name": "__repr__",
+            "args": [
+              {
+                "arg": "self",
+                "span": {
+                  "lineno": 109,
+                  "col_offset": 17,
+                  "end_lineno": 109,
+                  "end_col_offset": 21
+                }
+              }
+            ],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Return",
+                "span": {
+                  "lineno": 110,
+                  "col_offset": 8,
+                  "end_lineno": 110,
+                  "end_col_offset": 30
+                },
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 110,
+                    "col_offset": 15,
+                    "end_lineno": 110,
+                    "end_col_offset": 30
+                  },
+                  "value": {
+                    "type": "str",
+                    "value": "ExtraDunder()"
+                  }
+                }
+              }
+            ],
+            "machine_arguments": {
+              "posonlyargs": [],
+              "args": [
+                {
+                  "arg": "self",
+                  "span": {
+                    "lineno": 109,
+                    "col_offset": 17,
+                    "end_lineno": 109,
+                    "end_col_offset": 21
+                  }
+                }
+              ],
+              "vararg": null,
+              "kwonlyargs": [],
+              "kw_defaults": [],
+              "kwarg": null,
+              "defaults": []
+            },
+            "machine_decorators": [],
+            "machine_returns": null
           }
         ]
       },
@@ -2059,6 +3970,8 @@
                     },
                     "id": "ExtraDunder"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [],
                   "keywords": [],
                   "call_unsupported": null
@@ -2091,7 +4004,18 @@
               }
             ]
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },

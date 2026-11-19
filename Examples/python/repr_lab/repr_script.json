@@ -36,6 +36,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -55,6 +57,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -104,6 +108,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -123,6 +129,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "List",
@@ -249,6 +257,8 @@
             },
             "attr": "append"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Name",
@@ -291,6 +301,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Call",
@@ -310,6 +322,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -379,6 +393,8 @@
                 },
                 "id": "print"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Name",
@@ -414,7 +430,28 @@
               "id": "value"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "value",
+              "span": {
+                "lineno": 8,
+                "col_offset": 11,
+                "end_lineno": 8,
+                "end_col_offset": 16
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       },
       {
         "kind": "Try",
@@ -451,6 +488,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -470,6 +509,8 @@
                     },
                     "id": "effect"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -506,6 +547,8 @@
                     },
                     "id": "effect"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -560,6 +603,8 @@
                 },
                 "id": "print"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -580,7 +625,73 @@
             }
           }
         ],
-        "try_unsupported": null
+        "try_unsupported": null,
+        "machine_handlers": [
+          {
+            "type": {
+              "kind": "Name",
+              "span": {
+                "lineno": 15,
+                "col_offset": 7,
+                "end_lineno": 15,
+                "end_col_offset": 16
+              },
+              "id": "TypeError"
+            },
+            "name": null,
+            "body": [
+              {
+                "kind": "Expr",
+                "span": {
+                  "lineno": 16,
+                  "col_offset": 4,
+                  "end_lineno": 16,
+                  "end_col_offset": 34
+                },
+                "value": {
+                  "kind": "Call",
+                  "span": {
+                    "lineno": 16,
+                    "col_offset": 4,
+                    "end_lineno": 16,
+                    "end_col_offset": 34
+                  },
+                  "func": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 16,
+                      "col_offset": 4,
+                      "end_lineno": 16,
+                      "end_col_offset": 9
+                    },
+                    "id": "print"
+                  },
+                  "starargs": [],
+                  "kwargs": [],
+                  "args": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 16,
+                        "col_offset": 10,
+                        "end_lineno": 16,
+                        "end_col_offset": 33
+                      },
+                      "value": {
+                        "type": "str",
+                        "value": "arity after arguments"
+                      }
+                    }
+                  ],
+                  "keywords": [],
+                  "call_unsupported": null
+                }
+              }
+            ]
+          }
+        ],
+        "machine_orelse": [],
+        "machine_finalbody": []
       },
       {
         "kind": "Try",
@@ -617,6 +728,8 @@
                 },
                 "id": "repr"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Call",
@@ -636,6 +749,8 @@
                     },
                     "id": "effect"
                   },
+                  "starargs": [],
+                  "kwargs": [],
                   "args": [
                     {
                       "kind": "Constant",
@@ -726,6 +841,8 @@
                 },
                 "id": "print"
               },
+              "starargs": [],
+              "kwargs": [],
               "args": [
                 {
                   "kind": "Constant",
@@ -746,7 +863,73 @@
             }
           }
         ],
-        "try_unsupported": null
+        "try_unsupported": null,
+        "machine_handlers": [
+          {
+            "type": {
+              "kind": "Name",
+              "span": {
+                "lineno": 20,
+                "col_offset": 7,
+                "end_lineno": 20,
+                "end_col_offset": 24
+              },
+              "id": "ZeroDivisionError"
+            },
+            "name": null,
+            "body": [
+              {
+                "kind": "Expr",
+                "span": {
+                  "lineno": 21,
+                  "col_offset": 4,
+                  "end_lineno": 21,
+                  "end_col_offset": 40
+                },
+                "value": {
+                  "kind": "Call",
+                  "span": {
+                    "lineno": 21,
+                    "col_offset": 4,
+                    "end_lineno": 21,
+                    "end_col_offset": 40
+                  },
+                  "func": {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 21,
+                      "col_offset": 4,
+                      "end_lineno": 21,
+                      "end_col_offset": 9
+                    },
+                    "id": "print"
+                  },
+                  "starargs": [],
+                  "kwargs": [],
+                  "args": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 21,
+                        "col_offset": 10,
+                        "end_lineno": 21,
+                        "end_col_offset": 39
+                      },
+                      "value": {
+                        "type": "str",
+                        "value": "argument error before arity"
+                      }
+                    }
+                  ],
+                  "keywords": [],
+                  "call_unsupported": null
+                }
+              }
+            ]
+          }
+        ],
+        "machine_orelse": [],
+        "machine_finalbody": []
       }
     ]
   },

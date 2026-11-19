@@ -3,7 +3,7 @@
   "language": "python",
   "frontend": {
     "name": "cpython-ast",
-    "version": "3.9.19"
+    "version": "3.9.25"
   },
   "source_file": "Examples/python/tut_04/tut_04.py",
   "source_sha256": "873039332617eac16014e985625e308b715c722c5b725f8b47e709b1ca0c2fb9",
@@ -229,7 +229,28 @@
               "id": "r"
             }
           }
-        ]
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [
+            {
+              "arg": "n",
+              "span": {
+                "lineno": 1,
+                "col_offset": 9,
+                "end_lineno": 1,
+                "end_col_offset": 10
+              }
+            }
+          ],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
       }
     ]
   },
