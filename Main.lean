@@ -817,7 +817,7 @@ def relationEventJson (path : String) (stdout : List String) (event : Machine.RE
       let cls := match error.errorClass with
         | .recursion => "RecursionError" | .memory => "MemoryError"
         | .name => "NameError" | .unboundLocal => "UnboundLocalError"
-        | .type => "TypeError" | .index => "IndexError"
+        | .type => "TypeError" | .index => "IndexError" | .attribute => "AttributeError"
         | .runtime => "RuntimeError"
       "{\"path\":" ++ jsonStr path ++ ",\"status\":\"exn\",\"exit\":1,\"exn\":"
         ++ jsonStr cls ++ ",\"stdout\":" ++ rendered ++ "}"
