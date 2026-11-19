@@ -140,9 +140,9 @@ inductive RKont where
   | ifBranch (body : List RStmt) (orelse : List RStmt) (remaining : List RStmt)
   | whileBranch (test : Expr) (body : List RStmt) (orelse : List RStmt)
       (remaining : List RStmt) (span : Span)
-  | forIter (target : String) (body : List RStmt) (orelse : List RStmt)
+  | forIter (target : Expr) (body : List RStmt) (orelse : List RStmt)
       (remaining : List RStmt)
-  | forNext (target : String) (values : List RVal) (body : List RStmt)
+  | forNext (target : Expr) (values : List RVal) (body : List RStmt)
       (orelse : List RStmt) (remaining : List RStmt)
   | ifExpression (body : Expr) (orelse : Expr) (continuation : RKont)
   | callCallee (args : List Expr) (keywords : List (String × Expr)) (continuation : RKont)
@@ -1162,12 +1162,9 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .whileStmt test body orelse span =>
               some (.tau, config.setControl
                 (.evaluate test (.whileBranch test body.toList orelse.toList rest span)))
-          | .forStmt (.name target _) iter body orelse _ =>
+          | .forStmt target iter body orelse _ =>
               some (.tau, config.setControl
                 (.evaluate iter (.forIter target body.toList orelse.toList rest)))
-          | .forStmt _ _ _ _ _ =>
-              some (.event (.refuse "machine for target"),
-                config.finish (.refuse "machine for target"))
           | .global names _ =>
               let updated := { frame with control := .statements rest }
               some (.tau, config.setTop { updated with
@@ -1383,10 +1380,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           match values with
           | [] => some (.tau, config.setControl (.statements (orelse ++ remaining)))
           | next :: restValues =>
-              let nextFrame := rAssignedFrame frame target next []
-              some (.tau, config.setTop { nextFrame with
-                  control := .statements body,
-                  completion := some (.forNext target restValues body orelse remaining) })
+              match rPatternValues target next with
+              | some bindings =>
+                  let locals := bindings.foldl
+                    (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
+                  some (.tau, config.setTop { frame with
+                    control := .statements body,
+                    locals := locals,
+                    completion := some (.forNext target restValues body orelse remaining) })
+              | none => some (.tau, config.setControl (.refusing "machine for target"))
       | .continueValue value (.ifExpression body orelse continuation) =>
           some (.tau, config.setControl
             (.evaluate (if rTruthy value then body else orelse) continuation))
