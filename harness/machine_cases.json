@@ -527,12 +527,12 @@
   {
     "source": "harness/scripts/machine_async_for_boundary.py",
     "envelope": "harness/scripts/machine_async_for_boundary.json",
-    "expect": "match"
+    "expect": "unsupported"
   },
   {
     "source": "harness/scripts/machine_async_with_boundary.py",
     "envelope": "harness/scripts/machine_async_with_boundary.json",
-    "expect": "match"
+    "expect": "unsupported"
   },
   {
     "source": "harness/scripts/machine_call_star_boundary.py",
@@ -552,11 +552,16 @@
   {
     "source": "harness/scripts/machine_await_boundary.py",
     "envelope": "harness/scripts/machine_await_boundary.json",
-    "expect": "match"
+    "expect": "unsupported"
   },
   {
     "source": "harness/scripts/machine_lambda_boundary.py",
     "envelope": "harness/scripts/machine_lambda_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_async_function_boundary.py",
+    "envelope": "harness/scripts/machine_async_function_boundary.json",
     "expect": "unsupported"
   }
 ]
