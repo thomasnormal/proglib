@@ -553,10 +553,15 @@ def coreMemTimeZeroProcWrites : PProcess → List String
   | .alwaysComb body | .alwaysLatch body | .initial body => coreMemStmtWrites body
   | _ => []
 
+def coreMemTimeZeroSourceWrites : PProcess → List String
+  | .assign target _ => [target]
+  | .assignL (.ident target) _ => [target]
+  | p => coreMemTimeZeroProcWrites p
+
 def coreMemSourceWrittenAtTimeZero (name : String) : List PProcess → Bool
   | [] => false
   | p :: rest =>
-      (coreMemTimeZeroProcWrites p).contains name ||
+      (coreMemTimeZeroSourceWrites p).contains name ||
         coreMemSourceWrittenAtTimeZero name rest
 
 def coreMemFirstTimeZeroEventSource (sources : List String) (processes : List PProcess) :
@@ -574,14 +579,14 @@ def coreMemTimeZeroEventSourceViol (d : PDesign) (generated : List PProcess) :
   | some source =>
       if coreMemSourceWrittenAtTimeZero source processes then
         some ("Event:time-zero",
-          s!"9.2.2.2/9.6: event source '{source}' is driven by an initial/always_comb/always_latch activation at time zero; canonical E requires the settled start state")
+          s!"4.7/9.4.2: event source '{source}' is driven by an initial/always_comb/always_latch or continuous-assign activation at time zero; canonical E refuses the unresolved scheduling race")
       else none
   | none =>
       match coreMemFirstTimeZeroEventSource (coreMemEventSources processes) processes with
       | none => none
       | some source =>
           some ("Event:time-zero",
-            s!"9.2.2.2/9.6: event source '{source}' is driven by an initial/always_comb/always_latch activation at time zero; canonical E requires the settled start state")
+            s!"4.7/9.4.2: event source '{source}' is driven by an initial/always_comb/always_latch or continuous-assign activation at time zero; canonical E refuses the unresolved scheduling race")
 
 def coreMemClockResetViol (_d : PDesign) (_generated : List PProcess) :
     Option (String × String) :=

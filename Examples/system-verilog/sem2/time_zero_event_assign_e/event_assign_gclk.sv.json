@@ -1,0 +1,166 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "event_assign_gclk",
+  "source_files": [
+    {
+      "path": "/scratch/thomas-ahle/wt/ls-sv/Examples/system-verilog/sem2/time_zero_event_assign_e/event_assign_gclk.sv",
+      "sha256": "38e07e1abcc6aa6c139d69a158e7a4c931fc65da7348c9ac9eda9e5fd4a3ed60"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 6,
+          "end_col": 10
+        },
+        "name": "event_assign_gclk",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 38,
+              "end_line": 2,
+              "end_col": 39
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 54,
+              "end_line": 2,
+              "end_col": 55
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 9,
+              "end_line": 3,
+              "end_col": 10
+            },
+            "name": "g",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 4,
+              "col": 10,
+              "end_line": 4,
+              "end_col": 18
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 4,
+                "col": 10,
+                "end_line": 4,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "g"
+            },
+            "value": {
+              "kind": "Literal",
+              "span": {
+                "line": 4,
+                "col": 14,
+                "end_line": 4,
+                "end_col": 18
+              },
+              "width": 1,
+              "bits": "1"
+            }
+          },
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 5,
+              "col": 3,
+              "end_line": 5,
+              "end_col": 33
+            },
+            "style": "always_ff",
+            "clock": "g",
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 5,
+                "col": 26,
+                "end_line": 5,
+                "end_col": 33
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 26,
+                  "end_line": 5,
+                  "end_col": 27
+                },
+                "width": 1,
+                "name": "q"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 31,
+                  "end_line": 5,
+                  "end_col": 32
+                },
+                "width": 1,
+                "name": "d"
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
