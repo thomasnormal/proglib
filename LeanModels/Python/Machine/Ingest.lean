@@ -389,6 +389,8 @@ partial def mStmtToStmt : MStmt → RStmt
       | _ => .unsupported "Assign" "machine multiple-target assignment" span
   | .unpackAssign before star after value span =>
       .unpackAssign before star after (mExprToExpr value) span
+  | .augAssign target op value span =>
+      .augAssign (mExprToExpr target) op (mExprToExpr value) span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
@@ -406,7 +408,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .global names span => .global names span
   | .nonlocal names span => .nonlocal names span
   | .unsupported kind span => .unsupported kind "machine ingestion frontier" span
-  | .augAssign _ _ _ span | .annAssign _ _ _ _ span | .delete _ span
+  | .annAssign _ _ _ _ span | .delete _ span
   | .classDef _ _ _ _ _ span | .import _ span
   | .importFrom _ _ _ span | .raise _ _ span
   | .tryStmt _ _ _ _ span | .withStmt _ _ _ span | .brk span | .cont span =>

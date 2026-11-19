@@ -32,6 +32,7 @@ inductive RStmt where
   | assign (target : Expr) (value : Expr) (span : Span)
   | unpackAssign (before : Array String) (star : String) (after : Array String)
       (value : Expr) (span : Span)
+  | augAssign (target : Expr) (op : BinOp) (value : Expr) (span : Span)
   | ifStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | whileStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | forStmt (target : Expr) (iter : Expr) (body : Array RStmt) (orelse : Array RStmt)
@@ -120,6 +121,8 @@ inductive RKont where
   | assignPattern (target : Expr) (remaining : List RStmt)
   | assignUnpack (before : Array String) (star : String) (after : Array String)
       (remaining : List RStmt)
+  | augAssignLeft (name : String) (op : BinOp) (value : Expr) (remaining : List RStmt)
+  | augAssignRight (left : RVal) (name : String) (op : BinOp) (remaining : List RStmt)
   | assignSubscriptReceiver (receiver : Expr) (index : Expr) (remaining : List RStmt)
   | assignSubscriptIndex (value : RVal) (index : Expr) (remaining : List RStmt)
   | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
@@ -1144,6 +1147,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .unpackAssign before star after value _ =>
               some (.tau, config.setControl
                 (.evaluate value (.assignUnpack before star after rest)))
+          | .augAssign (.name name span) op value _ =>
+              some (.tau, config.setControl
+                (.evaluate (.name name span)
+                  (.augAssignLeft name op value rest)))
+          | .augAssign _ _ _ _ =>
+              some (.event (.refuse "machine augmented assignment target"),
+                config.finish (.refuse "machine augmented assignment target"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
@@ -1323,6 +1333,19 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           match rAssignUnpack config.heap frame before star after value remaining with
           | some updated => some (.tau, config.setTop updated)
           | none => some (.tau, config.setControl (.refusing "machine starred assignment"))
+      | .continueValue left (.augAssignLeft name op value remaining) =>
+          some (.tau, config.setControl (.evaluate value (.augAssignRight left name op remaining)))
+      | .continueValue right (.augAssignRight left name op remaining) =>
+          match rEvalBinOp op left right with
+          | .ok result =>
+              let next := config.setTop (rAssignedFrame frame name result remaining)
+              if config.frames.tail.isEmpty then
+                some (.tau, next.setModules frame.module name result)
+              else
+                some (.tau, next)
+          | .exn _ => some (.tau, config.setControl (.refusing "machine augmented assignment"))
+          | .unsupported reason => some (.tau, config.setControl (.refusing reason))
+          | .timeout => some (.tau, config.setControl (.refusing "machine augmented assignment"))
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue value (.unaryValue op continuation) =>
