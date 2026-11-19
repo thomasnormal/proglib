@@ -1,0 +1,93 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_delete_subscript_missing.py",
+  "source_sha256": "598c0592fc4db433cada780fa6e2fe2ac251c06fa8c2879537d38bd4d13b13a9",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 8
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 2
+            },
+            "id": "xs"
+          }
+        ],
+        "value": {
+          "kind": "List",
+          "span": {
+            "lineno": 1,
+            "col_offset": 5,
+            "end_lineno": 1,
+            "end_col_offset": 8
+          },
+          "elts": [
+            {
+              "kind": "Constant",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 7
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "kind": "DeleteSubscript",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 9
+        },
+        "recv": {
+          "kind": "Name",
+          "span": {
+            "lineno": 2,
+            "col_offset": 4,
+            "end_lineno": 2,
+            "end_col_offset": 6
+          },
+          "id": "xs"
+        },
+        "key": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 2,
+            "col_offset": 7,
+            "end_lineno": 2,
+            "end_col_offset": 8
+          },
+          "value": {
+            "type": "int",
+            "repr": "4"
+          }
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
