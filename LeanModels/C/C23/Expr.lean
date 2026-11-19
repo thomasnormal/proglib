@@ -574,6 +574,14 @@ def Layout.fieldOffAt (layout : Layout) (base : Expr) (field : String) :
   (directDeclId base).bind (fun did => layout.fieldOffDecl did field)
     |>.orElse (fun _ => layout.fieldOff base.ty field)
 
+/-- Resolve a member offset from an object's declaration identity before the
+legacy type-keyed table.  Aggregate initialization has no base expression, so
+its declaration identity is passed explicitly. -/
+def Layout.fieldOffDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (ty field : String) : Option Nat :=
+  decl.bind (fun did => layout.fieldOffDecl did field)
+    |>.orElse (fun _ => layout.fieldOff ty field)
+
 /-- Resolve a member extent from parser-native facts, then from the declared
 field type, with the legacy field-size table as the final fallback. -/
 def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field fieldTy : CType)
