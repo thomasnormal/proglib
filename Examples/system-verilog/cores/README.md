@@ -926,6 +926,22 @@ accepts it and produces the dynamic member rows `00011000`, `00100100`,
 The refusal is therefore retained exactly in E, with no simulator value
 substituted for the unsupported node.
 
+## 2026-11-20 generated unpacked target wall
+
+The clean-room source `darkriscv/walls/nested_unpacked_target.sv` exercises the
+generated two-rank procedural target `weights[row][col]` under IEEE 1800-2023
+§§7.4, 10.4, and 27.4.  The source-shaped target is retained in its generate
+body.  Canonical E reaches the independent storage boundary first and reports
+`decl 'weights': nested unpacked memory rank outside E (UnpackedDecl:rank)`.
+The executable guard is `nested_unpacked_target_probe.lean`, so no separate
+assignment-target refusal is claimed for this fixture.
+
+Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all six rows.  The output
+is `xxxxxxxx`, `00000000`, `00000000`, `10100101`, `xxxxxxxx`, and `zzzzzzzz`
+through reset, writes, and x/z data.  The envelope regenerates byte-identically
+from the checked-in source and the target remains behind the measured rank
+boundary.
+
 ## 2026-11-20 dynamic member indexed-range wall
 
 The clean-room source `darkriscv/walls/member_indexed_range.sv` isolates the
