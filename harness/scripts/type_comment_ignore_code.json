@@ -5,8 +5,8 @@
     "name": "cpython-ast",
     "version": "3.9.25"
   },
-  "source_file": "harness/scripts/machine_type_ignore_boundary.py",
-  "source_sha256": "73606746fed34eec7d6f63570a3580ad6e502b6e18c688e23959a93eaca4199a",
+  "source_file": "harness/scripts/type_comment_ignore_code.py",
+  "source_sha256": "37a97ad79e2d102fafc484105ba27eabbe91c8ff8dfdb8207b77a985d7d17cda",
   "module": {
     "kind": "Module",
     "body": [
@@ -27,7 +27,8 @@
               "end_lineno": 1,
               "end_col_offset": 1
             },
-            "id": "x"
+            "id": "x",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -68,34 +69,27 @@
               "end_lineno": 2,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
           "args": [
             {
-              "kind": "Constant",
+              "kind": "Name",
               "span": {
                 "lineno": 2,
                 "col_offset": 6,
                 "end_lineno": 2,
                 "end_col_offset": 7
               },
-              "value": {
-                "type": "int",
-                "repr": "0"
-              }
+              "id": "x",
+              "machine_context": "Load"
             }
           ],
           "keywords": [],
           "call_unsupported": null
         }
-      }
-    ],
-    "machine_type_ignores": [
-      {
-        "lineno": 1,
-        "tag": "[assignment]"
       }
     ]
   },

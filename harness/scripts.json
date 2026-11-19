@@ -752,5 +752,25 @@
     "file": "harness/scripts/machine_unbound_local_delete.py",
     "expect": "match",
     "note": "Static local binding makes a delete before assignment raise UnboundLocalError."
+  },
+  {
+    "file": "harness/scripts/type_comment_aug.py",
+    "expect": "match",
+    "note": "A type comment after an augmented assignment: CPython's run-time parse ignores it (the type-comment grammar would reject it)."
+  },
+  {
+    "file": "harness/scripts/type_comment_ignore_code.py",
+    "expect": "match",
+    "note": "A `# type: ignore[code]` comment changes nothing at run time."
+  },
+  {
+    "file": "harness/scripts/type_comment_malformed.py",
+    "expect": "match",
+    "note": "Malformed and misplaced type comments change nothing at run time."
+  },
+  {
+    "file": "harness/scripts/type_comment_signature.py",
+    "expect": "match",
+    "note": "Argument and signature type comments change nothing at run time."
   }
 ]

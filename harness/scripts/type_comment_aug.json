@@ -5,8 +5,8 @@
     "name": "cpython-ast",
     "version": "3.9.25"
   },
-  "source_file": "harness/scripts/machine_type_comment_boundary.py",
-  "source_sha256": "898d373824de76de73dbd2899fb06cd87976be36b0de27ebf2780ffaf1b22f87",
+  "source_file": "harness/scripts/type_comment_aug.py",
+  "source_sha256": "c1bdad76e38eaac2e01e86b46d6e3a4cce0ee8f229bfbf848d93bb7f68c63e91",
   "module": {
     "kind": "Module",
     "body": [
@@ -16,7 +16,7 @@
           "lineno": 1,
           "col_offset": 0,
           "end_lineno": 1,
-          "end_col_offset": 18
+          "end_col_offset": 5
         },
         "targets": [
           {
@@ -27,7 +27,8 @@
               "end_lineno": 1,
               "end_col_offset": 1
             },
-            "id": "x"
+            "id": "x",
+            "machine_context": "Store"
           }
         ],
         "value": {
@@ -42,119 +43,82 @@
             "type": "int",
             "repr": "1"
           }
-        },
-        "machine_type_comment": "int"
+        }
       },
       {
-        "kind": "For",
+        "kind": "AugAssign",
         "span": {
           "lineno": 2,
           "col_offset": 0,
-          "end_lineno": 3,
-          "end_col_offset": 8
+          "end_lineno": 2,
+          "end_col_offset": 6
         },
         "target": {
           "kind": "Name",
           "span": {
             "lineno": 2,
-            "col_offset": 4,
+            "col_offset": 0,
             "end_lineno": 2,
-            "end_col_offset": 9
+            "end_col_offset": 1
           },
-          "id": "value"
+          "id": "x",
+          "machine_context": "Store"
         },
-        "iter": {
-          "kind": "Tuple",
+        "op": "Add",
+        "value": {
+          "kind": "Constant",
           "span": {
             "lineno": 2,
-            "col_offset": 13,
+            "col_offset": 5,
             "end_lineno": 2,
-            "end_col_offset": 19
+            "end_col_offset": 6
           },
-          "elts": [
-            {
-              "kind": "Constant",
-              "span": {
-                "lineno": 2,
-                "col_offset": 14,
-                "end_lineno": 2,
-                "end_col_offset": 15
-              },
-              "value": {
-                "type": "int",
-                "repr": "1"
-              }
-            },
-            {
-              "kind": "Constant",
-              "span": {
-                "lineno": 2,
-                "col_offset": 17,
-                "end_lineno": 2,
-                "end_col_offset": 18
-              },
-              "value": {
-                "type": "int",
-                "repr": "2"
-              }
-            }
-          ]
-        },
-        "body": [
-          {
-            "kind": "Pass",
-            "span": {
-              "lineno": 3,
-              "col_offset": 4,
-              "end_lineno": 3,
-              "end_col_offset": 8
-            }
+          "value": {
+            "type": "int",
+            "repr": "1"
           }
-        ],
-        "orelse": [],
-        "machine_type_comment": "int"
+        }
       },
       {
         "kind": "Expr",
         "span": {
-          "lineno": 4,
+          "lineno": 3,
           "col_offset": 0,
-          "end_lineno": 4,
+          "end_lineno": 3,
           "end_col_offset": 8
         },
         "value": {
           "kind": "Call",
           "span": {
-            "lineno": 4,
+            "lineno": 3,
             "col_offset": 0,
-            "end_lineno": 4,
+            "end_lineno": 3,
             "end_col_offset": 8
           },
           "func": {
             "kind": "Name",
             "span": {
-              "lineno": 4,
+              "lineno": 3,
               "col_offset": 0,
-              "end_lineno": 4,
+              "end_lineno": 3,
               "end_col_offset": 5
             },
-            "id": "print"
+            "id": "print",
+            "machine_context": "Load"
           },
           "starargs": [],
           "kwargs": [],
           "args": [
             {
-              "kind": "Constant",
+              "kind": "Name",
               "span": {
-                "lineno": 4,
+                "lineno": 3,
                 "col_offset": 6,
-                "end_lineno": 4,
+                "end_lineno": 3,
                 "end_col_offset": 7
               },
-              "value": {
-                "type": "int",
-                "repr": "0"
-              }
+              "id": "x",
+              "machine_context": "Load"
             }
           ],
           "keywords": [],
