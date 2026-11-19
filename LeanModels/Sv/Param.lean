@@ -799,6 +799,10 @@ structure IEnv where
   with their canonical value, width, and signedness.  Parameter-dependent
   package widths are not retained by the symbolic extractor. -/
   packageNvals : List ((String × String) × (Int × Nat × Bool)) := []
+  /-- Four-state package constants, keyed by `(package, name)`.  The vector
+  retains the declared width, signedness, and every x/z bit for ordinary
+  value positions. -/
+  packageFvals : List ((String × String) × (LVec × Nat × Bool)) := []
   widths : List (String × Nat) := []
   enums : List (String × Nat) := []
   members : List ((String × String) × LVec) := []
@@ -866,14 +870,21 @@ def IEnv.bindPackageNVal (env : IEnv) (pkg n : String) (v : Int) (w : Nat) (s : 
 def IEnv.packageNVal (env : IEnv) (pkg n : String) : Option (Int × Nat × Bool) :=
   env.packageNvals.lookup (pkg, n)
 
+def IEnv.bindPackageFVal (env : IEnv) (pkg n : String) (v : LVec) (w : Nat) (s : Bool) : IEnv :=
+  { env with packageFvals := ((pkg, n), (v, w, s)) :: env.packageFvals }
+
+def IEnv.packageFVal (env : IEnv) (pkg n : String) : Option (LVec × Nat × Bool) :=
+  env.packageFvals.lookup (pkg, n)
+
 /-- Self-determined type of a retained package parameter. -/
 def IEnv.packageConstType (env : IEnv) (pkg n : String) : Option (Nat × Bool) :=
-  match env.packageVal pkg n with
-  | some _ => some (32, true)
+  match env.packageFVal pkg n with
+  | some (_, w, s) => some (w, s)
   | none =>
-      match env.packageNVal pkg n with
-      | some (_, w, s) => some (w, s)
-      | none => none
+      match env.packageVal pkg n with
+      | some _ => some (32, true)
+      | none =>
+          (env.packageNVal pkg n).map fun (_, w, s) => (w, s)
 
 /-- Canonical key for an enum type in the retained environment.  Package
 enums stay qualified, while a frontend that already puts `pkg::` in the
@@ -975,6 +986,29 @@ the propagated width; `canonInt w s` is the value that width holds). -/
 def canonInt (w : Nat) (s : Bool) (v : Int) : Int :=
   let m := v.emod ((2 : Int) ^ w)
   if s && decide (0 < w) && decide ((2 : Int) ^ (w - 1) ≤ m) then m - (2 : Int) ^ w else m
+
+/-- The integer view used only at constant-required sites.  A known
+four-state package value has the same canonical integer view as the legacy
+package table, while an x/z bit remains unavailable to that view. -/
+def IEnv.packageIntView? (env : IEnv) (pkg n : String) : Option Int :=
+  match env.packageFVal pkg n with
+  | some (v, w, s) => v.toNat?.map (fun k => canonInt w s k)
+  | none => env.packageVal pkg n
+
+theorem IEnv.packageIntView_bindPackageFVal (env : IEnv) (pkg n : String)
+    (v : LVec) (w : Nat) (s : Bool) :
+    (env.bindPackageFVal pkg n v w s).packageIntView? pkg n =
+      v.toNat?.map (fun k => canonInt w s k) := by
+  simp [IEnv.packageIntView?, IEnv.bindPackageFVal, IEnv.packageFVal]
+
+/-- Conservativity for known package values: the four-state table's integer
+view agrees with the legacy integer binding at the same width and signedness. -/
+theorem IEnv.packageIntView_known (env : IEnv) (pkg n : String)
+    (v : LVec) (w : Nat) (s : Bool) (k : Nat)
+    (hknown : v.toNat? = some k) :
+    (env.bindPackageFVal pkg n v w s).packageIntView? pkg n =
+      some (canonInt w s k) := by
+  simp [IEnv.packageIntView?, IEnv.bindPackageFVal, IEnv.packageFVal, hknown]
 
 /-- A value of type `(lw, ls)` at the propagated type `(w, s)` (§11.8.2:
 the operand's bits extended — sign-extended ONLY when the propagated type
@@ -1424,12 +1458,18 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
           | some (v, w, _) => .ok (convertConst w ty.1 ty.2 v)
           | none => .error s!"unbound parameter '{n}'"
   | .paramRef n (some p) =>
-      match env.packageVal p n with
-      | some v => .ok (convertConst 32 ty.1 ty.2 v)
+      match env.packageFVal p n with
+      | some (v, _, _) =>
+          match v.toNat? with
+          | some k => .ok (convertConst v.width ty.1 ty.2 k)
+          | none => .error s!"package parameter '{p}::{n}' contains x/z bits in an integer-required constant context"
       | none =>
-          match env.packageNVal p n with
-          | some (v, w, _) => .ok (convertConst w ty.1 ty.2 v)
-          | none => .error s!"package-scoped parameter '{p}::{n}'"
+          match env.packageVal p n with
+          | some v => .ok (convertConst 32 ty.1 ty.2 v)
+          | none =>
+              match env.packageNVal p n with
+              | some (v, w, _) => .ok (convertConst w ty.1 ty.2 v)
+              | none => .error s!"package-scoped parameter '{p}::{n}'"
   | .genvarRef n =>
       match env.vals.lookup n with
       | some v => .ok (convertConst 32 ty.1 ty.2 v)
@@ -1463,12 +1503,15 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
               | some (_, w, _) => .ok (convertConst 32 ty.1 ty.2 (w : Int))
               | none => .error s!"$bits/$size of undeclared parameter '{n}'"
       | .bits, .paramRef n (some p) =>
-          match env.packageVal p n with
-          | some _ => .ok (convertConst 32 ty.1 ty.2 32)
+          match env.packageFVal p n with
+          | some (_, w, _) => .ok (convertConst 32 ty.1 ty.2 (w : Int))
           | none =>
-              match env.packageNVal p n with
-              | some (_, w, _) => .ok (convertConst 32 ty.1 ty.2 (w : Int))
-              | none => .error s!"$bits/$size of undeclared parameter '{p}::{n}'"
+              match env.packageVal p n with
+              | some _ => .ok (convertConst 32 ty.1 ty.2 32)
+              | none =>
+                  match env.packageNVal p n with
+                  | some (_, w, _) => .ok (convertConst 32 ty.1 ty.2 (w : Int))
+                  | none => .error s!"$bits/$size of undeclared parameter '{p}::{n}'"
       | .size, .ident n => do
           let v ← dimQuery env "$size" n false
           .ok (convertConst 32 ty.1 ty.2 v)
@@ -1832,12 +1875,18 @@ def evalInt (env : IEnv) : PExpr → Except String Int
           | some (v, _, _) => .ok v
           | none => .error s!"unbound parameter '{n}'"
   | .paramRef n (some p) =>
-      match env.packageVal p n with
-      | some v => .ok v
+      match env.packageFVal p n with
+      | some (v, _, _) =>
+          match v.toNat? with
+          | some k => .ok k
+          | none => .error s!"package parameter '{p}::{n}' contains x/z bits in an integer-required constant context"
       | none =>
-          match env.packageNVal p n with
-          | some (v, _, _) => .ok v
-          | none => .error s!"package-scoped parameter '{p}::{n}'"
+          match env.packageVal p n with
+          | some v => .ok v
+          | none =>
+              match env.packageNVal p n with
+              | some (v, _, _) => .ok v
+              | none => .error s!"package-scoped parameter '{p}::{n}'"
   | .genvarRef n =>
       match env.vals.lookup n with
       | some v => .ok v
@@ -2094,12 +2143,18 @@ def evalGenGuard32 (env : IEnv) : PExpr → Except String Int
       | some v => .ok (guard32 v)
       | none => .error s!"genvar '{n}' outside its loop"
   | .paramRef n (some p) =>
-      match env.packageVal p n with
-      | some v => .ok (guard32 v)
+      match env.packageFVal p n with
+      | some (v, _, _) =>
+          match v.toNat? with
+          | some k => .ok (guard32 k)
+          | none => .error s!"package parameter '{p}::{n}' contains x/z bits in an integer-required constant context"
       | none =>
-          match env.packageNVal p n with
-          | some (v, _, _) => .ok (guard32 v)
-          | none => .error s!"package-scoped parameter '{p}::{n}'"
+          match env.packageVal p n with
+          | some v => .ok (guard32 v)
+          | none =>
+              match env.packageNVal p n with
+              | some (v, _, _) => .ok (guard32 v)
+              | none => .error s!"package-scoped parameter '{p}::{n}'"
   | .unary op a => do
       let v ← evalGenGuard32 env a
       match op with
@@ -2180,6 +2235,38 @@ private def packageDimsWidth (env : IEnv) : List PDim → Except String Nat
       let w ← packageDimsWidth env rest
       .ok (((m - l).natAbs + 1) * w)
 
+mutual
+private def packageConstVec (env : IEnv) : PExpr → Except String LVec
+  | .lit v => .ok v
+  | .int v => .ok (LVec.ofInt 32 v)
+  | .resize w e => (packageConstVec env e).map (fun v => v.resizeU w)
+  | .signedResize w e => (packageConstVec env e).map (fun v => v.resizeSigned w)
+  | .concat es => do
+      let vs ← packageConstVecList env es
+      .ok (LVec.concatMany vs.toArray)
+  | .paramRef n (some pkg) =>
+      match env.packageFVal pkg n with
+      | some (v, _, _) => .ok v
+      | none =>
+          match env.packageVal pkg n with
+          | some v => .ok (LVec.ofInt 32 v)
+          | none =>
+              match env.packageNVal pkg n with
+              | some (v, w, _) => .ok (LVec.ofInt w v)
+              | none => .error s!"package parameter '{pkg}::{n}' is unavailable"
+  | e =>
+      match evalAt env (32, true) e with
+      | .ok v => .ok (LVec.ofInt 32 v)
+      | .error err => .error err
+
+private def packageConstVecList (env : IEnv) : List PExpr → Except String (List LVec)
+  | [] => .ok []
+  | e :: es => do
+      let v ← packageConstVec env e
+      let vs ← packageConstVecList env es
+      .ok (v :: vs)
+end
+
 /-- Bind the narrow package-parameter slice retained by the symbolic
 envelope. Package parameters are elaboration constants, never top-level
 override binders; their defaults are evaluated in declaration order. -/
@@ -2191,20 +2278,31 @@ def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
       | some e =>
           match p.type? with
           | none =>
-              match evalInt env e with
+              match packageConstVec env e with
               | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
-              | .ok v => bindPackageParams (env.bindPackageVal pkg p.name v) rest
+              | .ok raw =>
+                  let w := raw.width
+                  let env' := env.bindPackageFVal pkg p.name raw w false
+                  match raw.toNat? with
+                  | some v => bindPackageParams (env'.bindPackageVal pkg p.name v) rest
+                  | none => bindPackageParams env' rest
           | some (.packed dims _) =>
               match packageDimsWidth env dims with
               | .ok w =>
                   let s := p.signed?.getD (w == 32)
-                  match evalAssign env w e with
+                  match packageConstVec env e with
                   | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
-                  | .ok v =>
-                      if w == 32 && s then
-                        bindPackageParams (env.bindPackageVal pkg p.name (canonInt w s v)) rest
-                      else
-                        bindPackageParams (env.bindPackageNVal pkg p.name (canonInt w s v) w s) rest
+                  | .ok raw =>
+                      let value := if s then raw.resizeSigned w else raw.resizeU w
+                      let env' := env.bindPackageFVal pkg p.name value w s
+                      match value.toNat? with
+                      | none => bindPackageParams env' rest
+                      | some n =>
+                          let v := canonInt w s n
+                          if w == 32 && s then
+                            bindPackageParams (env'.bindPackageVal pkg p.name v) rest
+                          else
+                            bindPackageParams (env'.bindPackageNVal pkg p.name v w s) rest
               | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
           | some (.typeRef _ _ _) | some (.unrecoverable _) =>
               .unsupported s!"ParamRef:package: package parameter '{pkg}::{p.name}' has an unsupported type"
@@ -2374,12 +2472,18 @@ def instExpr (env : IEnv) (ctx : Option Nat) : PExpr → Expr
               else intLit ctx v
           | none => .unsupported "ParamRef:unbound" n
   | .paramRef n (some p) =>
-      match env.packageVal p n with
-      | some v => intLit ctx v
+      match env.packageFVal p n with
+      | some (v, w, s) =>
+          match ctx with
+          | none => .lit v
+          | some target => fitDivOperand s (some target) (some w) (.lit v)
       | none =>
-          match env.packageNVal p n with
-          | some (v, w, _) => intLit (some (ctx.getD w)) v
-          | none => .unsupported "ParamRef:package" s!"{p}::{n}"
+          match env.packageVal p n with
+          | some v => intLit ctx v
+          | none =>
+              match env.packageNVal p n with
+              | some (v, w, _) => intLit (some (ctx.getD w)) v
+              | none => .unsupported "ParamRef:package" s!"{p}::{n}"
   | .genvarRef n =>
       match env.vals.lookup n with
       | some v => intLit ctx v

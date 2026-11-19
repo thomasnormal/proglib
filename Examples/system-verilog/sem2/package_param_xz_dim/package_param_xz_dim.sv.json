@@ -1,0 +1,175 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "m",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/package_param_xz_dim/package_param_xz_dim.sv",
+      "sha256": "9224edb1d36d891667daf1eff9ceb30af16e2c9c6d7e679d7366a4510f1f1079"
+    }
+  ],
+  "packages": [
+    "p"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 2,
+          "end_col": 95
+        },
+        "name": "m",
+        "imports": [
+          {
+            "kind": "Import",
+            "span": {
+              "line": 2,
+              "col": 34,
+              "end_line": 2,
+              "end_col": 38
+            },
+            "package": "p",
+            "name": "*"
+          }
+        ],
+        "params": [],
+        "package_params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 1,
+              "col": 34,
+              "end_line": 1,
+              "end_col": 46
+            },
+            "name": "MASK",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 29,
+                      "end_line": 1,
+                      "end_col": 30
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 31,
+                      "end_line": 1,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "resolved": 0,
+            "default": {
+              "kind": "Literal",
+              "span": {
+                "line": 1,
+                "col": 39,
+                "end_line": 1,
+                "end_col": 46
+              },
+              "width": 4,
+              "bits": "1z0z"
+            },
+            "package": "p"
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 23,
+              "end_line": 2,
+              "end_col": 24
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 2,
+              "col": 55,
+              "end_line": 2,
+              "end_col": 56
+            },
+            "sv_kind": "VariableSymbol:type",
+            "text": "x"
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 2,
+              "col": 65,
+              "end_line": 2,
+              "end_col": 69
+            },
+            "sv_kind": "ContinuousAssignSymbol:InvalidExpression",
+            "text": "x='0"
+          },
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 2,
+              "col": 78,
+              "end_line": 2,
+              "end_col": 84
+            },
+            "sv_kind": "ContinuousAssignSymbol:InvalidExpression",
+            "text": "y=x[0]"
+          }
+        ],
+        "generates": [],
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 2,
+              "col": 47,
+              "end_line": 2,
+              "end_col": 47
+            },
+            "sv_kind": "SlangError:ValueMustNotBeUnknown",
+            "text": "package_param_xz_dim.sv:2: value must not have any unknown bits"
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

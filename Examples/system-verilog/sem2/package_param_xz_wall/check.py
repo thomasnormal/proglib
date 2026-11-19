@@ -54,7 +54,7 @@ def main():
         print("Xcelium 24.03-s004: 1 row MATCH source")
     else:
         print("no Xcelium result: xrun unavailable")
-    print("E: loud refusal at package x/z constant elaboration")
+    print("E: package value is four-state; integer-required x/z use refuses by parameter name")
 
 if __name__ == "__main__":
     main()

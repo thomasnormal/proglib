@@ -935,12 +935,18 @@ def instExpr2 (env : IEnv) (elems : List (String × Nat)) (ctx : Option Nat) :
                 intLit2 (ctx.orElse (fun _ => some w)) v
           | none => .unsupported "ParamRef:unbound" n
   | .paramRef n (some p) =>
-      match env.packageVal p n with
-      | some v => intLit2 ctx v
+      match env.packageFVal p n with
+      | some (v, w, s) =>
+          match ctx with
+          | none => .lit v
+          | some target => if s then .resizeSigned target (.lit v) else .resize target (.lit v)
       | none =>
-          match env.packageNVal p n with
-          | some (v, w, _) => intLit2 (some (ctx.getD w)) v
-          | none => .unsupported "ParamRef:package" s!"{p}::{n}"
+          match env.packageVal p n with
+          | some v => intLit2 ctx v
+          | none =>
+              match env.packageNVal p n with
+              | some (v, w, _) => intLit2 (some (ctx.getD w)) v
+              | none => .unsupported "ParamRef:package" s!"{p}::{n}"
   | .genvarRef n =>
       match env.vals.lookup n with
       | some v => intLit2 ctx v

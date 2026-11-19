@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- SystemVerilog package parameters now retain their declared width,
+  signedness, and four-state bits in canonical E. Ordinary casez, inside, and
+  case-equality operands consume that vector, while integer-required uses
+  refuse x/z values by parameter name. Known-value integer views have a
+  conservativity theorem and clean-room differential receipts.
+
 - Added the kernel-checked `twinAgrees_evalOpen_intMult` control bridge and
   its state-preserving `twinAgrees_binOpHM_intMult` worker equation. Immediate
   integer multiplication now has an explicit heap-read/refinement proof with
