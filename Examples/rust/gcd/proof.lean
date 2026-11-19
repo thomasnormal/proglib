@@ -63,6 +63,42 @@ def gcdBlock4 : Block :=
 
 theorem gcd_block1_eq : blockAt gcdCore.blocks 1 = some gcdBlock1 := by rfl
 
+def gcdBlock2 : Block :=
+  { statements := [.storageDead 6, .storageLive 7, .storageLive 8,
+      .assign { localId := 8, projection := [] }
+        (.use (.copy { localId := 1, projection := [] })),
+      .storageLive 9,
+      .assign { localId := 9, projection := [] }
+        (.use (.copy { localId := 2, projection := [] })),
+      .assign { localId := 10, projection := [] }
+        (.binaryEq (.copy { localId := 9, projection := [] })
+          (.constant 6 [0, 0, 0, 0] 1))],
+    terminator := .assert (.move { localId := 10, projection := [] }) false 3 }
+
+def gcdBlock3 : Block :=
+  { statements := [.assign { localId := 7, projection := [] }
+        (.binaryRem (.move { localId := 8, projection := [] })
+          (.move { localId := 9, projection := [] })),
+      .storageDead 9, .storageDead 8, .storageLive 11,
+      .assign { localId := 11, projection := [] }
+        (.use (.copy { localId := 2, projection := [] })),
+      .assign { localId := 1, projection := [] }
+        (.use (.move { localId := 11, projection := [] })),
+      .storageDead 11, .storageLive 12,
+      .assign { localId := 12, projection := [] }
+        (.use (.copy { localId := 7, projection := [] })),
+      .assign { localId := 2, projection := [] }
+        (.use (.move { localId := 12, projection := [] })),
+      .storageDead 12,
+      .assign { localId := 4, projection := [] }
+        (.use (.constant 4 [] 3 none true)),
+      .storageDead 7, .storageDead 5],
+    terminator := .goto 1 }
+
+theorem gcd_block2_eq : blockAt gcdCore.blocks 2 = some gcdBlock2 := by rfl
+
+theorem gcd_block3_eq : blockAt gcdCore.blocks 3 = some gcdBlock3 := by rfl
+
 theorem gcd_block4_eq : blockAt gcdCore.blocks 4 = some gcdBlock4 := by rfl
 
 theorem gcd_zero_cfg (a : Nat) :
@@ -76,6 +112,98 @@ theorem gcd_zero_cfg (a : Nat) :
     List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
     rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
     eventForCell, cellSlot, cellInt, List.filter]
+  rw [cfgRunOutcome.eq_2, gcd_block4_eq]
+  simp [gcdBlock4, statementsRun, statementStep, setSlot, operandCell,
+    readCell, localSlot, slotCell, rvalueCell, typedBytesValue, littleEndian,
+    projectCell, writeCell, eventForCell, returnValue, cellSlot, cellInt,
+    List.filter]
+
+def gcdStepState (a b : Int) : State :=
+  { locals := [(5, .uninit), (7, .uninit), (4, .value 0), (12, .uninit),
+      (2, .value b), (11, .uninit), (1, .value a), (8, .uninit),
+      (9, .uninit), (10, .value 0), (6, .uninit), (3, .uninit)],
+    types := [gcdType] }
+
+theorem gcd_nonzero_step (a b fuel : Nat) (hb : 0 < b) (hr : a % b ≠ 0) :
+    cfgRunOutcome (fuel + 4) gcdCore 0 (gcdInput a b) =
+      cfgRunOutcome fuel gcdCore 1 (gcdStepState b (a % b)) := by
+  have hne : b ≠ 0 := by omega
+  unfold gcdInput gcdType
+  rw [cfgRunOutcome.eq_2, gcd_block0_eq]
+  simp [gcdBlock0, statementsRun, statementStep, setSlot]
+  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hb, hne, hr]
+  all_goals try { rfl }
+  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+  simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne]
+  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+  simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne, hr]
+  congr 1
+
+theorem gcd_loop_nonzero_step (a b fuel : Nat) (hb : 0 < b) (hr : a % b ≠ 0) :
+    cfgRunOutcome (fuel + 3) gcdCore 1 (gcdStepState (a : Int) (b : Int)) =
+      cfgRunOutcome fuel gcdCore 1 (gcdStepState (b : Int) (a % b)) := by
+  have hne : b ≠ 0 := by omega
+  have hrem : (a : Int) % (b : Int) ≠ 0 := by
+    intro h
+    apply hr
+    rw [← Int.natCast_emod] at h
+    exact_mod_cast h
+  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp [gcdType, gcdBlock1, gcdStepState, statementsRun, statementStep, setSlot,
+    terminatorStep, List.find?, operandCell, operandValue, readCell, localSlot,
+    slotCell, rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell,
+    writeCell, eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
+  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+  simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne]
+  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+  simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
+
+theorem gcd_zero_remainder_cfg (a b : Nat) (hb : 0 < b) (hr : a % b = 0) :
+    ∃ t, cfgRunOutcome 7 gcdBody 0 (gcdInput a b) = .returned t ∧
+      returnValue t = some (Int.ofNat b) := by
+  have hne : b ≠ 0 := by omega
+  have hrem : (a : Int) % (b : Int) = 0 := by
+    rw [← Int.natCast_emod, hr]
+    rfl
+  unfold gcdInput gcdType
+  rw [gcdBody_eq, cfgRunOutcome.eq_2, gcd_block0_eq]
+  simp [gcdBlock0, statementsRun, statementStep, setSlot]
+  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne, hr, hrem]
+  rw [cfgRunOutcome.eq_2, gcd_block2_eq]
+  simp [gcdBlock2, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
+  rw [cfgRunOutcome.eq_2, gcd_block3_eq]
+  simp [gcdBlock3, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne, hr]
+  rw [cfgRunOutcome.eq_2, gcd_block1_eq]
+  simp [gcdBlock1, statementsRun, statementStep, setSlot, terminatorStep,
+    List.find?, operandCell, operandValue, readCell, localSlot, slotCell,
+    rvalueCell, typedBytesValue, littleEndian, Nat.repr, projectCell, writeCell,
+    eventForCell, cellSlot, cellInt, List.filter, hne, hrem]
   rw [cfgRunOutcome.eq_2, gcd_block4_eq]
   simp [gcdBlock4, statementsRun, statementStep, setSlot, operandCell,
     readCell, localSlot, slotCell, rvalueCell, typedBytesValue, littleEndian,
