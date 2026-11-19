@@ -165,9 +165,15 @@ def localType (s : State) (localId : Nat) : Option Nat :=
 def sharedSlot (s : State) (frameId localId : Nat) : Option Slot :=
   s.sharedLocals.find? (fun item => item.1 == frameId && item.2.1 == localId) |>.map (·.2.2)
 
+/-- A caller's slot as its callee sees it: pointers to the caller's own locals inside the slot
+are tagged with the caller's frame, so a callee never resolves them against its own locals. -/
+def shareSlot (frameId : Nat) : Slot → Slot
+  | .cell value => .cell (shareCell frameId value)
+  | slot => slot
+
 def sharedSlotsFrom (frameId : Nat) : List (Nat × Slot) → List (Nat × Nat × Slot)
   | [] => []
-  | (localId, slot) :: rest => (frameId, localId, slot) :: sharedSlotsFrom frameId rest
+  | (localId, slot) :: rest => (frameId, localId, shareSlot frameId slot) :: sharedSlotsFrom frameId rest
 
 def findTypeLayout (s : State) (ty : Nat) : Option TypeLayout :=
   s.types.find? (fun item => item.id == toString ty)
@@ -369,15 +375,11 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
               if pointer.projection.isEmpty then
                 writeLocalProjection s pointer.provenance rest value
               else none
-            else do
-              let frameId ← pointer.targetFrame
-              let slot ← sharedSlot s frameId pointer.provenance
-              let cell ← slotCell slot
-              let updated ← updateCellProjection cell (pointer.projection ++ rest) value
-              pure { s with sharedLocals :=
-                (frameId, pointer.provenance, cellSlot updated) ::
-                  s.sharedLocals.filter (fun item =>
-                    !(item.1 == frameId && item.2.1 == pointer.provenance)) }
+            else
+              -- A write into another frame's local.  The callee holds a snapshot of its callers'
+              -- locals that is never written back on return, so the write would be silently
+              -- lost: refuse it.
+              none
         | _ => none
   | .field index _ :: rest => writeLocalProjection s place.localId (.field index 0 :: rest) value
   | .downcast _ :: _ | .unsupported _ :: _ => none
