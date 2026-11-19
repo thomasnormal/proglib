@@ -438,6 +438,7 @@ event-queue scheduler, not this admission check.
 mutual
 
 def coreMemStmtWrites : PStmt → List String
+  | .localDecl name _ _ => [name]
   | .blockingAssign name _ | .nbaAssign name _ => [name]
   | .ifStmt _ yes none => coreMemStmtWrites yes
   | .ifStmt _ yes (some no) => coreMemStmtWrites yes ++ coreMemStmtWrites no
@@ -458,6 +459,7 @@ def coreMemCaseWrites : List (List PExpr × PStmt) → List String
   | item :: rest => coreMemStmtWrites item.2 ++ coreMemCaseWrites rest
 
 def coreMemStmtBlockingWrites : PStmt → List String
+  | .localDecl name _ _ => [name]
   | .blockingAssign name _ => [name]
   | .nbaAssign _ _ => []
   | .ifStmt _ yes none => coreMemStmtBlockingWrites yes
@@ -1082,6 +1084,7 @@ memory-assignment boundary is handled separately. -/
 mutual
 
 def coreMemStmtReadNames : PStmt → List String
+  | .localDecl _ _ init => init.toList.flatMap coreMemSignalNames
   | .blockingAssign _ value | .nbaAssign _ value => coreMemSignalNames value
   | .blockingAssignL target value | .nbaAssignL target value =>
       coreMemLhsReadNames target ++ coreMemSignalNames value
@@ -1133,6 +1136,8 @@ cross-process dependency guard. -/
 mutual
 
 def coreMemStmtReadBeforeWritesFrom (written : List String) : PStmt → List String × List String
+  | .localDecl name _ init =>
+      ((init.toList.flatMap coreMemSignalNames).filter (fun n => !written.contains n), name :: written)
   | .blockingAssign name value | .nbaAssign name value =>
       ((coreMemSignalNames value).filter (fun n => !written.contains n), name :: written)
   | .blockingAssignL target value | .nbaAssignL target value =>
@@ -1199,6 +1204,41 @@ def coreMemReactiveWrites : PProcess → List String
 def coreMemReactiveReads : PProcess → List String
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body => coreMemStmtReadNames body
   | _ => []
+
+/-! Static block-local declarations are allocated in the same scalar store as
+their enclosing process. Automatic declarations are rejected by ingestion,
+so this source-shaped collection preserves the static lifetime exactly. -/
+mutual
+def coreMemLocalDeclsStmt : PStmt → List PDecl
+  | .localDecl name width init =>
+      [{ name,
+         type := .packed [{ msb := .int (Int.ofNat (width - 1)),
+                            lsb := .int 0 }] (some width),
+         init }]
+  | .block body => coreMemLocalDeclsList body
+  | .ifStmt _ yes none => coreMemLocalDeclsStmt yes
+  | .ifStmt _ yes (some no) => coreMemLocalDeclsStmt yes ++ coreMemLocalDeclsStmt no
+  | .forLoop _ _ _ _ body => coreMemLocalDeclsStmt body
+  | .caseStmt _ items none _ _ => coreMemLocalDeclsCase items
+  | .caseStmt _ items (some defaultBody) _ _ =>
+      coreMemLocalDeclsCase items ++ coreMemLocalDeclsStmt defaultBody
+  | _ => []
+
+def coreMemLocalDeclsList : List PStmt → List PDecl
+  | [] => []
+  | stmt :: rest => coreMemLocalDeclsStmt stmt ++ coreMemLocalDeclsList rest
+
+def coreMemLocalDeclsCase : List (List PExpr × PStmt) → List PDecl
+  | [] => []
+  | item :: rest => coreMemLocalDeclsStmt item.2 ++ coreMemLocalDeclsCase rest
+
+def coreMemLocalDeclsProc : PProcess → List PDecl
+  | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysEvent _ body | .alwaysFFR _ _ body _ | .initial body =>
+      coreMemLocalDeclsStmt body
+  | _ => []
+end
 
 def coreMemReactiveLaterWrites : List PProcess → List String
   | [] => []
@@ -1289,9 +1329,10 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     let env2 := { env2 with dims := dimTable env2 d.decls }
     let env2 := { env2 with functions := d.functions }
     let (generatedDecls, _) ← coreMemGeneratedDeclsList env2 iterFuel {} d.generates
-    let sourceNames := (d.decls ++ generatedDecls).map (·.name)
+    let localDecls := d.processes.flatMap coreMemLocalDeclsProc
+    let sourceNames := (d.decls ++ generatedDecls ++ localDecls).map (·.name)
     let metadataForSource := d.netMetadata.filter (fun md => !md.generated)
-    let sourceDecls := d.decls ++ generatedDecls ++ coreMemMetadataDecls metadataForSource
+    let sourceDecls := d.decls ++ generatedDecls ++ localDecls ++ coreMemMetadataDecls metadataForSource
     if !coreMemDeclNamesUnique sourceDecls then
       .unsupported "UnpackedDecl:generate-scope: active generate declarations contain duplicate names"
     else
@@ -1323,7 +1364,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           | some (kind, text) =>
               .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
           | none =>
-              let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls)
+              let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls ++ localDecls)
               let decls := decls0 ++ (coreMemNetDecls d allForNet).filter
                 (fun dc => !sourceNames.contains dc.name)
               let elementDecls := sourceDecls.filter (fun pd => pd.aggregate?.isNone)
@@ -1480,6 +1521,7 @@ def coreMemLhsReadExprsList : List PLhs → List PExpr
   | lhs :: rest => coreMemLhsReadExprs lhs ++ coreMemLhsReadExprsList rest
 
 def coreMemStmtReadExprs : PStmt → List PExpr
+  | .localDecl _ _ init => init.toList.flatMap coreMemReadExprs
   | .blockingAssign _ value | .nbaAssign _ value => coreMemReadExprs value
   | .blockingAssignL target value | .nbaAssignL target value =>
       coreMemLhsReadExprs target ++ coreMemReadExprs value
@@ -2032,6 +2074,7 @@ def CoreMemDesign.writeInitialCell (E : CoreMemDesign) (env : IEnv)
 def CoreMemDesign.execInitialStmt (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) : Nat → PStmt → Res CoreMemState
   | 0, _ => .timeout
+  | fuel + 1, .localDecl _ _ _ => .ok st
   | fuel + 1, .blockingAssign name value =>
       match E.scalarTarget name with
       | none => .unsupported s!"11.5.1: scalar initial target '{name}' is undeclared"
@@ -2133,6 +2176,7 @@ mutual
 def CoreMemDesign.execImplicitStmtFuel (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) : Nat → PStmt → Res CoreMemState
   | 0, _ => .timeout
+  | fuel + 1, .localDecl _ _ _ => .ok st
   | fuel + 1, .blockingAssign name value =>
       match E.scalarTarget name with
       | none => .unsupported s!"9.2.2.2: scalar implicit target '{name}' is undeclared"
@@ -2228,6 +2272,7 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) : Nat → PStmt →
     Res (CoreMemState × SvState)
   | 0, _ => .timeout
+  | fuel + 1, .localDecl _ _ _ => .ok (st, view)
   | fuel + 1, .blockingAssign name value =>
       match E.scalarTarget name with
       | none => .unsupported s!"9.2.2.2: scalar always_comb target '{name}' is undeclared"
@@ -2445,6 +2490,7 @@ mutual
 def CoreMemDesign.execStmtFuel (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) : Nat → PStmt → CoreMemExec
   | 0, _ => .timeout
+  | fuel + 1, .localDecl _ _ _ => .ok { state := st, scalarQ := [], memoryQ := [] }
   | fuel + 1, .nbaAssign target value =>
       match E.scalarTarget target with
       | none => .unsupported s!"11.5.1: scalar NBA target '{target}' is undeclared"

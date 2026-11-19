@@ -872,6 +872,7 @@ def expandFunctionCalls (env : IEnv) (e : PExpr) : PExpr :=
   if env.functions.isEmpty then e else expandFunctionCallsGo env e
 
 partial def expandFunctionStmt (env : IEnv) : PStmt → PStmt
+  | .localDecl n w init => .localDecl n w (init.map (expandFunctionCalls env))
   | .blockingAssign t v => .blockingAssign t (expandFunctionCalls env v)
   | .nbaAssign t v => .nbaAssign t (expandFunctionCalls env v)
   | .ifStmt c yes no => .ifStmt (expandFunctionCalls env c)
@@ -1502,6 +1503,7 @@ def forValues2 (env : IEnv) (iterator : String) (init condition step : PExpr) :
 mutual
 /-- Lower a statement to `Stmt2`. -/
 def instStmt2 (env : IEnv) (elems : List (String × Nat)) : PStmt → Stmt2
+  | .localDecl _ _ _ => .unsupported "LocalDecl" "static procedural declaration is retained for the memory route"
   | .blockingAssign t v =>
       .blockingAssign (.ident t) (fitExpr2 env elems (env.widths.lookup t) v)
   | .nbaAssign t v =>

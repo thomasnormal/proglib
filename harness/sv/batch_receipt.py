@@ -156,6 +156,8 @@ FIXTURES: tuple[Fixture, ...] = (
             retain_proc_rewrites=True,
             expected_ordinary_refusal="LocalDecl",
             expected_source_refusals=("iverilog",)),
+    Fixture("proc_local_static_e.sv", "proc_local_static_e",
+            (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),)),
     Fixture("darkriscv_nonliteral_initializer.sv", "nonliteral_initializer",
             (Port("a", 1),), (Port("q", 2),),
             expected_ordinary_refusal="non-literal initializer"),

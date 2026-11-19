@@ -688,10 +688,14 @@ partial def parsePStmt (j : Json) : Except String PStmt := do
         return .unsupported ("SysCall:" ++ if fatal then "$fatal" else name)
           "system task is outside the frozen procedural statement tier"
     | "LocalDecl" =>
-        -- Retain unsupported block-local declarations in the procedural
-        -- envelope.  Stmt2 is frozen and has no scoped declaration node, but
-        -- rejecting the whole JSON envelope would hide the source boundary.
-        return .unsupported "LocalDecl" "block-local declaration requires scoped procedural storage"
+        let name ← getStrField j "name"
+        if getOptStr j "lifetime" == some "automatic" then
+          return .unsupported "LocalDecl" "automatic block-local declaration requires scoped procedural storage"
+        let width ← getNatField j "width"
+        let init ← match getOptField j "init" with
+          | none => pure none
+          | some ij => pure (some (← parsePExpr ij))
+        return .localDecl name width init
     | "Break" =>
         -- Preserve the parser's loop-transfer node as a loud statement.  The
         -- frozen Stmt2 AST has no transfer constructor, so do not lower `break`
@@ -1949,8 +1953,8 @@ private def unsupMemberText : String := r#"{
         == some (.unsupported "SysCall:arity" "$size with 0 args")
 #guard (Json.parse r#"{"kind":"TypeBits","name":"pkg::word_t","width":4}"# >>= parsePExpr).toOption
         == some (.typeBits "pkg::word_t" 4)
-#guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "width": {"kind": "PackedType", "packed": [], "resolved": 1}, "init": null}"# >>= parsePStmt).toOption
-        == some (.unsupported "LocalDecl" "block-local declaration requires scoped procedural storage")
+#guard (Json.parse r#"{"kind": "LocalDecl", "span": null, "name": "t", "width": 1, "init": null}"# >>= parsePStmt).toOption
+        == some (.localDecl "t" 1 none)
 #guard (Json.parse r#"{"kind": "CompoundAssign", "span": null, "target": {"kind": "Ident", "name": "v"}, "op": "+", "value": {"kind": "Int", "value": 1}}"# >>= parsePStmt).toOption
         == some (.unsupported "AssignmentExpression:compound"
           "source-level compound assignment is retained; a frozen Stmt2 compound node is not yet available")

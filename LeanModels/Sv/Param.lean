@@ -523,6 +523,9 @@ inductive PStmt where
   | nbaAssign (target : String) (value : PExpr)
   | ifStmt (cond : PExpr) (thenBranch : PStmt) (elseBranch : Option PStmt)
   | block (body : List PStmt)
+  /-- A fixed-width static procedural declaration. Automatic lifetime remains
+  outside this scalar route and is rejected by ingestion. -/
+  | localDecl (name : String) (width : Nat) (init : Option PExpr)
   /-- A symbolic procedural `for` retained until parameter-point
   instantiation.  The iterator is represented as a temporary genvar-style
   constant while the body is lowered at each concrete point. -/
@@ -2548,6 +2551,7 @@ mutual
 /-- Instantiate a statement (assign targets take their declared widths as
 context). -/
 def instStmt (env : IEnv) : PStmt → Stmt
+  | .localDecl _ _ _ => .unsupported "LocalDecl" "static procedural declaration is retained for the memory route"
   | .blockingAssign t v => .blockingAssign t (instExpr env (env.widths.lookup t) v)
   | .nbaAssign t v => .nbaAssign t (instExpr env (env.widths.lookup t) v)
   | .ifStmt c th el =>

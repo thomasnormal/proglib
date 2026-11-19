@@ -141,6 +141,7 @@ end
 mutual
 /-- … of a statement. -/
 def PStmt.legacySelNames : PStmt → List String
+  | .localDecl _ _ init => init.toList.flatMap PExpr.legacySelNames
   | .blockingAssign _ v | .nbaAssign _ v => v.legacySelNames
   | .blockingAssignL t v | .nbaAssignL t v => t.legacySelNames ++ v.legacySelNames
   | .ifStmt c t e => c.legacySelNames ++ t.legacySelNames ++ PStmt.legacySelNamesOpt e
@@ -299,6 +300,7 @@ end
 mutual
 /-- … of a statement. -/
 def PStmt.bitIdxs : PStmt → List PExpr
+  | .localDecl _ _ init => init.toList.flatMap PExpr.bitIdxs
   | .blockingAssign _ v | .nbaAssign _ v => v.bitIdxs
   | .blockingAssignL t v | .nbaAssignL t v => t.bitIdxs ++ v.bitIdxs
   | .ifStmt c t e => c.bitIdxs ++ t.bitIdxs ++ PStmt.bitIdxsOpt e

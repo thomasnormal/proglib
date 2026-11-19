@@ -138,6 +138,7 @@ private def hParamLhs (vals : List (String × Int)) : PLhs → PLhs
   | l => l
 
 private partial def hParamStmt (vals : List (String × Int)) : PStmt → PStmt
+  | .localDecl n w init => .localDecl n w (init.map (hParamExpr vals))
   | .blockingAssign n e => .blockingAssign n (hParamExpr vals e)
   | .nbaAssign n e => .nbaAssign n (hParamExpr vals e)
   | .ifStmt c a b => .ifStmt (hParamExpr vals c) (hParamStmt vals a) (b.map (hParamStmt vals))
@@ -211,6 +212,7 @@ private def hLhs (pfx : String) : PLhs → PLhs
   | .concat xs => .concat (xs.map (hLhs pfx))
 
 private partial def hStmt (pfx : String) : PStmt → PStmt
+  | .localDecl n w init => .localDecl (pfx ++ n) w (init.map (hExpr pfx))
   | .blockingAssign n e => .blockingAssign (pfx ++ n) (hExpr pfx e)
   | .nbaAssign n e => .nbaAssign (pfx ++ n) (hExpr pfx e)
   | .blockingAssignL l e => .blockingAssignL (hLhs pfx l) (hExpr pfx e)
