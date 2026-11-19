@@ -50,6 +50,8 @@ because the corpus leans on it.
 
 namespace LeanModels.C.C23
 
+open LeanModels.Clang (QualType)
+
 open LeanModels.C (CType)
 
 /-! ## §6.2.4 Storage durations of objects -/
@@ -860,28 +862,44 @@ structure AliasModel where
   Languages with a borrow or provenance discipline can supply another
   instance without changing the byte store. -/
   compatible : CType → CType → Bool
+  /-- Structured parser evidence for the access type.  The legacy spelling
+  arguments remain for envelopes produced before the QualType bridge. -/
+  compatibleUsed : Option QualType → CType → CType → Bool :=
+    fun _ used eff => compatible used eff
+
+def isCharacterType : QualType → Bool
+  | .qualified _ _ base => isCharacterType base
+  | .cBuiltinKind .char | .cBuiltinKind .signedChar | .cBuiltinKind .unsignedChar => true
+  | .cBuiltin name =>
+      name == "char" || name == "signed char" || name == "unsigned char"
+  | _ => false
+
+def cAliasCompatible : CType → CType → Bool := fun used eff =>
+    let scalar := match eff with
+      | "char" | "signed char" | "unsigned char" | "short" |
+          "unsigned short" | "int" | "unsigned int" | "long" |
+          "unsigned long" | "long long" | "unsigned long long" | "_Bool" |
+          "volatile char" | "volatile signed char" | "volatile unsigned char" |
+          "volatile short" | "volatile unsigned short" | "volatile int" |
+          "volatile unsigned int" | "volatile long" | "volatile unsigned long" |
+          "volatile long long" | "volatile unsigned long long" | "volatile _Bool" => true
+      | _ => false
+    scalar == false || used == eff || used == "char" ||
+      used == "signed char" || used == "unsigned char"
 
 def cAliasModel : AliasModel where
-  compatible := fun used eff =>
-  -- A declared aggregate's bytes are accessed through its parser-derived
-  -- member types; the aggregate-to-member relation is supplied by the
-  -- layout layer and is not reconstructible from this spelling-only memory
-  -- primitive.  Enforce scalar mismatches here and leave aggregate member
-  -- compatibility to that identity-keyed layout path.
-    let e := if eff.startsWith "volatile " then eff.drop 9 |>.toString else eff
-    let scalar := e == "char" || e == "signed char" || e == "unsigned char" ||
-      e == "short" || e == "unsigned short" || e == "int" || e == "unsigned int" ||
-      e == "long" || e == "unsigned long" || e == "long long" ||
-      e == "unsigned long long" || e == "_Bool"
-    e.startsWith "struct " || e.startsWith "union " || e.startsWith "enum " ||
-      e.contains "[" || used == e || used == "char" || used == "signed char" ||
-      used == "unsigned char" || !scalar
+  compatible := cAliasCompatible
+  compatibleUsed := fun usedStructured used eff =>
+    match usedStructured with
+    | some structured => isCharacterType structured || cAliasCompatible used eff
+    | none => cAliasCompatible used eff
 
-def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat) (used : CType) : MRes Unit :=
+def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
+    (used : CType) (usedStructured : Option QualType := none) : MRes Unit :=
   match c.effTy with
   | none => .ok ()
   | some eff =>
-      if alias.compatible used eff then .ok ()
+      if alias.compatibleUsed usedStructured used eff then .ok ()
       else .error (.memUB (.effectiveType o off used eff))
 
 /-- Read an integer. C23 §6.3.2.1p2 (lvalue conversion) with
@@ -908,10 +926,11 @@ def loadInt (m : Mem) (p : Ptr) (t : IntTy) : MRes CVal := do
         .error (.memUB (.nonValueRepresentation o off))
 
 /-- Integer lvalue access with the §6.5.1p6-p7 effective-type check. -/
-def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType) : MRes CVal := do
+def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType)
+    (usedStructured : Option QualType := none) : MRes CVal := do
   let width := max 1 (t.bits / 8)
   let (o, c, off) ← m.resolve p width
-  checkEffective alias o c off used
+  checkEffective alias o c off used usedStructured
   let bs := (c.bytes.drop off).take width
   match decodeInt t bs with
   | some v => return .int t v
@@ -926,10 +945,11 @@ def storeInt (m : Mem) (p : Ptr) (t : IntTy) (v : Int) : MRes Mem :=
   m.storeBytes p (encodeInt t v)
 
 /-- Integer store with effective-type establishment for allocated storage. -/
-def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType) (v : Int) : MRes Mem := do
+def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType) (v : Int)
+    (usedStructured : Option QualType := none) : MRes Mem := do
   let bs := encodeInt t v
   let (o, c, off) ← m.resolve p bs.length
-  checkEffective alias o c off used
+  checkEffective alias o c off used usedStructured
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
   -- Aggregate objects have no single effective type for all of their
   -- subobjects.  Their member declarations supply the type at each access,

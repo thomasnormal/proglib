@@ -938,10 +938,11 @@ def compatiblePointerTypes (ctx : Ctx) (a b : CType) : Bool :=
   ctx.layout.normalizeTy a == ctx.layout.normalizeTy b
 
 def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
-    (t : IntTy) (ty : CType) : MRes CVal :=
+    (t : IntTy) (ty : CType)
+    (structured : Option LeanModels.Clang.QualType := none) : MRes CVal :=
   match Mem.loadPtrInt m p with
   | .ok q => .ok (.ptrInt q)
-  | .error _ => Mem.loadIntChecked m alias p t ty
+  | .error _ => Mem.loadIntChecked m alias p t ty structured
 
 /-- Load whatever an lvalue of this type holds — an integer or a pointer.
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
@@ -967,8 +968,8 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
           -- A uintptr_t object may contain the profile's preserved pointer
           -- token or an ordinary integer.  Try the parser-native pointer
           -- representation first, then use the ordinary integer rule.
-          readMem (fun m => loadPtrIntOrInt m alias p t ty)
-        else readMem (fun m => Mem.loadIntChecked m alias p t ty)
+          readMem (fun m => loadPtrIntOrInt m alias p t ty structured)
+        else readMem (fun m => Mem.loadIntChecked m alias p t ty structured)
     | none =>
         match size with
         | some n => do
@@ -989,7 +990,7 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
       let t ← match structured.bind intTyOfStructured with
         | some projected => pure projected
         | none => intTyOf ty
-      writeMem (fun m => Mem.storeIntChecked m alias p t ty n)
+      writeMem (fun m => Mem.storeIntChecked m alias p t ty n structured)
   | .float32 f => if ty == "float" then writeMem (fun m => Mem.storeFloat32 m p f)
                  else refuseUnsupported "floating store without a floating layout"
   | .float64 f => if ty == "double" then writeMem (fun m => Mem.storeFloat64 m p f)
