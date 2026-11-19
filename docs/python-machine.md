@@ -75,6 +75,8 @@ string result. Default object rendering remains refused.
 string result. Default instance string conversion remains refused.
 `abs()` dispatches to an explicit instance `__abs__` method and accepts its
 integer result. Unsupported absolute-value protocols remain refused.
+Subscription on an instance dispatches to an explicit `__getitem__` method;
+ordinary list and dictionary indexing continues through their existing paths.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.

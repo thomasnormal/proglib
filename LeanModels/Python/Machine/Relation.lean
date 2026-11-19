@@ -220,6 +220,7 @@ inductive RKont where
   | reprResult (continuation : RKont)
   | strResult (continuation : RKont)
   | absResult (continuation : RKont)
+  | subscriptResult (continuation : RKont)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -2241,7 +2242,34 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           some (.tau, config.setControl
             (.evaluate (if rTruthy value then body else orelse) continuation))
       | .continueValue index (.subscriptIndex receiver continuation) =>
-          match rLookupDict config.heap receiver index with
+          match receiver with
+          | .ref address =>
+              match config.heap.get? address with
+              | some (.instance cls _) =>
+                  match rLookupClassAttr config.classes cls "__getitem__" with
+                  | some (.callable token) =>
+                      match rFunctionByToken config.functions token with
+                      | some function =>
+                          rStartFunctionCall config function [receiver, index] []
+                            (.subscriptResult continuation)
+                      | none => some (.event (.refuse "machine __getitem__"),
+                          config.finish (.refuse "machine __getitem__"))
+                  | some _ => some (.tau, config.setControl
+                      (.refusing "machine __getitem__"))
+                  | none => some (.tau, config.setControl
+                      (.refusing "machine subscript"))
+              | _ =>
+                  match rLookupDict config.heap receiver index with
+                  | some value => some (.tau, config.setControl (.continueValue value continuation))
+                  | none =>
+                      match rIndexHeapValue config.heap receiver index with
+                      | some value => some (.tau, config.setControl (.continueValue value continuation))
+                      | none =>
+                          match rIndexValue receiver index with
+                          | some value => some (.tau, config.setControl (.continueValue value continuation))
+                          | none => some (.tau, config.setControl (.refusing "machine subscript"))
+          | _ =>
+            match rLookupDict config.heap receiver index with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none =>
               match rIndexHeapValue config.heap receiver index with
@@ -2255,6 +2283,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                           some (.event (.raise { errorClass := .index, args := [] }),
                             config.finish (.raise { errorClass := .index, args := [] }))
                       | _, _ => some (.tau, config.setControl (.refusing "machine subscript"))
+      | .continueValue value (.subscriptResult continuation) =>
+          some (.tau, config.setControl (.continueValue value continuation))
       | .continueValue value (.tupleElements remaining values continuation) =>
           match remaining with
           | next :: rest =>
