@@ -115,6 +115,10 @@ structure CoreMemDesign where
       The source-shaped assignment nodes stay in `processes`; this list only
       records where the §6.6 resolver is applied while those nodes settle. -/
   resolvedNets : List String := []
+  /-- Source-shaped declaration initializers whose value depends on the
+      initial state.  They execute in declaration order before retained
+      `initial` processes (§6.8), without lowering the declaration node. -/
+  declInitializers : List (String × PExpr × Nat) := []
 deriving Inhabited
 
 /-- Install the simulator's explicit plus-argument environment on a design.
@@ -333,7 +337,12 @@ def instScalarDecl1 (env : IEnv) (pd : PDecl) : Res (Option Decl) :=
                         isInput := pd.isInput, isOutput := pd.isOutput,
                         init := some (LVec.ofInt w v) }
                     .ok (some dc)
-                | .error _ => .unsupported s!"decl '{pd.name}': non-literal initializer outside E"
+                | .error _ =>
+                    let dc : Decl :=
+                      { name := pd.name, width := w, isSigned := pd.isSigned,
+                        isNet := pd.isNet, twoState := pd.twoState,
+                        isInput := pd.isInput, isOutput := pd.isOutput, init := none }
+                    .ok (some dc)
 
 def buildScalarDecls1 (env : IEnv) : List PDecl → Res (List Decl)
   | [] => .ok []
@@ -346,6 +355,17 @@ def buildScalarDecls1 (env : IEnv) : List PDecl → Res (List Decl)
       match dc? with
       | some dc => .ok (dc :: rest')
       | none => .ok rest'
+
+def coreMemDeclInitializers (env : IEnv) : List PDecl → Res (List (String × PExpr × Nat))
+  | [] => .ok []
+  | pd :: rest => do
+      let tail ← coreMemDeclInitializers env rest
+      match pd.init, pd.type.width env with
+      | some init, .ok width =>
+          match instExpr env (some width) init with
+          | .lit _ => .ok tail
+          | _ => .ok ((pd.name, init, width) :: tail)
+      | _, _ => .ok tail
 
 def buildMemDecls1 (env : IEnv) : List PDecl → Nat → Res (List CoreMemDecl)
   | [], _ => .ok []
@@ -1383,6 +1403,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
               .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
           | none =>
               let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls ++ localDecls)
+              let declInitializers ← coreMemDeclInitializers env2
+                (d.decls ++ generatedDecls ++ localDecls)
               let decls := decls0 ++ (coreMemNetDecls d allForNet).filter
                 (fun dc => !sourceNames.contains dc.name)
               let elementDecls := sourceDecls.filter (fun pd => pd.aggregate?.isNone)
@@ -1405,7 +1427,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
                     { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
                       memories := memories.toArray, aggregates := aggregates.toArray,
                       processes := processes.toArray,
-                      readmemh := d.readmemh, resolvedNets := resolvedNets }
+                      readmemh := d.readmemh, resolvedNets := resolvedNets,
+                      declInitializers := declInitializers }
                 .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
@@ -3043,23 +3066,33 @@ def initialRuntimeTaskCases : List (List PExpr × PStmt) → Option String
 
 end
 
+def CoreMemDesign.execDeclInitializers (E : CoreMemDesign) (st : CoreMemState) :
+    List (String × PExpr × Nat) → Res CoreMemState
+  | [] => .ok st
+  | (name, expr, width) :: rest => do
+      let value ← E.evalExpr E.env E.elems st (some width) expr
+      let st' := E.setScalarState st name value
+      E.execDeclInitializers st' rest
+
 def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
   let bodies := E.processes.toList.filterMap fun p =>
     match p with
     | .initial body => some body
     | _ => none
-  let base ← if !E.readmemh.isEmpty then
+  let declared ← E.execDeclInitializers E.initial E.declInitializers
+  let base0 ← if !E.readmemh.isEmpty then
     match bodies with
-    | [_] => E.writeReadmemhList E.initial E.readmemh
+    | [_] => E.writeReadmemhList declared E.readmemh
     | [] => .unsupported "SystemTask:readmemh metadata has no initial process"
     | _ => .unsupported "SystemTask:readmemh: multiple initial processes are outside this cycle entry"
   else match bodies with
-    | [] => .ok E.initial
+    | [] => .ok declared
     | [body] =>
         match initialRuntimeTask body with
         | some msg => .unsupported s!"Initial:runtime: {msg}"
         | none => E.execInitialStmt E.env E.elems E.initial 4096 body
     | _ => .unsupported "T2:Initial: multiple initial processes are outside this cycle entry"
+  let base := base0
   -- The time-zero active region is the same continuous-assignment region as a
   -- slot.  It must quiesce rather than take one source-order pass: IEEE
   -- 1800-2023 §§4.5 and 10.3 permit a driver to update a later assignment,
