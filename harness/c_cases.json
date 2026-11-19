@@ -897,13 +897,17 @@
     "id": "long-double-object-layout-refusal",
     "source": "int main(void) { long double x = 1.5L; return x == 1.5L ? 0 : 1; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'long double'"
+    "error": "no layout for declared type 'long double'",
+    "layout_expect": "refuse",
+    "layout_error": "floating literal lacks parser-native bits"
   },
   {
     "id": "complex-long-double-layout-refusal",
     "source": "int main(void) { _Complex long double z = 0; return z == 0 ? 0 : 1; }",
     "expect": "refuse",
-    "error": "no layout for declared type '_Complex long double'"
+    "error": "no layout for declared type '_Complex long double'",
+    "layout_expect": "refuse",
+    "layout_error": "castKind 'FloatingRealToComplex'"
   },
   {
     "id": "structured-pointer-arithmetic",
