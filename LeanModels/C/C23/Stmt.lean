@@ -182,7 +182,8 @@ def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
     liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
   else match structured.bind intTyOfStructured with
     | some t =>
-        liftEval (writeMem (fun m => Mem.storeIntChecked m Mem.cAliasModel p t ty 0))
+        liftEval (writeMem (fun m =>
+          Mem.storeIntChecked m Mem.cAliasModel p t ty 0 structured))
     | none =>
         match structured.bind floatBitsOfStructured with
         | some 32 =>

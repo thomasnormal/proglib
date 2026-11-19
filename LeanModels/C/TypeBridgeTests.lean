@@ -67,6 +67,11 @@ private def isError : Except String α → Bool
   (some (.qualified true false (.cBuiltinKind .unsignedLong)))
 #guard LeanModels.C.C23.intTyOfStructured
   (.enumeration {value := "enum-1"}) == some LeanModels.C.C23.IntTy.int_
+#guard LeanModels.C.C23.Mem.isCharacterType
+  (.qualified true false (.cBuiltinKind .unsignedChar))
+#guard !LeanModels.C.C23.Mem.cAliasCompatible "int" "volatile int"
+#guard LeanModels.C.C23.Mem.cAliasModel.compatibleUsed
+  (some (.cBuiltinKind .unsignedChar)) "short" "int"
 #guard LeanModels.Clang.QualType.resolveTypedefs
   (fun h => if h.value == "P" then some (.pointer (.cBuiltinKind .int)) else none) 8
   (.typedefRef {value := "P"}) == some (.pointer (.cBuiltinKind .int))
