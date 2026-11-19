@@ -34743,7 +34743,9 @@ def _sym_source_module_ports(name):
                 declarator = getattr(item, "declarator", None)
                 header = getattr(item, "header", None)
                 pname = str(getattr(declarator, "name", "")).strip()
-                direction = str(getattr(header, "direction", "")).strip()
+                direction_token = getattr(header, "direction", None)
+                direction = str(getattr(direction_token, "valueText", "") or
+                                direction_token).strip()
                 if not _SYM_HIER_NAME.match(pname):
                     return None
                 mapped = {"input": "in", "output": "out", "inout": "inout"}.get(direction)
@@ -34852,6 +34854,40 @@ def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
             return (_sym_uninstantiated_port_expr(sm, children[0], scope)
                     if len(children) == 1 else _syntax_unsupported(
                         sm, syntax, "UninstantiatedDefSymbol:expression"))
+        if syntax.kind == SyntaxKind.ScopedName:
+            children = _syntax_children(syntax)
+            if len(children) == 2 and all(
+                    child.kind == SyntaxKind.IdentifierName for child in children):
+                package = _SYM.comp.getPackage(str(children[0]).strip())
+                if package is not None:
+                    return _syntax_name(sm, syntax, package,
+                                        str(children[1]).strip(),
+                                        str(children[0]).strip())
+            return _syntax_unsupported(sm, syntax,
+                                       "UninstantiatedDefSymbol:expression")
+        if syntax.kind == SyntaxKind.ConditionalExpression:
+            children = _syntax_children(syntax)
+            if len(children) == 3:
+                cond = children[0]
+                if cond.kind == SyntaxKind.ConditionalPredicate:
+                    inner = _syntax_children(cond)
+                    if len(inner) != 1:
+                        return _syntax_unsupported(
+                            sm, syntax, "UninstantiatedDefSymbol:expression")
+                    cond = inner[0]
+                    if cond.kind == SyntaxKind.ConditionalPattern:
+                        inner = _syntax_children(cond)
+                        if len(inner) != 1:
+                            return _syntax_unsupported(
+                                sm, syntax, "UninstantiatedDefSymbol:expression")
+                        cond = inner[0]
+                return {"kind": "Ternary", "span": _syntax_span(sm, syntax),
+                        "width": None,
+                        "cond": _sym_uninstantiated_port_expr(sm, cond, scope),
+                        "then": _sym_uninstantiated_port_expr(sm, children[1], scope),
+                        "else": _sym_uninstantiated_port_expr(sm, children[2], scope)}
+            return _syntax_unsupported(sm, syntax,
+                                       "UninstantiatedDefSymbol:expression")
         if syntax.kind in SYM_SYNTAX_UNOPS:
             children = _syntax_children(syntax)
             if len(children) != 1:
@@ -34886,8 +34922,21 @@ def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
             if operand.get("kind") == "Unsupported":
                 return operand
             width = None
+            target = children[0]
+            if target.kind == SyntaxKind.ScopedName:
+                target_children = _syntax_children(target)
+                if len(target_children) == 2:
+                    package = _SYM.comp.getPackage(
+                        str(target_children[0]).strip())
+                    if package is not None:
+                        symbol = package.lookupName(
+                            str(target_children[1]).strip())
+                        target_type = getattr(symbol, "targetType", None)
+                        width = getattr(getattr(target_type, "type", None),
+                                        "bitWidth", None)
             try:
-                width = int(str(children[0]).strip())
+                if width is None:
+                    width = int(str(children[0]).strip())
             except ValueError:
                 width = operand.get("width")
             return {"kind": "Resize", "span": _syntax_span(sm, syntax),

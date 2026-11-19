@@ -318,6 +318,32 @@ endmodule
                          "local_a")
         self.assertEqual(instance["ports"][0]["expr"]["operand"]["width"], 1)
 
+    def test_inactive_generate_instance_retains_package_conditional_parameter(self):
+        env = self.extract("""
+package flags;
+  typedef enum logic [1:0] { ZERO = 2'b00, ONE = 2'b01 } mask_t;
+endpackage
+module child #(parameter int P = 0) (input logic a, output logic y);
+  assign y = a ^ P[0];
+endmodule
+module top #(parameter bit USE = 1, parameter bit SEL = 0)
+    (input logic a, output logic y);
+  if (USE) begin : g_active
+    assign y = a;
+  end else begin : g_inactive
+    child #(.P((SEL ? flags::mask_t'(0) : flags::ZERO) | flags::ONE))
+      u (.a(a), .y(y));
+  end
+endmodule
+""")
+        instance = env["design"]["modules"][0]["generates"][0]["else"][0]
+        expr = instance["params"][0]["expr"]
+        self.assertEqual(expr["kind"], "Binary")
+        self.assertEqual(expr["left"]["kind"], "Ternary")
+        self.assertEqual(expr["left"]["then"]["kind"], "Resize")
+        self.assertEqual(expr["left"]["else"]["kind"], "EnumRef")
+        self.assertEqual(expr["right"]["kind"], "EnumRef")
+
     def test_package_type_bits_constant_is_source_shaped(self):
         env = self.extract("""
 package widths;
