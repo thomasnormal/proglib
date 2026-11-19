@@ -63,6 +63,8 @@ private def isError : Except String α → Bool
 #guard LeanModels.C.C23.intTyOfStructured
   (.cBuiltinKind .unsignedShort) == some LeanModels.C.C23.IntTy.ushort
 #guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltinKind .double) == some 64
+#guard LeanModels.C.C23.isPtrIntType "not-a-spelling"
+  (some (.qualified true false (.cBuiltinKind .unsignedLong)))
 #guard LeanModels.Clang.QualType.resolveTypedefs
   (fun h => if h.value == "P" then some (.pointer (.cBuiltinKind .int)) else none) 8
   (.typedefRef {value := "P"}) == some (.pointer (.cBuiltinKind .int))

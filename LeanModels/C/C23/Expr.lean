@@ -894,14 +894,13 @@ def structuredIndexable (structured : Option LeanModels.Clang.QualType)
     (fallback : CType) : Bool :=
   structured.map (fun type => type.unqualified.indexable) |>.getD (isPtrType fallback)
 
-def isPtrIntType (ty : CType) : Bool :=
-  let t := ty.trimAscii.toString
+def isPtrIntType (ty : CType)
+    (structured : Option LeanModels.Clang.QualType := none) : Bool :=
   -- The pinned profile has 64-bit object pointers.  A 64-bit integer type
   -- can represent every exposed address produced by this memory model, so
   -- C23's pointer/integer conversion boundary includes the profile's long
   -- and long-long spellings as well as the exact-width typedefs.
-  t == "uintptr_t" || t == "intptr_t" ||
-    match intTyOf? t with
+  match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
     | some it => it.bits >= 64
     | none => false
 
@@ -961,7 +960,7 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
   else do
     match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
     | some t =>
-        if isPtrIntType ty then
+        if isPtrIntType ty structured then
           -- A uintptr_t object may contain the profile's preserved pointer
           -- token or an ordinary integer.  Try the parser-native pointer
           -- representation first, then use the ordinary integer rule.
