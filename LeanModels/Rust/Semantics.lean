@@ -1167,6 +1167,53 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
               | .unreachable => .ub "unreachable"
               | .unsupported _ => .refused (.unsupported "terminator")
 
+section ForeignRunner
+
+noncomputable section
+open Classical
+
+def cfgRunProgramForeign : Nat → Envelope → ForeignRegistry → Body → Nat → State →
+    Option Trace
+  | 0, _, _, _, _, _ => none
+  | fuel + 1, program, registry, body, blockId, state => do
+      let block ← blockAt body.blocks blockId
+      let firstTrace ← statementsRun block.statements state
+      match block.terminator with
+      | .call func args destination (some target) cleanup =>
+          let edge ← program.calls.find? (fun candidate =>
+            candidate.caller == body.instanceId ∧ candidate.block == blockId)
+          let calleeId ← edge.callee
+          match registry calleeId with
+          | some (.allocator zeroed 2) =>
+              let choice : AllocationChoice :=
+                { address := placementOf firstTrace.state firstTrace.state.allocations.length }
+              let (size, align) ← allocatorArguments firstTrace.state args
+              if h : allocationChoiceValid firstTrace.state size align choice then
+                let (foreignState, value) := allocatorStep firstTrace.state size align zeroed choice
+                let callerState ← writeCell foreignState destination value
+                let suffix ← cfgRunProgramForeign fuel program registry body target callerState
+                let trace : Trace :=
+                  { state := suffix.state
+                    events := firstTrace.events ++ (Event.call calleeId :: suffix.events) }
+                pure trace
+              else none
+          | _ => none
+      | .call _ _ _ none _ => none
+      | terminator => do
+          let transition ← terminatorStep firstTrace.state terminator
+          match transition with
+          | .ret => pure firstTrace
+          | .jump next =>
+              let suffix ← cfgRunProgramForeign fuel program registry body next firstTrace.state
+              pure { state := suffix.state, events := firstTrace.events ++ suffix.events }
+          | .drop place target _ =>
+              let (dropState', event) ← dropState firstTrace.state place
+              let suffix ← cfgRunProgramForeign fuel program registry body target dropState'
+              pure { state := suffix.state, events := firstTrace.events ++ event :: suffix.events }
+
+end
+end ForeignRunner
+
 inductive ProgramSteps (program : Envelope) : Body → Nat → State → Trace → Prop
   | ret {body : Body} {blockId : Nat} {state : State} {block : Block} {first : Trace}
       (hb : blockAt body.blocks blockId = some block)
@@ -1343,6 +1390,14 @@ def initialState (placement : Nat → Nat) (types : List TypeLayout)
     (allocations : List Allocation := []) (provenance : List (Nat × Nat) := []) : State :=
   { locals := [], placements := allocationPlacements placement allocations,
     types := types, allocations := allocations, provenance := provenance }
+
+noncomputable def runForeignWithPlacement (placement : Nat → Nat) (registry : ForeignRegistry)
+    (program : Envelope) : Option Trace :=
+  match program.bodies.find? (·.instanceId == program.entry) with
+  | some body => cfgRunProgramForeign 4096 program registry body 0
+      { (initialState placement program.types program.allocations program.provenance) with
+        localTypes := body.locals.map (fun loc => (loc.localId, loc.ty)) }
+  | none => none
 
 def runWithPlacement (placement : Nat → Nat) (program : Envelope) : Option Trace :=
   match program.bodies.find? (·.instanceId == program.entry) with

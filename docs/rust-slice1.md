@@ -6,7 +6,7 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1576 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
+implementation is 1636 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
 of AST declarations, 530 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
@@ -199,6 +199,13 @@ extended with the same registry transition.
 constructs the corresponding `ForeignProgramStep` when the address choice,
 typed arguments, destination write, and normal continuation satisfy their
 premises.  The proof leaves the registry and address choice explicit.
+
+The derived `cfgRunProgramForeign` runner takes a registry and an explicit
+placement function.  Its allocator branch checks the typed size and alignment,
+requires the allocation-choice predicate, applies `allocatorStep`, writes the
+returned pointer to the MIR destination, and records the external call event.
+The ordinary `runOutcome` entry remains unchanged and continues to refuse
+foreign calls until this parameterized path is selected by a caller.
 
 `Examples/rust/allocator` is a focused extracted envelope for a `Box<u8>`
 allocation.  Its Miri oracle is `ok` under both Stacked Borrows and Tree
