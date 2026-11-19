@@ -218,6 +218,7 @@ inductive RKont where
   | callReturnInstance (instanceValue : RVal) (continuation : RKont)
   | lenResult (continuation : RKont)
   | reprResult (continuation : RKont)
+  | strResult (continuation : RKont)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -278,7 +279,7 @@ def RConfig.initial (program : RModule) : RConfig :=
     nextFunctionId := 0
     classes := []
     nextClassId := 0
-    builtins := ["print", "abs", "len", "repr"]
+    builtins := ["print", "abs", "len", "repr", "str"]
     choices := []
     choiceToken := none
     status := .running }
@@ -1215,6 +1216,23 @@ def rStartFunctionCall (config : RConfig) (function : RFunction) (values : List 
   | _ => some (.event (.refuse "machine call stack"),
       config.finish (.refuse "machine call stack"))
 
+def rStartInstanceDunderCall (config : RConfig) (value : RVal) (attrName : String)
+    (continuation : RKont) : Option (RLabel × RConfig) :=
+  match value with
+  | .ref address =>
+      match config.heap.get? address with
+      | some (.instance cls _) =>
+          match rLookupClassAttr config.classes cls attrName with
+          | some (.callable token) =>
+              match rFunctionByToken config.functions token with
+              | some function => rStartFunctionCall config function [value] [] continuation
+              | none => some (.event (.refuse ("machine " ++ attrName)),
+                  config.finish (.refuse ("machine " ++ attrName)))
+          | some _ => some (.tau, config.setControl (.refusing ("machine " ++ attrName)))
+          | none => some (.tau, config.setControl (.refusing ("machine " ++ attrName)))
+      | _ => some (.tau, config.setControl (.refusing ("machine " ++ attrName)))
+  | _ => some (.tau, config.setControl (.refusing ("machine " ++ attrName)))
+
 def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     (keywords : List (String × RVal)) (continuation : RKont) :
     Option (RLabel × RConfig) :=
@@ -1389,6 +1407,11 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
                     | _ => some (.tau, config.setControl (.refusing "machine repr"))
                 | _ => some (.tau, config.setControl (.refusing "machine repr"))
             | _ => some (.tau, config.setControl (.refusing "machine repr"))
+          else if name == "str" then
+            match values with
+            | [value] => rStartInstanceDunderCall config value "__str__"
+                (.strResult continuation)
+            | _ => some (.tau, config.setControl (.refusing "machine str"))
           else some (.event (.refuse ("unknown function: " ++ name)),
             config.finish (.refuse ("unknown function: " ++ name)))
   | _ => some (.event (.refuse "machine non-callable"),
@@ -1939,6 +1962,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           match value with
           | .str _ => some (.tau, config.setControl (.continueValue value continuation))
           | _ => some (.tau, config.setControl (.refusing "machine __repr__ result"))
+      | .continueValue value (.strResult continuation) =>
+          match value with
+          | .str _ => some (.tau, config.setControl (.continueValue value continuation))
+          | _ => some (.tau, config.setControl (.refusing "machine __str__ result"))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue _ (.classDef name bases remaining) =>
