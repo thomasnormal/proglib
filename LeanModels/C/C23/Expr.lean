@@ -377,6 +377,13 @@ def floatBitsOfStructured : LeanModels.Clang.QualType → Option Nat
   | .cBuiltin "double" => some 64
   | _ => none
 
+/-- Byte size for a scalar parser-native type.  Aggregate sizes remain a
+layout observation, while scalar pointer strides can be obtained directly
+from Clang's recursive `QualType` tree. -/
+def scalarSizeOfStructured (type : LeanModels.Clang.QualType) : Option Nat :=
+  (intTyOfStructured type).map (fun integer => integer.bits / 8)
+    |>.orElse (fun _ => (floatBitsOfStructured type).map (· / 8))
+
 /-- The integer type of an expression, or a refusal naming the spelling.
 A refusal a human cannot act on is a refusal that has not done its job,
 so the unresolved SPELLING is carried in the message. -/
@@ -600,6 +607,19 @@ def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
   (directDeclId base).bind layout.structuredType
     |>.bind (LeanModels.Clang.QualType.resolveTypedefs
       (fun declaration => layout.structuredType { value := declaration.value }) 32)
+
+/-- Resolve a pointer stride from the declaration identity that owns the
+pointer expression, then from the parser-native type-layout table.  There is
+no spelling peel fallback here. -/
+def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : CType) :
+    Option Nat :=
+  base.bind (fun expression =>
+    (directDeclId expression).bind layout.pointeeSizeDecl)
+    |>.orElse (fun _ => layout.pointeeSize ty)
+    |>.orElse (fun _ =>
+      base.bind (layout.structuredTypeAt ·)
+        |>.bind LeanModels.Clang.QualType.pointee
+        |>.bind scalarSizeOfStructured)
 
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/
@@ -891,34 +911,13 @@ def checkVaType (ctx : Ctx) (ty : CType) (v : CVal) : EvalM CVal :=
   | .undef | .ptrInt _ =>
       refuseUnsupported s!"va_arg requested unsupported value type '{ty}'"
 
-/-- The POINTEE spelling of a pointer type: `int *` → `int`, `const S *` →
-`const S`. `none` when the spelling is not a pointer at all.
-
-This exists because `layout.size` is asked for two DIFFERENT types by two
-neighbouring callers, and the difference is invisible at the call site.
-At a subscript, clang types `a[i]` as the ELEMENT, so `layout.size ty` is
-the stride. At `p + n`, clang types the expression as the POINTER, so the
-same phrase asks for the size of a pointer — 8, on every pointee — and
-§6.5.7p8's scaling silently became "advance eight bytes". An `int *` walked
-in strides of 8 and a 12-byte struct pointer in strides of 8; `a[i]` was
-right the whole time, which is why the corpus never showed it. The peel is
-one level only: `int **` → `int *`, which is the pointee and is itself a
-pointer, exactly as §6.2.5p20 has it. -/
-def pointeeOf (ty : CType) : Option CType :=
-  if ty.endsWith "*" then some (ty.dropEnd 1).toString.trimAsciiEnd.toString
-  else none
-
 /-- C23 §6.3.2.3p7 / §6.5.15p6: pointers to compatible integer types
-may carry the same object provenance. Compatibility is read from the
-frontend-resolved pointee spellings through the profile's integer table; no
-type spelling is parsed here. -/
+may carry the same object provenance. The legacy envelope has no structured
+target type at a cast occurrence, so only the exact parser spelling or the
+standard character/void exceptions are admitted here. Incompatible legacy
+spellings refuse instead of being peeled by a local type parser. -/
 def compatiblePointerTypes (ctx : Ctx) (a b : CType) : Bool :=
-  match pointeeOf (ctx.layout.normalizeTy a), pointeeOf (ctx.layout.normalizeTy b) with
-  | some ta, some tb =>
-      match intTyOf? (ctx.layout.normalizeTy ta), intTyOf? (ctx.layout.normalizeTy tb) with
-      | some ia, some ib => ia == ib
-      | _, _ => false
-  | _, _ => false
+  ctx.layout.normalizeTy a == ctx.layout.normalizeTy b
 
 def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
     (t : IntTy) (ty : CType) : MRes CVal :=
@@ -1046,7 +1045,7 @@ def chooseCond : Expr → Option Bool
 
 /-- The non-short-circuit binary rules, once both operands have values. -/
 def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
-    (elemTy : Option CType := none) : EvalM CVal :=
+    (elemTy : Option CType := none) (base : Option Expr := none) : EvalM CVal :=
   match lv, rv with
   | .float32 a, .float32 b => float32Binop op a b
   | .float64 a, .float64 b => float64Binop op a b
@@ -1054,7 +1053,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
   -- whenever either operand is one. Measured: 8 `+`, 4 `-`.
   | .ptr p, .int _ i =>
       if op == "+" || op == "-" then
-        match ctx.layout.pointeeSize ty |>.orElse (fun _ => (pointeeOf ty).bind ctx.layout.size) with
+        match ctx.layout.pointeeSizeAt base ty with
         | some esz => do
             let d := if op == "+" then i else -i
             let q ← readMem (fun m => Mem.offsetPtr m p esz d)
@@ -1063,7 +1062,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
       else refuseUnsupported s!"operator '{op}' on a pointer and an integer"
   | .int _ i, .ptr p =>
       if op == "+" then
-        match ctx.layout.pointeeSize ty |>.orElse (fun _ => (pointeeOf ty).bind ctx.layout.size) with
+        match ctx.layout.pointeeSizeAt base ty with
         | some esz => do
             let q ← readMem (fun m => Mem.offsetPtr m p esz i)
             pure (.ptr q)
@@ -1083,7 +1082,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
             if ao != bo || ab != bb then
               refuseUnsupported "operator '-' on pointers from different arrays"
             else
-              match elemTy.bind (fun t => (pointeeOf t).bind ctx.layout.size) with
+              match elemTy.bind (ctx.layout.pointeeSizeAt base) with
               | none => refuseUnsupported "operator '-' on pointers with unknown element size"
               | some esz =>
                   if esz == 0 then
@@ -1611,7 +1610,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       else do
         let lv ← evalExpr ctx l
         let rv ← evalExpr ctx r
-        evalArith ctx op lv rv ty (some l.ty)
+        evalArith ctx op lv rv ty (some l.ty) (some l)
 
   -- §6.5.16p4 — `?:`, the third short-circuit: EXACTLY ONE arm runs. 42 sites.
   | .cond c t e _ _ => do
@@ -2531,9 +2530,9 @@ theorem floatCast' (v : CVal) (ty : CType) :
     | exact refuseUnsupported' _
 
 theorem evalArith' (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
-    (elemTy : Option CType := none) :
-    MemInvariant (evalArith ctx op lv rv ty elemTy) := by
-  cases elemTy <;> cases lv <;> cases rv <;>
+    (elemTy : Option CType := none) (base : Option Expr := none) :
+    MemInvariant (evalArith ctx op lv rv ty elemTy base) := by
+  cases elemTy <;> cases base <;> cases lv <;> cases rv <;>
     first | simp only [evalArith] | rw [evalArith.eq_def]
   repeat (any_goals split)
   all_goals first
