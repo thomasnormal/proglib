@@ -1,6 +1,9 @@
-"""Machine argument-binder row: dynamic defaults remain an explicit refusal."""
+"""Machine argument-binder row: defaults read globals at definition time."""
 
-def answer(x=3 + 4):
+base = 3
+
+def answer(x=base + 4):
     return x
 
+base = 100
 print(answer())
