@@ -263,6 +263,55 @@ theorem picorv32_loaded_addi_invariant
 
 #print axioms picorv32_loaded_addi_invariant
 
+/-! The first ADDI invariant can now consume the concrete loaded reset
+    relation.  The program image is retained in the all-prefix contract, and
+    retirement progress remains an independent premise. -/
+
+theorem picorv32_loaded_addi_program_refinement_from_initial_relation
+    (core : PicoRV32LoadedCanonicalE)
+    (profile : PlatformProfile)
+    (program : Memory)
+    (initialArch : ArchState)
+    (hpc : initialArch.pc = 0)
+    (hwf : initialArch.WF)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (invariant : Rv32iAddiInvariant
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core)) rel admit)
+    (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState),
+      PicoRV32ResetRelation
+        (PicoRV32LoadedCanonicalE.design core) program
+        state memoryState → rel state memoryState)
+    {schedule target : Nat → Input}
+    (hschedule : ∀ n, admit (schedule n))
+    (progress : Rv32iRetiresTarget
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core))
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core)).init schedule target) :
+    picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
+      Rv32iAllPrefixRefinement profile
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+          (PicoRV32LoadedCanonicalE.machine core)) rel 0
+        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+          (PicoRV32LoadedCanonicalE.machine core)).init
+        { arch := initialArch, memory := program } schedule target := by
+  have hinitial : rel
+      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+        (PicoRV32LoadedCanonicalE.machine core)).init
+      { arch := initialArch, memory := program } :=
+    hrel _ _ (picoRV32_reset_relation_initial
+      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf)
+  refine ⟨PicoRV32LoadedCanonicalE.loaded core, ?_⟩
+  exact rv32i_progress_refinement profile
+    (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
+      (PicoRV32LoadedCanonicalE.machine core)) rel admit
+    invariant.toMixedStep 0 _ _ hinitial hschedule progress
+
+#print axioms picorv32_loaded_addi_program_refinement_from_initial_relation
+
 
 /-! The measured first ADDI row can be consumed by the same indexed RV32I
     dispatcher as a universal invariant.  The source transition and exact
