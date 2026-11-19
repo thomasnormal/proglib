@@ -214,7 +214,13 @@ partial def mExpr (j : Json) : Except String MExpr := do
       let keywords ← (← (← mField j "keywords").getArr?).mapM fun kw => do
         let name ← (← mField kw "arg").getStr?
         pure (name, ← mExpr (← mField kw "value"))
-      pure (.call func args keywords #[] #[] span)
+      let starargs ← match j.getObjVal? "starargs" with
+        | .ok value => (← value.getArr?).mapM mExpr
+        | .error _ => pure #[]
+      let kwargs ← match j.getObjVal? "kwargs" with
+        | .ok value => (← value.getArr?).mapM mExpr
+        | .error _ => pure #[]
+      pure (.call func args keywords starargs kwargs span)
   | "IfExp" => pure (.ifExp (← mExpr (← mField j "test"))
       (← mExpr (← mField j "body")) (← mExpr (← mField j "orelse")) span)
   | "Compare" =>
@@ -583,7 +589,7 @@ partial def mExprHasRaw : MExpr → Bool
   | .ifExp test body orelse _ => mExprHasRaw test || mExprHasRaw body || mExprHasRaw orelse
   | .call func args keywords starargs kwargs _ =>
       mExprHasRaw func || args.any mExprHasRaw || keywords.any (fun pair => mExprHasRaw pair.2) ||
-        starargs.any mExprHasRaw || kwargs.any mExprHasRaw
+        !starargs.isEmpty || !kwargs.isEmpty || starargs.any mExprHasRaw || kwargs.any mExprHasRaw
   | .attribute value _ _ => mExprHasRaw value
   | .subscript value index _ => mExprHasRaw value || mExprHasRaw index
   | .slice value lower upper step _ =>

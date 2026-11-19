@@ -1,0 +1,148 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_call_star_boundary.py",
+  "source_sha256": "8827570f43eeb15eb2f3fdf346ba6ac30811a5b7538d01de7daee1950aaa7add",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 1,
+          "end_col_offset": 14
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 1,
+            "col_offset": 0,
+            "end_lineno": 1,
+            "end_col_offset": 14
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 1,
+              "col_offset": 0,
+              "end_lineno": 1,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [
+            {
+              "kind": "List",
+              "span": {
+                "lineno": 1,
+                "col_offset": 7,
+                "end_lineno": 1,
+                "end_col_offset": 13
+              },
+              "elts": [
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 8,
+                    "end_lineno": 1,
+                    "end_col_offset": 9
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "1"
+                  }
+                },
+                {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 11,
+                    "end_lineno": 1,
+                    "end_col_offset": 12
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "2"
+                  }
+                }
+              ]
+            }
+          ],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 1,
+                "col_offset": 6,
+                "end_lineno": 1,
+                "end_col_offset": 13
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 1,
+                  "col_offset": 6,
+                  "end_lineno": 1,
+                  "end_col_offset": 13
+                },
+                "id": "<star-arg>"
+              },
+              "args": [
+                {
+                  "kind": "List",
+                  "span": {
+                    "lineno": 1,
+                    "col_offset": 7,
+                    "end_lineno": 1,
+                    "end_col_offset": 13
+                  },
+                  "elts": [
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 1,
+                        "col_offset": 8,
+                        "end_lineno": 1,
+                        "end_col_offset": 9
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "1"
+                      }
+                    },
+                    {
+                      "kind": "Constant",
+                      "span": {
+                        "lineno": 1,
+                        "col_offset": 11,
+                        "end_lineno": 1,
+                        "end_col_offset": 12
+                      },
+                      "value": {
+                        "type": "int",
+                        "repr": "2"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
