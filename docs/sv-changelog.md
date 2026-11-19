@@ -1,5 +1,14 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Parameter-default assignment patterns — 2026-11-19
+
+The ordinary receipt now exercises a typed parameter whose default is the
+source-shaped IEEE 1800-2023 §10.9 assignment pattern `'{default: 4'h0}`.
+The extractor's fixed packed-pattern lowering and the E parameter path agree
+with Xcelium 24.03-s004 on all eight rows, including x-producing inputs.
+Icarus Verilog 13.0 retains its parser refusal for this source. Width-family
+patterns whose dimensions depend on an overridable parameter remain loud.
+
 ## Wall ranking after the aggregate boundary — 2026-11-18
 
 The current clean-room matrix was re-ranked after the typed aggregate/member

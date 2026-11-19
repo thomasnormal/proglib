@@ -222,7 +222,7 @@ FIXTURES: tuple[Fixture, ...] = (
             expected_source_refusals=("iverilog",)),
     Fixture("assignment_pattern_param_e.sv", "assignment_pattern_param_e",
             (Port("x", 4),), (Port("y", 4),),
-            expected_loader_refusal="AssignmentPattern:default-point",
+            points=(Point("default", (0,)),),
             expected_source_refusals=("iverilog",)),
     Fixture("assignment_pattern_packed_e.sv", "assignment_pattern_packed_e",
             (Port("x", 4),), (Port("y", 4),),
@@ -623,8 +623,9 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "packed_enum_param_e": ("W",),
             "packed_enum_dimension_repro": ("W",),
             "packed_enum_case_e": ("W",),
+            "assignment_pattern_param_e": ("P",),
         }[fixture.top]
-        params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
+        params = "" if fixture.top == "assignment_pattern_param_e" else ("#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")")
     declarations = []
     connections = []
     for p in fixture.inputs:
