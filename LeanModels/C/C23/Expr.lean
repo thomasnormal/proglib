@@ -582,6 +582,8 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
   (directDeclId base).bind layout.structuredType
+    |>.bind (LeanModels.Clang.QualType.resolveTypedefs
+      (fun declaration => layout.structuredType { value := declaration.value }) 32)
 
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/

@@ -986,5 +986,14 @@
     "source": "int main(void) { int x = 7; int *p = &x; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
     "expect": "match",
     "return_value": 0
+  },
+  {
+    "id": "structured-typedef-pointer",
+    "source": "typedef int *IntPtr; int main(void) { int x = 5; IntPtr p = &x; return *p == 5 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
   }
 ]

@@ -75,6 +75,36 @@ def QualType.unqualified (type : QualType) : QualType :=
   | _ => type
 termination_by structural type
 
+/-- Resolve parser-emitted typedef references through the declaration table.
+The lookup is supplied by the envelope, so this follows clang's declaration
+identity and never interprets a display spelling.  A fuel argument makes a
+malformed cyclic frontend table a loud absence rather than an unbounded
+reduction. -/
+def QualType.resolveTypedefs
+    (lookup : DeclarationHandle → Option QualType) : Nat → QualType → Option QualType
+  | 0, _ => none
+  | fuel + 1, type =>
+      match type with
+      | .typedefRef declaration =>
+          (lookup declaration).bind (resolveTypedefs lookup fuel)
+      | .pointer pointee =>
+          (resolveTypedefs lookup fuel pointee).map QualType.pointer
+      | .array element extent =>
+          (resolveTypedefs lookup fuel element).map (fun element => .array element extent)
+      | .lvalueReference referent =>
+          (resolveTypedefs lookup fuel referent).map QualType.lvalueReference
+      | .rvalueReference referent =>
+          (resolveTypedefs lookup fuel referent).map QualType.rvalueReference
+      | .qualified isConst isVolatile base =>
+          (resolveTypedefs lookup fuel base).map
+            (fun base => .qualified isConst isVolatile base)
+      | .function result parameters variadic => do
+          let result ← resolveTypedefs lookup fuel result
+          let parameters ← parameters.mapM (resolveTypedefs lookup fuel)
+          pure (.function result parameters variadic)
+      | _ => some type
+termination_by fuel => fuel
+
 /-- Whether clang's structured type denotes an object with record members.
 This follows the parser tree through qualifiers and one or more pointer layers
 without interpreting a flat type spelling. -/
