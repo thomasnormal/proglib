@@ -1,0 +1,775 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 12,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "c-testsuite/single-exec",
+   "name": "00124.c",
+   "sha256": "77b3d195814db328448ba7ce8986574ab66ed59ded9746ce479c94a75b31e02d",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id44",
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "int (*(*)(int, int))(int, int)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20021118-2.c",
+   "sha256": "5403880bca6352d2e126d1ca98b42cf7f3076901536ac40dd3410aed9be2726e",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "float *"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "void (*)(double)"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "void (*)(float, float)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "float *"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "void (*)(double)"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "void (*)(float, float)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "void (*)(float)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id132",
+     "element_size_bytes": 4,
+     "size_bytes": 12,
+     "type": "float[3]"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "20080506-2.c",
+   "sha256": "0a514eb4fd81cd38ff9ca1f487ce7baae38aaf3426b0ed7f7393a316d7caf2a7",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "int **__restrict"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 8,
+     "size_bytes": 8,
+     "type": "int **__restrict"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id58",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id60",
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "int *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id60",
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "int *"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "921208-1.c",
+   "sha256": "70263e2971e1a53d79b4860a4d9bc69cffefdd117540fc444454c48b44041f4b",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "double (*)(double)"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "double"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "991112-1.c",
+   "sha256": "6ed611e9629336a7603aa4eaea96fd43571cb5ff00a2c648fe0772a79d35d6e9",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id52",
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "int (*)(int, int)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "bcp-1.c",
+   "sha256": "51c01c565b099cfaf2867c9fa740d25991f51274a2c3e0380f0caa93fa10b0b8",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id27",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "const char *"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id106",
+     "element_size_bytes": 1,
+     "size_bytes": 10,
+     "type": "char[10]"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "const char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id186",
+     "element_size_bytes": 8,
+     "size_bytes": 48,
+     "type": "int (*volatile[6])(void)"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id200",
+     "element_size_bytes": 8,
+     "size_bytes": 24,
+     "type": "int (*volatile[3])(int)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id208",
+     "element_size_bytes": 8,
+     "size_bytes": 16,
+     "type": "int (*volatile[2])(const char *)"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "const char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id214",
+     "element_size_bytes": 8,
+     "size_bytes": 24,
+     "type": "int (*volatile[3])(void)"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id222",
+     "element_size_bytes": 8,
+     "size_bytes": 24,
+     "type": "int (*volatile[3])(void)"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id233",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "func-ptr-1.c",
+   "sha256": "bf4686c7a8a6064e3eafd06739569113786ae5b26324d3d4853c3169aca0dd5e",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id29",
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "double (*)(float)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "float"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "memchr-1.c",
+   "sha256": "fd62059556391313f163e4cca4c1f02898fdc77d579dd9a0fc61c5347c0c0f3d",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "const void *"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id31",
+     "size_bytes": 1,
+     "type": "const char"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id34",
+     "element_size_bytes": 1,
+     "size_bytes": 1,
+     "type": "const char[1]"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id36",
+     "element_size_bytes": 1,
+     "size_bytes": 4,
+     "type": "const char[4]"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id38",
+     "element_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "const char[2][4]"
+    },
+    {
+     "alignment_bytes": 1,
+     "decl_id": "id42",
+     "element_size_bytes": 5,
+     "size_bytes": 15,
+     "type": "const char[3][5]"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id47",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id49",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id51",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id53",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id55",
+     "size_bytes": 4,
+     "type": "volatile int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id60",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id63",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id69",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id75",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id81",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr124358.c",
+   "sha256": "4bfac3671278712097cedc58d0c1524f1bec0b73bb30895d10b947b0103806b5",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id19",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id36",
+     "element_size_bytes": 16,
+     "size_bytes": 16,
+     "type": "int[1][4]"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id44",
+     "pointee_size_bytes": 16,
+     "size_bytes": 8,
+     "type": "int (*)[4]"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id49",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id59",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr38212.c",
+   "sha256": "0efbd52487ae3655e9d5185bca79d375ee85f61ef41adcf6cd55bd8d1ff84c31",
+   "type_layouts": [
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "int *__restrict"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id20",
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "int *__restrict"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id22",
+     "pointee_size_bytes": 4,
+     "size_bytes": 8,
+     "type": "int *__restrict"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id24",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id24",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id72",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr42231.c",
+   "sha256": "b3e33ba642c30af0c00753228c37231794dbdd9d138a7f92892e1f0cb3ff3437",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id21",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "int (*)(int)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "int (*)(int)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "pr68390.c",
+   "sha256": "bab36ab4474180ee6b3e51c921e2b9322995f4da27066febed276f13b5e3bebf",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 0,
+     "size_bytes": 8,
+     "type": "double (*)(int, ...)"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id40",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id40",
+     "size_bytes": 8,
+     "type": "double"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id43",
+     "size_bytes": 4,
+     "type": "int"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "multiple",
+ "walls": [
+  "unsupported:no layout for declared type 'double (*)(float)'",
+  "unsupported:no layout for declared type 'int (*(*)(int, int))(int, int)'",
+  "unsupported:no layout for declared type 'int (*)(int, int)'",
+  "unsupported:no layout for parameter type 'double (*)(double)'",
+  "unsupported:no layout for parameter type 'double (*)(int, ...)'",
+  "unsupported:no layout for parameter type 'int (*)(int)'",
+  "unsupported:no layout for parameter type 'int **restrict'",
+  "unsupported:no layout for parameter type 'int *restrict'",
+  "unsupported:no layout for parameter type 'void (*)(double)'",
+  "unsupported:no size for pointee of 'const char (*)[1]'",
+  "unsupported:no size for pointee of 'int (*)[4]'",
+  "unsupported:sizeof: no layout for operand type 'int (*volatile[6])(void)'"
+ ]
+}
