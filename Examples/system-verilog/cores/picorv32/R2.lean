@@ -105,6 +105,8 @@ obligation:
   decoded system witness.
   `r1_illegal` provides undecodable and illegal-CSR consumers through the
   exact illegal boundary.
+  `r1_csr` provides the six implemented Zicsr consumers through the decoded
+  CSR row and operation witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
