@@ -47,6 +47,9 @@ inductive MExpr where
   | genExp (elt : MExpr) (target : MExpr) (iter : MExpr) (ifs : Array MExpr)
       (walrus : Array (String × MExpr)) (span : Span)
   | awaitExpr (value : MExpr) (span : Span)
+  | lambdaExpr
+      (params : Array (String × Bool × Bool × Bool × Bool × Option MExpr × Option MExpr))
+      (body : MExpr) (span : Span)
   | namedExpr (target : String) (value : MExpr) (span : Span)
   | starred (value : MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
@@ -275,6 +278,23 @@ partial def mExpr (j : Json) : Except String MExpr := do
       pure (.genExp (← mExpr (← mField j "elt"))
         (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs walrus span)
   | "Await" => pure (.awaitExpr (← mExpr (← mField j "value")) span)
+  | "Lambda" =>
+      let parseParam := fun param => do
+        let name ← (← mField param "arg").getStr?
+        let flag := fun field =>
+          match param.getObjVal? field with
+          | .ok (.bool value) => value
+          | _ => false
+        let default ← match param.getObjVal? "default" with
+          | .ok .null | .error _ => pure none
+          | .ok value => some <$> mExpr value
+        let annotation ← match param.getObjVal? "annotation" with
+          | .ok .null | .error _ => pure none
+          | .ok value => some <$> mExpr value
+        pure (name, flag "positional_only", flag "keyword_only",
+          flag "variadic", flag "keyword_variadic", default, annotation)
+      pure (.lambdaExpr (← (← mField j "lambda_args").getArr?).mapM parseParam
+        (← mExpr (← mField j "body")) span)
   | "Attribute" => pure (.attribute (← mExpr (← mField j "value"))
       (← (← mField j "attr").getStr?) span)
   | "Subscript" => pure (.subscript (← mExpr (← mField j "value"))
