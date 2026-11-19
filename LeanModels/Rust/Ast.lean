@@ -43,6 +43,7 @@ inductive Rvalue where
   | cast (kind : CastKind) (operand : Operand) (target : Nat)
   | checkedBinary (op : String) (left right : Operand)
   | ref (place : Place)
+  | addressOf (mutable : Bool) (place : Place)
   | aggregate (tag : String) (fields : List Operand)
   | adtAggregate (variant : Nat) (fields : List Operand)
   | repeat (operand : Operand) (count : Nat)

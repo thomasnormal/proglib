@@ -188,6 +188,16 @@ private def rvalue (j : Json) : Except String Rvalue := do
       match values with
       | [_kind, _borrow, placeJson] => .map Rvalue.ref (place placeJson)
       | _ => .error "MIR Ref rvalue has malformed operands"
+  | "AddressOf" => do
+      let values ← array value
+      match values with
+      | [borrow, placeJson] =>
+          let mutable ← match borrow with
+            | .str "Mut" => pure true
+            | .str "Not" | .str "Const" => pure false
+            | _ => .error "MIR AddressOf mutability is malformed"
+          pure (.addressOf mutable (← place placeJson))
+      | _ => .error "MIR AddressOf rvalue has malformed operands"
   | "Aggregate" => do
       let values ← array value
       match values with
