@@ -803,5 +803,20 @@
     "source": "harness/scripts/machine_review_while_pop.py",
     "envelope": "harness/scripts/machine_review_while_pop.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_local_shadow.py",
+    "envelope": "harness/scripts/machine_review_local_shadow.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_global_setter.py",
+    "envelope": "harness/scripts/machine_review_global_setter.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_review_nested_shadow.py",
+    "envelope": "harness/scripts/machine_review_nested_shadow.json",
+    "expect": "match"
   }
 ]

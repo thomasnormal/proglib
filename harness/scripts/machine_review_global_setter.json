@@ -1,0 +1,259 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_global_setter.py",
+  "source_sha256": "04cd4110ed6dd60db258c01b0077c3acb2197dff0204ebab8457b529e858ef72",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 5
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 1
+            },
+            "id": "x"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 2,
+            "col_offset": 4,
+            "end_lineno": 2,
+            "end_col_offset": 5
+          },
+          "value": {
+            "type": "int",
+            "repr": "1"
+          }
+        }
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 9
+        },
+        "name": "setx",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Global",
+            "names": [
+              "x"
+            ],
+            "span": {
+              "lineno": 6,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 12
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 7,
+              "col_offset": 4,
+              "end_lineno": 7,
+              "end_col_offset": 9
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 7,
+                  "col_offset": 4,
+                  "end_lineno": 7,
+                  "end_col_offset": 5
+                },
+                "id": "x"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 7,
+                "col_offset": 8,
+                "end_lineno": 7,
+                "end_col_offset": 9
+              },
+              "value": {
+                "type": "int",
+                "repr": "5"
+              }
+            }
+          }
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null,
+        "has_global": true
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 10,
+          "col_offset": 0,
+          "end_lineno": 11,
+          "end_col_offset": 12
+        },
+        "name": "getx",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 11,
+              "col_offset": 4,
+              "end_lineno": 11,
+              "end_col_offset": 12
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 11,
+                "col_offset": 11,
+                "end_lineno": 11,
+                "end_col_offset": 12
+              },
+              "id": "x"
+            }
+          }
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 14,
+          "col_offset": 0,
+          "end_lineno": 14,
+          "end_col_offset": 6
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 14,
+            "col_offset": 0,
+            "end_lineno": 14,
+            "end_col_offset": 6
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 14,
+              "col_offset": 0,
+              "end_lineno": 14,
+              "end_col_offset": 4
+            },
+            "id": "setx"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 15,
+          "col_offset": 0,
+          "end_lineno": 15,
+          "end_col_offset": 13
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 15,
+            "col_offset": 0,
+            "end_lineno": 15,
+            "end_col_offset": 13
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 15,
+              "col_offset": 0,
+              "end_lineno": 15,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 15,
+                "col_offset": 6,
+                "end_lineno": 15,
+                "end_col_offset": 12
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 15,
+                  "col_offset": 6,
+                  "end_lineno": 15,
+                  "end_col_offset": 10
+                },
+                "id": "getx"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}

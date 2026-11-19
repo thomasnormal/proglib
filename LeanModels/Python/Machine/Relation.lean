@@ -906,7 +906,8 @@ def rStoreBindings (config : RConfig) (frame : RFrame) :
           match rWriteCell config.heap frame.locals name value with
           | some heap => ({ config with heap := heap }, frame)
           | none =>
-              match rWriteCell config.heap frame.cells name value with
+              match (if frame.nonlocalNames.contains name then rWriteCell config.heap frame.cells name value
+                     else none) with
               | some heap => ({ config with heap := heap }, frame)
               | none => (config, { frame with locals := rSetEnv frame.locals name value })
       let withModule : RConfig × RFrame :=
@@ -1477,7 +1478,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   | none => some (.event (.refuse "machine default expression"),
                       config.finish (.refuse "machine default expression"))
                   | some defaultValues =>
-                      let captured := rCaptureLocals config.heap current
+                      -- a module-level function reads module names from the module namespace when it
+                      -- runs (CPython: LOAD_GLOBAL); only a function defined in a function closes over
+                      -- that function's variables
+                      let captured : Heap × RFrame × REnv :=
+                        if tail.isEmpty then (config.heap, current, []) else rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
                       let function :=
@@ -1493,7 +1498,11 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | current :: tail =>
                   match rEvalDefaultValues defaults, rEvalKeywordDefaultValues keywordDefaults.toList with
                   | some defaultValues, some keywordDefaultValues =>
-                      let captured := rCaptureLocals config.heap current
+                      -- a module-level function reads module names from the module namespace when it
+                      -- runs (CPython: LOAD_GLOBAL); only a function defined in a function closes over
+                      -- that function's variables
+                      let captured : Heap × RFrame × REnv :=
+                        if tail.isEmpty then (config.heap, current, []) else rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
                       let scopeNames := rScopeNames body.toList
                       let function :=
@@ -1611,7 +1620,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                 if config.frames.tail.isEmpty then some (.tau, next.setModules frame.module name value)
                 else some (.tau, next)
             | none =>
-              match rWriteCell config.heap frame.cells name value with
+              -- an enclosing function's cell is written only for a `nonlocal` name; any other
+              -- assignment in a function binds a local (CPython: STORE_FAST)
+              match (if frame.nonlocalNames.contains name then rWriteCell config.heap frame.cells name value
+                     else none) with
               | some heap =>
                   let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
                   if config.frames.tail.isEmpty then

@@ -1,0 +1,231 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.19"
+  },
+  "source_file": "harness/scripts/machine_review_local_shadow.py",
+  "source_sha256": "6150d059665dab01a1339df12f2190cd8289dc13cbe177038ed0c01373ad487d",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "Assign",
+        "span": {
+          "lineno": 2,
+          "col_offset": 0,
+          "end_lineno": 2,
+          "end_col_offset": 5
+        },
+        "targets": [
+          {
+            "kind": "Name",
+            "span": {
+              "lineno": 2,
+              "col_offset": 0,
+              "end_lineno": 2,
+              "end_col_offset": 1
+            },
+            "id": "x"
+          }
+        ],
+        "value": {
+          "kind": "Constant",
+          "span": {
+            "lineno": 2,
+            "col_offset": 4,
+            "end_lineno": 2,
+            "end_col_offset": 5
+          },
+          "value": {
+            "type": "int",
+            "repr": "1"
+          }
+        }
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 12
+        },
+        "name": "f",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 6,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 9
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 4,
+                  "end_lineno": 6,
+                  "end_col_offset": 5
+                },
+                "id": "x"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 6,
+                "col_offset": 8,
+                "end_lineno": 6,
+                "end_col_offset": 9
+              },
+              "value": {
+                "type": "int",
+                "repr": "2"
+              }
+            }
+          },
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 7,
+              "col_offset": 4,
+              "end_lineno": 7,
+              "end_col_offset": 12
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 7,
+                "col_offset": 11,
+                "end_lineno": 7,
+                "end_col_offset": 12
+              },
+              "id": "x"
+            }
+          }
+        ],
+        "machine_arguments": {
+          "posonlyargs": [],
+          "args": [],
+          "vararg": null,
+          "kwonlyargs": [],
+          "kw_defaults": [],
+          "kwarg": null,
+          "defaults": []
+        },
+        "machine_decorators": [],
+        "machine_returns": null
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 10,
+          "col_offset": 0,
+          "end_lineno": 10,
+          "end_col_offset": 10
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 10,
+            "col_offset": 0,
+            "end_lineno": 10,
+            "end_col_offset": 10
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 10,
+              "col_offset": 0,
+              "end_lineno": 10,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 10,
+                "col_offset": 6,
+                "end_lineno": 10,
+                "end_col_offset": 9
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 10,
+                  "col_offset": 6,
+                  "end_lineno": 10,
+                  "end_col_offset": 7
+                },
+                "id": "f"
+              },
+              "starargs": [],
+              "kwargs": [],
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 11,
+          "col_offset": 0,
+          "end_lineno": 11,
+          "end_col_offset": 8
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 11,
+            "col_offset": 0,
+            "end_lineno": 11,
+            "end_col_offset": 8
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 11,
+              "col_offset": 0,
+              "end_lineno": 11,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [
+            {
+              "kind": "Name",
+              "span": {
+                "lineno": 11,
+                "col_offset": 6,
+                "end_lineno": 11,
+                "end_col_offset": 7
+              },
+              "id": "x"
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
