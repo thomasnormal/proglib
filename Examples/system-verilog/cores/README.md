@@ -806,6 +806,24 @@ first complete clock transition remains an execution wall, so complete E-RUN is
 simulator witness at **220/220** rows, with normalized digest
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
 
+## 2026-11-19 DarkRISCV clock-edge refusal receipt
+
+The current canonical-E receipt replays the pinned envelope through reset,
+reset release, clock preparation, and the retained edge schedule. The first
+clock edge reaches the exact known wall
+`AssignmentExpression:target: REGS[DPTR] <= ...`, so the checker reports
+staged reset and preparation success with complete E-RUN **0/0**. This is an
+execution refusal at the source-shaped register-file target, not a simulator
+disagreement or a completed cycle. The pinned Icarus Verilog 13.0 and Xcelium
+24.03-s004 witness remains **220/220**.
+
+The complete R1 consumer audit also passes for `r1_addi`, `r1_upper`,
+`r1_jump`, `r1_branch`, `r1_alu`, `r1_alu_imm`, `r1_fence`, `r1_system`,
+`r1_illegal`, `r1_csr`, `r1_mem`, `r1_mem_all`, and the RVFI adapter. These
+kernel-checked consumers remain conditional on the loaded-core step and
+progress premises, so the finite E-RUN receipt is not promoted to a universal
+RTL invariant.
+
 The pinned FemtoRV32 Quark source at
 `f5ada24ae6cca67d99889daec2c4ee44a6e59417` was re-extracted with the approved
 Slang frontend. The source hash is
