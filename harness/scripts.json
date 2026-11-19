@@ -742,5 +742,15 @@
     "file": "harness/scripts/machine_function_alias_rebind.py",
     "expect": "match",
     "note": "A function alias retains the original function object after the defining name is rebound."
+  },
+  {
+    "file": "harness/scripts/machine_unbound_local_read.py",
+    "expect": "match",
+    "note": "Static local binding makes a read before assignment raise UnboundLocalError."
+  },
+  {
+    "file": "harness/scripts/machine_unbound_local_delete.py",
+    "expect": "match",
+    "note": "Static local binding makes a delete before assignment raise UnboundLocalError."
   }
 ]
