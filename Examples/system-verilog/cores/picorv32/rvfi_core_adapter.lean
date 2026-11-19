@@ -118,6 +118,51 @@ structure CoreRvfiMachine (d : CoreMemDesign) where
   exact : ∀ (state : CoreMemState) (input : LeanModels.Refine.Input),
     rvfiStep d state (encode state input) = .ok (step state input)
 
+/-! A loaded-core proof usually establishes totality before it can package a
+    cycle machine.  This constructor keeps that proof as the only source of
+    the machine's chosen post-state and observation.  The choice is over the
+    proved witness pair, so it cannot manufacture a successful step or hide
+    an RVFI decode refusal. -/
+
+private def rvfiTotalPair
+    {d : CoreMemDesign}
+    (encode : CoreMemState → LeanModels.Refine.Input → SvState)
+    (htotal : ∀ (state : CoreMemState) (input : LeanModels.Refine.Input),
+      ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+        rvfiStep d state (encode state input) = .ok (next, observation))
+    (state : CoreMemState) (input : LeanModels.Refine.Input) :
+    ∃ pair : CoreMemState × RvfiObservation,
+      rvfiStep d state (encode state input) = .ok pair := by
+  rcases htotal state input with ⟨next, observation, h⟩
+  exact ⟨(next, observation), h⟩
+
+noncomputable def CoreRvfiMachine.ofTotal
+    {d : CoreMemDesign}
+    (encode : CoreMemState → LeanModels.Refine.Input → SvState)
+    (htotal : ∀ (state : CoreMemState) (input : LeanModels.Refine.Input),
+      ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+        rvfiStep d state (encode state input) = .ok (next, observation)) :
+    CoreRvfiMachine d :=
+  { encode := encode
+    step := fun state input =>
+      Classical.choose (rvfiTotalPair encode htotal state input)
+    exact := fun state input =>
+      Classical.choose_spec (rvfiTotalPair encode htotal state input) }
+
+theorem CoreRvfiMachine.ofTotal_exact
+    {d : CoreMemDesign}
+    (encode : CoreMemState → LeanModels.Refine.Input → SvState)
+    (htotal : ∀ (state : CoreMemState) (input : LeanModels.Refine.Input),
+      ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+        rvfiStep d state (encode state input) = .ok (next, observation))
+    (state : CoreMemState) (input : LeanModels.Refine.Input) :
+    rvfiStep d state (encode state input) =
+      .ok ((CoreRvfiMachine.ofTotal encode htotal).step state input) := by
+  simpa [CoreRvfiMachine.ofTotal] using
+    (Classical.choose_spec (rvfiTotalPair encode htotal state input))
+
+#print axioms CoreRvfiMachine.ofTotal_exact
+
 def CoreRvfiMachine.toRvfiCycleMachine
     {d : CoreMemDesign} (machine : CoreRvfiMachine d) :
     LeanModels.Refine.RvfiCycleMachine CoreMemState where

@@ -123,6 +123,9 @@ obligation:
   exact loaded-core step premise to the mixed cycle obligation. It retains the
   decoded instruction, input, order, indexed post-state, retirement, and
   relation continuation in one contract.
+  `CoreRvfiMachine.ofTotal` packages a proved total canonical step and RVFI
+  decode witness into the machine consumed by these R1 bridges, while
+  `CoreRvfiMachine.ofTotal_exact` preserves the witness equality.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
