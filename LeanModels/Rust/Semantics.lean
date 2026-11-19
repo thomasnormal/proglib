@@ -205,9 +205,9 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
 def typedBytesAggregate (s : State) (ty : Nat) (bytes : List Nat) : Option Cell :=
   match (findTypeLayout s ty).orElse fun _ => findSourceTypeLayout s ty with
   | some info =>
-      if info.fieldOffsets.isEmpty || !info.kind.contains "std::sync::atomic::Atomic" then none
-      else
-        let rec fields : Nat → List Nat → List Cell
+      if info.fieldOffsets.isEmpty then none
+      else if info.kind.contains "std::sync::atomic::Atomic" then
+        let rec atomicFields : Nat → List Nat → List Cell
           | _, [] => []
           | index, offsetBits :: rest =>
               let offsetBytes := offsetBits / 8
@@ -219,9 +219,24 @@ def typedBytesAggregate (s : State) (ty : Nat) (bytes : List Nat) : Option Cell 
                     (if chunk.length ≤ 8 ∧ chunk.all (· ≤ 255) then
                       some (.int (Int.ofNat (littleEndian chunk)))
                     else none).getD (Cell.bytes chunk)
-              value :: fields (index + 1) rest
-        let fields := fields 0 info.fieldOffsets
+              value :: atomicFields (index + 1) rest
+        let fields := atomicFields 0 info.fieldOffsets
         some (.aggregate fields)
+      else
+        let rec strictFields : Nat → List Nat → Option (List Cell)
+          | _, [] => some []
+          | index, offsetBits :: rest => do
+              let offsetBytes := offsetBits / 8
+              let chunk := (bytes.drop offsetBytes).take 8
+              let value ← match info.typeArgs.drop index |>.head? with
+                | some fieldType => (typedBytesValue s fieldType chunk).map Cell.int
+                | none =>
+                    if chunk.length ≤ 8 ∧ chunk.all (· ≤ 255) then
+                      some (.int (Int.ofNat (littleEndian chunk)))
+                    else none
+              let tail ← strictFields (index + 1) rest
+              pure (value :: tail)
+        (strictFields 0 info.fieldOffsets).map Cell.aggregate
   | none => none
 
 def typedBytesEnum (s : State) (ty : Nat) (bytes : List Nat) : Option Cell :=
@@ -777,7 +792,11 @@ def statementFailure : State → List Statement → Outcome
               | none => .refused (.unsupported ("use operand cell=" ++
                   toString (repr (operandCell state operand)) ++
                   " operand=" ++ toString (repr operand) ++
-                  " slot=" ++ toString (repr (localSlot state (operandLocalId operand)))))
+                  " slot=" ++ toString (repr (localSlot state (operandLocalId operand))) ++
+                  " target=" ++ toString (repr ((localSlot state (operandLocalId operand)).bind fun slot =>
+                    (slotCell slot).bind fun cell => match cell with
+                    | .pointer pointer => pointerTarget state pointer
+                    | _ => none))))
               | some cell =>
                   if (writeCell state place cell).isNone then
                     .refused (.unsupported ("use destination local " ++ toString place.localId))
