@@ -740,6 +740,10 @@ def bindEvaluatedCells : State → List Cell → Nat → State
   | state, value :: rest, localId =>
       bindEvaluatedCells (setSlot state localId (cellSlot value)) rest (localId + 1)
 
+def freshLocalSlots : List LocalInfo → List (Nat × Slot)
+  | [] => []
+  | localInfo :: rest => (localInfo.localId, .uninit) :: freshLocalSlots rest
+
 def bindCallCellsFresh (caller callee : State) (args : List Operand) (localId : Nat) : Option State := do
   let values ← args.mapM (operandCell caller)
   let frameState := { callee with frameId := caller.frameId + 1 }
@@ -821,7 +825,8 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                             | _ => .refused (.unsupported "atomic load arguments")
                           else
                           let callState : State :=
-                            { placements := firstTrace.state.placements,
+                            { locals := freshLocalSlots callee.locals,
+                              placements := firstTrace.state.placements,
                               frameId := firstTrace.state.frameId,
                               sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
@@ -862,7 +867,8 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                       | none => .refused (.unsupported "diverging call without callee")
                       | some calleeId =>
                           let callState : State :=
-                            { placements := firstTrace.state.placements,
+                            { locals := freshLocalSlots callee.locals,
+                              placements := firstTrace.state.placements,
                               frameId := firstTrace.state.frameId,
                               sharedLocals := firstTrace.state.sharedLocals,
                               types := firstTrace.state.types,
