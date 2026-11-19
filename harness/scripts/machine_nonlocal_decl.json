@@ -1,0 +1,234 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.12.14"
+  },
+  "source_file": "harness/scripts/machine_nonlocal_decl.py",
+  "source_sha256": "544ab30b314fd57321352aa9480635276c857f6dc4022bd874a585c68af7bb05",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 16
+        },
+        "name": "outer",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 13
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value"
+              }
+            ],
+            "value": {
+              "kind": "Constant",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 13
+              },
+              "value": {
+                "type": "int",
+                "repr": "1"
+              }
+            }
+          },
+          {
+            "kind": "NestedDef",
+            "span": {
+              "lineno": 3,
+              "col_offset": 4,
+              "end_lineno": 5,
+              "end_col_offset": 17
+            },
+            "name": "update",
+            "args": [],
+            "args_unsupported": null,
+            "locals_unsupported": null,
+            "body": [
+              {
+                "kind": "Nonlocal",
+                "names": [
+                  "value"
+                ],
+                "span": {
+                  "lineno": 4,
+                  "col_offset": 8,
+                  "end_lineno": 4,
+                  "end_col_offset": 22
+                }
+              },
+              {
+                "kind": "Assign",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 8,
+                  "end_lineno": 5,
+                  "end_col_offset": 17
+                },
+                "targets": [
+                  {
+                    "kind": "Name",
+                    "span": {
+                      "lineno": 5,
+                      "col_offset": 8,
+                      "end_lineno": 5,
+                      "end_col_offset": 13
+                    },
+                    "id": "value"
+                  }
+                ],
+                "value": {
+                  "kind": "Constant",
+                  "span": {
+                    "lineno": 5,
+                    "col_offset": 16,
+                    "end_lineno": 5,
+                    "end_col_offset": 17
+                  },
+                  "value": {
+                    "type": "int",
+                    "repr": "7"
+                  }
+                }
+              }
+            ],
+            "captures": [
+              "<cell>value"
+            ],
+            "closure_unsupported": null
+          },
+          {
+            "kind": "Expr",
+            "span": {
+              "lineno": 6,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 12
+            },
+            "value": {
+              "kind": "Call",
+              "span": {
+                "lineno": 6,
+                "col_offset": 4,
+                "end_lineno": 6,
+                "end_col_offset": 12
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 4,
+                  "end_lineno": 6,
+                  "end_col_offset": 10
+                },
+                "id": "update"
+              },
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          },
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 7,
+              "col_offset": 4,
+              "end_lineno": 7,
+              "end_col_offset": 16
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 7,
+                "col_offset": 11,
+                "end_lineno": 7,
+                "end_col_offset": 16
+              },
+              "id": "value"
+            }
+          }
+        ]
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 9,
+          "col_offset": 0,
+          "end_lineno": 9,
+          "end_col_offset": 14
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 9,
+            "col_offset": 0,
+            "end_lineno": 9,
+            "end_col_offset": 14
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 9,
+              "col_offset": 0,
+              "end_lineno": 9,
+              "end_col_offset": 5
+            },
+            "id": "print"
+          },
+          "args": [
+            {
+              "kind": "Call",
+              "span": {
+                "lineno": 9,
+                "col_offset": 6,
+                "end_lineno": 9,
+                "end_col_offset": 13
+              },
+              "func": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 9,
+                  "col_offset": 6,
+                  "end_lineno": 9,
+                  "end_col_offset": 11
+                },
+                "id": "outer"
+              },
+              "args": [],
+              "keywords": [],
+              "call_unsupported": null
+            }
+          ],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
