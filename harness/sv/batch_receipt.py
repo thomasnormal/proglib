@@ -188,6 +188,7 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("generate_typed_localparam.sv", "generate_typed_localparam",
             (Port("x", 1),), (Port("y", 1),),
             (Point("W8", (8,)), Point("W3", (3,)))),
+    # Parameterized generate-local counterpart, exercised at W=8 and W=3.
     Fixture("generate_typed_localparam_param.sv", "generate_typed_localparam_param_e",
             (Port("x", 1),), (Port("y", 1),),
             (Point("W8", (8,)), Point("W3", (3,)))),
