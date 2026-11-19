@@ -524,6 +524,9 @@ structure Layout where
   /-- Whether a record type is a union, from Clang's parser-native record
   layout tag.  The default keeps layouts without that observation loud. -/
   isUnion : CType → Bool := fun _ => false
+  /-- Parser-native union classification keyed by the declaration owning the
+      aggregate object. -/
+  isUnionDecl : DeclarationId → Bool := fun _ => false
   /-- **The spelling, normalized: qualifiers stripped and typedefs resolved.**
 
   A type name in the corpus is not a type. `ull` is `unsigned long` in
@@ -671,6 +674,14 @@ def Layout.membersDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) : Option (List (String × CType)) :=
   decl.bind layout.membersDecl |>.orElse (fun _ => layout.members ty)
 
+/-- Resolve union classification from the object's declaration before the
+legacy type-keyed record tag table. -/
+def Layout.isUnionDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (ty : CType) : Bool :=
+  match decl with
+  | some did => layout.isUnionDecl did || layout.isUnion ty
+  | none => layout.isUnion ty
+
 
 /-- Effective-type metadata for a declaration allocation.  Parser-native
 aggregate observations suppress the scalar declaration type, while legacy
@@ -724,7 +735,7 @@ def Layout.unknown : Layout :=
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
     flexibleField := fun _ _ => false, flexibleFieldDecl := fun _ _ => false
-    elem := fun _ => none, members := fun _ => none, membersDecl := fun _ => none, isUnion := fun _ => false
+    elem := fun _ => none, members := fun _ => none, membersDecl := fun _ => none, isUnion := fun _ => false, isUnionDecl := fun _ => false
     normalizeTy := id }
 
 /-! ## The evaluation context

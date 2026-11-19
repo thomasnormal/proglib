@@ -131,6 +131,9 @@ private def isError : Except String α → Bool
   (some (.cBuiltinKind .unsignedChar)) "short" "int"
 #guard (({ LeanModels.C.C23.Layout.unknown with
   isUnion := fun ty => ty == "union U" } : LeanModels.C.C23.Layout).isUnion "union U")
+#guard (({ LeanModels.C.C23.Layout.unknown with
+  isUnionDecl := fun id => id.value == "union-1" } : LeanModels.C.C23.Layout).isUnionDeclAt
+    (some {value := "union-1"}) "union U")
 #guard LeanModels.Clang.QualType.resolveTypedefs
   (fun h => if h.value == "P" then some (.pointer (.cBuiltinKind .int)) else none) 8
   (.typedefRef {value := "P"}) == some (.pointer (.cBuiltinKind .int))
