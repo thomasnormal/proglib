@@ -2109,3 +2109,20 @@ returned `one-cycle-ok` in 21.896 seconds and peaked at 0.263 GiB. Both runs
 were single-threaded and stayed below the 8 GiB warning threshold. The ADDI
 invariant can therefore use the exact loaded-E path without introducing a
 derived cycle model.
+
+## 2026-11-19 R1 consumer audit after the E measurements
+
+The stall-rule rerank keeps the next theorem work on PicoRV32. Its census is
+still **360 admitted / 0 refused / 4 not reached**, and the input-driven
+canonical-E receipt is **220/220** against both pinned simulators. DarkRISCV is
+fully admitted at **177/0/0** but its first complete clock remains an execution
+wall after the staged **4/4** path. Quark remains **130/51/0** with E-RUN
+**0/0**.
+
+The complete R1 consumer set was compiled directly from the repository entry
+points. `r1_addi`, `r1_upper`, `r1_jump`, `r1_branch`, `r1_alu`, `r1_alu_imm`,
+`r1_fence`, `r1_system`, `r1_illegal`, `r1_csr`, `r1_mem`, `r1_mem_all`, and
+`rvfi_core_adapter` all passed `lake env lean`. The mixed bridge and every
+instruction-family wrapper therefore remain kernel-checked and available to a
+future loaded-core invariant. This audit does not promote the finite E-RUN into
+a universal RTL theorem.
