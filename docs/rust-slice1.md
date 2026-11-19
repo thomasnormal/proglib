@@ -33,6 +33,11 @@ read whose target cell is unavailable in the extracted frame state.  It stays
 refused until the frame/projection evidence is corrected, so the arithmetic
 case is not evaluated from a guessed integer.
 
+The frame trace for that row records provenance 3 with target frame 4.  The
+target frame's local 3 is `uninit` when the `Rem` call starts.  The pointer is
+therefore not redirected to an older frame that happens to contain an integer,
+and the row remains a named refusal under the current shared-frame model.
+
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
 `IntToInt` through the target integer layout, preserves provenance for
