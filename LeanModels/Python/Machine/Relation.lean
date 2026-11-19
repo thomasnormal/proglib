@@ -214,6 +214,7 @@ inductive RKont where
       (positionalValues : List RVal) (keywordValues : List (String × RVal))
       (continuation : RKont)
   | callReturn (continuation : RKont)
+  | callReturnInstance (instanceValue : RVal) (continuation : RKont)
   | classDef (name : String) (remaining : List RStmt)
   | attributeValue (attr : String) (continuation : RKont)
   | compareLeft (op : CmpOp) (right : Expr) (continuation : RKont)
@@ -1103,6 +1104,47 @@ def RConfig.withChoice (config : RConfig) (choice : RChoice) : RConfig :=
 def RConfig.chooseToken (config : RConfig) (tail : List RChoice) (token : Nat) : RConfig :=
   { config with choices := tail, choiceToken := some token }
 
+def rStartClassCall (config : RConfig) (cls : RClass) (values : List RVal)
+    (keywords : List (String × RVal)) (continuation : RKont) :
+    Option (RLabel × RConfig) :=
+  let allocated := Heap.alloc config.heap (.instance cls.id #[])
+  let instanceValue := RVal.ref allocated.2
+  match rLookupEnv cls.attrs "__init__" with
+  | some (.callable token) =>
+      match rFunctionByToken config.functions token, config.frames with
+      | some function, caller :: tail =>
+          let builtKwargs :=
+            if keywords.isEmpty then (allocated.1, none)
+            else
+              match rKeywordVariadicName function.params.toList with
+              | some _ =>
+                  let kwargs := rBuildKwargs allocated.1 keywords
+                  (kwargs.1, some kwargs.2)
+              | none => (allocated.1, none)
+          match rCallFrame function (instanceValue :: values) keywords builtKwargs.2 with
+          | some calleeFrame =>
+              let pushed := { calleeFrame with control :=
+                (.resourceChoice .framePush (.statements function.body.toList)) }
+              let resumed := { caller with
+                control := .continueValue instanceValue
+                  (.callReturnInstance instanceValue continuation) }
+              let updated := { config with heap := builtKwargs.1 }
+              some (.tau, { updated with frames := pushed :: resumed :: tail })
+          | none =>
+              let error : RError := { errorClass := .type, args := [] }
+              some (.event (.raise error), config.finish (.raise error))
+      | _, _ => some (.event (.refuse "machine class constructor"),
+          config.finish (.refuse "machine class constructor"))
+  | some _ => some (.event (.refuse "machine class constructor"),
+      config.finish (.refuse "machine class constructor"))
+  | none =>
+      if values.isEmpty && keywords.isEmpty then
+        some (.tau, { config with heap := allocated.1 }.setControl
+          (.continueValue instanceValue continuation))
+      else
+        let error : RError := { errorClass := .type, args := [] }
+        some (.event (.raise error), config.finish (.raise error))
+
 def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
     (keywords : List (String × RVal)) (continuation : RKont) :
     Option (RLabel × RConfig) :=
@@ -1186,17 +1228,7 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
             config.finish (.refuse "machine list.insert"))
       else if Option.isSome (rClassByToken config.classes name) then
         match rClassByToken config.classes name with
-        | some cls =>
-            if Option.isSome (rLookupEnv cls.attrs "__init__") then
-              some (.event (.refuse "machine class constructor"),
-                config.finish (.refuse "machine class constructor"))
-            else if values.isEmpty && keywords.isEmpty then
-              let allocated := Heap.alloc config.heap (.instance cls.id #[])
-              some (.tau, { config with heap := allocated.1 }.setControl
-                (.continueValue (.ref allocated.2) continuation))
-            else
-              let error : RError := { errorClass := .type, args := [] }
-              some (.event (.raise error), config.finish (.raise error))
+        | some cls => rStartClassCall config cls values keywords continuation
         | none => some (.event (.refuse "machine class"),
             config.finish (.refuse "machine class"))
       else match rFunction config.functions name with
@@ -1761,6 +1793,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | .continueValue _ (.callReturn continuation) =>
                   some (.tau, { config with frames :=
                     { caller with control := .continueValue value continuation } :: tail })
+              | .continueValue _ (.callReturnInstance instanceValue continuation) =>
+                  if value == .none then
+                    some (.tau, { config with frames :=
+                      { caller with control := .continueValue instanceValue continuation } :: tail })
+                  else
+                    let error : RError := { errorClass := .type, args := [] }
+                    some (.event (.raise error), config.finish (.raise error))
               | _ => some (.event (.refuse "machine call stack"),
                   config.finish (.refuse "machine call stack"))
           | [_] => some (.event (.return value), config.finish (.return value))
@@ -2096,6 +2135,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                 (.callArg callee rest (values ++ [value]) continuation)))
           | [] => rStartCall config callee (values ++ [value]) [] continuation
       | .continueValue _ (.callReturn _) =>
+          some (.tau, config.setControl (.refusing "machine call return"))
+      | .continueValue _ (.callReturnInstance _ _) =>
           some (.tau, config.setControl (.refusing "machine call return"))
       | .continueValue _ .printValue =>
           some (.tau, config.setControl (.refusing "machine print continuation"))
