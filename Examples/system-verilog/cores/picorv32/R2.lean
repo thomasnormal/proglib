@@ -97,7 +97,10 @@ obligation:
   `picorv32_jalr_loaded_rv32i_boundary_of_step` provide the corresponding
   JAL and JALR consumers through the decoded jump witness.
   `r1_branch` provides the six conditional-branch consumers through one
-  condition-indexed decoded witness.
+  condition-indexed decoded witness.  Its
+  `r1_branch.picorv32_branch_exact_cycle_step_refines` theorem consumes the
+  common exact branch boundary directly in the mixed cycle dispatcher,
+  retaining the source instruction and architectural continuation.
   `r1_alu` provides the ten register-register ALU consumers through one
   operation-indexed decoded witness.
   `r1_alu_imm` provides the nine remaining immediate ALU consumers through

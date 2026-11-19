@@ -269,6 +269,65 @@ theorem picorv32_bgeu_loaded_rv32i_boundary_of_step
 #print axioms picorv32_bltu_loaded_rv32i_boundary_of_step
 #print axioms picorv32_bgeu_loaded_rv32i_boundary_of_step
 
+/-! A loaded machine can consume the common branch boundary directly.  The
+    instruction witness stays the retained `BranchInstruction`, so the mixed
+    dispatcher receives the source word, decode proof, order, and relation
+    continuation together. -/
+
+theorem picorv32_branch_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : BranchInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = branchProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.branchBoundary memoryState.arch input
+              instruction.word instruction.cond instruction.rs1 instruction.rs2
+              instruction.offset ∧
+            rel next
+              { arch := branchNext memoryState.arch instruction.cond
+                  instruction.rs1 instruction.rs2 instruction.offset,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState (.branch instruction))
+          (rv32iProgramRetirement memoryState (.branch instruction)) := by
+        simpa [hmem, hinput, branchProgramInput, rv32iProgramStep,
+          rv32iProgramRetirement] using
+          (RvfiObservation.branchBoundary_rv32i instruction.word
+            instruction.cond instruction.rs1 instruction.rs2 instruction.offset
+            hboundary)
+      simp only [↓reduceIte]
+      exact ⟨.branch instruction, by simpa [rv32iProgramInput] using hinput,
+        horder, hrvfi, by simpa [rv32iProgramStep] using hnext⟩
+
+#print axioms picorv32_branch_exact_cycle_step_refines
+
 #print axioms picorv32_beq_class_step
 #print axioms picorv32_bne_class_step
 #print axioms picorv32_blt_class_step
