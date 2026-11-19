@@ -976,8 +976,9 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
                     control := .continueValue .none (.callReturn continuation) }
                   let updated := { config with heap := builtKwargs.1 }
                   some (.tau, { updated with frames := pushed :: resumed :: tail })
-              | none => some (.event (.refuse "machine argument binder"),
-                  config.finish (.refuse "machine argument binder"))
+              | none =>
+                  let error : RError := { errorClass := .type, args := [] }
+                  some (.event (.raise error), config.finish (.raise error))
           | _ => some (.event (.refuse "machine call stack"),
               config.finish (.refuse "machine call stack"))
       | none =>
@@ -2171,7 +2172,7 @@ example :
 
 example :
     (runB1 96 (RConfig.initial bPositionalOnlyKeywordModule)).2.status =
-      .finished (.refuse "machine argument binder") := by
+      .finished (.raise { errorClass := .type, args := [] }) := by
   rfl
 
 example :
@@ -2189,7 +2190,7 @@ example :
 
 example :
     (runB1 96 (RConfig.initial bDuplicateKeywordModule)).2.status =
-      .finished (.refuse "machine argument binder") := by
+      .finished (.raise { errorClass := .type, args := [] }) := by
   rfl
 
 example : ∃ c₁ c₂,
