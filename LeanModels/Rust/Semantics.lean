@@ -190,8 +190,14 @@ def sharedSlotsFrom (frameId : Nat) : List (Nat × Slot) → List (Nat × Nat ×
   | [] => []
   | (localId, slot) :: rest => (frameId, localId, slot) :: sharedSlotsFrom frameId rest
 
+def findTypeLayout (s : State) (ty : Nat) : Option TypeLayout :=
+  s.types.find? (fun item => item.id == toString ty)
+
+def findSourceTypeLayout (s : State) (ty : Nat) : Option TypeLayout :=
+  s.types.find? (fun item => item.sourceId == some ty)
+
 def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
-  let layout := s.types.find? (fun item => item.id == toString ty)
+  let layout := findTypeLayout s ty
   match layout with
   | none => if s.types.isEmpty then bytesValue bytes else none
   | some info =>
@@ -210,12 +216,26 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
       else none
     | none => none
 
+def typedBytesAggregate (s : State) (ty : Nat) (bytes : List Nat) : Option Cell :=
+  match (findTypeLayout s ty).orElse fun _ => findSourceTypeLayout s ty with
+  | some info =>
+      if info.fieldOffsets.isEmpty || !info.kind.contains "std::alloc::Layout" then none
+      else
+        let fields := info.fieldOffsets.map fun offsetBits =>
+          let offsetBytes := offsetBits / 8
+          let chunk := (bytes.drop offsetBytes).take 8
+          (typedBytesValue s ty chunk).map Cell.int |>.getD (.bytes chunk)
+        some (.aggregate fields)
+  | none => none
+
 def allocationCell (s : State) (provenance : Nat) (pointeeType : Option Nat) : Option Cell :=
   match s.allocations.drop provenance |>.head? with
   | some allocation =>
       if allocation.bytesValid then
         match pointeeType with
-        | some ty => typedBytesValue s ty allocation.bytes |>.map Cell.int
+        | some ty =>
+            (typedBytesAggregate s ty allocation.bytes).orElse fun _ =>
+              typedBytesValue s ty allocation.bytes |>.map Cell.int
         | none => none
       else none
   | none => none
@@ -250,22 +270,28 @@ def directPointerTarget (s : State) (pointer : Pointer) : Option Cell :=
         | some ty => allocationCell s pointer.provenance (some ty)
         | none => allocationCell s pointer.provenance none
 
+def pointerSlotCell (s : State) (pointer : Pointer) (slot : Slot) : Option Cell :=
+  match slotCell slot, pointer.pointeeType with
+  | some (.bytes bytes), some ty =>
+      (typedBytesAggregate s ty bytes).orElse fun _ => some (.bytes bytes)
+  | value, _ => value
+
 def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
   if pointer.isLocal then
     let target := (localSlot s pointer.provenance).orElse (fun _ => sharedSlot s s.frameId pointer.provenance)
     match pointer.projection with
     | .deref :: rest => do
-        let cell ← target.bind slotCell
+        let cell ← target.bind (pointerSlotCell s pointer)
         match cell with
         | .pointer nested =>
             let value ← directPointerTarget s nested
             projectFields s value rest
         | _ => none
-    | projection => target.bind slotCell |>.bind (projectFields s · projection)
+    | projection => target.bind (pointerSlotCell s pointer) |>.bind (projectFields s · projection)
   else
     match pointer.targetFrame with
     | some frameId =>
-        let target := (sharedSlot s frameId pointer.provenance).bind slotCell
+        let target := (sharedSlot s frameId pointer.provenance).bind (pointerSlotCell s pointer)
         match pointer.projection with
         | .deref :: rest => do
             let cell ← target
@@ -369,7 +395,7 @@ def writeCell (s : State) (place : Place) (value : Cell) : Option State :=
   | .downcast _ :: _ | .unsupported _ :: _ => none
 
 def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
-  match s.types.find? (fun item => item.id == toString target) with
+  match findTypeLayout s target with
   | some info =>
       if !(info.kind.startsWith "RigidTy(Int(") &&
           !(info.kind.startsWith "RigidTy(Uint(") then none else
@@ -387,7 +413,7 @@ def castInt (s : State) (target : Nat) (value : Int) : Option Int :=
   | none => none
 
 def pointerType (s : State) (target : Nat) : Bool :=
-  match s.types.find? (fun item => item.id == toString target) with
+  match findTypeLayout s target with
   | some info => info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" ||
       info.kind.startsWith "RigidTy(FnPtr"
   | none => false
@@ -395,7 +421,7 @@ def pointerType (s : State) (target : Nat) : Bool :=
 def operandCell (s : State) : Operand → Option Cell
   | .constant _ bytes ty provenance zeroSized =>
       if zeroSized then some (.int 0) else
-      match s.types.find? (fun item => item.id == toString ty), provenance with
+      match findTypeLayout s ty, provenance with
       | some info, some target =>
           if info.kind.startsWith "RigidTy(RawPtr" || info.kind.startsWith "RigidTy(Ref" ||
               info.kind.startsWith "RigidTy(FnPtr" then

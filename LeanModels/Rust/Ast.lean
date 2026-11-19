@@ -103,8 +103,10 @@ deriving Repr, Inhabited, BEq, DecidableEq, Lean.ToExpr
 
 structure TypeLayout where
   id : String
+  sourceId : Option Nat := none
   kind : String
   pointee : Option Nat := none
+  fieldOffsets : List Nat := []
   sizeBits : Option Nat
   align : Option Nat
   signed : Option Bool := none
