@@ -1654,7 +1654,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | .funPtr id => pure (.funPtr id)
         | _ =>
             let p ← asPtr v
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+            let pointee := (ctx.layout.structuredTypeAt sub).bind
+              LeanModels.Clang.QualType.pointee
+            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
+              (ctx.layout.size (ctx.layout.normalizeTy ty)) pointee
       else if op == "!" then do
         -- §6.5.4.3p5 — `!x` is `(0 == x)`. 80 sites.
         let v ← evalExpr ctx sub
@@ -1817,7 +1820,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
   | .index base idx ty _ => do
       let p ← indexAddr ctx base idx ty
-      loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+      let pointee := (ctx.layout.structuredTypeAt base).bind
+        LeanModels.Clang.QualType.pointee
+      loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
+        (ctx.layout.size (ctx.layout.normalizeTy ty)) pointee
 
   -- ===== §6.4.4 — constants =====
   | .intLit v ty _ => do
