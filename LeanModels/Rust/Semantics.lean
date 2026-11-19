@@ -1197,7 +1197,28 @@ def cfgRunProgramForeign : Nat → Envelope → ForeignRegistry → Body → Nat
                     events := firstTrace.events ++ (Event.call calleeId :: suffix.events) }
                 pure trace
               else none
-          | _ => none
+          | _ =>
+              let callee ← program.bodies.find? (fun candidate =>
+                candidate.instanceId == calleeId)
+              let callState : State :=
+                { locals := freshLocalSlots callee.locals
+                  placements := firstTrace.state.placements
+                  frameId := firstTrace.state.frameId
+                  sharedLocals := firstTrace.state.sharedLocals
+                  allocations := firstTrace.state.allocations
+                  provenance := firstTrace.state.provenance
+                  types := firstTrace.state.types
+                  localTypes := callee.locals.map (fun loc => (loc.localId, loc.ty)) }
+              let calleeState ← bindCallCellsFresh firstTrace.state callState callee.argCount args 1
+              let calleeTrace ← cfgRunProgramForeign fuel program registry callee 0 calleeState
+              let value ← returnCell calleeTrace
+              let callerState ← writeCell firstTrace.state destination value
+              let suffix ← cfgRunProgramForeign fuel program registry body target callerState
+              let trace : Trace :=
+                { state := suffix.state
+                  events := firstTrace.events ++
+                    (Event.call calleeId :: (calleeTrace.events ++ suffix.events)) }
+              pure trace
       | .call _ _ _ none _ => none
       | terminator => do
           let transition ← terminatorStep firstTrace.state terminator
