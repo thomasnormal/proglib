@@ -295,6 +295,7 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("profile_mixed.sv", "profile_mixed",
             (Port("clk", 1, clock=True), Port("rst", 1, reset_active_low=True),
              Port("d", 1)), (Port("q", 1), Port("y", 1))),
+    # Signed index bit-select family, including x/z index rows.
     Fixture("signed_bit_select.sv", "signed_select",
             (Port("x", 8),), (Port("y", 1),)),
     Fixture("signed_decl.sv", "signed_comparison",
