@@ -88,6 +88,11 @@ private def isError : Except String α → Bool
     if id.value == "record-1" && field == "x" then some 8 else none } :
   LeanModels.C.C23.Layout).fieldOffAt
     (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default) "x" == some 8
+#guard ({ LeanModels.C.C23.Layout.unknown with
+  fieldSizeDecl := fun id field =>
+    if id.value == "record-1" && field == "x" then some 4 else none } :
+  LeanModels.C.C23.Layout).fieldExtentAt
+    (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default) "x" "int" == some 4
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.isCharacterType (.cBuiltin "unsigned char")

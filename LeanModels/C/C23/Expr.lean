@@ -574,6 +574,13 @@ def Layout.fieldOffAt (layout : Layout) (base : Expr) (field : String) :
   (directDeclId base).bind (fun did => layout.fieldOffDecl did field)
     |>.orElse (fun _ => layout.fieldOff base.ty field)
 
+/-- Resolve a member extent from parser-native facts, then from the declared
+field type, with the legacy field-size table as the final fallback. -/
+def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field fieldTy : CType) :
+    Option Nat :=
+  (layout.fieldSizeAt base field).orElse
+    (fun _ => layout.size (layout.normalizeTy fieldTy))
+
 def Layout.arrayElementSizeAt (layout : Layout) (arrayTy elementTy : CType) :
     Option Nat :=
   layout.arrayElementSize arrayTy |>.orElse
@@ -2020,18 +2027,7 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
           ctx.layout.fieldOffAt base field
   match off? with
   | some off =>
-      let fieldSize := match ctx.layout.structuredTypeAt base with
-        | some structuredType =>
-            if structuredType.recordLike then
-              (ctx.layout.fieldSizeAt base field).orElse
-                (fun _ => (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
-                  (fun _ => ctx.layout.fieldSize base.ty field))
-            else
-              (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
-                (fun _ => ctx.layout.fieldSizeAt base field)
-        | none =>
-            (ctx.layout.size (ctx.layout.normalizeTy fieldTy)).orElse
-              (fun _ => ctx.layout.fieldSizeAt base field)
+      let fieldSize := ctx.layout.fieldExtentAt base field fieldTy
       match fieldSize with
       | some sz => pure (Mem.memberRange basePtr off sz)
       | none => refuseUnsupported s!"no layout for field '{field}'"
