@@ -80,6 +80,10 @@ obligation:
 * `rvfi_core_adapter.lean` for the refusal-preserving canonical RVFI adapter,
   the `CoreAddiBoundary` state relation, and its exact canonical-step
   constructors for the measured first and second ADDI rows.  Its
+  `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
+  memory address back to the exact known-width port sample without a
+  four-state default.
+  Its
   `CoreRvfiMachine.to_addi_invariant` theorem is the bridge from an explicit
   all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
   `CoreRvfiMachine.to_reset_addi_refinement` composes that invariant with the

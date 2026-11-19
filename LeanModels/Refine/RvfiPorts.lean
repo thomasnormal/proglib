@@ -148,6 +148,15 @@ theorem readPayload_of_projection {portPrefix : String} {sample : PortSample}
     h.rdWdata, h.pcRdata, h.pcWdata, h.memAddr, h.memRmask, h.memWmask,
     h.memRdata, h.memWdata]
 
+theorem readPayload_memAddr_of_some {portPrefix : String} {sample : PortSample}
+    {payload : Payload} {addr : BitVec 32}
+    (hp : readPayload portPrefix sample = some payload)
+    (hm : readBits 32 sample (portPrefix ++ "mem_addr") = some addr) :
+    payload.memAddr = addr := by
+  unfold readPayload at hp
+  simp [Option.bind_eq_some_iff, hm] at hp
+  grind
+
 private def Payload.row (p : Payload) : RvfiObservation :=
   { valid := true, order := p.order.toNat, insn := p.insn,
     pcRdata := p.pcRdata, pcWdata := p.pcWdata,
@@ -180,6 +189,15 @@ theorem Payload.toObservation?_sound (p : Payload) (row : RvfiObservation)
     exact ⟨hflags.1, hflags.2.1, hflags.2.2.1, rfl, hflags.2.2.2,
       rfl, rfl, rfl, rfl, rfl⟩
   · cases h
+
+theorem Payload.toObservation?_memAddr (p : Payload) (row : RvfiObservation)
+    (h : p.toObservation? = some row) : row.memAddr = p.memAddr := by
+  unfold toObservation? at h
+  split at h
+  · have hs : Payload.row p = row := Option.some.inj h
+    rw [← hs]
+    rfl
+  · simp at h
 
 /-- Canonical representative of an invalid cycle. Its payload is not read
 from hardware and has no retirement meaning. -/
