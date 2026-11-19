@@ -262,7 +262,11 @@ floating-bit probe sources are present in `extractors/c`; on the pinned
 Clang development environment their deterministic plugin-backed focused
 receipt is 13 MATCH, 0 REFUSE, and 0 DIVERGE for the rows requiring those
 observations. The no-plugin receipt remains the default when those optional
-binaries are unavailable.
+binaries are unavailable. The rerunnable pinned C1 sample cache currently
+contains the registered 300-file slice. A fresh batch run on 2026-11-19
+reported 172 passed, 0 failed, 88 refused-unsupported, 9 refused-ub, 30
+not-parsed, 1 oracle-tests-compiler, and 0 timeouts. This is a sample receipt,
+not a replacement for the 2,214-row survey denominator.
 
 The bit-field storage family now uses parser-native declaration and recursive
 `QualType` observations for record-member facts and pointee extent. When those
