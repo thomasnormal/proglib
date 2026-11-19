@@ -743,5 +743,10 @@
     "source": "harness/scripts/machine_instance_method_keyword.py",
     "envelope": "harness/scripts/machine_instance_method_keyword.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_instance_attribute_aug.py",
+    "envelope": "harness/scripts/machine_instance_attribute_aug.json",
+    "expect": "match"
   }
 ]

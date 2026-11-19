@@ -1877,6 +1877,18 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | none =>
                   let error : RError := { errorClass := .attribute, args := [] }
                   some (.event (.raise error), config.finish (.raise error))
+          | .ref address =>
+              if rHeapIsInstance config.heap address then
+                match rLookupInstanceClassAttr config.heap config.classes address attr with
+                | some left => some (.tau, config.setControl
+                    (.continueValue left
+                      (.augAssignAttributeValue receiver attr op value remaining)))
+                | none =>
+                    let error : RError := { errorClass := .attribute, args := [] }
+                    some (.event (.raise error), config.finish (.raise error))
+              else
+                let error : RError := { errorClass := .attribute, args := [] }
+                some (.event (.raise error), config.finish (.raise error))
           | _ =>
               let error : RError := { errorClass := .attribute, args := [] }
               some (.event (.raise error), config.finish (.raise error))
@@ -1894,6 +1906,15 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                         (.statements remaining))
                   | none => some (.tau, config.setControl
                       (.refusing "machine augmented attribute assignment"))
+              | .ref address =>
+                  if rHeapIsInstance config.heap address then
+                    match rUpdateInstanceAttr config.heap address attr result with
+                    | some heap => some (.tau, { config with heap := heap }.setControl
+                        (.statements remaining))
+                    | none => some (.tau, config.setControl
+                        (.refusing "machine augmented attribute assignment"))
+                  else some (.tau, config.setControl
+                    (.refusing "machine augmented attribute assignment"))
               | _ => some (.tau, config.setControl
                   (.refusing "machine augmented attribute assignment"))
           | .exn _ => some (.tau, config.setControl (.refusing "machine augmented assignment"))
