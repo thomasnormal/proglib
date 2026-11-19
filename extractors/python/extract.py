@@ -404,13 +404,17 @@ def unparse_truncated(node):
     return text[:UNSUPPORTED_TEXT_LIMIT]
 
 
-def unsupported(node, py_kind=None):
-    return {
+def unsupported(node, py_kind=None, machine_kind=None, machine_value_marker=None):
+    out = {
         "kind": "Unsupported",
         "span": span(node),
         "py_kind": py_kind if py_kind is not None else type(node).__name__,
         "text": unparse_truncated(node),
     }
+    if machine_kind is not None:
+        out["machine_kind"] = machine_kind
+        out["machine_value"] = machine_value_marker
+    return out
 
 
 def literal_const_payload(node):
@@ -544,6 +548,15 @@ _COMP_DEPTH = [0]
 def convert_expr(node):
     if isinstance(node, ast.JoinedStr):
         return convert_fstring(node)
+
+    if isinstance(node, ast.Yield):
+        value = convert_expr(node.value) if node.value is not None else None
+        return unsupported(node, "Yield", machine_kind="Yield", machine_value_marker=value)
+
+    if isinstance(node, ast.YieldFrom):
+        value = convert_expr(node.value)
+        return unsupported(node, "YieldFrom", machine_kind="YieldFrom",
+                           machine_value_marker=value)
 
     if isinstance(node, ast.Await):
         return {
