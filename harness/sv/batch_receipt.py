@@ -158,6 +158,11 @@ FIXTURES: tuple[Fixture, ...] = (
             expected_source_refusals=("iverilog",)),
     Fixture("proc_local_static_e.sv", "proc_local_static_e",
             (Port("clk", 1, clock=True), Port("a", 8)), (Port("y", 8),)),
+    Fixture("proc_local_for_automatic.sv", "proc_local_for_automatic",
+            (Port("a", 8),), (Port("y", 8),),
+            points=(Point("N8", (8,)),),
+            expected_ordinary_refusal="ForLoop",
+            expected_source_refusals=()),
     Fixture("darkriscv_nonliteral_initializer.sv", "nonliteral_initializer",
             (Port("a", 1),), (Port("q", 2),),
             expected_ordinary_refusal="non-literal initializer"),
@@ -508,6 +513,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "clk_arst": ("N",),
             "clk_arst_comma": ("N",),
             "latch_generate_e": ("N",),
+            "proc_local_for_automatic": ("N",),
         }[fixture.top]
         params = "#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")"
     declarations = []
