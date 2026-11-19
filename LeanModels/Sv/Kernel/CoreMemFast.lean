@@ -650,6 +650,95 @@ def CoreMemDesign.fastStep (E : CoreMemDesign) (st : CoreMemState)
     else .ok activated
   E.settleAssign E.env E.elems combed E.processes.toList
 
+/-! The source-shaped `fastStep` above is an executable replay view.  The
+    derived proof view below keeps canonical quiescence and event iteration,
+    replacing only the scalar NBA commit with the array-backed implementation.
+    Its refinement theorem is therefore independent of any captured design
+    trace. -/
+
+def CoreMemDesign.edgePassFast (E : CoreMemDesign)
+    (st : CoreMemState) (before after : SvState) (combBefore : CoreMemState) :
+    Res CoreMemState := do
+  let edge ← E.runEdges E.env E.elems st before after E.processes.toList
+  let committed ← E.fastCommitScalarState edge.state edge.scalarQ
+  let memory ← match edge.state.memory.commitNba edge.memoryQ with
+    | some m => .ok m
+    | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
+  let committed := { committed with memory }
+  let settled ← E.settleCanonical E.env E.elems committed E.processes.toList
+  let activated ← if E.hasImplicit then
+      E.runImplicit st settled E.processes.toList
+    else .ok settled
+  let combed ← if E.hasComb then
+      E.runComb combBefore activated E.processes.toList
+    else .ok activated
+  E.settleCanonical E.env E.elems combed E.processes.toList
+
+theorem CoreMemDesign.edgePassFast_eq_edgePass
+    (E : CoreMemDesign) (st : CoreMemState) (before after : SvState)
+    (combBefore : CoreMemState) :
+    E.edgePassFast st before after combBefore =
+      E.edgePass st before after combBefore := by
+  cases he : E.runEdges E.env E.elems st before after E.processes.toList with
+  | timeout => simp [CoreMemDesign.edgePassFast, CoreMemDesign.edgePass, he]
+  | unsupported msg => simp [CoreMemDesign.edgePassFast, CoreMemDesign.edgePass, he]
+  | ok edge =>
+      simp only [CoreMemDesign.edgePassFast, CoreMemDesign.edgePass, he,
+        Res.ok_bind]
+      rw [E.fastCommitScalarState_eq]
+      cases hm : edge.state.memory.commitNba edge.memoryQ with
+      | none => simp [hm]
+      | some memory => simp [hm]
+
+def CoreMemDesign.edgeQuiesceFast (E : CoreMemDesign) (limit : Nat)
+    (st : CoreMemState) (before after : SvState) (combBefore : CoreMemState) :
+    Res CoreMemState :=
+  match limit with
+  | 0 => .unsupported "4.5: event slot did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let next ← E.edgePassFast st before after combBefore
+      let nextView := E.scalar.view next.scalar
+      let caused := E.processes.toList.any fun p =>
+        match p with
+        | .edge q => q.fires after nextView
+        | _ => false
+      if caused then E.edgeQuiesceFast n next after nextView next
+      else .ok next
+
+theorem CoreMemDesign.edgeQuiesceFast_eq_edgeQuiesce
+    (E : CoreMemDesign) (limit : Nat) (st : CoreMemState)
+    (before after : SvState) (combBefore : CoreMemState) :
+    E.edgeQuiesceFast limit st before after combBefore =
+      E.edgeQuiesce limit st before after combBefore := by
+  induction limit generalizing st before after combBefore with
+  | zero => rfl
+  | succ limit ih =>
+      simp only [CoreMemDesign.edgeQuiesceFast, CoreMemDesign.edgeQuiesce,
+        Res.ok_bind]
+      rw [CoreMemDesign.edgePassFast_eq_edgePass]
+      cases h : E.edgePass st before after combBefore with
+      | timeout => simp [h]
+      | unsupported msg => simp [h]
+      | ok next =>
+          simp only [h, Res.ok_bind]
+          cases hca : E.processes.toList.any (fun p =>
+              match p with
+              | .edge q => q.fires after (E.scalar.view next.scalar)
+              | _ => false) with
+          | false => simp [hca]
+          | true => simp [hca, ih]
+
+def CoreMemDesign.fastStepCanonical (E : CoreMemDesign) (st : CoreMemState)
+    (entry : SvState) : Res CoreMemState := do
+  let (pre, before, after) ← E.prepareStep st entry
+  E.edgeQuiesceFast 4096 pre before after pre
+
+theorem CoreMemDesign.fastStepCanonical_eq_step
+    (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) :
+    E.fastStepCanonical st entry = E.step st entry := by
+  simp [CoreMemDesign.fastStepCanonical, CoreMemDesign.step,
+    E.edgeQuiesceFast_eq_edgeQuiesce]
+
 /-! A row driver for the whole-cycle fast route.  The empty-input shortcut is
     the same exact optimization as `runCoreMemRows`; all other rows use the
     source-shaped `fastStep` above. -/
