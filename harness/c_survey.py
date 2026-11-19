@@ -381,6 +381,11 @@ def selftest():
     if envelope_error({"sha256": "source"}, valid) is not None:
         print("c_survey --self-test: current envelope was rejected", file=sys.stderr)
         return 1
+    valid["language"] = "c++"
+    if envelope_error({"sha256": "source"}, valid) != "envelope language is not C":
+        print("c_survey --self-test: non-C envelope language was accepted", file=sys.stderr)
+        return 1
+    valid["language"] = "c"
     valid["extractor_sha256"] = "old"
     if envelope_error({"sha256": "source"}, valid) != "envelope extractor hash does not match current parser":
         print("c_survey --self-test: extractor provenance was not checked", file=sys.stderr)
