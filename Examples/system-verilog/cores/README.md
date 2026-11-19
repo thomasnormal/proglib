@@ -829,7 +829,7 @@ The pinned FemtoRV32 Quark source at
 Slang frontend. The source hash is
 `182e6d13bf5ab165b6eefaa22ae8d6a24ea45db6dd2dbd57dcfc5e81932097b7`, and the
 fresh envelope hash is
-`7c2011727dde42093d232b268f0c33d892abbd8dbb7fe1604a7ad593cd156cf6`. The
+`644b5ee318e42fe3362798172495e500cf001efeeded0b689eea4d7c9a355ccb`. The
 census is **130 admitted / 51 refused / 0 not reached**. Canonical E refuses
 at `FETCH_INSTR`'s untyped-width differential wall. Both pinned simulators
 refuse the unmodified source before elaboration at the use-before-declared
