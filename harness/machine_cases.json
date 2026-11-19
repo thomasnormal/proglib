@@ -468,5 +468,15 @@
     "source": "harness/scripts/machine_yield_boundary.py",
     "envelope": "harness/scripts/machine_yield_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_bool_boundary.py",
+    "envelope": "harness/scripts/machine_bool_boundary.json",
+    "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_slice_boundary.py",
+    "envelope": "harness/scripts/machine_slice_boundary.json",
+    "expect": "unsupported"
   }
 ]
