@@ -399,8 +399,9 @@ theorem PicoRV32Backend.design_is_pinned {E : ESig}
 
 /-- Reset starts the ISA at the pinned `PROGADDR_RESET = 0` and keeps the
 loaded program as the initial byte memory. -/
-def picoRV32Initial {E : ESig} (b : PicoRV32Backend E) : RvMemoryState :=
-  { arch := ArchState.init 0, memory := b.environment.program }
+def picoRV32Initial {E : ESig} (b : PicoRV32Backend E)
+    (initialArch : ArchState) : RvMemoryState :=
+  { arch := initialArch, memory := b.environment.program }
 
 /-- A valid RVFI row fetches the word held by program memory at its reported
 PC.  Invalid rows carry no instruction meaning. -/
