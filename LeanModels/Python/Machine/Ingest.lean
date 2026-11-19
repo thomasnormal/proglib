@@ -85,6 +85,8 @@ inductive MStmt where
   | pass (span : Span)
   | expr (value : MExpr) (span : Span)
   | assign (targets : Array MExpr) (value : MExpr) (span : Span)
+  | assignTypeComment (targets : Array MExpr) (value : MExpr)
+      (typeComment : String) (span : Span)
   | unpackAssign (before : Array String) (star : String) (after : Array String)
       (value : MExpr) (span : Span)
   | annAssign (target : MExpr) (annotation : MExpr) (value : Option MExpr)
@@ -98,6 +100,8 @@ inductive MStmt where
   | whileStmt (test : MExpr) (body : Array MStmt) (orelse : Array MStmt) (span : Span)
   | forStmt (target : MExpr) (iter : MExpr) (body : Array MStmt) (orelse : Array MStmt)
       (isAsync : Bool) (span : Span)
+  | forTypeComment (target : MExpr) (iter : MExpr) (body : Array MStmt)
+      (orelse : Array MStmt) (isAsync : Bool) (typeComment : String) (span : Span)
   | functionDef (name : String) (args : MArguments) (decorators : Array MExpr)
       (returns : Option MExpr) (body : Array MStmt) (span : Span)
   | asyncFunctionDef (name : String) (args : MArguments) (decorators : Array MExpr)
@@ -437,8 +441,12 @@ partial def mStmt (j : Json) : Except String MStmt := do
   match kind with
   | "Pass" => pure (.pass span)
   | "Expr" => pure (.expr (← mExpr (← mField j "value")) span)
-  | "Assign" => pure (.assign (← (← (← mField j "targets").getArr?).mapM mExpr)
-      (← mExpr (← mField j "value")) span)
+  | "Assign" =>
+      let targets ← (← (← mField j "targets").getArr?).mapM mExpr
+      let value ← mExpr (← mField j "value")
+      match j.getObjVal? "machine_type_comment" with
+      | .ok (.str comment) => pure (.assignTypeComment targets value comment span)
+      | _ => pure (.assign targets value span)
   | "Delete" =>
       let names ← (← mField j "names").getArr?
       let targets ← names.mapM (fun name => do
@@ -500,16 +508,17 @@ partial def mStmt (j : Json) : Except String MStmt := do
   | "While" => pure (.whileStmt (← mExpr (← mField j "test"))
       (← (← (← mField j "body").getArr?).mapM mStmt)
       (← (← (← mField j "orelse").getArr?).mapM mStmt) span)
-  | "For" => pure (.forStmt (← mExpr (← mField j "target"))
-      (← mExpr (← mField j "iter"))
-      (← (← (← mField j "body").getArr?).mapM mStmt)
-      (← (← (← mField j "orelse").getArr?).mapM mStmt)
-      false span)
-  | "AsyncFor" => pure (.forStmt (← mExpr (← mField j "target"))
-      (← mExpr (← mField j "iter"))
-      (← (← (← mField j "body").getArr?).mapM mStmt)
-      (← (← (← mField j "orelse").getArr?).mapM mStmt)
-      true span)
+  | "For" | "AsyncFor" =>
+      let target ← mExpr (← mField j "target")
+      let iter ← mExpr (← mField j "iter")
+      let bodyJson ← mField j "body"
+      let body ← (← bodyJson.getArr?).mapM mStmt
+      let orelseJson ← mField j "orelse"
+      let orelse ← (← orelseJson.getArr?).mapM mStmt
+      let isAsync := kind == "AsyncFor"
+      match j.getObjVal? "machine_type_comment" with
+      | .ok (.str comment) => pure (.forTypeComment target iter body orelse isAsync comment span)
+      | _ => pure (.forStmt target iter body orelse isAsync span)
   | "FunctionDef" | "NestedDef" =>
       let decorators ← match j.getObjVal? "machine_decorators" with
         | .ok value => (← value.getArr?).mapM mExpr
@@ -610,6 +619,7 @@ private def mStmtKind : MStmt → String
   | .pass _ => "Pass"
   | .expr _ _ => "Expr"
   | .assign _ _ _ => "Assign"
+  | .assignTypeComment _ _ _ _ => "Assign"
   | .unpackAssign _ _ _ _ _ => "UnpackAssign"
   | .annAssign _ _ _ _ _ => "AnnAssign"
   | .augAssign _ _ _ _ => "AugAssign"
@@ -620,6 +630,7 @@ private def mStmtKind : MStmt → String
   | .ifStmt _ _ _ _ => "If"
   | .whileStmt _ _ _ _ => "While"
   | .forStmt _ _ _ _ isAsync _ => if isAsync then "AsyncFor" else "For"
+  | .forTypeComment _ _ _ _ isAsync _ _ => if isAsync then "AsyncFor" else "For"
   | .functionDef _ _ _ _ _ _ => "FunctionDef"
   | .asyncFunctionDef _ _ _ _ _ _ => "AsyncFunctionDef"
   | .classDef _ _ _ _ _ _ => "ClassDef"
@@ -639,10 +650,12 @@ private def mStmtKind : MStmt → String
   | .unsupported kind _ => kind
 
 private def mStmtSpan : MStmt → Span
-  | .pass span | .expr _ span | .assign _ _ span | .unpackAssign _ _ _ _ span
+  | .pass span | .expr _ span | .assign _ _ span | .assignTypeComment _ _ _ span
+  | .unpackAssign _ _ _ _ span
   | .annAssign _ _ _ _ span | .augAssign _ _ _ span | .ret _ span | .delete _ span
   | .deleteSubscript _ _ span | .deleteAttribute _ _ span | .ifStmt _ _ _ span
-  | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span | .functionDef _ _ _ _ _ span
+  | .whileStmt _ _ _ span | .forStmt _ _ _ _ _ span
+  | .forTypeComment _ _ _ _ _ _ span | .functionDef _ _ _ _ _ span
   | .asyncFunctionDef _ _ _ _ _ span
   | .classDef _ _ _ _ _ span | .classDefNode _ _ _ _ _ span
   | .import _ span | .importFrom _ _ _ span
@@ -789,7 +802,7 @@ partial def mExprHasRaw : MExpr → Bool
 private def mStmtExpressions : MStmt → Array MExpr
   | .pass _ | .global _ _ | .nonlocal _ _ | .brk _ | .cont _ | .unsupported _ _ => #[]
   | .expr value _ => #[value]
-  | .assign targets value _ => targets ++ #[value]
+  | .assign targets value _ | .assignTypeComment targets value _ _ => targets ++ #[value]
   | .unpackAssign _ _ _ value _ => #[value]
   | .annAssign target annotation value _ _ =>
       #[target, annotation] ++ value.toArray
@@ -799,7 +812,7 @@ private def mStmtExpressions : MStmt → Array MExpr
   | .deleteSubscript receiver index _ => #[receiver, index]
   | .deleteAttribute receiver _ _ => #[receiver]
   | .ifStmt test _ _ _ | .whileStmt test _ _ _ => #[test]
-  | .forStmt target iter _ _ _ _ => #[target, iter]
+  | .forStmt target iter _ _ _ _ | .forTypeComment target iter _ _ _ _ _ => #[target, iter]
   | .functionDef _ args decorators returns _ _ =>
       let argExprs := args.positionalOnly ++ args.positional ++ args.keywordOnly
       let argAnnotations := argExprs.filterMap (·.annotation)
@@ -869,6 +882,7 @@ partial def mStmtToStmtClean : MStmt → RStmt
       match targets.toList with
       | [target] => .assign (mExprToExpr target) (mExprToExpr value) span
       | _ => .assignMany (targets.map mExprToExpr) (mExprToExpr value) span
+  | .assignTypeComment _ _ _ span => .raw "AssignTypeComment" #[] span
   | .unpackAssign before star after value span =>
       .unpackAssign before star after (mExprToExpr value) span
   | .annAssign target annotation value simple span =>
@@ -928,6 +942,7 @@ partial def mStmtToStmtClean : MStmt → RStmt
       else
         .forStmt (mExprToExpr target) (mExprToExpr iter)
           (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
+  | .forTypeComment _ _ _ _ _ _ span => .raw "ForTypeComment" #[] span
   | .functionDef name args decorators returns body span =>
       if !decorators.isEmpty || returns.isSome then
         .functionDefFull name (mParams args) (args.defaults.map mExprToExpr)
