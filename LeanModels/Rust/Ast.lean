@@ -83,9 +83,15 @@ structure Block where
   terminator : Terminator
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
+structure LocalInfo where
+  localId : Nat
+  ty : Nat
+deriving Repr, Inhabited, BEq, Lean.ToExpr
+
 structure Body where
   instanceId : String
   blocks : List Block
+  locals : List LocalInfo := []
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 structure CallEdge where
