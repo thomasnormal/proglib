@@ -911,3 +911,19 @@ accepts it and produces the dynamic member rows `00011000`, `00100100`,
 `81 42 24 18`; all-x and all-z member data produce all-x and all-z outputs.
 The refusal is therefore retained exactly in E, with no simulator value
 substituted for the unsupported node.
+
+## 2026-11-20 dynamic member indexed-range wall
+
+The clean-room source `darkriscv/walls/member_indexed_range.sv` isolates the
+run-time indexed part select `p.bytes[base +: 2]` through a packed struct
+member under IEEE 1800-2023 §11.5.1.  Its checked-in envelope retains the
+source-shaped range node.  Canonical E refuses initial-state construction with
+`unsupported expression 'RangeSelectExpression:member-indexed'`, as recorded
+by `member_indexed_range_probe.lean`.
+
+Icarus Verilog 13.0 refuses elaboration with `Array/part index expressions must
+be constant here`.  Xcelium 24.03-s004 accepts the source and returns
+`0010010000011000`, `0100001000100100`, and `1000000101000010` for bases 0,
+1, and 2 on packed bytes `81 42 24 18`, with all-x and all-z outputs for
+unknown member data.  E retains the exact refusal rather than selecting a
+simulator-specific value.
