@@ -84,6 +84,10 @@ obligation:
   all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
   `CoreRvfiMachine.to_reset_addi_refinement` composes that invariant with the
   all-prefix reset contract once initial relation and progress are supplied.
+  The machine's encoder is state-dependent because the concrete E-RUN memory
+  response is selected from the core's sampled address.  A conversion from
+  four-state `mem_addr` to an architectural word remains an explicit loaded-
+  core premise, not an inferred default.
 
 These are boundary consumers for a future loaded-core invariant.  They do not
 assert that the current PicoRV32 envelope executes in canonical E. -/
