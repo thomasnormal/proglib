@@ -45,7 +45,8 @@ inductive RStmt where
       (body : Array RStmt) (span : Span)
   | functionDefKw (name : String) (params : Array RParam) (defaults : Array Expr)
       (keywordDefaults : Array (Option Expr)) (body : Array RStmt) (span : Span)
-  | classDef (name : String) (bases : Array Expr) (body : Array RStmt) (span : Span)
+  | classDef (name : String) (bases : Array Expr) (keywords : Array (String × Expr))
+      (decorators : Array Expr) (body : Array RStmt) (span : Span)
   | import (module : String) (alias : Option String) (span : Span)
   | importFrom (module : Option String) (names : Array (String × Option String))
       (level : Nat) (span : Span)
@@ -1228,6 +1229,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.event (.refuse "machine import"), config.finish (.refuse "machine import"))
           | .importFrom _ _ _ _ =>
               some (.event (.refuse "machine import-from"), config.finish (.refuse "machine import-from"))
+          | .classDef _ _ _ _ _ _ =>
+              some (.event (.refuse "machine class"), config.finish (.refuse "machine class"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
@@ -1289,7 +1292,6 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               some (.tau, config.setControl (.evaluate expression .returnValue))
           | .unsupported _ text _ =>
               some (.event (.refuse text), config.finish (.refuse text))
-          | _ => some (.event (.refuse "machine statement"), config.finish (.refuse "machine statement"))
       | .evaluate (.constant value _) continuation =>
           some (.tau, config.setControl (.continueValue (rConstValue value) continuation))
       | .evaluate (.name name _) continuation =>
