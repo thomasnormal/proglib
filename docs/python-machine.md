@@ -96,6 +96,8 @@ Floor division with an instance on the left dispatches to an explicit
 `__floordiv__` method. Scalar floor division keeps its existing frontier.
 Modulo with an instance on the left dispatches to an explicit `__mod__`
 method. Scalar modulo keeps its existing frontier.
+Exponentiation with an instance on the left dispatches to an explicit
+`__pow__` method. Scalar exponentiation keeps its existing frontier.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
