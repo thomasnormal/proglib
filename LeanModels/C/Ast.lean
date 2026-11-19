@@ -257,6 +257,18 @@ inductive Expr where
   | unsupported (cKind : String) (text : String) (span : CSpan)
 deriving Repr, Inhabited
 
+def Expr.span : Expr → CSpan
+  | .intLit _ _ span | .charLit _ _ span | .strLit _ _ _ span
+  | .floatLit _ _ _ _ span | .boolLit _ _ span | .choose _ _ _ _ span
+  | .declRef _ _ _ _ span | .member _ _ _ _ span _ | .index _ _ _ span
+  | .call _ _ _ span | .binop _ _ _ _ span | .compoundAssign _ _ _ _ _ _ span
+  | .unop _ _ _ _ span | .cond _ _ _ _ span | .paren _ _ span
+  | .implicitCast _ _ _ span | .cast _ _ _ span | .initList _ _ _ span
+  | .arrayInitList _ _ _ _ span | .designatedUpdate _ _ _ span
+  | .implicitValueInit _ span | .compoundLit _ _ span
+  | .typeTrait _ _ _ _ span | .constExpr _ _ _ span | .vaArg _ _ span
+  | .unsupported _ _ span => span
+
 /-- C declarations that can appear at BLOCK scope as well as file scope —
 everything but a function definition. -/
 inductive Decl where

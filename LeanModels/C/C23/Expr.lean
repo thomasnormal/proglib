@@ -471,6 +471,8 @@ structure Layout where
   declSize : DeclarationId → Option Nat := fun _ => none
   /-- Parser-native structured clang type keyed by declaration identity. -/
   structuredType : DeclarationId → Option LeanModels.Clang.QualType := fun _ => none
+  /-- Parser-native expression QualType keyed by the span's byte offset. -/
+  structuredExprType : Nat → Option LeanModels.Clang.QualType := fun _ => none
   /-- Frontend-observed sizes for declarator-shaped types. -/
   typeSize : CType → Option Nat := fun _ => none
   /-- Frontend-observed byte size of a declared pointer's pointee. -/
@@ -670,7 +672,8 @@ def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
 
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
-  (directDeclId base).bind layout.structuredTypeDecl
+  (directDeclId base).bind layout.structuredTypeDecl |>.orElse (fun _ =>
+    (Expr.span base).offset.bind layout.structuredExprType)
 
 /-- Resolve an aggregate's element extent from its declaration's structured
 array type before using the legacy spelling-derived element table.  The
