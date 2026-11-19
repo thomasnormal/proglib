@@ -367,6 +367,76 @@ theorem CoreAddiBoundary.to_rv32i_boundary
 
 #print axioms CoreAddiBoundary.to_rv32i_boundary
 
+/-! The measured memory rows use the same refusal-preserving adapter.  Loads
+    and stores keep their memory-threaded post-state in the indexed boundary,
+    so a caller cannot replace a load response or erase a store update. -/
+
+def CoreLoadBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (word : LeanModels.Refine.Word) (rd rs1 : LeanModels.Rv.Reg)
+    (imm : LeanModels.Refine.Word) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.lwBoundary arch input word rd rs1 imm
+
+theorem CoreLoadBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word} {rd rs1 : LeanModels.Rv.Reg}
+    {imm : LeanModels.Refine.Word}
+    (h : CoreLoadBoundary d st entry arch input word rd rs1 imm) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.lwNext arch input.memory rd rs1 imm,
+          memory := input.memory }
+        (LeanModels.Refine.lwRetirement arch input rd rs1 imm) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  simpa [LeanModels.Refine.lwNext, LeanModels.Refine.lwRetirement,
+    LeanModels.Refine.memNext, LeanModels.Refine.memRetirement,
+    LeanModels.Refine.memAfter, LeanModels.Refine.lwEffects,
+    LeanModels.Refine.memEffects] using
+    RvfiObservation.lwBoundary_rv32i word rd rs1 imm hboundary
+
+def CoreStoreBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (word : LeanModels.Refine.Word) (rs1 rs2 : LeanModels.Rv.Reg)
+    (imm : LeanModels.Refine.Word) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.swBoundary arch input word rs1 rs2 imm
+
+theorem CoreStoreBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word} {rs1 rs2 : LeanModels.Rv.Reg}
+    {imm : LeanModels.Refine.Word}
+    (h : CoreStoreBoundary d st entry arch input word rs1 rs2 imm) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.swNext arch,
+          memory := LeanModels.Rv.storeVal input.memory .word
+            (arch.readReg rs1 + imm) (arch.readReg rs2) }
+        (LeanModels.Refine.swRetirement arch input rs1 rs2 imm) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  simpa [LeanModels.Refine.swNext, LeanModels.Refine.swRetirement,
+    LeanModels.Refine.memNext, LeanModels.Refine.memRetirement,
+    LeanModels.Refine.memAfter, LeanModels.Refine.swEffects,
+    LeanModels.Refine.memEffects, LeanModels.Rv.storeVal] using
+    RvfiObservation.swBoundary_rv32i word rs1 rs2 imm hboundary
+
+#print axioms CoreLoadBoundary.to_rv32i_boundary
+#print axioms CoreStoreBoundary.to_rv32i_boundary
+
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}

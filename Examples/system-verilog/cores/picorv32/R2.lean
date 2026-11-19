@@ -84,6 +84,9 @@ obligation:
   `picorv32_addi2_loaded_rv32i_boundary_of_step` wrappers carry the measured
   first two rows into the same indexed dispatcher used by the universal
   invariant, while retaining the source-step and exact-port-sample premises.
+  `r1_mem.picorv32_lw_loaded_rv32i_boundary_of_step` and
+  `picorv32_sw_loaded_rv32i_boundary_of_step` provide the corresponding
+  memory-row consumers with explicit load and store post-memory states.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
