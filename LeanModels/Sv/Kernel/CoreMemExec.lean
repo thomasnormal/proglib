@@ -1485,6 +1485,31 @@ memory into scalar cells. -/
 
 mutual
 
+def _root_.LeanModels.Sv.PExpr.hasGenvarRef : PExpr → Bool
+  | .genvarRef _ => true
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
+  | .sysCall _ a | .reduce _ a | .cast _ a => a.hasGenvarRef
+  | .binary _ a b | .bitSel a b | .repl a b => a.hasGenvarRef || b.hasGenvarRef
+  | .partSel a b c | .ternary a b c => a.hasGenvarRef || b.hasGenvarRef || c.hasGenvarRef
+  | .concat xs | .functionCall _ xs => PExpr.hasGenvarRefList xs
+  | .arrayElem _ xs => PExpr.hasGenvarRefList xs
+  | .arrayPart _ xs _ a b => PExpr.hasGenvarRefList xs || a.hasGenvarRef || b.hasGenvarRef
+  | .aggregateMember _ path => PExpr.hasGenvarRefPath path
+  | _ => false
+
+def _root_.LeanModels.Sv.PExpr.hasGenvarRefList : List PExpr → Bool
+  | [] => false
+  | x :: xs => x.hasGenvarRef || PExpr.hasGenvarRefList xs
+
+def _root_.LeanModels.Sv.PExpr.hasGenvarRefPath : List (Option String × Option PExpr) → Bool
+  | [] => false
+  | (_, none) :: rest => PExpr.hasGenvarRefPath rest
+  | (_, some e) :: rest => e.hasGenvarRef || PExpr.hasGenvarRefPath rest
+
+end
+
+mutual
+
 def coreMemReadExprs : PExpr → List PExpr
   | e@(.ident _) => [e]
   | e@(.arrayElem _ indices) => e :: coreMemReadExprsList indices
@@ -2141,14 +2166,22 @@ once in source order.  A body that changes one of its own watched reads would
 need a second Active-region pass; that cyclic shape stays loud instead of
 being silently evaluated with a stale value. -/
 
+def CoreMemDesign.readChangedExpr (E : CoreMemDesign) (before after : CoreMemState)
+    (expr : PExpr) : Res Bool :=
+  if expr.hasGenvarRef && LeanModels.Sv.PExpr.hasMemoryRead expr then
+    .ok true
+  else do
+    let old ← E.evalExpr E.env E.elems before none expr
+    let now ← E.evalExpr E.env E.elems after none expr
+    .ok (old != now)
+
 def CoreMemDesign.readChanged (E : CoreMemDesign) (before after : CoreMemState)
     (reads : List PExpr) : Res Bool :=
   match reads with
   | [] => .ok false
   | expr :: rest => do
-      let old ← E.evalExpr E.env E.elems before none expr
-      let now ← E.evalExpr E.env E.elems after none expr
-      if old == now then E.readChanged before after rest else .ok true
+      if ← E.readChangedExpr before after expr then .ok true
+      else E.readChanged before after rest
 
 def CoreMemDesign.readChangedPure (before after : SvState) : List Expr2 → Res Bool
   | [] => .ok false
@@ -2268,6 +2301,15 @@ def CoreMemDesign.evalCombExpr (E : CoreMemDesign) (env : IEnv)
 
 mutual
 
+def CoreMemDesign.execCombLoopValuesFuel (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) : Nat → List Int → PStmt → String →
+    Res (CoreMemState × SvState)
+  | 0, _, _, _ => .timeout
+  | fuel + 1, [], _, _ => .ok (st, view)
+  | fuel + 1, i :: rest, body, iterator => do
+      let (st', view') ← E.execCombStmtFuel (env.bindVal iterator i) elems st view fuel body
+      E.execCombLoopValuesFuel env elems st' view' fuel rest body iterator
+
 def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) : Nat → PStmt →
     Res (CoreMemState × SvState)
@@ -2329,8 +2371,11 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
         | none => .ok (st, view)
         | some stmt => E.execCombStmtFuel env elems st view fuel stmt
   | fuel + 1, .block body => E.execCombStmtsFuel env elems st view fuel body
-  | fuel + 1, .forLoop .. =>
-      .unsupported "9.2.2.2: procedural loop in always_comb body is outside this slice"
+  | fuel + 1, .forLoop iterator init condition step body =>
+      match forValues2 env iterator init condition step with
+      | .timeout => .timeout
+      | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
+      | .ok values => E.execCombLoopValuesFuel env elems st view fuel values body iterator
   | fuel + 1, .caseStmt subject items default? mode check => do
       let sv ← E.evalExpr env elems st none subject
       match check with
