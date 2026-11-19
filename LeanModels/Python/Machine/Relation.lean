@@ -115,6 +115,7 @@ inductive RKont where
   | discardValue
   | sequence (remaining : List RStmt)
   | assign (name : String) (remaining : List RStmt)
+  | assignPattern (target : Expr) (remaining : List RStmt)
   | assignSubscriptReceiver (receiver : Expr) (index : Expr) (remaining : List RStmt)
   | assignSubscriptIndex (value : RVal) (index : Expr) (remaining : List RStmt)
   | assignSubscriptDone (receiver : RVal) (value : RVal) (remaining : List RStmt)
@@ -668,6 +669,27 @@ def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
     globalNames := frame.globalNames
     nonlocalNames := frame.nonlocalNames }
 
+def rPatternValues (target : Expr) (value : RVal) : Option (List (String × RVal)) :=
+  match target, value with
+  | .name name _, value => some [(name, value)]
+  | .tuple targets _, .tuple values | .list targets _, .tuple values =>
+      if targets.size != values.size then none
+      else
+        (targets.toList.zip values.toList).mapM fun pair =>
+          match pair.1 with
+          | .name name _ => some (name, pair.2)
+          | _ => none
+  | .tuple targets _, .ref _ | .list targets _, .ref _ => none
+  | _, _ => none
+
+def rAssignPattern (frame : RFrame) (target : Expr) (value : RVal) (remaining : List RStmt)
+    : Option RFrame :=
+  match rPatternValues target value with
+  | none => none
+  | some bindings =>
+      let locals := bindings.foldl (fun env binding => rSetEnv env binding.1 binding.2) frame.locals
+      some { frame with control := .statements remaining, locals := locals }
+
 def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   match op, left, right with
   | .add, .int a, .int b => .ok (.int (a + b))
@@ -1089,6 +1111,8 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .assign (.subscript receiver index _) value _ =>
               some (.tau, config.setControl
                 (.evaluate value (.assignSubscriptReceiver receiver index rest)))
+          | .assign target value _ =>
+              some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>
               some (.tau, config.setControl
                 (.evaluate test (.ifBranch body.toList orelse.toList rest)))
@@ -1238,14 +1262,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           if name ∈ frame.globalNames then
             let next := config.setTop { frame with control := .statements remaining }
             some (.tau, next.setModules frame.module name value)
-          else match rWriteCell config.heap frame.locals name value with
-          | some heap =>
-              let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
-              if config.frames.tail.isEmpty then
-                some (.tau, next.setModules frame.module name value)
-              else
-                some (.tau, next)
-          | none =>
+          else
+            match rWriteCell config.heap frame.locals name value with
+            | some heap =>
+                let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
+                if config.frames.tail.isEmpty then some (.tau, next.setModules frame.module name value)
+                else some (.tau, next)
+            | none =>
               match rWriteCell config.heap frame.cells name value with
               | some heap =>
                   let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
@@ -1259,6 +1282,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                     some (.tau, next.setModules frame.module name value)
                   else
                     some (.tau, next)
+      | .continueValue value (.assignPattern target remaining) =>
+          match rAssignPattern frame target value remaining with
+          | some updated => some (.tau, config.setTop updated)
+          | none => some (.tau, config.setControl (.refusing "machine assignment pattern"))
       | .continueValue value (.binOpLeft op right continuation) =>
           some (.tau, config.setControl (.evaluate right (.binOpRight value op continuation)))
       | .continueValue value (.unaryValue op continuation) =>

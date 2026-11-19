@@ -285,6 +285,11 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_unpack_assign.py",
+    "envelope": "harness/scripts/machine_unpack_assign.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/cpython_list_basics.py",
     "envelope": "harness/scripts/cpython_list_basics.json",
     "expect": "match"
