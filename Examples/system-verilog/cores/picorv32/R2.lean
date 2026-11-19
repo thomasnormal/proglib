@@ -87,6 +87,9 @@ obligation:
   `r1_mem.picorv32_lw_loaded_rv32i_boundary_of_step` and
   `picorv32_sw_loaded_rv32i_boundary_of_step` provide the corresponding
   memory-row consumers with explicit load and store post-memory states.
+  `r1_upper.picorv32_lui_loaded_rv32i_boundary_of_step` and
+  `picorv32_auipc_loaded_rv32i_boundary_of_step` provide the corresponding
+  LUI and AUIPC consumers through the decoded upper-immediate witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.
