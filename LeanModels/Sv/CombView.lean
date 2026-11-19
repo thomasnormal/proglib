@@ -1667,6 +1667,7 @@ def _root_.LeanModels.Sv.PExpr.cnames : PExpr → List String
   | .concat ps => ps.flatMap repNames
   -- a parameter or localparam read as a value (under its conversion marker, `rdsOfW?`)
   | .paramRef n none => [n]
+  | .typeBits _ _ => []
   | _ => []
 
 /-- The replication counts of a right-hand side: each must be non-negative where the site is instantiated (the model
@@ -1679,6 +1680,7 @@ def _root_.LeanModels.Sv.PExpr.rcounts : PExpr → List Aff
   | .resize _ a => a.rcounts
   | .repl c _ => [repAff c]
   | .concat ps => ps.flatMap repCount
+  | .typeBits _ _ => []
   | _ => []
 
 /-- `(v.cnames, v.rcounts)` in ONE traversal (`consts_eq`): the recognizer forces it once per site that is not a leaf
@@ -1707,6 +1709,7 @@ def _root_.LeanModels.Sv.PExpr.consts : PExpr → List String × List Aff
   | .concat ps => (ps.flatMap repNames, ps.flatMap repCount)
   | .functionCall .. => ([], [])
   | .paramRef n none => ([n], [])
+  | .typeBits _ _ => ([], [])
   | _ => ([], [])
 
 theorem consts_eq : ∀ v : PExpr, v.consts = (v.cnames, v.rcounts)
@@ -1723,7 +1726,7 @@ theorem consts_eq : ∀ v : PExpr, v.consts = (v.cnames, v.rcounts)
   | .paramRef _ none | .paramRef _ (some _) => rfl
   | .lit _ | .fill _ | .ident _ | .bitSel .. | .partSel .. | .arrayElem .. | .arrayPart .. | .genvarRef _
   | .enumRef .. | .int _ | .sysCall .. | .cast .. | .signedResize .. | .squash2 ..
-  | .aggregateMember .. | .unsupported .. => by
+  | .aggregateMember .. | .typeBits .. | .unsupported .. => by
       simp [PExpr.consts, PExpr.cnames, PExpr.rcounts]
 
 /-- The constants of an expression are in scope and its replication counts are non-negative, their shift and power atoms
@@ -1958,7 +1961,11 @@ def dimOf? (name : String) (d : PDim) : Except String (PDim × Aff × Aff) :=
 
 def declOf? (pd : PDecl) : Except String DeclT :=
   if !pd.unpackedDims.isEmpty || pd.isInout then
-    .error s!"declaration `{pd.name}`: unpacked array storage whose shape depends on a parameter (UnpackedDecl:memory), which the semantic-tier family `X.sem` does not model: its instantiation refuses the declaration (`instDecl`: unpacked array storage outside E), so the whole family is one loud process; the cells live only on the source-shaped memory route (`instantiateMemD2`, `runMem2`), which has no proof layer the tactics could be sound against (a FIXED-size unpacked array reaches `X.sem` as one declaration per cell, `{pd.name}[0]`, …, which the tactics read)"
+    .error (if pd.isInout then
+      s!"declaration `{pd.name}`: inout ports require bidirectional net resolution (Inout:resolution), which the semantic-tier family `X.sem` does not model; canonical E keeps the parser-native port and refuses the unresolved driver merge"
+    else
+      s!"declaration `{pd.name}`: unpacked array storage whose shape depends on a parameter (UnpackedDecl:memory), which the semantic-tier family `X.sem` does not model: its instantiation refuses the declaration (`instDecl`: unpacked array storage outside E), so the whole family is one loud process; the cells live only on the source-shaped memory route (`instantiateMemD2`, `runMem2`), which has no proof layer the tactics could be sound against (a FIXED-size unpacked array reaches `X.sem` as one declaration per cell, `{pd.name}[0]`, …, which the tactics read)"
+    )
   else match pd.init with
   | some _ => .error s!"declaration `{pd.name}` has an initializer"
   | none =>
@@ -2608,6 +2615,7 @@ theorem noConst_spec : ∀ v : PExpr, noConst v = true → v.cnames = [] ∧ v.r
   | .genvarRef _, _ | .enumRef .., _ | .int _, _ | .sysCall .., _ | .cast .., _
   | .signedResize .., _ | .squash2 .., _ | .aggregateMember .., _ | .unsupported .., _ => by
       simp [PExpr.cnames, PExpr.rcounts]
+  | .typeBits .., _ => by simp [PExpr.cnames, PExpr.rcounts]
 
 /-! ### The left operand of a shift: what `instDivOperand2` lowers
 
@@ -4790,6 +4798,12 @@ private def guardIntClog2 : PLocalParam :=
 #guard (match bindLocal { vals := [("N", 1)], int32 := true } guardIntClog2 with
   | .ok e => e.nvals.lookup "L" == some (0, 32, true)
   | .error _ => false)
+
+private def guardInoutDecl : PDecl :=
+  { name := "pad", type := .packed [] none, isInout := true, isNet := true }
+#guard match declOf? guardInoutDecl with
+  | .error msg => msg.contains "Inout:resolution"
+  | .ok _ => false
 
 end CombView
 end LeanModels.Sv

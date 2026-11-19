@@ -538,7 +538,10 @@ theorem runObs2_of_runs_E0 {E : Elab} {rank : Nat → Nat} (hS : Settles E E.toD
       induction ps with
       | nil => rfl
       | cons p ps ih => cases p <;>
-          simp only [List.map_cons, List.any_cons, Proc0.toProcess2, ih, Bool.false_or] <;> native_decide
+          simp only [List.map_cons, List.any_cons, Proc0.toProcess2, ih, Bool.false_or] <;>
+            -- The remaining proposition is a closed finite constructor scan.
+            -- `native_decide` is used here only to evaluate that fixed boolean recursion.
+            native_decide
     have hc : run2ClockNames E.toDesign2 = [] := by
       simp [run2ClockNames, Elab.toDesign2, hnames E.procs.toList]
     have hi : E.toDesign2.processes.toList.any (fun p =>
@@ -750,7 +753,10 @@ theorem runs2_of_runs_E0_agree {E : Elab} {d : Design2} {rank : Nat → Nat}
       induction ps with
       | nil => rfl
       | cons p ps ih => cases p <;>
-          simp only [List.map_cons, List.any_cons, Proc0.toProcess2, ih, Bool.false_or] <;> native_decide
+          simp only [List.map_cons, List.any_cons, Proc0.toProcess2, ih, Bool.false_or] <;>
+            -- The remaining proposition is a closed finite constructor scan.
+            -- `native_decide` is used here only to evaluate that fixed boolean recursion.
+            native_decide
     have hc : run2ClockNames E.toDesign2 = [] := by
       simp [run2ClockNames, Elab.toDesign2, hnames E.procs.toList]
     have hi : E.toDesign2.processes.toList.any (fun p =>
