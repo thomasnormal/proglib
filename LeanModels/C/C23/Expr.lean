@@ -319,6 +319,48 @@ def intTyOf? (ty : CType) : Option IntTy :=
   | "unsigned __int128" | "__uint128_t" => some IntTy.uint128
   | _ => none
 
+/-! Parser-native scalar projections.  These consume the C frontend's
+structured builtin or enumeration leaf and never infer a width from a
+display spelling.  A typedef reference remains unresolved here because the
+envelope carries its declaration identity, while its underlying typedef type
+is a separate declaration observation. -/
+def intTyOfStructured : LeanModels.Clang.QualType → Option IntTy
+  | .qualified _ _ base => intTyOfStructured base
+  | .cBuiltin name =>
+      match name with
+      | "char" | "signed char" => some IntTy.char_
+      | "unsigned char" => some IntTy.uchar
+      | "short" | "short int" => some IntTy.short_
+      | "unsigned short" | "unsigned short int" => some IntTy.ushort
+      | "int" | "signed int" => some IntTy.int_
+      | "unsigned" | "unsigned int" => some IntTy.uint
+      | "long" | "long int" => some IntTy.long_
+      | "unsigned long" | "unsigned long int" => some IntTy.ulong
+      | "long long" | "long long int" => some IntTy.long_
+      | "unsigned long long" | "unsigned long long int" => some IntTy.ulong
+      | "_Bool" | "bool" => some IntTy.bool_
+      | "int8_t" => some IntTy.char_
+      | "uint8_t" => some IntTy.uchar
+      | "int16_t" => some IntTy.short_
+      | "uint16_t" => some IntTy.ushort
+      | "int32_t" => some IntTy.int_
+      | "uint32_t" => some IntTy.uint
+      | "int64_t" => some IntTy.long_
+      | "uint64_t" => some IntTy.ulong
+      | "intptr_t" => some IntTy.long_
+      | "uintptr_t" => some IntTy.ulong
+      | "__int128" => some IntTy.int128_
+      | "unsigned __int128" | "__uint128_t" => some IntTy.uint128
+      | _ => none
+  | .enumeration _ => some IntTy.int_
+  | _ => none
+
+def floatBitsOfStructured : LeanModels.Clang.QualType → Option Nat
+  | .qualified _ _ base => floatBitsOfStructured base
+  | .cBuiltin "float" => some 32
+  | .cBuiltin "double" => some 64
+  | _ => none
+
 /-- The integer type of an expression, or a refusal naming the spelling.
 A refusal a human cannot act on is a refusal that has not done its job,
 so the unresolved SPELLING is carried in the message. -/
@@ -871,19 +913,20 @@ def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
 implicit of the whole corpus.** -/
 def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
-  if ty == "float" then
+  if structured.bind floatBitsOfStructured == some 32 || ty == "float" then
     readMem (fun m => Mem.loadFloat32 m p)
-  else if ty == "double" then
+  else if structured.bind floatBitsOfStructured == some 64 || ty == "double" then
     readMem (fun m => Mem.loadFloat64 m p)
-  else if ty == "char" || ty == "signed char" || ty == "unsigned char" then
-    match intTyOf? ty with
+  else if structured.bind intTyOfStructured |>.map (fun t => t.bits == 8) |>.getD
+      (ty == "char" || ty == "signed char" || ty == "unsigned char") then
+    match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
     | some t => readMem (fun m => Mem.loadCharacter m p t)
     | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
   else if structuredPointerObject structured ty then do
     let q ← readMem (fun m => Mem.loadPtr m p)
     pure (.ptr q)
   else do
-    match intTyOf? ty with
+    match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
     | some t =>
         if isPtrIntType ty then
           -- A uintptr_t object may contain the profile's preserved pointer
