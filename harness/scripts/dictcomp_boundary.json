@@ -58,17 +58,118 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
-              "kind": "Unsupported",
+              "kind": "DictComp",
               "span": {
                 "lineno": 8,
                 "col_offset": 6,
                 "end_lineno": 8,
                 "end_col_offset": 35
               },
-              "py_kind": "DictComp",
-              "text": "{x: x * x for x in (1, 2, 3)}"
+              "key": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 7,
+                  "end_lineno": 8,
+                  "end_col_offset": 8
+                },
+                "id": "x"
+              },
+              "value": {
+                "kind": "BinOp",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 10,
+                  "end_lineno": 8,
+                  "end_col_offset": 15
+                },
+                "left": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 10,
+                    "end_lineno": 8,
+                    "end_col_offset": 11
+                  },
+                  "id": "x"
+                },
+                "op": "Mult",
+                "right": {
+                  "kind": "Name",
+                  "span": {
+                    "lineno": 8,
+                    "col_offset": 14,
+                    "end_lineno": 8,
+                    "end_col_offset": 15
+                  },
+                  "id": "x"
+                }
+              },
+              "target": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 20,
+                  "end_lineno": 8,
+                  "end_col_offset": 21
+                },
+                "id": "x"
+              },
+              "iter": {
+                "kind": "Tuple",
+                "span": {
+                  "lineno": 8,
+                  "col_offset": 25,
+                  "end_lineno": 8,
+                  "end_col_offset": 34
+                },
+                "elts": [
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 8,
+                      "col_offset": 26,
+                      "end_lineno": 8,
+                      "end_col_offset": 27
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "1"
+                    }
+                  },
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 8,
+                      "col_offset": 29,
+                      "end_lineno": 8,
+                      "end_col_offset": 30
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "2"
+                    }
+                  },
+                  {
+                    "kind": "Constant",
+                    "span": {
+                      "lineno": 8,
+                      "col_offset": 32,
+                      "end_lineno": 8,
+                      "end_col_offset": 33
+                    },
+                    "value": {
+                      "type": "int",
+                      "repr": "3"
+                    }
+                  }
+                ]
+              },
+              "ifs": []
             }
           ],
           "keywords": [],

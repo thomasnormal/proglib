@@ -290,6 +290,12 @@ partial def parseExpr (j : Json) : Except String Expr := do
               pure ((← (← getField w "name").getStr?), ← parseExpr (← getField w "value"))
           | .error _ => pure #[]
         return Expr.genExp elt target iter ifs walrus span
+    | "Await" =>
+        -- The machine envelope preserves `Await` as its own AST node.  The
+        -- compatibility interpreter has no coroutine scheduler, so retain
+        -- the node's identity and refuse it explicitly rather than rejecting
+        -- an otherwise dead async definition while decoding the envelope.
+        return .unsupported "Await" "await expressions are outside the compatibility tier" span
     | "Unsupported" =>
         return .unsupported (← (← getField j "py_kind").getStr?)
           (← (← getField j "text").getStr?) span

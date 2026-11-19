@@ -553,5 +553,10 @@
     "source": "harness/scripts/machine_await_boundary.py",
     "envelope": "harness/scripts/machine_await_boundary.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_lambda_boundary.py",
+    "envelope": "harness/scripts/machine_lambda_boundary.json",
+    "expect": "unsupported"
   }
 ]

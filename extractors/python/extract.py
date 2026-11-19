@@ -552,6 +552,73 @@ def convert_expr(node):
             "value": convert_expr(node.value),
         }
 
+    if isinstance(node, ast.Lambda):
+        # Keep expression-position lambdas as their own CPython AST node for
+        # the machine envelope.  The compatibility fields are retained for
+        # consumers that inspect ordinary argument metadata, while
+        # ``lambda_args`` carries defaults and annotations as AST children.
+        args = node.args
+        positional = list(args.posonlyargs) + list(args.args)
+        positional_defaults = [None] * (len(positional) - len(args.defaults))
+        positional_defaults.extend(args.defaults)
+
+        def lambda_arg(param, default=None, positional_only=False,
+                       keyword_only=False, variadic=False,
+                       keyword_variadic=False):
+            result = convert_param(
+                param,
+                literal_const_payload(default) if default is not None else None,
+                positional_only=positional_only,
+                keyword_only=keyword_only,
+                variadic=variadic,
+                keyword_variadic=keyword_variadic,
+            )
+            if default is not None:
+                result["default"] = convert_expr(default)
+            if param.annotation is not None:
+                result["annotation"] = convert_expr(param.annotation)
+            return result
+
+        lambda_args = [
+            lambda_arg(param, default, positional_only=i < len(args.posonlyargs))
+            for i, (param, default) in enumerate(zip(positional, positional_defaults))
+        ]
+        if args.vararg is not None:
+            lambda_args.append(lambda_arg(args.vararg, variadic=True))
+        lambda_args.extend(
+            lambda_arg(param, default, keyword_only=True)
+            for param, default in zip(args.kwonlyargs, args.kw_defaults)
+        )
+        if args.kwarg is not None:
+            lambda_args.append(lambda_arg(args.kwarg, keyword_variadic=True))
+        compat_args = [
+            convert_param(
+                param,
+                literal_const_payload(default) if default is not None else None,
+                positional_only=i < len(args.posonlyargs),
+            )
+            for i, (param, default) in enumerate(zip(positional, positional_defaults))
+        ]
+        if args.vararg is not None:
+            compat_args.append(convert_param(args.vararg, variadic=True))
+        compat_args.extend(
+            convert_param(
+                param,
+                literal_const_payload(default) if default is not None else None,
+                keyword_only=True,
+            )
+            for param, default in zip(args.kwonlyargs, args.kw_defaults)
+        )
+        if args.kwarg is not None:
+            compat_args.append(convert_param(args.kwarg, keyword_variadic=True))
+        return {
+            "kind": "Lambda",
+            "span": span(node),
+            "args": compat_args,
+            "lambda_args": lambda_args,
+            "body": convert_expr(node.body),
+        }
+
     if isinstance(node, ast.NamedExpr):
         # H7+ (docs/memory-model.md §the walrus operator): `(x := e)` in
         # general expression position binds `x` in the frame that

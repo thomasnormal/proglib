@@ -54,15 +54,23 @@
               "end_col_offset": 17
             },
             "value": {
-              "kind": "Unsupported",
+              "kind": "Await",
               "span": {
                 "lineno": 5,
                 "col_offset": 4,
                 "end_lineno": 5,
                 "end_col_offset": 17
               },
-              "py_kind": "Await",
-              "text": "await missing"
+              "value": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 5,
+                  "col_offset": 10,
+                  "end_lineno": 5,
+                  "end_col_offset": 17
+                },
+                "id": "missing"
+              }
             }
           }
         ]
@@ -93,6 +101,8 @@
             },
             "id": "print"
           },
+          "starargs": [],
+          "kwargs": [],
           "args": [
             {
               "kind": "Constant",

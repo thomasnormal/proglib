@@ -9220,7 +9220,7 @@ def evalDictCompStep (m : Module) (fuel : Nat) (st : FrameState) (saved : Env)
     match xs with
     | [] =>
       let st' := { st with world :=
-        { st.world with heap := st.world.heap.push (.dict acc.reverse.toArray 0) } }
+        { st.world with heap := st.world.heap.push (.dict acc.toArray 0) } }
       .ok { st' with locals := saved } (.ref st.world.heap.size)
     | x :: rest =>
       Run.liftRes st (assignToH st.world.heap st.locals target x) ⤳ fun st env =>

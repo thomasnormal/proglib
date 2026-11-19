@@ -272,8 +272,8 @@
   },
   {
     "file": "harness/scripts/dictcomp_boundary.py",
-    "expect": "unsupported",
-    "note": "P3 price row: CPython's direct DictComp result is pinned while the native AST-node evaluator remains outside the current tier."
+    "expect": "match",
+    "note": "The compatibility evaluator admits the one-clause/no-filter DictComp shape. The machine column still preserves the node and refuses it until native dictionary-comprehension semantics exists."
   },
   {
     "file": "harness/scripts/insort_alias_script.py",

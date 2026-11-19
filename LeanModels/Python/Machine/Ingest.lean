@@ -293,8 +293,8 @@ partial def mExpr (j : Json) : Except String MExpr := do
           | .ok value => some <$> mExpr value
         pure (name, flag "positional_only", flag "keyword_only",
           flag "variadic", flag "keyword_variadic", default, annotation)
-      pure (.lambdaExpr (← (← mField j "lambda_args").getArr?).mapM parseParam
-        (← mExpr (← mField j "body")) span)
+      let params ← (← (← mField j "lambda_args").getArr?).mapM parseParam
+      pure (.lambdaExpr params (← mExpr (← mField j "body")) span)
   | "Attribute" => pure (.attribute (← mExpr (← mField j "value"))
       (← (← mField j "attr").getStr?) span)
   | "Subscript" => pure (.subscript (← mExpr (← mField j "value"))
@@ -553,6 +553,7 @@ partial def mExprToExpr : MExpr → Expr
   | .dict keys values span => .dict (keys.map (fun key =>
       key.map mExprToExpr |>.getD (.constant .none span))) (values.map mExprToExpr) span
   | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
+  | .lambdaExpr _ _ span => .unsupported "Lambda" "machine lambda frontier" span
   | .awaitExpr _ span => .unsupported "Await" "machine await frontier" span
   | .starred value span =>
       match value with
@@ -610,6 +611,10 @@ partial def mExprToRaw : MExpr → RRawExpr
       .node "GeneratorExp" ((#[mExprToRaw elt, mExprToRaw target, mExprToRaw iter]) ++
         ifs.map mExprToRaw ++ walrus.map (fun pair => mExprToRaw pair.2)) span
   | .awaitExpr value span => .node "Await" #[mExprToRaw value] span
+  | .lambdaExpr params body span =>
+      let parameterChildren := params.flatMap (fun (_, _, _, _, _, default, annotation) =>
+        (default.toArray ++ annotation.toArray).map mExprToRaw)
+      .node "Lambda" (parameterChildren ++ #[mExprToRaw body]) span
   | .namedExpr _ value span => .node "NamedExpr" #[mExprToRaw value] span
   | .starred value span => .node "Starred" #[mExprToRaw value] span
   | .unsupported kind span => .node kind #[] span
@@ -621,6 +626,7 @@ partial def mExprHasRaw : MExpr → Bool
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
   | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true
   | .awaitExpr _ _ => true
+  | .lambdaExpr _ _ _ => true
   | .binOp left _ right _ => mExprHasRaw left || mExprHasRaw right
   | .unaryOp _ operand _ => mExprHasRaw operand
   | .boolOp _ values _ => values.any mExprHasRaw
@@ -896,6 +902,25 @@ private def ingestFunctionMetadata : Json :=
       match (compileMachineModule module).body.toList with
       | [.functionDefFull "decorated" #[] #[] #[.name "deco" _]
           (some (.name "int" _)) #[] _] => true
+      | _ => false
+  | _ => false
+
+private def ingestLambdaModule : Json :=
+  Lean.Json.mkObj [
+    ("module", Lean.Json.mkObj [
+      ("kind", Lean.toJson "Module"),
+      ("body", Lean.Json.arr #[Lean.Json.mkObj [
+        ("kind", Lean.toJson "Expr"), ("span", ingestSpan),
+        ("value", Lean.Json.mkObj [
+          ("kind", Lean.toJson "Lambda"), ("span", ingestSpan),
+          ("lambda_args", Lean.Json.arr #[Lean.Json.mkObj [
+            ("arg", Lean.toJson "x")]]),
+          ("body", ingestName "x")])]])])]
+
+#guard match parseMachineModule ingestLambdaModule with
+  | .ok module =>
+      match module.body.toList with
+      | [.expr (.lambdaExpr #[("x", false, false, false, false, none, none)] _ _) _] => true
       | _ => false
   | _ => false
 
