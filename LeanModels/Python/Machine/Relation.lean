@@ -40,6 +40,8 @@ inductive RStmt where
       (keywordDefaults : Array (Option Expr)) (body : Array RStmt) (span : Span)
   | classDef (name : String) (bases : Array Expr) (body : Array RStmt) (span : Span)
   | import (module : String) (alias : Option String) (span : Span)
+  | global (names : Array String) (span : Span)
+  | nonlocal (names : Array String) (span : Span)
   | unsupported (kind : String) (text : String) (span : Span)
 deriving Repr, Inhabited, BEq
 
@@ -52,6 +54,8 @@ structure RFunction where
   body : Array RStmt
   globals : String
   captured : REnv := []
+  globalNames : List String := []
+  nonlocalNames : List String := []
 deriving Repr, Inhabited, BEq
 
 structure RModule where
@@ -171,6 +175,8 @@ structure RFrame where
   module : String := "__main__"
   cells : REnv := []
   completion : Option RKont := none
+  globalNames : List String := []
+  nonlocalNames : List String := []
 deriving Repr, Inhabited, BEq
 
 structure RConfig where
@@ -222,7 +228,9 @@ def rDefinedFrame (frame : RFrame) (name : String) (remaining : List RStmt) : RF
     globals := frame.globals
     module := frame.module
     cells := frame.cells
-    completion := frame.completion }
+    completion := frame.completion
+    globalNames := frame.globalNames
+    nonlocalNames := frame.nonlocalNames }
 
 def RConfig.defineFunction (config : RConfig) (frame : RFrame) (tail : List RFrame)
     (function : RFunction) (remaining : List RStmt) : RConfig :=
@@ -420,13 +428,25 @@ def rCallFrame (function : RFunction) (values : List RVal)
              locals := locals
              globals := []
              module := function.globals
-             cells := function.captured }
+             cells := function.captured
+             globalNames := function.globalNames
+             nonlocalNames := function.nonlocalNames }
 
 def rKeywordVariadicName : List RParam → Option String
   | [] => none
   | parameter :: rest =>
       if parameter.keywordVariadic then some parameter.name
       else rKeywordVariadicName rest
+
+def rScopeNames : List RStmt → List String × List String
+  | [] => ([], [])
+  | .global names _ :: rest =>
+      let tail := rScopeNames rest
+      (names.toList ++ tail.1, tail.2)
+  | .nonlocal names _ :: rest =>
+      let tail := rScopeNames rest
+      (tail.1, names.toList ++ tail.2)
+  | _ :: rest => rScopeNames rest
 
 def rBuildKwargs (heap : Heap) (keywords : List (String × RVal)) : Heap × RVal :=
   let entries := (keywords.map (fun pair =>
@@ -643,7 +663,10 @@ def rAssignedFrame (frame : RFrame) (name : String) (value : RVal)
     locals := rSetEnv frame.locals name value
     globals := frame.globals
     module := frame.module
-    completion := frame.completion }
+    cells := frame.cells
+    completion := frame.completion
+    globalNames := frame.globalNames
+    nonlocalNames := frame.nonlocalNames }
 
 def rEvalBinOp (op : BinOp) (left right : RVal) : Res RVal :=
   match op, left, right with
@@ -690,6 +713,25 @@ def rEvalUnary (op : UnaryOp) (value : RVal) : Option RVal :=
   | .uadd, .int number => some (.int number)
   | .not, value => some (.bool (!rTruthy value))
   | _, _ => none
+
+def rLookupFrameName (config : RConfig) (frame : RFrame) (name : String) : Option RVal :=
+  let moduleValue := rLookupModule config.modules frame.module name
+  let readModule := moduleValue.bind (rReadCell config.heap)
+  if config.frames.tail.isEmpty then
+    match readModule with
+    | some value => some value
+    | none => rLookupCaptured config.heap frame.locals name
+  else if name ∈ frame.globalNames then readModule
+  else
+    match rLookupCaptured config.heap frame.locals name with
+    | some value => some value
+    | none =>
+        match rLookupCaptured config.heap frame.cells name with
+        | some value => some value
+        | none =>
+            match rLookupCaptured config.heap frame.globals name with
+            | some value => some value
+            | none => readModule
 
 def RConfig.finish (config : RConfig) (event : REvent) : RConfig :=
   { config with frames := [], status := .finished event }
@@ -1059,6 +1101,14 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .forStmt _ _ _ _ _ =>
               some (.event (.refuse "machine for target"),
                 config.finish (.refuse "machine for target"))
+          | .global names _ =>
+              let updated := { frame with control := .statements rest }
+              some (.tau, config.setTop { updated with
+                globalNames := names.toList ++ frame.globalNames })
+          | .nonlocal names _ =>
+              let updated := { frame with control := .statements rest }
+              some (.tau, config.setTop { updated with
+                nonlocalNames := names.toList ++ frame.nonlocalNames })
           | .functionDef name params defaults body span =>
               match config.frames with
               | current :: tail =>
@@ -1068,10 +1118,12 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   | some defaultValues =>
                       let captured := rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
+                      let scopeNames := rScopeNames body.toList
                       let function :=
                         { name := name, params := params, defaults := defaults,
                           defaultValues := defaultValues, keywordDefaultValues := #[], body := body,
-                          globals := current.module, captured := captured.2.2 }
+                          globals := current.module, captured := captured.2.2,
+                          globalNames := scopeNames.1, nonlocalNames := scopeNames.2 }
                       let defined := config.defineFunction capturedFrame tail function rest
                       some (.tau, { defined with heap := captured.1 })
               | [] => none
@@ -1082,11 +1134,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   | some defaultValues, some keywordDefaultValues =>
                       let captured := rCaptureLocals config.heap current
                       let capturedFrame := captured.2.1
+                      let scopeNames := rScopeNames body.toList
                       let function :=
                         { name := name, params := params, defaults := defaults,
                           defaultValues := defaultValues,
                           keywordDefaultValues := keywordDefaultValues.toArray,
-                          body := body, globals := current.module, captured := captured.2.2 }
+                          body := body, globals := current.module, captured := captured.2.2,
+                          globalNames := scopeNames.1, nonlocalNames := scopeNames.2 }
                       let defined := config.defineFunction capturedFrame tail function rest
                       some (.tau, { defined with heap := captured.1 })
                   | _, _ => some (.event (.refuse "machine default expression"),
@@ -1101,27 +1155,13 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .evaluate (.constant value _) continuation =>
           some (.tau, config.setControl (.continueValue (rConstValue value) continuation))
       | .evaluate (.name name _) continuation =>
-          match rLookupCaptured config.heap frame.locals name with
+          match rLookupFrameName config frame name with
           | some value => some (.tau, config.setControl (.continueValue value continuation))
           | none =>
-              match rLookupCaptured config.heap frame.globals name with
+              match rBuiltin config.builtins name with
               | some value => some (.tau, config.setControl (.continueValue value continuation))
-              | none =>
-                  match rLookupCaptured config.heap frame.cells name with
-                  | some value =>
-                      some (.tau, config.setControl (.continueValue value continuation))
-                  | none =>
-                      match rLookupModule config.modules frame.module name with
-                      | some value =>
-                          match rReadCell config.heap value with
-                          | some value => some (.tau, config.setControl (.continueValue value continuation))
-                          | none => some (.event (.refuse ("unbound name: " ++ name)),
-                              config.finish (.refuse ("unbound name: " ++ name)))
-                      | none =>
-                          match rBuiltin config.builtins name with
-                          | some value => some (.tau, config.setControl (.continueValue value continuation))
-                          | none => some (.event (.refuse ("unbound name: " ++ name)),
-                              config.finish (.refuse ("unbound name: " ++ name)))
+              | none => some (.event (.refuse ("unbound name: " ++ name)),
+                  config.finish (.refuse ("unbound name: " ++ name)))
       | .evaluate (.call function args keywords unsupported _) continuation =>
           match unsupported, keywords.toList with
           | some text, _ => some (.event (.refuse text), config.finish (.refuse text))
@@ -1195,7 +1235,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | some heap => some (.tau, { config with heap := heap }.setControl (.statements remaining))
               | none => some (.tau, config.setControl (.refusing "machine subscript assignment"))
       | .continueValue value (.assign name remaining) =>
-          match rWriteCell config.heap frame.locals name value with
+          if name ∈ frame.globalNames then
+            let next := config.setTop { frame with control := .statements remaining }
+            some (.tau, next.setModules frame.module name value)
+          else match rWriteCell config.heap frame.locals name value with
           | some heap =>
               let next := { config.setTop (rCellAssignedFrame frame remaining) with heap := heap }
               if config.frames.tail.isEmpty then
@@ -1648,6 +1691,16 @@ private def bForModule : RModule :=
         #[] testSpan,
       .ret (some (.name "total" testSpan)) testSpan] }
 
+private def bGlobalDeclModule : RModule :=
+  { body := #[
+      .assign (.name "value" testSpan) (.constant (.int 1) testSpan) testSpan,
+      .functionDef "update" #[] #[]
+        #[.global #["value"] testSpan,
+          .assign (.name "value" testSpan) (.constant (.int 7) testSpan) testSpan]
+        testSpan,
+      .expr (.call (.name "update" testSpan) #[] #[] none testSpan) testSpan,
+      .expr (.call (.name "print" testSpan) #[.name "value" testSpan] #[] none testSpan) testSpan] }
+
 private def bDictModule : RModule :=
   { body := #[.ret (some (.subscript
       (.dict #[.constant (.str "x") testSpan] #[.constant (.int 7) testSpan] testSpan)
@@ -1827,6 +1880,9 @@ example :
 
 #guard (runB1 256 (RConfig.initial bForModule)).2.status ==
   .finished (.return (.int 6))
+
+#guard rLookupModule (runB1 256 (RConfig.initial bGlobalDeclModule)).2.modules
+    "__main__" "value" == some (.int 7)
 
 #guard (runB1 32 (RConfig.initial bDictModule)).2.status ==
   .finished (.return (.int 7))
