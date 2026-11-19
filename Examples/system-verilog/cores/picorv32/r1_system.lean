@@ -175,6 +175,61 @@ theorem picorv32_wfi_loaded_rv32i_boundary_of_step
     simpa [wfiInstruction] using hboundary
   simpa [wfiInstruction] using h.to_rv32i_boundary
 
+/-! One exact-cycle consumer covers ECALL, EBREAK, MRET, and WFI.  The
+    retained `SystemInstruction` keeps each trap or wake operation's precise
+    semantic kind in the mixed dispatcher. -/
+
+theorem picorv32_system_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : SystemInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = systemProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.systemBoundary memoryState.arch input instruction.word
+              instruction.kind ∧
+            rel next
+              { arch := systemNext memoryState.arch instruction.kind,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState (.system instruction))
+          (rv32iProgramRetirement memoryState (.system instruction)) := by
+        simpa [hmem, hinput, systemProgramInput, rv32iProgramStep,
+          rv32iProgramRetirement] using
+          (RvfiObservation.systemBoundary_rv32i instruction.word
+            instruction.kind hboundary)
+      simp only [↓reduceIte]
+      exact ⟨.system instruction, by simpa [rv32iProgramInput] using hinput,
+        horder, hrvfi, hnext⟩
+
+#print axioms picorv32_system_exact_cycle_step_refines
+
 #print axioms picorv32_ecall_loaded_rv32i_boundary_of_step
 #print axioms picorv32_ebreak_loaded_rv32i_boundary_of_step
 #print axioms picorv32_mret_loaded_rv32i_boundary_of_step
