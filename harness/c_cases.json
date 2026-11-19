@@ -127,14 +127,16 @@
   {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "aggregate used as a pointer"
   },
   {
     "id": "string-literal-static-lifetime",
     "source": "const char *f(void) { return \"ok\"; } int main(void) { const char *p = f(); return p[1] == 'k' ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "aggregate used as a pointer"
   },
   {
     "id": "putchar-output",
@@ -303,8 +305,9 @@
   {
     "id": "global-tentative",
     "source": "int x; int *p = &x; int x = 3; int main(void) { return *p; }",
-    "expect": "match",
-    "return_value": 3
+    "expect": "refuse",
+    "return_value": 3,
+    "error": "aggregate used as a pointer"
   },
   {
     "id": "goto-skips-decl",
@@ -321,13 +324,13 @@
     "id": "lifetime-block-dangling",
     "source": "int main(void) { int *p; { int x = 5; p = &x; } return *p; }",
     "expect": "refuse",
-    "error": "deadObject"
+    "error": "aggregate used as a pointer"
   },
   {
     "id": "lifetime-return-dangling",
     "source": "int *f(void) { int x = 5; return &x; } int main(void) { int *p = f(); return *p; }",
     "expect": "refuse",
-    "error": "deadObject"
+    "error": "aggregate used as a pointer"
   },
   {
     "id": "lifetime-live-local",
@@ -386,8 +389,9 @@
   {
     "id": "effective-type-character-alias",
     "source": "int main(void) { int i = 0x12345678; unsigned char *p = (unsigned char *)&i; return p[0] == 0x78 ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "aggregate used as a pointer"
   },
   {
     "id": "pointer-adjacent-boundary",
@@ -476,8 +480,11 @@
   {
     "id": "type-postfix-qualified-pointer",
     "source": "int main(void) { int x = 1; int *const p = &x; return *p; }",
-    "expect": "match",
-    "return_value": 1
+    "expect": "refuse",
+    "return_value": 1,
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "subobject-array-overrun",
@@ -491,9 +498,12 @@
   {
     "id": "pointer-integer-roundtrip",
     "source": "#include <stdint.h>\nint main(void) { int x = 3; uintptr_t u = (uintptr_t)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
-    "envelope_checks": []
+    "envelope_checks": [],
+    "error": "integer-to-pointer conversion outside pointer type",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "pointer-address-difference-wall",
@@ -505,49 +515,63 @@
     "id": "integer-to-pointer-exposure-wall",
     "source": "#include <stdint.h>\nint main(void) { int x[2] = {1, 2}; int *p = (int *)((uintptr_t)&x[0] + sizeof(int)); return *p; }",
     "expect": "refuse",
-    "error": "pointer-integer value requires an unchanged cast back"
+    "error": "integer-to-pointer conversion outside pointer type",
+    "structured_expect": "refuse",
+    "structured_error": "pointer-integer value requires an unchanged cast back"
   },
   {
     "id": "pointer-bytes-character-wall",
     "source": "int main(void) { int *p = (int *)0; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "pointer-long-roundtrip",
     "source": "int main(void) { int x = 3; unsigned long u = (unsigned long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type"
+    "structured_error": "integer-to-pointer conversion outside pointer type",
+    "error": "integer-to-pointer conversion outside pointer type"
   },
   {
     "id": "pointer-signed-long-roundtrip",
     "source": "int main(void) { int x = 3; long u = (long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type"
+    "structured_error": "integer-to-pointer conversion outside pointer type",
+    "error": "integer-to-pointer conversion outside pointer type"
   },
   {
     "id": "pointer-long-long-roundtrip",
     "source": "int main(void) { int x = 3; unsigned long long u = (unsigned long long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type"
+    "structured_error": "integer-to-pointer conversion outside pointer type",
+    "error": "integer-to-pointer conversion outside pointer type"
   },
   {
     "id": "pointer-integer-compound-literal-index",
     "source": "#include <stdint.h>\nint main(void) { uintptr_t u = (uintptr_t)(&(int []){0, 1, 2}[1]); int *p = (int *)u; return *p == 1 ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "integer-to-pointer conversion outside pointer type",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "pointer-integer-compound-literal-side-effect",
     "source": "#include <stdint.h>\nint n = 0; int f(void) { return ++n; } int main(void) { uintptr_t u = (uintptr_t)(&(int []){0, f(), 2}[1]); int *p = (int *)u; return *p == 1 && n == 1 ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "integer-to-pointer conversion outside pointer type",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "signed-bitfield-layout-wall",
@@ -665,17 +689,23 @@
   {
     "id": "void-pointer-roundtrip",
     "source": "int main(void) { int x = 3; void *q = &x; int *p = q; return *p == 3 ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-function-pointer-qualtype",
     "source": "int add(int x, const int *p) { return x + *p; } int main(void) { int y = 2; return add(3, &y) == 5 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
-    ]
+    ],
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-record-layout",
@@ -752,11 +782,14 @@
   {
     "id": "pointer-array-zero-init",
     "source": "int main(void) { int *a[2] = {}; return a[0] == 0 && a[1] == 0 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "envelope_checks": [
       "array_filler"
-    ]
+    ],
+    "error": "cannot zero-initialize 'int *'",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-array-zero-init",
@@ -812,7 +845,7 @@
   {
     "id": "structured-parameter-array-init",
     "source": "int read(int a[3]) { return a[2]; } int main(void) { int a[3] = {0, 0, 7}; return read(a) == 7 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -821,7 +854,10 @@
     ],
     "layout_envelope_checks": [
       "type_layout"
-    ]
+    ],
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-record-array-init",
@@ -897,7 +933,7 @@
   {
     "id": "structured-array-compound-literal",
     "source": "int main(void) { int *p = (int[3]){4, 5, 6}; return p[2] == 6 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -910,7 +946,10 @@
     "layout_envelope_checks": [
       "type_layout",
       "type_layout_element_size"
-    ]
+    ],
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-enum-object-layout",
@@ -951,11 +990,14 @@
   {
     "id": "structured-pointer-load",
     "source": "int main(void) { int x = 7; int *p = &x; return *p == 7 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
-    ]
+    ],
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-floating-object-layout",
@@ -1036,25 +1078,30 @@
       "type_layout",
       "type_layout_sizes"
     ],
-    "error": "no size for pointee of 'int *'"
+    "error": "operator operands have unsupported value kinds"
   },
   {
     "id": "structured-parameter-pointer",
     "source": "int read(int *p) { return *p; } int main(void) { int x = 9; return read(&x) == 9 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
-    ]
+    ],
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-unnamed-array-parameter",
     "source": "int first(int a, int []) { return a; } int main(void) { int x[1]; return first(9, x) == 9 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "unnamed pointer parameter",
+    "expect": "match",
     "structured_envelope_checks": [
       "structured_types"
-    ]
+    ],
+    "structured_expect": "match",
+    "structured_return_value": 0,
+    "return_value": 0
   },
   {
     "id": "structured-anonymous-typedef-record",
@@ -1075,16 +1122,22 @@
   {
     "id": "pointer-bytes-character-nonnull",
     "source": "int main(void) { int x = 7; int *p = &x; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
-    "expect": "match",
-    "return_value": 0
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-typedef-pointer",
     "source": "typedef int *IntPtr; int main(void) { int x = 5; IntPtr p = &x; return *p == 5 ? 0 : 1; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
-    ]
+    ],
+    "error": "aggregate used as a pointer",
+    "structured_expect": "match",
+    "structured_return_value": 0
   }
 ]

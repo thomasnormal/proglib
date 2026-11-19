@@ -989,7 +989,7 @@ the tier carries clang's `qualType` string rather than a type tree
 spellings on expression nodes, every one ending in `*` or `]`. -/
 def isPtrType (ty : CType)
     (structured : Option LeanModels.Clang.QualType := none) : Bool :=
-  structured.map (fun type => type.unqualified.pointerObject) |>.getD (ty.endsWith "*")
+  structured.map (fun type => type.unqualified.pointerObject) |>.getD false
 
 /-! Parser-native type decisions.  The spelling fallback is retained only for
 older envelopes that have no structured observation.  When clang supplied a
