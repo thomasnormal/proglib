@@ -205,6 +205,14 @@ the address-independent provenance result.  The call runner has not registered
 this transition yet, so the three corpus allocator rows remain explicit
 foreign-registry refusals.
 
+The foreign layer now has a structured `ForeignRegistry` with allocator specs
+for `__rust_alloc` and `__rust_alloc_zeroed`.  `ForeignProgramStep.allocator`
+requires a resolved call edge, the two typed size/alignment operands, an
+admissible address choice, and a normal continuation.  It appends the call
+event and delegates the memory result to `foreignAllocatorStep`.  The existing
+runner still reports a refusal for these calls until its executable path is
+extended with the same registry transition.
+
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
 15.299 s and returned `ok` with status 0 under both borrow models.  The extra
