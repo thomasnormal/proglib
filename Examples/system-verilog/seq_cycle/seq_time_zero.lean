@@ -4,10 +4,10 @@ import LeanModels.Sv.SeqCycleStages
 /-!
 # The route's time-zero state on the clocked profile
 
-The route's time-zero state (`CoreMemDesign.initialState`) runs one source-order pass of the continuous assigns over
+The route's time-zero state (`CoreMemDesign.initialState`) quiesces the continuous-assign region over
 the declaration-initialized state `CoreMemDesign.initial` (the x start: every variable x, every net z), IEEE 1800-2023
 §4.5 and §10.3. On a design whose continuous assign drives a value other than its target's x/z start the two states
-differ, so the clocked theory states the time-zero state as that pass (`initialState_of_quiet`,
+differ, so the clocked theory states the time-zero state as that settled route result (`initialState_of_quiet`,
 `SeqProfileI.initialState`), and as a fixpoint under the topological obligation (`SeqProfileI.initialState_settled`).
 
 The design is the semantics lane's receipt `sem2/initial_quiet_assign`, loaded as it is:
@@ -39,14 +39,15 @@ theorem qa_structure : SeqDesignI qa.e := by
 memory, so every run claim over coherent start states holds from it. -/
 theorem qa_time_zero : ∃ E, qa.e = .ok E ∧ ∃ st, E.initialState = .ok st ∧
     E.scalar.view st.scalar = [("y", LVec.ofNat 1 1)] ∧ E.Coherent st ∧ E.MemCoherent st.memory := by
-  obtain ⟨E, hE, hP, -⟩ := qa_structure
+  obtain ⟨E, hE, hP, hO⟩ := qa_structure
   refine ⟨E, hE, ?_⟩
   have hE0 := hE
   sv_seq_use [qa.mirror_eq, qa.mirror_def] at hE0
   have hrm : E.readmemh = [] := by subst hE0; rfl
   have hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok [("y", LVec.ofNat 1 1)] := by
     subst hE0; rfl
-  obtain ⟨st, hs, hvs, -, hc, hmc⟩ := hP.initialState hrm hv
+  obtain ⟨st, hs, hvs, -, hc, hmc⟩ :=
+    hP.initialState (CoreMemDesign.seqOblI_spec hO).2.1 hrm hv
   exact ⟨st, hs, hvs, hc, hmc⟩
 
 /-- **The time-zero state is settled**: one more pass changes nothing, and the route's continuous-assign region run

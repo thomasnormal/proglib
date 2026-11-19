@@ -553,7 +553,7 @@ theorem fragWV_of_fragW : ∀ v : PExpr, fragW v = true → fragWV v = true ∧ 
       cases a with
       | paramRef n k => cases k <;> simp_all [PExpr.isParamRd, PExpr.vreads]
       | _ => simpa [PExpr.vreads] using va
-  | .lit _, _ | .reduce .., _ | .concat _, _ | .int _, _ | .ident _, _ | .bitSel .., _ | .partSel .., _
+  | .lit _, _ | .reduce .., _ | .concat _, _ | .int _, _ | .typeBits .., _ | .ident _, _ | .bitSel .., _ | .partSel .., _
   | .arrayElem .., _ | .arrayPart .., _ | .paramRef .., _ | .genvarRef _, _ | .enumRef .., _ | .sysCall .., _
   | .cast .., _ | .signedResize .., _ | .squash2 .., _ | .repl .., _ | .unsupported .., _ | .functionCall .., _ => by
       constructor <;> simp_all [fragW, fragWV, PExpr.vreads]
@@ -2080,7 +2080,7 @@ theorem cnt_peel : ∀ p : PExpr, cnt p.peelMk = cnt p
   | .resize _ e => by simp only [PExpr.peelMk, cnt]; exact cnt_peel e
   | .signedResize _ e => by simp only [PExpr.peelMk, cnt]; exact cnt_peel e
   | .lit _ | .fill _ | .ident _ | .bitSel .. | .partSel .. | .arrayElem .. | .arrayPart .. | .aggregateMember .. | .paramRef .. | .genvarRef _
-  | .enumRef .. | .int _ | .sysCall .. | .cast .. | .squash2 .. | .unsupported .. | .functionCall .. | .binary .. | .unary .. | .ternary ..
+  | .enumRef .. | .int _ | .typeBits .. | .sysCall .. | .cast .. | .squash2 .. | .unsupported .. | .functionCall .. | .binary .. | .unary .. | .ternary ..
   | .reduce .. | .concat _ | .repl .. => rfl
 
 theorem skAmt_eq {ds : List DeclT} {r : PExpr} {rb : List Acc} (h : shAmtRd? ds r = .ok rb) (as : List Acc) :

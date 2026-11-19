@@ -23,10 +23,10 @@ import LeanModels.Sv.SeqCycle
   `cycleMV_refines`, `cycle_of_seqProfile`: the refinement theorems, under the obligations: from every coherent state
   with a coherent memory, the route's slots exist, stay coherent, and land exactly on the views the mirror computes.
   The route's slot function is read through `SeqCycleStep.lean` only.
-* `SeqProfileI.initialState` (and `SeqProfile.initialState`): the route's time-zero state on the profile is one pass
-  of the continuous assigns from the x start `CoreMemDesign.initial`; when the view-level pass succeeds it exists and
-  is coherent with a coherent memory, so it is one of the run judgment's start states. `initialState_settled`: under
-  the topological obligation that pass is the fixpoint (no continuous assignment out of date at time zero).
+* `SeqProfileI.initialState` (and `SeqProfile.initialState`): under the topological obligation, the route's time-zero
+  state on the profile is the canonical quiescent settle of the continuous assigns from the x start
+  `CoreMemDesign.initial`; when the view-level pass succeeds it exists and is coherent with a coherent memory, so it
+  is one of the run judgment's start states. `initialState_settled` records the same settled view explicitly.
 -/
 
 namespace LeanModels.Sv.Kernel
@@ -62,7 +62,7 @@ def _root_.LeanModels.Sv.PExpr.sigNames : PExpr → List String
   | .aggregateMember base path => base :: PExpr.sigNamesPath path
   | .ternary c a b | .partSel c a b => PExpr.sigNames c ++ PExpr.sigNames a ++ PExpr.sigNames b
   | .concat xs | .functionCall _ xs => PExpr.sigNamesList xs
-  | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .unsupported _ _ => []
+  | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .typeBits _ _ | .unsupported _ _ => []
 
 /-- `sigNames` of a list. -/
 def _root_.LeanModels.Sv.PExpr.sigNamesList : List PExpr → List String
@@ -235,7 +235,7 @@ def _root_.LeanModels.Sv.PExpr.unconverted : PExpr → List String
   | .ternary c a b | .partSel c a b => PExpr.unconverted c ++ PExpr.unconverted a ++ PExpr.unconverted b
   | .concat xs | .functionCall _ xs => PExpr.unconvertedList xs
   | .aggregateMember .. => []
-  | .ident _ | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ => []
+  | .ident _ | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .typeBits _ _ => []
 
 /-- `unconverted` of a list. -/
 def _root_.LeanModels.Sv.PExpr.unconvertedList : List PExpr → List String
@@ -418,6 +418,9 @@ theorem CoreMemDesign.evalV_congr {E : CoreMemDesign} {env : IEnv} {elems : List
       simp only [CoreMemDesign.readsV] at h; simp only [CoreMemDesign.evalV]
       exact CoreMemDesign.evalScalarV_congr h
   | ctx, .fill _, h => by
+      simp only [CoreMemDesign.readsV] at h; simp only [CoreMemDesign.evalV]
+      exact CoreMemDesign.evalScalarV_congr h
+  | ctx, .typeBits _ _, h => by
       simp only [CoreMemDesign.readsV] at h; simp only [CoreMemDesign.evalV]
       exact CoreMemDesign.evalScalarV_congr h
   | ctx, .unsupported _ _, h => by
@@ -2176,17 +2179,18 @@ theorem CoreMemDesign.cycle_of_seqProfile {E : CoreMemDesign} {clk : String} (hP
 
 #print axioms CoreMemDesign.cycle_of_seqProfile
 
-/-- **The route's time-zero state on the clocked profile** (no `$readmemh`) is one pass of its continuous assigns
-(§10.3) from the x start `CoreMemDesign.initial` (`initialState_of_quiet`): when the view-level pass `settleV` gives `v`
+/-- **The route's time-zero state on the clocked profile** (no `$readmemh`) is the canonical quiescent settle of its continuous assigns
+(§§4.5 and 10.3) from the x start `CoreMemDesign.initial` (`initialState_of_quiet`): when the view-level pass `settleV` gives `v`
 on the x start, the time-zero state exists, its view is `v`, its memory is the x start's (every memory its typed x/z
 block), and it is coherent with a coherent memory. So it is one of the run judgment's start states: every `SeqRunsOn`
 claim (`SeqRunsI`, `SeqRunsM`, `SeqRuns`) holds from it. -/
-theorem CoreMemDesign.SeqProfileI.initialState {E : CoreMemDesign} (hP : E.SeqProfileI) (hrm : E.readmemh = [])
+theorem CoreMemDesign.SeqProfileI.initialState {E : CoreMemDesign} (hP : E.SeqProfileI) (ht : E.topoC = true)
+    (hrm : E.readmemh = [])
     {v : SvState} (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ st.memory = E.initial.memory ∧ E.Coherent st ∧
       E.MemCoherent st.memory := by
   have hmc := CoreMemDesign.initial_memCoherent hP.mems
-  obtain ⟨st, hs, hvs, hc, hm⟩ := CoreMemDesign.settleAssign_seq hP E.initial_coherent hmc hv
+  obtain ⟨st, hs, hvs, hc, hm⟩ := CoreMemDesign.settleCanonical_seq hP ht E.initial_coherent hmc hv
   refine ⟨st, ?_, hvs, hm, hc, by rw [hm]; exact hmc⟩
   rw [CoreMemDesign.initialState_of_quiet (fun p hp b h => by
     subst h; exact absurd (hP.shapes _ hp) (by simp [CoreMemDesign.ProcShapeI])) hP.hasComb hrm]
@@ -2196,24 +2200,24 @@ theorem CoreMemDesign.SeqProfileI.initialState {E : CoreMemDesign} (hP : E.SeqPr
 
 /-- `SeqProfileI.initialState` on the single-clock profile. -/
 theorem CoreMemDesign.SeqProfile.initialState {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hrm : E.readmemh = []) {v : SvState}
+    (hO : E.seqOblB clk = true) (hrm : E.readmemh = []) {v : SvState}
     (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ st.memory = E.initial.memory ∧ E.Coherent st ∧
       E.MemCoherent st.memory :=
-  hP.toSeqProfileI.initialState hrm hv
+  hP.toSeqProfileI.initialState (CoreMemDesign.seqOblI_spec (CoreMemDesign.seqOblB_I hO)).2.1 hrm hv
 
 #print axioms CoreMemDesign.SeqProfile.initialState
 
 /-- **The time-zero state is settled** under the topological obligation (`topoC`, part of `seqOblI` and `seqOblB`):
 one more view-level pass changes nothing (`settleV_idem`), and the route's own continuous-assign region
 (`settleCanonical`, the slots' quiesce loop) run from the time-zero state lands on the same view. No continuous
-assignment is out of date at time zero (§4.5, §10.3), although the route's time-zero settle is a single pass. -/
+assignment is out of date at time zero (§4.5, §10.3). -/
 theorem CoreMemDesign.SeqProfileI.initialState_settled {E : CoreMemDesign} (hP : E.SeqProfileI)
     (ht : E.topoC = true) (hrm : E.readmemh = []) {v : SvState}
     (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ E.settleV (E.memOf st.memory) v = .ok v ∧
       ∃ st', E.settleCanonical E.env E.elems st E.processes.toList = .ok st' ∧ E.scalar.view st'.scalar = v := by
-  obtain ⟨st, hs, hvs, hm, hc, hmc⟩ := hP.initialState hrm hv
+  obtain ⟨st, hs, hvs, hm, hc, hmc⟩ := hP.initialState ht hrm hv
   have hidem : E.settleV (E.memOf st.memory) v = .ok v := by
     rw [hm]
     exact CoreMemDesign.settleV_idem ht (CoreMemDesign.matV_view hP.names hP.four E.initial_coherent.typed) hv
