@@ -735,6 +735,41 @@
     "expect": "match"
   },
   {
+    "source": "harness/scripts/machine_class_constructor_args.py",
+    "envelope": "harness/scripts/machine_class_constructor_args.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_constructor_keyword.py",
+    "envelope": "harness/scripts/machine_class_constructor_keyword.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_constructor_missing.py",
+    "envelope": "harness/scripts/machine_class_constructor_missing.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_constructor_return.py",
+    "envelope": "harness/scripts/machine_class_constructor_return.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_inherit_attr.py",
+    "envelope": "harness/scripts/machine_class_inherit_attr.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_inherit_method.py",
+    "envelope": "harness/scripts/machine_class_inherit_method.json",
+    "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_inherit_init.py",
+    "envelope": "harness/scripts/machine_class_inherit_init.json",
+    "expect": "match"
+  },
+  {
     "source": "harness/scripts/machine_instance_method.py",
     "envelope": "harness/scripts/machine_instance_method.json",
     "expect": "match"

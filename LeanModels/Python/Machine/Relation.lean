@@ -105,6 +105,7 @@ structure RClass where
   id : Nat := 0
   name : String
   attrs : REnv := []
+  bases : Array Nat := #[]
 deriving Repr, Inhabited, BEq
 
 structure RModule where
@@ -215,7 +216,8 @@ inductive RKont where
       (continuation : RKont)
   | callReturn (continuation : RKont)
   | callReturnInstance (instanceValue : RVal) (continuation : RKont)
-  | classDef (name : String) (remaining : List RStmt)
+  | classDef (name : String) (base : Option Nat) (remaining : List RStmt)
+  | classDefBase (name : String) (body : List RStmt) (remaining : List RStmt)
   | attributeValue (attr : String) (continuation : RKont)
   | compareLeft (op : CmpOp) (right : Expr) (continuation : RKont)
   | compareRight (left : RVal) (op : CmpOp) (continuation : RKont)
@@ -439,6 +441,26 @@ def rClassById : List RClass → Nat → Option RClass
   | cls :: rest, id =>
       if cls.id == id then some cls else rClassById rest id
 
+def rLookupClassAttrFuel (classes : List RClass) : Nat → Nat → String → Option RVal
+  | 0, _, _ => none
+  | fuel + 1, classId, attr =>
+      match rClassById classes classId with
+      | none => none
+      | some cls =>
+          match rLookupEnv cls.attrs attr with
+          | some value => some value
+          | none =>
+              let rec search : List Nat → Option RVal
+                | [] => none
+                | base :: rest =>
+                    match rLookupClassAttrFuel classes fuel base attr with
+                    | some value => some value
+                    | none => search rest
+              search cls.bases.toList
+
+def rLookupClassAttr (classes : List RClass) (classId : Nat) (attr : String) : Option RVal :=
+  rLookupClassAttrFuel classes classes.length classId attr
+
 def rLookupInstanceAttr (heap : Heap) (address : Addr) (attr : String) : Option RVal :=
   match heap.get? address with
   | some (.instance _ attrs) => rLookupEnv attrs.toList attr
@@ -464,8 +486,7 @@ def rLookupInstanceClassAttr (heap : Heap) (classes : List RClass)
   | some (.instance cls attrs) =>
       match rLookupEnv attrs.toList attr with
       | some value => some value
-      | none => rClassById classes cls |>.bind (fun classValue =>
-          rLookupEnv classValue.attrs attr)
+      | none => rLookupClassAttr classes cls attr
   | _ => none
 
 def rHeapIsInstance (heap : Heap) (address : Addr) : Bool :=
@@ -503,11 +524,13 @@ def rClassBodySupported : List RStmt → Bool
   | .functionDefKw _ _ _ _ _ _ :: rest => rClassBodySupported rest
   | _ => false
 
+def rClassBases (base : Option Nat) : Array Nat := base.toList.toArray
+
 def rFinishClass (config : RConfig) (classFrame : RFrame) (tail : List RFrame)
-    (name : String) (remaining : List RStmt) : Option RConfig :=
+    (name : String) (base : Option Nat) (remaining : List RStmt) : Option RConfig :=
   match tail with
   | caller :: rest =>
-      let cls : RClass := { id := config.nextClassId, name := name, attrs := classFrame.locals }
+      let cls : RClass := RClass.mk config.nextClassId name classFrame.locals (rClassBases base)
       some { config with
         frames := { caller with control := .statements remaining } :: rest
         modules := rSetModule config.modules caller.module name (.callable (rClassToken cls.id))
@@ -1109,7 +1132,7 @@ def rStartClassCall (config : RConfig) (cls : RClass) (values : List RVal)
     Option (RLabel × RConfig) :=
   let allocated := Heap.alloc config.heap (.instance cls.id #[])
   let instanceValue := RVal.ref allocated.2
-  match rLookupEnv cls.attrs "__init__" with
+  match rLookupClassAttr config.classes cls.id "__init__" with
   | some (.callable token) =>
       match rFunctionByToken config.functions token, config.frames with
       | some function, caller :: tail =>
@@ -1608,21 +1631,29 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .classDef _ _ _ _ _ _ =>
               match stmt with
               | .classDef name bases keywords decorators body _ =>
-                  if bases.isEmpty && keywords.isEmpty && decorators.isEmpty
+                  if keywords.isEmpty && decorators.isEmpty
                       && rClassBodySupported body.toList then
-                    match config.frames with
-                    | _ :: tail =>
-                        let classFrame : RFrame :=
-                          { control := .statements body.toList
-                            locals := []
-                            globals := frame.globals
-                            module := frame.module
-                            completion := some (.classDef name rest)
-                            globalNames := []
-                            nonlocalNames := []
-                            localNames := [] }
-                        some (.tau, { config with frames := classFrame :: frame :: tail })
-                    | [] => none
+                    match bases.toList with
+                    | [] =>
+                        match config.frames with
+                        | _ :: tail =>
+                            let classFrame : RFrame :=
+                              { control := .statements body.toList
+                                locals := []
+                                globals := frame.globals
+                                module := frame.module
+                                completion := some (.classDef name none rest)
+                                globalNames := []
+                                nonlocalNames := []
+                                localNames := [] }
+                            some (.tau, { config with frames := classFrame :: frame :: tail })
+                        | [] => none
+                    | [base] =>
+                        some (.tau, config.setControl
+                          (.evaluate base (.classDefBase name body.toList rest)))
+                    | _ =>
+                        some (.event (.refuse "machine class"),
+                          config.finish (.refuse "machine class"))
                   else
                     some (.event (.refuse "machine class"),
                       config.finish (.refuse "machine class"))
@@ -1672,7 +1703,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   | some defaultValues =>
                       let defaultValues := defaultValues.toArray
                       let inClass := match current.completion with
-                        | some (.classDef _ _) => true
+                        | some (.classDef _ _ _) => true
                         | _ => false
                       let captured :=
                         if inClass || tail.isEmpty then (config.heap, current, [])
@@ -1699,7 +1730,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   | some defaultValues, some keywordDefaultValues =>
                       let defaultValues := defaultValues.toArray
                       let inClass := match current.completion with
-                        | some (.classDef _ _) => true
+                        | some (.classDef _ _ _) => true
                         | _ => false
                       let captured :=
                         if inClass || tail.isEmpty then (config.heap, current, [])
@@ -1807,14 +1838,33 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
       | .continueValue _ .discardValue => some (.tau, config.setControl (.statements []))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
-      | .continueValue _ (.classDef name remaining) =>
+      | .continueValue _ (.classDef name base remaining) =>
           match config.frames with
           | classFrame :: tail =>
-              match rFinishClass config classFrame tail name remaining with
+              match rFinishClass config classFrame tail name base remaining with
               | some next => some (.tau, next)
               | none => some (.event (.refuse "machine class stack"),
                   config.finish (.refuse "machine class stack"))
           | [] => none
+      | .continueValue baseValue (.classDefBase name body remaining) =>
+          match baseValue, config.frames with
+          | .callable token, caller :: tail =>
+              match rClassByToken config.classes token with
+              | some baseClass =>
+                  let classFrame : RFrame :=
+                    { control := .statements body
+                      locals := []
+                      globals := caller.globals
+                      module := caller.module
+                      completion := some (.classDef name (some baseClass.id) remaining)
+                      globalNames := []
+                      nonlocalNames := []
+                      localNames := [] }
+                  some (.tau, { config with frames := classFrame :: caller :: tail })
+              | none => some (.event (.refuse "machine class"),
+                  config.finish (.refuse "machine class"))
+          | _, _ => some (.event (.refuse "machine class"),
+              config.finish (.refuse "machine class"))
       | .continueValue value (.assignSubscriptReceiver receiver index remaining) =>
           some (.tau, config.setControl
             (.evaluate receiver (.assignSubscriptIndex value index remaining)))
@@ -1906,7 +1956,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
           | .callable token =>
               match rClassByToken config.classes token with
               | some cls =>
-                  match rLookupEnv cls.attrs attr with
+                  match rLookupClassAttr config.classes cls.id attr with
                   | some left => some (.tau, config.setControl
                       (.continueValue left
                         (.augAssignAttributeValue receiver attr op value remaining)))
@@ -1982,7 +2032,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                         | some (.instance cls _) =>
                             match rClassById config.classes cls with
                             | some classValue =>
-                                match rLookupEnv classValue.attrs attr with
+                                match rLookupClassAttr config.classes classValue.id attr with
                                 | some (.callable token) =>
                                     let bound := rBoundMethodToken token address
                                     some (.tau, config.setControl
@@ -2003,7 +2053,7 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
               | .callable token =>
                   match rClassByToken config.classes token with
                   | some cls =>
-                      match rLookupEnv cls.attrs attr with
+                      match rLookupClassAttr config.classes cls.id attr with
                       | some value =>
                           some (.tau, config.setControl (.continueValue value continuation))
                       | none =>
