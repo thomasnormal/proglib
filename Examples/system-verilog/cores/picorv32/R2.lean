@@ -111,7 +111,10 @@ obligation:
   `r1_fence` provides the FENCE and FENCE.I consumers through the decoded
   fence witness.
   `r1_system` provides the ECALL, EBREAK, MRET, and WFI consumers through the
-  decoded system witness.
+  decoded system witness.  Its
+  `r1_system.picorv32_system_exact_cycle_step_refines` theorem consumes the
+  exact system boundary in the mixed cycle dispatcher while retaining trap
+  and wake semantics.
   `r1_illegal` provides undecodable and illegal-CSR consumers through the
   exact illegal boundary.
   `r1_csr` provides the six implemented Zicsr consumers through the decoded
