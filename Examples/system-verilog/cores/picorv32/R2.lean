@@ -95,6 +95,8 @@ obligation:
   JAL and JALR consumers through the decoded jump witness.
   `r1_branch` provides the six conditional-branch consumers through one
   condition-indexed decoded witness.
+  `r1_alu` provides the ten register-register ALU consumers through one
+  operation-indexed decoded witness.
   `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
   memory address back to the exact known-width port sample without a
   four-state default.

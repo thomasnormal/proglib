@@ -4,6 +4,7 @@ import LeanModels.Sv.Kernel.CoreMemFast
 import LeanModels.Refine.RvfiUpperMixed
 import LeanModels.Refine.RvfiJumpMixed
 import LeanModels.Refine.RvfiBranchProgram
+import LeanModels.Refine.RvfiAluProgram
 
 /-!
 # PicoRV32 canonical-E RVFI state adapter
@@ -533,6 +534,37 @@ theorem CoreBranchBoundary.to_rv32i_boundary
     instruction.offset hboundary
 
 #print axioms CoreBranchBoundary.to_rv32i_boundary
+
+def CoreAluBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (instruction : LeanModels.Refine.AluInstruction) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.aluBoundary arch input instruction.word instruction.op
+        instruction.rd instruction.src1 instruction.src2
+
+theorem CoreAluBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {instruction : LeanModels.Refine.AluInstruction}
+    (h : CoreAluBoundary d st entry arch input instruction) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.aluNext arch instruction.op instruction.rd
+            instruction.src1 instruction.src2,
+          memory := input.memory }
+        (LeanModels.Refine.aluRetirement arch input instruction.op instruction.rd
+          instruction.src1 instruction.src2) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  exact Rv32iBoundary.alu instruction.word instruction.op instruction.rd
+    instruction.src1 instruction.src2 hboundary
+
+#print axioms CoreAluBoundary.to_rv32i_boundary
 
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
