@@ -2090,7 +2090,7 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
   let basePtr ← if arrow then (do let v ← evalExpr ctx base; asPtr v)
                 else evalLValue ctx base
   let off? := if field.isEmpty then
-      ctx.layout.fieldOffType base.ty fieldTy
+      ctx.layout.fieldOffTypeDeclAt (directDeclId base) base.ty fieldTy
     else
       match ctx.layout.structuredTypeAt base with
       | some structuredType =>
