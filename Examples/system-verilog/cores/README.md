@@ -780,3 +780,13 @@ row with `CLK=1`, `RES=0`, and the same ready instruction and data inputs.
 evaluation.  The reset-held and reset-released passes remain measured as 2/2,
 while the first clock transition is an execution wall.  No canonical-E cycle
 agreement is claimed for that transition.
+
+## 2026-11-19 bounded first-clock receipt
+
+`darkriscv/clock_wall_check.py` packages the staged receipt and the full
+first-clock attempt.  It verifies the four completed stages first, then runs
+the exact `stepOnePassTrace` from the reset-released state with the same
+`CLK=1`, `RES=0`, ready instruction and data inputs.  The attempt has a
+180-second bound.  A non-return is reported as an execution wall, and an
+explicit `unsupported` result remains distinguishable from that wall.  This
+receipt adds no simulator result and claims no complete DarkRISCV E-RUN cycle.
