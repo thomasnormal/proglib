@@ -1,0 +1,291 @@
+{
+ "all_rows_joined": true,
+ "candidate_rows": 3,
+ "interpretation": "The selected files are the survey's sole dynamic layout wall. Every candidate has parser-native TypeLayout observations from the pinned Clang probe. The report prices the layout boundary only and claims no semantics or corpus flip.",
+ "rows": [
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "strcmp-1.c",
+   "sha256": "5ee8f8099598bc6ad7e34428623c2520642bcd93a3f7b275ffb6f0bf33470159",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id341",
+     "size_bytes": 96,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strcmp-1.c:28:8)"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id341",
+     "size_bytes": 96,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strcmp-1.c:28:8)"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "const unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "const unsigned char *"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id349",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id403",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id403",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id403",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id403",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id408",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id408",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id411",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id411",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id414",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id414",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "strlen-1.c",
+   "sha256": "93b80cc7255924aa74cfc03632dde0db9f7f4fe90c54aa3d4004100496ad19d3",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id341",
+     "size_bytes": 96,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strlen-1.c:28:8)"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id345",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id345",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id345",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id345",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id350",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "char *"
+    }
+   ]
+  },
+  {
+   "corpus": "gcc.c-torture/execute",
+   "name": "strncmp-1.c",
+   "sha256": "5144ae0223f0612c42ae17107f5caaed4b7bc90a4101eec4240fda8e8a18bfe3",
+   "type_layouts": [
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id341",
+     "size_bytes": 80,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strncmp-1.c:29:8)"
+    },
+    {
+     "alignment_bytes": 16,
+     "decl_id": "id341",
+     "size_bytes": 80,
+     "type": "union (unnamed union at /scratch/thomas-ahle/ls-cpp-cache/ls-c1/9e54d865af9361413b9c84e11dddfe652cb4ca81/src/strncmp-1.c:29:8)"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "const unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "const unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 4,
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 4,
+     "decl_id": "id350",
+     "size_bytes": 4,
+     "type": "int"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id406",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id406",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id406",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id406",
+     "size_bytes": 8,
+     "type": "size_t"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id411",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id411",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id414",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id414",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id417",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    },
+    {
+     "alignment_bytes": 8,
+     "decl_id": "id417",
+     "pointee_size_bytes": 1,
+     "size_bytes": 8,
+     "type": "unsigned char *"
+    }
+   ]
+  }
+ ],
+ "schema": "c-vector-layout-price-0.1",
+ "survey_commit": "5fa6f5cf7",
+ "survey_measured_at_utc": "2026-11-18T22:15:35Z",
+ "wall": "unsupported:no layout for declared type 'size_t'"
+}
