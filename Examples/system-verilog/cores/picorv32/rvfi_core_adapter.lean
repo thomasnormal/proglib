@@ -182,6 +182,40 @@ theorem CoreRvfiMachine.to_addi_invariant
       (machine.step state input).1 (machine.step state input).2
       hrel hadmit hrun
 
+/-! The all-family bridge keeps the exact mixed-program obligation in one
+    place.  A loaded-core proof supplies the decoded Rv32iInstruction witness
+    and its indexed post-state, while this theorem only transfers the
+    refusal-preserving canonical execution result to the cycle machine. -/
+
+theorem CoreRvfiMachine.to_rv32i_step_refines
+    {d : CoreMemDesign} (machine : CoreRvfiMachine d)
+    {rel : CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
+    {admit : LeanModels.Refine.Input → Prop}
+    (hstep : ∀ (start : Nat) (state : CoreMemState)
+      (memoryState : LeanModels.Refine.RvMemoryState)
+      (input : LeanModels.Refine.Input),
+      rel state memoryState → admit input →
+      ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+        rvfiStep d state (machine.encode state input) = .ok (next, observation) ∧
+        (if observation.valid then
+          ∃ instruction : LeanModels.Refine.Rv32iInstruction,
+            input = LeanModels.Refine.rv32iProgramInput memoryState instruction ∧
+            observation.order = start ∧
+            LeanModels.Refine.Rv32iBoundary memoryState.arch input observation
+              (LeanModels.Refine.rv32iProgramStep memoryState instruction)
+              (LeanModels.Refine.rv32iProgramRetirement memoryState instruction) ∧
+      rel next (LeanModels.Refine.rv32iProgramStep memoryState instruction)
+        else rel next memoryState)) :
+    LeanModels.Refine.Rv32iCycleStepRefines
+      machine.toRvfiCycleMachine rel admit := by
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  have hmachine := machine.step_eq_of_exact hrun
+  simpa [CoreRvfiMachine.toRvfiCycleMachine, hmachine] using hcase
+
+#print axioms CoreRvfiMachine.to_rv32i_step_refines
+
 theorem CoreRvfiMachine.to_reset_addi_refinement
     {d : CoreMemDesign} (profile : LeanModels.Rv.PlatformProfile)
     (machine : CoreRvfiMachine d)
