@@ -73,6 +73,8 @@ the same bound-method call path; invalid `__len__` results remain refused.
 string result. Default object rendering remains refused.
 `str()` dispatches to an explicit instance `__str__` method and accepts its
 string result. Default instance string conversion remains refused.
+`abs()` dispatches to an explicit instance `__abs__` method and accepts its
+integer result. Unsupported absolute-value protocols remain refused.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
