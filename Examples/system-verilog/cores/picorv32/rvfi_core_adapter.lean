@@ -128,6 +128,23 @@ def CoreAddiBoundary.of_step_decode_boundary
   exact ⟨next, observation,
     rvfiStep_ok_of_fast_and_decode hstep hdecode, hboundary⟩
 
+def CoreAddiBoundary.of_canonical_step_decode_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {word : LeanModels.Refine.Word} {rd rs1 : LeanModels.Rv.Reg}
+    {imm : LeanModels.Refine.Word}
+    {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation}
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfiObservation d next = some observation)
+    (hboundary : observation.addiBoundary arch input word rd rs1 imm) :
+    CoreAddiBoundary d st entry arch input word rd rs1 imm := by
+  apply CoreAddiBoundary.of_step_decode_boundary (hdecode := hdecode)
+    (hboundary := hboundary)
+  rw [d.fastStepCanonical_eq_step]
+  exact hstep
+
 theorem CoreAddiBoundary.isaStepMemWith
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
     {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
