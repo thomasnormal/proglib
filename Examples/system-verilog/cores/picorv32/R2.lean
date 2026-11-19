@@ -364,6 +364,11 @@ structure PicoRV32Backend (E : ESig) where
   design : E.Elab
   loaded : Design2
   loadedIsPinned : loaded = picorv32RISCVFormalDesign
+  /-- The E elaboration selected for a loaded `Design2` design.  Keeping this
+  map explicit prevents the backend's `design` field from floating free of
+  the source envelope. -/
+  toE : Design2 → E.Elab
+  designIsLoaded : design = toE loaded
   environment : PicoRV32Environment
   realize : PicoRV32Environment → E.Env
   clocking : Clocking
@@ -378,6 +383,13 @@ theorem PicoRV32Backend.admit_inhabited {E : ESig} (b : PicoRV32Backend E) :
   exact ⟨b.realize b.environment, rfl⟩
 
 #print axioms PicoRV32Backend.admit_inhabited
+
+theorem PicoRV32Backend.design_is_pinned {E : ESig}
+    (b : PicoRV32Backend E) :
+    b.design = b.toE picorv32RISCVFormalDesign := by
+  rw [b.designIsLoaded, b.loadedIsPinned]
+
+#print axioms PicoRV32Backend.design_is_pinned
 
 /-- Reset starts the ISA at the pinned `PROGADDR_RESET = 0` and keeps the
 loaded program as the initial byte memory. -/
