@@ -683,7 +683,24 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                                               .returned combined
                                           | outcome => outcome
                               | outcome => outcome
-              | .call _ _ _ none => .refused (.unsupported "call without normal target")
+              | .call _ args _ none =>
+                  match lookupCallBody program body blockId with
+                  | none => .refused (.unsupported "unresolved diverging call")
+                  | some (edge, callee) =>
+                      match edge.callee with
+                      | none => .refused (.unsupported "diverging call without callee")
+                      | some calleeId =>
+                          let callState : State :=
+                            { placements := firstTrace.state.placements,
+                              types := firstTrace.state.types,
+                              allocations := firstTrace.state.allocations,
+                              provenance := firstTrace.state.provenance }
+                          match bindCallCellsFresh firstTrace.state callState args 1 with
+                          | none => .refused (.unsupported ("diverging call arguments for " ++ calleeId))
+                          | some calleeState =>
+                              match cfgRunProgramOutcome fuel program callee 0 calleeState with
+                              | .returned _ => .refused (.malformed "diverging call returned")
+                              | outcome => outcome
               | .ret => .returned firstTrace
               | .goto target => cfgRunProgramOutcome fuel program body target firstTrace.state
               | .switchInt _ _ _ =>
