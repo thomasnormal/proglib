@@ -81,7 +81,9 @@ obligation:
   the `CoreAddiBoundary` state relation, and its exact canonical-step
   constructors for the measured first and second ADDI rows.  Its
   `CoreRvfiMachine.to_addi_invariant` theorem is the bridge from an explicit
-  all-admitted-step premise and order premise to `Rv32iAddiInvariant`.
+  all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
+  `CoreRvfiMachine.to_reset_addi_refinement` composes that invariant with the
+  all-prefix reset contract once initial relation and progress are supplied.
 
 These are boundary consumers for a future loaded-core invariant.  They do not
 assert that the current PicoRV32 envelope executes in canonical E. -/
