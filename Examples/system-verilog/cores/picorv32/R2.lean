@@ -117,7 +117,10 @@ obligation:
   `r1_csr` provides the six implemented Zicsr consumers through the decoded
   CSR row and operation witness.
   `r1_mem_all` provides the five load and three store consumers through the
-  memory-threaded MemInstruction witness.
+  memory-threaded MemInstruction witness.  Its
+  `r1_mem_all.picorv32_mem_exact_cycle_step_refines` theorem consumes the
+  generic exact memory boundary in the mixed cycle dispatcher while retaining
+  width, signedness, and the post-memory state.
   `rv32iProgramState_preserves_WF` and
   `picorv32_reset_relation_program_state_preserves_WF` preserve the
   architectural x0 invariant from the explicit reset relation through every
