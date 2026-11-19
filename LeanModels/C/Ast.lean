@@ -114,13 +114,16 @@ deriving Repr, Inhabited, BEq
 
 `TypeNode` is already the recursive shape clang emits below a typedef.  This
 bridge preserves that shape and carries declaration identity into the shared
-`QualType`; it never interprets a flat `qualType` spelling.  C-only builtin
-spellings remain explicit `cBuiltin` leaves until the C profile supplies their
-width and signedness facts.
+`QualType`; it never interprets a flat `qualType` spelling.  Recognized C
+builtin names become parser-kind leaves.  Unknown names remain explicit
+`cBuiltin` leaves until the C profile supplies their facts.
 -/
 
 partial def TypeNode.toQualType : TypeNode → Except String LeanModels.Clang.QualType
-  | .builtin name => .ok (.cBuiltin name)
+  | .builtin name =>
+      match LeanModels.Clang.CBuiltin.ofName name with
+      | some kind => .ok (.cBuiltinKind kind)
+      | none => .ok (.cBuiltin name)
   | .pointer inner => do
       let pointee ← inner.toQualType
       pure (.pointer pointee)

@@ -29,43 +29,43 @@ private def isError : Except String α → Bool
   | .error _ => true
   | .ok _ => false
 
-#guard same scalar.toQualType (.ok (.cBuiltin "unsigned short"))
+#guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same pointerToScalar.toQualType
-  (.ok (.pointer (.cBuiltin "unsigned short")))
+  (.ok (.pointer (.cBuiltinKind .unsignedShort)))
 #guard same functionType.toQualType
-  (.ok (.function (.cBuiltin "int")
-    [.pointer (.cBuiltin "unsigned short"), .cBuiltin "_Bool"] true))
+  (.ok (.function (.cBuiltinKind .int)
+    [.pointer (.cBuiltinKind .unsignedShort), .cBuiltinKind .bool] true))
 #guard same arrayType.toQualType
-  (.ok (.array (.cBuiltin "int") (some 4)))
+  (.ok (.array (.cBuiltinKind .int) (some 4)))
 #guard same qualifiedRecord.toQualType
   (.ok (.qualified true false (.record {value := "record-1"})))
 #guard (LeanModels.Clang.QualType.aggregateObject
-  (.array (.cBuiltin "int") (some 4)))
+  (.array (.cBuiltinKind .int) (some 4)))
 #guard !(LeanModels.Clang.QualType.aggregateObject
   (.pointer (.record {value := "record-1"})))
 #guard LeanModels.Clang.QualType.pointerObject
-  (.qualified true false (.pointer (.cBuiltin "int")))
+  (.qualified true false (.pointer (.cBuiltinKind .int)))
 #guard LeanModels.Clang.QualType.arrayObject
-  (.qualified false true (.array (.cBuiltin "int") (some 4)))
+  (.qualified false true (.array (.cBuiltinKind .int) (some 4)))
 #guard LeanModels.Clang.QualType.pointerOrArray
-  (.qualified true false (.array (.cBuiltin "int") (some 4)))
+  (.qualified true false (.array (.cBuiltinKind .int) (some 4)))
 #guard LeanModels.C.C23.structuredPointerObject
-  (some (.qualified true false (.pointer (.cBuiltin "int")))) "not-a-pointer"
+  (some (.qualified true false (.pointer (.cBuiltinKind .int)))) "not-a-pointer"
 #guard LeanModels.C.C23.structuredIndexable
-  (some (.qualified false true (.array (.cBuiltin "int") (some 4)))) "not-an-array"
+  (some (.qualified false true (.array (.cBuiltinKind .int) (some 4)))) "not-an-array"
 #guard LeanModels.C.C23.intTyOfStructured
-  (.qualified true false (.cBuiltin "unsigned short")) == some LeanModels.C.C23.IntTy.ushort
-#guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltin "double") == some 64
+  (.qualified true false (.cBuiltinKind .unsignedShort)) == some LeanModels.C.C23.IntTy.ushort
+#guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltinKind .double) == some 64
 #guard LeanModels.C.C23.intTyOfStructured
   (.cBuiltinKind .unsignedShort) == some LeanModels.C.C23.IntTy.ushort
 #guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltinKind .double) == some 64
 #guard LeanModels.Clang.QualType.resolveTypedefs
-  (fun h => if h.value == "P" then some (.pointer (.cBuiltin "int")) else none) 8
-  (.typedefRef {value := "P"}) == some (.pointer (.cBuiltin "int"))
+  (fun h => if h.value == "P" then some (.pointer (.cBuiltinKind .int)) else none) 8
+  (.typedefRef {value := "P"}) == some (.pointer (.cBuiltinKind .int))
 #guard LeanModels.Clang.QualType.resolveTypedefs
-  (fun h => if h.value == "P" then some (.pointer (.cBuiltin "int")) else none) 8
+  (fun h => if h.value == "P" then some (.pointer (.cBuiltinKind .int)) else none) 8
   (.qualified true false (.typedefRef {value := "P"})) ==
-    some (.qualified true false (.pointer (.cBuiltin "int")))
+    some (.qualified true false (.pointer (.cBuiltinKind .int)))
 #guard LeanModels.C.C23.functionPointerBitCast
   (.cast "BitCast" (.unsupported "Opaque" "" default) "opaque" default)
 #guard isError (TypeNode.typedefRef none "T" |>.toQualType)
