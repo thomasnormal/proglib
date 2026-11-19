@@ -737,5 +737,10 @@
     "file": "harness/scripts/function_positional_only_frozen.py",
     "expect": "unsupported",
     "note": "Positional-only parameters are outside the frozen runner tier."
+  },
+  {
+    "file": "harness/scripts/machine_function_alias_rebind.py",
+    "expect": "match",
+    "note": "A function alias retains the original function object after the defining name is rebound."
   }
 ]
