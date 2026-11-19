@@ -1,0 +1,130 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "initial_error_refuse",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/initial_error_refuse/initial_error_refuse.sv",
+      "sha256": "c65e08c37e54e857927f763c1d45f1e0edb0527d9f3a2b56b296eddea929459c"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 4,
+          "end_col": 10
+        },
+        "name": "initial_error_refuse",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 41,
+              "end_line": 1,
+              "end_col": 42
+            },
+            "name": "x",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 57,
+              "end_line": 1,
+              "end_col": 58
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 2,
+              "col": 3,
+              "end_line": 2,
+              "end_col": 27
+            },
+            "body": {
+              "kind": "SysCall",
+              "span": {
+                "line": 2,
+                "col": 11,
+                "end_line": 2,
+                "end_col": 27
+              },
+              "name": "$error",
+              "format": null,
+              "args": [],
+              "arg_signed": [],
+              "initial_check_diagnostic": true
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 3,
+              "col": 10,
+              "end_line": 3,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 10,
+                "end_line": 3,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "y"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 14,
+                "end_line": 3,
+                "end_col": 15
+              },
+              "width": 1,
+              "name": "x"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
