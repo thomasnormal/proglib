@@ -39,9 +39,9 @@ When a typed `Use` cannot read its place, the refusal records the operand cell
 and MIR place.  The iterator-chain row now uses each resolved closure body's
 extracted `arg_count` to spread the final tuple argument into its formal locals.
 This removes the earlier false `uninit` local caused by binding the tuple as one
-slot.  The row then exceeds the current fuel budget while traversing the
-iterator bodies, so it remains an explicit `out_of_fuel` refusal rather than
-inventing a remainder value.
+slot.  The row remains `out_of_fuel` even when the same kernel runner is probed
+with fuel 20,000 and 100,000.  It therefore remains an explicit fuel/divergence
+boundary rather than an invented remainder value.
 
 The closure-returning-closure row exercises the same ABI rule with a two-element
 tuple passed to a three-argument closure body.  The tuple fields bind to the two
