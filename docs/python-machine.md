@@ -102,6 +102,8 @@ Bitwise `&` with an instance on the left dispatches to an explicit `__and__`
 method. Scalar bitwise operations remain outside this relation frontier.
 Bitwise `|` with an instance on the left dispatches to an explicit `__or__`
 method. Scalar bitwise operations remain outside this relation frontier.
+Bitwise `^` with an instance on the left dispatches to an explicit `__xor__`
+method. Scalar bitwise operations remain outside this relation frontier.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
