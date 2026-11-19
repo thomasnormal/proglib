@@ -101,6 +101,9 @@ obligation:
   `r1_branch.picorv32_branch_exact_cycle_step_refines` theorem consumes the
   common exact branch boundary directly in the mixed cycle dispatcher,
   retaining the source instruction and architectural continuation.
+  `r1_branch.picorv32_loaded_branch_program_refinement_of_total` packages one
+  condition-indexed branch instruction into the loaded all-prefix contract
+  from total canonical execution.
   `r1_alu` provides the ten register-register ALU consumers, and its generic
   operation-indexed witness also covers the immediate ALU forms from
   `r1_alu_imm`.  Its
