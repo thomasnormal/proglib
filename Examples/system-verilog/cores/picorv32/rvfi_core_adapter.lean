@@ -5,6 +5,7 @@ import LeanModels.Refine.RvfiUpperMixed
 import LeanModels.Refine.RvfiJumpMixed
 import LeanModels.Refine.RvfiBranchProgram
 import LeanModels.Refine.RvfiAluProgram
+import LeanModels.Refine.RvfiFenceProgram
 
 /-!
 # PicoRV32 canonical-E RVFI state adapter
@@ -565,6 +566,33 @@ theorem CoreAluBoundary.to_rv32i_boundary
     instruction.src1 instruction.src2 hboundary
 
 #print axioms CoreAluBoundary.to_rv32i_boundary
+
+def CoreFenceBoundary
+    (d : LeanModels.Sv.Kernel.CoreMemDesign)
+    (st : LeanModels.Sv.Kernel.CoreMemState) (entry : LeanModels.Sv.SvState)
+    (arch : LeanModels.Rv.ArchState) (input : LeanModels.Refine.Input)
+    (instruction : LeanModels.Refine.FenceInstruction) : Prop :=
+  ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+    rvfiStep d st entry = .ok (next, observation) ∧
+      observation.fenceBoundary arch input instruction.word instruction.kind
+
+theorem CoreFenceBoundary.to_rv32i_boundary
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {arch : LeanModels.Rv.ArchState} {input : LeanModels.Refine.Input}
+    {instruction : LeanModels.Refine.FenceInstruction}
+    (h : CoreFenceBoundary d st entry arch input instruction) :
+    ∃ next : CoreMemState, ∃ observation : RvfiObservation,
+      rvfiStep d st entry = .ok (next, observation) ∧
+      Rv32iBoundary arch input observation
+        { arch := LeanModels.Refine.fenceNext arch instruction.kind,
+          memory := input.memory }
+        (LeanModels.Refine.fenceRetirement arch input instruction.kind) := by
+  rcases h with ⟨next, observation, hrun, hboundary⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  exact Rv32iBoundary.fence instruction.word instruction.kind hboundary
+
+#print axioms CoreFenceBoundary.to_rv32i_boundary
 
 theorem CoreAddiBoundary.exists_semantic_post
     {d : LeanModels.Sv.Kernel.CoreMemDesign}
