@@ -234,7 +234,13 @@ module top #(parameter bit E = 1) (input logic a, output logic q);
   end
 endmodule
 """)
-        self.assertIn("UninstantiatedDefSymbol:UninstantiatedDef", sv_kinds(env))
+        # Both generate branches retain a source-shaped instance.  The
+        # default point elaborates only `g_t`, while the parser-resolved
+        # `g_f` instance is kept for a later parameter point.
+        self.assertNotIn("UninstantiatedDefSymbol:UninstantiatedDef", sv_kinds(env))
+        branches = env["design"]["modules"][0]["generates"][0]
+        self.assertEqual(branches["then"][0]["kind"], "Instance")
+        self.assertEqual(branches["else"][0]["kind"], "Instance")
         self.assertEqual([m["name"] for m in env["design"]["modules"]],
                          ["top", "leaf"])
         env = self.extract("""
@@ -247,6 +253,28 @@ endmodule
 """)
         instance = env["design"]["modules"][0]["generates"][0]
         self.assertEqual(instance["ports"][0]["dir"], "inout")
+
+    def test_inactive_generate_instance_is_source_shaped(self):
+        env = self.extract("""
+module child (input logic a, output logic y);
+  assign y = a;
+endmodule
+module top #(parameter bit USE = 0) (input logic a, output logic y);
+  if (USE) begin : g
+    child u (.a(a), .y(y));
+  end else begin
+    assign y = 1'b0;
+  end
+endmodule
+""")
+        generate = env["design"]["modules"][0]["generates"][0]
+        instance = generate["then"][0]
+        self.assertEqual(instance["kind"], "Instance")
+        self.assertEqual(instance["path"], [{"label": "g", "genvar": None}])
+        self.assertEqual([(p["port"], p["dir"]) for p in instance["ports"]],
+                         [("a", "in"), ("y", "out")])
+        self.assertEqual([m["name"] for m in env["design"]["modules"]],
+                         ["top", "child"])
 
     def test_untaken_branch_unknown_definition_stays_loud(self):
         env = self.extract("""

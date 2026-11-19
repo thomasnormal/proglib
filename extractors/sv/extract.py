@@ -34604,10 +34604,179 @@ def convert_members_sym(sm, scope, path=()):
     return [d for d in out if d is not None]
 
 
+def _sym_source_module_ports(name):
+    """Return ANSI child-port names and directions from Slang syntax.
+
+    An inactive generate instance has no elaborated ``PortSymbol`` objects,
+    so its resolved connection list cannot be converted through
+    ``_sym_port_conn``.  The module declaration is still present in the
+    parser tree.  Recover only the source-shaped ANSI port declarations here
+    and fail closed for any declaration shape this small bridge cannot read.
+    """
+    try:
+        for tree in _SYM.comp.getSyntaxTrees():
+            found = []
+
+            def visit(node):
+                if (type(node).__name__ == "ModuleDeclarationSyntax"
+                        and str(node.header.name).strip() == name):
+                    found.append(node)
+                return VisitAction.Advance
+
+            tree.root.visit(visit)
+            if not found:
+                continue
+            ports = []
+            for item in _syntax_children(found[0].header.ports):
+                if type(item).__name__ != "ImplicitAnsiPortSyntax":
+                    return None
+                declarator = getattr(item, "declarator", None)
+                header = getattr(item, "header", None)
+                pname = str(getattr(declarator, "name", "")).strip()
+                direction = str(getattr(header, "direction", "")).strip()
+                if not _SYM_HIER_NAME.match(pname):
+                    return None
+                mapped = {"input": "in", "output": "out", "inout": "inout"}.get(direction)
+                if mapped is None:
+                    return None
+                ports.append((pname, mapped))
+            return ports
+    except Exception:
+        return None
+    return None
+
+
+def _convert_uninstantiated_sym(sm, m):
+    """Convert a parser-resolved inactive module instance.
+
+    IEEE 1800-2023 §27.4 keeps both generate branches source-shaped.  Slang
+    exposes an ``UninstantiatedDefSymbol`` for the branch omitted at the
+    default point.  Its port expressions are invalid semantic expressions,
+    so convert the retained ``HierarchicalInstanceSyntax`` connections
+    directly, preserving the instance node for later parameter expansion.
+    """
+    try:
+        dname = getattr(m, "definitionName", None)
+        iname = getattr(m, "name", None)
+        if (not isinstance(dname, str) or not _SYM_HIER_NAME.match(dname)
+                or not isinstance(iname, str) or not _SYM_HIER_NAME.match(iname)):
+            return unsupported(sm, m, "UninstantiatedDefSymbol:name")
+        path = _sym_instance_path(m)
+        if path is None:
+            return unsupported(sm, m, "UninstantiatedDefSymbol:path")
+        if list(getattr(m, "paramExpressions", [])):
+            return unsupported(sm, m, "UninstantiatedDefSymbol:parameters")
+        port_defs = _sym_source_module_ports(dname)
+        if port_defs is None:
+            return unsupported(sm, m, "UninstantiatedDefSymbol:ports")
+        by_name = dict(port_defs)
+        syntax = getattr(m, "syntax", None)
+        connections = [c for c in getattr(syntax, "connections", [])
+                       if type(c).__name__ == "NamedPortConnectionSyntax"]
+        if len(connections) != len(port_defs):
+            return unsupported(sm, m, "UninstantiatedDefSymbol:connections")
+        ports = []
+        seen = set()
+        for connection in connections:
+            pname = str(getattr(connection, "name", "")).strip()
+            direction = by_name.get(pname)
+            if direction is None or pname in seen:
+                return unsupported(sm, m, "UninstantiatedDefSymbol:connection", pname)
+            seen.add(pname)
+            expr_syntax = getattr(connection, "expr", None)
+            node = {"kind": "PortConn", "span": _syntax_span(sm, connection),
+                    "port": pname, "dir": direction}
+            if expr_syntax is None:
+                if direction == "in":
+                    node["expr"] = None
+                    node["net"] = True
+                else:
+                    node["target"] = None
+            else:
+                expr = _sym_uninstantiated_port_expr(sm, expr_syntax)
+                if not isinstance(expr, dict) or expr.get("kind") == "Unsupported":
+                    return unsupported(sm, m, "UninstantiatedDefSymbol:expression", pname)
+                if direction in ("in", "inout"):
+                    node["expr"] = expr
+                else:
+                    node["target"] = expr
+            ports.append(node)
+        if seen != set(by_name):
+            return unsupported(sm, m, "UninstantiatedDefSymbol:connections")
+        if dname not in _SYM.instance_modules:
+            _SYM.instance_modules.append(dname)
+        return {"kind": "Instance", "span": sym_span(sm, m),
+                "name": iname, "module": dname, "path": path,
+                "params": [], "ports": ports}
+    except Exception as exc:
+        return internal_error(exc)
+
+
+def _sym_uninstantiated_port_expr(sm, syntax):
+    """Convert the small source-expression subset used by inactive ports."""
+    try:
+        while (type(syntax).__name__ in ("SimplePropertyExprSyntax",
+                                         "SimpleSequenceExprSyntax")):
+            children = _syntax_children(syntax)
+            if len(children) != 1:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            syntax = children[0]
+        if syntax.kind == SyntaxKind.ParenthesizedExpression:
+            children = _syntax_children(syntax)
+            return (_sym_uninstantiated_port_expr(sm, children[0])
+                    if len(children) == 1 else _syntax_unsupported(
+                        sm, syntax, "UninstantiatedDefSymbol:expression"))
+        if syntax.kind in SYM_SYNTAX_UNOPS:
+            children = _syntax_children(syntax)
+            if len(children) != 1:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            operand = _sym_uninstantiated_port_expr(sm, children[0])
+            if operand.get("kind") == "Unsupported":
+                return operand
+            return {"kind": "Unary", "span": _syntax_span(sm, syntax),
+                    "width": None, "op": SYM_SYNTAX_UNOPS[syntax.kind],
+                    "operand": operand}
+        if syntax.kind in SYM_SYNTAX_BINOPS:
+            children = _syntax_children(syntax)
+            if len(children) != 2:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            left = _sym_uninstantiated_port_expr(sm, children[0])
+            right = _sym_uninstantiated_port_expr(sm, children[1])
+            if left.get("kind") == "Unsupported":
+                return left
+            if right.get("kind") == "Unsupported":
+                return right
+            return {"kind": "Binary", "span": _syntax_span(sm, syntax),
+                    "width": None, "op": SYM_SYNTAX_BINOPS[syntax.kind],
+                    "left": left, "right": right}
+        if syntax.kind == SyntaxKind.IdentifierName:
+            name = str(syntax).strip()
+            symbol = _SYM.scope.lookupName(name)
+            if symbol is None or type(symbol).__name__ not in (
+                    "VariableSymbol", "NetSymbol", "PortSymbol"):
+                return _syntax_unsupported(sm, syntax,
+                                           "Syntax:Identifier:unresolved")
+            width = getattr(getattr(symbol, "type", None), "bitWidth", None)
+            if width is None:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            return {"kind": "Ident", "span": _syntax_span(sm, syntax),
+                    "width": int(width), "name": name}
+    except Exception:
+        pass
+    return _syntax_unsupported(sm, syntax,
+                               "UninstantiatedDefSymbol:expression")
+
+
 def _convert_member_sym(sm, m, k, path=()):
     """One non-if-generate member -> node or None (silently skipped)."""
     if k == "Instance":
         return convert_instance_sym(sm, m)
+    if k == "UninstantiatedDef":
+        return _convert_uninstantiated_sym(sm, m)
     if k == "PrimitiveInstance":
         return _convert_primitive_sym(sm, m)
     if k == "Parameter":
