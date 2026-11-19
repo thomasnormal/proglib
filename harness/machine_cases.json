@@ -678,5 +678,10 @@
     "source": "harness/scripts/machine_class_attribute_delete.py",
     "envelope": "harness/scripts/machine_class_attribute_delete.json",
     "expect": "match"
+  },
+  {
+    "source": "harness/scripts/machine_class_attribute_aug.py",
+    "envelope": "harness/scripts/machine_class_attribute_aug.json",
+    "expect": "match"
   }
 ]
