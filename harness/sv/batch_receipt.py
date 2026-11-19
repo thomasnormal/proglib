@@ -166,6 +166,8 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("event_always_repro.sv", "event_always_repro",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),),
             expected_ordinary_refusal="TimedStatement:DelayControl"),
+    # Automatic locals inside a retained procedural loop are source-shaped
+    # activation storage and now run through canonical E.
     Fixture("proc_local_for_automatic.sv", "proc_local_for_automatic",
             (Port("a", 8),), (Port("y", 8),),
             points=(Point("N8", (8,)),),
