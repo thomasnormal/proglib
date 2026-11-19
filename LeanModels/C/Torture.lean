@@ -721,6 +721,32 @@ def layoutFor (envl : Envelope) : Layout :=
           | _, _ => none
         seek members layout.fields
     | none => none
+  let observedFieldOffTypeDeclFor := fun (did : DeclarationId) (memberTy : CType) =>
+    match ds.find? (fun q => match q with
+      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+          ds.any (fun r => match r with
+            | .record (some rrid) _ _ (some _) _ => rrid == rid
+            | _ => false)
+      | _ => false) with
+    | some (.var _ _ _ _ _ (some rid) _ _) =>
+        match ds.find? (fun q => match q with
+          | .record (some rrid) _ fields (some layout) _ => rrid == rid
+          | _ => false) with
+        | some (.record (some rrid) _ fields (some _) _) =>
+            match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields ·) with
+            | some layout =>
+                let members := fields.filterMap fun field => match field with
+                  | .field name mty _ _ _ => some (name.getD "", mty)
+                  | _ => none
+                let rec seekDecl : List (String × CType) → List RecordLayoutField → Option Nat
+                  | (_, ty) :: ms, field :: fs =>
+                      if ty == memberTy then some (field.offsetBits / 8)
+                      else seekDecl ms fs
+                  | _, _ => none
+                seekDecl members layout.fields
+            | none => none
+        | _ => none
+    | _ => none
   let observedTypeSize := fun t : CType =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
   let observedDeclSize := fun id : DeclarationId =>
@@ -789,6 +815,7 @@ def layoutFor (envl : Envelope) : Layout :=
     fieldBitsDecl := observedFieldBitsDeclFor
     flexibleFieldDecl := observedFlexibleDeclFor
     fieldOffType := observedFieldOffType
+    fieldOffTypeDecl := observedFieldOffTypeDeclFor
     fieldOffDecl := declFieldOff
     elem := fun t => arrayOf (resolve tds 8 t)
     isUnion := observedUnion
