@@ -292,16 +292,6 @@ def pointerTarget (s : State) (pointer : Pointer) : Option Cell :=
         | some ty => allocationCell s pointer.provenance (some ty)
         | none => allocationCell s pointer.provenance none
 
-def derefTwo (s : State) (pointer : Pointer) : Option Cell := do
-  let first ← pointerTarget s pointer
-  match first with
-  | .pointer nested =>
-      let second ← pointerTarget s nested
-      match second with
-      | .pointer _ => none
-      | value => some value
-  | value => some value
-
 /-- Strip single-field aggregate wrappers.  A separate structural function, so that
 `projectCell` stays structural on its projection list: the runners must remain
 kernel-reducible, or every `decide`/`rfl` check over a run gets stuck. -/
@@ -315,7 +305,7 @@ def projectCell (s : State) (cell : Cell) : List Projection → Option Cell
   | .deref :: rest =>
       match unwrapSingleton cell with
       | .pointer pointer =>
-          (derefTwo s pointer).bind (projectCell s · rest)
+          (pointerTarget s pointer).bind (projectCell s · rest)
       | _ => none
   | .field index _ :: rest =>
       match cell with
