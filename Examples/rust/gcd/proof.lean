@@ -4,6 +4,10 @@ namespace Examples.rust.gcd
 
 open LeanModels.Rust
 
+-- The type-table lookup became its own definition (`findTypeLayout`); every symbolic
+-- step below must unfold it like the rest of the interpreter.
+attribute [local simp] findTypeLayout
+
 def gcdCore : Body := {
  instanceId := "_RNvCsiQfy8kqUaFp_15study_while_gcd3gcd",
  blocks := [
