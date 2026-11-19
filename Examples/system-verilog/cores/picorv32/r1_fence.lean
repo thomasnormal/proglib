@@ -114,6 +114,60 @@ theorem picorv32_fenceI_loaded_rv32i_boundary_of_step
     simpa [fenceIInstruction] using hboundary
   simpa [fenceIInstruction] using h.to_rv32i_boundary
 
+/-! One exact-cycle consumer covers FENCE and FENCE.I while retaining the
+    operation kind and its memory-preserving architectural result. -/
+
+theorem picorv32_fence_exact_cycle_step_refines
+    {d : LeanModels.Sv.Kernel.CoreMemDesign}
+    (machine : rvfi_core_adapter.CoreRvfiMachine d)
+    (instruction : FenceInstruction)
+    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
+    {admit : Input → Prop}
+    (hstep : ∀ (start : Nat)
+      (state : LeanModels.Sv.Kernel.CoreMemState)
+      (memoryState : RvMemoryState) (input : Input),
+      rel state memoryState → admit input →
+      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
+        ∃ observation : RvfiObservation,
+          rvfi_core_adapter.rvfiStep d state (machine.encode state input) =
+            .ok (next, observation) ∧
+          (if observation.valid then
+            input = fenceProgramInput memoryState.memory instruction ∧
+            observation.order = start ∧
+            observation.fenceBoundary memoryState.arch input instruction.word
+              instruction.kind ∧
+            rel next
+              { arch := fenceNext memoryState.arch instruction.kind,
+                memory := memoryState.memory }
+          else rel next memoryState)) :
+    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+  apply machine.to_rv32i_step_refines
+  intro start state memoryState input hrel hadmit
+  rcases hstep start state memoryState input hrel hadmit with
+    ⟨next, observation, hrun, hcase⟩
+  refine ⟨next, observation, hrun, ?_⟩
+  cases hv : observation.valid with
+  | false =>
+      simpa [hv] using hcase
+  | true =>
+      simp only [hv, ↓reduceIte] at hcase
+      rcases hcase with ⟨hinput, horder, hboundary, hnext⟩
+      have hmem : input.memory = memoryState.memory := by
+        rw [hinput]
+        rfl
+      have hrvfi : Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState (.fence instruction))
+          (rv32iProgramRetirement memoryState (.fence instruction)) := by
+        simpa [hmem, hinput, fenceProgramInput, rv32iProgramStep,
+          rv32iProgramRetirement] using
+          (RvfiObservation.fenceBoundary_rv32i instruction.word
+            instruction.kind hboundary)
+      simp only [↓reduceIte]
+      exact ⟨.fence instruction, by simpa [rv32iProgramInput] using hinput,
+        horder, hrvfi, hnext⟩
+
+#print axioms picorv32_fence_exact_cycle_step_refines
+
 #print axioms picorv32_fence_loaded_rv32i_boundary_of_step
 #print axioms picorv32_fenceI_loaded_rv32i_boundary_of_step
 
