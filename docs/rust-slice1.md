@@ -6,11 +6,11 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1000 lines in `LeanModels/Rust/Semantics.lean`, with 114 lines
-of AST declarations, 399 lines of JSON decoding, and 38 lines of the literal-envelope loader.
+implementation is 1362 lines in `LeanModels/Rust/Semantics.lean`, with 139 lines
+of AST declarations, 526 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
-counter for this worktree is `SLICE1-ROWS 21/30, diverging 0`.
+counter for this worktree is `SLICE1-ROWS 22/30, diverging 0`.
 
 The 30 non-printing Stage 0 rows were audited with the structured extractor:
 
@@ -18,7 +18,7 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 21 decided rows, 9 named refusals, and zero
+The report contains 30 rows, 22 decided rows, 8 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` in one kernel process, and compares successful returns with the
 Stage 0 Miri `ok` verdict. Refusal reasons retain the first unsupported MIR
@@ -60,6 +60,10 @@ bytes even when an inactive variant payload contains uninitialized bytes. Local
 `Ref` and `AddressOf` values retain frame-local provenance before a call shares
 them with the callee. The `study_question_mark` corpus row now returns normally
 through `Option<i32>` comparison.
+Cross-frame projection shares nested local pointers with the frame that owns the
+enclosing aggregate. Singleton ABI aggregate wrappers are unwrapped only when a
+scalar operand is consumed. The `study_closures` row now reaches its checked
+addition and returns normally.
 The `Le` binary operation now uses the decoded signed or unsigned integer
 values from the layout table. These cases decide the negative-integer-range
 corpus row without treating its signed bytes as an unsigned order comparison.
@@ -80,7 +84,7 @@ Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
 were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
 diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
-the corpus counter remains `SLICE1-ROWS 21/30, diverging 0`.
+the corpus counter remains `SLICE1-ROWS 22/30, diverging 0`.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -164,11 +168,11 @@ MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
 place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
-corpus counter remains `SLICE1-ROWS 21/30, diverging 0`.
+corpus counter remains `SLICE1-ROWS 22/30, diverging 0`.
 
 ## Slice 1 exit record
 
-The D1 corpus audit reports 30 rows, 21 decided rows, 9 named refusals, and
+The D1 corpus audit reports 30 rows, 22 decided rows, 8 named refusals, and
 zero diverging rows.  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and
