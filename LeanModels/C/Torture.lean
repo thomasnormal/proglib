@@ -126,8 +126,7 @@ def torScalarSize : CType → Option Nat
   | "intptr_t" | "uintptr_t" => some 8
   | "int64_t" | "uint64_t" => some 8
   | "__int128" | "unsigned __int128" | "__uint128_t" => some 16
-  | t => if t.startsWith "enum " then some 4
-         else if t.endsWith "*" || LeanModels.C.isConstPointerToArray t
+  | t => if t.endsWith "*" || LeanModels.C.isConstPointerToArray t
          then some 8 else none
 
 /-- The envelope's ordinary declaration types are flat Clang spellings.
@@ -184,6 +183,7 @@ def arrayOf (t : CType) : Option (CType × Nat) :=
 #guard LeanModels.C.isConstPointerToArray "int (*)[1]"
 #guard !LeanModels.C.isConstPointerToArray "int (*)[++i]"
 #guard torScalarSize "int (*)[1]" == some 8
+#guard torScalarSize "enum E" == none
 #guard typeSpellingAdmitted "int (*)(int)" == false
 
 /-- The unit's own typedefs, as a spelling map. A lookup, not a
