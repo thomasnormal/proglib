@@ -137,8 +137,13 @@ def check_envelope(payload, checks, name):
     return None
 
 
-def selected(row, key, record_layout_plugin):
-    """Use the layout-backed expectation only for a layout-backed run."""
+def selected(row, key, record_layout_plugin, structured_type_plugin=None,
+             floating_bits_plugin=None):
+    """Use the expectation for the parser observations supplied to the run."""
+    if structured_type_plugin and "structured_" + key in row:
+        return row["structured_" + key]
+    if floating_bits_plugin and "floating_" + key in row:
+        return row["floating_" + key]
     if record_layout_plugin:
         return row.get("layout_" + key, row.get(key))
     return row.get(key)
@@ -184,11 +189,13 @@ def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin
     model = run(command + ["--single", str(envelope), "512"],
                 env=model_env(clang, record_layout_plugin, structured_type_plugin,
                               floating_bits_plugin), timeout=180)
-    expected_kind = selected(row, "expect", record_layout_plugin)
+    expected_kind = selected(row, "expect", record_layout_plugin,
+                             structured_type_plugin, floating_bits_plugin)
     if expected_kind == "refuse":
         if model.returncode == 3:
             detail = model.stderr.strip() or "native exit %d" % native_run.returncode
-            expected_error = selected(row, "error", record_layout_plugin)
+            expected_error = selected(row, "error", record_layout_plugin,
+                                      structured_type_plugin, floating_bits_plugin)
             if expected_error and expected_error not in detail:
                 return "DIVERGE", "expected refusal %r, got %r" % (expected_error, detail)
             return "REFUSE", detail
@@ -204,7 +211,8 @@ def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin
         value = int(line.split("\t", 1)[1])
     except (ValueError, IndexError):
         return "DIVERGE", "model did not print an integer: %r" % model.stdout
-    expected = int(selected(row, "return_value", record_layout_plugin))
+    expected = int(selected(row, "return_value", record_layout_plugin,
+                            structured_type_plugin, floating_bits_plugin))
     native_value = native_run.returncode if native_run.returncode >= 0 else None
     if value != expected or native_value != (expected % 256):
         return "DIVERGE", "model=%d native_exit=%r expected=%d" % (value, native_value, expected)
