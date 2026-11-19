@@ -87,6 +87,8 @@ Addition with an instance on the left dispatches to an explicit `__add__`
 method; integer and string addition keep their existing paths.
 Subtraction with an instance on the left dispatches to an explicit `__sub__`
 method; integer subtraction keeps its existing path.
+Multiplication with an instance on the left dispatches to an explicit
+`__mul__` method; integer multiplication keeps its existing path.
 local-name tracking raises `UnboundLocalError` for a read or
 delete before assignment. Rows cover globals, definition order, redefinition
 identity, shadowing, nested calls, and defaults evaluated at definition time.
