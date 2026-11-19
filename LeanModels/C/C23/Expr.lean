@@ -559,6 +559,23 @@ def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
   (directDeclId base).bind (fun did => layout.fieldBitsDecl did field)
     |>.orElse (fun _ => layout.fieldBits base.ty field)
 
+/-- Resolve bit-field facts from an aggregate declaration before its legacy
+type-keyed table. -/
+def Layout.fieldBitsDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (ty field : String) : Option (Nat × Nat) :=
+  decl.bind (fun did => layout.fieldBitsDecl did field)
+    |>.orElse (fun _ => layout.fieldBits ty field)
+
+/-- Resolve flexible-array membership from an aggregate declaration before
+its legacy type-keyed table. -/
+def Layout.flexibleFieldDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (ty field : String) : Bool :=
+  match decl with
+  | some did =>
+      if layout.flexibleFieldDecl did field then true
+      else layout.flexibleField ty field
+  | none => layout.flexibleField ty field
+
 /-- Resolve a member extent through the parser declaration identity before the
 spelling fallback. A structured record observation makes the declaration
 identity authoritative for both offset and extent. -/
