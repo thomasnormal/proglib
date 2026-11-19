@@ -841,8 +841,26 @@ def freshLocalSlots : List LocalInfo → List (Nat × Slot)
   | [] => []
   | localInfo :: rest => (localInfo.localId, .uninit) :: freshLocalSlots rest
 
-def bindCallCellsFresh (caller callee : State) (args : List Operand) (localId : Nat) : Option State := do
-  let values ← args.mapM (operandCell caller)
+def spreadLastTuple (values : List Cell) (expected : Nat) : Option (List Cell) :=
+  match values.reverse with
+  | last :: reversedPrefix =>
+      match last with
+      | .aggregate fields =>
+          let leading := reversedPrefix.reverse
+          if leading.length + fields.length == expected then some (leading ++ fields) else none
+      | _ => none
+  | [] => none
+
+def callArgumentCells (state : State) (args : List Operand) (expected : Nat) : Option (List Cell) := do
+  let values ← args.mapM (operandCell state)
+  if values.length == expected then
+    some values
+  else
+    spreadLastTuple values expected
+
+def bindCallCellsFresh (caller callee : State) (expectedArgs : Nat)
+    (args : List Operand) (localId : Nat) : Option State := do
+  let values ← callArgumentCells caller args expectedArgs
   let frameState := { callee with frameId := caller.frameId + 1 }
   let sharedState := { frameState with
     localTypes := callee.localTypes,
@@ -931,7 +949,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                               allocations := firstTrace.state.allocations,
                               provenance := firstTrace.state.provenance,
                               localTypes := callee.locals.map (fun loc => (loc.localId, loc.ty)) }
-                           match bindCallCellsFresh firstTrace.state callState args 1 with
+                           match bindCallCellsFresh firstTrace.state callState callee.argCount args 1 with
                           | none => .refused (.unsupported ("call arguments for " ++ calleeId))
                           | some calleeState =>
                               match cfgRunProgramOutcome fuel program callee 0 calleeState with
@@ -974,7 +992,7 @@ def cfgRunProgramOutcome : Nat → Envelope → Body → Nat → State → Outco
                               allocations := firstTrace.state.allocations,
                               provenance := firstTrace.state.provenance,
                               localTypes := callee.locals.map (fun loc => (loc.localId, loc.ty)) }
-                          match bindCallCellsFresh firstTrace.state callState args 1 with
+                          match bindCallCellsFresh firstTrace.state callState callee.argCount args 1 with
                           | none => .refused (.unsupported ("diverging call arguments for " ++ calleeId))
                           | some calleeState =>
                               match cfgRunProgramOutcome fuel program callee 0 calleeState with

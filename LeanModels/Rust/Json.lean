@@ -325,6 +325,10 @@ private def block (j : Json) : Except String Block := do
 
 private def body (instanceId : String) (j : Json) : Except String Body := do
   let blocks ← field j "blocks" >>= array >>= (·.mapM (withCtx "block" ∘ block))
+  let argCount ←
+    match j.getObjVal? "arg_count" with
+    | .ok value => nat value
+    | .error _ => pure 0
   let locals ←
     match j.getObjVal? "locals" with
     | .ok value => do
@@ -336,7 +340,7 @@ private def body (instanceId : String) (j : Json) : Except String Body := do
               pure ({ localId := next, ty } :: (← parse (next + 1) rest))
         parse 0 rows
     | .error _ => pure []
-  pure { instanceId, blocks, locals }
+  pure { instanceId, blocks, locals, argCount }
 
 private def signedField (shape : Json) : Option Bool :=
   match shape.getObjVal? "value_repr" with

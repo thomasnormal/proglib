@@ -6,11 +6,11 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1362 lines in `LeanModels/Rust/Semantics.lean`, with 139 lines
-of AST declarations, 526 lines of JSON decoding, and 38 lines of the literal-envelope loader.
+implementation is 1382 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
+of AST declarations, 530 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The authoritative
-counter for this worktree is `SLICE1-ROWS 22/30, diverging 0`.
+counter for this worktree is `SLICE1-ROWS 23/30, diverging 0`.
 
 The 30 non-printing Stage 0 rows were audited with the structured extractor:
 
@@ -18,7 +18,7 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 22 decided rows, 8 named refusals, and zero
+The report contains 30 rows, 23 decided rows, 7 named refusals, and zero
 divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` in one kernel process, and compares successful returns with the
 Stage 0 Miri `ok` verdict. Refusal reasons retain the first unsupported MIR
@@ -28,15 +28,17 @@ extractor wall time.  The 30-row audit took 2.910 s in total, with row times
 from 0.028 s to 0.557 s.
 
 When a typed `Use` cannot read its place, the refusal records the operand cell
-and MIR place.  The iterator-chain remainder path reaches a shared-reference
-read whose target cell is unavailable in the extracted frame state.  It stays
-refused until the frame/projection evidence is corrected, so the arithmetic
-case is not evaluated from a guessed integer.
+and MIR place.  The iterator-chain row now uses each resolved closure body's
+extracted `arg_count` to spread the final tuple argument into its formal locals.
+This removes the earlier false `uninit` local caused by binding the tuple as one
+slot.  The row then exceeds the current fuel budget while traversing the
+iterator bodies, so it remains an explicit `out_of_fuel` refusal rather than
+inventing a remainder value.
 
-The frame trace for that row records provenance 3 with target frame 4.  The
-target frame's local 3 is `uninit` when the `Rem` call starts.  The pointer is
-therefore not redirected to an older frame that happens to contain an integer,
-and the row remains a named refusal under the current shared-frame model.
+The closure-returning-closure row exercises the same ABI rule with a two-element
+tuple passed to a three-argument closure body.  The tuple fields bind to the two
+integer locals, the checked addition and assertion execute, and the row now
+returns normally under both Miri models.
 
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
@@ -84,7 +86,7 @@ Each row returned `ok` with exit status 0 under both Stacked Borrows and Tree
 Borrows.  Wall-clock measurements for one invocation of the two-model command
 were 0.599 s, 0.582 s, and 0.571 s respectively on the lane host.  No fixture
 diverged or timed out.  These local fixtures are not Stage 0 corpus rows, so
-the corpus counter remains `SLICE1-ROWS 22/30, diverging 0`.
+the corpus counter remains `SLICE1-ROWS 23/30, diverging 0`.
 
 The next control-flow family adds `Goto`, `SwitchInt`, `Return`, and
 `Assert` with `Continue` unwind edges.  `Unreachable` is represented as a
@@ -168,11 +170,11 @@ MIR body.  The identity oracle invocation took 2.444 s and returned `ok` with
 status 0 under both borrow models.  These are three local theorem rows, and
 the checked-in `ProgramInSteps` rows also cover the assignment, storage,
 place-mention, control-flow, call, loop, and drop fixtures.  The Stage 0
-corpus counter remains `SLICE1-ROWS 22/30, diverging 0`.
+corpus counter remains `SLICE1-ROWS 23/30, diverging 0`.
 
 ## Slice 1 exit record
 
-The D1 corpus audit reports 30 rows, 22 decided rows, 8 named refusals, and
+The D1 corpus audit reports 30 rows, 23 decided rows, 7 named refusals, and
 zero diverging rows.  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and

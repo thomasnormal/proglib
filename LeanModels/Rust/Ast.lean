@@ -92,6 +92,7 @@ structure Body where
   instanceId : String
   blocks : List Block
   locals : List LocalInfo := []
+  argCount : Nat := 0
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 structure CallEdge where
