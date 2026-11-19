@@ -54,6 +54,12 @@ allocation bytes and projects field zero through the type argument layout.  The
 next boundary, the missing MIR body for `caller_location`.  That foreign runtime
 helper remains a named refusal with no guessed panic metadata.
 
+The `study_async` cast boundary is `std::ptr::without_provenance`: its MIR
+transmutes a `usize` value into a raw pointer and then applies `PtrToPtr`. The
+current pointer representation requires provenance, so the operand is retained
+as an integer and the second cast reports a typed refusal with target layout 27.
+No provenance is fabricated from the integer address.
+
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
 `IntToInt` through the target integer layout and preserves provenance for
