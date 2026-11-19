@@ -1,0 +1,218 @@
+{
+  "schema_version": "0.1",
+  "language": "python",
+  "frontend": {
+    "name": "cpython-ast",
+    "version": "3.9.25"
+  },
+  "source_file": "harness/scripts/machine_yield_expr_boundary.py",
+  "source_sha256": "856a22d2c44cdb8b6acbd0362c42a29adbbc7cda7998abdd47a75c0bfd86751a",
+  "module": {
+    "kind": "Module",
+    "body": [
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 1,
+          "col_offset": 0,
+          "end_lineno": 3,
+          "end_col_offset": 16
+        },
+        "name": "consume",
+        "args": [],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 2,
+              "col_offset": 4,
+              "end_lineno": 2,
+              "end_col_offset": 19
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 4,
+                  "end_lineno": 2,
+                  "end_col_offset": 9
+                },
+                "id": "value"
+              }
+            ],
+            "value": {
+              "kind": "Unsupported",
+              "span": {
+                "lineno": 2,
+                "col_offset": 12,
+                "end_lineno": 2,
+                "end_col_offset": 19
+              },
+              "py_kind": "Yield",
+              "text": "(yield 5)",
+              "machine_kind": "Yield",
+              "machine_value": {
+                "kind": "Constant",
+                "span": {
+                  "lineno": 2,
+                  "col_offset": 18,
+                  "end_lineno": 2,
+                  "end_col_offset": 19
+                },
+                "value": {
+                  "type": "int",
+                  "repr": "5"
+                }
+              }
+            }
+          },
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 3,
+              "col_offset": 4,
+              "end_lineno": 3,
+              "end_col_offset": 16
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 3,
+                "col_offset": 11,
+                "end_lineno": 3,
+                "end_col_offset": 16
+              },
+              "id": "value"
+            }
+          }
+        ],
+        "is_generator": true
+      },
+      {
+        "kind": "FunctionDef",
+        "span": {
+          "lineno": 5,
+          "col_offset": 0,
+          "end_lineno": 7,
+          "end_col_offset": 16
+        },
+        "name": "delegate",
+        "args": [
+          {
+            "arg": "source",
+            "span": {
+              "lineno": 5,
+              "col_offset": 13,
+              "end_lineno": 5,
+              "end_col_offset": 19
+            }
+          }
+        ],
+        "args_unsupported": null,
+        "locals_unsupported": null,
+        "body": [
+          {
+            "kind": "Assign",
+            "span": {
+              "lineno": 6,
+              "col_offset": 4,
+              "end_lineno": 6,
+              "end_col_offset": 29
+            },
+            "targets": [
+              {
+                "kind": "Name",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 4,
+                  "end_lineno": 6,
+                  "end_col_offset": 9
+                },
+                "id": "value"
+              }
+            ],
+            "value": {
+              "kind": "Unsupported",
+              "span": {
+                "lineno": 6,
+                "col_offset": 12,
+                "end_lineno": 6,
+                "end_col_offset": 29
+              },
+              "py_kind": "YieldFrom",
+              "text": "(yield from source)",
+              "machine_kind": "YieldFrom",
+              "machine_value": {
+                "kind": "Name",
+                "span": {
+                  "lineno": 6,
+                  "col_offset": 23,
+                  "end_lineno": 6,
+                  "end_col_offset": 29
+                },
+                "id": "source"
+              }
+            }
+          },
+          {
+            "kind": "Return",
+            "span": {
+              "lineno": 7,
+              "col_offset": 4,
+              "end_lineno": 7,
+              "end_col_offset": 16
+            },
+            "value": {
+              "kind": "Name",
+              "span": {
+                "lineno": 7,
+                "col_offset": 11,
+                "end_lineno": 7,
+                "end_col_offset": 16
+              },
+              "id": "value"
+            }
+          }
+        ],
+        "is_generator": true
+      },
+      {
+        "kind": "Expr",
+        "span": {
+          "lineno": 9,
+          "col_offset": 0,
+          "end_lineno": 9,
+          "end_col_offset": 9
+        },
+        "value": {
+          "kind": "Call",
+          "span": {
+            "lineno": 9,
+            "col_offset": 0,
+            "end_lineno": 9,
+            "end_col_offset": 9
+          },
+          "func": {
+            "kind": "Name",
+            "span": {
+              "lineno": 9,
+              "col_offset": 0,
+              "end_lineno": 9,
+              "end_col_offset": 7
+            },
+            "id": "consume"
+          },
+          "starargs": [],
+          "kwargs": [],
+          "args": [],
+          "keywords": [],
+          "call_unsupported": null
+        }
+      }
+    ]
+  },
+  "lean_blocks": []
+}
