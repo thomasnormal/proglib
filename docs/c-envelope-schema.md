@@ -56,6 +56,7 @@ census or the profile forced it:
     {"decl_id": "id17", "type": {"kind": "pointer",
       "pointee": {"kind": "builtin", "name": "int"}}}
   ],
+  "record_kinds": [ {"decl_id": "id21", "is_union": true} ],
   "lean_blocks": []
 }
 ```
@@ -93,6 +94,11 @@ a declared pointer-to-array object, the optional
 `pointee_size_bytes` field carries Clang's exact byte extent for the pointee;
 pointer arithmetic consumes that parser fact without parsing the flat type
 spelling.
+
+`record_kinds` is an optional list of parser-native `RecordDecl.tagUsed`
+facts keyed by declaration identity. `is_union` is Clang's own struct/union
+decision and remains available when no layout plugin is present. Consumers use
+it to keep named and anonymous union keys distinct without parsing `qualType`.
 
 `structured_types` is an optional list emitted by the pinned Clang QualType
 probe. Each row is joined to the declaration identity from the same AST dump.
