@@ -934,7 +934,12 @@ def calleeId : Expr → Option DeclarationId
 
 def functionPointerBitCast : Expr → Bool
   | .paren s _ _ => functionPointerBitCast s
-  | .cast "BitCast" _ ty _ => ty.contains "(*"
+  | .cast "BitCast" .. =>
+      -- A call target's recursive QualType observation is not attached to
+      -- this cast node in the c-0.1 envelope.  Refuse the whole BitCast call
+      -- class until that parser fact is available rather than classifying the
+      -- target by searching clang's display spelling.
+      true
   | _ => false
 
 /-! ## §6.5 — the evaluator
