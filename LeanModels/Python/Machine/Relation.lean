@@ -35,6 +35,8 @@ inductive RStmt where
   | augAssign (target : Expr) (op : BinOp) (value : Expr) (span : Span)
   | delete (target : Expr) (span : Span)
   | raise (exception : Option Expr) (cause : Option Expr) (span : Span)
+  | brk (span : Span)
+  | cont (span : Span)
   | ifStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | whileStmt (test : Expr) (body : Array RStmt) (orelse : Array RStmt) (span : Span)
   | forStmt (target : Expr) (iter : Expr) (body : Array RStmt) (orelse : Array RStmt)
@@ -1216,6 +1218,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                   config.finish (.refuse "machine delete target"))
           | .raise _ _ _ =>
               some (.event (.refuse "machine raise"), config.finish (.refuse "machine raise"))
+          | .brk _ =>
+              some (.event (.refuse "machine break"), config.finish (.refuse "machine break"))
+          | .cont _ =>
+              some (.event (.refuse "machine continue"), config.finish (.refuse "machine continue"))
           | .assign target value _ =>
               some (.tau, config.setControl (.evaluate value (.assignPattern target rest)))
           | .ifStmt test body orelse _ =>

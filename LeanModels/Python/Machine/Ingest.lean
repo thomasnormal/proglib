@@ -421,6 +421,8 @@ partial def mStmtToStmt : MStmt → RStmt
       .delete (.attribute (mExprToExpr receiver) attr span) span
   | .raise exception cause span =>
       .raise (exception.map mExprToExpr) (cause.map mExprToExpr) span
+  | .brk span => .brk span
+  | .cont span => .cont span
   | .ret value span => .ret (mExprToExpr <$> value) span
   | .ifStmt test body orelse span => .ifStmt (mExprToExpr test)
       (body.map mStmtToStmt) (orelse.map mStmtToStmt) span
@@ -441,7 +443,7 @@ partial def mStmtToStmt : MStmt → RStmt
   | .annAssign _ _ _ _ span
   | .classDef _ _ _ _ _ span | .import _ span
   | .importFrom _ _ _ span
-  | .tryStmt _ _ _ _ span | .withStmt _ _ _ span | .brk span | .cont span =>
+  | .tryStmt _ _ _ _ span | .withStmt _ _ _ span =>
       .unsupported "machine statement" "machine ingestion frontier" span
 
 def compileMachineModule (module : MModule) : RModule :=
