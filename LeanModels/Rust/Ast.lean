@@ -106,7 +106,12 @@ structure TypeLayout where
   sourceId : Option Nat := none
   kind : String
   pointee : Option Nat := none
+  typeArgs : List Nat := []
   fieldOffsets : List Nat := []
+  enumTagOffsetBits : Option Nat := none
+  enumTagBytes : Option Nat := none
+  enumVariantCount : Option Nat := none
+  enumDirect : Bool := false
   sizeBits : Option Nat
   align : Option Nat
   signed : Option Bool := none
