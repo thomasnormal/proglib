@@ -255,7 +255,9 @@ battery now reports 83 MATCH, 38 REFUSE, and 0 DIVERGE against pinned Clang
 21.1.8. The remaining refusal rows name missing optional parser observations
 for function-pointer layouts, floating literal bits, pointee strides, and
 anonymous bit-field layouts. The receipt is a focused battery, not a full
-corpus survey.
+corpus survey. The approved layout and structured-type probe sources are
+present in `extractors/c`, but this host has no LLVM/Clang development headers,
+so no probe binary can be built and no plugin-backed MATCH is claimed.
 
 The bit-field storage family now uses parser-native declaration and recursive
 `QualType` observations for record-member facts and pointee extent. When those
