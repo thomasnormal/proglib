@@ -680,7 +680,6 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
       match structured.unqualified with
       | .array _ (some extent) =>
           layout.arrayElementType ty
-            |>.orElse (fun _ => layout.elem ty |>.map (·.1))
             |>.map (fun element => (element, extent))
       | _ => layout.elem ty
   | none => layout.elem ty
