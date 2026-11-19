@@ -100,6 +100,26 @@ theorem picorv32_wfi_class_commit (state : ArchState) (memory : Memory) :
   exact rvMachineWith_system cv32e40pProfile state memory wfiWord .wfi
     system_decodes.2.2.2
 
+/-! The raw system fields determine the exact architectural system step for
+    ECALL, EBREAK, MRET, and WFI, including trap and wake behavior. -/
+
+theorem picorv32_system_fields_isa_step
+    (profile : PlatformProfile) (state : ArchState) (input : Input)
+    (observation : RvfiObservation) (word : Word) (kind : SysKind)
+    (hfields : observation.systemFields state input word kind) :
+    isaStepMemWith profile state input.memory input.fetched input.irq =
+      (systemNext state kind, input.memory) := by
+  have hirq : input.irq = 0 := hfields.1
+  have hfetched : input.fetched = .word word := hfields.2.1
+  have hdecode : Fetched.decode (.word word) =
+      some (.system kind.toSysOp) := hfields.2.2.1
+  cases input with
+  | mk fetched memory irq =>
+      rw [hfetched, hirq]
+      exact isaStepMemWith_system profile state memory word kind hdecode
+
+#print axioms picorv32_system_fields_isa_step
+
 theorem picorv32_ecall_loaded_rv32i_boundary_of_step
     {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
     {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
