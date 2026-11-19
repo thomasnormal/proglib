@@ -1,4 +1,5 @@
 import LeanModels.Refine.RvfiMemAll
+import Examples.«system-verilog».cores.picorv32.rvfi_core_adapter
 
 /-!
 # PicoRV32 R1 complete memory class
@@ -62,6 +63,58 @@ theorem swWord_decode :
     Fetched.decode (.word swWord) =
       some (.mem .store .word 3 1 0x100) := by
   decide
+
+def lbInstruction : MemInstruction :=
+  { word := lbWord, kind := .load true .byte, r := 3, rs1 := 1, imm := 0x100, decode := lbWord_decode }
+def lhInstruction : MemInstruction :=
+  { word := lhWord, kind := .load true .half, r := 3, rs1 := 1, imm := 0x100, decode := lhWord_decode }
+def lwInstruction : MemInstruction :=
+  { word := lwWord, kind := .load true .word, r := 3, rs1 := 1, imm := 0x100, decode := lwWord_decode }
+def lbuInstruction : MemInstruction :=
+  { word := lbuWord, kind := .load false .byte, r := 3, rs1 := 1, imm := 0x100, decode := lbuWord_decode }
+def lhuInstruction : MemInstruction :=
+  { word := lhuWord, kind := .load false .half, r := 3, rs1 := 1, imm := 0x100, decode := lhuWord_decode }
+def sbInstruction : MemInstruction :=
+  { word := sbWord, kind := .store .byte, r := 3, rs1 := 1, imm := 0x100, decode := sbWord_decode }
+def shInstruction : MemInstruction :=
+  { word := shWord, kind := .store .half, r := 3, rs1 := 1, imm := 0x100, decode := shWord_decode }
+def swInstruction : MemInstruction :=
+  { word := swWord, kind := .store .word, r := 3, rs1 := 1, imm := 0x100, decode := swWord_decode }
+
+theorem mem_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState}
+    {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState}
+    {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (instruction : MemInstruction)
+    (hstep : d.step st entry = .ok next)
+    (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.memBoundary arch input instruction.word instruction.kind
+      instruction.r instruction.rs1 instruction.imm) :
+    ∃ next' observation', rvfi_core_adapter.rvfiStep d st entry = .ok (next', observation') ∧
+      Rv32iBoundary arch input observation'
+        { arch := memNext arch input.memory instruction.kind instruction.r instruction.rs1 instruction.imm,
+          memory := memAfter input.memory arch instruction.kind instruction.r instruction.rs1 instruction.imm }
+        (memRetirement arch input instruction.kind instruction.r instruction.rs1 instruction.imm) := by
+  have hfast : d.fastStepCanonical st entry = .ok next := by rw [d.fastStepCanonical_eq_step]; exact hstep
+  exact rvfi_core_adapter.CoreMemBoundary.to_rv32i_boundary
+    (⟨next, observation, rvfi_core_adapter.rvfiStep_ok_of_fast_and_decode hfast hdecode,
+      hboundary⟩ : rvfi_core_adapter.CoreMemBoundary d st entry arch input instruction)
+
+theorem picorv32_lb_loaded_rv32i_boundary_of_step
+    {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState}
+    {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input}
+    (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation)
+    (hboundary : observation.memBoundary arch input lbWord (.load true .byte) 3 1 0x100) :
+    ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.load true .byte) 3 1 0x100, memory := memAfter input.memory arch (.load true .byte) 3 1 0x100 } (memRetirement arch input (.load true .byte) 3 1 0x100) := by
+  simpa [lbInstruction] using mem_loaded_rv32i_boundary_of_step lbInstruction hstep hdecode hboundary
+
+theorem picorv32_lh_loaded_rv32i_boundary_of_step {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input} (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation) (hboundary : observation.memBoundary arch input lhWord (.load true .half) 3 1 0x100) : ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.load true .half) 3 1 0x100, memory := memAfter input.memory arch (.load true .half) 3 1 0x100 } (memRetirement arch input (.load true .half) 3 1 0x100) := by simpa [lhInstruction] using mem_loaded_rv32i_boundary_of_step lhInstruction hstep hdecode hboundary
+theorem picorv32_lw_all_loaded_rv32i_boundary_of_step {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input} (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation) (hboundary : observation.memBoundary arch input lwWord (.load true .word) 3 1 0x100) : ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.load true .word) 3 1 0x100, memory := memAfter input.memory arch (.load true .word) 3 1 0x100 } (memRetirement arch input (.load true .word) 3 1 0x100) := by simpa [lwInstruction] using mem_loaded_rv32i_boundary_of_step lwInstruction hstep hdecode hboundary
+theorem picorv32_lbu_loaded_rv32i_boundary_of_step {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input} (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation) (hboundary : observation.memBoundary arch input lbuWord (.load false .byte) 3 1 0x100) : ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.load false .byte) 3 1 0x100, memory := memAfter input.memory arch (.load false .byte) 3 1 0x100 } (memRetirement arch input (.load false .byte) 3 1 0x100) := by simpa [lbuInstruction] using mem_loaded_rv32i_boundary_of_step lbuInstruction hstep hdecode hboundary
+theorem picorv32_lhu_loaded_rv32i_boundary_of_step {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input} (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation) (hboundary : observation.memBoundary arch input lhuWord (.load false .half) 3 1 0x100) : ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.load false .half) 3 1 0x100, memory := memAfter input.memory arch (.load false .half) 3 1 0x100 } (memRetirement arch input (.load false .half) 3 1 0x100) := by simpa [lhuInstruction] using mem_loaded_rv32i_boundary_of_step lhuInstruction hstep hdecode hboundary
+theorem picorv32_sb_loaded_rv32i_boundary_of_step {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input} (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation) (hboundary : observation.memBoundary arch input sbWord (.store .byte) 3 1 0x100) : ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.store .byte) 3 1 0x100, memory := memAfter input.memory arch (.store .byte) 3 1 0x100 } (memRetirement arch input (.store .byte) 3 1 0x100) := by simpa [sbInstruction] using mem_loaded_rv32i_boundary_of_step sbInstruction hstep hdecode hboundary
+theorem picorv32_sh_loaded_rv32i_boundary_of_step {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input} (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation) (hboundary : observation.memBoundary arch input shWord (.store .half) 3 1 0x100) : ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.store .half) 3 1 0x100, memory := memAfter input.memory arch (.store .half) 3 1 0x100 } (memRetirement arch input (.store .half) 3 1 0x100) := by simpa [shInstruction] using mem_loaded_rv32i_boundary_of_step shInstruction hstep hdecode hboundary
+theorem picorv32_sw_all_loaded_rv32i_boundary_of_step {d : LeanModels.Sv.Kernel.CoreMemDesign} {st : LeanModels.Sv.Kernel.CoreMemState} {entry : LeanModels.Sv.SvState} {next : LeanModels.Sv.Kernel.CoreMemState} {observation : RvfiObservation} {arch : ArchState} {input : Input} (hstep : d.step st entry = .ok next) (hdecode : rvfi_core_adapter.rvfiObservation d next = some observation) (hboundary : observation.memBoundary arch input swWord (.store .word) 3 1 0x100) : ∃ n o, rvfi_core_adapter.rvfiStep d st entry = .ok (n, o) ∧ Rv32iBoundary arch input o { arch := memNext arch input.memory (.store .word) 3 1 0x100, memory := memAfter input.memory arch (.store .word) 3 1 0x100 } (memRetirement arch input (.store .word) 3 1 0x100) := by simpa [swInstruction] using mem_loaded_rv32i_boundary_of_step swInstruction hstep hdecode hboundary
 
 theorem picorv32_lb_class_step (state : ArchState) (memory : Memory) :
     isaStepMemWith cv32e40pProfile state memory (.word lbWord) 0 =
