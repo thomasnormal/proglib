@@ -217,6 +217,7 @@ inductive RKont where
   | callReturn (continuation : RKont)
   | callReturnInstance (instanceValue : RVal) (continuation : RKont)
   | lenResult (continuation : RKont)
+  | reprResult (continuation : RKont)
   | classDef (name : String) (bases : Array Nat) (remaining : List RStmt)
   | classDefBases (name : String) (body : List RStmt) (remaining : List RStmt)
       (baseExpressions : List Expr) (baseValues : List RVal)
@@ -277,7 +278,7 @@ def RConfig.initial (program : RModule) : RConfig :=
     nextFunctionId := 0
     classes := []
     nextClassId := 0
-    builtins := ["print", "abs", "len"]
+    builtins := ["print", "abs", "len", "repr"]
     choices := []
     choiceToken := none
     status := .running }
@@ -1366,6 +1367,28 @@ def rStartCall (config : RConfig) (callee : RVal) (values : List RVal)
                   | some result => some (.tau, config.setControl (.continueValue result continuation))
                   | none => some (.tau, config.setControl (.refusing "machine len"))
             | _ => some (.tau, config.setControl (.refusing "machine len"))
+          else if name == "repr" then
+            match values with
+            | [value] =>
+                match value with
+                | .ref address =>
+                    match config.heap.get? address with
+                    | some (.instance cls _) =>
+                        match rLookupClassAttr config.classes cls "__repr__" with
+                        | some (.callable token) =>
+                            match rFunctionByToken config.functions token with
+                            | some function =>
+                                rStartFunctionCall config function [value] []
+                                  (.reprResult continuation)
+                            | none => some (.event (.refuse "machine __repr__"),
+                                config.finish (.refuse "machine __repr__"))
+                        | some _ => some (.tau, config.setControl
+                            (.refusing "machine __repr__"))
+                        | none => some (.tau, config.setControl
+                            (.refusing "machine repr"))
+                    | _ => some (.tau, config.setControl (.refusing "machine repr"))
+                | _ => some (.tau, config.setControl (.refusing "machine repr"))
+            | _ => some (.tau, config.setControl (.refusing "machine repr"))
           else some (.event (.refuse ("unknown function: " ++ name)),
             config.finish (.refuse ("unknown function: " ++ name)))
   | _ => some (.event (.refuse "machine non-callable"),
@@ -1912,6 +1935,10 @@ def resolveB1 (config : RConfig) : Option (RLabel × RConfig) :=
                 (.refusing "machine __len__ result"))
               else some (.tau, config.setControl (.continueValue value continuation))
           | _ => some (.tau, config.setControl (.refusing "machine __len__ result"))
+      | .continueValue value (.reprResult continuation) =>
+          match value with
+          | .str _ => some (.tau, config.setControl (.continueValue value continuation))
+          | _ => some (.tau, config.setControl (.refusing "machine __repr__ result"))
       | .continueValue value (.sequence remaining) =>
           some (.tau, config.setControl (.statements remaining))
       | .continueValue _ (.classDef name bases remaining) =>
