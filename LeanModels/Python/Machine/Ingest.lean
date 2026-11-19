@@ -46,6 +46,7 @@ inductive MExpr where
       (ifs : Array MExpr) (span : Span)
   | genExp (elt : MExpr) (target : MExpr) (iter : MExpr) (ifs : Array MExpr)
       (walrus : Array (String × MExpr)) (span : Span)
+  | awaitExpr (value : MExpr) (span : Span)
   | namedExpr (target : String) (value : MExpr) (span : Span)
   | starred (value : MExpr) (span : Span)
   | unsupported (kind : String) (span : Span)
@@ -273,6 +274,7 @@ partial def mExpr (j : Json) : Except String MExpr := do
         | .error _ => pure #[]
       pure (.genExp (← mExpr (← mField j "elt"))
         (← mExpr (← mField j "target")) (← mExpr (← mField j "iter")) ifs walrus span)
+  | "Await" => pure (.awaitExpr (← mExpr (← mField j "value")) span)
   | "Attribute" => pure (.attribute (← mExpr (← mField j "value"))
       (← (← mField j "attr").getStr?) span)
   | "Subscript" => pure (.subscript (← mExpr (← mField j "value"))
@@ -531,6 +533,7 @@ partial def mExprToExpr : MExpr → Expr
   | .dict keys values span => .dict (keys.map (fun key =>
       key.map mExprToExpr |>.getD (.constant .none span))) (values.map mExprToExpr) span
   | .namedExpr target value span => .namedExpr target (mExprToExpr value) span
+  | .awaitExpr _ span => .unsupported "Await" "machine await frontier" span
   | .starred value span =>
       match value with
       | .name name _ => .unsupported "Starred" name span
@@ -586,6 +589,7 @@ partial def mExprToRaw : MExpr → RRawExpr
   | .genExp elt target iter ifs walrus span =>
       .node "GeneratorExp" ((#[mExprToRaw elt, mExprToRaw target, mExprToRaw iter]) ++
         ifs.map mExprToRaw ++ walrus.map (fun pair => mExprToRaw pair.2)) span
+  | .awaitExpr value span => .node "Await" #[mExprToRaw value] span
   | .namedExpr _ value span => .node "NamedExpr" #[mExprToRaw value] span
   | .starred value span => .node "Starred" #[mExprToRaw value] span
   | .unsupported kind span => .node kind #[] span
@@ -596,6 +600,7 @@ partial def mExprHasRaw : MExpr → Bool
   | .set _ _ | .joinedStr _ _ | .formattedValue _ _ _ _
   | .listComp _ _ _ _ _ _ | .setComp _ _ _ _ _ _
   | .dictComp _ _ _ _ _ _ | .genExp _ _ _ _ _ _ | .starred _ _ => true
+  | .awaitExpr _ _ => true
   | .binOp left _ right _ => mExprHasRaw left || mExprHasRaw right
   | .unaryOp _ operand _ => mExprHasRaw operand
   | .boolOp _ values _ => values.any mExprHasRaw

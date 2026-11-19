@@ -548,5 +548,10 @@
     "source": "harness/scripts/machine_try_full_boundary.py",
     "envelope": "harness/scripts/machine_try_full_boundary.json",
     "expect": "unsupported"
+  },
+  {
+    "source": "harness/scripts/machine_await_boundary.py",
+    "envelope": "harness/scripts/machine_await_boundary.json",
+    "expect": "match"
   }
 ]
