@@ -42,9 +42,8 @@ RISCV_FORMAL point. -/
     | _ => false
   | _ => false
 
-/-! The full loaded PicoRV32 E step remains parked at the first exact-E
-reactive dependency wall: the canonical route has no fixed-point scheduler
-for this source-shaped process ordering. -/
+/-! The loaded PicoRV32 canonical-E design now admits the full parameter point.
+The input-driven receipt exercises its exact canonical step route. -/
 set_option maxRecDepth 100000 in
 load_design_sv2 picorv32_step_wall
   from "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
@@ -52,8 +51,7 @@ def resetHeldLowEntry (d : CoreMemDesign) : SvState :=
   d.scalar.decls.toList.filterMap fun dc =>
     if dc.isInput then some (dc.name, LVec.ofNat dc.width 0) else none
 #guard match picorv32_step_wall.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 4294967295 with
-  | .unsupported msg => msg ==
-      "Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'alu_eq' from itself or a later reactive process; canonical E has no fixed-point scheduler"
+  | .ok _ => true
   | _ => false
 
 set_option maxRecDepth 100000 in
