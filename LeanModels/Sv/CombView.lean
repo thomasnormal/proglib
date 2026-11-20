@@ -1726,7 +1726,7 @@ theorem consts_eq : ∀ v : PExpr, v.consts = (v.cnames, v.rcounts)
   | .paramRef _ none | .paramRef _ (some _) => rfl
   | .lit _ | .fill _ | .ident _ | .bitSel .. | .partSel .. | .arrayElem .. | .arrayPart .. | .genvarRef _
   | .enumRef .. | .int _ | .sysCall .. | .cast .. | .signedResize .. | .squash2 ..
-  | .aggregateMember .. | .typeBits .. | .unsupported .. => by
+  | .aggregateMember .. | .packageAggElem .. | .typeBits .. | .unsupported .. => by
       simp [PExpr.consts, PExpr.cnames, PExpr.rcounts]
 
 /-- The constants of an expression are in scope and its replication counts are non-negative, their shift and power atoms
@@ -2613,7 +2613,7 @@ theorem noConst_spec : ∀ v : PExpr, noConst v = true → v.cnames = [] ∧ v.r
   | .paramRef _ (some _), _ => ⟨rfl, rfl⟩
   | .lit _, _ | .fill _, _ | .ident _, _ | .bitSel .., _ | .partSel .., _ | .arrayElem .., _ | .arrayPart .., _
   | .genvarRef _, _ | .enumRef .., _ | .int _, _ | .sysCall .., _ | .cast .., _
-  | .signedResize .., _ | .squash2 .., _ | .aggregateMember .., _ | .unsupported .., _ => by
+  | .signedResize .., _ | .squash2 .., _ | .aggregateMember .., _ | .packageAggElem .., _ | .unsupported .., _ => by
       simp [PExpr.cnames, PExpr.rcounts]
   | .typeBits .., _ => by simp [PExpr.cnames, PExpr.rcounts]
 

@@ -110,7 +110,7 @@ def PExpr.legacySelNames : PExpr → List String
   | .typeBits .. => []
   | .arrayPart _ ps _ a b =>
       PExpr.legacySelNamesList ps ++ a.legacySelNames ++ b.legacySelNames
-  | .aggregateMember .. => []
+  | .aggregateMember .. | .packageAggElem .. => []
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _ | .fill _
   | .unsupported .. => []
 
@@ -269,7 +269,7 @@ def PExpr.bitIdxs : PExpr → List PExpr
   | .ternary c t e => c.bitIdxs ++ t.bitIdxs ++ e.bitIdxs
   | .concat ps | .arrayElem _ ps => PExpr.bitIdxsList ps
   | .arrayPart _ ps _ a b => PExpr.bitIdxsList ps ++ a.bitIdxs ++ b.bitIdxs
-  | .aggregateMember .. => []
+  | .aggregateMember .. | .packageAggElem .. => []
   | .functionCall _ args => PExpr.bitIdxsList args
   | .typeBits .. => []
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _ | .fill _

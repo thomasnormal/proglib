@@ -7052,3 +7052,12 @@ the defined sampling and NBA rules.
   index member reads through the existing source-shaped expression evaluator.
   Aggregate writes, unknown indices, and external aggregate-port marshalling
   remain loud boundaries.
+## Fixed unpacked package aggregate parameters — 2026-11-20
+
+The symbolic envelope now retains fixed unpacked package parameters whose
+elements are packed structs, including keyed/default assignment-pattern rows
+under IEEE 1800-2023 §§7.2 and 10.9. Canonical E binds the aggregate in
+declaration order and evaluates a parser-native runtime element select. The
+`package_aggregate_param_e` clean-room receipt covers four known indices and
+an unknown index against Xcelium 24.03-s004. Icarus Verilog 13.0 explicitly
+refuses the faithful unpacked aggregate parameter syntax.

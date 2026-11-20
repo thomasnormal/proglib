@@ -38,6 +38,7 @@ private def hExpr (pfx : String) : PExpr → PExpr
   | .aggregateMember n path =>
       .aggregateMember (pfx ++ n)
         (hExprPath pfx path)
+  | .packageAggElem pkg n index => .packageAggElem pkg n (hExpr pfx index)
   | e@(.paramRef ..) | e@(.genvarRef ..) | e@(.enumRef ..)
   | e@(.int ..) | e@(.fill ..) | e@(.lit ..) | e@(.unsupported ..) => e
 
@@ -96,6 +97,7 @@ private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
       .arrayPart n (xs.map (hParamExpr vals)) mode (hParamExpr vals a) (hParamExpr vals b)
   | .functionCall n xs => .functionCall n (xs.map (hParamExpr vals))
   | .aggregateMember n path => .aggregateMember n (hParamPath vals path)
+  | .packageAggElem pkg n index => .packageAggElem pkg n (hParamExpr vals index)
   | e => e
 
 private def hParamPath (vals : List (String × Int)) : List (Option String × Option PExpr) →

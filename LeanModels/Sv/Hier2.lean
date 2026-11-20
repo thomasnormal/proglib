@@ -941,8 +941,8 @@ def PDesign.instantiateFunctionsGDAlias2 (d : PDesign) (args : List Int) : Desig
 (the `int32` flag rides on it): parameters, localparams, enum tables, typed
 parameter widths, packed-array geometry. -/
 def PDesign.paramEnvH (envI : IEnv) (d : PDesign) (args : List Int) : Res IEnv := do
-  let envP ← bindPackageParams envI d.packageParams
-  let envP ← bindPackageEnums envP d.enums
+  let envP ← bindPackageEnums envI d.enums
+  let envP ← bindPackageParams envP d.packageParams
   let env0 ← bindParamsRes envP d.params args
   let env1 ← bindLocals env0 d.localParams
   let env2 ← bindEnums env1 d.enums

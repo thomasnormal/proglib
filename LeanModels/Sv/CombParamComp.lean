@@ -298,13 +298,13 @@ def paramTail (d : PDesign) (env1 : IEnv) : Res IEnv := do
 /-- **`paramEnv2` with the localparams' environment given**: the packages, enums and parameters bound as the stage binds
 them, then the localparams (`hL`, shown node by node), then the rest of the stage. -/
 theorem paramEnv2_of_locals {d : PDesign} {args : List Int} {envP envE env0 env1 : IEnv}
-    (hP : bindPackageParams { int32 := true } d.packageParams = .ok envP)
-    (hE : bindPackageEnums envP d.enums = .ok envE)
-    (hB : bindParamsRes envE d.params args = .ok env0)
+    (hE : bindPackageEnums { int32 := true } d.enums = .ok envE)
+    (hP : bindPackageParams envE d.packageParams = .ok envP)
+    (hB : bindParamsRes envP d.params args = .ok env0)
     (hL : bindLocals env0 d.localParams = .ok env1) :
     d.paramEnv2 args = paramTail d env1 := by
   unfold PDesign.paramEnv2 paramTail
-  simp only [hP, hE, hB, hL, Res.ok_bind]
+  simp only [hE, hP, hB, hL, Res.ok_bind]
   rfl
 
 /-! ## Bounds: interval arithmetic on the values -/

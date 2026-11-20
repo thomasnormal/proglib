@@ -260,6 +260,7 @@ def memEReadsArray : PExpr → Bool
   | .concat xs => memEReadsArrayList xs
   | .functionCall .. => false
   | .aggregateMember .. => false
+  | .packageAggElem _ _ index => memEReadsArray index
   | .typeBits _ _ => false
   | .lit _ | .fill _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
   | .unsupported .. => false
@@ -351,6 +352,7 @@ def memEReadExprs : PExpr → List PExpr
   | e@(.arrayPart _ indices _ a b) => e ::
       (memEReadExprsList indices ++ memEReadExprs a ++ memEReadExprs b)
   | e@(.aggregateMember _ _) => [e]
+  | .packageAggElem _ _ index => memEReadExprs index
   | .typeBits _ _ => []
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
   | .sysCall _ a | .reduce _ a | .cast _ a => memEReadExprs a

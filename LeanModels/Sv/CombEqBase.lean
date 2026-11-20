@@ -521,6 +521,7 @@ def _root_.LeanModels.Sv.PExpr.vreads : PExpr → List String
 
 theorem fragWV_of_fragW : ∀ v : PExpr, fragW v = true → fragWV v = true ∧ v.vreads = []
   | .aggregateMember _ _, h => by simp [fragW, fragWV, PExpr.vreads]
+  | .packageAggElem _ _ _, h => by simp [fragW, fragWV, PExpr.vreads]
   | .binary op l r, h => by
       cases hs : selfOpW op
       · obtain ⟨hl, hr⟩ := fragW_bin_ctx hs h
@@ -2079,7 +2080,7 @@ theorem dLeaf_facts {ds : List DeclT} {e : PExpr} {rs : List Acc} (h : dLeaf? ds
 theorem cnt_peel : ∀ p : PExpr, cnt p.peelMk = cnt p
   | .resize _ e => by simp only [PExpr.peelMk, cnt]; exact cnt_peel e
   | .signedResize _ e => by simp only [PExpr.peelMk, cnt]; exact cnt_peel e
-  | .lit _ | .fill _ | .ident _ | .bitSel .. | .partSel .. | .arrayElem .. | .arrayPart .. | .aggregateMember .. | .paramRef .. | .genvarRef _
+  | .lit _ | .fill _ | .ident _ | .bitSel .. | .partSel .. | .arrayElem .. | .arrayPart .. | .aggregateMember .. | .packageAggElem .. | .paramRef .. | .genvarRef _
   | .enumRef .. | .int _ | .typeBits .. | .sysCall .. | .cast .. | .squash2 .. | .unsupported .. | .functionCall .. | .binary .. | .unary .. | .ternary ..
   | .reduce .. | .concat _ | .repl .. => rfl
 

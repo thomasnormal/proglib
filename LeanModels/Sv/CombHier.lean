@@ -97,6 +97,7 @@ def PExpr.hren (pfx : String) : PExpr → PExpr
   | .arrayElem n is => .arrayElem (pfx ++ n) (PExpr.hrenL pfx is)
   | .arrayPart n is m a b => .arrayPart (pfx ++ n) (PExpr.hrenL pfx is) m (a.hren pfx) (b.hren pfx)
   | .aggregateMember n path => .aggregateMember (pfx ++ n) (PExpr.hrenPath pfx path)
+  | .packageAggElem pkg n index => .packageAggElem pkg n (index.hren pfx)
   | .unsupported k t => .unsupported k t
   -- a call of a function (no summary reads one: the comb fragment refuses it); its arguments are of the child's scope
   | .functionCall n as => .functionCall n (PExpr.hrenL pfx as)

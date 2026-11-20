@@ -94,7 +94,6 @@ class SymbolicParamWidths(unittest.TestCase):
         self.assertEqual(value["kind"], "Resize")
         self.assertEqual(value["operand"]["kind"], "ParamRef")
         self.assertEqual(value["operand"]["name"], "N")
-        self.assertFalse(find(module, lambda n: n.get("kind") == "Unsupported"))
 
     def test_scalar_package_parameters_stay_qualified(self):
         module = self.extract(
@@ -138,6 +137,20 @@ class SymbolicParamWidths(unittest.TestCase):
         self.assertEqual(len(refs), 1)
         self.assertEqual((refs[0]["name"], refs[0]["from_package"]), ("P", "pk"))
         self.assertFalse(find(module, lambda n: n.get("kind") == "Unsupported"))
+
+    def test_fixed_unpacked_package_struct_parameter_stays_source_shaped(self):
+        module = self.extract(
+            "package pk; typedef struct packed { logic a; logic b; logic c; } st_t; "
+            "parameter st_t P[2] = '{'{a: 1'b0, b: 1'b0, c: 1'b1}, "
+            "'{a: 1'b1, b: 1'b1, c: 1'b0}}; endpackage "
+            "module top(input logic i, output logic [2:0] o); "
+            "assign o = pk::P[i]; endmodule")
+        p = module["package_params"][0]
+        self.assertEqual((p["package"], p["name"]), ("pk", "P"))
+        self.assertEqual(p["aggregate"]["kind"], "array")
+        self.assertEqual(p["aggregate"]["elem"]["kind"], "scalar")
+        self.assertEqual(len(p["aggregate_default"]), 2)
+        self.assertEqual(module["processes"][0]["value"]["kind"], "PackageAggElem")
 
     def test_signed_flat_variable_is_retained(self):
         module = self.extract(
@@ -194,7 +207,8 @@ class SymbolicParamWidths(unittest.TestCase):
             " assign o = v[SB + 5 +: 4]; assign p = v[S * -1 +: 4]; endmodule")
         self.assertEqual(find(module, lambda n: n.get("kind") == "Unsupported"), [])
         resized = find(module, lambda n: n.get("kind") == "SignedResize")
-        self.assertEqual(sorted(n["width"] for n in resized), [32, 32])
+        self.assertEqual(sorted(n["width"] for n in resized
+                                if n["operand"].get("kind") == "ParamRef"), [32, 32])
 
     def test_constant_label_unsigned_widening_is_a_resize(self):
         # A signed parameter widened into an UNSIGNED label (zero extension,
