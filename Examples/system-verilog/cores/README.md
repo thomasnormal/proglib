@@ -709,10 +709,13 @@ follow-up cores remain DarkRISCV at 177 admitted, 0 refused, and 0 not reached
 and FemtoRV32 Quark at 130 admitted, 51 refused, and 0 not reached.
 
 The measured execution receipts are PicoRV32 220/220 canonical-E cycles,
-DarkRISCV 0/1 at its source-shaped first-clock wall, and Quark 0/0 at its
-untyped-width load wall.  The next census-ranked work is therefore the
-DarkRISCV one-rank memory route or the Quark width wall, with no further
-member-select receipt counted as a census change.
+DarkRISCV 220/220 through its checked fast canonical-E route, and Quark 0/0 at
+its untyped-width load wall.  SERV remains 0/0 at the same `RF_WIDTH`
+untyped-width wall, with its current census at 910 admitted / 41 refused / 203
+not reached.  The next census-ranked work is therefore the remaining
+DarkRISCV source-shaped execution boundary or a loaded-core R1 theorem whose
+universal premises can be supplied, with no finite trace promoted to such a
+theorem.
 
 ## 2026-11-18 aggregate-member red-fix handoff
 
