@@ -1486,6 +1486,24 @@ fabricated.  The same loader-backed command on the bundled DarkRISCV envelope
 (SHA-256 `65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26`)
 emitted **176 ADMITTED / 0 REFUSED / 0 NOT REACHED**.
 
+## 2026-11-20 DarkRISCV instruction-stream differential
+
+I added the clean-room `darkriscv/program_tb.sv` witness with `addi x1, x0, 5`,
+`addi x2, x1, 7`, and `add x3, x1, x2` in the instruction image.  The pinned
+source is unchanged at public commit `bb6b483cc61a2886a0602c7e62b14f5995ddfbb9`,
+with source SHA-256
+`46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0`.
+
+Both pinned simulators produce 1000 rows, but they disagree at cycle 1 on the
+uninitialized `DATAO` bus.  Icarus Verilog 13.0 prints
+`data_out=00000000`; Xcelium 24.03-s004 prints `data_out=0000xx00`.  Their
+normalized row digests are respectively
+`a0b3583d0ad2d2c8b0a9fd05b9dec1d531b90042b8aad096956595e266b90e12` and
+`9100c87137ea0f9817fea31ee84d771487b1b31c5b41b9780b0d8b1020cd605f`.
+The differential harness rejects this input-driven stream before a canonical-E
+comparison, so no three-way agreement is claimed.  The existing all-NOP
+three-way battery remains 1000/1000.
+
 ## 2026-11-20 PicoRV32 stalled and unknown-register E-RUN battery
 
 The input-driven PicoRV32 battery now drives `mem_ready` low on every fourth

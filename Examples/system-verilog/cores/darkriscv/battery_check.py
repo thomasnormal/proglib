@@ -11,7 +11,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-TMPDIR = Path(os.environ.get("LS_SV2_TMPDIR", "/scratch/gate/ls-sv2/tmp"))
+TMPDIR = Path(os.environ.get("TMPDIR", str(ROOT / ".lake" / "tmp")))
 SOURCE = HERE / "rtl" / "darkriscv.v"
 ENVELOPE = HERE / "darkriscv.sv.json"
 PINNED_SOURCE = "46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0"
@@ -80,6 +80,10 @@ def lean_rows(rows: list[list[tuple[str, str]]]) -> str:
 def make_probe(rows: list[list[tuple[str, str]]], corrupted: list[list[tuple[str, str]]]) -> str:
     expected = lean_rows(rows)
     wrong = lean_rows(corrupted)
+    idata = [dict(row)["IDATA"] for row in rows]
+    if any(set(value) - {"0", "1"} for value in idata):
+        raise RuntimeError("program input contains unknown instruction data")
+    stimulus = ",\n".join(f"  {int(value, 2)}" for value in idata)
     return f'''import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemFast
 open LeanModels.Sv LeanModels.Sv.Kernel
@@ -87,23 +91,24 @@ set_option maxRecDepth 100000
 set_option maxHeartbeats 6000000
 load_design_sv2 dark from "{ENVELOPE}"
 def bits (w n : Nat) := LVec.ofNat w n
-def row (res : Nat) (clk : Nat) : SvState := [
+def row (res : Nat) (clk : Nat) (idata : Nat) : SvState := [
   ("CLK", bits 1 clk), ("RES", bits 1 res), ("IRQ", bits 32 0),
-  ("IDATA", bits 32 19), ("IDACK", bits 1 1), ("IBERR", bits 1 0),
+  ("IDATA", bits 32 idata), ("IDACK", bits 1 1), ("IBERR", bits 1 0),
   ("DATAI", bits 32 0), ("DDACK", bits 1 1), ("DBERR", bits 1 0)]
-def cycle (d : CoreMemDesign) (s : CoreMemState) (res : Nat) : Res CoreMemState := do
-  let low ← d.fastStepCanonical s (row res 0)
-  d.fastStepCanonical low (row res 1)
+def cycle (d : CoreMemDesign) (s : CoreMemState) (res idata : Nat) : Res CoreMemState := do
+  let low ← d.fastStepCanonical s (row res 0 idata)
+  d.fastStepCanonical low (row res 1 idata)
 def resetN (d : CoreMemDesign) : Nat → CoreMemState → Res CoreMemState
   | 0, s => .ok s
   | n + 1, s => do
-      let s' ← cycle d s 1
+      let s' ← cycle d s 1 19
       resetN d n s'
-def runRows (d : CoreMemDesign) : Nat → CoreMemState → Res (List CoreMemState)
-  | 0, s => .ok []
-  | n + 1, s => do
-      let s' ← cycle d s 0
-      let tail ← runRows d n s'
+def runRows (d : CoreMemDesign) : CoreMemState → List Nat → Res (List CoreMemState)
+  | s, [] => .ok []
+  | s, idata :: rest => do
+      let low ← d.fastStepCanonical s (row 0 0 idata)
+      let s' ← d.fastStepCanonical low (row 0 1 idata)
+      let tail ← runRows d s' rest
       .ok (s' :: tail)
 def names : List String := ["RES", "IDREQ", "IADDR", "IDATA",
   "DDREQ", "DADDR", "DLEN", "DBE", "DRW", "DRD", "DWR", "DATAO", "DATAI",
@@ -115,7 +120,9 @@ def corrupted : List (List (String × String)) := {wrong}
 #eval match PDesign.instantiateCoreMem dark.pdesign [0] with
 | .ok d => match d.initialState with
   | .ok initial => match resetN d 4 initial with
-    | .ok resetState => match runRows d {EXPECTED_CYCLES} resetState with
+    | .ok resetState => match runRows d resetState [
+{stimulus}
+      ] with
       | .ok states =>
           let actual := sigs d states
           (actual == expected, actual == corrupted)
