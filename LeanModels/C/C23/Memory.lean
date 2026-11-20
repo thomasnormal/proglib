@@ -336,6 +336,11 @@ def rememberStructuredType (m : Mem) (o : ObjId) (ty : Option QualType) : Mem :=
     (m.rememberStructuredType o (some ty)).structuredType? o = some ty := by
   simp [rememberStructuredType, structuredType?]
 
+theorem rememberStructuredType_lookup_of_ne
+    (m : Mem) (o q : ObjId) (ty : QualType) (hq : q ≠ o) :
+    (m.rememberStructuredType o (some ty)).structuredType? q = m.structuredType? q := by
+  simp [rememberStructuredType, structuredType?, hq, Ne.symm hq]
+
 theorem rememberStructuredType_unique
     (m : Mem) (o : ObjId) (ty : QualType)
     (h : structuredTypesUnique m)
@@ -385,8 +390,13 @@ theorem copyStructuredType_lookup_new
 theorem copyStructuredType_lookup_of_ne
     (m : Mem) (old fresh q : ObjId) (hq : q ≠ fresh) :
     (m.copyStructuredType old fresh).structuredType? q = m.structuredType? q := by
-  cases hold : m.structuredType? old <;>
-    simp [copyStructuredType, rememberStructuredType, hold, hq]
+  cases hold : m.structuredType? old with
+  | none =>
+      rw [copyStructuredType, hold]
+      rfl
+  | some ty =>
+      rw [copyStructuredType, hold]
+      exact rememberStructuredType_lookup_of_ne m fresh q ty hq
 
 theorem copyStructuredType_unique
     (m : Mem) (old fresh : ObjId)
@@ -687,7 +697,7 @@ theorem vaArg_structuredType_lookup {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
       | nil => simp [vaArg, hp, hv] at hr
       | cons head rest =>
         simp [vaArg, hp, hv] at hr
-        rw [hr.2]
+        cases hr.2
         rfl
 
 def get? (m : Mem) (o : ObjId) : Option CObj := m.objs[o]?
@@ -888,7 +898,7 @@ theorem allocAtStructured_unique
     (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
     structuredTypesUnique
       (m.allocAtStructured dur size ty (some structured) address).1 := by
-  simpa [allocAtStructured] using
+  simpa [allocAtStructured, structuredTypesUnique, structuredTypeKeys] using
     allocStructured_unique m dur size ty structured h hnew
 
 def allocZeroedAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
@@ -907,7 +917,7 @@ def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.allocAt dur size ty address).1 := by
-  simpa [allocAt, structuredTypesUnique, structuredTypeKeys] using h
+  simpa [allocAt, alloc, structuredTypesUnique, structuredTypeKeys] using h
 
 @[simp] theorem allocAt_structuredType_lookup
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
@@ -919,7 +929,7 @@ def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.allocZeroedAt dur size ty address).1 := by
-  simpa [allocZeroedAt, structuredTypesUnique, structuredTypeKeys] using h
+  simpa [allocZeroedAt, allocZeroed, structuredTypesUnique, structuredTypeKeys] using h
 
 @[simp] theorem allocZeroedAt_structuredType_lookup
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
@@ -943,7 +953,7 @@ theorem allocZeroedAtStructured_unique
     (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
     structuredTypesUnique
       (m.allocZeroedAtStructured dur size ty (some structured) address).1 := by
-  simpa [allocZeroedAtStructured] using
+  simpa [allocZeroedAtStructured, structuredTypesUnique, structuredTypeKeys] using
     allocZeroedStructured_unique m dur size ty structured h hnew
 
 /-- C23 §6.2.4p6 / §7.24.3: end an object's lifetime. The object stays in
@@ -1095,19 +1105,27 @@ theorem killFrom_structuredTypesUnique
   exact killFrom_fold_structuredTypesUnique
     (List.range (m.count - start)) m start hunique
 
-@[simp] theorem killFrom_structuredType_lookup (m : Mem) (start q : ObjId) :
-    (m.killFrom start).structuredType? q = m.structuredType? q := by
-  unfold killFrom
-  induction hxs : List.range (m.count - start) generalizing m with
+private theorem killFrom_fold_structuredType_lookup
+    (xs : List Nat) (m : Mem) (start q : ObjId) :
+    (xs.foldl (fun acc i =>
+      let o := start + i
+      match acc.get? o with
+      | some c => if c.dur == .automatic then acc.kill o else acc
+      | none => acc) m).structuredType? q = m.structuredType? q := by
+  induction xs generalizing m with
   | nil => rfl
   | cons i xs ih =>
     simp only [List.foldl]
     cases hget : m.get? (start + i) with
-    | none => exact ih m
+    | none => simp [hget, ih]
     | some c =>
       by_cases ha : (c.dur == .automatic) = true
-      · simp [hget, ha, kill, ih]
-      · exact ih m
+      · simp [hget, ha, kill_structuredType_lookup, ih]
+      · simp [hget, ha, ih]
+
+@[simp] theorem killFrom_structuredType_lookup (m : Mem) (start q : ObjId) :
+    (m.killFrom start).structuredType? q = m.structuredType? q := by
+  exact killFrom_fold_structuredType_lookup (List.range (m.count - start)) m start q
 
 @[simp] theorem placementValid_killFrom (m : Mem) (start address size alignment : Nat)
     (hvalid : placementValid m address size alignment = true) :
@@ -1163,119 +1181,6 @@ def storeBytes (m : Mem) (p : Ptr) (bs : List CByte) : MRes Mem := do
   let (o, c, off) ← m.resolve p bs.length
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
   return { m with objs := m.objs.set o { c with bytes := bytes } }
-
-theorem storeBytes_structuredTypesUnique
-    {m m' : Mem} {p : Ptr} {bs : List CByte}
-    {o : ObjId} {c : CObj} {off : Nat}
-    (hunique : structuredTypesUnique m)
-    (hr : m.resolve p bs.length = .ok (o, c, off))
-    (h : m.storeBytes p bs = .ok m') : structuredTypesUnique m' := by
-  unfold storeBytes at h
-  rw [hr] at h
-  simp only [Except.bind, pure, Except.pure] at h
-  cases h
-  exact hunique
-
-theorem storeBytes_structuredTypesUnique_of_ok
-    {m m' : Mem} {p : Ptr} {bs : List CByte}
-    (hunique : structuredTypesUnique m)
-    (h : m.storeBytes p bs = .ok m') : structuredTypesUnique m' := by
-  unfold storeBytes at h
-  cases hr : m.resolve p bs.length with
-  | error e => simp [hr] at h
-  | ok result =>
-    simp [hr] at h
-    cases result with
-    | mk o c off =>
-      cases h
-      exact hunique
-
-theorem storeBytes_structuredType_lookup
-    {m m' : Mem} {p : Ptr} {bs : List CByte} (q : ObjId)
-    (h : m.storeBytes p bs = .ok m') :
-    m'.structuredType? q = m.structuredType? q := by
-  unfold storeBytes at h
-  cases hr : m.resolve p bs.length with
-  | error e => simp [hr] at h
-  | ok result =>
-    cases result with
-    | mk o c off =>
-      simp [hr] at h
-      cases h
-      rfl
-
-theorem storeFloat32_structuredTypesUnique
-    {m m' : Mem} {p : Ptr} {f : Float32.Model}
-    (hunique : structuredTypesUnique m)
-    (h : m.storeFloat32 p f = .ok m') : structuredTypesUnique m' := by
-  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFloat32] using h)
-
-theorem storeFloat64_structuredTypesUnique
-    {m m' : Mem} {p : Ptr} {f : Float.Model}
-    (hunique : structuredTypesUnique m)
-    (h : m.storeFloat64 p f = .ok m') : structuredTypesUnique m' := by
-  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFloat64] using h)
-
-theorem storeInt_structuredTypesUnique
-    {m m' : Mem} {p : Ptr} {t : IntTy} {v : Int}
-    (hunique : structuredTypesUnique m)
-    (h : m.storeInt p t v = .ok m') : structuredTypesUnique m' := by
-  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeInt] using h)
-
-theorem storePtr_structuredTypesUnique
-    {m m' : Mem} {p q : Ptr}
-    (hunique : structuredTypesUnique m)
-    (h : m.storePtr p q = .ok m') : structuredTypesUnique m' := by
-  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storePtr] using h)
-
-theorem storeFunction_structuredTypesUnique
-    {m m' : Mem} {p : Ptr} {id : DeclarationId}
-    (hunique : structuredTypesUnique m)
-    (h : m.storeFunction p id = .ok m') : structuredTypesUnique m' := by
-  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFunction] using h)
-
-theorem storePtrInt_structuredTypesUnique
-    {m m' : Mem} {p q : Ptr}
-    (hunique : structuredTypesUnique m)
-    (h : m.storePtrInt p q = .ok m') : structuredTypesUnique m' := by
-  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storePtrInt] using h)
-
-theorem storeIntChecked_structuredTypesUnique
-    {m m' : Mem} {alias : AliasModel} {p : Ptr} {t : IntTy}
-    {used : CType} {v : Int}
-    (hunique : structuredTypesUnique m)
-    (h : m.storeIntChecked alias p t used v = .ok m') :
-    structuredTypesUnique m' := by
-  unfold storeIntChecked at h
-  cases hr : m.resolve p (encodeInt t v).length with
-  | error e => simp [hr] at h
-  | ok result =>
-    cases result with
-    | mk o c off =>
-      cases he : checkEffectiveAt m alias o c off used none with
-      | error e => simp [hr, he] at h
-      | ok unit =>
-        simp [hr, he] at h
-        cases h
-        simpa [structuredTypesUnique, structuredTypeKeys] using hunique
-
-theorem storeIntChecked_structuredType_lookup
-    {m m' : Mem} {alias : AliasModel} {p : Ptr} {t : IntTy}
-    {used : CType} {v : Int} (usedStructured : Option QualType) (q : ObjId)
-    (h : m.storeIntChecked alias p t used v usedStructured = .ok m') :
-    m'.structuredType? q = m.structuredType? q := by
-  unfold storeIntChecked at h
-  cases hr : m.resolve p (encodeInt t v).length with
-  | error e => simp [hr] at h
-  | ok result =>
-    cases result with
-    | mk o c off =>
-      cases he : checkEffectiveAt m alias o c off used usedStructured with
-      | error e => simp [hr, he] at h
-      | ok unit =>
-        simp [hr, he] at h
-        cases h
-        rfl
 
 /-! ### §6.2.6.2 Integer representation
 
@@ -1581,6 +1486,82 @@ def loadPtrInt (m : Mem) (p : Ptr) : MRes Ptr := do
       if bs.any (· == CByte.indet) then
         .error (.memUB (indetFault c.dur o off))
       else .error (.memUB (.nonValueRepresentation o off))
+
+theorem storeBytes_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {bs : List CByte}
+    {o : ObjId} {c : CObj} {off : Nat}
+    (hunique : structuredTypesUnique m)
+    (hr : m.resolve p bs.length = .ok (o, c, off))
+    (h : m.storeBytes p bs = .ok m') : structuredTypesUnique m' := by
+  unfold storeBytes at h
+  rw [hr] at h
+  simp only [Except.bind, pure, Except.pure] at h
+  cases h
+  exact hunique
+
+theorem storeBytes_structuredTypesUnique_of_ok
+    {m m' : Mem} {p : Ptr} {bs : List CByte}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeBytes p bs = .ok m') : structuredTypesUnique m' := by
+  unfold storeBytes at h
+  cases hr : m.resolve p bs.length with
+  | error e =>
+      simp [hr] at h
+      cases h
+  | ok result =>
+    simp [hr] at h
+    cases h
+    exact hunique
+
+theorem storeBytes_structuredType_lookup
+    {m m' : Mem} {p : Ptr} {bs : List CByte} (q : ObjId)
+    (h : m.storeBytes p bs = .ok m') :
+    m'.structuredType? q = m.structuredType? q := by
+  unfold storeBytes at h
+  cases hr : m.resolve p bs.length with
+  | error e =>
+      simp [hr] at h
+      cases h
+  | ok result =>
+    simp [hr] at h
+    cases h
+    rfl
+
+theorem storeFloat32_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {f : Float32.Model}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeFloat32 p f = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFloat32] using h)
+
+theorem storeFloat64_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {f : Float.Model}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeFloat64 p f = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFloat64] using h)
+
+theorem storeInt_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {t : IntTy} {v : Int}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeInt p t v = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeInt] using h)
+
+theorem storePtr_structuredTypesUnique
+    {m m' : Mem} {p q : Ptr}
+    (hunique : structuredTypesUnique m)
+    (h : m.storePtr p q = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storePtr] using h)
+
+theorem storeFunction_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {id : DeclarationId}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeFunction p id = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFunction] using h)
+
+theorem storePtrInt_structuredTypesUnique
+    {m m' : Mem} {p q : Ptr}
+    (hunique : structuredTypesUnique m)
+    (h : m.storePtrInt p q = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storePtrInt] using h)
 
 /-! ## §6.3.2.1p3 / §6.5.3 / §6.5.4 — making and moving pointers
 
@@ -1920,12 +1901,6 @@ def renameAddressResult (r : MRes Bool) (addressA addressB : Nat) : MRes Bool :=
         {a with address := addressA} {b with address := addressB}))
   | other => other
 
-theorem ptrLt_address_rename (a b : Ptr) (addressA addressB : Nat) :
-    ptrLt {a with address := addressA} {b with address := addressB} =
-      renameAddressResult (ptrLt a b) addressA addressB := by
-  cases ha : a.obj <;> cases hb : b.obj <;>
-    simp [ptrLt, renameAddressResult, ha, hb]
-
 /- On the defined same-object path, relational comparison ignores concrete
    placement.  Cross-object refusals retain the offending pointer in their
    diagnostic, so the unrestricted equality is intentionally not claimed. -/
@@ -2044,10 +2019,6 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
                 then .ok (m.kill o)
                 else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
-
-@[simp] theorem free_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
-    m.free {p with address := address} = m.free p := by
-  simp [free]
 
 theorem free_structuredTypesUnique
     {m m' : Mem} {p : Ptr} (h : structuredTypesUnique m)
@@ -2475,16 +2446,6 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
-@[simp] theorem realloc_address_irrel (m : Mem) (p : Ptr) (size address : Nat) :
-    m.realloc {p with address := address} size = m.realloc p size := by
-  simp [realloc]
-
-@[simp] theorem reallocAt_source_address_irrel
-    (m : Mem) (p : Ptr) (size address sourceAddress : Nat) :
-    m.reallocAt {p with address := sourceAddress} size address =
-      m.reallocAt p size address := by
-  simp [reallocAt]
-
 /-! ### S3 memory contract
 
 `AddressIndependent` packages the pointwise placement-irrelevance facts used
@@ -2557,13 +2518,6 @@ structure AddressIndependent (m : Mem) : Prop where
     m.vaEnd {p with address := address} = m.vaEnd p
   vaArg : ∀ (p : Ptr) (address : Nat),
     m.vaArg {p with address := address} = m.vaArg p
-  free : ∀ (p : Ptr) (address : Nat),
-    m.free {p with address := address} = m.free p
-  realloc : ∀ (p : Ptr) (size address : Nat),
-    m.realloc {p with address := address} size = m.realloc p size
-  reallocAt : ∀ (p : Ptr) (size destination address : Nat),
-    m.reallocAt {p with address := address} size destination =
-      m.reallocAt p size destination
 
 theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
   constructor
@@ -2603,58 +2557,6 @@ theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
       vaCopy_address_irrel m dst src addressDst addressSrc
   · exact fun p address => vaEnd_address_irrel m p address
   · exact fun p address => vaArg_address_irrel m p address
-  · exact fun p address => free_address_irrel m p address
-  · exact fun p size address => realloc_address_irrel m p size address
-  · exact fun p size destination address =>
-      reallocAt_source_address_irrel m p size destination address
-
-theorem realloc_structuredTypesUnique
-    {m m' : Mem} {p q : Ptr} {size : Nat}
-    (hunique : structuredTypesUnique m)
-    (hnew : ∀ ty, (m.objs.length, ty) ∉ m.structuredTypes)
-    (hr : realloc m p size = .ok (m', q)) : structuredTypesUnique m' := by
-  unfold realloc at hr
-  split at hr
-  · simp_all
-  · cases hp : p.obj with
-    | none =>
-      simp [hp] at hr
-      cases hr
-      simpa [malloc, alloc, structuredTypesUnique, structuredTypeKeys] using hunique
-    | some o =>
-      cases hc : m.get? o with
-      | none => simp [hp, hc] at hr
-      | some c =>
-        split at hr
-        · simp [hp, hc] at hr
-          cases hr
-          apply kill_structuredTypesUnique
-          apply copyStructuredType_unique m o m.objs.length hunique hnew
-        · simp [hp, hc] at hr
-
-theorem reallocAt_structuredTypesUnique
-    {m m' : Mem} {p q : Ptr} {size address : Nat}
-    (hunique : structuredTypesUnique m)
-    (hnew : ∀ ty, (m.objs.length, ty) ∉ m.structuredTypes)
-    (hr : reallocAt m p size address = .ok (m', q)) : structuredTypesUnique m' := by
-  unfold reallocAt at hr
-  split at hr
-  · simp_all
-  · cases hp : p.obj with
-    | none =>
-      simp [hp] at hr
-      cases hr
-      simpa [mallocAt, allocAt, alloc, structuredTypesUnique, structuredTypeKeys] using hunique
-    | some o =>
-      cases hc : m.get? o with
-      | none => simp [hp, hc] at hr
-      | some c =>
-        split at hr
-        · simp [hp, hc] at hr
-          cases hr
-          apply kill_structuredTypesUnique
-          apply copyStructuredType_unique m o m.objs.length hunique hnew
-        · simp [hp, hc] at hr
 
 /-- For a valid allocated object and nonzero size, `reallocAt` returns a fresh
     pointer at exactly the caller-selected concrete placement. -/
