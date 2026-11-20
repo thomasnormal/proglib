@@ -354,6 +354,12 @@ theorem copyStructuredType_lookup_new
     (m.copyStructuredType old fresh).structuredType? fresh = some ty := by
   simp [copyStructuredType, h]
 
+theorem copyStructuredType_lookup_of_ne
+    (m : Mem) (old fresh q : ObjId) (hq : q ≠ fresh) :
+    (m.copyStructuredType old fresh).structuredType? q = m.structuredType? q := by
+  cases hold : m.structuredType? old <;>
+    simp [copyStructuredType, rememberStructuredType, hold, hq]
+
 theorem copyStructuredType_unique
     (m : Mem) (old fresh : ObjId)
     (h : structuredTypesUnique m)
@@ -376,6 +382,11 @@ theorem emitStdout_structuredTypesUnique
     (m : Mem) (bytes : List CByte) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.emitStdout bytes) := by
   simpa [structuredTypesUnique, structuredTypeKeys, emitStdout] using h
+
+@[simp] theorem emitStdout_structuredType_lookup
+    (m : Mem) (bytes : List CByte) (q : ObjId) :
+    (m.emitStdout bytes).structuredType? q = m.structuredType? q := by
+  rfl
 
 @[simp] theorem emitStdout_placements (m : Mem) (bytes : List CByte) :
     (m.emitStdout bytes).placements = m.placements := by
