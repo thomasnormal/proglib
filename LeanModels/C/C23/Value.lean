@@ -467,6 +467,13 @@ theorem CVal.renameAddress_idem (resolve : ObjId → Nat) (v : CVal) :
   cases v <;> simp [CVal.renameAddress, CByte.renameAddress_idem,
     Ptr.renameAddress_idem]
 
+theorem CByte.renameAddress_conc_list
+    (resolve : ObjId → Nat) (bs : List UInt8) :
+    (bs.map CByte.conc).map (CByte.renameAddress resolve) = bs.map CByte.conc := by
+  induction bs with
+  | nil => rfl
+  | cons b bs ih => simp [CByte.renameAddress, ih]
+
 /-! ## §6.5.6-§6.5.8 Arithmetic — where the split lives
 
 Each operation computes the MATHEMATICAL result first, then decides by
