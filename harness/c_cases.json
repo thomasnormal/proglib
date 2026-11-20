@@ -1299,7 +1299,7 @@
     "source": "struct Foo {\n  int i;\n  unsigned precision : 10;\n  unsigned blah : 3;\n} f;\n\nint __attribute__((noinline,noclone))\nfoo (struct Foo *p)\n{\n  struct Foo *q = p;\n  return (*q).precision;\n}\n\nextern void abort (void);\n\nint main()\n{\n  f.i = -1;\n  f.precision = 0;\n  f.blah = -1;\n  if (foo (&f) != 0)\n    abort ();\n  return 0;\n}\n",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type",
+    "error": "unbound declaration",
     "layout_envelope_checks": [
       "record_layout"
     ],
@@ -1311,7 +1311,7 @@
     "source": "struct foo\n{\n  unsigned long long b:40;\n} x;\n\nextern void abort (void);\n\nvoid test1(unsigned long long res)\n{\n  /* The shift is carried out in 40 bit precision.  */\n  if (x.b<<32 != res)\n    abort ();\n}\n\nint main()\n{\n  x.b = 0x0100;\n  test1(0);\n  return 0;\n}\n",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type",
+    "error": "unbound declaration",
     "layout_envelope_checks": [
       "record_layout"
     ],
@@ -1323,7 +1323,7 @@
     "source": "struct foo\n{\n  unsigned long long b:40;\n} x;\n\nextern void abort (void);\n\nvoid test1(unsigned long long res)\n{\n  /* Build a rotate expression on a 40 bit argument.  */\n  if ((x.b<<8) + (x.b>>32) != res)\n    abort ();\n}\n\nint main()\n{\n  x.b = 0x0100000001;\n  test1(0x0000000101);\n  x.b = 0x0100000000;\n  test1(0x0000000001);\n  return 0;\n}\n",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type",
+    "error": "unbound declaration",
     "layout_envelope_checks": [
       "record_layout"
     ],
