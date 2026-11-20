@@ -1252,3 +1252,8 @@ The source-shaped `initial_error_refuse.sv` fixture retains a runtime `$error` s
 ## Timed delay-control receipt remeasurement — 2026-11-20T20:36:47Z
 
 The checked-in source-shaped `delay_control_wall` fixture was rerun at the current public head. Its ordinary census retains the exact `TimedStatement:DelayControl` refusal at `parsePStmt` for `#1 q <= d;`. Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all four source rows after the one-nanosecond delay, including the x/z data cases. The result confirms the zero-delay boundary under IEEE 1800-2023 §9.4 and changes no E-ROWS or REAL-DESIGNS count.
+
+
+## Stall-rule ranking after timed-control remeasurement — 2026-11-20T20:38:16Z
+
+The three preceding items recorded current-head wall evidence without changing E-ROWS or REAL-DESIGNS. The generated census still has three designs loading into E and five non-loading rows. The measured ranking remains FIFO's symbolic elaboration timeout after ten processes and one memory, handshake's internal time-zero event wall, the integer multiplier's level-event instantiation timeout after 28 processes, Kogge–Stone's declared-output memory target after 29 processes and two memories, and fixed-width float's mixed `always_comb` beside flip-flops refusal. The source-shaped `$error` and `#1` receipts now independently confirm their exact `SysCall:$error` and `TimedStatement:DelayControl` boundaries on both pinned simulators. No timed, memory, equation, or mixed-profile semantics is admitted by this ranking.
