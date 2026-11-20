@@ -603,3 +603,7 @@ cursors, character, floating, and pointer representations, `free`, and both
 realloc source-pointer cases. Character loads remain placement-independent even
 when their stored pointer-byte values observe the pointee representation. The
 evaluator-level behavior-set theorem still consumes this memory contract.
+
+The function-pointer store accessor now has its explicit named
+`storeFunction_address_irrel` proof, completing the contract's representation
+store cases.
