@@ -251,6 +251,16 @@ theorem xReadRun_take {sources concrete : List LVec}
       | zero => simpa using (XReadRun.nil : XReadRun [] [])
       | succ count => simpa using XReadRun.cons hhead (ih count)
 
+theorem xReadRun_drop {sources concrete : List LVec}
+    (h : XReadRun sources concrete) (count : Nat) :
+    XReadRun (sources.drop count) (concrete.drop count) := by
+  induction h generalizing count with
+  | nil => simpa using (XReadRun.nil : XReadRun [] [])
+  | cons hhead htail ih =>
+      cases count with
+      | zero => simpa using XReadRun.cons hhead htail
+      | succ count => simpa using ih count
+
 /-! A trace consumer can project the witness for any individual read site. -/
 theorem xReadRun_get?_of_lt {sources concrete : List LVec}
     (h : XReadRun sources concrete) (index : Nat) (hindex : index < sources.length) :
