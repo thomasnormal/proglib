@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -30,6 +31,25 @@ def run(command: list[str], cwd: Path) -> str:
 
 def rows(output: str) -> list[str]:
     return [line for line in output.splitlines() if line.startswith("ROW ")]
+
+
+def first_difference(left: list[str], right: list[str]) -> str:
+    for index, (lhs, rhs) in enumerate(zip(left, right)):
+        if lhs == rhs:
+            continue
+        lhs_fields = dict(re.findall(r"(\w+)=([^ ]+)", lhs))
+        rhs_fields = dict(re.findall(r"(\w+)=([^ ]+)", rhs))
+        for name in sorted(set(lhs_fields) | set(rhs_fields)):
+            if lhs_fields.get(name) != rhs_fields.get(name):
+                return (
+                    f"cycle {index}, field {name}: "
+                    f"Icarus={lhs_fields.get(name, '<missing>')} "
+                    f"Xcelium={rhs_fields.get(name, '<missing>')}"
+                )
+        return f"cycle {index}: row text differs"
+    if len(left) != len(right):
+        return f"row count differs: Icarus={len(left)} Xcelium={len(right)}"
+    return "no difference"
 
 
 def run_receipt() -> tuple[list[str], list[str]]:
@@ -80,7 +100,10 @@ def run_receipt() -> tuple[list[str], list[str]]:
             f"Xcelium={len(xcelium_rows)}"
         )
     if icarus_rows != xcelium_rows:
-        raise SystemExit("the pinned simulators disagree on the 1000-cycle witness")
+        raise SystemExit(
+            "the pinned simulators disagree on the 1000-cycle witness: "
+            + first_difference(icarus_rows, xcelium_rows)
+        )
     return icarus_rows, xcelium_rows
 
 
