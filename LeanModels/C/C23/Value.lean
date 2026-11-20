@@ -207,6 +207,12 @@ theorem bind_eq_match (r : CRes α) (f : α → CRes β) :
       | .ub cause => .ub cause := by
   cases r <;> rfl
 
+theorem bind_assoc (r : CRes α) (f : α → CRes β) (g : β → CRes γ) :
+    (r.bind f).bind g = r.bind (fun a => (f a).bind g) := by
+  cases r with
+  | ub cause => rfl
+  | ok value => cases f value <;> rfl
+
 def isOk : CRes α → Bool
   | .ok _ => true
   | .ub _ => false
