@@ -2,9 +2,11 @@
 """Check the first clocked DarkRISCV transition through canonical E.
 
 The staged reset and edge receipt must pass before this probe attempts the
-full source-shaped step.  A bounded non-return is recorded as an execution
-wall, while a returned value is printed for inspection and never relabelled
-as a refusal.
+full source-shaped step.  The final step uses `fastStepCanonical`, whose
+checked equality to `step` keeps the source-shaped canonical semantics while
+avoiding repeated scalar-store reduction.  A bounded non-return is recorded
+as an execution wall, while a returned value is printed for inspection and
+never relabelled as a refusal.
 """
 
 from __future__ import annotations
@@ -35,7 +37,7 @@ def bits(width: int, value: int) -> str:
 def make_probe(envelope: Path) -> str:
     path = str(envelope).replace("\\", "\\\\").replace('"', '\\"')
     return f'''import LeanModels.Sv.Ingest2
-import LeanModels.Sv.Kernel.CoreMemExec
+import LeanModels.Sv.Kernel.CoreMemFast
 open LeanModels.Sv LeanModels.Sv.Kernel
 set_option maxRecDepth 100000 in
 load_design_sv2 dark from "{path}"
@@ -48,7 +50,7 @@ def row (res : Nat) (clk : Nat) : SvState := [
 | .ok d => match d.initialState with
   | .ok st => match d.stepOnePassTrace st (row 1 0) with
     | .ok (st1, _) => match d.stepOnePassTrace st1 (row 0 0) with
-      | .ok (st2, _) => match d.stepOnePassTrace st2 (row 0 1) with
+      | .ok (st2, _) => match d.fastStepCanonical st2 (row 0 1) with
         | .ok _ => "clock-step-ok"
         | .timeout => "clock-step-timeout"
         | .unsupported m => "clock-step-unsupported: " ++ m

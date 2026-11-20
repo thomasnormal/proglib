@@ -551,6 +551,21 @@ cycle rows from Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium
 SHA-256 is
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
 
+## 2026-11-20 DarkRISCV fast canonical-E first clock
+
+The staged receipt was rerun with the same current envelope through the
+source-shaped reset and preparation passes, followed by one
+`CoreMemDesign.fastStepCanonical` transition.  The checked equality
+`fastStepCanonical_eq_step` keeps this on the canonical E route while using
+the array-backed scalar executor.  It returned `clock-step-ok`, giving a
+complete canonical-E E-RUN result of **1/1** for the first source-shaped
+transition.  The direct `stepOnePassTrace` probe remains an execution timeout
+at the 180-second bound, so that slower reduction path is retained as a
+separate measurement.  The census remains **177 admitted / 0 refused / 0 not
+reached**, and the pinned Icarus Verilog 13.0 and Xcelium 24.03-s004 receipt
+remains **220/220** with digest
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+
 ## 2026-11-20 Quark current-source E-RUN boundary
 
 The pinned FemtoRV32 Quark source at public commit
