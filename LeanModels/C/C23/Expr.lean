@@ -905,6 +905,10 @@ def truthy (v : CVal) : EvalM Bool :=
   | .aggregate _ _ => refuseUnsupported "aggregate used as truth value"
   | .undef => refuseUnsupported "undefined value used where an integer is required (C23 6.3.2.1p2)"
 
+@[simp] theorem truthy_renameAddress (resolve : ObjId → Nat) (v : CVal) :
+    truthy (CVal.renameAddress resolve v) = truthy v := by
+  cases v <;> simp [truthy, CVal.renameAddress]
+
 /-- §6.5.9p3 / §6.5.10p3: a comparison yields `int`, 0 or 1. -/
 def ofBool (b : Bool) : CVal := .int IntTy.int_ (if b then 1 else 0)
 
@@ -1062,6 +1066,10 @@ def asInt (v : CVal) : EvalM (IntTy × Int) :=
   | .float32 _ | .float64 _ => refuseUnsupported "floating value used as an integer"
   | .aggregate _ _ => refuseUnsupported "aggregate used as an integer"
   | .undef => refuseUnsupported "undefined value used as a pointer (C23 6.3.2.1p2)"
+
+@[simp] theorem asInt_renameAddress (resolve : ObjId → Nat) (v : CVal) :
+    asInt (CVal.renameAddress resolve v) = asInt v := by
+  cases v <;> simp [asInt, CVal.renameAddress]
 
 /-- Is this spelling a pointer type? Spelling-based, and deliberately so:
 the tier carries clang's `qualType` string rather than a type tree
