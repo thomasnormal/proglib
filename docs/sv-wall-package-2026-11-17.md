@@ -1239,3 +1239,7 @@ fixed-width float reduction remains at the mixed `always_comb` beside
 flip-flops profile refusal. These are measured ranking inputs only. No
 REAL-DESIGNS count transition is claimed, and no timed, memory, or equation
 semantics is admitted by this refresh.
+
+## Current-head wall ranking after mixed-trace reconciliation — 2026-11-20T20:26:13Z
+
+The current public head is `db6702c0d0d64c7bdd41b430b2ba482cbb59ec67`, and the generated `docs/sv-real-designs.md` census remains three designs loading into E and five rows with no load transition in the checked-in table. The latest overview reconciliation adds mixed async-reset tracing and plain generate-event substitution, while the affected int-to-float source still reaches deterministic symbolic structure timeout. The highest measured real-source walls remain FIFO's symbolic elaboration timeout after ten processes and one memory, handshake's internal time-zero event wall, the integer multiplier's level-event instantiation timeout after 28 processes, Kogge–Stone's declared-output memory target after 29 processes and two memories, and the fixed-width float reduction's mixed `always_comb` beside flip-flops refusal. These measurements change no E-ROWS or REAL-DESIGNS count. Timed, memory, equation, and mixed-profile semantics remain deferred until each has a source-shaped contract and pinned-simulator receipt.
