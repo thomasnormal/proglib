@@ -129,3 +129,10 @@ trace witness, then repair the MemE start-state conversion mismatch before
 lifting the relation through SVA samples. The battery is the measured baseline
 for each of those changes, and no simulator result is claimed by this
 remeasurement.
+
+The current executable harness exposes per-read outcomes and strict refusals,
+but it does not yet expose a parser-native E cycle trace to which
+`CycleXReadRun` can be attached. Consequently no executable trace witness is
+claimed by the present implementation. The next admission needs an E trace
+hook or a concrete real-design row that exercises one, rather than another
+standalone projection theorem.
