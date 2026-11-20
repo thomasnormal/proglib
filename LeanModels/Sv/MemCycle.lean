@@ -218,6 +218,7 @@ def memSubstExpr (vals : List (String × Int)) : PExpr → PExpr
   | .arrayPart n xs mode a b => .arrayPart n (xs.map (memSubstExpr vals)) mode
       (memSubstExpr vals a) (memSubstExpr vals b)
   | .aggregateMember n path => .aggregateMember n path
+  | .packageAggElem pkg n index => .packageAggElem pkg n (memSubstExpr vals index)
   | e => e
 
 def memSubstLhs (vals : List (String × Int)) : PLhs → PLhs
@@ -441,6 +442,8 @@ def memExprReadsArray : PExpr → Bool
   | .concat xs => memExprReadsArrayList xs
   | .functionCall _ xs => memExprReadsArrayList xs
   | .aggregateMember .. => false
+  | .packageAggElem _ _ index => memExprReadsArray index
+  | .typeBits _ _ => false
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
   | .fill _ | .unsupported .. => false
 
@@ -711,6 +714,8 @@ def execMemStmt (d : MemDesign2) (fuel : Nat) (st : MemCycleState)
       | fuel + 1 => do
           let sv ← evalMemExpr d fuel st none subject
           execMemCase d fuel st q sv items default? mode check
+  | .localDecl _ _ _ | .automaticDecl _ _ _ =>
+      .unsupported "LocalDecl:memory cycle route"
   | .unsupported k t => .unsupported s!"{k}: {t}"
 
 def execMemStmts (d : MemDesign2) (fuel : Nat) (st : MemCycleState)
