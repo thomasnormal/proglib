@@ -1,44 +1,38 @@
-/- Canonical-E R13 receipt. A plain `always @(posedge g)` and its
-`always_ff` twin must observe the same internally generated edge. -/
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemExec
+
 namespace Examples.«system-verilog».sem2.plain_internal_edge_e.agree
 open LeanModels.Sv LeanModels.Sv.Kernel
 
-def rows : List SvState :=
-  [[("clk", LVec.ofLogic .l0), ("d", LVec.ofLogic .l0)],
-   [("clk", LVec.ofLogic .l1), ("d", LVec.ofLogic .l1)],
-   [("clk", LVec.ofLogic .l0), ("d", LVec.ofLogic .l1)],
-   [("clk", LVec.ofLogic .lx), ("d", LVec.ofLogic .lx)],
-   [("clk", LVec.ofLogic .lz), ("d", LVec.ofLogic .lz)],
-   [("clk", LVec.ofLogic .l1), ("d", LVec.ofLogic .lx)]]
+-- The first three entries reproduce the lost in-slot event. The remaining
+-- entries exercise both unknown clock states and capture x and z on d.
+def stimulus : List (Logic × Logic) :=
+  [(.l0,.l0), (.l1,.l1), (.l0,.l1), (.lx,.lx), (.lz,.lz), (.l1,.lx), (.l0,.lx), (.lz,.lz)]
 
-def outputs : IO (Res (List (String × String))) := do
-  let text ← IO.FS.readFile "Examples/system-verilog/sem2/plain_internal_edge_e/plain_internal_edge_e.sv.json"
-  let pd ← match loadPDesignString text with | .ok p => pure p | .error e => throw (IO.userError e)
-  match PDesign.instantiateE2 pd [] (PDesign.surfaceFuel []) with
-  | .timeout => pure .timeout
-  | .unsupported e => pure (.unsupported e)
-  | .ok d =>
-      match runCoreMemRows d d.initial rows with
-      | .ok states => pure (.ok (states.map (fun s =>
-          (SvState.showSignal (CoreMemState.view d s) "q_plain",
-           SvState.showSignal (CoreMemState.view d s) "q_ff"))))
-      | .timeout => pure .timeout
-      | .unsupported e => pure (.unsupported e)
+def simulate (top : String) : IO (List String) := do
+  let text ← IO.FS.readFile s!"Examples/system-verilog/sem2/plain_internal_edge_e/{top}.sv.json"
+  let pd ← IO.ofExcept (loadPDesignString text)
+  let states := do
+    let design ← PDesign.instantiateE2 pd []
+    let initial ← design.initialState
+    let rows := stimulus.map fun (clk, d) => [("clk", LVec.ofLogic clk), ("d", LVec.ofLogic d)]
+    let states ← runCoreMemRows design initial rows
+    pure (states.map fun s =>
+      let view := CoreMemState.view design s
+      view.showSignal "g" ++ view.showSignal "q")
+  match states with
+  | .ok xs => pure xs
+  | .timeout => throw (IO.userError s!"{top} timed out")
+  | .unsupported e => throw (IO.userError s!"{top}: {e}")
 
-def twinEquality : IO Unit := do
-  match ← outputs with
-  | .ok rows =>
-      unless rows.all (fun row => row.1 == row.2) do
-        throw (IO.userError "plain always and always_ff twins diverged")
-      unless rows == [("x", "x"), ("1", "1"), ("1", "1"), ("1", "1"), ("1", "1"), ("1", "1")] do
-        throw (IO.userError "R13 differential rows changed")
-  | .timeout => throw (IO.userError "R13 receipt timed out")
-  | .unsupported e => throw (IO.userError e)
+def checkTwins : IO Unit := do
+  let plain ← simulate "plain_internal_edge_e"
+  let ff ← simulate "ff_internal_edge_e"
+  unless plain == ff && plain == ["xx", "11", "11", "x1", "x1", "x1", "x1", "z1"] do
+    throw (IO.userError s!"(g,q) mismatch: always {plain}, always_ff {ff}")
+  for gq in plain do
+    IO.println s!"ROW {gq}"
 
-#eval outputs
-#eval twinEquality
-
+#eval checkTwins
 
 end Examples.«system-verilog».sem2.plain_internal_edge_e.agree
