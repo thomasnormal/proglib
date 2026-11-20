@@ -3401,6 +3401,15 @@ theorem malloc_renameAddresses
         Ptr.toObjectBound, Ptr.toObjectBoundAt, Ptr.renameAddress, List.map_append, List.map_cons,
         List.map_nil, List.length_map, haddr]
 
+theorem mallocAt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (size address : Nat)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
+    (m.renameAddresses rename).mallocAt size (rename m.objs.length) =
+      ((m.mallocAt size address).1.renameAddresses rename,
+        Ptr.renameAddress rename (m.mallocAt size address).2) := by
+  simpa [mallocAt] using
+    allocAt_renameAddresses rename m .allocated size none address hnew
+
 @[simp] theorem malloc_structuredTypesUnique
     (m : Mem) (size : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.malloc size).1 := by
@@ -3423,6 +3432,15 @@ theorem calloc_renameAddresses
       simp [calloc, allocZeroed, renameAddresses, CObj.renameAddress, haddr',
         Ptr.toObjectBound, Ptr.toObjectBoundAt, Ptr.renameAddress, List.map_append, List.map_cons,
         List.map_nil, List.length_map, haddr]
+
+theorem callocAt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (n size address : Nat)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
+    (m.renameAddresses rename).callocAt n size (rename m.objs.length) =
+      ((m.callocAt n size address).1.renameAddresses rename,
+        Ptr.renameAddress rename (m.callocAt n size address).2) := by
+  simpa [callocAt] using
+    allocZeroedAt_renameAddresses rename m .allocated (n * size) none address hnew
 
 @[simp] theorem calloc_structuredTypesUnique
     (m : Mem) (n size : Nat) (h : structuredTypesUnique m) :
