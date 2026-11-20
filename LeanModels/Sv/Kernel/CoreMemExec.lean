@@ -1373,8 +1373,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     -- module-local call look like an unsupported `CallExpression` even though
     -- its source-shaped pure function is admitted by the constant tier.
     let envI := { envI with functions := d.functions }
-    let envP ← bindPackageParams envI d.packageParams
-    let envP ← bindPackageEnums envP d.enums
+    let envP ← bindPackageEnums envI d.enums
+    let envP ← bindPackageParams envP d.packageParams
     let env0 ← bindParamsRes envP d.params args
     let env1 ← bindLocals env0 d.localParams
     let env2 ← bindEnums env1 d.enums

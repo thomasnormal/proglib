@@ -36698,17 +36698,21 @@ def _sym_package_params(sm):
                             rows = []
                             valid = True
                             for element in initializer.elements:
-                                if type(element).__name__ != "StructuredAssignmentPatternExpression":
-                                    valid = False
-                                    break
-                                setters = list(getattr(element, "memberSetters", []))
-                                fields = []
-                                for setter in setters:
-                                    value = convert_expr(sm, setter.expr)
+                                if type(element).__name__ == "StructuredAssignmentPatternExpression":
+                                    setters = list(getattr(element, "memberSetters", []))
+                                    fields = []
+                                    for setter in setters:
+                                        value = convert_expr(sm, setter.expr)
+                                        if value is None or value.get("kind") == "Unsupported":
+                                            valid = False
+                                            break
+                                        fields.append({"name": setter.member.name, "value": value})
+                                else:
+                                    value = convert_expr(sm, element)
                                     if value is None or value.get("kind") == "Unsupported":
                                         valid = False
                                         break
-                                    fields.append({"name": setter.member.name, "value": value})
+                                    fields = [{"name": "", "value": value}]
                                 if not valid:
                                     break
                                 rows.append(fields)

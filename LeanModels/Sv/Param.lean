@@ -2283,6 +2283,10 @@ private def packageConstVec (env : IEnv) : PExpr → Except String LVec
               match env.packageNVal pkg n with
               | some (v, w, _) => .ok (LVec.ofInt w v)
               | none => .error s!"package parameter '{pkg}::{n}' is unavailable"
+  | .enumRef ty mem pkg =>
+      match env.enumMember ty mem pkg with
+      | some value => .ok value
+      | none => .error s!"unknown enum member {ty}::{mem}"
   | e =>
       match evalAt env (32, true) e with
       | .ok v => .ok (LVec.ofInt 32 v)
@@ -3162,15 +3166,15 @@ the default's type (`PParam.defaultConstType`) and the argument list for
 elaborated the envelope's `resolved` metadata at. -/
 def PDesign.atPoint (d : PDesign) («given» : List (Option Int)) :
     Except String (PDesign × List Int) := do
-  let envP ← match bindPackageParams { functions := d.functions } d.packageParams with
-    | .ok e => .ok e
-    | .unsupported e => .error e
-    | .timeout => .error "package parameter binding timed out"
-  let envPE ← match bindPackageEnums envP d.enums with
+  let envPE ← match bindPackageEnums { functions := d.functions } d.enums with
     | .ok e => .ok e
     | .unsupported e => .error e
     | .timeout => .error "package enum binding timed out"
-  let (ps, args) ← go envPE d.params given
+  let envP ← match bindPackageParams envPE d.packageParams with
+    | .ok e => .ok e
+    | .unsupported e => .error e
+    | .timeout => .error "package parameter binding timed out"
+  let (ps, args) ← go envP d.params given
   return ({ d with params := ps }, args)
 where
   go (env : IEnv) : List PParam → List (Option Int) → Except String (List PParam × List Int)
@@ -3399,9 +3403,9 @@ def PDesign.instantiate (d : PDesign) (args : List Int) (iterFuel : Nat := 4096)
   if args.length != d.params.length then
     .unsupported s!"parameter arity: got {args.length}, want {d.params.length}"
   else do
-    let envPkgParams ← bindPackageParams { functions := d.functions } d.packageParams
-    let envPkg ← bindPackageEnums envPkgParams d.enums
-    let env0 ← bindParamsRes envPkg d.params args
+    let envPkgEnums ← bindPackageEnums { functions := d.functions } d.enums
+    let envPkgParams ← bindPackageParams envPkgEnums d.packageParams
+    let env0 ← bindParamsRes envPkgParams d.params args
     let env1 ← bindLocals env0 d.localParams
     let env2 ← bindEnums env1 d.enums
     let decls ← buildDecls env2 d.decls
@@ -3571,12 +3575,11 @@ def PDesign.crossCheck (d₀ : PDesign) : List String :=
         match p.resolved? with
         | some r => if r == v then none else some s!"parameter '{p.name}': ours {v} ≠ resolved {r}"
         | none => none
-      let envP : IEnv := match bindPackageParams { int32 := true, functions := d.functions } d.packageParams with
-        | .ok e => e
+      let envP : IEnv := match bindPackageEnums { int32 := true, functions := d.functions } d.enums with
+        | .ok e => match bindPackageParams e d.packageParams with
+          | .ok p => p
+          | _ => {}
         | _ => {}
-      let envP : IEnv := match bindPackageEnums envP d.enums with
-        | .ok e => e
-        | _ => envP
       let env0 : IEnv := (bindParams envP d.params args).toOption.getD envP
       let (localMsgs, env1) := checkLocals env0 d.localParams
       match bindEnums env1 d.enums with
