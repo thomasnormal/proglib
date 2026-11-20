@@ -2109,11 +2109,11 @@ theorem CoreMemDesign.step_seqI {E : CoreMemDesign} (hP : E.SeqProfileI)
   -- the commit: memory records
   obtain ⟨m', hcm, hmc', hvm⟩ := CoreMemDesign.commitNba_V hP.mems mq st2.memory (by rw [hm2]; exact hmc) hrec
   rw [hm2] at hvm
-  have hcs : E.Coherent (E.committedState ⟨st2, q, mq.map E.memRec⟩ m') := hcc.with_memory m'
-  have hvs : E.scalar.view (E.committedState ⟨st2, q, mq.map E.memRec⟩ m').scalar = commitNba2 pe q := by
+  have hcs : E.Coherent (E.committedState ⟨st2, q, mq.map E.memRec, []⟩ m') := hcc.with_memory m'
+  have hvs : E.scalar.view (E.committedState ⟨st2, q, mq.map E.memRec, []⟩ m').scalar = commitNba2 pe q := by
     show E.scalar.view (E.normalizeScalar st2 (E.scalarEdge.commit st2.scalar q)).scalar = _
     rw [E.normalizeScalar_view, hvc]
-  have hms : (E.committedState ⟨st2, q, mq.map E.memRec⟩ m').memory = m' := rfl
+  have hms : (E.committedState ⟨st2, q, mq.map E.memRec, []⟩ m').memory = m' := rfl
   -- the region after the edge
   obtain ⟨st3, hs3, hv3, hc3, hm3⟩ := CoreMemDesign.settleCanonical_seq hP ht hcs (by rw [hms]; exact hmc')
     (by rw [hvs, hms, hvm]; exact h2)
@@ -2185,7 +2185,7 @@ on the x start, the time-zero state exists, its view is `v`, its memory is the x
 block), and it is coherent with a coherent memory. So it is one of the run judgment's start states: every `SeqRunsOn`
 claim (`SeqRunsI`, `SeqRunsM`, `SeqRuns`) holds from it. -/
 theorem CoreMemDesign.SeqProfileI.initialState {E : CoreMemDesign} (hP : E.SeqProfileI) (ht : E.topoC = true)
-    (hrm : E.readmemh = [])
+    (hrm : E.readmemh = []) (hdi : E.declInitializers = [])
     {v : SvState} (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ st.memory = E.initial.memory ∧ E.Coherent st ∧
       E.MemCoherent st.memory := by
@@ -2194,17 +2194,18 @@ theorem CoreMemDesign.SeqProfileI.initialState {E : CoreMemDesign} (hP : E.SeqPr
   refine ⟨st, ?_, hvs, hm, hc, by rw [hm]; exact hmc⟩
   rw [CoreMemDesign.initialState_of_quiet (fun p hp b h => by
     subst h; exact absurd (hP.shapes _ hp) (by simp [CoreMemDesign.ProcShapeI])) hP.hasComb hrm]
+  simp only [hdi, CoreMemDesign.execDeclInitializers, Res.ok_bind]
   exact hs
 
 #print axioms CoreMemDesign.SeqProfileI.initialState
 
 /-- `SeqProfileI.initialState` on the single-clock profile. -/
 theorem CoreMemDesign.SeqProfile.initialState {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hO : E.seqOblB clk = true) (hrm : E.readmemh = []) {v : SvState}
+    (hO : E.seqOblB clk = true) (hrm : E.readmemh = []) (hdi : E.declInitializers = []) {v : SvState}
     (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ st.memory = E.initial.memory ∧ E.Coherent st ∧
       E.MemCoherent st.memory :=
-  hP.toSeqProfileI.initialState (CoreMemDesign.seqOblI_spec (CoreMemDesign.seqOblB_I hO)).2.1 hrm hv
+  hP.toSeqProfileI.initialState (CoreMemDesign.seqOblI_spec (CoreMemDesign.seqOblB_I hO)).2.1 hrm hdi hv
 
 #print axioms CoreMemDesign.SeqProfile.initialState
 
@@ -2213,11 +2214,11 @@ one more view-level pass changes nothing (`settleV_idem`), and the route's own c
 (`settleCanonical`, the slots' quiesce loop) run from the time-zero state lands on the same view. No continuous
 assignment is out of date at time zero (§4.5, §10.3). -/
 theorem CoreMemDesign.SeqProfileI.initialState_settled {E : CoreMemDesign} (hP : E.SeqProfileI)
-    (ht : E.topoC = true) (hrm : E.readmemh = []) {v : SvState}
+    (ht : E.topoC = true) (hrm : E.readmemh = []) (hdi : E.declInitializers = []) {v : SvState}
     (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ E.settleV (E.memOf st.memory) v = .ok v ∧
       ∃ st', E.settleCanonical E.env E.elems st E.processes.toList = .ok st' ∧ E.scalar.view st'.scalar = v := by
-  obtain ⟨st, hs, hvs, hm, hc, hmc⟩ := hP.initialState ht hrm hv
+  obtain ⟨st, hs, hvs, hm, hc, hmc⟩ := hP.initialState ht hrm hdi hv
   have hidem : E.settleV (E.memOf st.memory) v = .ok v := by
     rw [hm]
     exact CoreMemDesign.settleV_idem ht (CoreMemDesign.matV_view hP.names hP.four E.initial_coherent.typed) hv
