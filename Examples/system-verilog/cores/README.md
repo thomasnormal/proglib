@@ -626,6 +626,23 @@ construct-level refusal.  No slot equation or `CoreMemDesign.step_seqI`
 instance is claimed for DarkRISCV from this attempt, and no clean-room refusal
 fixture is added.
 
+## 2026-11-20 DarkRISCV instruction-memory stall differential
+
+`darkriscv/instr_stall_tb.sv` drives the unchanged pinned core with the same
+three-instruction ALU image as the input-driven witness, while lowering
+`IDACK` on every third active falling edge.  The value is stable before the
+following rising edge and is included in each recorded row.  Icarus Verilog
+13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 agree on all 1000
+simulator rows.  Their normalized row digest is
+`eea1284ad6b615db3f9373efb4642cf3423b6b2de81ccdebb4903aa37d88bd7f`.
+
+Replaying those rows through canonical E reaches the loaded design but rejects
+the comparison.  The first three-row diagnostic shows the canonical and
+simulator views diverging once `IDACK` stalls, so this battery is **0/1000
+three-way rows**.  The existing all-NOP and always-ready input-driven
+batteries remain 1000/1000.  This is a wrong-answer finding for the
+instruction-memory wait-state path, not a passing E-RUN claim.
+
 ## 2026-11-20 Quark current-source E-RUN boundary
 
 The pinned FemtoRV32 Quark source at public commit

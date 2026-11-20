@@ -41,7 +41,9 @@ def parse_rows(lines: list[str]) -> list[dict[str, str]]:
     rows = [dict(re.findall(r"(\w+)=([^ ]+)", line)) for line in lines]
     if len(rows) != EXPECTED_CYCLES:
         raise RuntimeError(f"expected {EXPECTED_CYCLES} simulator rows, got {len(rows)}")
-    required = {name for name, _, _ in FIELDS} | {"cycle"}
+    for row in rows:
+        row.setdefault("instr_ack", "1")
+    required = {name for name, _, _ in FIELDS} | {"cycle", "instr_ack"}
     for row in rows:
         if set(row) != required:
             raise RuntimeError(f"simulator row fields changed: {sorted(row)}")
@@ -57,8 +59,9 @@ def bits(raw: str, width: int) -> str:
 
 
 def expected_rows(lines: list[str]) -> list[list[tuple[str, str]]]:
+    fields = FIELDS + (("instr_ack", "IDACK", 1),)
     return [
-        [(lean_name, bits(row[sim_name], width)) for sim_name, lean_name, width in FIELDS]
+        [(lean_name, bits(row[sim_name], width)) for sim_name, lean_name, width in fields]
         + [("CLK", "1")]
         for row in parse_rows(lines)
     ]
@@ -80,10 +83,11 @@ def lean_rows(rows: list[list[tuple[str, str]]]) -> str:
 def make_probe(rows: list[list[tuple[str, str]]], corrupted: list[list[tuple[str, str]]]) -> str:
     expected = lean_rows(rows)
     wrong = lean_rows(corrupted)
-    idata = [dict(row)["IDATA"] for row in rows]
-    if any(set(value) - {"0", "1"} for value in idata):
+    stimuli = [(dict(row)["IDATA"], dict(row)["DDACK"], dict(row).get("instr_ack", "1")) for row in rows]
+    if any(set(idata) - {"0", "1"} or set(ddack) - {"0", "1"} or set(idack) - {"0", "1"}
+           for idata, ddack, idack in stimuli):
         raise RuntimeError("program input contains unknown instruction data")
-    stimulus = ",\n".join(f"  {int(value, 2)}" for value in idata)
+    stimulus = ",\n".join(f"  ({int(idata, 2)}, {int(ddack, 2)}, {int(idack, 2)})" for idata, ddack, idack in stimuli)
     return f'''import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemFast
 open LeanModels.Sv LeanModels.Sv.Kernel
@@ -91,28 +95,28 @@ set_option maxRecDepth 100000
 set_option maxHeartbeats 6000000
 load_design_sv2 dark from "{ENVELOPE}"
 def bits (w n : Nat) := LVec.ofNat w n
-def row (res : Nat) (clk : Nat) (idata : Nat) : SvState := [
+def row (res : Nat) (clk : Nat) (idata ddack idack : Nat) : SvState := [
   ("CLK", bits 1 clk), ("RES", bits 1 res), ("IRQ", bits 32 0),
-  ("IDATA", bits 32 idata), ("IDACK", bits 1 1), ("IBERR", bits 1 0),
-  ("DATAI", bits 32 0), ("DDACK", bits 1 1), ("DBERR", bits 1 0)]
-def cycle (d : CoreMemDesign) (s : CoreMemState) (res idata : Nat) : Res CoreMemState := do
-  let low ← d.fastStepCanonical s (row res 0 idata)
-  d.fastStepCanonical low (row res 1 idata)
+  ("IDATA", bits 32 idata), ("IDACK", bits 1 idack), ("IBERR", bits 1 0),
+  ("DATAI", bits 32 0), ("DDACK", bits 1 ddack), ("DBERR", bits 1 0)]
+def cycle (d : CoreMemDesign) (s : CoreMemState) (res idata ddack idack : Nat) : Res CoreMemState := do
+  let low ← d.fastStepCanonical s (row res 0 idata ddack idack)
+  d.fastStepCanonical low (row res 1 idata ddack idack)
 def resetN (d : CoreMemDesign) : Nat → CoreMemState → Res CoreMemState
   | 0, s => .ok s
   | n + 1, s => do
-      let s' ← cycle d s 1 19
+      let s' ← cycle d s 1 19 1 1
       resetN d n s'
-def runRows (d : CoreMemDesign) : CoreMemState → List Nat → Res (List CoreMemState)
+def runRows (d : CoreMemDesign) : CoreMemState → List (Nat × Nat × Nat) → Res (List CoreMemState)
   | s, [] => .ok []
-  | s, idata :: rest => do
-      let low ← d.fastStepCanonical s (row 0 0 idata)
-      let s' ← d.fastStepCanonical low (row 0 1 idata)
+  | s, (idata, ddack, idack) :: rest => do
+      let low ← d.fastStepCanonical s (row 0 0 idata ddack idack)
+      let s' ← d.fastStepCanonical low (row 0 1 idata ddack idack)
       let tail ← runRows d s' rest
       .ok (s' :: tail)
 def names : List String := ["RES", "IDREQ", "IADDR", "IDATA",
   "DDREQ", "DADDR", "DLEN", "DBE", "DRW", "DRD", "DWR", "DATAO", "DATAI",
-  "DDACK", "DEBUG", "CLK"]
+  "DDACK", "DEBUG", "IDACK", "CLK"]
 def sigs (d : CoreMemDesign) (states : List CoreMemState) : List (List (String × String)) :=
   states.map fun s => names.map fun name => (name, SvState.showSignal (d.scalar.view s.scalar) name)
 def expected : List (List (String × String)) := {expected}
