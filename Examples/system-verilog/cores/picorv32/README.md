@@ -2042,9 +2042,12 @@ budget. The loaded family now reaches its initial-state executor and admits
 the reactive region through bounded quiescence. This is an admission result,
 not the full input-trace comparison.
 
-The measured peak is below the 12 GiB budget, so the proof route does not need
-a kernel-cheap store or a derived cycle model for memory reasons. The ADDI
-invariant still awaits the full input-trace comparison.
+The measured peak is below the 12 GiB budget for this one-cycle admission
+probe. Memory capacity therefore does not force a kernel-cheap store or a
+derived cycle model. The one-cycle result says nothing about the cost of a
+full symbolic cycle proof. The later two-edge measurement records that the
+source-shaped executor remains too slow for that proof route, and the ADDI
+invariant still awaits universal step and order premises.
 
 ## 2026-11-18 post-measurement census rerank
 
@@ -2076,17 +2079,21 @@ binary testbench SHA-256
 The normalized binary cycle-row SHA-256 is
 `ebd3e54471927fc1387e502ba0ef7f33026de7eb890bd75cbff89627d09cf5ef`.
 
-## 2026-11-19 R1 ADDI handoff
+## 2026-11-20 R1 ADDI premise audit
 
 The loaded-core R1 obligation is the `Rv32iAddiInvariant` consumed by
 `picorv32_addi_step_bridge` in `R2.lean`. Its valid-row premise is the exact
 `RvfiObservation.addiBoundary`, and its conclusion is the memory-threaded
 `addiNext` architectural step. `r1_addi.lean` checks the pinned loaded
 configuration, RVFI field widths, and the ADDI boundary-to-ISA equations used
-by that obligation. The 220-cycle E-RUN receipt now exercises this loaded
+by that obligation. The loaded theorem also requires two universal premises.
+`hstep` must produce an exact canonical post-state and RVFI observation for
+every related state and admitted input, then establish the ADDI boundary and
+relation continuation on valid rows. `horder` must establish the RVFI order
+for every valid row. No theorem in the repository supplies either premise for
+the loaded RTL. The 220-cycle E-RUN receipt exercises this loaded
 configuration through canonical E, but it is an executable differential
-receipt. The universal loaded-core invariant proof remains the next theorem
-work and is not inferred from the finite receipt.
+receipt and cannot discharge universal premises.
 
 ## 2026-11-19 symbolic-cycle cost boundary
 
@@ -2109,9 +2116,11 @@ and swap disabled. Compiling the loaded canonical-E entry point
 `input_drive_core.lean` completed in 36.354 seconds and peaked at 0.253 GiB.
 A one-cycle reset-release replay through the same `CoreMemDesign.fastStepCanonical` path
 returned `one-cycle-ok` in 21.896 seconds and peaked at 0.263 GiB. Both runs
-were single-threaded and stayed below the 8 GiB warning threshold. The ADDI
-invariant can therefore use the exact loaded-E path without introducing a
-derived cycle model.
+were single-threaded and stayed below the 8 GiB warning threshold. The exact
+loaded-E path is semantically suitable for the invariant. The source-shaped
+executor is currently too slow for a full cycle-by-cycle kernel proof. A
+future acceleration must carry a refinement theorem back to this exact path.
+No universal ADDI invariant is claimed by this measurement.
 
 ## 2026-11-19 R1 consumer audit after the E measurements
 
