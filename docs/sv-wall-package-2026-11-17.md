@@ -1190,3 +1190,12 @@ event-region representation for delay control, and a general equation theorem
 for procedural `always_comb` bodies.  No count transition is claimed from
 this ranking, and no wall is admitted by weakening the existing refusal or
 equation-gate obligations.
+
+The existing diagnostic-only initial-check adapter was remeasured before
+changing this boundary.  The source-shaped `initial_parameter_check` witness
+matches Icarus Verilog 13.0 and Xcelium 24.03-s004 at both `N=1` and `N=0`
+for all eight observed cycles.  The failing `N=0` point also records
+Xcelium's expected assertion diagnostic while canonical E preserves the
+`y=0` state.  This confirms the admitted subset for elaboration-time checks
+and does not clear the general `prim_fifo_sync` `$error` wall, which remains
+outside that subset.
