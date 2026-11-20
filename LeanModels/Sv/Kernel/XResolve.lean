@@ -215,6 +215,22 @@ theorem xReadRun_append {leftSources leftConcrete rightSources rightConcrete : L
   | cons hhead htail ih =>
       simpa using XReadRun.cons hhead (ih right)
 
+/-! A trace consumer can project the witness for any individual read site. -/
+theorem xReadRun_get?_of_lt {sources concrete : List LVec}
+    (h : XReadRun sources concrete) (index : Nat) (hindex : index < sources.length) :
+    ∃ source result, sources[index]? = some source ∧
+      concrete[index]? = some result ∧ XRead source result := by
+  induction h generalizing index with
+  | nil => simp at hindex
+  | @cons source result sources concrete hhead htail ih =>
+      cases index with
+      | zero => exact ⟨source, result, rfl, rfl, hhead⟩
+      | succ index =>
+          have hindex' : index < sources.length := by simpa using hindex
+          obtain ⟨source', result', hsource', hresult', hread'⟩ := ih index hindex'
+          exact ⟨source', result', by simpa using hsource',
+            by simpa using hresult', hread'⟩
+
 theorem xReadRun_eq_of_known : ∀ {sources concrete : List LVec},
     (∀ source ∈ sources, source.bits.toList.all Logic.isKnown = true) →
     XReadRun sources concrete → sources = concrete
