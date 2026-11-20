@@ -168,6 +168,14 @@ theorem concretizations_of_known {v : LVec}
   rw [resolveBits_known _ h]
   simp [Array.toArray_toList]
 
+theorem typedResolution_fourState_eq_of_known {source result : LVec}
+    (hknown : source.bits.toList.all Logic.isKnown = true)
+    (h : TypedResolution true source result) :
+    result = source := by
+  unfold TypedResolution at h
+  rw [concretizations_of_known hknown] at h
+  simpa using h
+
 /-! ## X-E's independent read interface
 
 `LVec.Resolves` is the historical value relation above. The interface used by
