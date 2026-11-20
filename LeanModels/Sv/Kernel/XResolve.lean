@@ -152,6 +152,14 @@ theorem mem_concretizations_resolves {v w : LVec} (h : w ∈ LVec.concretization
   · exact bitListResolves_length _ _ hf
   · exact hf
 
+theorem typedResolution_width {fourState : Bool} {source result : LVec}
+    (h : TypedResolution fourState source result) :
+    result.width = source.width := by
+  cases fourState with
+  | false => exact twoStateBoundary_width h
+  | true =>
+      simpa [LVec.width] using (mem_concretizations_resolves h).1.symm
+
 /-- A known vector has exactly one concretization. -/
 theorem concretizations_of_known {v : LVec}
     (h : v.bits.toList.all Logic.isKnown = true) :
