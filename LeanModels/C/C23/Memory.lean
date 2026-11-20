@@ -1659,6 +1659,50 @@ def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used :
   let effTy := if (m.structuredType? o).isSome then c.effTy else some used
   return { m with objs := m.objs.set o { c with bytes := bytes, effTy := effTy } }
 
+theorem storeIntChecked_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy)
+    (used : CType) (v : Int) (usedStructured : Option QualType := none) :
+    (m.renameAddresses rename).storeIntChecked alias (Ptr.renameAddress rename p) t used v
+        usedStructured =
+      (m.storeIntChecked alias p t used v usedStructured).map
+        (Mem.renameAddresses rename) := by
+  simp only [storeIntChecked]
+  rw [resolve_renameAddresses]
+  cases h : m.resolve p (encodeInt t v).length with
+  | error e =>
+      simp only [h, Except.map, Except.instMonad, Except.bind, Except.pure]
+      rfl
+  | ok r =>
+      cases r with
+      | mk o rest =>
+          cases rest with
+          | mk c off =>
+              simp only [h, Except.map, Except.instMonad, Except.bind, Except.pure]
+              dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+                Except.pure, Except.map]
+              simp only [checkEffectiveAt_renameAddresses]
+              cases hEff : m.checkEffectiveAt alias o c off used usedStructured with
+              | error e => simp [hEff]
+              | ok u =>
+                  simp only [hEff, Except.bind, Except.map, Except.pure]
+                  have henc :
+                      (encodeInt t v).map (CByte.renameAddress rename) = encodeInt t v :=
+                    encodeInt_renameAddresses rename t v
+                  have hmap : ∀ xs : List UInt8,
+                      (xs.map CByte.conc).map (CByte.renameAddress rename) =
+                        xs.map CByte.conc := by
+                    intro xs
+                    induction xs <;> simp [Function.comp_def, CByte.renameAddress, *]
+                  have hconc : ∀ xs : List UInt8,
+                      xs.map CByte.conc = xs.map (fun x => CByte.conc x) := by
+                    intro xs
+                    rfl
+                  simp [Mem.renameAddresses, CObj.renameAddress, encodeInt,
+                    CByte.renameAddress, List.map_append, List.map_take, List.map_drop,
+                    List.map_map, List.map_set, structuredType?, Function.comp_def, henc, hmap,
+                    hconc]
+                  rfl
+
 /-- Write a pointer, as `pointer_64`'s eight tagged bytes. Kept whole so
 that a partial overwrite makes the remaining bytes UNREADABLE as a
 pointer rather than silently valid. -/
