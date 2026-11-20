@@ -2398,6 +2398,73 @@ theorem loadPtrInt_renameAddresses_of_exact
     simpa only [BEq.beq] using hself
   rw [if_pos hself']
 
+theorem loadPtrInt_renameAddresses_of_indet
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr)
+    (o : ObjId) (c : CObj) (off : Nat) (bs : List CByte)
+    (hr : m.resolve p 8 = .ok (o, c, off))
+    (hbytes : List.take 8 (List.drop off c.bytes) = bs)
+    (hhead : ∀ q, (bs.map (CByte.renameAddress rename)).head? ≠
+      some (CByte.ptrIntByte q 0))
+    (hany : bs.any (· == CByte.indet) = true) :
+    (m.renameAddresses rename).loadPtrInt (Ptr.renameAddress rename p) =
+      .error (.memUB (indetFault c.dur o off)) := by
+  simp only [loadPtrInt, resolve_renameAddresses, hr]
+  dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+    Except.pure, Except.map]
+  have hmapped :
+      List.take 8 (List.drop off (CObj.renameAddress rename c).bytes) =
+        bs.map (CByte.renameAddress rename) := by
+    simp only [CObj.renameAddress]
+    simpa [List.map_take, List.map_drop] using congrArg
+      (List.map (CByte.renameAddress rename)) hbytes
+  rw [hmapped]
+  have hany' :
+      (bs.map (CByte.renameAddress rename)).any (· == CByte.indet) = true := by
+    rw [List.any_renameAddress_indet]
+    exact hany
+  cases hh : (bs.map (CByte.renameAddress rename)).head? with
+  | none =>
+      simp [hh, hany', CObj.renameAddress]
+  | some b =>
+      cases b with
+      | ptrIntByte q k =>
+          cases k with
+          | zero => exact False.elim (hhead q (by simpa [hh]))
+          | succ k => simp [hh, hany', CObj.renameAddress]
+      | _ => simp [hh, hany', CObj.renameAddress]
+
+theorem loadPtrInt_renameAddresses_of_nonValue
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr)
+    (o : ObjId) (c : CObj) (off : Nat) (bs : List CByte)
+    (hr : m.resolve p 8 = .ok (o, c, off))
+    (hbytes : List.take 8 (List.drop off c.bytes) = bs)
+    (hhead : ∀ q, (bs.map (CByte.renameAddress rename)).head? ≠
+      some (CByte.ptrIntByte q 0))
+    (hany : (bs.map (CByte.renameAddress rename)).any
+      (· == CByte.indet) ≠ true) :
+    (m.renameAddresses rename).loadPtrInt (Ptr.renameAddress rename p) =
+      .error (.memUB (.nonValueRepresentation o off)) := by
+  simp only [loadPtrInt, resolve_renameAddresses, hr]
+  dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+    Except.pure, Except.map]
+  have hmapped :
+      List.take 8 (List.drop off (CObj.renameAddress rename c).bytes) =
+        bs.map (CByte.renameAddress rename) := by
+    simp only [CObj.renameAddress]
+    simpa [List.map_take, List.map_drop] using congrArg
+      (List.map (CByte.renameAddress rename)) hbytes
+  rw [hmapped]
+  cases hh : (bs.map (CByte.renameAddress rename)).head? with
+  | none => simp [hh, hany, CObj.renameAddress]
+  | some b =>
+      cases b with
+      | ptrIntByte q k =>
+          cases k with
+          | zero => exact False.elim (hhead q (by simpa [hh]))
+          | succ k => simp [hh, hany, CObj.renameAddress]
+      | _ => simp [hh, hany, CObj.renameAddress]
+
+
 theorem storeBytes_structuredTypesUnique
     {m m' : Mem} {p : Ptr} {bs : List CByte}
     {o : ObjId} {c : CObj} {off : Nat}
