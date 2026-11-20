@@ -646,8 +646,11 @@ simulator row has `DADDR=5` and zero `DATAO`.  The existing all-NOP and always-r
 batteries remain 1000/1000.  This is a wrong-answer finding for the
 instruction-memory wait-state path, not a passing E-RUN claim.
 
-The checker now reports this first failing row directly as `some 1` while
-retaining the corrupted-row negative control on the passing battery.
+The checker now reports the first failing field and both values directly.  The
+stalled replay reports `some 1 field DATAO`, with canonical E producing
+`0000000000000000xxxxxxxx00000000` and the simulator row producing
+`00000000000000000000000000000000`.  The corrupted-row negative control stays
+active on the passing battery.
 
 ## 2026-11-20 Quark current-source E-RUN boundary
 
