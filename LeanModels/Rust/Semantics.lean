@@ -336,13 +336,19 @@ def typedBytesEnum (s : State) (ty : Nat) (bytes : List Nat) : Option Cell :=
             if chunk.length == tagBytes && chunk.all (· ≤ 255) then
               let variant := littleEndian chunk
               if variant < variantCount then
+                -- The payload's type and offset are not in the layout table.  They are known only
+                -- for the `Option`-shaped enum: two variants, the first without fields, one type
+                -- argument, and the second variant's single field of that type right after the
+                -- tag.  Any other shape (`Result<u8, i8>`, whose `Err` payload would be decoded at
+                -- `u8`) refuses instead of guessing.
                 let payload :=
-                  match variant, info.typeArgs.head? with
+                  match variant, info.typeArgs with
                   | 0, _ => some []
-                  | _, some payloadType =>
+                  | _, [payloadType] =>
+                      if variantCount != 2 then none else
                       let payloadBytes := bytes.drop ((offsetBits / 8) + tagBytes)
                       (typedBytesValue s payloadType payloadBytes).map (fun value => [Cell.int value])
-                  | _, none => none
+                  | _, _ => none
                 payload.map (fun fields => .enum variant fields)
               else none
             else none
