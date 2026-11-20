@@ -64,6 +64,15 @@ private def structuredAllocCheck : Bool :=
 
 #guard structuredAllocCheck
 
+private def structuredAtAllocCheck : Bool :=
+  let m := LeanModels.C.C23.Mem.empty
+  (m.allocAtStructured LeanModels.C.C23.Duration.automatic 4 (some "int")
+    (some (.cBuiltinKind .int)) 128).1.structuredType?
+      (m.allocStructured LeanModels.C.C23.Duration.automatic 4 (some "int")
+        (some (.cBuiltinKind .int))).2 == some (.cBuiltinKind .int)
+
+#guard structuredAtAllocCheck
+
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))

@@ -480,3 +480,8 @@ Checked integer loads and stores use the structural compatibility predicate
 when both access and effective types are present, while legacy envelopes keep
 the existing spelling path. Allocation lookup and placement-preservation
 guards cover the new side table.
+
+Explicit-placement allocation now has structured variants with the same
+identity and placement guarantees. `realloc` remains a separate lifetime
+transition until the standard's effective-type transfer rule is recorded in
+the shared store contract.
