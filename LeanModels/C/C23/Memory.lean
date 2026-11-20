@@ -3772,6 +3772,169 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+def renameAddressReallocResult (rename : ObjId → Nat) : MRes (Mem × Ptr) → MRes (Mem × Ptr)
+  | .ok (m, p) => .ok (m.renameAddresses rename, Ptr.renameAddress rename p)
+  | .error (.memUB (.reallocZero p)) =>
+      .error (.memUB (.reallocZero (Ptr.renameAddress rename p)))
+  | .error (.memUB (.freeUnmatched p)) =>
+      .error (.memUB (.freeUnmatched (Ptr.renameAddress rename p)))
+  | .error e => .error e
+
+private theorem placementSet_map_rename_of_fresh
+    (xs : List (ObjId × Nat)) (rename : ObjId → Nat) (o address : Nat)
+    (hno : ∀ x ∈ xs, x.1 ≠ o) :
+    placementSet (xs.map (fun x => (x.1, rename x.1))) o (rename o) =
+      (placementSet xs o address).map (fun x => (x.1, rename x.1)) := by
+  revert hno
+  induction xs with
+  | nil =>
+      intro hno
+      simp [placementSet]
+  | cons x xs ih =>
+      intro hno
+      have hx : x.1 ≠ o := hno x (by simp)
+      have htail : ∀ y ∈ xs, y.1 ≠ o := by
+        intro y hy
+        exact hno y (by simp [hy])
+      have hbeq : ¬(x.1 == o) := by
+        intro h
+        exact hx (of_decide_eq_true h)
+      simp [placementSet, hbeq, ih htail]
+
+
+private theorem placementSet_map_rename_fresh
+    (xs : List (ObjId × Nat)) (rename : ObjId → Nat) (o address : Nat)
+    (hno : ∀ x ∈ xs, x.1 ≠ o) :
+    placementSet (xs.map (fun x => (x.1, rename x.1)) ++ [(o, o)]) o (rename o) =
+      (placementSet (xs ++ [(o, o)]) o address).map (fun x => (x.1, rename x.1)) := by
+  revert hno
+  induction xs with
+  | nil =>
+      intro hno
+      simp [placementSet]
+  | cons x xs ih =>
+      intro hno
+      have hx : x.1 ≠ o := hno x (by simp)
+      have htail : ∀ y ∈ xs, y.1 ≠ o := by
+        intro y hy
+        exact hno y (by simp [hy])
+      have hbeq : ¬(x.1 == o) := by
+        intro h
+        exact hx (of_decide_eq_true h)
+      simp [placementSet, hbeq, ih htail]
+
+
+theorem reallocAt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (size address : Nat)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
+    (m.renameAddresses rename).reallocAt (Ptr.renameAddress rename p) size
+        (rename m.objs.length) =
+      renameAddressReallocResult rename (m.reallocAt p size address) := by
+  have hget : ∀ (o : ObjId),
+      (m.renameAddresses rename).get? o =
+        (m.get? o).map (CObj.renameAddress rename) := by
+    intro o
+    simp [get?, renameAddresses, List.getElem?_map]
+  cases hz : size == 0 with
+  | true =>
+      simp [reallocAt, renameAddressReallocResult, hz, Ptr.renameAddress]
+  | false =>
+      cases hp : p.obj with
+      | none =>
+          have hno : ∀ x ∈ m.placements, x.1 ≠ m.objs.length := by
+            intro x hx
+            cases x with
+            | mk xo xv =>
+                intro hxo
+                cases hxo
+                exact hnew xv hx
+          have hplace :
+              placementSet (m.placements.map (fun x => (x.1, rename x.1)) ++
+                [(m.objs.length, m.objs.length)]) m.objs.length (rename m.objs.length) =
+                (placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
+                  m.objs.length address).map (fun x => (x.1, rename x.1)) := by
+            exact placementSet_map_rename_fresh m.placements rename m.objs.length address hno
+          simp [reallocAt, renameAddressReallocResult, hz, hp, Ptr.renameAddress,
+            mallocAt, allocAt, alloc, renameAddresses, CObj.renameAddress,
+            List.map_append, List.map_cons, List.map_nil, List.length_map,
+            Ptr.toObjectBoundAt, hplace]
+      | some o =>
+          cases hc : m.get? o with
+          | none =>
+              simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hget,
+                Ptr.renameAddress]
+          | some c =>
+              have hc0 : m.objs[o]? = some c := by
+                simpa [get?] using hc
+              have ho : o < m.objs.length :=
+                (List.getElem?_eq_some_iff.mp hc0).choose
+              have hc' : (m.renameAddresses rename).get? o =
+                  some (CObj.renameAddress rename c) := by
+                have this := hget o
+                rw [hc] at this
+                exact this
+              have hdur' : ((CObj.renameAddress rename c).dur == Duration.allocated) =
+                  (c.dur == Duration.allocated) := by rfl
+              have hlive' : (CObj.renameAddress rename c).live = c.live := by rfl
+              by_cases hdur : c.dur == .allocated
+              · by_cases hlive : c.live
+                · by_cases hoff : p.off == 0
+                  · have hno : ∀ x ∈ m.placements, x.1 ≠ m.objs.length := by
+                      intro x hx
+                      cases x with
+                      | mk xo xv =>
+                          intro hxo
+                          cases hxo
+                          exact hnew xv hx
+                    have hplace :
+                        placementSet (m.placements.map (fun x => (x.1, rename x.1)))
+                            m.objs.length (rename m.objs.length) =
+                          (placementSet m.placements m.objs.length address).map
+                            (fun x => (x.1, rename x.1)) := by
+                      exact placementSet_map_rename_of_fresh m.placements rename
+                        m.objs.length address hno
+                    simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hc', hget,
+                      hdur, hlive, hoff, hdur', hlive', Ptr.renameAddress,
+                      Ptr.toObjectBoundAt, hplace,
+                      copyStructuredType_renameAddresses, kill_renameAddresses]
+                    let fresh : List CByte :=
+                      List.take size c.bytes ++
+                        List.replicate (size - min size c.bytes.length) CByte.indet
+                    let freshR : List CByte :=
+                      List.take size (CObj.renameAddress rename c).bytes ++
+                        List.replicate
+                          (size - min size (CObj.renameAddress rename c).bytes.length)
+                          CByte.indet
+                    let m' : Mem :=
+                      { m with
+                        objs := m.objs ++ [⟨.allocated, true, fresh, none⟩]
+                        placements := placementSet m.placements m.objs.length address }
+                    let mR' : Mem :=
+                      { m.renameAddresses rename with
+                        objs := (m.renameAddresses rename).objs ++
+                          [⟨.allocated, true, freshR, none⟩]
+                        placements :=
+                          placementSet (m.renameAddresses rename).placements
+                            m.objs.length (rename m.objs.length) }
+                    have hfresh : freshR = (fresh.map (CByte.renameAddress rename)) := by
+                      simp [freshR, fresh, CObj.renameAddress, CObj.size,
+                        List.map_take, List.map_replicate]
+                    have hbase : mR' = m'.renameAddresses rename := by
+                      cases m with
+                      | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+                          simp [mR', m', renameAddresses, CObj.renameAddress,
+                            hplace, hfresh, List.map_append, List.map_take,
+                            List.map_replicate, CObj.size]
+                    change (mR'.copyStructuredType o m.objs.length).kill o =
+                      ((m'.copyStructuredType o m.objs.length).kill o).renameAddresses rename
+                    rw [hbase, copyStructuredType_renameAddresses, kill_renameAddresses]
+                  · simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hc', hget,
+                      hdur, hlive, hoff, hdur', hlive', Ptr.renameAddress]
+                · simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hc', hget,
+                    hdur, hlive, hdur', hlive', Ptr.renameAddress]
+              · simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hc', hget,
+                  hdur, hdur', hlive', Ptr.renameAddress]
+
 /-! ### S3 memory contract
 
 `AddressIndependent` packages the pointwise placement-irrelevance facts used
