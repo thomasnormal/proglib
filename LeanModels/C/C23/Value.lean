@@ -270,6 +270,10 @@ def renameAddress (resolve : ObjId → Nat) (p : Ptr) : Ptr :=
 def null : Ptr := ⟨none, 0, 0, none⟩
 
 def isNull (p : Ptr) : Bool := p.obj.isNone
+@[simp] theorem isNull_renameAddress (resolve : ObjId → Nat) (p : Ptr) :
+    isNull (renameAddress resolve p) = isNull p := by
+  simp [isNull]
+
 
 /-- C23 §6.5.4.2p3 and §6.3.2.1p3 produce the SAME value for an object:
 `&x` and the decay of `x` both designate its first byte. One definition
@@ -287,6 +291,26 @@ def toObjectBoundAt (o : ObjId) (address : Nat) (size : Nat) : Ptr :=
   ⟨some o, address, 0, some size⟩
 
 def toObjectBound (o : ObjId) (size : Nat) : Ptr := toObjectBoundAt o o size
+
+theorem renameAddress_toObjectAt (resolve : ObjId → Nat) (o : ObjId) (address : Nat) :
+    renameAddress resolve (toObjectAt o address) = toObjectAt o (resolve o) := by
+  rfl
+
+theorem renameAddress_toObject (resolve : ObjId → Nat) (o : ObjId) :
+    renameAddress resolve (toObject o) = toObjectAt o (resolve o) := by
+  rfl
+
+theorem renameAddress_toObjectBoundAt (resolve : ObjId → Nat) (o : ObjId)
+    (address size : Nat) :
+    renameAddress resolve (toObjectBoundAt o address size) =
+      toObjectBoundAt o (resolve o) size := by
+  rfl
+
+theorem renameAddress_toObjectBound (resolve : ObjId → Nat) (o : ObjId) (size : Nat) :
+    renameAddress resolve (toObjectBound o size) =
+      toObjectBoundAt o (resolve o) size := by
+  rfl
+
 
 /-- PNVI-style exposure used by the default C address instance.  Zero is
 reserved for the null pointer; object placements are therefore exposed as
