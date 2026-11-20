@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Receipt for the package assignment-pattern storage wall."""
 from pathlib import Path
+import os
 import subprocess
 import tempfile
 import os
