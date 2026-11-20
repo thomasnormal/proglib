@@ -340,6 +340,13 @@ pinned Clang 21.1.8 with no DIVERGE. The evaluator refuses compound assignment
 to a bit-field and widths above eight bits until the shared read-modify-write
 store is implemented.
 
+The string-literal pointer family is now refusal-only for pointer arithmetic
+and comparison. Three frozen rows covering direct string arithmetic, a helper
+returning a string pointer, and a static pointer-array element report named
+`pointer operation involving a string literal` refusals with the structured
+plugin and no DIVERGE. String-object byte semantics remain a separate future
+family.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and
