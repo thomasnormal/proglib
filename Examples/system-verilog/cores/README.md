@@ -1106,6 +1106,22 @@ all 32 observed outputs.  The testbench used for this receipt is pinned by
 SHA-256 `20b5f36d4cc62ef0e44ae854a230fab44a2ccc6a3c0ff4c91e0b183e04e75770`.
 The census remains 360 admitted / 0 refused / 4 not reached.
 
+## 2026-11-20 census rerank after three R1 consumer rechecks
+
+The stall-rule rerun passed the census self-test and the current pinned
+PicoRV32 RISCV_FORMAL envelope.  PicoRV32 remains **360 admitted / 0 refused /
+4 not reached**, with the four rows confined to inactive default generate
+branches.  The current execution receipts remain PicoRV32 **1000/1000** and
+DarkRISCV **1000/1000** through their checked canonical-E routes, while Quark
+is **0/0** at its untyped-width loader wall and SERV is **0/0** at its
+`RF_WIDTH` untyped-width wall with **910/41/203** current source-overlay
+census rows.
+
+The three R1 rechecks did not add a loaded-core invariant or change the
+universal premises.  The rerank therefore keeps the next item on the R1
+consumption map, with the memory family next, while retaining the DarkRISCV
+source-shaped scalar transition as a separate execution wall.
+
 ## 2026-11-20 OpenTitan prim_arbiter_ppc canonical-E admission
 
 The pinned OpenTitan source at commit
