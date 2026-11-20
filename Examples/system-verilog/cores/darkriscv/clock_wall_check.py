@@ -20,6 +20,7 @@ import tempfile
 
 
 ENVELOPE_HASHES = {
+    "120807c6e5a246cf634bbd2af593810cd00b7fafb75dd4bb8b385d7c3a1a753b",
     "0ce4d6079fc99f447a6ea82b4422de654192faba4495603b77a451705d19f9dc",
     "5fdb97fc8b4f663d7265e2d3128610319ab6f2cfc86576cb1cee519c78e44ccc",
     "ca8f0a92c7477ee9fd75f55966c122fa29400f8948a18ae361cc81a077077fc5",
@@ -28,7 +29,7 @@ ENVELOPE_HASHES = {
 }
 STAGED_CHECK = Path(__file__).with_name("e_check.py")
 TIMEOUT_SECONDS = 180
-CYCLE_COUNT = 220
+CYCLE_COUNT = 1000
 
 
 def bits(width: int, value: int) -> str:

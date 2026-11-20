@@ -1075,6 +1075,22 @@ first-clock probe times out at the 180-second bound, so E-RUN remains **0/1**.
 The receipt checkers accept this current envelope pin.  The simulator receipt
 is unchanged at 220/220 rows with digest
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+
+## 2026-11-20 DarkRISCV canonical-E 1000-cycle extension
+
+The current source-overlay envelope has SHA-256
+`120807c6e5a246cf634bbd2af593810cd00b7fafb75dd4bb8b385d7c3a1a753b`, with
+the same 177 admitted / 0 refused / 0 not reached census.  The checked
+`CoreMemDesign.fastStepCanonical` route completes **1000/1000** source-shaped
+rising-edge cycles after the staged reset and preparation path.  The direct
+scalar `stepOnePassTrace` route remains a separate 180-second execution wall.
+
+The pinned Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium
+24.03-s004 receipts agree on **1000/1000** simulator rows with normalized
+digest `9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
+Canonical-E and simulator results remain separate observations because the E
+route retains x-valued data-side columns.
+
 ## 2026-11-20 OpenTitan prim_arbiter_ppc canonical-E admission
 
 The pinned OpenTitan source at commit

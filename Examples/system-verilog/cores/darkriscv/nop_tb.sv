@@ -50,7 +50,7 @@ module darkriscv_nop_tb;
       image[i] = 32'h00000013;
     repeat (4) @(posedge clk);
     reset <= 0;
-    repeat (220) begin
+    repeat (1000) begin
       @(posedge clk);
       #1;
       $display("ROW cycle=%0d reset=%b instr_req=%b instr_addr=%08x instr_data=%08x data_req=%b data_addr=%08x data_len=%03b data_be=%04b data_rw=%b data_rd=%b data_wr=%b data_out=%08x data_in=%08x data_ack=%b debug=%04b",
