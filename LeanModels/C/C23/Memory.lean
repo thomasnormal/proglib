@@ -1921,6 +1921,18 @@ def loadPtr (m : Mem) (p : Ptr) : MRes Ptr := do
         .error (.memUB (indetFault c.dur o off))
       else .error (.memUB (.nonValueRepresentation o off))
 
+theorem CByte.renameAddress_ptrByte_range
+    (rename : ObjId → Nat) (q : Ptr) :
+    ((List.range 8).map (CByte.ptrByte q)).map (CByte.renameAddress rename) =
+      (List.range 8).map (CByte.ptrByte (Ptr.renameAddress rename q)) := by
+  simp [CByte.renameAddress, Function.comp_def]
+
+theorem CByte.renameAddress_ptrIntByte_range
+    (rename : ObjId → Nat) (q : Ptr) :
+    ((List.range 8).map (CByte.ptrIntByte q)).map (CByte.renameAddress rename) =
+      (List.range 8).map (CByte.ptrIntByte (Ptr.renameAddress rename q)) := by
+  simp [CByte.renameAddress, Function.comp_def]
+
 def storePtrInt (m : Mem) (p : Ptr) (q : Ptr) : MRes Mem :=
   m.storeBytes p ((List.range 8).map (CByte.ptrIntByte q))
 
