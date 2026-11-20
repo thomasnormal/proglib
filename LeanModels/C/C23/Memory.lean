@@ -567,6 +567,16 @@ theorem vaStart_structuredTypesUnique {m m' : Mem} {p : Ptr} {args : List CVal}
     cases hr
     simpa [structuredTypesUnique, structuredTypeKeys] using h
 
+theorem vaStart_structuredType_lookup {m m' : Mem} {p : Ptr} {args : List CVal}
+    (q : ObjId) (hr : vaStart m p args = .ok m') :
+    m'.structuredType? q = m.structuredType? q := by
+  cases hp : p.obj with
+  | none => simp [vaStart, hp] at hr
+  | some o =>
+    simp [vaStart, hp] at hr
+    cases hr
+    rfl
+
 theorem vaCopy_structuredTypesUnique {m m' : Mem} {dst src : Ptr}
     (h : structuredTypesUnique m)
     (hr : vaCopy m dst src = .ok m') : structuredTypesUnique m' := by
@@ -583,6 +593,22 @@ theorem vaCopy_structuredTypesUnique {m m' : Mem} {dst src : Ptr}
         cases hr
         simpa [structuredTypesUnique, structuredTypeKeys] using h
 
+theorem vaCopy_structuredType_lookup {m m' : Mem} {dst src : Ptr}
+    (q : ObjId) (hr : vaCopy m dst src = .ok m') :
+    m'.structuredType? q = m.structuredType? q := by
+  cases hd : dst.obj with
+  | none => simp [vaCopy, hd] at hr
+  | some d =>
+    cases hs : src.obj with
+    | none => simp [vaCopy, hd, hs] at hr
+    | some s =>
+      cases hv : vaGet m.vaCursors s with
+      | none => simp [vaCopy, hd, hs, hv] at hr
+      | some vs =>
+        simp [vaCopy, hd, hs, hv] at hr
+        cases hr
+        rfl
+
 theorem vaEnd_structuredTypesUnique {m m' : Mem} {p : Ptr}
     (h : structuredTypesUnique m)
     (hr : vaEnd m p = .ok m') : structuredTypesUnique m' := by
@@ -592,6 +618,16 @@ theorem vaEnd_structuredTypesUnique {m m' : Mem} {p : Ptr}
     simp [vaEnd, hp] at hr
     cases hr
     simpa [structuredTypesUnique, structuredTypeKeys] using h
+
+theorem vaEnd_structuredType_lookup {m m' : Mem} {p : Ptr}
+    (q : ObjId) (hr : vaEnd m p = .ok m') :
+    m'.structuredType? q = m.structuredType? q := by
+  cases hp : p.obj with
+  | none => simp [vaEnd, hp] at hr
+  | some o =>
+    simp [vaEnd, hp] at hr
+    cases hr
+    rfl
 
 theorem vaArg_structuredTypesUnique {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
     (h : structuredTypesUnique m)
@@ -609,6 +645,22 @@ theorem vaArg_structuredTypesUnique {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
         have hm : m' = {m with vaCursors := vaSet m.vaCursors o rest} := hr.2.symm
         rw [hm]
         simpa [structuredTypesUnique, structuredTypeKeys] using h
+
+theorem vaArg_structuredType_lookup {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
+    (q : ObjId) (hr : vaArg m p = .ok (v, m')) :
+    m'.structuredType? q = m.structuredType? q := by
+  cases hp : p.obj with
+  | none => simp [vaArg, hp] at hr
+  | some o =>
+    cases hv : vaGet m.vaCursors o with
+    | none => simp [vaArg, hp, hv] at hr
+    | some vs =>
+      cases vs with
+      | nil => simp [vaArg, hp, hv] at hr
+      | cons head rest =>
+        simp [vaArg, hp, hv] at hr
+        rw [hr.2]
+        rfl
 
 def get? (m : Mem) (o : ObjId) : Option CObj := m.objs[o]?
 

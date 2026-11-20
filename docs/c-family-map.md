@@ -588,3 +588,7 @@ The remaining metadata-only projections are explicit as well. `emitStdout`
 preserves every lookup, and `copyStructuredType` preserves all existing keys
 away from its fresh destination while exposing the transferred key at that
 destination.
+
+The four abstract `va_list` operations now expose lookup equality on successful
+results as well. Cursor updates cannot change parser-native effective-type
+identity.
