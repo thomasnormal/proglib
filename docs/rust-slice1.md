@@ -6,13 +6,16 @@ This slice implements the MIR node census groups in the approved
 and chosen addresses, `Use` rvalues, typed integer and pointer-preserving `Cast`
 rvalues, constant operands, control flow, resolved calls, normal drop edges, and
 explicit refusal boundaries for cleanup, intrinsics, and foreign operations. The
-implementation is 1335 lines in `LeanModels/Rust/Semantics.lean`, with 134 lines
-of AST declarations, 490 lines of JSON decoding, and 38 lines of the literal-envelope loader.
+implementation is 1724 lines in `LeanModels/Rust/Semantics.lean`, with 140 lines
+of AST declarations, 534 lines of JSON decoding, and 38 lines of the literal-envelope loader.
 
 The local fixture count is separate from the Stage 0 corpus.  The last measured
-counter is `SLICE1-ROWS 20/30, diverging 0`, at the lane's parked tip (the
-commit "rust: expose typed equality refusal operands").  It was not re-measured
-after the land1 review fixes recorded at the end of this file: the corpus
+counter is `SLICE1-ROWS 23/30, diverging 0`, from the lane's commit "rust:
+refresh allocator refusal audit".  The lane measured it on its own branch, which
+had neither the land1 fixes nor the land1 audit classification; re-classifying
+the checked-in rows with the current `classify` changes none of them.  Neither
+the later lane commits (uninitialised constant bytes among them) nor the land1
+and land2 fixes recorded at the end of this file were re-measured: the corpus
 envelopes are not checked in, and the audit re-extracts them with the pinned
 nightly extractor.
 
@@ -22,8 +25,8 @@ The 30 non-printing Stage 0 rows were audited with the structured extractor:
 python3 harness/rust/slice1_audit.py --output docs/rust-slice1-audit.json
 ```
 
-The report contains 30 rows, 23 decided rows, 7 named refusals, and zero
-divergences. The audit extracts every envelope, loads each one into Lean, runs
+The checked-in report contains 30 rows, 23 decided rows, 7 named refusals, and
+zero divergences. The audit extracts every envelope, loads each one into Lean, runs
 `runOutcome` for all of them in one `lake env lean` process (`#eval`), and
 compares each return, panic or UB outcome with the Stage 0 Miri verdict; a
 refusal or fuel exhaustion is a named refusal.  Every row of this corpus exits
@@ -69,7 +72,11 @@ The operation is not reduced to an address comparison.
 The Repeat family is parsed from the structured const-generic value in the
 MIR envelope and constructs a repeated aggregate cell. The Cast family decodes
 `IntToInt` through the target integer layout and preserves provenance for
-`PtrToPtr`.  A `Transmute` reinterprets an integer at an integer target's width
+`PtrToPtr`.  A `PtrToPtr` cast (and a pointer-to-pointer transmute) gives a
+pointer into envelope or allocator bytes the target's pointee type, so a later
+read decodes the bytes at that type; for a pointer to a local or a caller's
+local, whose target is a typed cell, a cast that changes the pointee type
+refuses.  A `Transmute` reinterprets an integer at an integer target's width
 and signedness, keeps an integer as an address without provenance at a raw
 pointer target, and keeps a pointer at a pointer target; every other transmute
 refuses.  `MutToConstPointer` and `Unsize` coercions keep their operand (the
@@ -80,7 +87,12 @@ the address without provenance, and dereferencing it refuses.  The
 reaches a zero-sized return.
 
 Pointer constants retain the extractor's global-allocation identity and
-resolve it through the envelope's global table before reading bytes. Local
+resolve it through the envelope's global table before reading bytes.  An
+integer is decoded only from exactly its type's bytes.  The layout table has
+field offsets but no field types, so among structs and tuples only
+`std::alloc::Layout` (two 8-byte unsigned fields) and the atomics are decoded
+from bytes; any other aggregate read from bytes refuses.  An uninitialised byte
+is kept as 256, outside the byte range every decoder accepts. Local
 references and allocation pointers use separate provenance classes, so a local
 ID cannot alias an allocation-table index. The address-independence theorem
 continues to compare pointers by provenance while allowing their chosen
@@ -94,7 +106,11 @@ envelope does not carry declared discriminant values, so for
 (a known wrong answer, listed below).
 Direct enum layouts carry extracted tag offsets, tag widths, variant counts, and
 payload type arguments. A direct enum can therefore be decoded from allocation
-bytes even when an inactive variant payload contains uninitialized bytes. Local
+bytes even when an inactive variant payload contains uninitialized bytes; an
+uninitialised tag refuses.  The tag value is taken as the variant index, and a
+payload is decoded only for the `Option` shape (two variants, the first without
+fields, one type argument, the payload right after the tag at that type); any
+other payload refuses. Local
 `Ref` and `AddressOf` values retain frame-local provenance before a call shares
 them with the callee. The `study_question_mark` corpus row now returns normally
 through `Option<i32>` comparison.
@@ -218,18 +234,32 @@ constructs the corresponding `ForeignProgramStep` when the address choice,
 typed arguments, destination write, and normal continuation satisfy their
 premises.  The proof leaves the registry and address choice explicit.
 
-The derived `cfgRunProgramForeign` runner takes a registry and an explicit
-placement function.  Its allocator branch checks the typed size and alignment,
-requires the allocation-choice predicate, applies `allocatorStep`, writes the
-returned pointer to the MIR destination, and records the external call event.
-The ordinary `runOutcome` entry remains unchanged and continues to refuse
-foreign calls until this parameterized path is selected by a caller.
+The derived `cfgRunProgramForeign` runner takes a registry, and its entry
+`runForeignWithPlacement` takes a placement function.  Its allocator branch
+checks the typed size and alignment, requires the allocation-choice predicate,
+applies `allocatorStep`, writes the returned pointer to the MIR destination,
+and records the external call event.  Limits, as of land2: the placement
+function places only the envelope's own allocations, and a run-time
+allocation's address is `placementOf`'s fallback, its allocation index, so the
+runner does not consult a choice for it; the choice predicate is decided
+classically, so the runner is `noncomputable` and cannot be evaluated or
+checked by `decide`; a callee's allocations are dropped when it returns,
+because the caller continues from its pre-call state; `ForeignProgramStep`
+admits one allocator call and continues in `ProgramSteps`, which has no
+foreign rule and keeps the older call rule; no theorem quantifies over the
+choice.  Nothing calls this runner: the ordinary `runOutcome` entry, which the
+corpus audit uses, remains unchanged and refuses foreign calls.
 
 `Examples/rust/allocator` is a focused extracted envelope for a `Box<u8>`
 allocation.  Its Miri oracle is `ok` under both Stacked Borrows and Tree
 Borrows.  The loader now preserves null bytes from uninitialized constant
-allocations through an explicit `bytesValid` bit, and the row reaches the
-allocator-registry refusal without decoding those bytes as an integer.
+allocations (as the out-of-range byte 256, with an explicit `bytesValid` bit).
+`runOutcome` on this envelope refuses before the allocator call, in
+`alloc::boxed::box_new_uninit`, where it reads a field of the `Layout` constant
+held as opaque bytes in a local (measured in land2, before and after its
+fixes).  `allocator_transition_is_foreign_step` restates
+`foreignAllocatorRun_in_step` for this module; it says nothing about the
+envelope's program.
 
 The required theorem rows are checked-in user functions.  `Examples/rust/loop`
 proves the exact executable trace of a countdown loop.  Its Miri oracle invocation took
@@ -250,13 +280,14 @@ are read from it), which `runOutcome` replaced; nothing relates the two runners.
 
 ## Slice 1 exit record
 
-The D1 corpus audit reports 30 rows, 20 decided rows, 10 named refusals, and
-zero diverging rows (measured before the land1 fixes below).  Each row's
+The D1 corpus audit reports 30 rows, 23 decided rows, 7 named refusals, and
+zero diverging rows (measured on the lane's branch before the land1 and land2
+fixes below).  Each row's
 refusal is tied to the first unsupported rvalue or terminator, an unavailable
 callee, or the absence of a checked-in relation row.  The audit command and
 its per-row extractor timings are recorded in `docs/rust-slice1-audit.json`.
 The pinned Stage 0 Miri report records the exit, panic, and UB verdict for all
-31 measured rows under both borrow models.  The Lean semantics is 1335 lines.
+31 measured rows under both borrow models.  The Lean semantics is 1724 lines.
 The checked-in theorem rows include a user loop, a resolved user call, and a
 standard-library identity call proved from its extracted MIR body.
 
@@ -316,6 +347,15 @@ repeated symbolic execution of the extracted blocks and the bridge between
 `Nat` remainder facts and the signed `Int` cells.  The induction itself is the
 short portion of the proof.
 
+The proof broke again under the lane's later commits (a body's `argCount`, the
+type-table lookup) and was repaired with the same statement.  As of land2 the
+file has 389 lines, 357 of them non-blank: 93 re-transcribe the extracted body
+and its blocks (checked by `rfl`), 238 are the symbolic step lemmas and the
+induction, and 18 are an unused `gcdLoop`.  It makes 54 `simp` calls (34
+before) and raises `maxHeartbeats` to 2,000,000 on four theorems (one before).
+Against the 8-line `gcd` function that is about 30 non-blank lines per source
+line, against about 3 for the Python lane.
+
 ## Landing review (land1)
 
 The land1 review rebuilt every Rust target and added fixes on top of the
@@ -340,3 +380,36 @@ Known wrong answers that remain, because fixing them needs extractor data:
 - `Drop` terminators only mark the local uninitialized; no drop glue runs, so
   a `Drop` impl that panics or exits is ignored;
 - `Discriminant` returns the variant index, not a declared discriminant value.
+
+## Landing review (land2)
+
+The land2 review rebased the lane's next 23 commits onto the land1 fixes (one
+resolution: `operandType` gained the constant's new `bytesValid` field) and
+re-ran the land1 probes: every land1 repair holds.  It turned these silent
+wrong answers of the admitted tier into refusals (or, for a cast pointer into
+bytes, into the exact read):
+
+- every struct and tuple read from bytes decoded each field as an 8-byte
+  unsigned chunk (`(u8, u8) = (1, 2)` read 513 for its first field, `(i8, u8)`
+  767 for -1);
+- a direct enum's payload was decoded at the first type argument right after
+  the tag (`Result<u8, i8>::Err(-1)` read `Err(255)`);
+- an uninitialised byte was loaded as 0, so an uninitialised enum tag read as
+  variant 0 instead of being undefined behaviour;
+- a pointer cast kept its old pointee type, and an integer was decoded from a
+  byte list longer than its type (a `u8` read through a cast `u32` pointer gave
+  the whole `u32`).
+
+Known wrong answers and gaps that remain, beyond the two land1 lists above:
+
+- a direct enum's tag value is taken as its variant index, so a declared
+  discriminant that is a different variant's index decodes as that variant;
+  with land1's `Discriminant` (the variant index of a local enum), a static and
+  a local holding the same variant can compare unequal;
+- the `Option`-shaped payload is decoded at the enum's type argument, which the
+  layout table does not tie to the variant's field type (a payload of another
+  type of the same size, such as `u32` beside a `PhantomData<i32>`, decodes at
+  the argument's signedness);
+- `referencePointeeType` gives `&r` for a pointer-typed local `r` the pointee of
+  `r`'s type instead of `r`'s own type;
+- the placement-parameterized runner's limits listed above.
