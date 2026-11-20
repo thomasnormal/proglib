@@ -570,3 +570,7 @@ Effective-type establishment now follows C17 §6.5p6 for allocated storage.
 `storeIntChecked` records the access type on an allocation without a structured
 declaration row, while declaration-backed objects continue to use the shared
 parser-native side table. A bridge guard exercises the allocated-store path.
+
+The storage boundary now proves source-pointer placement irrelevance for
+`free`, `realloc`, and `reallocAt`. Explicit destination placement and
+pointer-byte exposure remain the address-observing exceptions in the F2 design.

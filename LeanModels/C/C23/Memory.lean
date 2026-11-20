@@ -1844,6 +1844,10 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
                 else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+@[simp] theorem free_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
+    m.free {p with address := address} = m.free p := by
+  simp [free]
+
 theorem free_structuredTypesUnique
     {m m' : Mem} {p : Ptr} (h : structuredTypesUnique m)
     (hr : m.free p = .ok m') : structuredTypesUnique m' := by
@@ -2255,6 +2259,16 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
           Ptr.toObjectBoundAt m.objs.length address size)
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
+
+@[simp] theorem realloc_address_irrel (m : Mem) (p : Ptr) (size address : Nat) :
+    m.realloc {p with address := address} size = m.realloc p size := by
+  simp [realloc]
+
+@[simp] theorem reallocAt_source_address_irrel
+    (m : Mem) (p : Ptr) (size address sourceAddress : Nat) :
+    m.reallocAt {p with address := sourceAddress} size address =
+      m.reallocAt p size address := by
+  simp [reallocAt]
 
 theorem realloc_structuredTypesUnique
     {m m' : Mem} {p q : Ptr} {size : Nat}
