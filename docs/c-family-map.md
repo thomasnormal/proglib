@@ -599,6 +599,7 @@ the structured side table unchanged while extending object or placement state.
 
 The pointwise placement lemmas are now packaged as `Mem.AddressIndependent`.
 `addressIndependent_mem` covers resolution, byte and typed accesses, variadic
-cursors, floating and pointer representations, `free`, and both realloc
-source-pointer cases. The evaluator-level behavior-set theorem still consumes
-this memory contract.
+cursors, character, floating, and pointer representations, `free`, and both
+realloc source-pointer cases. Character loads remain placement-independent even
+when their stored pointer-byte values observe the pointee representation. The
+evaluator-level behavior-set theorem still consumes this memory contract.
