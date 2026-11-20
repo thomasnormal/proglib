@@ -11,7 +11,7 @@ OUT = ROOT / "docs" / "sv-real-designs.md"
 # output table is generated; changing a result requires changing its measured
 # receipt and rerunning this script.
 ROWS = [
-    ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "yes", "canonical-E hierarchy admission at defaults; package-qualified vbits and fixed package-enum aliases admitted; next walls are timed/assertion constructs"),
+    ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "yes", "canonical-E hierarchy admission at defaults; package-qualified vbits and fixed package-enum aliases admitted; current walls are SysCall:$error and TimedStatement:DelayControl"),
     ("prim_arbiter_ppc", "OpenTitan 0a6ff685", "0", "yes", "canonical-E hierarchy admission and initialState at N=8,DW=32,EnDataPort=1; source-shaped loop family measured separately at N=2/N=4 with 16/16 rows matching both pinned simulators"),
     ("prim_packer", "OpenTitan 0a6ff685", "20", "yes", "canonical-E hierarchy admission at defaults; fixed module-local scalar enum admitted; next walls are assertion/timing constructs"),
     ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "yes", "EquationGate=false: canonical E equation gate remains outside the admitted complete design tier"),
