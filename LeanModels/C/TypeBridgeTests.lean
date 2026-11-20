@@ -82,6 +82,20 @@ private def structuredCopyCheck : Bool :=
 
 #guard structuredCopyCheck
 
+private def structuredReallocCheck : Bool :=
+  let m := LeanModels.C.C23.Mem.empty
+  let allocated := m.allocStructured LeanModels.C.C23.Duration.allocated 4
+    (some "int") (some (.cBuiltinKind .int))
+  let p := LeanModels.C.C23.Ptr.toObjectBound allocated.2 4
+  match allocated.1.reallocAt p 8 256 with
+  | .error _ => false
+  | .ok (m', q) =>
+      match q.obj with
+      | some fresh => m'.structuredType? fresh == some (.cBuiltinKind .int)
+      | none => false
+
+#guard structuredReallocCheck
+
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))
