@@ -73,6 +73,20 @@ theorem seqE_insertAt_zero {v p : LVec} (h : p.width = v.width) : v.insertAt 0 p
   LVec.insertAt_zero_of_width_eq h
 theorem seqE_resizeU_l1 : (⟨#[.l1]⟩ : LVec).resizeU 1 = ⟨#[.l1]⟩ := by decide
 
+/-- `{n{b}}` of one bit is `n` copies of the bit (§11.4.12.1): the replication of a one-bit literal, as a reset value
+`{N{1'b0}}` writes it, in the form the knownness lemmas read (`LVec.replicate_l0`, `LVec.replicate_l1`). -/
+theorem seqE_replVec_bit (n : Nat) (b : Logic) : LVec.replVec n ⟨#[b]⟩ = LVec.replicate n b := by
+  have h : ∀ k : Nat, (List.replicate k [b]).flatten = List.replicate k b := by
+    intro k
+    induction k with
+    | zero => rfl
+    | succ k ih => simp [List.replicate_succ, ih]
+  unfold LVec.replVec LVec.replicate
+  congr 1
+  apply Array.ext'
+  rw [Array.toList_flatten, Array.toList_replicate, List.map_replicate, Array.toList_replicate]
+  exact h n
+
 /-! ## Per-signal equations: a decision stays an `if` on the values it decides
 
 The evaluation pass does not split the cycle at the design's decisions (an `if`, a `case` arm, an edge that may or may
@@ -462,6 +476,8 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.seqE_ite_append, LeanModels.Sv.Kernel.seqE_ite_fst, LeanModels.Sv.Kernel.seqE_ite_snd,
       LeanModels.Sv.Kernel.seqE_resizeU_ite, LeanModels.Sv.Kernel.seqE_width_ite,
       LeanModels.Sv.Kernel.seqE_insertAt_zero, LeanModels.Sv.Kernel.seqE_width_lit,
+      LeanModels.Sv.Kernel.seqE_replVec_bit, LeanModels.Sv.LVec.replicate_l0, LeanModels.Sv.LVec.replicate_l1,
+      LeanModels.Sv.LVec.width_replicate,
       LeanModels.Sv.Kernel.seqE_width_add, LeanModels.Sv.Kernel.CoreMemDesign.cycleMV,
       LeanModels.Sv.Kernel.CoreMemDesign.dataV, LeanModels.Sv.Kernel.CoreMemDesign.tick,
       LeanModels.Sv.Kernel.Instant.row, LeanModels.Sv.Kernel.Instant.rise, LeanModels.Sv.Kernel.Instant.fall,
