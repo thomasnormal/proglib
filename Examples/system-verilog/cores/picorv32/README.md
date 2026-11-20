@@ -28,6 +28,16 @@ all-prefix refinement package.  The target and link-register semantics remain
 explicit, together with the universal canonical-E step, decode, relation,
 order, and progress premises.  No RTL invariant or finite trace is claimed.
 
+## 2026-11-20 R1 memory consumer recheck
+
+The loaded-core memory family compiles for signed and unsigned byte and
+halfword loads, word loads, and byte, halfword, and word stores.  The checked
+theorem surface includes the shared memory-fields-to-ISA bridge, the exact
+memory-threaded cycle dispatcher, and the loaded all-prefix refinement
+package.  Width, signedness, and post-memory state remain explicit, together
+with universal canonical-E step, decode, relation, order, and progress
+premises.  No RTL invariant or finite trace is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
