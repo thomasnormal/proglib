@@ -14,7 +14,7 @@ ROWS = [
     ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "yes", "canonical-E hierarchy admission at defaults; package-qualified vbits and fixed package-enum aliases admitted; current walls are SysCall:$error and TimedStatement:DelayControl"),
     ("prim_arbiter_ppc", "OpenTitan 0a6ff685", "0", "yes", "canonical-E hierarchy admission and initialState at N=8,DW=32,EnDataPort=1; source-shaped loop family measured separately at N=2/N=4 with 16/16 rows matching both pinned simulators"),
     ("prim_packer", "OpenTitan 0a6ff685", "20", "yes", "canonical-E hierarchy admission at defaults; fixed module-local scalar enum admitted; next walls are assertion/timing constructs"),
-    ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "yes", "EquationGate=false: canonical E equation gate remains outside the admitted complete design tier"),
+    ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "yes", "Structure=true; EquationGate=false at the sole retained always_comb process (index 10: State_SN, OutVld_SO, enables, and case body); canonical-E complete equation tier remains outside admission"),
     ("Ibex", "lowRISC d513671d", "396", "no", "AlwaysLatch:unknown process kind"),
     ("PicoRV32", "YosysHQ ef203c2b", "0", "yes", "time-zero initialState + input-driven RVFI E-RUN: 220/220 cycles agree with both pinned simulators; census 360 admitted, 0 refused, 4 not reached"),
     ("DarkRISCV", "darklife bb6b483c", "0", "yes", "177 admitted / 0 refused / 0 not reached; staged canonical-E clock probe 4/4; 1000 source-shaped rising-edge cycles complete"),

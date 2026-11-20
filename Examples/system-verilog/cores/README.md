@@ -99,11 +99,13 @@ fit the loader.
 The checked-in `alu_div/cv32e40p_alu_div.sv.json` envelope now passes the
 ordinary canonical-E loader at parameter point `(C_WIDTH, C_LOG_WIDTH) =
 (8, 3)`.  The loader returns a `CoreMemDesign` with 26 processes and
-`Structure=true`; its next boundary is `EquationGate=false`, which keeps the
-complete equation tier outside this admission result.  The generated
-real-design table records `CV32E40P` as loading into E with that equation gate
-as its remaining boundary.  No simulator-run result is claimed here because
-the pinned source is not present in this worktree.
+`Structure=true`.  `EquationGate=false` is caused by the sole retained
+`always_comb` process at index 10, whose source-shaped body writes `State_SN`,
+`OutVld_SO`, and the enable signals through a normal `case (State_SP)` body.
+The complete equation tier remains outside this admission result.  The
+generated real-design table records this exact boundary.  No simulator-run
+result is claimed here because the pinned source is not present in this
+worktree.
 
 The 2026-11-20 RTL-only Ibex probe used the pinned
 `d513671dae09e701ceb6cd732d2da5fb52c13856` checkout and the 33 `rtl/*.sv`
