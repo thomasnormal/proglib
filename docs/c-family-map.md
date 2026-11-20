@@ -430,3 +430,11 @@ type key to a raw string at these boundaries.
 The field-extent helper now states the same boundary explicitly. Its member
 name is a `String` key and its declared member type is a `CType` key, so a
 future `CType` representation cannot silently change field-name lookup.
+
+The next effective-type slice was priced and reverted on 2026-11-20. Carrying
+parser-native `QualType` alongside the legacy effective-type spelling in `CObj`
+requires updating allocation and `realloc` constructors plus the complete
+allocation, placement, and object-resolution theorem family. The first
+compile exposed those constructor and theorem boundaries before any evaluator
+callsite could be migrated. No partial field was retained and the alias gate
+remains at its single `CType := String` finding.
