@@ -2139,6 +2139,15 @@ instruction-family wrapper therefore remain kernel-checked and available to a
 future loaded-core invariant. This audit does not promote the finite E-RUN into
 a universal RTL theorem.
 
+## 2026-11-20 R1 ALU consumer recheck
+
+The loaded R1 register-register ALU package and its consumers were rechecked
+against current master.  `r1_alu.lean`, `R2.lean`, and
+`rvfi_core_adapter.lean` all compile successfully.  The package covers the
+ten RV32I register-register operations and still consumes universal canonical-E
+step and RVFI-order premises.  The finite 220-cycle receipt supplies neither
+premise, so this recheck adds no universal loaded-core theorem.
+
 ## 2026-11-20 W5 one-cycle cost remeasurement
 
 The current loaded canonical-E entry point was rerun through one reset-release
