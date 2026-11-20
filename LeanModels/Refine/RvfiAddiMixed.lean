@@ -114,7 +114,7 @@ theorem AddiRvfiCycleTrace.toRv32i_trace_refines
 mixed RV32I cycle obligation.
 
 The extra order premise is explicit because `RvfiCycleStepRefines` is the
-raw strict contract, while `Rv32iCycleStepRefines` also indexes each valid
+raw strict contract, while `Rv32iLegacyCycleStepRefines` also indexes each valid
 row by its retirement order.  The proof constructs the decoded
 `AddiInstruction` from the boundary's parser-derived decode equality, then
 uses the instruction embedding above; no row or input is reconstructed from
@@ -140,7 +140,7 @@ theorem rv32iCycleStepRefines_of_addi_memory
       rel state memoryState → admit input →
       let (_, observation) := machine.step state input
       if observation.valid then observation.order = start else True) :
-    Rv32iCycleStepRefines machine rel admit := by
+    Rv32iLegacyCycleStepRefines machine rel admit := by
   intro start state memoryState input hrel hadmit
   have hcase := hstep state memoryState input hrel hadmit
   have horderCase := horder start state memoryState input hrel hadmit

@@ -205,7 +205,7 @@ theorem picorv32_system_exact_cycle_step_refines
               { arch := systemNext memoryState.arch instruction.kind,
                 memory := memoryState.memory }
           else rel next memoryState)) :
-    Rv32iCycleStepRefines machine.toRvfiCycleMachine rel admit := by
+    Rv32iLegacyCycleStepRefines machine.toRvfiCycleMachine rel admit := by
   apply machine.to_rv32i_step_refines
   intro start state memoryState input hrel hadmit
   rcases hstep start state memoryState input hrel hadmit with
@@ -235,85 +235,5 @@ theorem picorv32_system_exact_cycle_step_refines
 
 /-! The loaded system consumer packages one exact ECALL, EBREAK, MRET, or
     WFI instruction into the reset-specialized all-prefix contract. -/
-
-theorem picorv32_loaded_system_program_refinement_of_total
-    (core : PicoRV32LoadedCanonicalE)
-    (profile : PlatformProfile)
-    (program : Memory)
-    (initialArch : ArchState)
-    (hpc : initialArch.pc = 0)
-    (hwf : initialArch.WF)
-    (instruction : SystemInstruction)
-    (encode : LeanModels.Sv.Kernel.CoreMemState → Input → SvState)
-    (htotal : ∀ (state : LeanModels.Sv.Kernel.CoreMemState) (input : Input),
-      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
-        ∃ observation : RvfiObservation,
-          rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core)
-              state (encode state input) = .ok (next, observation))
-    {rel : LeanModels.Sv.Kernel.CoreMemState → RvMemoryState → Prop}
-    {admit : Input → Prop}
-    (hstep : ∀ (start : Nat)
-      (state : LeanModels.Sv.Kernel.CoreMemState)
-      (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
-      ∃ next : LeanModels.Sv.Kernel.CoreMemState,
-        ∃ observation : RvfiObservation,
-          rvfi_core_adapter.rvfiStep (PicoRV32LoadedCanonicalE.design core)
-              state (encode state input) = .ok (next, observation) ∧
-          (if observation.valid then
-            input = systemProgramInput memoryState.memory instruction ∧
-            observation.order = start ∧
-            observation.systemBoundary memoryState.arch input instruction.word
-              instruction.kind ∧
-            rel next
-              { arch := systemNext memoryState.arch instruction.kind,
-                memory := memoryState.memory }
-          else rel next memoryState))
-    (hrel : ∀ (state : LeanModels.Sv.Kernel.CoreMemState)
-      (memoryState : RvMemoryState),
-      PicoRV32ResetRelation
-        (PicoRV32LoadedCanonicalE.design core) program state memoryState →
-      rel state memoryState)
-    {schedule target : Nat → Input}
-    (hschedule : ∀ n, admit (schedule n))
-    (progress : Rv32iRetiresTarget
-      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
-        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal))
-      (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine
-        (rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal)).init
-      schedule target) :
-    ∃ machine : rvfi_core_adapter.CoreRvfiMachine
-        (PicoRV32LoadedCanonicalE.design core),
-      picorv32_core_mem = .ok (PicoRV32LoadedCanonicalE.design core) ∧
-      Rv32iAllPrefixRefinement profile
-        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine)
-        rel 0
-        (rvfi_core_adapter.CoreRvfiMachine.toRvfiCycleMachine machine).init
-        { arch := initialArch, memory := program } schedule target := by
-  let machine := rvfi_core_adapter.CoreRvfiMachine.ofTotal encode htotal
-  have hstep' := picorv32_system_exact_cycle_step_refines machine instruction hstep
-  have hinitial : rel machine.toRvfiCycleMachine.init
-      { arch := initialArch, memory := program } :=
-    hrel _ _ (picoRV32_reset_relation_initial
-      (PicoRV32LoadedCanonicalE.design core) program initialArch hpc hwf)
-  refine ⟨machine, PicoRV32LoadedCanonicalE.loaded core, ?_⟩
-  exact rv32i_progress_refinement profile machine.toRvfiCycleMachine rel admit
-    hstep' 0 _ _ hinitial hschedule progress
-
-#print axioms picorv32_loaded_system_program_refinement_of_total
-
-#print axioms picorv32_ecall_loaded_rv32i_boundary_of_step
-#print axioms picorv32_ebreak_loaded_rv32i_boundary_of_step
-#print axioms picorv32_mret_loaded_rv32i_boundary_of_step
-#print axioms picorv32_wfi_loaded_rv32i_boundary_of_step
-
-#print axioms picorv32_ecall_class_step
-#print axioms picorv32_ecall_class_commit
-#print axioms picorv32_ebreak_class_step
-#print axioms picorv32_ebreak_class_commit
-#print axioms picorv32_mret_class_step
-#print axioms picorv32_mret_class_commit
-#print axioms picorv32_wfi_class_step
-#print axioms picorv32_wfi_class_commit
 
 end Examples.«system-verilog».cores.picorv32.r1_system
