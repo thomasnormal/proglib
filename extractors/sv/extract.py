@@ -23319,6 +23319,10 @@ def _convert_stmt(sm, s):
             if isinstance(amount, int):
                 return unsupported(sm, s, "TimedStatement:DelayControl",
                                    text=f"#{amount};")
+            spelling = _literal_delay_spelling(s.timing.expr)
+            if spelling is not None:
+                return unsupported(sm, s, "TimedStatement:DelayControl",
+                                   text=f"#{spelling};")
         if _SYM is None and type(s.timing).__name__ == "DelayControl":
             return _convert_delay_statement(sm, s)
         if _SYM is None and type(s.timing).__name__ == "SignalEventControl":
@@ -23402,6 +23406,23 @@ def _literal_delay_amount(sm, expression, node, category):
     if amount >= 1 << 64:
         return unsupported(sm, node, category + ":range")
     return amount
+
+
+def _literal_delay_spelling(expression):
+    """Return the parser's spelling for a literal time delay expression.
+
+    A symbolic delay expanded from a macro can have a zero-width source range,
+    so ``source_text`` may return the macro's surrounding comment.  The AST
+    still retains a ``TimeLiteral`` syntax node, whose spelling is the
+    parser-native timing token we need for a diagnostic-only initial check.
+    """
+    if type(expression).__name__ != "TimeLiteral":
+        return None
+    syntax = getattr(expression, "syntax", None)
+    if syntax is None:
+        return None
+    spelling = str(syntax)
+    return spelling if spelling else None
 
 
 def _convert_delay_statement(sm, statement):

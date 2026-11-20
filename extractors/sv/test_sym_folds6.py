@@ -209,6 +209,14 @@ class DiagnosticDelaySourceShape(unittest.TestCase):
         self.assertEqual(
             unsupported_texts(env, "TimedStatement:DelayControl"), ["#1;"])
 
+    def test_symbolic_timeunit_delay_keeps_parser_spelling(self):
+        env = extract_sym(
+            "module delay_check(input logic x, output logic y);"
+            " assign y = x; initial begin #1ps; if (x) $error(\"bad\"); end"
+            " endmodule", "delay_check")
+        self.assertEqual(
+            unsupported_texts(env, "TimedStatement:DelayControl"), ["#1ps;"])
+
 
 if __name__ == "__main__":
     unittest.main()
