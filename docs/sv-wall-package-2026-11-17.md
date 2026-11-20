@@ -1172,3 +1172,21 @@ target wall. The next independent implementation wall is the OpenTitan
 `$bits` constant-context case, followed by scoped local storage. The package
 enum change is parser-side only, so no REAL-DESIGNS transition is claimed from
 it without a fresh pinned-source envelope and loader receipt.
+
+## Stall-rule ranking after 2026-11-20 real-design measurements
+
+The current public head still has three designs loading and four refused, with
+no E-ROWS or REAL-DESIGNS count transition across the last three completed
+items.  The pinned OpenTitan `prim_fifo_sync` source now reaches canonical-E
+hierarchy admission and its first independent runtime walls are the
+parser-native `SysCall:$error` and `TimedStatement:DelayControl` nodes.  The
+CV32E40P envelope loads at `(C_WIDTH, C_LOG_WIDTH) = (8, 3)` with 26 retained
+processes and `Structure=true`; its next boundary is `EquationGate=false` at
+the sole retained `always_comb` process (index 10, the `State_SN`, `OutVld_SO`,
+and enable assignments selected by `case (State_SP)`).  The highest-value
+remaining walls are therefore, in order, a source-shaped diagnostic channel
+for `$error` with its IEEE 1800-2023 §20.10 observability contract, a timed
+event-region representation for delay control, and a general equation theorem
+for procedural `always_comb` bodies.  No count transition is claimed from
+this ranking, and no wall is admitted by weakening the existing refusal or
+equation-gate obligations.
