@@ -780,6 +780,16 @@ def allocAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType
   simp only [allocAtStructured]
   exact allocStructured_lookup m dur size ty structured
 
+theorem allocAtStructured_unique
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : QualType) (address : Nat)
+    (h : structuredTypesUnique m)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
+    structuredTypesUnique
+      (m.allocAtStructured dur size ty (some structured) address).1 := by
+  simpa [allocAtStructured] using
+    allocStructured_unique m dur size ty structured h hnew
+
 def allocZeroedAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) : Mem × Ptr :=
   let (m', o) := m.allocZeroed dur size ty
@@ -812,6 +822,16 @@ def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option
       some structured := by
   simp only [allocZeroedAtStructured]
   exact allocZeroedStructured_lookup m dur size ty structured
+
+theorem allocZeroedAtStructured_unique
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : QualType) (address : Nat)
+    (h : structuredTypesUnique m)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
+    structuredTypesUnique
+      (m.allocZeroedAtStructured dur size ty (some structured) address).1 := by
+  simpa [allocZeroedAtStructured] using
+    allocZeroedStructured_unique m dur size ty structured h hnew
 
 /-- C23 §6.2.4p6 / §7.24.3: end an object's lifetime. The object stays in
 the store as a tombstone — see `CObj.live`. -/
