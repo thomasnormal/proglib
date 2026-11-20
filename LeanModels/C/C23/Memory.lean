@@ -1200,6 +1200,27 @@ the store as a tombstone — see `CObj.live`. -/
 def kill (m : Mem) (o : ObjId) : Mem :=
   { m with objs := m.objs.modify o (fun c => { c with live := false }) }
 
+theorem kill_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (o : ObjId) :
+    (m.renameAddresses rename).kill o =
+      (m.kill o).renameAddresses rename := by
+  have hmod : ∀ (xs : List CObj) (i : Nat),
+      (xs.modify i (fun c => {c with live := false})).map
+          (CObj.renameAddress rename) =
+        (xs.map (CObj.renameAddress rename)).modify i
+          (fun c => {c with live := false}) := by
+    intro xs
+    induction xs with
+    | nil => intro i; cases i <;> rfl
+    | cons c xs ih =>
+        intro i
+        cases i with
+        | zero => rfl
+        | succ i => simp [ih]
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      simp [kill, renameAddresses, hmod]
+
 theorem get?_kill_of_ne (m : Mem) (o q : ObjId) (h : q ≠ o) :
     (m.kill o).get? q = m.get? q := by
   simp only [kill, get?]
