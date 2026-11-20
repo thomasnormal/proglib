@@ -515,3 +515,8 @@ Structured allocation now exposes uniqueness lemmas under the explicit fresh
 identity premise. Both indeterminate and zeroed allocation preserve the
 side-table `Nodup` invariant before an evaluator state transition consumes
 their returned object.
+
+Lifetime termination and byte stores also preserve the same invariant. The
+memory lemmas cover `kill` and successful `storeBytes` results, so representation
+updates and tombstone transitions cannot duplicate or erase parser-native type
+identity metadata.

@@ -740,6 +740,11 @@ theorem get?_kill_of_ne (m : Mem) (o q : ObjId) (h : q ≠ o) :
     (m.kill o).placements = m.placements := by
   rfl
 
+@[simp] theorem kill_structuredTypesUnique
+    (m : Mem) (o : ObjId) (h : structuredTypesUnique m) :
+    structuredTypesUnique (m.kill o) := by
+  simpa [structuredTypesUnique, structuredTypeKeys, kill] using h
+
 theorem placementValid_kill (m : Mem) (o : ObjId) (address size alignment : Nat)
     (hvalid : placementValid m address size alignment = true) :
     placementValid (m.kill o) address size alignment = true := by
@@ -890,6 +895,18 @@ def storeBytes (m : Mem) (p : Ptr) (bs : List CByte) : MRes Mem := do
   let (o, c, off) ← m.resolve p bs.length
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
   return { m with objs := m.objs.set o { c with bytes := bytes } }
+
+theorem storeBytes_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {bs : List CByte}
+    {o : ObjId} {c : CObj} {off : Nat}
+    (hunique : structuredTypesUnique m)
+    (hr : m.resolve p bs.length = .ok (o, c, off))
+    (h : m.storeBytes p bs = .ok m') : structuredTypesUnique m' := by
+  unfold storeBytes at h
+  rw [hr] at h
+  simp only [Except.bind, pure, Except.pure] at h
+  cases h
+  exact hunique
 
 /-! ### §6.2.6.2 Integer representation
 
