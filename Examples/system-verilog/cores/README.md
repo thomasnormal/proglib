@@ -1329,3 +1329,13 @@ loaded `Rv32iBoundary` bridges, and indexed exact-cycle refinement coverage.
 `lake env lean Examples/system-verilog/cores/picorv32/r1_jump.lean` passed, and
 all printed theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
 Universal loaded-core step and order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 system-transfer class
+
+The loaded-core R1 system-transfer package compiles for ECALL, EBREAK, MRET,
+and WFI under the no-interrupt machine-mode profile.  Each exact decoder row
+has a memory-preserving ISA step theorem, RVFI retirement boundary, loaded
+`Rv32iBoundary` bridge, and indexed exact-cycle refinement coverage.
+`lake env lean Examples/system-verilog/cores/picorv32/r1_system.lean` passed,
+and all printed theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
+Universal loaded-core step and order premises remain explicit.
