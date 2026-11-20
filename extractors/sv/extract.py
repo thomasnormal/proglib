@@ -13690,6 +13690,31 @@ def _convert_sym_call_expr(sm, e):
                 value["literal_function_return"] = True
                 value["span"] = node_span(sm, e)
                 return value
+    # Preserve a parser-native call when the narrow inlining profiles above
+    # cannot establish the function body shape.  The constant elaborator
+    # evaluates this FunctionCall against the retained declaration and keeps
+    # unsupported bodies loud.  This covers package-qualified pure calls such
+    # as prim_util_pkg::vbits in localparam expressions.
+    if not getattr(e, "isSystemCall", False):
+        subroutine = getattr(e, "subroutine", None)
+        parent_scope = getattr(subroutine, "parentScope", None)
+        # A package declaration has no containing module instance.  Local
+        # module functions remain on the established loud boundary when their
+        # body is outside the inlining profiles above.
+        if (subroutine is not None
+                and getattr(parent_scope, "containingInstance", None) is None):
+            args = [convert_expr(sm, arg) for arg in list(e.arguments)]
+            if all(arg is not None and arg.get("kind") != "Unsupported"
+                   for arg in args):
+                return {
+                    "kind": "FunctionCall",
+                    "span": node_span(sm, e),
+                    "name": getattr(subroutine, "name", None)
+                            or getattr(e, "subroutineName", ""),
+                    "args": args,
+                    "width": e.type.bitWidth,
+                    "symbolic_user_function_retained": True,
+                }
     node = _sym_expr_syscall(sm, e)
     if node is not None:
         return node

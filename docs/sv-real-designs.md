@@ -6,7 +6,7 @@ This table is generated from the pinned public-design census receipts. It measur
 
 | design | pinned source | unsupported nodes | loads into E | first E wall |
 | --- | --- | ---: | --- | --- |
-| `prim_fifo_sync` | OpenTitan 0a6ff685 | 36 | no | `Constant: $bits argument outside the declared-signal tier (prim_pad_wrapper_pkg::AttrDw)` |
+| `prim_fifo_sync` | OpenTitan 0a6ff685 | 36 | no | `enum 'action_e': unrecoverable packed dimensions (prim_count)` |
 | `prim_arbiter_ppc` | OpenTitan 0a6ff685 | 0 | yes | `canonical-E hierarchy admission and initialState at N=8,DW=32,EnDataPort=1; source-shaped loop family measured separately at N=2/N=4 with 16/16 rows matching both pinned simulators` |
 | `prim_packer` | OpenTitan 0a6ff685 | 20 | no | `enum 'flush_st_e': unrecoverable packed dimensions` |
 | `CV32E40P` | openhwgroup v1.0.1 / 6148cf5 | 574 | no | `AlwaysPosedge:edge` |
