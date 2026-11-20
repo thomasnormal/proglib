@@ -740,6 +740,45 @@ def get? (m : Mem) (o : ObjId) : Option CObj := m.objs[o]?
 def placement? (m : Mem) (o : ObjId) : Option Nat :=
   (m.placements.find? (fun entry => entry.1 == o)).map Prod.snd
 
+/-! Pointer-byte validity records the concrete placement carried by a stored
+pointer representation.  It is deliberately a memory invariant rather than a
+property of `CByte`: the placement belongs to the allocation state. -/
+def ptrAddressCanonical (m : Mem) (p : Ptr) : Prop :=
+  match p.obj with
+  | none => True
+  | some o => m.placement? o = some p.address
+
+def byteAddressCanonical (m : Mem) : CByte → Prop
+  | .ptrByte p _ => ptrAddressCanonical m p
+  | .ptrIntByte p _ => ptrAddressCanonical m p
+  | _ => True
+
+def pointerBytesCanonical (m : Mem) : Prop :=
+  ∀ (o : ObjId) (c : CObj), m.get? o = some c →
+    ∀ b, b ∈ c.bytes → byteAddressCanonical m b
+
+theorem placement_renameAddresses (rename : ObjId → Nat) (m : Mem) (o : ObjId) :
+    (m.renameAddresses rename).placement? o =
+      (m.placement? o).map (fun _ => rename o) := by
+  have hfind : ∀ xs : List (ObjId × Nat),
+      (xs.find? (fun entry => entry.1 == o)).map (fun x => rename x.1) =
+        (xs.find? (fun entry => entry.1 == o)).map (fun _ => rename o) := by
+    intro xs
+    induction xs with
+    | nil => rfl
+    | cons x xs ih =>
+        by_cases hx : x.1 == o
+        · have hxo : x.1 = o := of_decide_eq_true hx
+          simp [hx, hxo]
+        · simp [hx, ih]
+  simp [placement?, renameAddresses, List.find?_map, Function.comp_def, hfind]
+
+theorem ptrAddressCanonical_rename
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (o : ObjId)
+    (hp : p.obj = some o) (h : m.placement? o = some p.address) :
+    ptrAddressCanonical (m.renameAddresses rename) (Ptr.renameAddress rename p) := by
+  simp [ptrAddressCanonical, hp, placement_renameAddresses, h, Ptr.renameAddress]
+
 theorem vaStart_placement_lookup {m m' : Mem} {p : Ptr} {args : List CVal} (q : ObjId)
     (h : vaStart m p args = .ok m') : m'.placement? q = m.placement? q := by
   have hp : m'.placements = m.placements := vaStart_placements h
