@@ -2664,6 +2664,12 @@ theorem offsetPtr_renameAddresses
           all_goals simp [offsetPtr, hp, hc, hc', Ptr.renameAddress,
             CObj.renameAddress, CObj.size, hsize, h1, h2, h3, Except.map]
 
+theorem subscript_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (elemSize : Nat) (i : Int) :
+    (m.renameAddresses rename).subscript (Ptr.renameAddress rename p) elemSize i =
+      (m.subscript p elemSize i).map (Ptr.renameAddress rename) := by
+  simpa [subscript] using offsetPtr_renameAddresses rename m p elemSize i
+
 /- Pointer arithmetic checks provenance, object bounds, and subobject bounds;
    the concrete placement is carried through a successful result but is not
    inspected by the checks or by their named refusals. -/
