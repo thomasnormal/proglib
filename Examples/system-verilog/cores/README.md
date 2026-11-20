@@ -659,6 +659,22 @@ with normalized simulator-row digest
 `78dd0ab31c3d6fa7d63e5e28cd82c81b6aba3de94ac559865f2a631ec8089a4e`.  The
 corrupted-row negative control stays active on the passing battery.
 
+## 2026-11-20 DarkRISCV data-memory stall differential
+
+`darkriscv/data_stall_tb.sv` keeps the pinned RTL unchanged and drives an
+ADDI/store/load sequence while lowering `DDACK` on every third active falling
+edge.  Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all 1000 simulator
+rows, with normalized digest
+`8c7366959d7e65daef2499b62fc7f893f5b357e9df13d9e7002f709874b44f72`.
+
+Canonical E does not agree with that replay.  Its first mismatch is row 1,
+field `DADDR`, where canonical E reports
+`00000000000000000000000000000000` and the simulators report
+`00000000000000000000000000000101`.  The mismatch is present with DDACK
+always high as well as with the data stall schedule, so it is independent of
+the wait-state input.  This is a current wrong-answer target, not a passing
+E-RUN result.
+
 ## 2026-11-20 Quark current-source E-RUN boundary
 
 The pinned FemtoRV32 Quark source at public commit
