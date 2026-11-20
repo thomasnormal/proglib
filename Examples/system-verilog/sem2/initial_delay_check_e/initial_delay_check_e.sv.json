@@ -1,0 +1,195 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "initial_delay_check",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/initial_delay_check_e/initial_delay_check_e.sv",
+      "sha256": "1ee7e4a019c93aa4ccd65953171a097fcd0ab66fb46acd37bdf97daded80b2df"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "initial_delay_check",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 40,
+              "end_line": 1,
+              "end_col": 41
+            },
+            "name": "x",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 56,
+              "end_line": 1,
+              "end_col": 57
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 2,
+              "col": 10,
+              "end_line": 2,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 2,
+                "col": 10,
+                "end_line": 2,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "y"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 2,
+                "col": 14,
+                "end_line": 2,
+                "end_col": 15
+              },
+              "width": 1,
+              "name": "x"
+            }
+          },
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 6,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 3,
+                "col": 11,
+                "end_line": 6,
+                "end_col": 6
+              },
+              "stmts": [
+                {
+                  "kind": "Unsupported",
+                  "span": {
+                    "line": 4,
+                    "col": 5,
+                    "end_line": 4,
+                    "end_col": 8
+                  },
+                  "sv_kind": "TimedStatement:DelayControl",
+                  "text": "#1;"
+                },
+                {
+                  "kind": "If",
+                  "span": {
+                    "line": 5,
+                    "col": 5,
+                    "end_line": 5,
+                    "end_col": 55
+                  },
+                  "cond": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 5,
+                      "col": 9,
+                      "end_line": 5,
+                      "end_col": 16
+                    },
+                    "width": 1,
+                    "op": "!==",
+                    "left": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 5,
+                        "col": 9,
+                        "end_line": 5,
+                        "end_col": 10
+                      },
+                      "width": 1,
+                      "name": "y"
+                    },
+                    "right": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 5,
+                        "col": 15,
+                        "end_line": 5,
+                        "end_col": 16
+                      },
+                      "width": 1,
+                      "name": "x"
+                    }
+                  },
+                  "then": {
+                    "kind": "SysCall",
+                    "span": {
+                      "line": 5,
+                      "col": 18,
+                      "end_line": 5,
+                      "end_col": 55
+                    },
+                    "name": "$error",
+                    "format": null,
+                    "args": [],
+                    "arg_signed": [],
+                    "initial_check_diagnostic": true
+                  },
+                  "else": null
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
