@@ -1361,6 +1361,42 @@ theorem decodeInt_encodeInt_of_toNat_bound (t : IntTy) (v : Int)
     simp [IntTy.wrap, hmod, Int.toNat_of_nonneg hmod]
   · simpa [width, u] using hu
 
+theorem normalized_toNat_lt_byte_power (t : IntTy) (v : Int) (width : Nat)
+    (hmw : t.modulus ≤ (256 : Int) ^ width) :
+    ((v % t.modulus + t.modulus) % t.modulus).toNat < 256 ^ width := by
+  have hm : 0 < t.modulus := by
+    simp only [IntTy.modulus]
+    induction t.bits with
+    | zero => simp
+    | succ n ih => simp [Int.pow_succ]; omega
+  have hne : t.modulus ≠ 0 := by omega
+  have hmod0 : 0 ≤ v % t.modulus := Int.emod_nonneg v hne
+  have hmodlt : v % t.modulus < t.modulus := Int.emod_lt v hne
+  have hu : (v % t.modulus + t.modulus) % t.modulus = v % t.modulus := by
+    rw [Int.add_emod_right, Int.emod_emod]
+  rw [hu]
+  apply (Int.toNat_lt hmod0).2
+  have hpow : ((256 ^ width : Nat) : Int) = (256 : Int) ^ width := by
+    induction width with
+    | zero => simp
+    | succ n ih => simp [Nat.pow_succ, Int.pow_succ, ih]
+  rw [hpow]
+  omega
+
+theorem decodeInt_encodeInt_profile (t : IntTy) (v : Int)
+    (ht : t = IntTy.char_ ∨ t = IntTy.uchar ∨ t = IntTy.bool_ ∨
+      t = IntTy.short_ ∨ t = IntTy.ushort ∨ t = IntTy.int_ ∨
+      t = IntTy.uint ∨ t = IntTy.long_ ∨ t = IntTy.ulong ∨
+      t = IntTy.int128_ ∨ t = IntTy.uint128) :
+    decodeInt t (encodeInt t v) = some (t.wrap v) := by
+  have hwidth : (((v % t.modulus + t.modulus) % t.modulus).toNat) <
+      256 ^ max 1 (t.bits / 8) := by
+    apply normalized_toNat_lt_byte_power t v (max 1 (t.bits / 8))
+    rcases ht with h | h | h | h | h | h | h | h | h | h | h <;>
+      subst t <;> simp [IntTy.modulus] <;> decide
+  simpa [IntTy.wrap, Int.add_emod_right, Int.emod_emod] using
+    decodeInt_encodeInt_of_toNat_bound t v hwidth
+
 theorem encodeInt_renameAddresses (resolve : ObjId → Nat) (t : IntTy) (v : Int) :
     (encodeInt t v).map (CByte.renameAddress resolve) = encodeInt t v := by
   simp [encodeInt, CByte.renameAddress]
