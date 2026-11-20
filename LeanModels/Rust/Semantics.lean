@@ -161,7 +161,8 @@ def allocationChoiceValid (s : State) (size align : Nat)
 def allocatorStep (s : State) (size align : Nat) (zeroed : Bool)
     (choice : AllocationChoice) : State × Cell :=
   let provenance := s.allocations.length
-  let bytes := List.replicate size 0
+  -- `__rust_alloc` leaves the bytes uninitialised: 256, the loader's out-of-range marker.
+  let bytes := List.replicate size (if zeroed then 0 else 256)
   let allocation : Allocation :=
     { id := "foreign-allocation-" ++ toString provenance
       bytes := bytes

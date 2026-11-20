@@ -100,11 +100,15 @@ private def bytesToNat : List Nat → Nat → Nat
   | [], _ => 0
   | byte :: rest, shift => byte * 256 ^ shift + bytesToNat rest (shift + 1)
 
+/-- An allocation's bytes and whether all of them are initialised.  An uninitialised byte (`null`
+in the envelope) is kept as 256, outside the byte range: every decoder requires bytes `≤ 255`,
+so a value read from it refuses, while initialised bytes of the same allocation (an enum's tag
+next to an inactive payload) still decode. -/
 private def allocationBytes (j : Json) : Except String (List Nat × Bool) := do
   let values ← field j "bytes" >>= array
   values.foldlM (init := ([], true)) fun (bytes, valid) value =>
     match value with
-    | .null => pure (bytes ++ [0], false)
+    | .null => pure (bytes ++ [256], false)
     | _ => do
         let byte ← nat value
         pure (bytes ++ [byte], valid)
