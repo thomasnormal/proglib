@@ -1056,6 +1056,14 @@ def asPtr (v : CVal) : EvalM Ptr :=
   | .aggregate _ _ => refuseUnsupported "aggregate used as a pointer"
   | .undef => refuseUnsupported "undefined value used as a truth value (C23 6.3.2.1p2)"
 
+theorem asPtr_renameAddress (resolve : ObjId → Nat) (v : CVal) :
+    asPtr (CVal.renameAddress resolve v) =
+      (fun p => Ptr.renameAddress resolve p) <$> asPtr v := by
+  funext m
+  cases v <;>
+    simp [asPtr, CVal.renameAddress, map_eq_pure_bind, SemMWith.run_bind,
+      SemMWith.run_pure, refuseUnsupported]
+
 /-- Require an integer, with its type. -/
 def asInt (v : CVal) : EvalM (IntTy × Int) :=
   match v with
