@@ -25,9 +25,10 @@ PATHS = (
 )
 
 PATTERNS = (
-    re.compile(r"abbrev\s+CType\s*:=\s*String"),
     re.compile(r"\.(?:startsWith|endsWith|contains|splitOn|dropEnd|trimAscii|drop)\b"),
 )
+
+ALIAS_PATTERN = re.compile(r"abbrev\s+CType\s*:=\s*String")
 
 # The semantic files also manipulate source names, builtin names, and byte
 # buffers.  Those are strings, but they are not C type spellings.  Keep the
@@ -54,6 +55,15 @@ def findings(paths: tuple[Path, ...] = PATHS) -> list[tuple[str, int, str]]:
     return out
 
 
+def legacy_aliases(paths: tuple[Path, ...] = PATHS) -> list[tuple[str, int, str]]:
+    out: list[tuple[str, int, str]] = []
+    for path in paths:
+        for number, line in enumerate(path.read_text().splitlines(), 1):
+            if ALIAS_PATTERN.search(line):
+                out.append((str(path.relative_to(ROOT)), number, line.strip()))
+    return out
+
+
 def self_test() -> int:
     sample = ROOT / "tools" / ".c-type-string-self-test.lean"
     sample.write_text(
@@ -63,7 +73,8 @@ def self_test() -> int:
         "def nameCase (nm : String) := nm.contains \"x\"\n")
     try:
         got = findings((sample,))
-        if len(got) != 2 or got[0][1] != 1 or got[1][1] != 2:
+        aliases = legacy_aliases((sample,))
+        if len(got) != 1 or got[0][1] != 2 or len(aliases) != 1 or aliases[0][1] != 1:
             print("check_c_type_strings --self-test: failed", file=sys.stderr)
             return 1
     finally:
@@ -79,9 +90,13 @@ def main() -> int:
     if args.self_test:
         return self_test()
     rows = findings()
+    aliases = legacy_aliases()
     for path, line, text in rows:
         print(f"{path}:{line}: {text}")
-    print(f"check_c_type_strings: {len(rows)} remaining type-string operation(s)",
+    for path, line, text in aliases:
+        print(f"{path}:{line}: legacy CType alias: {text}")
+    print(f"check_c_type_strings: {len(rows)} remaining type-string operation(s); "
+          f"{len(aliases)} legacy CType alias(es)",
           file=sys.stderr)
     return 1 if rows else 0
 
