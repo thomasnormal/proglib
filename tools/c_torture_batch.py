@@ -75,6 +75,24 @@ def _refresh_stale(entry: dict) -> bool:
     return result.returncode == 0
 
 
+def _canonicalize_envelope(entry: dict, manifest: Path) -> None:
+    """Use the manifest's cache root when a copied manifest has stale paths.
+
+    Manifests are portable receipts, but their envelope field historically
+    stored an absolute cache path.  A batch run copied to another approved
+    cache therefore skipped the refresh path and handed a dead filename to the
+    runner.  The test name and manifest location are the stable identity.
+    """
+    name = entry.get("name")
+    if not name or not entry.get("envelope"):
+        return
+    expected = manifest.parent / "env" / (name[:-2] + ".json")
+    current = Path(entry["envelope"])
+    source = manifest.parent / "src" / name
+    if not current.is_file() and (expected.exists() or source.is_file()):
+        entry["envelope"] = str(expected)
+
+
 def _parse_child(name: str, stdout: str) -> tuple[str, str, str] | None:
     for line in stdout.splitlines():
         parts = line.split("\t", 2)
@@ -99,6 +117,7 @@ def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
         if not isinstance(entry, dict):
             print("\t".join(("", "runner-error", "manifest test is not an object")))
             continue
+        _canonicalize_envelope(entry, manifest)
         static = _static_row(entry)
         if static[1] == "not-ingested" and _refresh_stale(entry):
             static = _static_row(entry)
@@ -218,6 +237,19 @@ def self_test() -> int:
             globals()['EXTRACTOR'] = old_extractor
         if before[1] != 'not-ingested' or not refreshed or after != ('', '', ''):
             print("c_torture_batch --self-test: stale envelope was not refreshed", file=sys.stderr)
+            return 1
+
+        copied = root / "copied" / "rev"
+        copied_env = copied / "env" / "copied.json"
+        copied_env.parent.mkdir(parents=True)
+        copied_env.write_text(json.dumps({"schema_version": "c-0.1",
+                                           "language": "c"}))
+        copied_entry = {"name": "copied.c", "status": "parsed",
+                        "sha256": "missing", "envelope": "/old/cache/env/copied.json"}
+        _canonicalize_envelope(copied_entry, copied / "manifest.json")
+        if copied_entry["envelope"] != str(copied_env):
+            print("c_torture_batch --self-test: stale absolute envelope path was not relocated",
+                  file=sys.stderr)
             return 1
     print("c_torture_batch --self-test: ok")
     return 0
