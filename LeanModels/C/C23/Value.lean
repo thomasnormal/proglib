@@ -297,6 +297,13 @@ def exposedAddress (p : Ptr) : Int :=
   | none => 0
   | some _ => (p.address : Int) + 1
 
+theorem exposedAddress_renameAddress (resolve : ObjId → Nat) (p : Ptr) :
+    exposedAddress (Ptr.renameAddress resolve p) =
+      match p.obj with
+      | none => 0
+      | some o => (resolve o : Int) + 1 := by
+  cases h : p.obj <;> simp [exposedAddress, Ptr.renameAddress, h]
+
 theorem exposedAddress_address (p : Ptr) (address : Nat) :
     exposedAddress {p with address := address} =
       match p.obj with
