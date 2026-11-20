@@ -807,11 +807,21 @@ theorem allocZeroedStructured_unique
     structuredTypesUnique (m.alloc dur size ty).1 := by
   simpa [alloc, structuredTypesUnique, structuredTypeKeys] using h
 
+@[simp] theorem alloc_structuredType_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (q : ObjId) :
+    (m.alloc dur size ty).1.structuredType? q = m.structuredType? q := by
+  rfl
+
 @[simp] theorem allocZeroed_structuredTypesUnique
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (h : structuredTypesUnique m) :
     structuredTypesUnique (m.allocZeroed dur size ty).1 := by
   simpa [allocZeroed, structuredTypesUnique, structuredTypeKeys] using h
+
+@[simp] theorem allocZeroed_structuredType_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (q : ObjId) :
+    (m.allocZeroed dur size ty).1.structuredType? q = m.structuredType? q := by
+  rfl
 
 @[simp] theorem allocZeroedStructured_lookup
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (structured : QualType) :
@@ -871,11 +881,23 @@ def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option
     structuredTypesUnique (m.allocAt dur size ty address).1 := by
   simpa [allocAt, structuredTypesUnique, structuredTypeKeys] using h
 
+@[simp] theorem allocAt_structuredType_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) (q : ObjId) :
+    (m.allocAt dur size ty address).1.structuredType? q = m.structuredType? q := by
+  rfl
+
 @[simp] theorem allocZeroedAt_structuredTypesUnique
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.allocZeroedAt dur size ty address).1 := by
   simpa [allocZeroedAt, structuredTypesUnique, structuredTypeKeys] using h
+
+@[simp] theorem allocZeroedAt_structuredType_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) (q : ObjId) :
+    (m.allocZeroedAt dur size ty address).1.structuredType? q = m.structuredType? q := by
+  rfl
 
 @[simp] theorem allocZeroedAtStructured_lookup
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
@@ -1896,21 +1918,41 @@ def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
     structuredTypesUnique (m.malloc size).1 := by
   simpa [malloc] using alloc_structuredTypesUnique m .allocated size none h
 
+@[simp] theorem malloc_structuredType_lookup
+    (m : Mem) (size q : Nat) :
+    (m.malloc size).1.structuredType? q = m.structuredType? q := by
+  rfl
+
 @[simp] theorem calloc_structuredTypesUnique
     (m : Mem) (n size : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.calloc n size).1 := by
   simpa [calloc] using allocZeroed_structuredTypesUnique m .allocated (n * size) none h
+
+@[simp] theorem calloc_structuredType_lookup
+    (m : Mem) (n size q : Nat) :
+    (m.calloc n size).1.structuredType? q = m.structuredType? q := by
+  rfl
 
 @[simp] theorem mallocAt_structuredTypesUnique
     (m : Mem) (size address : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.mallocAt size address).1 := by
   simpa [mallocAt] using allocAt_structuredTypesUnique m .allocated size none address h
 
+@[simp] theorem mallocAt_structuredType_lookup
+    (m : Mem) (size address q : Nat) :
+    (m.mallocAt size address).1.structuredType? q = m.structuredType? q := by
+  rfl
+
 @[simp] theorem callocAt_structuredTypesUnique
     (m : Mem) (n size address : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.callocAt n size address).1 := by
   simpa [callocAt] using
     allocZeroedAt_structuredTypesUnique m .allocated (n * size) none address h
+
+@[simp] theorem callocAt_structuredType_lookup
+    (m : Mem) (n size address q : Nat) :
+    (m.callocAt n size address).1.structuredType? q = m.structuredType? q := by
+  rfl
 
 @[simp] theorem mallocAt_address (m : Mem) (size address : Nat) :
     (m.mallocAt size address).2.address = address := by
