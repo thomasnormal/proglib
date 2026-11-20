@@ -341,6 +341,13 @@ produced 1,647 `not-ingested` stale-envelope rows and 567 frontend
 boundary, not a survey result, and the canonical C-MATCH headline remains
 unchanged until a source-complete cache is available.
 
+The repeated bounded rerun at the current head reached the same 2,214-row
+boundary. Its measured `sole` ranking is `not-ingested: stale envelope
+extractor hash` for 1,647 rows, followed by `not-parsed` for 567 rows. The
+first wall's price is a pinned source tree and fresh extraction cache, which
+are absent from this environment. No semantic family is ranked above that
+instrument wall until the source-complete cache is restored.
+
 The plugin receipt's bit-field wrong-answer cluster is now refusal-only. The
 registered rows cover one compound bit-field assignment and three widths above
 the supported exact path. They report named layout or width refusals against
