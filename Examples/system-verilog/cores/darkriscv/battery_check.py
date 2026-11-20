@@ -119,6 +119,10 @@ def names : List String := ["RES", "IDREQ", "IADDR", "IDATA",
   "DDACK", "DEBUG", "IDACK", "CLK"]
 def sigs (d : CoreMemDesign) (states : List CoreMemState) : List (List (String × String)) :=
   states.map fun s => names.map fun name => (name, SvState.showSignal (d.scalar.view s.scalar) name)
+def firstMismatch : Nat → List (List (String × String)) → List (List (String × String)) → Option Nat
+  | _, [], _ => none
+  | _, _, [] => none
+  | n, a :: as, e :: es => if a == e then firstMismatch (n + 1) as es else some n
 def expected : List (List (String × String)) := {expected}
 def corrupted : List (List (String × String)) := {wrong}
 #eval match PDesign.instantiateCoreMem dark.pdesign [0] with
@@ -129,19 +133,19 @@ def corrupted : List (List (String × String)) := {wrong}
       ] with
       | .ok states =>
           let actual := sigs d states
-          (actual == expected, actual == corrupted)
-      | .timeout => (false, false)
-      | .unsupported _ => (false, false)
-    | .timeout => (false, false)
-    | .unsupported _ => (false, false)
-  | .timeout => (false, false)
-  | .unsupported _ => (false, false)
-| .timeout => (false, false)
-| .unsupported _ => (false, false)
+          (actual == expected, actual == corrupted, firstMismatch 0 actual expected)
+      | .timeout => (false, false, none)
+      | .unsupported _ => (false, false, none)
+    | .timeout => (false, false, none)
+    | .unsupported _ => (false, false, none)
+  | .timeout => (false, false, none)
+  | .unsupported _ => (false, false, none)
+| .timeout => (false, false, none)
+| .unsupported _ => (false, false, none)
 '''
 
 
-def run_lean(rows: list[list[tuple[str, str]]]) -> tuple[bool, bool]:
+def run_lean(rows: list[list[tuple[str, str]]]) -> tuple[bool, bool, str]:
     corrupted = [[*row] for row in rows]
     corrupted[0] = [
         (name, "1" * len(value) if name == "IADDR" else value)
@@ -160,10 +164,10 @@ def run_lean(rows: list[list[tuple[str, str]]]) -> tuple[bool, bool]:
         probe.unlink(missing_ok=True)
     if result.returncode:
         raise RuntimeError(result.stdout)
-    match = re.search(r"\((true|false), (true|false)\)", result.stdout)
+    match = re.search(r"\((true|false), (true|false), (none|some [0-9]+)\)", result.stdout)
     if match is None:
         raise RuntimeError("Lean battery produced no Boolean result\n" + result.stdout)
-    return match.group(1) == "true", match.group(2) == "true"
+    return match.group(1) == "true", match.group(2) == "true", match.group(3)
 
 
 def main() -> int:
@@ -175,9 +179,12 @@ def main() -> int:
     if icarus != xcelium:
         raise SystemExit("the pinned simulators disagree")
     sim_rows = expected_rows(icarus)
-    lean_ok, corrupted_ok = run_lean(sim_rows)
+    lean_ok, corrupted_ok, first_mismatch = run_lean(sim_rows)
     if not lean_ok:
-        raise SystemExit("canonical E rows differ from the simulator rows")
+        raise SystemExit(
+            "canonical E rows differ from the simulator rows "
+            f"at {first_mismatch}"
+        )
     if corrupted_ok:
         raise SystemExit("negative control accepted a corrupted cycle row")
     digest = hashlib.sha256(("\n".join(icarus) + "\n").encode()).hexdigest()
