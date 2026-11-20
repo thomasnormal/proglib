@@ -333,6 +333,14 @@ external cache's partial C1/C3 source availability, so this receipt is a
 rerunnable partial-cache measurement rather than a replacement for the
 canonical full-survey headline.
 
+A bounded rerun on 2026-11-20 consumed all 2,214 entries of the same current
+parser manifest, but its cache contained envelopes without the current
+extractor hash and no pinned source tree for refresh. The controller therefore
+produced 1,647 `not-ingested` stale-envelope rows and 567 frontend
+`not-parsed` rows, with 0 scored rows and 0 DIVERGE. This is an environmental
+boundary, not a survey result, and the canonical C-MATCH headline remains
+unchanged until a source-complete cache is available.
+
 The plugin receipt's bit-field wrong-answer cluster is now refusal-only. The
 registered rows cover one compound bit-field assignment and three widths above
 the supported exact path. They report named layout or width refusals against
