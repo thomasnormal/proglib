@@ -1604,8 +1604,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           pure (CVal.ptr (Ptr.toObject o))
 
   -- ===== §6.3 — the conversion lattice, all eight castKinds =====
-  | .implicitCast ck sub ty _
-  | .cast ck sub ty _ =>
+  | .implicitCast ck sub ty span
+  | .cast ck sub ty span =>
       if ck == "LValueToRValue" then do
         if isStdoutRef sub then
           match ctx.stdoutObj with
@@ -1642,7 +1642,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         -- answer to `J.3.6(3)`, not the standard's (see `Value.convert`).
         let v ← evalExpr ctx sub
         let (_, n) ← asInt v
-        let t ← intTyOf (ctx.layout.normalizeTy ty)
+        let targetStructured := span.offset.bind ctx.layout.structuredExprType
+        let t ← match targetStructured.bind intTyOfStructured with
+          | some projected => pure projected
+          | none => intTyOf (ctx.layout.normalizeTy ty)
         pure (convert t n)
       else if ck == "IntegralToBoolean" then do
         let v ← evalExpr ctx sub
