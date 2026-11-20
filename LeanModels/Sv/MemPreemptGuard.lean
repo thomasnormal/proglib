@@ -61,7 +61,7 @@ open Kernel
 
 mutual
   def PExpr.memPreemptReads (d : MemDesign2) : PExpr → List BWin
-    | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _
+    | .lit _ | .typeBits _ _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _
     | .fill _ | .functionCall _ _ | .unsupported _ _ => []
     | .ident n => memPreemptWhole d n
     | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
@@ -77,6 +77,8 @@ mutual
     | .arrayPart n xs _ a b =>
         memPreemptWhole d n ++ PExpr.memPreemptReadsList d xs ++
           PExpr.memPreemptReads d a ++ PExpr.memPreemptReads d b
+    | .aggregateMember _ _ => []
+    | .packageAggElem _ _ index => PExpr.memPreemptReads d index
     termination_by structural e => e
 
   def PExpr.memPreemptReadsList (d : MemDesign2) : List PExpr → List BWin
@@ -96,6 +98,8 @@ mutual
     | .arrayPart _ xs _ a b =>
         PExpr.memPreemptReadsList d xs ++ PExpr.memPreemptReads d a ++
           PExpr.memPreemptReads d b
+    | .aggregateMember _ path =>
+        path.flatMap (fun (_, index) => index.toList.flatMap (PExpr.memPreemptReads d))
     termination_by structural l => l
 
   def PLhs.memPreemptReadsList (d : MemDesign2) : List PLhs → List BWin
@@ -109,6 +113,7 @@ mutual
   def PLhs.memPreemptWrites (d : MemDesign2) : PLhs → List BWin
     | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n .. =>
         memPreemptWhole d n
+    | .aggregateMember n _ => memPreemptWhole d n
     | .concat xs => PLhs.memPreemptWritesList d xs
     termination_by structural l => l
 
@@ -135,6 +140,8 @@ mutual
     | .caseStmt s items defaultBody _ _ =>
         PExpr.memPreemptReads d s ++ PStmt.memPreemptReadsItems d items ++
           PStmt.memPreemptReadsOpt d defaultBody
+    | .localDecl _ _ init? | .automaticDecl _ _ init? =>
+        init?.toList.flatMap (PExpr.memPreemptReads d)
     | .unsupported _ _ => []
     termination_by structural s => s
 
@@ -169,6 +176,7 @@ mutual
     | .caseStmt _ items defaultBody _ _ =>
         PStmt.memPreemptWritesItems d items ++
           PStmt.memPreemptWritesOpt d defaultBody
+    | .localDecl _ _ _ | .automaticDecl _ _ _ => []
     | .unsupported _ _ => []
     termination_by structural s => s
 
@@ -201,6 +209,7 @@ mutual
     | .caseStmt _ items defaultBody _ _ =>
         PStmt.memPreemptNBAOnlyItems items &&
           PStmt.memPreemptNBAOnlyOpt defaultBody
+    | .localDecl _ _ _ | .automaticDecl _ _ _ => false
     | .unsupported _ _ => false
     termination_by structural s => s
 
