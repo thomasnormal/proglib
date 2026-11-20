@@ -408,11 +408,22 @@ partial def parsePSvaValue (j : Json) : Except String PSvaValue := do
         let right ← parsePSvaValue (← getField j "right")
         match op with
         | .m0 bop => return .binary bop left right
+        | .mul => return .binary .mul left right
+        | .div => return .binary .div left right
+        | .mod => return .binary .rem left right
+        | .pow => return .binary (.pow false false) left right
         | .shl => return .binary (.shl false) left right
         | .shr => return .binary (.shr false) left right
         | .ashl => return .binary (.ashl false) left right
         | .ashr => return .binary (.ashr false) left right
-        | _ => throw "SVA value binary operator is outside the finite value fragment"
+        | .slt => return .binary .slt left right
+        | .sle => return .binary .sle left right
+        | .sgt => return .binary .sgt left right
+        | .sge => return .binary .sge left right
+        | .ceq => return .binary .caseEq left right
+        | .cne => return .binary .caseNe left right
+        | .land => return .binary .land left right
+        | .lor => return .binary .lor left right
     | other => throw s!"unknown SVA value kind {other.quote}"
 
 partial def parsePSvaBool (j : Json) : Except String PSvaBool := do
