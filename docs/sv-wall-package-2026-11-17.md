@@ -1200,7 +1200,8 @@ Xcelium's expected assertion diagnostic while canonical E preserves the
 and does not clear the general `prim_fifo_sync` `$error` wall, which remains
 outside that subset.
 
-The paired source-shaped `initial_delay_check` receipt likewise matches
+The paired source-shaped `initial_delay_check` receipt at
+`Examples/system-verilog/sem2/initial_delay_check_e/` likewise matches
 Icarus Verilog 13.0 and Xcelium 24.03-s004 on all eight observed cycles.  Its
 literal `#1` occurs only in an initial diagnostic check, so the canonical E
 adapter preserves the `assign y = x` state while treating the diagnostic-only
