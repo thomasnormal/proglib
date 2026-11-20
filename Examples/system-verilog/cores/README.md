@@ -1119,3 +1119,10 @@ The ordinary-route batch receipt
 `member_index_repro` passed with eight rows per point.  The parameterized
 families cover `N=1,4` and `W=8,N=2`, and every row agrees with Icarus Verilog
 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004, including x/z rows.
+
+The same ordinary-route receipt covers `generate_typed_localparam_param_e` at W=8 and W=3,
+`inactive_generate_child_param_e`, `inactive_generate_child_bit_param_e`, and
+`inactive_generate_child_cast_port_e` at USE=0 and USE=1. All thirty-two rows agree with
+Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z rows. The companion
+`nested_unpacked_target` row remains a named `UnpackedDecl:rank` refusal while both simulators
+agree on its source rows.
