@@ -940,7 +940,9 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
               match init with
               | none => do
                   let m ← get
-                  let (m', o) := m.allocZeroed .static_ sz (lay.storageTypeAt declaration ty)
+                  let (m', o) := m.allocZeroedStructured .static_ sz
+                    (lay.storageTypeAt declaration ty)
+                    (declaration.bind lay.structuredTypeDecl)
                   set m'
                   setupGlobalsWithIds fuel lay ds ((nm, o) :: acc)
                     (match declaration with
@@ -948,7 +950,9 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
                     | none => ids)
               | some e => do
                   let m ← get
-                  let (m', o) := m.alloc .static_ sz (lay.storageTypeAt declaration ty)
+                  let (m', o) := m.allocStructured .static_ sz
+                    (lay.storageTypeAt declaration ty)
+                    (declaration.bind lay.structuredTypeDecl)
                   set m'
                   initObject fuel ({ env := acc, idEnv := ids, layout := lay } : Ctx).withCompoundInit
                     (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl) declaration
@@ -982,8 +986,12 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
         | some sz => do
             let m ← get
             let (m', o) := match init with
-              | none => m.allocZeroed .static_ sz (lay.storageTypeAt (some declaration) ty)
-              | some _ => m.alloc .static_ sz (lay.storageTypeAt (some declaration) ty)
+              | none => m.allocZeroedStructured .static_ sz
+                  (lay.storageTypeAt (some declaration) ty)
+                  (some declaration |>.bind lay.structuredTypeDecl)
+              | some _ => m.allocStructured .static_ sz
+                  (lay.storageTypeAt (some declaration) ty)
+                  (some declaration |>.bind lay.structuredTypeDecl)
             set m'
             let ids' := (declaration, o) :: ids
             match init with

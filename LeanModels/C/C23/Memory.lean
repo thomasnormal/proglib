@@ -262,6 +262,10 @@ an `ObjId` is stable for the whole execution and provenance never
 dangles into a reused slot. -/
 structure Mem where
   objs : List CObj
+  /-- Parser-native effective-type observations for declaration-backed
+  objects. The object representation remains separate from this identity
+  table, so legacy envelopes can keep using `CObj.effTy`. -/
+  structuredTypes : List (ObjId × QualType) := []
   /-- Bytes emitted by the modeled stdout stream.  This is part of the
   execution world, not an object with pointer provenance. -/
   stdout : List CByte := []
@@ -280,7 +284,25 @@ deriving Repr, Inhabited, BEq
 
 namespace Mem
 
-def empty : Mem := ⟨[], [], [], [], []⟩
+def empty : Mem := { objs := [] }
+
+def structuredType? (m : Mem) (o : ObjId) : Option QualType :=
+  m.structuredTypes.find? (fun entry => entry.1 == o) |>.map (·.2)
+
+def rememberStructuredType (m : Mem) (o : ObjId) (ty : Option QualType) : Mem :=
+  match ty with
+  | none => m
+  | some type => { m with structuredTypes := (o, type) :: m.structuredTypes }
+
+@[simp] theorem rememberStructuredType_lookup
+    (m : Mem) (o : ObjId) (ty : QualType) :
+    (m.rememberStructuredType o (some ty)).structuredType? o = some ty := by
+  simp [rememberStructuredType, structuredType?]
+
+@[simp] theorem rememberStructuredType_placements
+    (m : Mem) (o : ObjId) (ty : Option QualType) :
+    (m.rememberStructuredType o ty).placements = m.placements := by
+  cases ty <;> rfl
 
 def emitStdout (m : Mem) (bytes : List CByte) : Mem :=
   { m with stdout := m.stdout ++ bytes }
@@ -539,12 +561,34 @@ def alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × O
       objs := m.objs ++ [⟨dur, true, List.replicate size .indet, ty⟩]
       placements := m.placements ++ [(o, o)] }, o)
 
+def allocStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : Option QualType) : Mem × ObjId :=
+  let (m', o) := m.alloc dur size ty
+  (m'.rememberStructuredType o structured, o)
+
+@[simp] theorem allocStructured_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (structured : QualType) :
+    (m.allocStructured dur size ty (some structured)).1.structuredType?
+        (m.allocStructured dur size ty (some structured)).2 = some structured := by
+  simp [allocStructured]
+
 /-- `calloc`'s object (§7.24.3.2p2): all bits zero, hence determinate. -/
 def allocZeroed (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × ObjId :=
   let o := m.objs.length
   ({ m with
       objs := m.objs ++ [⟨dur, true, List.replicate size (.conc 0), ty⟩]
       placements := m.placements ++ [(o, o)] }, o)
+
+def allocZeroedStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : Option QualType) : Mem × ObjId :=
+  let (m', o) := m.allocZeroed dur size ty
+  (m'.rememberStructuredType o structured, o)
+
+@[simp] theorem allocZeroedStructured_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (structured : QualType) :
+    (m.allocZeroedStructured dur size ty (some structured)).1.structuredType?
+        (m.allocZeroedStructured dur size ty (some structured)).2 = some structured := by
+  simp [allocZeroedStructured]
 
 /-- Allocate at an explicit concrete placement.  The caller supplies the
 address choice; provenance remains the returned object id and is what
@@ -897,6 +941,9 @@ def cAliasCompatible : CType → CType → Bool := fun used eff =>
     scalar == false || used' == eff' || used' == "char" ||
       used' == "signed char" || used' == "unsigned char"
 
+def cAliasCompatibleStructured : QualType → QualType → Bool := fun used eff =>
+  isCharacterType used || used.unqualified == eff.unqualified
+
 def cAliasModel : AliasModel where
   compatible := cAliasCompatible
   compatibleUsed := fun usedStructured used eff =>
@@ -911,6 +958,14 @@ def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
   | some eff =>
       if alias.compatibleUsed usedStructured used eff then .ok ()
       else .error (.memUB (.effectiveType o off used eff))
+
+def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
+    (used : CType) (usedStructured : Option QualType := none) : MRes Unit :=
+  match m.structuredType? o, usedStructured with
+  | some effective, some usedType =>
+      if cAliasCompatibleStructured usedType effective then .ok ()
+      else .error (.memUB (.effectiveType o off used (c.effTy.getD used)))
+  | _, _ => checkEffective alias o c off used usedStructured
 
 /-- Read an integer. C23 §6.3.2.1p2 (lvalue conversion) with
 §6.2.6.1p5: three outcomes, and two of them refuse.
@@ -940,7 +995,7 @@ def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : 
     (usedStructured : Option QualType := none) : MRes CVal := do
   let width := max 1 (t.bits / 8)
   let (o, c, off) ← m.resolve p width
-  checkEffective alias o c off used usedStructured
+  checkEffectiveAt m alias o c off used usedStructured
   let bs := (c.bytes.drop off).take width
   match decodeInt t bs with
   | some v => return .int t v
@@ -959,7 +1014,7 @@ def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used :
     (usedStructured : Option QualType := none) : MRes Mem := do
   let bs := encodeInt t v
   let (o, c, off) ← m.resolve p bs.length
-  checkEffective alias o c off used usedStructured
+  checkEffectiveAt m alias o c off used usedStructured
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
   -- Aggregate objects have no single effective type for all of their
   -- subobjects.  Their member declarations supply the type at each access,

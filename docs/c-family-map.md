@@ -471,3 +471,12 @@ covers one valid identity, a missing identity, and a duplicate identity.
 The extractor now enforces the same uniqueness before JSON emission. A
 duplicate declaration identity in the structured probe is a loud extraction
 failure, and the extractor self-test covers duplicate and distinct identities.
+
+The first structured effective-type storage slice is now wired. `Mem` keeps a
+parser-native `QualType` table keyed by allocated `ObjId`, separate from the
+legacy `CObj.effTy` spelling. Declaration, parameter, global, and static
+allocations populate the table when a unique envelope observation exists.
+Checked integer loads and stores use the structural compatibility predicate
+when both access and effective types are present, while legacy envelopes keep
+the existing spelling path. Allocation lookup and placement-preservation
+guards cover the new side table.

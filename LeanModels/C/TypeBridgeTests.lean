@@ -51,6 +51,19 @@ private def structuredEnvelope : Envelope :=
          type := .cBuiltinKind .unsignedInt }] } : Envelope).structuredTypeFor
     {value := "decl-1"} == none)
 
+#guard LeanModels.C.C23.Mem.cAliasCompatibleStructured
+  (.cBuiltinKind .int) (.qualified true false (.cBuiltinKind .int))
+#guard LeanModels.C.C23.Mem.cAliasCompatibleStructured
+  (.cBuiltinKind .char) (.pointer (.cBuiltinKind .int))
+#guard !LeanModels.C.C23.Mem.cAliasCompatibleStructured
+  (.cBuiltinKind .int) (.cBuiltinKind .unsignedInt)
+private def structuredAllocCheck : Bool :=
+  let result := LeanModels.C.C23.Mem.empty.allocStructured
+    LeanModels.C.C23.Duration.automatic 4 (some "int") (some (.cBuiltinKind .int))
+  result.1.structuredType? result.2 == some (.cBuiltinKind .int)
+
+#guard structuredAllocCheck
+
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))

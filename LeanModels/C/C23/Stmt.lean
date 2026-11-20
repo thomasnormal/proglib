@@ -779,7 +779,8 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             let m ← get
             let dur := if storage == some "static" then Duration.static_ else Duration.automatic
             let storageTy := ctx.layout.storageTypeAt id ty
-            let (m', o) := m.alloc dur sz storageTy
+            let (m', o) := m.allocStructured dur sz storageTy
+              (id.bind ctx.layout.structuredTypeDecl)
             set m'
             let idEnv' := match id with
               | some declaration => (declaration, o) :: ctx.idEnv
@@ -888,7 +889,8 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
             -- claimed, so it is not taken.)
             let m ← get
             let storageTy := lay.storageTypeAt id ty
-            let (m', o) := m.alloc .automatic sz storageTy
+            let (m', o) := m.allocStructured .automatic sz storageTy
+              (id.bind lay.structuredTypeDecl)
             set m'
             liftEval (storeAt Mem.cAliasModel (Ptr.toObject o) (lay.normalizeTy ty) v
               (id.bind lay.structuredTypeDecl))
