@@ -354,6 +354,12 @@ structured envelope, and the focused harness records the corresponding
 out-of-bounds refusal when only expression observations are supplied. No
 pointer-array DIVERGE remains in the exercised receipt.
 
+The remaining switch/name receipt row `pr35800.c` is now registered as a
+parser-native subscript refusal. Its unsupported name-table path reaches
+`subscript base is not an array or pointer type` under the structured plugin,
+with no DIVERGE against pinned Clang 21.1.8. Switch semantics remain a
+separate construct family.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and
