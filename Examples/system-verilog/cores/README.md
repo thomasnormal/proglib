@@ -640,7 +640,9 @@ simulator rows.  Their normalized row digest is
 Replaying those rows through canonical E reaches the loaded design but rejects
 the comparison.  The first three-row diagnostic shows the canonical and
 simulator views diverging once `IDACK` stalls, so this battery is **0/1000
-three-way rows**.  The existing all-NOP and always-ready input-driven
+three-way rows**.  In that diagnostic the first differing row is row 1,
+where canonical E has `DADDR=0` and an x-containing `DATAO`, while the
+simulator row has `DADDR=5` and zero `DATAO`.  The existing all-NOP and always-ready input-driven
 batteries remain 1000/1000.  This is a wrong-answer finding for the
 instruction-memory wait-state path, not a passing E-RUN claim.
 
