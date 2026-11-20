@@ -551,6 +551,22 @@ cycle rows from Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium
 SHA-256 is
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
 
+## 2026-11-20 Quark current-source E-RUN boundary
+
+The pinned FemtoRV32 Quark source at public commit
+`f5ada24ae6cca67d99889daec2c4ee44a6e59417` was freshly extracted with the
+approved Slang frontend.  Its source hash is
+`182e6d13bf5ab165b6eefaa22ae8d6a24ea45db6dd2dbd57dcfc5e81932097b7`, and the
+current envelope hash is
+`7866d03854611c819afd2639f85ea8106322fb5ac02e10124aa6be289a026504`.
+The census reports 130 admitted, 51 refused, and 0 not reached rows.  Canonical
+E refuses the envelope at the `FETCH_INSTR` untyped-width differential wall, so
+Quark remains E-RUN 0/0.
+
+Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 both
+refuse the unchanged source before elaboration at the use-before-declared
+`instr` diagnostic.  No simulator cycle rows are claimed for this source.
+
 The checked-in `darkriscv/e_check.py` also runs `load_design_sv2` against the
 pinned external envelope.  The envelope is accepted, and canonical E reports
 `hasUnsupported = true` with one process carrying the exact `FLUSH` refusal.
