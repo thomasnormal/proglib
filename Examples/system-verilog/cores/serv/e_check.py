@@ -12,6 +12,7 @@ import tempfile
 
 ENVELOPE_SHA256 = {
     "ea713d68c00b6bc3cc4e892de56bf1ccc74d1ba2dcc9dc30abb9a317c64c7a64",
+    "df120564f32fd92c2c45c980ae9d6602ee53a820440b39baeaec5648a39bc875",
 }
 EXPECTED_REFUSAL = "parameter 'RF_WIDTH' default: Constant:untyped-width"
 

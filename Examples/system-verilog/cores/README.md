@@ -653,6 +653,22 @@ Canonical E refuses at the `RF_WIDTH` untyped-width differential under IEEE
 external inputs, and the simulator and canonical-E receipts keep those inputs
 hash-pinned.
 
+## 2026-11-20 SERV current-source census rerun
+
+The pinned 17-file SERV source set was re-extracted with the current approved
+Slang frontend at commit `f200eb2ed7b69ac1c6b8eddd47654522aeee5ce8`.  The
+regenerated envelope has SHA-256
+`df120564f32fd92c2c45c980ae9d6602ee53a820440b39baeaec5648a39bc875`.
+The current source-overlay census reports **910 admitted / 41 refused / 203
+not reached** rows.  This rerun records the current extractor boundary and
+does not replace the pinned source or alter the RTL.
+
+Canonical E still refuses before execution at
+`parameter 'RF_WIDTH' default: Constant:untyped-width` under IEEE 1800-2023
+§6.20.2, so SERV remains E-RUN **0/0**.  The independent Icarus Verilog 13.0
+and Xcelium 24.03-s004 receipt remains **220/220** agreeing rows with digest
+`bbe7e48c24f4748f96beaf097df899183a5c15c0e7f51cad68d4057a034320ad`.
+
 ## 2026-11-18 cross-core follow-up
 
 The next two cores are DarkRISCV and FemtoRV32 Quark. They remain the nearest
