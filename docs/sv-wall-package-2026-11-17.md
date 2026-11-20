@@ -1247,3 +1247,8 @@ The current public head is `db6702c0d0d64c7bdd41b430b2ba482cbb59ec67`, and the g
 ## Runtime `$error` refusal receipt — 2026-11-20T20:35:16Z
 
 The source-shaped `initial_error_refuse.sv` fixture retains a runtime `$error` system task in an `initial` process beside `assign y = x`. Canonical E's ordinary census reports the exact refusal `SysCall:$error`; its parser-native process and assignment nodes remain visible in the checked-in envelope. Icarus Verilog 13.0 and Xcelium 24.03-s004 both emit the expected diagnostic and agree on all four four-state output rows, `y=0`, `y=x`, `y=z`, and `y=1`. This receipt confirms the current wall at IEEE 1800-2023 §20.10 diagnostic observability and does not admit runtime task execution or change E-ROWS or REAL-DESIGNS.
+
+
+## Timed delay-control receipt remeasurement — 2026-11-20T20:36:47Z
+
+The checked-in source-shaped `delay_control_wall` fixture was rerun at the current public head. Its ordinary census retains the exact `TimedStatement:DelayControl` refusal at `parsePStmt` for `#1 q <= d;`. Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all four source rows after the one-nanosecond delay, including the x/z data cases. The result confirms the zero-delay boundary under IEEE 1800-2023 §9.4 and changes no E-ROWS or REAL-DESIGNS count.
