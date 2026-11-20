@@ -566,6 +566,24 @@ reached**, and the pinned Icarus Verilog 13.0 and Xcelium 24.03-s004 receipt
 remains **220/220** with digest
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
 
+## 2026-11-20 DarkRISCV canonical-E 220-cycle run
+
+The same fixed input row is now driven through the loaded design for the full
+220-cycle simulator window.  After the reset and first rising edge, the probe
+drives a low and high clock pair for each of the remaining 219 cycles.  Every
+one of the 220 source-shaped rising-edge transitions returns through
+`CoreMemDesign.fastStepCanonical`, so canonical E records **220/220 complete
+cycles**.  The checked equality `fastStepCanonical_eq_step` keeps this on the
+canonical source-shaped route.
+
+The source-overlay census remains **177 admitted / 0 refused / 0 not reached**.
+The independent Icarus Verilog 13.0 and Xcelium 24.03-s004 simulator witness
+still agrees on **220/220** rows with normalized digest
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.  This
+receipt reports the canonical-E run length and the simulator witness
+separately, without claiming byte-for-byte equality of their x-valued
+data-side output columns.
+
 ## 2026-11-20 Quark current-source E-RUN boundary
 
 The pinned FemtoRV32 Quark source at public commit

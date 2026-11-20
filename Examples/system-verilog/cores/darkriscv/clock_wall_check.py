@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Check the first clocked DarkRISCV transition through canonical E.
+"""Check a fixed DarkRISCV clock run through canonical E.
 
 The staged reset and edge receipt must pass before this probe attempts the
-full source-shaped step.  The final step uses `fastStepCanonical`, whose
+source-shaped clock run.  Each transition uses `fastStepCanonical`, whose
 checked equality to `step` keeps the source-shaped canonical semantics while
 avoiding repeated scalar-store reduction.  A bounded non-return is recorded
-as an execution wall, while a returned value is printed for inspection and
-never relabelled as a refusal.
+as an execution wall, while an explicit refusal remains distinguishable from
+that wall.
 """
 
 from __future__ import annotations
@@ -28,6 +28,7 @@ ENVELOPE_HASHES = {
 }
 STAGED_CHECK = Path(__file__).with_name("e_check.py")
 TIMEOUT_SECONDS = 180
+CYCLE_COUNT = 220
 
 
 def bits(width: int, value: int) -> str:
@@ -46,22 +47,33 @@ def row (res : Nat) (clk : Nat) : SvState := [
   ("CLK", bits 1 clk), ("RES", bits 1 res), ("IRQ", bits 32 0),
   ("IDATA", bits 32 19), ("IDACK", bits 1 1), ("IBERR", bits 1 0),
   ("DATAI", bits 32 0), ("DDACK", bits 1 1), ("DBERR", bits 1 0)]
+def runCycles (d : CoreMemDesign) : Nat → CoreMemState → Nat → Res String
+  | 0, _, count => .ok (toString count ++ "-cycles-ok")
+  | n + 1, st, count =>
+      match d.fastStepCanonical st (row 0 0) with
+      | .ok low =>
+          match d.fastStepCanonical low (row 0 1) with
+          | .ok high => runCycles d n high (count + 1)
+          | .timeout => .timeout
+          | .unsupported m => .unsupported (toString count ++ "-high-unsupported: " ++ m)
+      | .timeout => .timeout
+      | .unsupported m => .unsupported (toString count ++ "-low-unsupported: " ++ m)
 #eval match PDesign.instantiateCoreMem dark.pdesign [0] with
 | .ok d => match d.initialState with
   | .ok st => match d.stepOnePassTrace st (row 1 0) with
     | .ok (st1, _) => match d.stepOnePassTrace st1 (row 0 0) with
       | .ok (st2, _) => match d.fastStepCanonical st2 (row 0 1) with
-        | .ok _ => "clock-step-ok"
-        | .timeout => "clock-step-timeout"
-        | .unsupported m => "clock-step-unsupported: " ++ m
-      | .timeout => "release-step-timeout"
-      | .unsupported m => "release-step-unsupported: " ++ m
-    | .timeout => "reset-step-timeout"
-    | .unsupported m => "reset-step-unsupported: " ++ m
-  | .timeout => "initial-timeout"
-  | .unsupported m => "initial-unsupported: " ++ m
-| .timeout => "instantiate-timeout"
-| .unsupported m => "instantiate-unsupported: " ++ m
+        | .ok st3 => runCycles d {CYCLE_COUNT - 1} st3 1
+        | .timeout => .timeout
+        | .unsupported m => .unsupported ("clock-step-unsupported: " ++ m)
+      | .timeout => .timeout
+      | .unsupported m => .unsupported ("release-step-unsupported: " ++ m)
+    | .timeout => .timeout
+    | .unsupported m => .unsupported ("reset-step-unsupported: " ++ m)
+  | .timeout => .timeout
+  | .unsupported m => .unsupported ("initial-unsupported: " ++ m)
+| .timeout => .timeout
+| .unsupported m => .unsupported ("instantiate-unsupported: " ++ m)
 '''
 
 
@@ -107,9 +119,12 @@ def run_clock_probe(envelope: Path, repo: Path) -> str:
         script.unlink(missing_ok=True)
     if result.returncode:
         raise SystemExit(result.stdout)
-    for marker in ("clock-step-ok", "clock-step-timeout", "clock-step-unsupported"):
-        if marker in result.stdout:
-            return marker
+    if "-cycles-ok" in result.stdout:
+        return "cycles-ok"
+    if "clock-step-timeout" in result.stdout or "Res.timeout" in result.stdout:
+        return "cycle-timeout"
+    if "clock-step-unsupported" in result.stdout or "-unsupported" in result.stdout:
+        return "cycle-unsupported"
     raise SystemExit("clock probe produced no result\n" + result.stdout)
 
 
@@ -127,16 +142,16 @@ def main() -> int:
     repo = Path(__file__).resolve().parents[4]
     run_staged(envelope, repo)
     marker = run_clock_probe(envelope, repo)
-    print(f"canonical E first clock transition: {marker}")
+    print(f"canonical E clock run: {marker}")
     print(f"bound: {TIMEOUT_SECONDS} seconds")
     print(f"envelope SHA-256: {digest}")
-    if marker == "clock-step-ok":
-        print("E-RUN: 1/1 complete source-shaped clock transition")
-    elif marker == "clock-step-timeout":
-        print("E-RUN: 0/1 complete source-shaped clock transitions")
-        print("execution wall: exact step did not return within the bound")
+    if marker == "cycles-ok":
+        print(f"E-RUN: {CYCLE_COUNT}/{CYCLE_COUNT} complete source-shaped rising-edge cycles")
+    elif marker == "cycle-timeout":
+        print(f"E-RUN: 0/{CYCLE_COUNT} complete source-shaped rising-edge cycles")
+        print("execution wall: canonical E clock run did not return within the bound")
     else:
-        print("E-RUN: 0/1 complete source-shaped clock transitions")
+        print(f"E-RUN: 0/{CYCLE_COUNT} complete source-shaped rising-edge cycles")
         print("execution result: canonical E returned an explicit refusal")
     return 0
 
