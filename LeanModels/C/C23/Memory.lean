@@ -1324,6 +1324,43 @@ def decodeInt (t : IntTy) (bs : List CByte) : Option Int :=
   | none => none
   | some xs => some (t.wrap (natOfBytes xs))
 
+theorem decodeInt_encodeInt_of_toNat_bound (t : IntTy) (v : Int)
+    (hu : (((v % t.modulus + t.modulus) % t.modulus).toNat) <
+      256 ^ max 1 (t.bits / 8)) :
+    decodeInt t (encodeInt t v) =
+      some (t.wrap ((v % t.modulus + t.modulus) % t.modulus)) := by
+  let width := max 1 (t.bits / 8)
+  let u : Int := (v % t.modulus + t.modulus) % t.modulus
+  have hm : 0 < t.modulus := by
+    simp only [IntTy.modulus]
+    induction t.bits with
+    | zero => simp
+    | succ n ih => simp [Int.pow_succ]; omega
+  have hne : t.modulus ≠ 0 := by omega
+  have hmod : 0 ≤ v % t.modulus := Int.emod_nonneg v hne
+  have hu0 : 0 ≤ u := by
+    dsimp [u]
+    have hadd : 0 ≤ v % t.modulus + t.modulus := by omega
+    exact Int.emod_nonneg _ hne
+  have hu_eq : u = v % t.modulus := by
+    dsimp [u]
+    rw [Int.add_emod_right, Int.emod_emod]
+  have hfold :
+      (List.map CByte.conc (natToBytes width u.toNat)).foldr
+          (fun (b : CByte) (acc : Option (List UInt8)) =>
+            match b, acc with
+            | .conc x, some xs => some (x :: xs)
+            | _, _ => none) (some []) =
+        some (natToBytes width u.toNat) := by
+    induction natToBytes width u.toNat with
+    | nil => rfl
+    | cons b bs ih => simp [ih]
+  simp only [encodeInt, decodeInt, width, u, hfold]
+  rw [natOfBytes_natToBytes width u.toNat]
+  · rw [hu_eq]
+    simp [IntTy.wrap, hmod, Int.toNat_of_nonneg hmod]
+  · simpa [width, u] using hu
+
 theorem encodeInt_renameAddresses (resolve : ObjId → Nat) (t : IntTy) (v : Int) :
     (encodeInt t v).map (CByte.renameAddress resolve) = encodeInt t v := by
   simp [encodeInt, CByte.renameAddress]
