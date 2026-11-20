@@ -418,3 +418,7 @@ bit-field, flexible-member, and member-offset queries take `CType` keys
 explicitly while field names remain `String`. The existing parser-native and
 legacy layout tables keep the same semantics, but callers no longer erase the
 type key to a raw string at these boundaries.
+
+The field-extent helper now states the same boundary explicitly. Its member
+name is a `String` key and its declared member type is a `CType` key, so a
+future `CType` representation cannot silently change field-name lookup.
