@@ -1142,9 +1142,9 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
         | some projected => pure projected
         | none => intTyOf ty
       writeMem (fun m => Mem.storeIntChecked m alias p t ty n structured)
-  | .float32 f => if ty == "float" then writeMem (fun m => Mem.storeFloat32 m p f)
+  | .float32 f => if structured.bind floatBitsOfStructured == some 32 || ty == "float" then writeMem (fun m => Mem.storeFloat32 m p f)
                  else refuseUnsupported "floating store without a floating layout"
-  | .float64 f => if ty == "double" then writeMem (fun m => Mem.storeFloat64 m p f)
+  | .float64 f => if structured.bind floatBitsOfStructured == some 64 || ty == "double" then writeMem (fun m => Mem.storeFloat64 m p f)
                  else refuseUnsupported "floating store without a floating layout"
   | .aggregate _ bs => writeMem (fun m => Mem.storeBytes m p bs)
   | .undef => refuseUnsupported "storing an indeterminate value"
