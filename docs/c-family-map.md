@@ -498,3 +498,9 @@ The side-table preservation slice is now available independently. A fresh
 `ObjId` can copy the old allocation's parser-native type observation, and the
 copy preserves concrete placements. `TypeBridgeTests` exercises that transfer
 without changing `realloc` itself.
+
+The realloc transition now uses that copy operation for both ordinary and
+explicit-placement reallocations. The existing old/new load, store, placement,
+and dead-pointer theorem family remains unchanged and compiles with the new
+side-table projection lemmas. The bridge test checks that the fresh pointer's
+identity retains the copied parser-native type.

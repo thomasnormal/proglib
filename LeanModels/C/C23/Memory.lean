@@ -307,6 +307,22 @@ def rememberStructuredType (m : Mem) (o : ObjId) (ty : Option QualType) : Mem :=
 def copyStructuredType (m : Mem) (old fresh : ObjId) : Mem :=
   m.rememberStructuredType fresh (m.structuredType? old)
 
+@[simp] theorem copyStructuredType_objs (m : Mem) (old fresh : ObjId) :
+    (m.copyStructuredType old fresh).objs = m.objs := by
+  cases h : m.structuredType? old <;> simp [copyStructuredType, rememberStructuredType, h]
+
+@[simp] theorem copyStructuredType_stdout (m : Mem) (old fresh : ObjId) :
+    (m.copyStructuredType old fresh).stdout = m.stdout := by
+  cases h : m.structuredType? old <;> simp [copyStructuredType, rememberStructuredType, h]
+
+@[simp] theorem copyStructuredType_vaCursors (m : Mem) (old fresh : ObjId) :
+    (m.copyStructuredType old fresh).vaCursors = m.vaCursors := by
+  cases h : m.structuredType? old <;> simp [copyStructuredType, rememberStructuredType, h]
+
+@[simp] theorem copyStructuredType_compoundObjects (m : Mem) (old fresh : ObjId) :
+    (m.copyStructuredType old fresh).compoundObjects = m.compoundObjects := by
+  cases h : m.structuredType? old <;> simp [copyStructuredType, rememberStructuredType, h]
+
 theorem copyStructuredType_lookup_new
     (m : Mem) (old fresh : ObjId) (ty : QualType)
     (h : m.structuredType? old = some ty) :
@@ -1897,7 +1913,8 @@ def realloc (m : Mem) (p : Ptr) (size : Nat) : MRes (Mem × Ptr) :=
         let m' : Mem := { m with
           objs := m.objs ++ [⟨.allocated, true, fresh, none⟩]
           placements := m.placements ++ [(newO, newO)] }
-        .ok (m'.kill o, Ptr.toObjectBound m.objs.length size)
+        .ok ((m'.copyStructuredType o newO).kill o,
+          Ptr.toObjectBound m.objs.length size)
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
@@ -1917,7 +1934,8 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
         let m' : Mem := { m with
           objs := m.objs ++ [⟨.allocated, true, fresh, none⟩]
           placements := placementSet m.placements newO address }
-        .ok (m'.kill o, Ptr.toObjectBoundAt m.objs.length address size)
+        .ok ((m'.copyStructuredType o newO).kill o,
+          Ptr.toObjectBoundAt m.objs.length address size)
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
