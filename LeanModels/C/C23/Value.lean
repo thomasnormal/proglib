@@ -338,6 +338,10 @@ theorem exposedAddress_nonnull (p : Ptr) (hp : p.obj.isSome) :
 @[simp] theorem fromExposedAddress_zero : fromExposedAddress 0 = some Ptr.null := by
   simp [fromExposedAddress]
 
+theorem fromExposedAddress_ne_zero (n : Int) (hn : n ≠ 0) :
+    fromExposedAddress n = none := by
+  simp [fromExposedAddress, hn]
+
 @[simp] theorem fromExposedAddress_negative (n : Int) (hn : n < 0) :
     fromExposedAddress n = none := by
   have hn0 : ¬ n = 0 := by omega
