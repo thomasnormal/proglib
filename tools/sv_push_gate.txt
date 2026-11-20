@@ -284,3 +284,5 @@ LeanModels
 LeanModels.Sv.Scheduler
 Examples/system-verilog/sem2/plain_internal_edge_e/agree.lean
 Examples/system-verilog/sem2/plain_generate_edge_e/agree.lean
+Examples/system-verilog/first_theorem/dff_arst_proof.lean
+Examples/system-verilog/first_theorem/half_add_proof.lean
