@@ -1485,3 +1485,18 @@ processes all came from the loaded `CoreMemDesign`; no source-level refusal was
 fabricated.  The same loader-backed command on the bundled DarkRISCV envelope
 (SHA-256 `65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26`)
 emitted **176 ADMITTED / 0 REFUSED / 0 NOT REACHED**.
+
+## 2026-11-20 PicoRV32 stalled and unknown-register E-RUN battery
+
+The input-driven PicoRV32 battery now drives `mem_ready` low on every fourth
+cycle and executes an additional `add x7, x31, x0` before `ebreak`, leaving the
+never-written register value as x.  Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 agree on **300/300** rows,
+and canonical E agrees on **300/300** rows across all 32 checked outputs.  The
+negative control remains in the checker and rejects a corrupted expected row.
+The normalized row digest is
+`8344cd1b478096d20b786add6bd31ed619cad716582bffe0763ded361a907a2e`.
+The changed testbench SHA-256 is
+`3328ad80031958fb6c3241f0897f0e5506ff974f777ab7764e11b17e8cd8545d`.
+This is a 300-cycle battery, with the first 37 cycles covering the active
+program and the remainder retained to check the halted-state behavior.

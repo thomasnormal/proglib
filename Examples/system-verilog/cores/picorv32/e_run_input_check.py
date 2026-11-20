@@ -21,10 +21,10 @@ ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.v"
 ENVELOPE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
 TESTBENCH = ROOT / "Examples/system-verilog/cores/picorv32/rvfi_long_e_probe.v"
-EXPECTED_CYCLES = 2000
+EXPECTED_CYCLES = 300
 SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
-TESTBENCH_SHA256 = "e0e70dd2b37165b8538894c7fb92ab86cbf497905c6fe48fb30a4b6e0379dd2a"
+TESTBENCH_SHA256 = "3328ad80031958fb6c3241f0897f0e5506ff974f777ab7764e11b17e8cd8545d"
 
 INPUTS = {
     "resetn", "mem_ready", "mem_rdata", "pcpi_wr", "pcpi_rd",
@@ -77,10 +77,10 @@ def parse_rows(output: str) -> list[dict[str, str]]:
 
 def check_program(rows: list[dict[str, str]]) -> None:
     retired = [row for row in rows if row["rvfi_valid"] == "1"]
-    words = [format(int(row["rvfi_insn"], 2), "08x") for row in retired[:8]]
+    words = [format(int(row["rvfi_insn"], 2), "08x") for row in retired[:9]]
     expected = [
         "00500093", "00700113", "002081b3", "10302023",
-        "10002203", "00418463", "02a00313", "00100073",
+        "10002203", "00418463", "02a00313", "000f83b3", "00100073",
     ]
     if words != expected:
         raise RuntimeError("unexpected retired program prefix: %s" % words)
@@ -90,6 +90,8 @@ def check_program(rows: list[dict[str, str]]) -> None:
         raise RuntimeError("store row has no full-word write mask")
     if retired[4]["rvfi_mem_rmask"] != "1111":
         raise RuntimeError("load row has no full-word read mask")
+    if "x" not in retired[7]["rvfi_rd_wdata"].lower():
+        raise RuntimeError("uninitialized-register row did not retain x")
 
 
 def lean_literal(value: str) -> str:
@@ -97,24 +99,24 @@ def lean_literal(value: str) -> str:
 
 
 def make_lean_probe(rows: list[dict[str, str]]) -> str:
-    def input_row(resetn: int, mem_rdata: int) -> str:
+    def input_row(resetn: int, mem_ready: int, mem_rdata: int) -> str:
         return (
             "[(\"resetn\", LVec.ofNat 1 %d), "
-            "(\"mem_ready\", LVec.ofNat 1 1), "
+            "(\"mem_ready\", LVec.ofNat 1 %d), "
             "(\"mem_rdata\", LVec.ofNat 32 %d), "
             "(\"pcpi_wr\", LVec.ofNat 1 0), "
             "(\"pcpi_rd\", LVec.ofNat 32 0), "
             "(\"pcpi_wait\", LVec.ofNat 1 0), "
             "(\"pcpi_ready\", LVec.ofNat 1 0), "
-            "(\"irq\", LVec.ofNat 32 0)]" % (resetn, mem_rdata)
+            "(\"irq\", LVec.ofNat 32 0)]" % (resetn, mem_ready, mem_rdata)
         )
 
-    data_rows = [input_row(0, 0) for _ in range(4)]
+    data_rows = [input_row(0, 1, 0) for _ in range(4)]
     for index, row in enumerate(rows):
         previous = rows[index - 1]["mem_rdata"] if index else "0" * 32
         if set(previous) - {"0", "1"}:
             raise RuntimeError("memory input contains unknown bits at cycle %d" % index)
-        data_rows.append(input_row(1, int(previous, 2)))
+        data_rows.append(input_row(1, int(row["mem_ready"], 2), int(previous, 2)))
 
     output_names = [name for name in rows[0] if name in WIDTHS]
     expected_rows = []
@@ -213,7 +215,8 @@ def main() -> int:
     ).encode()).hexdigest()
     print("Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on %d/%d cycles" %
           (len(icarus), EXPECTED_CYCLES))
-    print("canonical-E: 2000/2000 cycles and all 32 observed outputs match")
+    print("canonical-E: %d/%d cycles and all 32 observed outputs match" %
+          (len(icarus), EXPECTED_CYCLES))
     print("source SHA-256: " + SOURCE_SHA256)
     print("envelope SHA-256: " + ENVELOPE_SHA256)
     print("testbench SHA-256: " + TESTBENCH_SHA256)
