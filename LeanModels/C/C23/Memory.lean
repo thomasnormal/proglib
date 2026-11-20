@@ -2483,6 +2483,8 @@ structure AddressIndependent (m : Mem) : Prop where
     (used : CType) (v : Int) (address : Nat),
     m.storeIntChecked alias {p with address := address} t used v =
       m.storeIntChecked alias p t used v
+  storeInt : ∀ (p : Ptr) (t : IntTy) (v : Int) (address : Nat),
+    m.storeInt {p with address := address} t v = m.storeInt p t v
   loadInt : ∀ (p : Ptr) (t : IntTy) (address : Nat),
     m.loadInt {p with address := address} t = m.loadInt p t
   loadPtr : ∀ (p : Ptr) (address : Nat),
@@ -2543,6 +2545,7 @@ theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
       loadIntChecked_address_irrel m alias p t used address
   · exact fun alias p t used v address =>
       storeIntChecked_address_irrel m alias p t used v address
+  · exact fun p t v address => storeInt_address_irrel m p t v address
   · exact fun p t address => loadInt_address_irrel m p t address
   · exact fun p address => loadPtr_address_irrel m p address
   · exact fun p address => loadPtrInt_address_irrel m p address
