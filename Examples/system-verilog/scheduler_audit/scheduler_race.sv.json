@@ -1,0 +1,201 @@
+{
+  "schema_version": "sv-0.1",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "source_file": "Examples/system-verilog/scheduler_audit/scheduler_race.sv",
+  "source_sha256": "0d0d70488145d35e20dbf3dcba01f941ff1297ef65d34e2b7d7a067561f30d8a",
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 10,
+          "col": 1,
+          "end_line": 19,
+          "end_col": 10
+        },
+        "name": "scheduler_race_tb",
+        "ports": [],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 11,
+              "col": 9,
+              "end_line": 11,
+              "end_col": 19
+            },
+            "name": "clk",
+            "width": 1,
+            "init": {
+              "kind": "Literal",
+              "span": {
+                "line": 11,
+                "col": 15,
+                "end_line": 11,
+                "end_col": 19
+              },
+              "width": 1,
+              "bits": "0"
+            }
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 12,
+              "col": 15,
+              "end_line": 12,
+              "end_col": 16
+            },
+            "name": "q",
+            "width": 8,
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 14,
+              "col": 3,
+              "end_line": 18,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 14,
+                "col": 11,
+                "end_line": 18,
+                "end_col": 6
+              },
+              "stmts": [
+                {
+                  "kind": "Delay",
+                  "span": {
+                    "line": 15,
+                    "col": 5,
+                    "end_line": 15,
+                    "end_col": 19
+                  },
+                  "amount": 1,
+                  "body": {
+                    "kind": "BlockingAssign",
+                    "span": {
+                      "line": 15,
+                      "col": 8,
+                      "end_line": 15,
+                      "end_col": 19
+                    },
+                    "target": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 15,
+                        "col": 8,
+                        "end_line": 15,
+                        "end_col": 11
+                      },
+                      "width": 1,
+                      "name": "clk"
+                    },
+                    "value": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 15,
+                        "col": 14,
+                        "end_line": 15,
+                        "end_col": 18
+                      },
+                      "width": 1,
+                      "bits": "1"
+                    }
+                  }
+                },
+                {
+                  "kind": "Delay",
+                  "span": {
+                    "line": 16,
+                    "col": 5,
+                    "end_line": 16,
+                    "end_col": 36
+                  },
+                  "amount": 1,
+                  "body": {
+                    "kind": "SysCall",
+                    "span": {
+                      "line": 16,
+                      "col": 8,
+                      "end_line": 16,
+                      "end_col": 36
+                    },
+                    "name": "$display",
+                    "format": "S1-C1 q=%02h",
+                    "args": [
+                      {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 16,
+                          "col": 33,
+                          "end_line": 16,
+                          "end_col": 34
+                        },
+                        "width": 8,
+                        "name": "q"
+                      }
+                    ],
+                    "arg_signed": [
+                      false
+                    ]
+                  }
+                },
+                {
+                  "kind": "Delay",
+                  "span": {
+                    "line": 17,
+                    "col": 5,
+                    "end_line": 17,
+                    "end_col": 16
+                  },
+                  "amount": 1,
+                  "body": {
+                    "kind": "SysCall",
+                    "span": {
+                      "line": 17,
+                      "col": 8,
+                      "end_line": 17,
+                      "end_col": 16
+                    },
+                    "name": "$finish",
+                    "format": null,
+                    "args": [],
+                    "arg_signed": []
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 13,
+              "col": 18,
+              "end_line": 13,
+              "end_col": 39
+            },
+            "sv_kind": "Hierarchy:ports",
+            "text": "dut(.clk(clk), .q(q))"
+          }
+        ],
+        "hierarchy_lowered": true
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
