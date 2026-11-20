@@ -1468,3 +1468,20 @@ builder for the testbench, so the compiled-and-run count is **0/42**.  No
 RV32UI simulator or Lean result is claimed.  The bundled witness remains an
 all-NOP image and does not exercise a memory stall or an unknown-valued
 register.
+
+## 2026-11-20 loader-backed census
+
+`harness/rv/core_census.py` now obtains its rows from a generated Lean probe
+that loads the envelope with `load_design_sv2` and evaluates the real
+`instantiateCoreMem` result.  It contains no Python admission-rule table and
+never labels inactive source branches as `NOT REACHED`.
+
+The pinned PicoRV32 RISCV_FORMAL envelope
+`Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json` (SHA-256
+`17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236`) emitted
+310 rows: **310 ADMITTED / 0 REFUSED / 0 NOT REACHED**.  Its one native
+`cpuregs` memory, 255 scalar declarations, 32 continuous assignments, and 22
+processes all came from the loaded `CoreMemDesign`; no source-level refusal was
+fabricated.  The same loader-backed command on the bundled DarkRISCV envelope
+(SHA-256 `65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26`)
+emitted **176 ADMITTED / 0 REFUSED / 0 NOT REACHED**.
