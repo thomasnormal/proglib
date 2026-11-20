@@ -360,6 +360,12 @@ parser-native subscript refusal. Its unsupported name-table path reaches
 with no DIVERGE against pinned Clang 21.1.8. Switch semantics remain a
 separate construct family.
 
+The complete nine-row plugin DIVERGE set from the current receipt has now
+been replayed after the pointer, string, bit-field, and switch closures. All
+nine rows report REFUSE with no DIVERGE. Two rows use the more specific parser
+diagnostic surfaced by the current evaluator, so the harness expectations now
+record the actual named refusal rather than a stale predicted wall.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and

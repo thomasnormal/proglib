@@ -1292,7 +1292,7 @@
       "record_layout"
     ],
     "layout_expect": "refuse",
-    "layout_error": "no offset for member 'bitfield'"
+    "layout_error": "compound assignment to a bit-field"
   },
   {
     "id": "bitfield-20100316-1-c",
@@ -1339,7 +1339,7 @@
       "structured_types"
     ],
     "structured_expect": "refuse",
-    "structured_error": "pointer operation involving a string literal"
+    "structured_error": "subscript base is not an array or pointer type"
   },
   {
     "id": "string-pointer-pr34415-c",
