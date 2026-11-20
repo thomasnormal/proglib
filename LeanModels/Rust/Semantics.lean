@@ -574,6 +574,17 @@ def rawPointerType (s : State) (target : Nat) : Bool :=
   | some info => info.kind.startsWith "RigidTy(RawPtr"
   | none => false
 
+/-- A pointer cast to the pointer type `target`: a dereference reads at `target`'s pointee.  A
+pointer into envelope or allocator bytes takes the new pointee type (the bytes are decoded at it);
+a pointer to a local or to a caller's local keeps its pointee type, because those targets are typed
+cells that cannot be reinterpreted at another type, so a cast that changes the pointee refuses. -/
+def retypePointer (s : State) (pointer : Pointer) (target : Nat) : Option Cell :=
+  let pointee := (findTypeLayout s target).bind (·.pointee)
+  if pointee == pointer.pointeeType then some (.pointer pointer)
+  else if !pointer.isLocal && pointer.targetFrame.isNone then
+    some (.pointer { pointer with pointeeType := pointee })
+  else none
+
 def referencePointeeType (s : State) (localId : Nat) : Option Nat :=
   match localType s localId with
   | none => none
@@ -683,7 +694,7 @@ def rvalueCell (s : State) : Rvalue → Option Cell
   | .cast .ptrToPtr operand target => do
       if !pointerType s target then none else
         match ← operandCell s operand with
-        | .pointer pointer => pure (.pointer pointer)
+        | .pointer pointer => retypePointer s pointer target
         | _ => none
   -- A transmute keeps its bits, which the cells represent exactly only here: an integer into
   -- an integer type (the same-size bits reinterpreted at the target's signedness), an integer
@@ -695,7 +706,7 @@ def rvalueCell (s : State) : Rvalue → Option Cell
       | .int value =>
           if rawPointerType s target then pure (.int value)
           else (castInt s target value).map Cell.int
-      | .pointer pointer => if pointerType s target then pure (.pointer pointer) else none
+      | .pointer pointer => if pointerType s target then retypePointer s pointer target else none
       | _ => none
   -- `MutToConstPointer` only retypes; `Unsize` keeps the data pointer (the slice length or
   -- vtable it adds is not represented, and reading it refuses).  Function-pointer and
