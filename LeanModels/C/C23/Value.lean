@@ -213,6 +213,12 @@ theorem isOk_bind_ok (value : α) (f : α → CRes β) :
     ((CRes.ok value).bind f).isOk = (f value).isOk := by
   rfl
 
+theorem isOk_bind (r : CRes α) (f : α → CRes β) :
+    (r.bind f).isOk = match r with
+      | .ok value => (f value).isOk
+      | .ub _ => false := by
+  cases r <;> rfl
+
 end CRes
 
 /-! ## Values -/
