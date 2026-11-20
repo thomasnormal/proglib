@@ -2260,3 +2260,24 @@ seconds and peaked at 0.226 GiB under the 12 GiB `lean_memory_gate` scope with
 swap disabled and one Lean thread.  This confirms that one symbolic E cycle
 fits the direct proof budget.  It does not establish that a full cycle-by-cycle
 invariant proof is tractable, and no universal ADDI invariant is claimed.
+
+## 2026-11-20 real ADDI invariant stage boundary
+
+The first real-core invariant attempt uses the clocked-stage route from
+`LeanModels/Sv/SeqCycleStages.lean` on the unmodified RISCV_FORMAL envelope at
+its 26-parameter default vector.  The exact goal was
+
+```lean
+SeqDesignI (picorv32_r2.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 4294967295)
+```
+
+`sv_structure` reached controlled simplification but stopped before any
+process/profile refusal.  With `maxRecDepth 10000` and `maxHeartbeats 200000`
+the exact error was `Tactic simp failed with a nested error: (deterministic)
+timeout at isDefEq, maximum number of heartbeats (200000)`.  A 2,000,000-heartbeat
+rerun made no construct-level progress and was stopped after several minutes.
+The earlier `sv_seq_inst` reproduction at `maxRecDepth 10000` likewise stopped
+at deterministic `isDefEq` timeout after 50.496 seconds, with 2,428,704 KB peak
+RSS.  No refusal table or clean-room construct fixture is claimed because the
+clocked recognizer never reached a construct.  The real ADDI invariant remains
+unproved at this normalization boundary.
