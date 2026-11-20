@@ -568,7 +568,8 @@
               ],
               "part": null,
               "unpacked": true
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

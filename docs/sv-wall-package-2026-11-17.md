@@ -1280,3 +1280,7 @@ The source-shaped `always_comb_case_memory_canonical_e` receipt was rerun at the
 ## CV32E40P canonical-E run remeasurement — 2026-11-20T21:16Z
 
 The current generated real-design census records the pinned `alu_div_w8` CV32E40P source-shaped run as admitted in canonical E. `diff_test2.py --case alu_div_w8 --sim both --backend ecanon --no-xcheck` passes 18 cycles against Icarus Verilog 13.0 and Xcelium 24.03-s004. `Structure=true` and `EquationGate=false` remain the first clocked-theory boundary for its retained `always_comb` process, so this run changes the measured receipt without claiming procedural equation support.
+
+## Async-memory FIFO envelope refresh — 2026-11-20T21:22Z
+
+The checked-in source-shaped `async_mem_fifo_canonical_e` envelope was stale against the current approved extractor because its continuous-net target metadata was absent. Re-extraction restored the parser-native `continuous_net_target` field without changing the source. The receipt now regenerates byte-identically, and canonical E, Icarus Verilog 13.0, and Xcelium 24.03-s004 agree on all five reset/NBA memory rows. This refresh records the current envelope and does not introduce a second memory semantics.
