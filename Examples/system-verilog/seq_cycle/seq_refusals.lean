@@ -39,6 +39,8 @@ load_design_sv2 rn from "Examples/system-verilog/sem2/resolved_net_canonical_e/r
 load_design_sv2 ts from "Examples/system-verilog/seq_neg/two_state_reg.sv.json"
 load_design_sv2 p3 from "Examples/system-verilog/seq_neg/plain_three_events.sv.json"
 load_design_sv2 prf from "Examples/system-verilog/seq_neg/plain_reset_first.sv.json"
+load_design_sv2 gfr from "Examples/system-verilog/seq_neg/gen_for_regs.sv.json"
+load_design_sv2 gbp from "Examples/system-verilog/seq_cycle/gen_bypass.sv.json"
 
 /-! ## The definitions' boundary -/
 
@@ -111,6 +113,33 @@ error: sv_structure: the clocked profile does not hold: a declaration is 2-state
 -/
 #guard_msgs (whitespace := lax) in
 example : SeqDesign ts.e "clk" := by
+  sv_structure
+
+/-! ## The instantiation pass's refusals
+
+A conditional generate construct is evaluated (`seq_cycle/gen_proof`); a generate loop is not expanded, and the stage
+names it instead of printing the stuck instantiation (`seq_neg/gen_for_regs`, at symbolic and at concrete
+parameters). A condition the hypotheses on the parameters do not decide is named the same way. -/
+
+/--
+error: sv_structure: the instantiation does not normalize at these parameters: a generate loop: the clocked instantiation pass does not expand a `for` generate construct (the route's `genvarSeq`; a conditional generate is evaluated), refused
+-/
+#guard_msgs (whitespace := lax) in
+example (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : SeqDesignI (gfr.e W) := by
+  sv_structure
+
+/--
+error: sv_structure: the instantiation does not normalize at these parameters: a generate loop: the clocked instantiation pass does not expand a `for` generate construct (the route's `genvarSeq`; a conditional generate is evaluated), refused
+-/
+#guard_msgs (whitespace := lax) in
+example : SeqDesignI (gfr.e 2) := by
+  sv_structure
+
+/--
+error: sv_structure: the instantiation does not normalize at these parameters: the hypotheses in context do not decide `REG = 0` (a conditional generate construct takes its arm from a hypothesis on the parameters, and an `int` parameter needs both of its bounds), refused
+-/
+#guard_msgs (whitespace := lax) in
+example (W REG : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) (h4 : REG < 2 ^ 30) : SeqDesignI (gbp.e W REG) := by
   sv_structure
 
 end Examples.«system-verilog».seq_cycle.seq_refusals
