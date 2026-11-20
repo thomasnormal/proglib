@@ -195,6 +195,16 @@ theorem xReadRun_cons {source concrete : LVec}
     XReadRun (source :: sources) (concrete :: concreteTail) :=
   .cons hhead htail
 
+/-- The independent per-read relation preserves the number and order of
+read sites.  Each constructor pairs one source value with one concrete value,
+so this invariant is available when the relation is lifted to traces. -/
+theorem xReadRun_length {sources concrete : List LVec}
+    (h : XReadRun sources concrete) :
+    sources.length = concrete.length := by
+  induction h with
+  | nil => rfl
+  | cons hhead htail ih => simp [ih]
+
 theorem xReadRun_eq_of_known : ∀ {sources concrete : List LVec},
     (∀ source ∈ sources, source.bits.toList.all Logic.isKnown = true) →
     XReadRun sources concrete → sources = concrete
