@@ -10,6 +10,15 @@ retain universal canonical-E step, decode, order, relation, and progress
 premises.  This recheck proves no finite trace and supplies no missing RTL
 invariant.
 
+## 2026-11-20 R1 upper-immediate consumer recheck
+
+The loaded-core upper-immediate family compiles for LUI and AUIPC.  The
+checked theorem surface includes both exact field-to-ISA bridges, both loaded
+`Rv32iBoundary` consumers, the shared upper-immediate cycle dispatcher, and
+the loaded all-prefix refinement package.  The universal canonical-E step,
+decode, relation, order, and progress premises remain explicit, and no RTL
+invariant or finite trace is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
