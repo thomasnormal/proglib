@@ -534,3 +534,8 @@ The abstract `va_list` operations now preserve `structuredTypesUnique` on
 successful results. `vaStart`, `vaCopy`, `vaEnd`, and `vaArg` update only the
 cursor table, so parser-native effective-type identities remain unchanged
 through variadic argument traversal.
+
+Typed stores now expose the same successful-result preservation boundary. The
+generic byte-store proof covers integer, floating, pointer, function-pointer,
+and pointer-integer representations, while checked integer stores preserve the
+side table across their effective-type check and object-byte update.
