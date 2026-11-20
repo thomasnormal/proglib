@@ -2093,6 +2093,87 @@ theorem CByte.renameAddress_ptrIntByte_range
       (List.range 8).map (CByte.ptrIntByte (Ptr.renameAddress rename q)) := by
   simp [CByte.renameAddress, Function.comp_def]
 
+theorem ptrByte_range_beq_self (q : Ptr) :
+    ((List.range 8).map (CByte.ptrByte q)).beq
+      ((List.range 8).map (CByte.ptrByte q)) = true := by
+  have hq : (q == q) = true := by
+    cases q with
+    | mk obj address off bound =>
+      cases obj with
+      | none =>
+        cases bound with
+        | none =>
+          change (true && (decide (address = address) &&
+            (decide (off = off) && true))) = true
+          simp
+        | some b =>
+          change (true && (decide (address = address) &&
+            (decide (off = off) && decide (b = b)))) = true
+          simp
+      | some o =>
+        cases bound with
+        | none =>
+          change (decide (o = o) && (decide (address = address) &&
+            (decide (off = off) && true))) = true
+          simp
+        | some b =>
+          change (decide (o = o) && (decide (address = address) &&
+            (decide (off = off) && decide (b = b)))) = true
+          simp
+  have hb : ∀ (k : Nat), (CByte.ptrByte q k == CByte.ptrByte q k) = true := by
+    intro k
+    change (q == q && k == k) = true
+    simp [hq]
+  have hl : ∀ xs : List Nat,
+      (xs.map (CByte.ptrByte q)).beq (xs.map (CByte.ptrByte q)) = true := by
+    intro xs
+    induction xs with
+    | nil => rfl
+    | cons x xs ih =>
+        simp only [List.map, BEq.beq, List.beq]
+        have hb' : instBEqCByte.beq (CByte.ptrByte q x)
+            (CByte.ptrByte q x) = true := by
+          simpa only [BEq.beq] using hb x
+        rw [hb', ih]
+        simp
+  exact hl (List.range 8)
+
+theorem loadPtr_renameAddresses_of_exact
+    (rename : ObjId → Nat) (m : Mem) (p q : Ptr)
+    (o : ObjId) (c : CObj) (off : Nat)
+    (hr : m.resolve p 8 = .ok (o, c, off))
+    (hbytes : List.take 8 (List.drop off c.bytes) =
+      (List.range 8).map (CByte.ptrByte q)) :
+    (m.renameAddresses rename).loadPtr (Ptr.renameAddress rename p) =
+      .ok (Ptr.renameAddress rename q) := by
+  simp only [loadPtr, resolve_renameAddresses, hr]
+  dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+    Except.pure, Except.map]
+  have hmapped :
+      List.take 8 (List.drop off (CObj.renameAddress rename c).bytes) =
+        (List.range 8).map (CByte.ptrByte (Ptr.renameAddress rename q)) := by
+    simp only [CObj.renameAddress]
+    have hslice :
+        (List.map (CByte.renameAddress rename)
+          (List.take 8 (List.drop off c.bytes))) =
+        (List.range 8).map (CByte.ptrByte (Ptr.renameAddress rename q)) := by
+      rw [hbytes]
+      exact CByte.renameAddress_ptrByte_range rename q
+    simpa [List.map_take, List.map_drop] using hslice
+  rw [hmapped]
+  have hself := ptrByte_range_beq_self (Ptr.renameAddress rename q)
+  have hhead : ((List.range 8).map
+      (CByte.ptrByte (Ptr.renameAddress rename q))).head? =
+      some (CByte.ptrByte (Ptr.renameAddress rename q) 0) := by
+    simp [List.range, List.range.loop]
+  rw [hhead]
+  simp only [Option.map, CByte.renameAddress]
+  have hself' :
+      (List.map (CByte.ptrByte (Ptr.renameAddress rename q)) (List.range 8) ==
+        List.map (CByte.ptrByte (Ptr.renameAddress rename q)) (List.range 8)) = true := by
+    simpa only [BEq.beq] using hself
+  rw [if_pos hself']
+
 def storePtrInt (m : Mem) (p : Ptr) (q : Ptr) : MRes Mem :=
   m.storeBytes p ((List.range 8).map (CByte.ptrIntByte q))
 
