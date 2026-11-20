@@ -23307,6 +23307,18 @@ def _convert_stmt(sm, s):
         return result
 
     if cname == "TimedStatement":  # nested timing control (#10, @(...), ...)
+        if _SYM is not None and type(s.timing).__name__ == "DelayControl":
+            # Slang can attach a zero-width source range to a delay nested in
+            # an elaboration-only initial check.  In that case source_text(s)
+            # may expose the surrounding comment instead of the parser's
+            # timing control.  Retain the parser node's literal delay value
+            # so the downstream diagnostic-only adapter can recognize the
+            # source-shaped `#<digits>;` control without reparsing text.
+            amount = _literal_delay_amount(sm, s.timing.expr, s,
+                                           "TimedStatement:DelayControl")
+            if isinstance(amount, int):
+                return unsupported(sm, s, "TimedStatement:DelayControl",
+                                   text=f"#{amount};")
         if _SYM is None and type(s.timing).__name__ == "DelayControl":
             return _convert_delay_statement(sm, s)
         if _SYM is None and type(s.timing).__name__ == "SignalEventControl":

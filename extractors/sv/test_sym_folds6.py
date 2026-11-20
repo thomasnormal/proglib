@@ -54,6 +54,23 @@ def kinds(node):
     return found
 
 
+def unsupported_texts(node, sv_kind):
+    found = []
+
+    def walk(n):
+        if isinstance(n, dict):
+            if n.get("kind") == "Unsupported" and n.get("sv_kind") == sv_kind:
+                found.append(n.get("text"))
+            for v in n.values():
+                walk(v)
+        elif isinstance(n, list):
+            for v in n:
+                walk(v)
+
+    walk(node)
+    return found
+
+
 TYPEDEFS = """
 module td #(parameter int M = 32) (input logic [3:0] a, output logic [63:0] o);
   typedef logic signed [M-1:0] st_t;
@@ -181,6 +198,16 @@ class UntypedChildOverrides(unittest.TestCase):
         self.assertEqual(kinds(ov["u2"]["params"]), [])
         self.assertEqual(kinds(ov["u3"]["params"]), [])
         self.assertEqual(kinds(ov["u4"]["params"]), [])
+
+
+class DiagnosticDelaySourceShape(unittest.TestCase):
+    def test_symbolic_literal_delay_keeps_parser_value(self):
+        env = extract_sym(
+            "module delay_check(input logic x, output logic y);"
+            " assign y = x; initial begin #1; if (x) $error(\"bad\"); end"
+            " endmodule", "delay_check")
+        self.assertEqual(
+            unsupported_texts(env, "TimedStatement:DelayControl"), ["#1;"])
 
 
 if __name__ == "__main__":
