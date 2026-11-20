@@ -1205,6 +1205,22 @@ def loadBytes (m : Mem) (p : Ptr) (n : Nat) : MRes (List CByte) := do
   let (_, c, off) ← m.resolve p n
   return (c.bytes.drop off).take n
 
+theorem loadBytes_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (n : Nat) :
+    (m.renameAddresses rename).loadBytes (Ptr.renameAddress rename p) n =
+      (m.loadBytes p n).map (List.map (CByte.renameAddress rename)) := by
+  unfold loadBytes
+  rw [resolve_renameAddresses]
+  cases h : m.resolve p n with
+  | error e => simp [h, Functor.map, Except.map, Except.bind, Function.comp_def]
+  | ok result =>
+      cases result with
+      | mk o rest =>
+          cases rest with
+          | mk c off =>
+              simp [h, Functor.map, CObj.renameAddress, CObj.size, List.map_take,
+                List.map_drop, List.map_map, Except.map, Function.comp_def]
+
 /-- Write a byte string. The length is the caller's `n`. -/
 def storeBytes (m : Mem) (p : Ptr) (bs : List CByte) : MRes Mem := do
   let (o, c, off) ← m.resolve p bs.length
