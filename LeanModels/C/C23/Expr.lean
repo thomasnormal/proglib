@@ -669,6 +669,8 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
     Option Nat :=
   decl.bind layout.declSize |>.orElse (fun _ =>
     decl.bind layout.structuredType
+      |>.bind (LeanModels.Clang.QualType.resolveTypedefs
+        (fun declaration => layout.structuredType { value := declaration.value }) 32)
       |>.bind objectSizeOfStructured)
     |>.orElse (fun _ => layout.size (layout.normalizeTy ty))
 
@@ -691,8 +693,15 @@ def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : CType) :
     |>.orElse (fun _ =>
       ((directDeclId base).bind layout.structuredType |>.orElse
         (fun _ => (Expr.span base).offset.bind layout.structuredExprType)).bind (fun structured =>
+        let resolvedElement :=
+          match structured.unqualified with
+          | .array element _ | .pointer element =>
+              LeanModels.Clang.QualType.resolveTypedefs
+                (fun handle => layout.structuredType { value := handle.value })
+                32 element |>.getD element
+          | _ => structured
         match structured.unqualified with
-        | .array element _ | .pointer element => scalarSizeOfStructured element
+        | .array _ _ | .pointer _ => scalarSizeOfStructured resolvedElement
         | _ => none))
     |>.orElse (fun _ => layout.exprSizeAt base ty)
 
@@ -700,7 +709,12 @@ def Layout.arrayElementSizeDeclAt (layout : Layout) (decl : Option DeclarationId
     (arrayTy elementTy : CType) : Option Nat :=
   match decl.bind layout.structuredType |>.map LeanModels.Clang.QualType.unqualified with
   | some (.array element _) =>
-      decl.bind layout.elementSizeDecl |>.orElse (fun _ => objectSizeOfStructured element)
+      let resolvedElement :=
+        LeanModels.Clang.QualType.resolveTypedefs
+          (fun handle => layout.structuredType { value := handle.value })
+          32 element |>.getD element
+      decl.bind layout.elementSizeDecl |>.orElse
+        (fun _ => objectSizeOfStructured resolvedElement)
   | some _ => none
   | none => decl.bind layout.elementSizeDecl |>.orElse
       (fun _ => layout.arrayElementSizeAt arrayTy elementTy)
@@ -725,7 +739,12 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
   | some structured =>
       match structured.unqualified with
       | .array element (some extent) =>
-          some (layout.arrayElementType ty |>.orElse (fun _ => typeKeyOfStructured element) |>.getD ty, extent)
+          let resolvedElement :=
+            LeanModels.Clang.QualType.resolveTypedefs
+              (fun handle => layout.structuredType { value := handle.value })
+              32 element |>.getD element
+          some (layout.arrayElementType ty |>.orElse
+            (fun _ => typeKeyOfStructured resolvedElement) |>.getD ty, extent)
       | .array _ none | _ => none
   | none => layout.elem ty
 

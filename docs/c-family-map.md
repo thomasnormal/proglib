@@ -287,6 +287,15 @@ the constructor before retaining the legacy spelling fallback. This does not
 reduce the checker count yet because the remaining fallback is still required
 for older envelopes.
 
+The parser-native aggregate floating family now resolves typedef references
+inside array element `QualType` observations before sizing and initialization.
+Direct, qualified, and typedef-backed `double[2]` initializers each MATCH the
+pinned Clang 21.1.8 run with the structured-type and floating-bit plugins, for
+3 MATCH, 0 REFUSE, and 0 DIVERGE. Without those optional observations the same
+three rows remain explicit refusals naming the missing declared array layout.
+The change is confined to parser-carried recursive type resolution and keeps
+the legacy spelling path out of the new rows.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
