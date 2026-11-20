@@ -1,5 +1,15 @@
 # PicoRV32 R2 integration status
 
+## 2026-11-20 R1 conditional-branch consumer recheck
+
+The loaded-core branch family compiles for all six RV32I conditions.  The
+checked theorem surface includes the exact `branchFields` to ISA-step bridge,
+six loaded `Rv32iBoundary` consumers, the condition-indexed exact-cycle
+dispatcher, and the loaded all-prefix refinement package.  The declarations
+retain universal canonical-E step, decode, order, relation, and progress
+premises.  This recheck proves no finite trace and supplies no missing RTL
+invariant.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
