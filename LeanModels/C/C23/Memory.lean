@@ -1227,6 +1227,24 @@ def storeBytes (m : Mem) (p : Ptr) (bs : List CByte) : MRes Mem := do
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
   return { m with objs := m.objs.set o { c with bytes := bytes } }
 
+theorem storeBytes_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (bs : List CByte) :
+    (m.renameAddresses rename).storeBytes (Ptr.renameAddress rename p)
+        (bs.map (CByte.renameAddress rename)) =
+      (m.storeBytes p bs).map (Mem.renameAddresses rename) := by
+  unfold storeBytes
+  rw [resolve_renameAddresses]
+  cases h : m.resolve p bs.length with
+  | error e => simp [h, Functor.map, Except.map, Except.bind, Function.comp_def]
+  | ok result =>
+      cases result with
+      | mk o rest =>
+          cases rest with
+          | mk c off =>
+              simp [h, Functor.map, Except.map, Except.bind, Function.comp_def,
+                Mem.renameAddresses, CObj.renameAddress, List.map_append,
+                List.map_take, List.map_drop, List.map_map]
+
 /-! ### §6.2.6.2 Integer representation
 
 Byte order is the profile's `little_endian`, and the extractor's profile gate
