@@ -205,6 +205,14 @@ def isOk : CRes α → Bool
   | .ok _ => true
   | .ub _ => false
 
+@[simp] theorem isOk_bind_ub (cause : UB) (f : α → CRes β) :
+    ((CRes.ub cause).bind f).isOk = false := by
+  rfl
+
+theorem isOk_bind_ok (value : α) (f : α → CRes β) :
+    ((CRes.ok value).bind f).isOk = (f value).isOk := by
+  rfl
+
 end CRes
 
 /-! ## Values -/
