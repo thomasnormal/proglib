@@ -1292,6 +1292,18 @@ def natOfBytes : List UInt8 → Nat
   | [] => 0
   | b :: bs => b.toNat + 256 * natOfBytes bs
 
+theorem natOfBytes_natToBytes (n v : Nat) (hv : v < 256 ^ n) :
+    natOfBytes (natToBytes n v) = v := by
+  induction n generalizing v with
+  | zero => simp [natToBytes, natOfBytes] at hv ⊢; omega
+  | succ n ih =>
+      simp [natToBytes, natOfBytes]
+      have hq : v / 256 < 256 ^ n := by
+        apply (Nat.div_lt_iff_lt_mul (by decide)).2
+        simpa [Nat.pow_succ, Nat.mul_comm] using hv
+      rw [ih (v / 256) hq]
+      exact Nat.mod_add_div v 256
+
 /-- The bytes of `v` at type `t`. The stored value is the mathematical
 integer (`Value.lean`'s invariant), so it is reduced into the type's
 unsigned residue first — that is what a representation IS. -/
