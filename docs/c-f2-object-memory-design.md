@@ -1,13 +1,14 @@
 # F2 object-memory design
 
 F2 defines one storage interface shared by the C and C++ lanes and available
-to Rust. The normative C profile is GNU17, meaning C17 plus the admitted GNU
-extensions listed in docs/c-tier-architecture.md. C23/N3220 clause numbers are
-cited where they describe the same rule. The memory-relevant profile decisions
-cover realloc(p, 0), trap and non-value representations, indeterminate values,
-_BitInt, packed and aligned members, zero-length arrays, alloca, statement-
-expression temporaries, and GNU VLA behavior. TS 6010 and DR 260 govern the
-indeterminate and provenance choices.
+to Rust. The normative C profile is C23/N3220 with the admitted GNU extensions
+listed in docs/c-tier-architecture.md. The memory-relevant profile decisions
+cover `realloc(p, 0)`, trap and non-value representations, indeterminate
+values, `_BitInt`, packed and aligned members, zero-length arrays, `alloca`,
+statement-expression temporaries, and GNU VLA behavior. TS 6010 and DR 260
+govern the indeterminate and provenance choices. A profile records each
+implementation-defined choice rather than allowing the evaluator to select a
+convenient one.
 
 ## State and pointer values
 
@@ -49,9 +50,11 @@ defined allocation-failure result, even when some valid placement exists.
 `free` ends the allocation lifetime and invalidates every pointer carrying its
 provenance. Any later use, including equality, ordering, subtraction, casts,
 or a byte read, is undefined or a named refusal according to the profile.
-`realloc` first deallocates the old object, then chooses a placement for the
-new object. Its result has a new allocation identity even when the address is
-reused. GNU17 `realloc(p, 0)` is an implementation-defined profile choice.
+`realloc` first ends the old allocation lifetime, then chooses a placement for
+the new allocation in the same transition. Its result has a new allocation
+identity even when the address is reused. The C profile records the
+implementation-defined GNU behavior for `realloc(p, 0)` as an explicit
+profile choice.
 
 ## Bytes and representation
 
@@ -107,10 +110,10 @@ are explicit state. The udi choice is an explicit oracle argument at the first
 integer-to-pointer use. The relation contains one branch for every admissible
 choice, and a theorem quantifies over every branch under rule 4. An integer
 whose address interval contains no exposed live allocation yields a pointer
-with empty provenance. Alignment failures are undefined under C17
-§6.3.2.3p7. A pointer with empty provenance and a non-null address remains a
-valid value for operations whose rules permit it, while dereference requires
-recovered live provenance.
+with empty provenance. Alignment failures are undefined under C23 §6.3.2.3p7.
+A pointer with empty provenance and a non-null address remains a valid value
+for operations whose rules permit it, while dereference requires recovered
+live provenance.
 
 ## Operations, effects, and observations
 
@@ -183,7 +186,10 @@ allocations, and temporary lifetime. Rust supplies borrow tags and
 per-location Stacked Borrows or Tree Borrows state through the same hooks. The
 current stateless C++ AliasModel and the Rust store are migration debt. C and
 C++ object stores converge on this interface before their independent layers
-are retired.
+are retired. The current C++ `AliasModel`, `Cpp/ObjectModel`, and Rust store
+are migration debt. C is ported first, then C++ subobjects and active-union
+state move to the language hooks. `Cpp/ObjectModel` is removed only after its
+callers use the shared operations and replacement rows cover the same cases.
 
 The F2 gates are S1 structured types with zero type-string operations and a
 rerunnable survey, S2 well-formedness preservation for every exported memory
