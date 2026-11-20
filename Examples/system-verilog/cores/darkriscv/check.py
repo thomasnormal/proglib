@@ -13,7 +13,7 @@ import tempfile
 
 PINNED_COMMIT = "bb6b483cc61a2886a0602c7e62b14f5995ddfbb9"
 SOURCE_SHA256 = "46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0"
-EXPECTED_ROWS = 220
+EXPECTED_ROWS = 1000
 
 
 def run(command: list[str], cwd: Path) -> str:
@@ -74,7 +74,7 @@ def main() -> None:
             f"Xcelium={len(xcelium_rows)}"
         )
     if icarus_rows != xcelium_rows:
-        raise SystemExit("the pinned simulators disagree on the 220-cycle witness")
+        raise SystemExit("the pinned simulators disagree on the 1000-cycle witness")
     digest = hashlib.sha256(("\n".join(icarus_rows) + "\n").encode()).hexdigest()
     print(f"rows: {EXPECTED_ROWS}/{EXPECTED_ROWS} agree")
     print(f"normalized-row-sha256: {digest}")
