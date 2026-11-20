@@ -116,3 +116,16 @@ the lenient switch enumerates the possible outcomes, while strict mode returns
 the named refusal that a proof consumer must carry until X-E is wired through
 execution. Run `python3 harness/sv_x_resolution.py`; the current battery has
 13 passing rows and does not consult a simulator or alter E.
+
+## 2026-11-20 remeasurement and next walls
+
+The executable battery remains at 13 passing rows. The recent kernel additions
+for typed-resolution projections, per-read widths, trace append/take/drop/map,
+and cycle read projections changed no E-ROWS or REAL-DESIGNS. The next walls are
+ranked by the implementation they unblock: first thread `XReadRun` through the
+cycle and observation trace bridges so a complete witness can refine a sampled
+run, then replace the known-read-only observation and contract lemmas with that
+trace witness, then repair the MemE start-state conversion mismatch before
+lifting the relation through SVA samples. The battery is the measured baseline
+for each of those changes, and no simulator result is claimed by this
+remeasurement.
