@@ -858,6 +858,7 @@ def coreMemSubstProcess (scope : CoreMemScope) : PProcess → PProcess
   | .alwaysComb b => .alwaysComb (coreMemSubstStmt scope b)
   | .alwaysLatch b => .alwaysLatch (coreMemSubstStmt scope b)
   | .alwaysImplicit b => .alwaysImplicit (coreMemSubstStmt scope b)
+  | .alwaysEvent events b => .alwaysEvent events (coreMemSubstStmt scope b)
   | .assign n e => .assign n (coreMemSubstExpr scope e)
   | .assignL l e => .assignL (coreMemSubstLhs scope l) (coreMemSubstExpr scope e)
   | .alwaysFFR c r b h => .alwaysFFR c r (coreMemSubstStmt scope b) h
