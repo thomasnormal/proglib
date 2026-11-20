@@ -618,6 +618,12 @@ Pointer-byte observation has its explicit exception theorem in
 `Ptr.exposedAddress_address`. It records the selected placement as the only
 address-dependent value used by character reads of pointer representations.
 
+The representation-level rename is now explicit through
+`Ptr.renameAddress`, `CByte.renameAddress`, `CVal.renameAddress`, and
+`Mem.renameAddresses`. Provenance and structured type keys remain fixed while
+stored pointer representations, cursor values, and concrete placements follow
+the object-to-address map.
+
 The function-pointer store accessor now has its explicit named
 `storeFunction_address_irrel` proof, completing the contract's representation
 store cases.
