@@ -84,6 +84,16 @@ class consumers retain the exact immediate decoder, shared ALU step and
 commit semantics, and the canonical ISA definitions.  No RTL invariant or
 finite trace is claimed.
 
+## 2026-11-20 R1 all-family dispatcher recheck
+
+The loaded-core RV32I dispatcher package compiles over the family-tagged
+ALU, branch, jump, memory, fence, system, CSR, and illegal boundaries.  The
+checked package retains the exact loaded-cycle step, reset relation,
+well-formedness preservation, initial-relation refinement, total-step
+refinement, and family-boundary refinement.  Universal execution, relation,
+order, and progress premises remain explicit.  No RTL invariant or finite
+trace is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
