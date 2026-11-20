@@ -30573,6 +30573,32 @@ def _reject_invalid_lowering(sm, comp, modules, others, marker, kind, descriptio
                                   "frontend rejected source containing " + description))
 
 
+def _module_has_compilation_error(sm, comp, inst):
+    """Whether an elaboration error belongs to this module's source range.
+
+    A compilation contains every source definition in the envelope.  An error
+    in a sibling or child definition must not turn an otherwise source-shaped
+    operator in this module into an ``*:invalid-compilation`` wall.  Keep the
+    diagnostic association parser-owned by comparing Slang's source locations
+    with the module declaration range.
+    """
+    try:
+        syntax = inst.body.syntax
+        source_range = syntax.sourceRange
+        start = sm.getFullyOriginalLoc(source_range.start)
+        end = sm.getFullyOriginalLoc(source_range.end)
+        for diagnostic in comp.getAllDiagnostics():
+            if not diagnostic.isError():
+                continue
+            location = sm.getFullyOriginalLoc(diagnostic.location)
+            if (location.buffer == start.buffer
+                    and start.offset <= location.offset <= end.offset):
+                return True
+    except Exception:
+        return False
+    return False
+
+
 # ---------------------------------------------------------------------------
 # slang ANALYSIS errors (Thomas 2026-11-01: "slang reports a program illegal"
 # means the FULL slang driver: parse, elaboration AND analysis errors).
@@ -36350,12 +36376,13 @@ def _sym_convert_definition(tree, source_map, name):
             _reject_invalid_lowering(sm, comp, [module], module["others"],
                                      "implication_lowered", "LogicalImplication",
                                      "lowered implication")
+            module_error = _module_has_compilation_error(sm, comp, inst)
             for pred, tag, what in (
                     (contains_division, "Division", "division"),
                     (contains_remainder, "Remainder", "remainder"),
                     (contains_power, "Power", "power"),
                     (contains_shift, "Shift", "a shift")):
-                if pred(module) and nerr:
+                if pred(module) and module_error:
                     module["others"].append(unsupported(
                         sm, comp, tag + ":invalid-compilation",
                         "frontend rejected source containing " + what))
@@ -36961,16 +36988,17 @@ def process_symbolic(top, sources, incdirs, out_path, probed=False,
             _reject_invalid_lowering(sm, comp, [module], module["others"],
                                      "implication_lowered", "LogicalImplication",
                                      "lowered implication")
-            if contains_division(module) and nerr:
+            module_error = _module_has_compilation_error(sm, comp, inst)
+            if contains_division(module) and module_error:
                 module["others"].append(unsupported(sm, comp, "Division:invalid-compilation",
                                                   "frontend rejected source containing division"))
-            if contains_remainder(module) and nerr:
+            if contains_remainder(module) and module_error:
                 module["others"].append(unsupported(sm, comp, "Remainder:invalid-compilation",
                                                   "frontend rejected source containing remainder"))
-            if contains_power(module) and nerr:
+            if contains_power(module) and module_error:
                 module["others"].append(unsupported(sm, comp, "Power:invalid-compilation",
                                                   "frontend rejected source containing power"))
-            if contains_shift(module) and nerr:
+            if contains_shift(module) and module_error:
                 module["others"].append(unsupported(sm, comp, "Shift:invalid-compilation",
                                                   "frontend rejected source containing a shift"))
             # Round 5 (2026-10-29): unsized signed based literals, loud.
