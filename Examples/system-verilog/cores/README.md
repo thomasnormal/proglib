@@ -630,11 +630,12 @@ fixture is added.
 
 `darkriscv/instr_stall_tb.sv` drives the unchanged pinned core with the same
 three-instruction ALU image as the input-driven witness, while lowering
-`IDACK` on every third active falling edge.  The value is stable before the
-following rising edge and is included in each recorded row.  Icarus Verilog
+`IDACK` on every third active falling edge.  The testbench captures `IDATA`
+and `IDACK` before each rising edge, so the row contains the exact inputs that
+the edge consumes.  Icarus Verilog
 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 agree on all 1000
 simulator rows.  Their normalized row digest is
-`eea1284ad6b615db3f9373efb4642cf3423b6b2de81ccdebb4903aa37d88bd7f`.
+`e09707a2f1c72a59a341676d3a35602ad5fc20a1c86fd7d796d02cd062ffdf8f`.
 
 Replaying those rows through canonical E reaches the loaded design but rejects
 the comparison.  The first three-row diagnostic shows the canonical and

@@ -24,6 +24,8 @@ module darkriscv_instr_stall_tb;
   wire data_err = 1'b0;
   wire [3:0] debug;
   reg [31:0] image [0:63];
+  reg [31:0] sampled_instr_data;
+  reg sampled_instr_ack;
   integer i;
   integer stall_tick = 0;
 
@@ -48,6 +50,8 @@ module darkriscv_instr_stall_tb;
   end
 
   always @(negedge clk) begin
+    sampled_instr_data <= instr_data;
+    sampled_instr_ack <= instr_ack;
     stall_tick = stall_tick + 1;
     if (instr_req)
       instr_ack <= (stall_tick % 3 == 0) ? 1'b0 : 1'b1;
@@ -67,9 +71,9 @@ module darkriscv_instr_stall_tb;
       @(posedge clk);
       #1;
       $display("ROW cycle=%0d reset=%b instr_req=%b instr_addr=%08x instr_data=%08x data_req=%b data_addr=%08x data_len=%03b data_be=%04b data_rw=%b data_rd=%b data_wr=%b data_out=%08x data_in=%08x data_ack=%b debug=%04b instr_ack=%b",
-        $time / 10 - 4, reset, instr_req, instr_addr, instr_data,
+        $time / 10 - 4, reset, instr_req, instr_addr, sampled_instr_data,
         data_req, data_addr, data_len, data_be, data_rw, data_rd, data_wr,
-        data_out, data_in, data_ack, debug, instr_ack);
+        data_out, data_in, data_ack, debug, sampled_instr_ack);
     end
     $finish;
   end
