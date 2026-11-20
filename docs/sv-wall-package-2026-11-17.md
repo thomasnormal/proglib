@@ -1276,3 +1276,7 @@ The three items since the previous ranking were the parameter-sized assignment-p
 ## Canonical-E procedural equation wall remeasurement — 2026-11-20T21:10Z
 
 The source-shaped `always_comb_case_memory_canonical_e` receipt was rerun at the current head. Its parser-native `case` body beside a one-rank memory produces four canonical-E rows, `0011`, `0111`, `1100`, and `0101`, covering time-zero initialization, case selection, and reactive scalar reactivation. Icarus Verilog 13.0 and Xcelium 24.03-s004 match all four rows. The ordinary structure route admits the retained process and the explicit `EquationGate=false` guard remains in the receipt, so this evidence does not claim a procedural equation theorem or advance the CV32E40P wall.
+
+## CV32E40P canonical-E run remeasurement — 2026-11-20T21:16Z
+
+The current generated real-design census records the pinned `alu_div_w8` CV32E40P source-shaped run as admitted in canonical E. `diff_test2.py --case alu_div_w8 --sim both --backend ecanon --no-xcheck` passes 18 cycles against Icarus Verilog 13.0 and Xcelium 24.03-s004. `Structure=true` and `EquationGate=false` remain the first clocked-theory boundary for its retained `always_comb` process, so this run changes the measured receipt without claiming procedural equation support.
