@@ -24,7 +24,8 @@ EXTRACTOR = ROOT / "extractors" / "c" / "extract.py"
 
 
 def refresh_one(item: dict, source_root: Path, out_root: Path, string_plugin: str,
-                floating_plugin: str, layout_plugin: str) -> tuple[str, str | None]:
+                floating_plugin: str, layout_plugin: str,
+                structured_plugin: str) -> tuple[str, str | None]:
     source = source_root / item["name"]
     if item.get("status") != "parsed" or not source.is_file():
         return item["name"], None
@@ -37,6 +38,7 @@ def refresh_one(item: dict, source_root: Path, out_root: Path, string_plugin: st
     env["LEAN_C_STRING_BYTES_PLUGIN"] = string_plugin
     env["LEAN_C_FLOATING_BITS_PLUGIN"] = floating_plugin
     env["LEAN_C_RECORD_LAYOUT_PLUGIN"] = layout_plugin
+    env["LEAN_C_STRUCTURED_TYPE_PLUGIN"] = structured_plugin
     command = [sys.executable, str(EXTRACTOR), str(source),
                "--source-name", item["corpus"] + "/" + item["name"],
                "-o", str(output)]
@@ -61,6 +63,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--string-plugin", required=True)
     ap.add_argument("--floating-plugin", required=True)
     ap.add_argument("--layout-plugin", required=True)
+    ap.add_argument("--structured-plugin", required=True)
     ap.add_argument("--jobs", type=int, default=4)
     args = ap.parse_args(argv)
     if args.jobs < 1:
@@ -80,7 +83,8 @@ def main(argv: list[str] | None = None) -> int:
         i, source_root = task
         item = data["tests"][i]
         return i, refresh_one(item, source_root, out / item["corpus"].replace("/", "_"),
-                              args.string_plugin, args.floating_plugin, args.layout_plugin)
+                              args.string_plugin, args.floating_plugin, args.layout_plugin,
+                              args.structured_plugin)
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         for i, (_, path) in pool.map(run, tasks):
             if path is not None:

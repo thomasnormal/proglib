@@ -998,6 +998,10 @@ def extract(path, source_name=None, standard="c23"):
     global PROFILE_FLAGS, AST_FLAGS
     if standard not in ("c17", "c23"):
         die("unsupported C standard %s" % standard)
+    for plugin_env in (STRING_BYTES_PLUGIN_ENV, FLOATING_BITS_PLUGIN_ENV,
+                       RECORD_LAYOUT_PLUGIN_ENV, STRUCTURED_TYPE_PLUGIN_ENV):
+        if not os.environ.get(plugin_env):
+            die("approved parser plugin is required: %s" % plugin_env)
     PROFILE_FLAGS = ["-std=" + standard, "-D_FORTIFY_SOURCE=0"]
     AST_FLAGS = PROFILE_FLAGS + ["-fsyntax-only", "-Xclang", "-ast-dump=json"]
     check_profile()
