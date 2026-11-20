@@ -1382,3 +1382,19 @@ state and byte memory.  `lake env lean
 Examples/system-verilog/cores/picorv32/r1_muldiv.lean` passed, and all printed
 theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
 Universal loaded-core step and order premises remain explicit.
+
+## 2026-11-20 census rerank after the R1 class receipts
+
+The stall-rule rerun passed `harness/rv/core_census.py --self-test` and the
+current pinned PicoRV32 RISCV_FORMAL envelope census.  PicoRV32 remains
+**360 admitted / 0 refused / 4 not reached**, with the four rows confined to
+inactive default-generate branches.  The measured execution receipts remain
+PicoRV32 **2000/2000** and DarkRISCV **1000/1000** through their checked
+canonical-E routes.  Quark remains **0/0** at its `FETCH_INSTR` untyped-width
+wall, and SERV remains **0/0** at its `RF_WIDTH` wall with **910/41/203**
+current source-overlay census rows.
+
+The branch, memory, ALU, immediate, upper, jump, system, CSR, fence, illegal,
+and multiply/divide R1 receipts changed no census or execution count.  The
+next ladder item is the all-family RV32I R1 package, while the universal loaded
+step and order premises remain explicit.
