@@ -29,6 +29,28 @@ private def isError : Except String α → Bool
   | .error _ => true
   | .ok _ => false
 
+private def structuredEnvelope : Envelope :=
+  { schemaVersion := "c-0.1"
+    language := "c"
+    frontendVersion := pinnedFrontendVersion
+    profileId := "test"
+    profileFlags := []
+    sourceFile := "bridge.c"
+    sourceSha256 := ""
+    unit := { items := [] }
+    externals := []
+    structuredTypes := [{ declaration := { value := "decl-1" }
+                          type := .qualified true false (.cBuiltinKind .int) }] }
+
+#guard structuredEnvelope.structuredTypeFor {value := "decl-1"} ==
+  some (.qualified true false (.cBuiltinKind .int))
+#guard structuredEnvelope.structuredTypeFor {value := "missing"} == none
+#guard (({ structuredEnvelope with
+    structuredTypes := structuredEnvelope.structuredTypes ++
+      [{ declaration := { value := "decl-1" }
+         type := .cBuiltinKind .unsignedInt }] } : Envelope).structuredTypeFor
+    {value := "decl-1"} == none)
+
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))
