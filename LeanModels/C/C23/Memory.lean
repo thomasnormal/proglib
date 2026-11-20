@@ -2456,6 +2456,12 @@ structure AddressIndependent (m : Mem) : Prop where
     m.loadBytes {p with address := address} n = m.loadBytes p n
   loadCharacter : ∀ (p : Ptr) (t : IntTy) (address : Nat),
     m.loadCharacter {p with address := address} t = m.loadCharacter p t
+  offsetPtr : ∀ (p : Ptr) (elemSize : Nat) (i : Int) (address : Nat),
+    m.offsetPtr {p with address := address} elemSize i =
+      (m.offsetPtr p elemSize i).map (fun q => {q with address := address})
+  subscript : ∀ (p : Ptr) (elemSize : Nat) (i : Int) (address : Nat),
+    m.subscript {p with address := address} elemSize i =
+      (m.subscript p elemSize i).map (fun q => {q with address := address})
   storeBytes : ∀ (p : Ptr) (bs : List CByte) (address : Nat),
     m.storeBytes {p with address := address} bs = m.storeBytes p bs
   loadIntChecked : ∀ (alias : AliasModel) (p : Ptr) (t : IntTy)
@@ -2509,6 +2515,10 @@ theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
   · exact fun p n address => loadBytes_address_irrel m p n address
   · exact fun p t address => by
       simp [loadCharacter, resolve_address_irrel]
+  · exact fun p elemSize i address =>
+      offsetPtr_address_irrel m p elemSize i address
+  · exact fun p elemSize i address =>
+      subscript_address_irrel m p elemSize i address
   · exact fun p bs address => storeBytes_address_irrel m p bs address
   · exact fun alias p t used address =>
       loadIntChecked_address_irrel m alias p t used address
