@@ -1068,6 +1068,16 @@ def alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × O
       objs := m.objs ++ [⟨dur, true, List.replicate size .indet, ty⟩]
       placements := m.placements ++ [(o, o)] }, o)
 
+theorem alloc_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (haddr : rename m.objs.length = m.objs.length) :
+    (m.renameAddresses rename).alloc dur size ty =
+      ((m.alloc dur size ty).1.renameAddresses rename, (m.alloc dur size ty).2) := by
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      simp [alloc, renameAddresses, CObj.renameAddress, haddr,
+        List.map_append, List.map_cons, List.map_nil, List.length_map]
+
 def allocStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (structured : Option QualType) : Mem × ObjId :=
   let (m', o) := m.alloc dur size ty
@@ -1095,6 +1105,16 @@ def allocZeroed (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Me
   ({ m with
       objs := m.objs ++ [⟨dur, true, List.replicate size (.conc 0), ty⟩]
       placements := m.placements ++ [(o, o)] }, o)
+
+theorem allocZeroed_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (haddr : rename m.objs.length = m.objs.length) :
+    (m.renameAddresses rename).allocZeroed dur size ty =
+      ((m.allocZeroed dur size ty).1.renameAddresses rename, (m.allocZeroed dur size ty).2) := by
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      simp [allocZeroed, renameAddresses, CObj.renameAddress, haddr,
+        List.map_append, List.map_cons, List.map_nil, List.length_map]
 
 def allocZeroedStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (structured : Option QualType) : Mem × ObjId :=
@@ -3224,6 +3244,19 @@ def calloc (m : Mem) (n size : Nat) : Mem × Ptr :=
 def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
   m.allocZeroedAt .allocated (n * size) none address
 
+theorem malloc_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (size : Nat)
+    (haddr : rename m.objs.length = m.objs.length) :
+    (m.renameAddresses rename).malloc size =
+      ((m.malloc size).1.renameAddresses rename,
+        Ptr.renameAddress rename (m.malloc size).2) := by
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      have haddr' : rename objs.length = objs.length := by simpa using haddr
+      simp [malloc, alloc, renameAddresses, CObj.renameAddress, haddr',
+        Ptr.toObjectBound, Ptr.toObjectBoundAt, Ptr.renameAddress, List.map_append, List.map_cons,
+        List.map_nil, List.length_map, haddr]
+
 @[simp] theorem malloc_structuredTypesUnique
     (m : Mem) (size : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.malloc size).1 := by
@@ -3233,6 +3266,19 @@ def callocAt (m : Mem) (n size address : Nat) : Mem × Ptr :=
     (m : Mem) (size q : Nat) :
     (m.malloc size).1.structuredType? q = m.structuredType? q := by
   rfl
+
+theorem calloc_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (n size : Nat)
+    (haddr : rename m.objs.length = m.objs.length) :
+    (m.renameAddresses rename).calloc n size =
+      ((m.calloc n size).1.renameAddresses rename,
+        Ptr.renameAddress rename (m.calloc n size).2) := by
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      have haddr' : rename objs.length = objs.length := by simpa using haddr
+      simp [calloc, allocZeroed, renameAddresses, CObj.renameAddress, haddr',
+        Ptr.toObjectBound, Ptr.toObjectBoundAt, Ptr.renameAddress, List.map_append, List.map_cons,
+        List.map_nil, List.length_map, haddr]
 
 @[simp] theorem calloc_structuredTypesUnique
     (m : Mem) (n size : Nat) (h : structuredTypesUnique m) :
