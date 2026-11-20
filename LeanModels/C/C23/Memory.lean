@@ -3821,6 +3821,26 @@ theorem loadBytes_storeBytes {m m' : Mem} {p : Ptr} {bs : List CByte}
   simp only [Except.ok.injEq]
   rw [List.append_assoc, List.drop_left' htk, List.take_left' rfl]
 
+theorem loadBytes_rename_storeBytes_rename
+    {m m' : Mem} {p : Ptr} {bs : List CByte}
+    {o : ObjId} {c : CObj} {off : Nat}
+    (rename : ObjId → Nat)
+    (hr : m.resolve p bs.length = .ok (o, c, off))
+    (h : m.storeBytes p bs = .ok m') :
+    (m'.renameAddresses rename).loadBytes (Ptr.renameAddress rename p) bs.length =
+      .ok (bs.map (CByte.renameAddress rename)) := by
+  have hr' : (m.renameAddresses rename).resolve (Ptr.renameAddress rename p)
+      (bs.map (CByte.renameAddress rename)).length =
+      .ok (o, CObj.renameAddress rename c, off) := by
+    rw [List.length_map, resolve_renameAddresses, hr]
+    rfl
+  have h' : (m.renameAddresses rename).storeBytes (Ptr.renameAddress rename p)
+      (bs.map (CByte.renameAddress rename)) =
+      .ok (m'.renameAddresses rename) := by
+    rw [storeBytes_renameAddresses, h]
+    rfl
+  simpa [List.length_map] using loadBytes_storeBytes hr' h'
+
 /-! ### Axiom audit
 
 The standing requirement: every theorem prints its axioms, and no
