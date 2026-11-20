@@ -504,8 +504,8 @@ structure Layout where
   /-- Parser-native expression QualType keyed by source range and AST kind.
       The offset-only field remains for envelopes produced before range
       disambiguation was added. -/
-  structuredExprTypeAt : Nat → Option Nat → String → Option LeanModels.Clang.QualType :=
-    fun offset _ _ => structuredExprType offset
+  structuredExprTypeAt : Nat → Option Nat → String → CType → Option LeanModels.Clang.QualType :=
+    fun offset _ _ _ => structuredExprType offset
   /-- Frontend-observed sizes for declarator-shaped types. -/
   typeSize : CType → Option Nat := fun _ => none
   /-- Frontend-observed byte size of a declared pointer's pointee. -/
@@ -687,7 +687,7 @@ def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : CType) :
   ((directDeclId expression).bind layout.structuredType |>.orElse
     (fun _ => (Expr.span expression).offset.bind (fun offset =>
       (layout.structuredExprTypeAt offset (Expr.span expression).endOffset
-        expression.kindName).orElse (fun _ => layout.structuredExprType offset))))
+        expression.kindName ty).orElse (fun _ => layout.structuredExprType offset))))
     |>.bind objectSizeOfStructured |>.orElse
     (fun _ => layout.sizeAt (directDeclId expression) ty)
 
@@ -700,7 +700,7 @@ def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : CType) :
     |>.orElse (fun _ =>
       ((directDeclId base).bind layout.structuredType |>.orElse
         (fun _ => (Expr.span base).offset.bind (fun offset =>
-          (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName).orElse
+          (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName ty).orElse
             (fun _ => layout.structuredExprType offset)))).bind (fun structured =>
         let resolvedElement :=
           match structured.unqualified with
@@ -737,7 +737,7 @@ def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
   (directDeclId base).bind layout.structuredTypeDecl |>.orElse (fun _ =>
     (Expr.span base).offset.bind (fun offset =>
-      (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName).orElse
+      (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName base.ty).orElse
         (fun _ => layout.structuredExprType offset)))
 
 /-- Resolve an aggregate's element extent from its declaration's structured
@@ -1673,7 +1673,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let v ← evalExpr ctx sub
         let (_, n) ← asInt v
         let targetStructured := span.offset.bind (fun offset =>
-          (ctx.layout.structuredExprTypeAt offset span.endOffset "").orElse
+          (ctx.layout.structuredExprTypeAt offset span.endOffset "" ty).orElse
             (fun _ => ctx.layout.structuredExprType offset))
         let t ← match targetStructured.bind intTyOfStructured with
           | some projected => pure projected
