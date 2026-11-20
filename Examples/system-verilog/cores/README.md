@@ -1339,3 +1339,14 @@ has a memory-preserving ISA step theorem, RVFI retirement boundary, loaded
 `lake env lean Examples/system-verilog/cores/picorv32/r1_system.lean` passed,
 and all printed theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
 Universal loaded-core step and order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 CSR class
+
+The loaded-core R1 CSR package compiles for CSRRW, CSRRS, CSRRC, CSRRWI,
+CSRRSI, and CSRRCI.  The six exact decoder rows use the implemented CSR
+behavior table and provide memory-preserving ISA steps, RVFI retirement
+boundaries, loaded `Rv32iBoundary` bridges, and indexed exact-cycle refinement
+coverage.  `lake env lean
+Examples/system-verilog/cores/picorv32/r1_csr.lean` passed, and all printed
+theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
+Universal loaded-core step and order premises remain explicit.
