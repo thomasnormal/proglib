@@ -2261,17 +2261,18 @@ swap disabled and one Lean thread.  This confirms that one symbolic E cycle
 fits the direct proof budget.  It does not establish that a full cycle-by-cycle
 invariant proof is tractable, and no universal ADDI invariant is claimed.
 
-## 2026-11-20 clocked-stage refusal table on current master
+## 2026-11-20 clocked-stage refusal table after the clocked-stage landings
 
 The real RISCV_FORMAL envelope was rerun through `sv_structure` at the same
-26-parameter default vector on the current tree.  The pass still stops during
-controlled instantiation and emits no construct-level refusal.  The measured
-result is one normalization failure, with no clean-room construct fixture
-justified:
+26-parameter default vector on tree `7e2ae7b11`.  This tree includes the
+clocked-stage landings for plain edge processes, unsigned parameters, and
+conditional generates.  The pass still stops during controlled instantiation
+and emits no construct-level refusal.  The measured result is one
+normalization failure, with no clean-room construct fixture justified:
 
 | stage | count | exact result | elapsed | peak RSS |
 | --- | ---: | --- | ---: | ---: |
-| loaded-design instantiation / controlled simp | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at simp, maximum number of heartbeats (200000) has been reached` | 50.15 s | 3,244,864 kB |
+| loaded-design instantiation / controlled simp | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at simp, maximum number of heartbeats (200000) has been reached` | 57.76 s | 3,203,460 KiB |
 | construct/profile refusal | 0 | no construct classifier was reached | — | — |
 
 The current clocked route therefore provides no measured PicoRV32 refusal to
