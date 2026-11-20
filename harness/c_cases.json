@@ -1080,6 +1080,23 @@
     "floating_return_value": 0
   },
   {
+    "id": "structured-typedef-float-object",
+    "source": "typedef double D; int main(void) { D x = 1.5; return x == 1.5 ? 0 : 1; }",
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "floating literal lacks parser-native bits",
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "floating_envelope_checks": [
+      "floating_bits"
+    ],
+    "structured_expect": "match",
+    "structured_return_value": 0,
+    "floating_expect": "match",
+    "floating_return_value": 0
+  },
+  {
     "id": "long-double-floating-literal-refusal",
     "source": "int main(void) { return 1.5L == 1.5L ? 0 : 1; }",
     "expect": "refuse",
