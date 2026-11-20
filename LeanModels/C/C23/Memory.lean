@@ -663,6 +663,17 @@ def compoundObject? (m : Mem) (span : CSpan) : Option ObjId :=
 def rememberCompound (m : Mem) (span : CSpan) (o : ObjId) : Mem :=
   { m with compoundObjects := (span, o) :: m.compoundObjects }
 
+@[simp] theorem rememberCompound_structuredTypesUnique
+    (m : Mem) (span : CSpan) (o : ObjId)
+    (h : structuredTypesUnique m) :
+    structuredTypesUnique (m.rememberCompound span o) := by
+  simpa [structuredTypesUnique, structuredTypeKeys, rememberCompound] using h
+
+@[simp] theorem rememberCompound_structuredType_lookup
+    (m : Mem) (span : CSpan) (o : ObjId) (q : ObjId) :
+    (m.rememberCompound span o).structuredType? q = m.structuredType? q := by
+  rfl
+
 @[simp] theorem rememberCompound_placements (m : Mem) (span : CSpan) (o : ObjId) :
     (m.rememberCompound span o).placements = m.placements := by
   rfl

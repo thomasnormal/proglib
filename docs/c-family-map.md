@@ -549,3 +549,7 @@ Unstructured allocation wrappers now expose direct preservation lemmas as well.
 `alloc`, `allocZeroed`, their explicit-placement variants, `malloc`, and
 `calloc` modify object and placement state without adding a structured row, so
 the uniqueness invariant is carried through each API entry point.
+
+The compound-literal registry has the same boundary. `rememberCompound` records
+the parser span and object identity without touching structured effective-type
+rows, and its lookup-preservation lemma keeps that separation explicit.
