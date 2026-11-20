@@ -1270,5 +1270,16 @@
     ],
     "structured_expect": "refuse",
     "structured_error": "integer-to-pointer conversion outside pointer type"
+  },
+  {
+    "id": "unsigned-conversion-global",
+    "source": "/* Copyright (C) 2000  Free Software Foundation  */\n/* Contributed by Alexandre Oliva <aoliva@cygnus.com> */\n\nvoid abort (void);\nvoid exit (int);\n\nunsigned long l = (unsigned long)-2;\nunsigned short s;\n\nint main () {\n  long t = l;\n  s = t;\n  if (s != (unsigned short)-2)\n    abort ();\n  exit (0);\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "structured_expect": "match",
+    "structured_return_value": 0
   }
 ]

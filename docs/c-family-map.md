@@ -318,6 +318,13 @@ undefined behavior, while the current evaluator refuses before fabricating
 provenance. The row reports REFUSE with and without the structured-type plugin,
 so the future PNVI-ae-udi recovery implementation has a fixed wall to flip.
 
+The current structured-expression join also exposed a wrong answer in the
+unsigned conversion family. Multiple Clang expression nodes share one source
+range, so selecting only by offset chose the inner cast type for an outer
+conversion. The join now filters by parser range, node kind, and expected
+QualType. The frozen `20000528-1.c` row MATCHes with and without structured
+observations, closing that DIVERGE against pinned Clang 21.1.8.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and
