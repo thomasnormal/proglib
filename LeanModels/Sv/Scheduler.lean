@@ -810,6 +810,39 @@ private def raceStores : List SvState :=
 #guard (raceStores.any (fun s => s.lookup "q" == some (LVec.ofNat 8 0)))
 #guard (raceStores.any (fun s => s.lookup "q" == some (LVec.ofNat 8 1)))
 
+/- The preemptive clean-room wall has two source-shaped always_comb
+   processes.  Its canonical E route remains refused by the §4.7 profile,
+   while this scheduler retains the source's blocking statements and checks
+   the settled result against the pinned simulator receipt. -/
+private def preemptiveDesign : Design :=
+  { name := "preemptive_schedule"
+    decls := #[{ name := "a", width := 1, isInput := true },
+      { name := "b", width := 1, isInput := true },
+      { name := "q", width := 1 }, { name := "r", width := 1 },
+      { name := "z", width := 1 }]
+    processes := #[
+      .alwaysComb (.block #[
+        .blockingAssign "q" (.ident "a"),
+        .blockingAssign "r" (.ident "q")]),
+      .alwaysComb (.blockingAssign "z" (.ident "q"))] }
+
+private def preemptiveScheduler : SchedulerDesign :=
+  SchedulerDesign.ofDesign preemptiveDesign
+
+private def preemptiveSettled : List SlotState :=
+  allSlotStates 32 preemptiveScheduler preemptiveScheduler.initial
+
+private def preemptiveStores : List SvState :=
+  (preemptiveSettled.flatMap fun s =>
+    allSlotStates 32 preemptiveScheduler
+      (startWithInputs preemptiveScheduler s
+        [("a", LVec.ofNat 1 1), ("b", LVec.ofNat 1 0)])).map SlotState.store
+
+#guard preemptiveStores.any (fun s =>
+  s.lookup "q" == some (LVec.ofNat 1 1) &&
+  s.lookup "r" == some (LVec.ofNat 1 1) &&
+  s.lookup "z" == some (LVec.ofNat 1 1))
+
 private def orderedDesign : Design :=
   -- Two NBAs in one source process must be performed in statement order
   -- (§4.6(b), §10.4.2), even though each update is an Active/NBA event.
