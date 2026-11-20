@@ -213,6 +213,14 @@ theorem bind_assoc (r : CRes α) (f : α → CRes β) (g : β → CRes γ) :
   | ub cause => rfl
   | ok value => cases f value <;> rfl
 
+theorem bind_congr {r₁ r₂ : CRes α} {f₁ f₂ : α → CRes β}
+    (hr : r₁ = r₂) (hf : ∀ value, f₁ value = f₂ value) :
+    r₁.bind f₁ = r₂.bind f₂ := by
+  subst r₂
+  cases r₁ with
+  | ub cause => rfl
+  | ok value => exact hf value
+
 def isOk : CRes α → Bool
   | .ok _ => true
   | .ub _ => false
