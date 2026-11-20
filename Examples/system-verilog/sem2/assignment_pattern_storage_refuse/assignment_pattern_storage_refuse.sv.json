@@ -1,0 +1,262 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "assignment_pattern_storage_refuse",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/assignment_pattern_storage_refuse/assignment_pattern_storage_refuse.sv",
+      "sha256": "f5f9e60ff194034230668e1041059110ae623dee2b5ec435538bc3c94c766125"
+    }
+  ],
+  "packages": [
+    "assignment_pattern_storage_pkg"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 4,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "assignment_pattern_storage_refuse",
+        "imports": [
+          {
+            "kind": "Import",
+            "span": {
+              "line": 5,
+              "col": 10,
+              "end_line": 5,
+              "end_col": 43
+            },
+            "package": "assignment_pattern_storage_pkg",
+            "name": "*"
+          }
+        ],
+        "params": [],
+        "package_params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 25,
+              "end_line": 2,
+              "end_col": 57
+            },
+            "name": "PmpCfgRst",
+            "type": null,
+            "resolved": null,
+            "aggregate": {
+              "kind": "array",
+              "msb": {
+                "kind": "Int",
+                "span": {
+                  "line": 2,
+                  "col": 36,
+                  "end_line": 2,
+                  "end_col": 37
+                },
+                "value": 0,
+                "resolved_width": null
+              },
+              "lsb": {
+                "kind": "Int",
+                "span": {
+                  "line": 2,
+                  "col": 38,
+                  "end_line": 2,
+                  "end_col": 39
+                },
+                "value": 1,
+                "resolved_width": null
+              },
+              "elem": {
+                "kind": "scalar",
+                "type": {
+                  "kind": "PackedType",
+                  "packed": [
+                    {
+                      "msb": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 2,
+                          "col": 20,
+                          "end_line": 2,
+                          "end_col": 21
+                        },
+                        "value": 4,
+                        "resolved_width": null
+                      },
+                      "lsb": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 2,
+                          "col": 22,
+                          "end_line": 2,
+                          "end_col": 23
+                        },
+                        "value": 0,
+                        "resolved_width": null
+                      }
+                    }
+                  ],
+                  "resolved": 5
+                },
+                "signed": false,
+                "two_state": false
+              }
+            },
+            "default": {
+              "kind": "Unsupported",
+              "span": {
+                "line": 2,
+                "col": 43,
+                "end_line": 2,
+                "end_col": 57
+              },
+              "sv_kind": "AssignmentPattern:integral-shape",
+              "text": "'{default: '0}"
+            },
+            "package": "assignment_pattern_storage_pkg"
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 54,
+              "end_line": 4,
+              "end_col": 55
+            },
+            "name": "x",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 70,
+              "end_line": 4,
+              "end_col": 71
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 6,
+              "col": 10,
+              "end_line": 6,
+              "end_col": 33
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 6,
+                "col": 10,
+                "end_line": 6,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "y"
+            },
+            "value": {
+              "kind": "Binary",
+              "span": {
+                "line": 6,
+                "col": 14,
+                "end_line": 6,
+                "end_col": 33
+              },
+              "width": 1,
+              "op": "^",
+              "left": {
+                "kind": "BitSel",
+                "span": {
+                  "line": 6,
+                  "col": 14,
+                  "end_line": 6,
+                  "end_col": 29
+                },
+                "width": 1,
+                "value": {
+                  "kind": "PackageAggElem",
+                  "span": {
+                    "line": 6,
+                    "col": 14,
+                    "end_line": 6,
+                    "end_col": 26
+                  },
+                  "width": 5,
+                  "package": "assignment_pattern_storage_pkg",
+                  "name": "PmpCfgRst",
+                  "index": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 24,
+                      "end_line": 6,
+                      "end_col": 25
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                "index": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 6,
+                    "col": 27,
+                    "end_line": 6,
+                    "end_col": 28
+                  },
+                  "value": 0,
+                  "resolved_width": 32
+                }
+              },
+              "right": {
+                "kind": "Ident",
+                "span": {
+                  "line": 6,
+                  "col": 32,
+                  "end_line": 6,
+                  "end_col": 33
+                },
+                "width": 1,
+                "name": "x"
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
