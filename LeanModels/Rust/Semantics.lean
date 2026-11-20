@@ -260,6 +260,9 @@ def findTypeLayout (s : State) (ty : Nat) : Option TypeLayout :=
 def findSourceTypeLayout (s : State) (ty : Nat) : Option TypeLayout :=
   s.types.find? (fun item => item.sourceId == some ty)
 
+/-- The integer that `bytes` encode at type `ty`.  The bytes must be exactly the type's size: a
+longer list (a whole allocation read at a narrower pointee type, an 8-byte chunk cut from an
+aggregate) is not the value of that type, and refuses. -/
 def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
   let layout := findTypeLayout s ty
   match layout with
@@ -268,7 +271,7 @@ def typedBytesValue (s : State) (ty : Nat) (bytes : List Nat) : Option Int :=
     match info.sizeBits with
     | some 0 => some 0
     | some sizeBits =>
-      if bytes.length ≤ 8 ∧ bytes.all (· ≤ 255) then
+      if bytes.length * 8 = sizeBits ∧ bytes.length ≤ 8 ∧ bytes.all (· ≤ 255) then
         let raw := Int.ofNat (littleEndian bytes)
         match info.signed with
         | some true =>
