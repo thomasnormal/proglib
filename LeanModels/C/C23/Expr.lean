@@ -661,7 +661,7 @@ def Layout.fieldOffTypeDeclAt (layout : Layout) (decl : Option DeclarationId)
 
 /-- Resolve a member extent from parser-native facts, then from the declared
 field type, with the legacy field-size table as the final fallback. -/
-def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field fieldTy : CType)
+def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field : String) (fieldTy : CType)
     (recordLike : Bool) : Option Nat :=
   if recordLike then
     layout.fieldSizeAt base field |>.orElse
