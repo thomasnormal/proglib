@@ -1537,6 +1537,50 @@ def loadPtr (m : Mem) (p : Ptr) : MRes Ptr := do
 def storePtrInt (m : Mem) (p : Ptr) (q : Ptr) : MRes Mem :=
   m.storeBytes p ((List.range 8).map (CByte.ptrIntByte q))
 
+theorem storeInt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (t : IntTy) (v : Int) :
+    (m.renameAddresses rename).storeInt (Ptr.renameAddress rename p) t v =
+      (m.storeInt p t v).map (Mem.renameAddresses rename) := by
+  simpa [storeInt, encodeInt, CByte.renameAddress, Function.comp_def] using
+    (storeBytes_renameAddresses rename m p (encodeInt t v))
+
+theorem storeFloat32_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (f : Float32.Model) :
+    (m.renameAddresses rename).storeFloat32 (Ptr.renameAddress rename p) f =
+      (m.storeFloat32 p f).map (Mem.renameAddresses rename) := by
+  simpa [storeFloat32, encodeFloat32, CByte.renameAddress, Function.comp_def] using
+    (storeBytes_renameAddresses rename m p (encodeFloat32 f))
+
+theorem storeFloat64_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (f : Float.Model) :
+    (m.renameAddresses rename).storeFloat64 (Ptr.renameAddress rename p) f =
+      (m.storeFloat64 p f).map (Mem.renameAddresses rename) := by
+  simpa [storeFloat64, encodeFloat64, CByte.renameAddress, Function.comp_def] using
+    (storeBytes_renameAddresses rename m p (encodeFloat64 f))
+
+theorem storePtr_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p q : Ptr) :
+    (m.renameAddresses rename).storePtr (Ptr.renameAddress rename p)
+        (Ptr.renameAddress rename q) =
+      (m.storePtr p q).map (Mem.renameAddresses rename) := by
+  simpa [storePtr, CByte.renameAddress, Ptr.renameAddress_comp, Function.comp_def] using
+    (storeBytes_renameAddresses rename m p ((List.range 8).map (CByte.ptrByte q)))
+
+theorem storePtrInt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p q : Ptr) :
+    (m.renameAddresses rename).storePtrInt (Ptr.renameAddress rename p)
+        (Ptr.renameAddress rename q) =
+      (m.storePtrInt p q).map (Mem.renameAddresses rename) := by
+  simpa [storePtrInt, CByte.renameAddress, Ptr.renameAddress_comp, Function.comp_def] using
+    (storeBytes_renameAddresses rename m p ((List.range 8).map (CByte.ptrIntByte q)))
+
+theorem storeFunction_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (id : DeclarationId) :
+    (m.renameAddresses rename).storeFunction (Ptr.renameAddress rename p) id =
+      (m.storeFunction p id).map (Mem.renameAddresses rename) := by
+  simpa [storeFunction, CByte.renameAddress, Function.comp_def] using
+    (storeBytes_renameAddresses rename m p (List.replicate 8 (CByte.funByte id)))
+
 def loadPtrInt (m : Mem) (p : Ptr) : MRes Ptr := do
   let (o, c, off) ← m.resolve p 8
   let bs := (c.bytes.drop off).take 8
