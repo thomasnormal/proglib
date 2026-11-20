@@ -1371,3 +1371,14 @@ coverage.  `lake env lean
 Examples/system-verilog/cores/picorv32/r1_illegal.lean` passed, and all printed
 theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
 Universal loaded-core step and order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 multiply-divide class
+
+The loaded-core R1 RV32M package compiles for MUL, MULH, MULHSU, MULHU, DIV,
+DIVU, REM, and REMU.  The eight exact decoder rows share the precise
+multiply/divide execution shape and provide ISA steps, RVFI retirement
+boundaries, and the class-level commit package over arbitrary architectural
+state and byte memory.  `lake env lean
+Examples/system-verilog/cores/picorv32/r1_muldiv.lean` passed, and all printed
+theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
+Universal loaded-core step and order premises remain explicit.
