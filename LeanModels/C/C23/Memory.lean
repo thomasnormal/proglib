@@ -599,11 +599,41 @@ def allocAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
   ({ m' with placements := placementSet m'.placements o address },
     Ptr.toObjectBoundAt o address size)
 
+def allocAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : Option QualType) (address : Nat) : Mem × Ptr :=
+  let (m', o) := m.allocStructured dur size ty structured
+  ({ m' with placements := placementSet m'.placements o address },
+    Ptr.toObjectBoundAt o address size)
+
+@[simp] theorem allocAtStructured_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : QualType) (address : Nat) :
+    (m.allocAtStructured dur size ty (some structured) address).1.structuredType?
+        (m.allocStructured dur size ty (some structured)).2 =
+      some structured := by
+  simp only [allocAtStructured]
+  exact allocStructured_lookup m dur size ty structured
+
 def allocZeroedAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) : Mem × Ptr :=
   let (m', o) := m.allocZeroed dur size ty
   ({ m' with placements := placementSet m'.placements o address },
     Ptr.toObjectBoundAt o address size)
+
+def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : Option QualType) (address : Nat) : Mem × Ptr :=
+  let (m', o) := m.allocZeroedStructured dur size ty structured
+  ({ m' with placements := placementSet m'.placements o address },
+    Ptr.toObjectBoundAt o address size)
+
+@[simp] theorem allocZeroedAtStructured_lookup
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : QualType) (address : Nat) :
+    (m.allocZeroedAtStructured dur size ty (some structured) address).1.structuredType?
+        (m.allocZeroedStructured dur size ty (some structured)).2 =
+      some structured := by
+  simp only [allocZeroedAtStructured]
+  exact allocZeroedStructured_lookup m dur size ty structured
 
 /-- C23 §6.2.4p6 / §7.24.3: end an object's lifetime. The object stays in
 the store as a tombstone — see `CObj.live`. -/
