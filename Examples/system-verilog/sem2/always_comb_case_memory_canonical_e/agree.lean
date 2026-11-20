@@ -10,6 +10,13 @@ load_design_sv2 alwaysCombCaseMemory from
   | .ok d => d.processes.toList.any (fun p => match p with | .comb (.block [.caseStmt ..]) => true | _ => false)
   | _ => false
 
+-- The source-shaped reactive executor runs this body, while the separate
+-- equation tactic gate remains conservative until its procedural theorem is
+-- available.  Keep the two boundaries explicit in the receipt.
+#guard match PDesign.instantiateCoreMem alwaysCombCaseMemory.pdesign [4] with
+  | .ok d => decide (CoreMemDesign.EquationGate d) = false
+  | _ => false
+
 private def stimulus : List SvState :=
   [[("sel", LVec.ofNat 2 0), ("d", LVec.ofNat 4 12)],
    [("sel", LVec.ofNat 2 1), ("d", LVec.ofNat 4 12)],
