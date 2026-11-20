@@ -584,6 +584,16 @@ theorem CRes.renameAddress_comp (first second : ObjId → Nat) (r : CRes CVal) :
       CRes.renameAddress (fun o => second o) r := by
   cases r <;> simp [CRes.renameAddress, CVal.renameAddress_comp]
 
+theorem CRes.renameAddress_bind (resolve : ObjId → Nat)
+    (r : CRes CVal) (f : CVal → CRes CVal)
+    (hf : ∀ v, CRes.renameAddress resolve (f v) =
+      f (CVal.renameAddress resolve v)) :
+    CRes.renameAddress resolve (r.bind f) =
+      (CRes.renameAddress resolve r).bind f := by
+  cases r
+  · exact hf _
+  · rfl
+
 /-! ## §6.5.6-§6.5.8 Arithmetic — where the split lives
 
 Each operation computes the MATHEMATICAL result first, then decides by
