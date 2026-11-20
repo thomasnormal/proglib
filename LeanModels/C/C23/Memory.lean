@@ -3310,6 +3310,42 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
                 else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+def renameAddressFreeResult (rename : ObjId → Nat) : MRes Mem → MRes Mem
+  | .ok m => .ok (m.renameAddresses rename)
+  | .error (.memUB (.freeUnmatched p)) =>
+      .error (.memUB (.freeUnmatched (Ptr.renameAddress rename p)))
+  | .error e => .error e
+
+ theorem free_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) :
+    (m.renameAddresses rename).free (Ptr.renameAddress rename p) =
+      renameAddressFreeResult rename (m.free p) := by
+  have hget : ∀ (o : ObjId),
+      (m.renameAddresses rename).get? o =
+        (m.get? o).map (CObj.renameAddress rename) := by
+    intro o
+    simp [get?, renameAddresses, List.getElem?_map]
+  cases hp : p.obj with
+  | none => simp [free, renameAddressFreeResult, hp, Ptr.renameAddress]
+  | some o =>
+      cases hc : m.get? o with
+      | none => simp [free, renameAddressFreeResult, hp, hc, hget, Ptr.renameAddress]
+      | some c =>
+          have hdur' : ((CObj.renameAddress rename c).dur == Duration.allocated) =
+              (c.dur == Duration.allocated) := by rfl
+          have hlive' : (CObj.renameAddress rename c).live = c.live := by rfl
+          by_cases hdur : c.dur == .allocated
+          · by_cases hlive : c.live
+            · by_cases hoff : p.off == 0
+              · simp [free, renameAddressFreeResult, hp, hc, hget, hdur, hlive, hoff,
+                  Ptr.renameAddress, kill_renameAddresses, hdur', hlive']
+              · simp [free, renameAddressFreeResult, hp, hc, hget, hdur, hlive, hoff,
+                  Ptr.renameAddress, hdur', hlive']
+            · simp [free, renameAddressFreeResult, hp, hc, hget, hdur, hlive,
+                Ptr.renameAddress, hdur', hlive']
+          · simp [free, renameAddressFreeResult, hp, hc, hget, hdur,
+              Ptr.renameAddress, hdur', hlive']
+
 theorem free_structuredTypesUnique
     {m m' : Mem} {p : Ptr} (h : structuredTypesUnique m)
     (hr : m.free p = .ok m') : structuredTypesUnique m' := by
