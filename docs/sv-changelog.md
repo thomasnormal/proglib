@@ -7061,3 +7061,10 @@ declaration order and evaluates a parser-native runtime element select. The
 `package_aggregate_param_e` clean-room receipt covers four known indices and
 an unknown index against Xcelium 24.03-s004. Icarus Verilog 13.0 explicitly
 refuses the faithful unpacked aggregate parameter syntax.
+
+## Inside literal width audit — 2026-11-20
+
+The clean-room `inside_fixed` row now uses the source spelling `4'b1`, the
+literal form named by the IEEE 1800-2023 §11.4.13 audit. Slang retains its
+four-bit `0001` value, and canonical E matches Xcelium 24.03-s004 on all seven
+rows. The extractor regression test locks the zero-extension result.

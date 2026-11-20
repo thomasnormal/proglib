@@ -5,5 +5,5 @@ module inside_fixed (
   input  logic [3:0] value,
   output logic       hit
 );
-  assign hit = value inside {4'd1, 4'd3, [4'd6:4'd7]};
+  assign hit = value inside {4'b1, 4'd3, [4'd6:4'd7]};
 endmodule

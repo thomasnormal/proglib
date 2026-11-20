@@ -71564,7 +71564,7 @@
       "name": "inside_fixed",
       "example": "sem2/inside_fixed",
       "top": "inside_fixed",
-      "verilator_only": true,
+      "xrun_only": true,
       "signals": [
         "hit"
       ],
