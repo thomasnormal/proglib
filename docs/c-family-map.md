@@ -614,6 +614,10 @@ its existing shared-provenance premise, and the unrestricted relational rule
 now has a `ptrLt_address_rename` theorem that renames refusal payloads
 structurally.
 
+Pointer-byte observation has its explicit exception theorem in
+`Ptr.exposedAddress_address`. It records the selected placement as the only
+address-dependent value used by character reads of pointer representations.
+
 The function-pointer store accessor now has its explicit named
 `storeFunction_address_irrel` proof, completing the contract's representation
 store cases.
