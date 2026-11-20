@@ -36,6 +36,9 @@ deciding x/z exactly as the route does (`MemShape.index?`: an x/z or out-of-rang
 * `CoreMemDesign.edgesV`: the route's edge pass on views, each process firing by `CoreMemEdge.fires` (the clock's rise or
   the asynchronous reset's fall, x/z rows included); `runEdges_V`.
 * `CoreMemDesign.commitNba_V`: the route's commit of memory records is `commitMemV` on the memory view.
+* `CoreMemProc.edge?`, `coreMemEventEdge?`, `CoreMemDesign.edgeProcs`: the edge processes of a design. A plain
+  `always` whose event list is one clock edge with an optional asynchronous reset edge is one: the route fires it by the
+  same edge table and runs the same body (`coreMemEventEdge?_spec`, `runEdges_event`; IEEE 1800-2017 §9.2.2.1, §9.2.2.4).
 * `SeqProfileI E`: the clocked profile, any number of clocks: edge processes on either edge of any clock whose bodies
   `execV` mirrors, continuous assigns (a memory read evaluated by the route's evaluator, the rest compiled), one-rank
   4-state memories of distinct names that are not ports, no always_comb, always_latch, always @* or initial process,
@@ -742,6 +745,76 @@ termination_by structural xs => xs
 
 end
 
+/-! ## A plain `always` on one clock edge is an edge process
+
+Ingestion keeps a plain `always @(posedge clk)` / `always @(posedge clk or negedge rst_n)` as an EVENT process
+(`CoreMemProc.event`: the event list as written, §9.4.2). IEEE 1800-2017 §9.2.2.1 and §9.2.2.4: `always_ff` adds
+restrictions to `always`, not behaviour, so on an event list of exactly one clock edge with an optional second edge
+(the asynchronous reset) the two execute alike. Here that is a fact about the route, not an assumption: the route's
+firing test of such a list is the edge process's (`coreMemEventEdge?_spec`: the same §9.4.2 edge table on bit 0, x and z
+rows included) and its edge pass runs the two alike (`CoreMemDesign.runEdges_event`: the same body on the same state).
+Neither runs at time zero (the edge pass belongs to a slot). The FIRST edge of the list is read as the clock and the
+second as the reset: the roles do not matter to the route (its test is the disjunction), only to the input discipline
+and the obligations stated per role. A list with a level-change member (`@(a)`), or with more than two members, is no
+edge process (`none`) and stays outside the clocked profile. -/
+
+/-- The edge an event-list member names (`posedge`, `negedge`); a level-change member (`@(a)`) names none. -/
+def CoreMemEvent.clockEdge? (e : CoreMemEvent) : Option ClockEdge :=
+  match e.edge with
+  | .posedge => some .posedge
+  | .negedge => some .negedge
+  | .any => none
+
+/-- **The edge process a plain `always` event list stands for**: exactly one clock edge, with an optional second edge
+(the asynchronous reset: active-high for `posedge`, active-low for `negedge`). -/
+def coreMemEventEdge? : List CoreMemEvent → PStmt → Option CoreMemEdge
+  | [c], body =>
+      match c.clockEdge? with
+      | some k => some { clock := c.signal, edge := k, body := body, style := .alwaysPlain }
+      | none => none
+  | [c, r], body =>
+      match c.clockEdge?, r.clockEdge? with
+      | some k, some .posedge =>
+          some { clock := c.signal, edge := k, reset := some r.signal, resetHigh := true, body := body,
+                 style := .alwaysPlain }
+      | some k, some .negedge =>
+          some { clock := c.signal, edge := k, reset := some r.signal, resetHigh := false, body := body,
+                 style := .alwaysPlain }
+      | _, _ => none
+  | _, _ => none
+
+/-- **The edge process a process is**: an edge process itself, or a plain `always` on one clock edge with an optional
+asynchronous reset edge (`coreMemEventEdge?`). -/
+def CoreMemProc.edge? : CoreMemProc → Option CoreMemEdge
+  | .edge f => some f
+  | .event evs body => coreMemEventEdge? evs body
+  | _ => none
+
+/-- **The route's firing test and body of such an event list are the edge process's** (§9.4.2: the same edge table on
+bit 0 of the same signals). -/
+theorem coreMemEventEdge?_spec {evs : List CoreMemEvent} {body : PStmt} {f : CoreMemEdge}
+    (h : coreMemEventEdge? evs body = some f) (a b : SvState) :
+    coreMemEventsFire a b evs = f.fires a b ∧ f.body = body := by
+  rcases evs with _ | ⟨c, _ | ⟨r, _ | ⟨x, xs⟩⟩⟩
+  · simp [coreMemEventEdge?] at h
+  · rcases c with ⟨cs, ce⟩
+    cases ce <;> simp [coreMemEventEdge?, CoreMemEvent.clockEdge?] at h <;> subst h <;>
+      simp [coreMemEventsFire, coreMemEventFires, CoreMemEdge.fires]
+  · rcases c with ⟨cs, ce⟩
+    rcases r with ⟨rs, re⟩
+    cases ce <;> cases re <;> simp [coreMemEventEdge?, CoreMemEvent.clockEdge?] at h <;> subst h <;>
+      simp [coreMemEventsFire, coreMemEventFires, CoreMemEdge.fires]
+  · simp [coreMemEventEdge?] at h
+
+/-- **A plain `always` on one clock edge steps exactly like the edge process** in the route's edge pass. -/
+theorem CoreMemDesign.runEdges_event {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {before after : SvState} {evs : List CoreMemEvent} {body : PStmt} {f : CoreMemEdge}
+    (h : coreMemEventEdge? evs body = some f) (rest : List CoreMemProc) :
+    E.runEdges env elems st before after (.event evs body :: rest) =
+      E.runEdges env elems st before after (.edge f :: rest) := by
+  obtain ⟨hf, hb⟩ := coreMemEventEdge?_spec h before after
+  simp only [CoreMemDesign.runEdges, hf, hb]
+
 /-! ## Events: what a design's edge processes are sensitive to, computed from the design
 
 A design declares no clock. An EVENT is an edge (§9.4.2: the edge of a signal's least significant bit, x and z
@@ -777,7 +850,30 @@ def CoreMemEdge.events (f : CoreMemEdge) : List SeqEvent := f.clockEvent :: f.re
 /-- The events of a process (none for a process that is not an edge process). -/
 def CoreMemProc.events : CoreMemProc → List SeqEvent
   | .edge f => f.events
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.events
+      | none => []
   | _ => []
+
+/-- A process's events are its edge process's. -/
+theorem CoreMemProc.events_eq (p : CoreMemProc) :
+    p.events = match p.edge? with
+      | some f => f.events
+      | none => [] := by
+  cases p <;> rfl
+
+/-- **The edge processes of a design**, in process order (a plain `always` on one clock edge read as one). -/
+def CoreMemDesign.edgeProcs (E : CoreMemDesign) : List CoreMemEdge := E.processes.toList.filterMap CoreMemProc.edge?
+
+theorem CoreMemDesign.mem_edgeProcs {E : CoreMemDesign} {f : CoreMemEdge} :
+    f ∈ E.edgeProcs ↔ ∃ p ∈ E.processes.toList, p.edge? = some f := by
+  simp [CoreMemDesign.edgeProcs, List.mem_filterMap]
+
+/-- An edge process of the design is one of its edge processes. -/
+theorem CoreMemDesign.edge_mem_edgeProcs {E : CoreMemDesign} {f : CoreMemEdge}
+    (h : CoreMemProc.edge f ∈ E.processes.toList) : f ∈ E.edgeProcs :=
+  CoreMemDesign.mem_edgeProcs.mpr ⟨_, h, rfl⟩
 
 /-- **The events of a design**, computed from its edge processes. -/
 def CoreMemDesign.events (E : CoreMemDesign) : List SeqEvent := E.processes.toList.flatMap CoreMemProc.events
@@ -797,28 +893,35 @@ theorem CoreMemEdge.fires_eq (f : CoreMemEdge) (a b : SvState) : f.fires a b = f
 
 /-- An event of a design is an event of one of its processes. -/
 theorem CoreMemDesign.mem_events {E : CoreMemDesign} {e : SeqEvent} :
-    e ∈ E.events ↔ ∃ f, CoreMemProc.edge f ∈ E.processes.toList ∧ e ∈ f.events := by
-  simp only [CoreMemDesign.events, List.mem_flatMap]
+    e ∈ E.events ↔ ∃ f, f ∈ E.edgeProcs ∧ e ∈ f.events := by
+  simp only [CoreMemDesign.events, List.mem_flatMap, CoreMemDesign.mem_edgeProcs]
   constructor
   · rintro ⟨p, hp, he⟩
-    cases p with
-    | edge f => exact ⟨f, hp, he⟩
-    | _ => simp [CoreMemProc.events] at he
-  · rintro ⟨f, hf, he⟩
-    exact ⟨_, hf, he⟩
+    rw [CoreMemProc.events_eq] at he
+    cases hpe : p.edge? with
+    | none => simp [hpe] at he
+    | some f => exact ⟨f, ⟨p, hp, hpe⟩, by simpa [hpe] using he⟩
+  · rintro ⟨f, ⟨p, hp, hpe⟩, he⟩
+    exact ⟨p, hp, by rw [CoreMemProc.events_eq, hpe]; exact he⟩
 
 /-! ## The clocked profile and coherent states -/
 
 /-- A process of the clocked profile, at index `i` of the design, for any number of clocks: a continuous assign to a
 whole declared scalar (function-free; a memory read is evaluated by the route's evaluator, anything else by its compiled
 expression, which must be present), or an edge process on either edge of any clock (with or without an asynchronous
-reset of either polarity) whose body the view-level executor mirrors, within the route's statement fuel. An
-`always_comb`, `always_latch`, `always @*` or `initial` process is outside (refused by name by the structure stage). -/
+reset of either polarity) whose body the view-level executor mirrors, within the route's statement fuel; a plain
+`always` whose event list is one clock edge with an optional reset edge is that edge process (`coreMemEventEdge?`). An
+`always_comb`, `always_latch`, `always @*` or `initial` process, and a plain `always` on any other event list, is outside
+(refused by name by the structure stage). -/
 def CoreMemDesign.ProcOkI (E : CoreMemDesign) (i : Nat) : CoreMemProc → Prop
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
       (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
   | .edge f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+      | none => False
   | _ => False
 
 /-- A process of the single-clock profile: `ProcOkI`, and an edge process is on the rising edge of `clk`. A falling-edge
@@ -828,6 +931,10 @@ def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemP
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
       (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
   | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+      | none => False
   | _ => False
 
 /-- The memories of the clocked profile: distinct names, distinct identities, 4-state elements, none a port of the
@@ -851,6 +958,10 @@ structure CoreMemDesign.SeqProfileI (E : CoreMemDesign) : Prop where
 /-- An edge process on the rising edge of `clk` (every other process qualifies). -/
 def CoreMemProc.OnRise (clk : String) : CoreMemProc → Prop
   | .edge f => f.clock = clk ∧ f.edge = .posedge
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.clock = clk ∧ f.edge = .posedge
+      | none => True
   | _ => True
 
 /-- **The single-clock profile**: the instant profile at the one clock event `posedge clk` (every edge process on the
@@ -865,7 +976,10 @@ def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMem
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
   | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need ≤ 4096)
-  | .event _ _ => false
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need ≤ 4096)
+      | none => false
   | _ => false
 
 theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
@@ -892,7 +1006,13 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
   | comb _ => simp [CoreMemDesign.procOkB] at h
   | implicit _ => simp [CoreMemDesign.procOkB] at h
   | latch _ => simp [CoreMemDesign.procOkB] at h
-  | event _ _ => simp [CoreMemDesign.procOkB] at h
+  | event evs body =>
+      cases hfe : coreMemEventEdge? evs body with
+      | none => simp [CoreMemDesign.procOkB, hfe] at h
+      | some f =>
+          simp only [CoreMemDesign.procOkB, hfe, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
+          simp only [CoreMemDesign.ProcOk, hfe]
+          exact ⟨h.1.1.1, h.1.1.2, h.1.2, h.2⟩
   | unsupported _ _ => simp [CoreMemDesign.procOkB] at h
 
 /-- Every process from index `i` on is `ProcOk`, decided. -/
@@ -925,7 +1045,27 @@ theorem CoreMemDesign.ProcOk.toI {E : CoreMemDesign} {clk : String} {i : Nat} {p
       | ident n => exact ⟨⟨h.1, h.2.1, h.2.2.1, h.2.2.2⟩, trivial⟩
       | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
   | edge f => exact ⟨⟨h.2.2.1, h.2.2.2⟩, h.1, h.2.1⟩
+  | event evs body =>
+      cases hfe : coreMemEventEdge? evs body with
+      | none => exact absurd h (by simp [CoreMemDesign.ProcOk, hfe])
+      | some f =>
+          simp only [CoreMemDesign.ProcOk, hfe] at h
+          simp only [CoreMemDesign.ProcOkI, CoreMemProc.OnRise, hfe]
+          exact ⟨⟨h.2.2.1, h.2.2.2⟩, h.1, h.2.1⟩
   | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
+
+/-- An edge process of a design in the single-clock profile is on the rising edge of the clock. -/
+theorem CoreMemProc.OnRise.of_edge? {clk : String} {p : CoreMemProc} {f : CoreMemEdge} (h : p.OnRise clk)
+    (hf : p.edge? = some f) : f.clock = clk ∧ f.edge = .posedge := by
+  cases p with
+  | edge g =>
+      simp only [CoreMemProc.edge?, Option.some.injEq] at hf
+      subst hf
+      exact h
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at hf
+      simpa only [CoreMemProc.OnRise, hf] using h
+  | _ => exact absurd hf (by simp [CoreMemProc.edge?])
 
 /-- `ProcOkI`, decided. -/
 def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
@@ -934,7 +1074,10 @@ def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
   | .edge f => f.body.edgeOkB && decide (f.body.need ≤ 4096)
-  | .event _ _ => false
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.edgeOkB && decide (f.body.need ≤ 4096)
+      | none => false
   | _ => false
 
 theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
@@ -964,7 +1107,13 @@ theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | comb _ => simp [CoreMemDesign.procOkIB] at h
   | implicit _ => simp [CoreMemDesign.procOkIB] at h
   | latch _ => simp [CoreMemDesign.procOkIB] at h
-  | event _ _ => simp [CoreMemDesign.procOkIB] at h
+  | event evs body =>
+      cases hfe : coreMemEventEdge? evs body with
+      | none => simp [CoreMemDesign.procOkIB, hfe] at h
+      | some f =>
+          simp only [CoreMemDesign.procOkIB, hfe, Bool.and_eq_true, decide_eq_true_eq] at h
+          simp only [CoreMemDesign.ProcOkI, hfe]
+          exact ⟨h.1, h.2⟩
   | unsupported _ _ => simp [CoreMemDesign.procOkIB] at h
 
 /-- Every process from index `i` on is `ProcOkI`, decided. -/
@@ -1145,7 +1294,7 @@ theorem CoreMemDesign.compactScalar_memory (E : CoreMemDesign) (st : CoreMemStat
 /-- One source-order pass of the continuous assigns on a RAW view (each target set to its value, unconverted, as
 `settleAssignAt` threads it): an assign that reads a memory is evaluated by the route's evaluator on the state, whose
 view is the materialized `matV raw` (`evalScalarAssignAtView`'s first branch), any other by its compiled expression on
-the raw view; edge processes are skipped. -/
+the raw view; edge processes and plain `always` event processes are skipped (as `settleAssignAt` skips them). -/
 def CoreMemDesign.settleRaw (E : CoreMemDesign) (mv : MemV) (raw : SvState) (idx : Nat) :
     List CoreMemProc → Res SvState
   | [] => .ok raw
@@ -1163,6 +1312,7 @@ def CoreMemDesign.settleRaw (E : CoreMemDesign) (mv : MemV) (raw : SvState) (idx
             E.settleRaw mv (SvState.set raw n x) (idx + 1) rest
         | _ => .unsupported "settleRaw: a continuous assign without its compiled expression"
   | .edge _ :: rest => E.settleRaw mv raw (idx + 1) rest
+  | .event _ _ :: rest => E.settleRaw mv raw (idx + 1) rest
   | _ :: _ => .unsupported "settleRaw: a process outside the clocked profile"
 
 /-- **One `settleAssign` on a view**: the pass on the raw view, then the materialization. -/
@@ -1444,7 +1594,11 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
       | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | latch _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
-      | event _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
+      | event evs body =>
+          simp only [CoreMemDesign.settleRaw] at hs
+          obtain ⟨st', hrun, hc', hm', hv'⟩ :=
+            CoreMemDesign.settleAssignAt_seq hP rest (idx + 1) hrest st raw raw' hc hmc hv hs
+          exact ⟨st', by simpa [CoreMemDesign.settleAssignAt] using hrun, hc', hm', hv'⟩
       | unsupported _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
 
 /-- `compactScalar` after a settle pass: the materialized view, coherent. -/
@@ -2175,12 +2329,68 @@ def CoreMemDesign.edgesV (E : CoreMemDesign) (before after : SvState) (v : SvSta
         let b ← E.edgesV before after a.1 mv rest
         .ok (b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
       else E.edgesV before after v mv rest
+  | .event evs body :: rest =>
+      match coreMemEventEdge? evs body with
+      | some p =>
+          if p.fires before after then do
+            let a ← E.execV v mv p.body
+            let b ← E.edgesV before after a.1 mv rest
+            .ok (b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
+          else E.edgesV before after v mv rest
+      | none => E.edgesV before after v mv rest
   | _ :: rest => E.edgesV before after v mv rest
+
+/-- The edge pass on views reads a plain `always` on one clock edge as its edge process. -/
+theorem CoreMemDesign.edgesV_event {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {evs : List CoreMemEvent} {body : PStmt} {f : CoreMemEdge} (h : coreMemEventEdge? evs body = some f)
+    (rest : List CoreMemProc) :
+    E.edgesV before after v mv (.event evs body :: rest) = E.edgesV before after v mv (.edge f :: rest) := by
+  simp only [CoreMemDesign.edgesV, h]
+
+/-- The edge pass on views skips an event process that is no edge process. -/
+theorem CoreMemDesign.edgesV_event_none {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {evs : List CoreMemEvent} {body : PStmt} (h : coreMemEventEdge? evs body = none) (rest : List CoreMemProc) :
+    E.edgesV before after v mv (.event evs body :: rest) = E.edgesV before after v mv rest := by
+  simp only [CoreMemDesign.edgesV, h]
+
+/-- The edge pass on views at a process that is an edge process (`CoreMemProc.edge?`). -/
+theorem CoreMemDesign.edgesV_cons_some {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {p : CoreMemProc}
+    {f : CoreMemEdge} (h : p.edge? = some f) (rest : List CoreMemProc) :
+    E.edgesV before after v mv (p :: rest) =
+      if f.fires before after then do
+        let a ← E.execV v mv f.body
+        let b ← E.edgesV before after a.1 mv rest
+        .ok (b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
+      else E.edgesV before after v mv rest := by
+  cases p with
+  | edge g =>
+      simp only [CoreMemProc.edge?, Option.some.injEq] at h
+      subst h
+      simp only [CoreMemDesign.edgesV]
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemDesign.edgesV, h]
+  | _ => exact absurd h (by simp [CoreMemProc.edge?])
+
+/-- The edge pass on views skips a process that is no edge process. -/
+theorem CoreMemDesign.edgesV_cons_none {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {p : CoreMemProc}
+    (h : p.edge? = none) (rest : List CoreMemProc) :
+    E.edgesV before after v mv (p :: rest) = E.edgesV before after v mv rest := by
+  cases p with
+  | edge g => exact absurd h (by simp [CoreMemProc.edge?])
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemDesign.edgesV, h]
+  | _ => simp only [CoreMemDesign.edgesV]
 
 /-- The shape of a process of the clocked profile, without its index (any clock, either edge). -/
 def CoreMemDesign.ProcShapeI : CoreMemProc → Prop
   | .assign _ _ => True
   | .edge f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+      | none => False
   | _ => False
 
 theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
@@ -2192,7 +2402,7 @@ theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | initial _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | comb _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
-  | event _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | event evs body => exact h
   | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
 
@@ -2266,7 +2476,33 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       | initial _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | comb _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
-      | event _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | event evs body =>
+          cases hfe : coreMemEventEdge? evs body with
+          | none => exact absurd hp (by simp [CoreMemDesign.ProcShapeI, hfe])
+          | some f =>
+              simp only [CoreMemDesign.ProcShapeI, hfe] at hp
+              rw [CoreMemDesign.edgesV_event hfe] at hv
+              rw [CoreMemDesign.runEdges_event hfe]
+              obtain ⟨hb, hn⟩ := hp
+              simp only [CoreMemDesign.edgesV] at hv
+              by_cases hf : f.fires before after = true
+              · simp only [hf, ↓reduceIte, Res.bind_eq_ok, Res.ok.injEq] at hv
+                obtain ⟨⟨v1, a, ma⟩, h1, ⟨v2, b, mb⟩, h2, hq⟩ := hv
+                simp only [Prod.mk.injEq] at hq
+                obtain ⟨rfl, rfl, rfl⟩ := hq
+                obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
+                  CoreMemDesign.execStmtFuel_V hnd h4 f.body 4096 st v1 a ma hc hmc hb hn h1
+                obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
+                  v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
+                refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],
+                  hv2, hc2, by rw [hm2, hm1], fun r hr => ?_⟩
+                rcases List.mem_append.mp hr with hr | hr
+                · exact hr1 r hr
+                · exact hr2 r hr
+              · simp only [hf, Bool.false_eq_true, ↓reduceIte] at hv
+                obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ :=
+                  CoreMemDesign.runEdges_V hnd h4 before after rest hrest st v' q mq hc hmc hv
+                exact ⟨st2, by simp [CoreMemDesign.runEdges, hf, hs2], hv2, hc2, hm2, hr2⟩
       | latch _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | unsupported _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
 
@@ -2329,7 +2565,7 @@ def CoreMemDesign.applyRow (E : CoreMemDesign) (v r : SvState) : SvState := appl
 /-- No process sees its clock event while its asynchronous reset moves (the process reads its reset as data; with both
 in one slot the standard lets it run on either value, §4.7). -/
 def CoreMemDesign.ResetStill (E : CoreMemDesign) (v w : SvState) : Prop :=
-  ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.clockEvent.occursIn v w = true →
+  ∀ f, f ∈ E.edgeProcs → f.clockEvent.occursIn v w = true →
     ∀ r, f.reset = some r → SvState.lookup w r = SvState.lookup v r
 
 /-- **A data row** from the view `v`: no event of the design occurs. -/

@@ -321,12 +321,12 @@ event is in `A`) read only `S`, have their clock and reset in `S`; every other e
 continuous assign into `S` reads only `S`; every edge body is nonblocking to whole signals (the obligations' form for
 several edge processes). -/
 structure CoreMemDesign.Domain (E : CoreMemDesign) (A : List SeqEvent) (S : List String) : Prop where
-  reads : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.clockEvent ∈ A → ∀ x ∈ E.stmtReadsV f.body, x ∈ S
-  clock : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.clockEvent ∈ A → f.clock ∈ S
-  reset : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.clockEvent ∈ A → ∀ r, f.reset = some r → r ∈ S
-  others : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.clockEvent ∉ A → ∀ x ∈ f.body.writes, x ∉ S
+  reads : ∀ f, f ∈ E.edgeProcs → f.clockEvent ∈ A → ∀ x ∈ E.stmtReadsV f.body, x ∈ S
+  clock : ∀ f, f ∈ E.edgeProcs → f.clockEvent ∈ A → f.clock ∈ S
+  reset : ∀ f, f ∈ E.edgeProcs → f.clockEvent ∈ A → ∀ r, f.reset = some r → r ∈ S
+  others : ∀ f, f ∈ E.edgeProcs → f.clockEvent ∉ A → ∀ x ∈ f.body.writes, x ∉ S
   assigns : ∀ i n e, E.processes[i]? = some (.assign (.ident n) e) → n ∈ S → ∀ x ∈ E.assignReadsAt i n e, x ∈ S
-  whole : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.body.nbaWhole = true
+  whole : ∀ f, f ∈ E.edgeProcs → f.body.nbaWhole = true
 
 /-- Two views agree on the names `S`. -/
 def AgreeOn (S : List String) (a b : SvState) : Prop := ∀ x ∈ S, SvState.lookup a x = SvState.lookup b x
@@ -409,7 +409,9 @@ theorem CoreMemDesign.settleRaw_domain {E : CoreMemDesign} {A : List SeqEvent} {
           exact CoreMemDesign.settleRaw_domain hD rest (idx + 1) hrest r1 r2 r1' r2' h h1 h2
       | primitive _ _ _ => simp [CoreMemDesign.settleRaw] at h1
       | initial _ => simp [CoreMemDesign.settleRaw] at h1
-      | event _ _ => simp [CoreMemDesign.settleRaw] at h1
+      | event _ _ =>
+          simp only [CoreMemDesign.settleRaw] at h1 h2
+          exact CoreMemDesign.settleRaw_domain hD rest (idx + 1) hrest r1 r2 r1' r2' h h1 h2
       | comb _ => simp [CoreMemDesign.settleRaw] at h1
       | implicit _ => simp [CoreMemDesign.settleRaw] at h1
       | latch _ => simp [CoreMemDesign.settleRaw] at h1
@@ -439,10 +441,14 @@ theorem CoreMemDesign.edgesV_domain {E : CoreMemDesign} {A : List SeqEvent} {S :
   | q :: rest, hq, r1, r2, h1, h2, x, hx => by
       have hrest : ∀ q' ∈ rest, q' ∈ E.processes.toList := fun q' h' => hq q' (by simp [h'])
       have hmem := hq q (by simp)
-      cases q with
-      | edge f =>
-          have hw := hD.whole f hmem
-          have hw' : (CoreMemProc.edge f).nbaWholeP = true := by simpa [CoreMemProc.nbaWholeP] using hw
+      cases hqe : q.edge? with
+      | none =>
+          rw [CoreMemDesign.edgesV_cons_none hqe] at h1 h2
+          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
+      | some f =>
+          have hfm : f ∈ E.edgeProcs := CoreMemDesign.mem_edgeProcs.mpr ⟨q, hmem, hqe⟩
+          have hw := hD.whole f hfm
+          have hw' : q.nbaWholeP = true := by rw [CoreMemProc.nbaWholeP_of_edge? hqe]; exact hw
           obtain ⟨qa, rr1, hqa, hna, he1, rfl⟩ := CoreMemDesign.edgesV_cons_inv hw' h1
           obtain ⟨qb, rr2, hqb, hnb, he2, rfl⟩ := CoreMemDesign.edgesV_cons_inv hw' h2
           have ih := CoreMemDesign.edgesV_domain hD hb hp rest hrest rr1 rr2 he1 he2 x hx
@@ -450,16 +456,16 @@ theorem CoreMemDesign.edgesV_domain {E : CoreMemDesign} {A : List SeqEvent} {S :
           congr 1
           by_cases hA : f.clockEvent ∈ A
           · -- the domain's process: it fires on both views or on neither, with the same updates
-            have hc := hD.clock f hmem hA
+            have hc := hD.clock f hfm hA
             have hfire : f.fires b1 p1 = f.fires b2 p2 := by
               unfold CoreMemEdge.fires
               rw [SvState.bit0_congr (hb _ hc), SvState.bit0_congr (hp _ hc)]
               cases hr : f.reset with
               | none => rfl
               | some r =>
-                  have hr' := hD.reset f hmem hA r hr
+                  have hr' := hD.reset f hfm hA r hr
                   simp only [SvState.bit0_congr (hb _ hr'), SvState.bit0_congr (hp _ hr')]
-            simp only [CoreMemDesign.procQ] at hqa hqb
+            rw [CoreMemDesign.procQ_of_edge? hqe] at hqa hqb
             rw [← hfire] at hqb
             split at hqa
             · rename_i hf
@@ -469,7 +475,7 @@ theorem CoreMemDesign.edgesV_domain {E : CoreMemDesign} {A : List SeqEvent} {S :
               obtain ⟨⟨v2, a2, m2⟩, ha2, rfl⟩ := hqb
               obtain ⟨rfl, -, -⟩ := CoreMemDesign.execV_nbaWhole p1 mv f.body v1 a1 m1 hw ha1
               have hc2 := CoreMemDesign.execV_congr (v' := p2) f.body hw
-                (fun y hy => hp y (hD.reads f hmem hA y hy)) a1 m1 ha1
+                (fun y hy => hp y (hD.reads f hfm hA y hy)) a1 m1 ha1
               rw [hc2] at ha2
               simp only [Res.ok.injEq, Prod.mk.injEq] at ha2
               rw [ha2.2.1]
@@ -478,49 +484,27 @@ theorem CoreMemDesign.edgesV_domain {E : CoreMemDesign} {A : List SeqEvent} {S :
               simp only [Res.ok.injEq] at hqa hqb
               subst hqa; subst hqb; rfl
           · -- another domain's process: none of its updates names `x`
-            have hnot : ∀ (qq : NbaQueue2), (∀ u ∈ qq, u.1 ∈ (CoreMemProc.edge f).targets) →
+            have hnot : ∀ (qq : NbaQueue2), (∀ u ∈ qq, u.1 ∈ q.targets) →
                 qq.filter (fun u => u.1 == x) = [] := by
               intro qq hqq
               rw [List.filter_eq_nil_iff]
               intro u hu
               have := hqq u hu
-              simp only [CoreMemProc.targets, List.mem_eraseDups] at this
-              have hux : u.1 ≠ x := fun he => hD.others f hmem hA u.1 this (he ▸ hx)
+              simp only [CoreMemProc.targets_of_edge? hqe, List.mem_eraseDups] at this
+              have hux : u.1 ≠ x := fun he => hD.others f hfm hA u.1 this (he ▸ hx)
               simpa using hux
             rw [hnot qa hna, hnot qb hnb]
-      | assign t e =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
-      | initial _ =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
-      | event _ _ =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
-      | comb _ =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
-      | implicit _ =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
-      | primitive _ _ _ =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
-      | latch _ =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
-      | unsupported _ _ =>
-          simp only [CoreMemDesign.edgesV] at h1 h2
-          exact CoreMemDesign.edgesV_domain hD hb hp rest hrest r1 r2 h1 h2 x hx
 
 /-- The edge pass of nonblocking whole-signal processes leaves the view and the memory alone. -/
 theorem CoreMemDesign.edgesV_whole {E : CoreMemDesign} {A : List SeqEvent} {S : List String} (hD : E.Domain A S)
     {mv : MemV} {b p : SvState} {r : ExecV} (h : E.edgesV b p p mv E.processes.toList = .ok r) :
     r.1 = p ∧ r.2.2 = [] :=
   CoreMemDesign.edgesV_view (fun q hq => by
-    cases q with
-    | edge f => simpa [CoreMemProc.nbaWholeP] using hD.whole f hq
-    | _ => rfl) h
+    cases hqe : q.edge? with
+    | none => exact CoreMemProc.nbaWholeP_of_none hqe
+    | some f =>
+        rw [CoreMemProc.nbaWholeP_of_edge? hqe]
+        exact hD.whole f (CoreMemDesign.mem_edgeProcs.mpr ⟨q, hq, hqe⟩)) h
 
 /-- **THE DOMAIN'S SLOT**: two slots on views that agree on a domain's names, on rows that apply the same values to
 them, with one memory view, land on views that agree on the domain's names (whatever the rest of the design holds, and
@@ -701,17 +685,18 @@ theorem applyInputs2_nil (d : Design2) (st : SvState) : applyInputs2 d [] st = s
 
 /-- An edge pass in which no process fires issues nothing. -/
 theorem CoreMemDesign.edgesV_quiet {E : CoreMemDesign} {b a v : SvState} {mv : MemV} :
-    ∀ (procs : List CoreMemProc), (∀ f, CoreMemProc.edge f ∈ procs → f.fires b a = false) →
+    ∀ (procs : List CoreMemProc), (∀ p ∈ procs, ∀ f, p.edge? = some f → f.fires b a = false) →
       E.edgesV b a v mv procs = .ok (v, [], [])
   | [], _ => rfl
   | p :: rest, h => by
-      have hrest : ∀ f, CoreMemProc.edge f ∈ rest → f.fires b a = false := fun f hf => h f (by simp [hf])
-      cases p with
-      | edge f =>
-          simp only [CoreMemDesign.edgesV, h f (by simp), Bool.false_eq_true, ↓reduceIte]
+      have hrest : ∀ q ∈ rest, ∀ f, q.edge? = some f → f.fires b a = false := fun q hq => h q (by simp [hq])
+      cases hpe : p.edge? with
+      | some f =>
+          rw [CoreMemDesign.edgesV_cons_some hpe]
+          simp only [h p (by simp) f hpe, Bool.false_eq_true, ↓reduceIte]
           exact CoreMemDesign.edgesV_quiet rest hrest
-      | _ =>
-          simp only [CoreMemDesign.edgesV]
+      | none =>
+          rw [CoreMemDesign.edgesV_cons_none hpe]
           exact CoreMemDesign.edgesV_quiet rest hrest
 
 /-- **The empty row's slot is the identity** on a settled view. -/
@@ -722,7 +707,7 @@ theorem CoreMemDesign.slotV_nil {E : CoreMemDesign} {v : SvState} {mv : MemV} (h
   simp only [Res.ok_bind]
   rw [hs]
   simp only [Res.ok_bind]
-  rw [CoreMemDesign.edgesV_quiet _ (fun f _ => CoreMemEdge.fires_of_agree rfl fun _ _ => rfl)]
+  rw [CoreMemDesign.edgesV_quiet _ (fun _ _ f _ => CoreMemEdge.fires_of_agree rfl fun _ _ => rfl)]
   simp only [Res.ok_bind]
   show (do let s1 ← E.settleV mv (commitNba2 v []); let s2 ← E.settleV mv s1; .ok (s2, mv)) = _
   rw [show commitNba2 v [] = v from rfl, hs]
@@ -833,11 +818,13 @@ theorem CoreMemDesign.dataV_quiet {E : CoreMemDesign} (hP : E.SeqProfileI) (hO :
           CoreMemDesign.source_undriven hO hx (CoreMemDesign.assignTargets_driven x h')
         rw [CoreMemDesign.settleV_frame hp0 hna, CoreMemDesign.matV_applyRow hP hc hty]
         try rfl
-      have hquiet : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.fires (E.scalar.view st.scalar) p0 = false := by
-        intro f hf
+      have hquiet : ∀ p ∈ E.processes.toList, ∀ f, p.edge? = some f →
+          f.fires (E.scalar.view st.scalar) p0 = false := by
+        intro p hp f hpe
         rw [CoreMemEdge.fires_eq, List.any_eq_false]
         intro e he
-        have hmem : e ∈ E.events := CoreMemDesign.mem_events.mpr ⟨f, hf, he⟩
+        have hmem : e ∈ E.events :=
+          CoreMemDesign.mem_events.mpr ⟨f, CoreMemDesign.mem_edgeProcs.mpr ⟨p, hp, hpe⟩, he⟩
         have hes : e.src ∈ E.sources := List.mem_map.mpr ⟨e, hmem, rfl⟩
         have hocc : e.occursIn (E.scalar.view st.scalar) (E.applyRow (E.scalar.view st.scalar) d) = false := by
           unfold CoreMemDesign.DataRow CoreMemDesign.occurs at hd
