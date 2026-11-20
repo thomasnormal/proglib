@@ -525,3 +525,7 @@ The public `free` operation now has a corresponding `structuredTypesUnique`
 preservation theorem. Its null no-op and successful tombstone branches both
 retain the same identity table, so callers can compose the invariant through
 the `Except` memory API.
+
+Automatic-scope cleanup now has the same proof. `killFrom` preserves
+`structuredTypesUnique` through every fold branch, including static-object
+skips and missing-object cases.
