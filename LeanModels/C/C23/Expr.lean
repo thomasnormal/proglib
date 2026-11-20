@@ -912,6 +912,10 @@ def truthy (v : CVal) : EvalM Bool :=
 /-- §6.5.9p3 / §6.5.10p3: a comparison yields `int`, 0 or 1. -/
 def ofBool (b : Bool) : CVal := .int IntTy.int_ (if b then 1 else 0)
 
+@[simp] theorem CVal.renameAddress_ofBool (resolve : ObjId → Nat) (b : Bool) :
+    CVal.renameAddress resolve (ofBool b) = ofBool b := by
+  simp [ofBool, CVal.renameAddress]
+
 /-! ## §6.5.6-§6.5.13 — the binary arithmetic rules
 
 The operands arrive ALREADY CONVERTED. Measured: of 563 arithmetic and

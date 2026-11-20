@@ -718,6 +718,12 @@ def convert (to : IntTy) (v : Int) : CVal :=
   if to == IntTy.bool_ then .int to (if v == 0 then 0 else 1)
   else .int to (to.wrap v)
 
+@[simp] theorem CVal.renameAddress_convert (resolve : ObjId → Nat)
+    (to : IntTy) (v : Int) :
+    CVal.renameAddress resolve (convert to v) = convert to v := by
+  simp only [convert]
+  split <;> simp [CVal.renameAddress]
+
 /-! ## Gates
 
 The boundary cases `docs/c-semantics-design.md` §7 names for this inch.
