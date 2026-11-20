@@ -32034,7 +32034,6 @@
       "example": "sem2/negedge_e",
       "top": "negedge_e",
       "signals": [
-        "clk",
         "d",
         "q"
       ],
