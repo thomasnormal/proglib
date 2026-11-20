@@ -1885,6 +1885,19 @@ def ptrLt (a b : Ptr) : MRes Bool :=
                       else .error (.memUB (.relationalAcrossObjects a b))
   | _, _ => .error (.memUB (.relationalAcrossObjects a b))
 
+def renameAddressResult (r : MRes Bool) (addressA addressB : Nat) : MRes Bool :=
+  match r with
+  | .error (.memUB (.relationalAcrossObjects a b)) =>
+      .error (.memUB (.relationalAcrossObjects
+        {a with address := addressA} {b with address := addressB}))
+  | other => other
+
+theorem ptrLt_address_rename (a b : Ptr) (addressA addressB : Nat) :
+    ptrLt {a with address := addressA} {b with address := addressB} =
+      renameAddressResult (ptrLt a b) addressA addressB := by
+  cases ha : a.obj <;> cases hb : b.obj <;>
+    simp [ptrLt, renameAddressResult, ha, hb]
+
 /- On the defined same-object path, relational comparison ignores concrete
    placement.  Cross-object refusals retain the offending pointer in their
    diagnostic, so the unrestricted equality is intentionally not claimed. -/

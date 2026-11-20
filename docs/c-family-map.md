@@ -610,7 +610,9 @@ Pointer equality and one-past boundary classification are now included as
 literal placement-independent comparisons. Relational cross-object failures
 remain outside this equality field because their refusal payloads retain the
 offending pointer values. Same-object relational ordering is included under
-its existing shared-provenance premise.
+its existing shared-provenance premise, and the unrestricted relational rule
+now has a `ptrLt_address_rename` theorem that renames refusal payloads
+structurally.
 
 The function-pointer store accessor now has its explicit named
 `storeFunction_address_irrel` proof, completing the contract's representation
