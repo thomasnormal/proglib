@@ -1264,3 +1264,16 @@ refuses the envelope at the exact `FETCH_INSTR` untyped-width boundary, so its
 E-RUN is **0 / 0**.  Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the
 pinned source at the IEEE 1800-2023 §12.5 use-before-declared `instr` wall.
 The two-core rerun leaves the census and execution counts unchanged.
+
+## 2026-11-20 PicoRV32 R1 conditional-branch class
+
+The loaded-core R1 branch package now has a clean compile receipt for all six
+RV32I conditional branches.  Exact decoder rows cover BEQ, BNE, BLT, BGE, BLTU,
+and BGEU.  Each class theorem proves the ISA memory-preserving step and the
+RVFI retirement boundary for arbitrary architectural state and byte memory,
+then supplies the loaded `Rv32iBoundary` bridge and the indexed exact-cycle
+refinement package.  `lake env lean
+Examples/system-verilog/cores/picorv32/r1_branch.lean` passed, and every
+printed theorem axiom set is `[propext, Classical.choice, Quot.sound]`.
+The universal loaded-core step and order premises remain explicit, so this
+R1 result does not claim a finite-trace or RTL invariant proof.
