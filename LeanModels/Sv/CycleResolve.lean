@@ -80,6 +80,14 @@ theorem CycleXRead.read_eq_of_known {source concrete : CycleObs PortSample}
   exact ⟨hread.pre_read_eq_of_known hknownPre name,
     hread.post_read_eq_of_known hknownPost name⟩
 
+theorem CycleXRead.width_eq {source concrete : CycleObs PortSample}
+    (hread : CycleXRead source concrete) :
+    ∀ name,
+      (source.pre.read name).map LVec.width = (concrete.pre.read name).map LVec.width ∧
+        (source.post.read name).map LVec.width = (concrete.post.read name).map LVec.width := by
+  intro name
+  exact ⟨optionXRead_width (hread name).1, optionXRead_width (hread name).2⟩
+
 end LeanModels.Sv.Observe
 
 #print axioms LeanModels.Sv.Observe.optionXRead_eq_of_known
@@ -87,3 +95,4 @@ end LeanModels.Sv.Observe
 #print axioms LeanModels.Sv.Observe.CycleXRead.pre_read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.post_read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.read_eq_of_known
+#print axioms LeanModels.Sv.Observe.CycleXRead.width_eq
