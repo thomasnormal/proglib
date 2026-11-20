@@ -610,6 +610,49 @@ theorem vaEnd_renameAddresses
       rw [hdrop m.vaCursors]
       rfl
 
+theorem vaCopy_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (dst src : Ptr) :
+    (m.renameAddresses rename).vaCopy (Ptr.renameAddress rename dst)
+        (Ptr.renameAddress rename src) =
+      (m.vaCopy dst src).map (Mem.renameAddresses rename) := by
+  have hget : ∀ (xs : List (ObjId × List CVal)) (o : ObjId),
+      vaGet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o =
+        (vaGet xs o).map (List.map (CVal.renameAddress rename)) := by
+    intro xs o
+    induction xs with
+    | nil => rfl
+    | cons x xs ih =>
+        cases x with
+        | mk q vs =>
+            by_cases hq : q == o <;>
+              simp [vaGet, hq, ih, List.map_map, Function.comp_def]
+  have hset : ∀ (xs : List (ObjId × List CVal)) (o : ObjId) (vs : List CVal),
+      vaSet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o
+          (vs.map (CVal.renameAddress rename)) =
+        (vaSet xs o vs).map (fun x => (x.1, x.2.map (CVal.renameAddress rename))) := by
+    intro xs o vs
+    induction xs with
+    | nil => simp [vaSet]
+    | cons x xs ih =>
+        cases x with
+        | mk q old =>
+            by_cases hq : q == o <;>
+              simp [vaSet, hq, ih, List.map_map, Function.comp_def]
+  cases hd : dst.obj with
+  | none =>
+      cases hs : src.obj <;>
+        simp [vaCopy, hd, hs, Ptr.renameAddress, renameAddresses, hget, Except.map]
+  | some d =>
+      cases hs : src.obj with
+      | none => simp [vaCopy, hd, hs, Ptr.renameAddress, renameAddresses, hget, Except.map]
+      | some s =>
+          cases hv : vaGet m.vaCursors s with
+          | none => simp [vaCopy, hd, hs, hv, Ptr.renameAddress, renameAddresses, hget, Except.map]
+          | some vs =>
+              simp [vaCopy, hd, hs, hv, Ptr.renameAddress, renameAddresses, hget]
+              rw [hset]
+              rfl
+
 @[simp] theorem vaStart_address_irrel (m : Mem) (p : Ptr) (args : List CVal)
     (address : Nat) : vaStart m {p with address := address} args = vaStart m p args := by
   simp [vaStart]
