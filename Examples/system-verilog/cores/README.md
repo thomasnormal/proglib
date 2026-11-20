@@ -1138,6 +1138,22 @@ core invariant.  The next safe R1 item is the implemented CSR family, while
 the DarkRISCV source-shaped scalar transition remains a separate execution
 wall.
 
+## 2026-11-20 census rerank after the CSR R1 recheck
+
+The stall-rule rerun passed `harness/rv/core_census.py --self-test` and the
+current pinned PicoRV32 RISCV_FORMAL envelope census.  PicoRV32 remains
+**360 admitted / 0 refused / 4 not reached**, with the four rows confined to
+inactive default generate branches.  The measured execution receipts remain
+PicoRV32 **1000/1000** and DarkRISCV **1000/1000** through their checked
+canonical-E routes.  Quark remains **0/0** at its `FETCH_INSTR`
+untyped-width wall, and SERV remains **0/0** at its `RF_WIDTH` wall with
+**910/41/203** current source-overlay census rows.
+
+The CSR recheck changed no census or execution count and added no loaded-core
+invariant.  The next R1 family is the exact illegal-instruction and illegal-
+CSR boundary, while the DarkRISCV source-shaped scalar transition remains a
+separate execution wall.
+
 ## 2026-11-20 OpenTitan prim_arbiter_ppc canonical-E admission
 
 The pinned OpenTitan source at commit
