@@ -20,6 +20,18 @@ def OptionXRead (source concrete : Option LVec) : Prop :=
   | some source, some concrete => XRead source concrete
   | _, _ => False
 
+theorem optionXRead_width {source concrete : Option LVec}
+    (hread : OptionXRead source concrete) :
+    source.map LVec.width = concrete.map LVec.width := by
+  cases source with
+  | none => cases concrete <;> simp [OptionXRead] at hread ⊢
+  | some source =>
+      cases concrete with
+      | none => simp [OptionXRead] at hread
+      | some concrete =>
+          have hwidth := xRead_width hread
+          simpa using hwidth.symm
+
 def CycleXRead (source concrete : CycleObs PortSample) : Prop :=
   ∀ name,
     OptionXRead (source.pre.read name) (concrete.pre.read name) ∧
@@ -71,6 +83,7 @@ theorem CycleXRead.read_eq_of_known {source concrete : CycleObs PortSample}
 end LeanModels.Sv.Observe
 
 #print axioms LeanModels.Sv.Observe.optionXRead_eq_of_known
+#print axioms LeanModels.Sv.Observe.optionXRead_width
 #print axioms LeanModels.Sv.Observe.CycleXRead.pre_read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.post_read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.read_eq_of_known
