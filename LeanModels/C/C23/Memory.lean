@@ -853,6 +853,10 @@ theorem get?_kill_of_ne (m : Mem) (o q : ObjId) (h : q ≠ o) :
     structuredTypesUnique (m.kill o) := by
   simpa [structuredTypesUnique, structuredTypeKeys, kill] using h
 
+@[simp] theorem kill_structuredType_lookup (m : Mem) (dead q : ObjId) :
+    (m.kill dead).structuredType? q = m.structuredType? q := by
+  rfl
+
 theorem placementValid_kill (m : Mem) (o : ObjId) (address size alignment : Nat)
     (hvalid : placementValid m address size alignment = true) :
     placementValid (m.kill o) address size alignment = true := by
@@ -977,6 +981,20 @@ theorem killFrom_structuredTypesUnique
     structuredTypesUnique (m.killFrom start) := by
   exact killFrom_fold_structuredTypesUnique
     (List.range (m.count - start)) m start hunique
+
+@[simp] theorem killFrom_structuredType_lookup (m : Mem) (start q : ObjId) :
+    (m.killFrom start).structuredType? q = m.structuredType? q := by
+  unfold killFrom
+  induction hxs : List.range (m.count - start) generalizing m with
+  | nil => rfl
+  | cons i xs ih =>
+    simp only [List.foldl]
+    cases hget : m.get? (start + i) with
+    | none => exact ih m
+    | some c =>
+      by_cases ha : (c.dur == .automatic) = true
+      · simp [hget, ha, kill, ih]
+      · exact ih m
 
 @[simp] theorem placementValid_killFrom (m : Mem) (start address size alignment : Nat)
     (hvalid : placementValid m address size alignment = true) :
@@ -1891,6 +1909,20 @@ theorem free_structuredTypesUnique
     · split at hr
       · cases hr
         exact kill_structuredTypesUnique m _ h
+      · simp_all
+    · simp_all
+
+theorem free_structuredType_lookup
+    {m m' : Mem} {p : Ptr} (q : ObjId)
+    (hr : m.free p = .ok m') : m'.structuredType? q = m.structuredType? q := by
+  unfold free at hr
+  split at hr
+  · cases hr
+    rfl
+  · split at hr
+    · split at hr
+      · cases hr
+        rfl
       · simp_all
     · simp_all
 
