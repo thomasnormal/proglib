@@ -583,3 +583,8 @@ projection on an allocated store.
 Lifetime-ending operations now expose the same projection. `kill`, `killFrom`,
 and successful `free` preserve every structured-type lookup while changing
 object liveness or tombstones.
+
+The remaining metadata-only projections are explicit as well. `emitStdout`
+preserves every lookup, and `copyStructuredType` preserves all existing keys
+away from its fresh destination while exposing the transferred key at that
+destination.
