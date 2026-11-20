@@ -205,6 +205,16 @@ theorem xReadRun_length {sources concrete : List LVec}
   | nil => rfl
   | cons hhead htail ih => simp [ih]
 
+/-- Independent read witnesses compose when two trace segments are joined. -/
+theorem xReadRun_append {leftSources leftConcrete rightSources rightConcrete : List LVec}
+    (left : XReadRun leftSources leftConcrete)
+    (right : XReadRun rightSources rightConcrete) :
+    XReadRun (leftSources ++ rightSources) (leftConcrete ++ rightConcrete) := by
+  induction left generalizing right with
+  | nil => simpa using right
+  | cons hhead htail ih =>
+      simpa using XReadRun.cons hhead (ih right)
+
 theorem xReadRun_eq_of_known : ∀ {sources concrete : List LVec},
     (∀ source ∈ sources, source.bits.toList.all Logic.isKnown = true) →
     XReadRun sources concrete → sources = concrete
