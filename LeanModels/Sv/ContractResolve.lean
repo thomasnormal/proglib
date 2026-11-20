@@ -1,5 +1,5 @@
 import LeanModels.Sv.Contract
-import LeanModels.Sv.Kernel.XResolve
+import LeanModels.Sv.CycleResolve
 
 /-!
 # X-E bridge for contract input valuations
@@ -34,6 +34,44 @@ theorem HoldsOn.of_xread {s s' : PortSample} {sigs : List Sig} {v : Valuation}
   cases heq
   exact rfl
 
+theorem CycleXRead.holdsOn_pre_of_xread
+    {source concrete : CycleObs PortSample} {sigs : List Sig} {v : Valuation}
+    (hread : CycleXRead source concrete)
+    (hholds : HoldsOn source.pre sigs v) :
+    HoldsOn concrete.pre sigs v := by
+  apply HoldsOn.of_xread hholds
+  intro p hp
+  have hopt := (hread p.1).1
+  have hsource := hholds p hp
+  cases hsrc : source.pre.read p.1 with
+  | none => simp [hsrc] at hsource
+  | some src =>
+      cases hcon : concrete.pre.read p.1 with
+      | none => simp [OptionXRead, hsrc, hcon] at hopt
+      | some con =>
+          rw [hsrc, hcon] at hopt
+          exact ⟨src, con, rfl, rfl, hopt⟩
+
+theorem CycleXRead.holdsOn_post_of_xread
+    {source concrete : CycleObs PortSample} {sigs : List Sig} {v : Valuation}
+    (hread : CycleXRead source concrete)
+    (hholds : HoldsOn source.post sigs v) :
+    HoldsOn concrete.post sigs v := by
+  apply HoldsOn.of_xread hholds
+  intro p hp
+  have hopt := (hread p.1).2
+  have hsource := hholds p hp
+  cases hsrc : source.post.read p.1 with
+  | none => simp [hsrc] at hsource
+  | some src =>
+      cases hcon : concrete.post.read p.1 with
+      | none => simp [OptionXRead, hsrc, hcon] at hopt
+      | some con =>
+          rw [hsrc, hcon] at hopt
+          exact ⟨src, con, rfl, rfl, hopt⟩
+
 end LeanModels.Sv.Observe
 
 #print axioms LeanModels.Sv.Observe.HoldsOn.of_xread
+#print axioms LeanModels.Sv.Observe.CycleXRead.holdsOn_pre_of_xread
+#print axioms LeanModels.Sv.Observe.CycleXRead.holdsOn_post_of_xread
