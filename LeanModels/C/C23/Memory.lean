@@ -1317,6 +1317,23 @@ theorem decodeInt_renameAddresses_conc
   | cons b bs ih =>
       simp [decodeInt, CByte.renameAddress, ih, Function.comp_def]
 
+theorem decodeInt_renameAddresses
+    (resolve : ObjId → Nat) (t : IntTy) (bs : List CByte) :
+    decodeInt t (bs.map (CByte.renameAddress resolve)) = decodeInt t bs := by
+  let step := fun (b : CByte) (acc : Option (List UInt8)) =>
+    match b, acc with
+    | .conc x, some xs => some (x :: xs)
+    | _, _ => none
+  have hfold : ∀ xs : List CByte,
+      (xs.map (CByte.renameAddress resolve)).foldr step (some []) =
+        xs.foldr step (some []) := by
+    intro xs
+    induction xs with
+    | nil => rfl
+    | cons b xs ih =>
+        cases b <;> simp [List.map, List.foldr, CByte.renameAddress, ih, step]
+  simp [decodeInt, step, hfold]
+
 theorem decodeInt_renameAddresses_conc_of_some
     (resolve : ObjId → Nat) (t : IntTy) (bs : List UInt8) (v : Int)
     (h : decodeInt t (bs.map CByte.conc) = some v) :
@@ -1506,6 +1523,75 @@ def loadInt (m : Mem) (p : Ptr) (t : IntTy) : MRes CVal := do
         .error (.memUB (indetFault c.dur o off))
       else
         .error (.memUB (.nonValueRepresentation o off))
+
+theorem loadInt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (t : IntTy) :
+    (m.renameAddresses rename).loadInt (Ptr.renameAddress rename p) t =
+      (m.loadInt p t).map (CVal.renameAddress rename) := by
+  simp only [loadInt]
+  rw [resolve_renameAddresses]
+  cases h : m.resolve p (max 1 (t.bits / 8)) with
+  | error e =>
+      rfl
+  | ok result =>
+      cases result with
+      | mk o rest =>
+          cases rest with
+          | mk c off =>
+              dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+                Except.pure, Except.map]
+              have hbytes :
+                  List.take (max 1 (t.bits / 8))
+                      (List.drop off (CObj.renameAddress rename c).bytes) =
+                    (List.take (max 1 (t.bits / 8)) (List.drop off c.bytes)).map
+                      (CByte.renameAddress rename) := by
+                simp [CObj.renameAddress, List.map_take, List.map_drop, List.map_map]
+              have hbytes' :
+                  List.take (max 1 (t.bits / 8))
+                      (List.drop off (List.map (CByte.renameAddress rename) c.bytes)) =
+                    (List.take (max 1 (t.bits / 8)) (List.drop off c.bytes)).map
+                      (CByte.renameAddress rename) := by
+                simp [List.map_take, List.map_drop, List.map_map]
+              simp only [CObj.renameAddress]
+              simp only [hbytes']
+              have hanyBool :
+                  (List.take (max 1 (t.bits / 8))
+                      (List.drop off (List.map (CByte.renameAddress rename) c.bytes))).any
+                        (· == CByte.indet) =
+                    (List.take (max 1 (t.bits / 8)) (List.drop off c.bytes)).any
+                        (· == CByte.indet) := by
+                rw [hbytes', List.any_map]
+                apply List.any_congr rfl
+                intro b
+                cases b <;> rfl
+              have hanyBool' :
+                  (List.map (CByte.renameAddress rename)
+                    (List.take (max 1 (t.bits / 8)) (List.drop off c.bytes))).any
+                      (· == CByte.indet) =
+                    (List.take (max 1 (t.bits / 8)) (List.drop off c.bytes)).any
+                      (· == CByte.indet) := by
+                rw [List.any_map]
+                apply List.any_congr rfl
+                intro b
+                cases b <;> rfl
+              have hdecode :
+                  decodeInt t
+                      ((List.take (max 1 (t.bits / 8)) (List.drop off c.bytes)).map
+                        (CByte.renameAddress rename)) =
+                    decodeInt t (List.take (max 1 (t.bits / 8)) (List.drop off c.bytes)) := by
+                exact decodeInt_renameAddresses rename t _
+              cases hdec : decodeInt t
+                  (List.take (max 1 (t.bits / 8)) (List.drop off c.bytes)) with
+              | none =>
+                  rw [hdecode, hdec, hanyBool']
+                  by_cases hi : ∃ x, x ∈ List.take (max 1 (t.bits / 8))
+                      (List.drop off c.bytes) ∧ (x == CByte.indet) = true <;>
+                    simp [hi]
+              | some v =>
+                  rw [hdecode, hdec, hanyBool']
+                  by_cases hi : ∃ x, x ∈ List.take (max 1 (t.bits / 8))
+                      (List.drop off c.bytes) ∧ (x == CByte.indet) = true <;>
+                    simp [hi]
 
 /-- Integer lvalue access with the §6.5.1p6-p7 effective-type check. -/
 def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType)
