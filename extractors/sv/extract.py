@@ -30219,6 +30219,48 @@ def _subroutine_is_referenced(scope, subroutine):
     return referenced
 
 
+def _subroutine_is_referenced_in_functional_members(scope, subroutine):
+    """Whether a module function is called by executable source.
+
+    Concurrent assertions are retained as a separate property vocabulary. A
+    pure helper used only by those properties has no functional E call site,
+    so its declaration does not allocate runtime state or belong in the
+    module's ordinary admission boundary.
+    """
+    referenced = False
+
+    def in_assertion(node):
+        try:
+            parent = getattr(getattr(node, "syntax", None), "parent", None)
+            while parent is not None:
+                if type(parent).__name__ in (
+                        "ConcurrentAssertionMemberSyntax",
+                        "ConcurrentAssertionStatementSyntax"):
+                    return True
+                parent = getattr(parent, "parent", None)
+        except Exception:
+            return False
+        return False
+
+    def inspect(node):
+        nonlocal referenced
+        if type(node).__name__ != "CallExpression" or in_assertion(node):
+            return
+        try:
+            target = getattr(node, "subroutine", None)
+        except Exception:
+            return
+        referenced = referenced or target is subroutine
+
+    try:
+        for member in scope:
+            if member is not subroutine:
+                member.visit(inspect)
+    except Exception:
+        return True
+    return referenced
+
+
 def convert_module(sm, inst):
     global _M0_NET_PENDING
     _M0_NET_PENDING = []
@@ -35149,6 +35191,8 @@ def _convert_member_sym(sm, m, k, path=()):
         # literal-return function is erased after its call sites are
         # materialized by `_convert_sym_call_expr`; every other referenced
         # routine remains the explicit USERFN boundary.
+        if not _subroutine_is_referenced_in_functional_members(_SYM.scope, m):
+            return None
         if not _subroutine_is_referenced(_SYM.scope, m):
             return None
         if _empty_task_symbol(m):
@@ -36795,6 +36839,9 @@ def convert_module_sym(sm, inst):
                 else:
                     others.append(primitive)
             elif k == "Subroutine" and _RETAIN_PROC_REWRITES:
+                if not _subroutine_is_referenced_in_functional_members(body, m):
+                    i += 1
+                    continue
                 retained = _sym_function_node(sm, m)
                 if isinstance(retained, dict) and retained.get("kind") == "Function":
                     functions.append(retained)

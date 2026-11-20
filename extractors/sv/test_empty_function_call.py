@@ -516,6 +516,17 @@ class EmptyFunctionCalls(unittest.TestCase):
                             and node.get("symbolic_user_function_retained")
                             for node in nodes(module)))
 
+    def test_assertion_only_function_is_not_an_e_declaration_wall(self):
+        design = self.symbolic(
+            "module top(input logic clk, input logic a); "
+            "function automatic logic helper(input logic x); helper = x; "
+            "endfunction assert property (@(posedge clk) helper(a)); endmodule",
+            retain_proc_rewrites=True)
+        module = design["modules"][0]
+        self.assertNotIn("SubroutineSymbol:Subroutine",
+                         [node.get("sv_kind") for node in nodes(module)])
+        self.assertTrue(module.get("properties"))
+
     def test_symbolic_local_case_function_without_begin_is_inlined_in_generate(self):
         design = self.symbolic(
             "module top(input logic [19:0] a, output logic [19:0] y); "
