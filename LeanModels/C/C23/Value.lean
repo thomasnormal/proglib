@@ -575,6 +575,15 @@ def CRes.renameAddress (resolve : ObjId → Nat) : CRes CVal → CRes CVal
     CRes.renameAddress resolve (.ub cause) = .ub cause := by
   rfl
 
+@[simp] theorem CRes.isOk_renameAddress (resolve : ObjId → Nat) (r : CRes CVal) :
+    (CRes.renameAddress resolve r).isOk = r.isOk := by
+  cases r <;> rfl
+
+theorem CRes.renameAddress_comp (first second : ObjId → Nat) (r : CRes CVal) :
+    CRes.renameAddress second (CRes.renameAddress first r) =
+      CRes.renameAddress (fun o => second o) r := by
+  cases r <;> simp [CRes.renameAddress, CVal.renameAddress_comp]
+
 /-! ## §6.5.6-§6.5.8 Arithmetic — where the split lives
 
 Each operation computes the MATHEMATICAL result first, then decides by
