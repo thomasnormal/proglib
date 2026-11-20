@@ -225,6 +225,14 @@ theorem mres_map_error_bind {α β : Type} (g : α → β) (e : Refusal)
     ((Except.map g (.error e) >>= k) : MRes α) = .error e := by
   rfl
 
+theorem mres_map_bind_congr {α β γ : Type} (g : α → β) (f : β → γ)
+    (x : MRes α) (k : α → MRes β) (k' : β → MRes γ)
+    (hk : ∀ a, k' (g a) = (k a).map f) :
+    ((x.map g) >>= k') = ((x >>= k).map f) := by
+  cases x with
+  | error e => rfl
+  | ok a => exact hk a
+
 /-- Core Lean gives `Except` no `BEq`, and every gate in
 `Examples/c/sunfish/memory.lean` compares one. SCOPED, so it does not
 leak into the other lanes: it is generic plumbing, and lifting it to
@@ -1500,6 +1508,15 @@ def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off 
       if cAliasCompatibleStructured usedType effective then .ok ()
       else .error (.memUB (.effectiveType o off used (c.effTy.getD used)))
   | _, _ => checkEffective alias o c off used usedStructured
+
+theorem checkEffectiveAt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (o : ObjId)
+    (c : CObj) (off : Nat) (used : CType) (usedStructured : Option QualType := none) :
+    checkEffectiveAt (m.renameAddresses rename) alias o
+        (CObj.renameAddress rename c) off used usedStructured =
+      checkEffectiveAt m alias o c off used usedStructured := by
+  simp [checkEffectiveAt, checkEffective, structuredType?, renameAddresses,
+    CObj.renameAddress]
 
 /-- Read an integer. C23 §6.3.2.1p2 (lvalue conversion) with
 §6.2.6.1p5: three outcomes, and two of them refuse.
