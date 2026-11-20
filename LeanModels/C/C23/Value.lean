@@ -248,6 +248,24 @@ deriving Repr, Inhabited, BEq, DecidableEq
 
 namespace Ptr
 
+/-- Rename concrete placements while preserving provenance, offset, and
+subobject bounds.  This is the representation-level map used by the S3
+address-independence relation. -/
+def renameAddress (resolve : ObjId → Nat) (p : Ptr) : Ptr :=
+  { p with address := match p.obj with | none => p.address | some o => resolve o }
+
+@[simp] theorem renameAddress_obj (resolve : ObjId → Nat) (p : Ptr) :
+    (renameAddress resolve p).obj = p.obj := by
+  rfl
+
+@[simp] theorem renameAddress_off (resolve : ObjId → Nat) (p : Ptr) :
+    (renameAddress resolve p).off = p.off := by
+  rfl
+
+@[simp] theorem renameAddress_bound (resolve : ObjId → Nat) (p : Ptr) :
+    (renameAddress resolve p).bound = p.bound := by
+  rfl
+
 /-- C23 §6.3.2.3p3: the null pointer. -/
 def null : Ptr := ⟨none, 0, 0, none⟩
 
@@ -336,6 +354,13 @@ inductive CByte where
   | indet
 deriving Repr, Inhabited, BEq
 
+def CByte.renameAddress (resolve : ObjId → Nat) : CByte → CByte
+  | .conc b => .conc b
+  | .ptrByte p k => .ptrByte (Ptr.renameAddress resolve p) k
+  | .ptrIntByte p k => .ptrIntByte (Ptr.renameAddress resolve p) k
+  | .funByte id => .funByte id
+  | .indet => .indet
+
 /-- A C value. `undef` is an indeterminate value that reached a use,
 which every consumer refuses. -/
 inductive CVal where
@@ -353,6 +378,16 @@ inductive CVal where
   | aggregate (ty : CType) (bytes : List CByte)
   | undef
 deriving Repr, Inhabited, BEq
+
+def CVal.renameAddress (resolve : ObjId → Nat) : CVal → CVal
+  | .int ty v => .int ty v
+  | .float32 f => .float32 f
+  | .float64 f => .float64 f
+  | .ptr p => .ptr (Ptr.renameAddress resolve p)
+  | .ptrInt p => .ptrInt (Ptr.renameAddress resolve p)
+  | .funPtr id => .funPtr id
+  | .aggregate ty bs => .aggregate ty (bs.map (CByte.renameAddress resolve))
+  | .undef => .undef
 
 /-! ## §6.5.6-§6.5.8 Arithmetic — where the split lives
 

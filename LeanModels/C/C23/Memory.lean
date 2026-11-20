@@ -284,6 +284,34 @@ deriving Repr, Inhabited, BEq
 
 namespace Mem
 
+def CObj.renameAddress (resolve : ObjId → Nat) (c : CObj) : CObj :=
+  { c with bytes := c.bytes.map (CByte.renameAddress resolve) }
+
+/-! The representation-level memory rename used by the evaluator relation.
+Provenance keys and parser-native type rows stay fixed while concrete
+placements and every stored pointer representation follow `resolve`. -/
+def renameAddresses (resolve : ObjId → Nat) (m : Mem) : Mem :=
+  { m with
+    objs := m.objs.map (CObj.renameAddress resolve)
+    stdout := m.stdout.map (CByte.renameAddress resolve)
+    vaCursors := m.vaCursors.map (fun (o, vs) => (o, vs.map (CVal.renameAddress resolve)))
+    placements := m.placements.map (fun (o, _) => (o, resolve o)) }
+
+@[simp] theorem renameAddresses_structuredTypes
+    (resolve : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses resolve).structuredTypes = m.structuredTypes := by
+  rfl
+
+@[simp] theorem renameAddresses_compoundObjects
+    (resolve : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses resolve).compoundObjects = m.compoundObjects := by
+  rfl
+
+@[simp] theorem renameAddresses_objectCount
+    (resolve : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses resolve).objs.length = m.objs.length := by
+  simp [renameAddresses]
+
 def empty : Mem := { objs := [] }
 
 def structuredType? (m : Mem) (o : ObjId) : Option QualType :=
