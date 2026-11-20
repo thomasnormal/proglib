@@ -296,6 +296,15 @@ three rows remain explicit refusals naming the missing declared array layout.
 The change is confined to parser-carried recursive type resolution and keeps
 the legacy spelling path out of the new rows.
 
+The first F2 memory audit rows are now explicit. The pointer-address
+difference row reaches the parser-layout path and refuses the changed integer
+token before dereference. The null and non-null pointer-byte rows refuse the
+current non-value representation path for character reads until the shared
+byte model is replaced. Pinned Clang 21.1.8 accepts all three sources, and the
+rows report no model/native DIVERGE: one layout-plugin REFUSE and two
+structured-plugin REFUSE results. The rows remain registered as refusal walls
+so a later byte/provenance implementation can measure the exact flips.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle

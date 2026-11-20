@@ -510,14 +510,16 @@
     "return_value": 0,
     "envelope_checks": [],
     "error": "no layout for declared type 'int *'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "structured_expect": "refuse",
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "pointer-address-difference-wall",
     "source": "#include <stdint.h>\nint main(void) { int x[2]; uintptr_t a = (uintptr_t)&x[0]; uintptr_t b = (uintptr_t)&x[1]; return (int)(b - a); }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int[2]'"
+    "error": "no layout for declared type 'int[2]'",
+    "layout_expect": "refuse",
+    "layout_error": "pointer-integer value requires an unchanged cast back"
   },
   {
     "id": "integer-to-pointer-exposure-wall",
@@ -533,8 +535,8 @@
     "expect": "refuse",
     "return_value": 0,
     "error": "no layout for declared type 'int *'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "structured_expect": "refuse",
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "pointer-long-roundtrip",
@@ -1183,8 +1185,8 @@
     "expect": "refuse",
     "return_value": 0,
     "error": "no layout for declared type 'int *'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "structured_expect": "refuse",
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "structured-typedef-pointer",
@@ -1248,5 +1250,13 @@
     "structured_return_value": 0,
     "floating_expect": "match",
     "floating_return_value": 0
+  },
+  {
+    "id": "pointer-address-difference-refusal",
+    "source": "int main(void) { int x[2]; unsigned long a = (unsigned long)&x[0]; unsigned long b = (unsigned long)&x[1]; return (int)(b - a); }",
+    "expect": "refuse",
+    "error": "no layout for declared type 'int[2]'",
+    "structured_expect": "refuse",
+    "structured_error": "pointer-integer value requires an unchanged cast back"
   }
 ]
