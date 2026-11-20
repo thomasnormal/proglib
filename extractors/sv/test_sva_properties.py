@@ -258,6 +258,22 @@ endmodule
             "value": {"kind": "SvaCurrent", "expr": {"kind": "Int", "value": 1}},
         })
 
+    def test_sampled_value_arithmetic_stays_source_shaped(self):
+        source = """module top(input logic clk, input logic [3:0] a,
+  input logic [3:0] b);
+  assert property (@(posedge clk) a |-> a == ($past(b) * 2));
+endmodule
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "value_mul.sv"
+            out = Path(directory) / "value_mul.sv.json"
+            src.write_text(source)
+            extract.process_symbolic("top", [str(src)], [], str(out))
+            prop = json.loads(out.read_text())["design"]["modules"][0]["properties"][0]
+        value = prop["ast"]["property"]["consequent"]["test"]["right"]
+        self.assertEqual(value["kind"], "SvaValueBinary")
+        self.assertEqual(value["op"], "*")
+
 
 if __name__ == "__main__":
     unittest.main()
