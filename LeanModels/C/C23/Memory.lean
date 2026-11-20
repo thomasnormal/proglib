@@ -2942,6 +2942,24 @@ def renameAddressResult (r : MRes Bool) (addressA addressB : Nat) : MRes Bool :=
         {a with address := addressA} {b with address := addressB}))
   | other => other
 
+theorem ptrLt_renameAddresses
+    (rename : ObjId → Nat) (a b : Ptr) :
+    ptrLt (Ptr.renameAddress rename a) (Ptr.renameAddress rename b) =
+      renameAddressResult (ptrLt a b)
+        (Ptr.renameAddress rename a).address
+        (Ptr.renameAddress rename b).address := by
+  cases a with
+  | mk ao aa af ab =>
+      cases b with
+      | mk bo ba bf bb =>
+          cases ao <;> cases bo
+          · simp [ptrLt, renameAddressResult, Ptr.renameAddress]
+          · simp [ptrLt, renameAddressResult, Ptr.renameAddress]
+          · simp [ptrLt, renameAddressResult, Ptr.renameAddress]
+          · rename_i x y
+            by_cases h : x = y <;>
+              simp [h, ptrLt, renameAddressResult, Ptr.renameAddress]
+
 /- On the defined same-object path, relational comparison ignores concrete
    placement.  Cross-object refusals retain the offending pointer in their
    diagnostic, so the unrestricted equality is intentionally not claimed. -/
