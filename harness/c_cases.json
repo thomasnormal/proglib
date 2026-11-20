@@ -1003,8 +1003,8 @@
     "structured_envelope_checks": [
       "structured_types"
     ],
-    "structured_expect": "refuse",
-    "structured_error": "not an integer type: 'enum E[2]'",
+    "structured_expect": "match",
+    "structured_return_value": 0,
     "layout_envelope_checks": [
       "type_layout",
       "type_layout_element_size"

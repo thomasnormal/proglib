@@ -214,7 +214,12 @@ def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM 
         match ctx.layout.elemDeclAt declaration ty with
         | some (et, n) =>
             match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-            | some esz => zeroElems fuel ctx p et esz n 0
+            | some esz =>
+                let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
+                  match q.unqualified with
+                  | .array element _ => some element
+                  | _ => none)
+                zeroElems fuel ctx p et esz n 0 elementStructured
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
           match ctx.layout.membersDeclAt declaration ty with
@@ -222,13 +227,14 @@ def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM 
           | none => refuseUnsupported s!"cannot zero-initialize '{ty}'"
 
 /-- Zero the elements of an array, from index `i` up. -/
-def zeroElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → ExecM Unit
-  | 0, _, _, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, et, esz, n, i =>
+def zeroElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat →
+    Option LeanModels.Clang.QualType → ExecM Unit
+  | 0, _, _, _, _, _, _, _ => exhausted
+  | fuel + 1, ctx, p, et, esz, n, i, structured =>
     if i ≥ n then pure ()
     else do
-      zeroInit fuel ctx (Mem.member p (i * esz)) et none
-      zeroElems fuel ctx p et esz n (i + 1)
+      zeroInitStructured fuel ctx (Mem.member p (i * esz)) et structured none
+      zeroElems fuel ctx p et esz n (i + 1) structured
 
 /-- Zero the members of a structure, in declaration order. -/
 def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → Option DeclarationId → ExecM Unit
@@ -286,7 +292,12 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         match inits, filler, ctx.layout.elemDeclAt declaration ty with
         | [], .implicitValueInit _ _ :: entries, some (et, n) =>
             match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-            | some esz => initElems fuel ctx p et esz n 0 entries
+            | some esz =>
+                let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
+                  match q.unqualified with
+                  | .array element _ => some element
+                  | _ => none)
+                initElems fuel ctx p et esz n 0 entries elementStructured
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | _, _, _ => refuseUnsupported "unsupported Clang array_filler initializer"
     | .initList inits field _ _ =>
@@ -311,7 +322,12 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         -- an ARRAY: elements at i * sizeof(elem), then §6.7.11p10 on the tail
         | some (et, n) =>
             match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-            | some esz => initElems fuel ctx p et esz n 0 inits
+            | some esz =>
+                let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
+                  match q.unqualified with
+                  | .array element _ => some element
+                  | _ => none)
+                initElems fuel ctx p et esz n 0 inits elementStructured
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | none =>
           match ctx.layout.membersDeclAt declaration ty with
@@ -361,19 +377,20 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v structured)
 
 /-- Array elements, then zero-fill (§6.7.11p10). -/
-def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List Expr → ExecM Unit
-  | 0, _, _, _, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, et, esz, n, i, es =>
+def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List Expr →
+    Option LeanModels.Clang.QualType → ExecM Unit
+  | 0, _, _, _, _, _, _, _, _ => exhausted
+  | fuel + 1, ctx, p, et, esz, n, i, es, structured =>
     match es with
     -- the list ran out: every remaining element is zeroed
-    | [] => zeroElems fuel ctx p et esz n i
+    | [] => zeroElems fuel ctx p et esz n i structured
     | e :: rest =>
         if i ≥ n then
           -- §6.7.11p2 is a CONSTRAINT: more initializers than elements.
           refuseUnsupported "more initializers than array elements"
         else do
-          initObject fuel ctx (Mem.member p (i * esz)) et e none none
-          initElems fuel ctx p et esz n (i + 1) rest
+          initObject fuel ctx (Mem.member p (i * esz)) et e structured none
+          initElems fuel ctx p et esz n (i + 1) rest structured
 
 /-- Structure members in declaration order, then zero-fill. -/
 def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → List Expr → Option DeclarationId → ExecM Unit
