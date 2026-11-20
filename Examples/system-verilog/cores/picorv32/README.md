@@ -2261,6 +2261,27 @@ swap disabled and one Lean thread.  This confirms that one symbolic E cycle
 fits the direct proof budget.  It does not establish that a full cycle-by-cycle
 invariant proof is tractable, and no universal ADDI invariant is claimed.
 
+## 2026-11-20 clocked-stage refusal table on current master
+
+The real RISCV_FORMAL envelope was rerun through `sv_structure` at the same
+26-parameter default vector after the clocked-stage landings on master
+`74377495d`.  The pass still stops during controlled instantiation and emits no
+construct-level refusal.  The measured result is one normalization failure,
+with no clean-room construct fixture justified:
+
+| stage | count | exact result | elapsed | peak RSS |
+| --- | ---: | --- | ---: | ---: |
+| loaded-design instantiation / controlled simp | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at isDefEq, maximum number of heartbeats (200000) has been reached` | 68.09 s | 2,360,184 kB |
+| construct/profile refusal | 0 | no construct classifier was reached | — | — |
+
+The current clocked route therefore provides no measured PicoRV32 refusal to
+group by construct.  The remaining general refusal families are the ones
+listed by the current clocked-stage report: procedural `for`, generate loops,
+function calls, aggregate reads, select-target assignments, and unresolved
+constant operators.  Those clean-room rows belong to the general tactic
+development and are not attributed to this real-core run without a real
+PicoRV32 message.
+
 ## 2026-11-20 real ADDI invariant stage boundary
 
 The first real-core invariant attempt uses the clocked-stage route from
