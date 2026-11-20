@@ -105,6 +105,15 @@ real-design table records `CV32E40P` as loading into E with that equation gate
 as its remaining boundary.  No simulator-run result is claimed here because
 the pinned source is not present in this worktree.
 
+The 2026-11-20 RTL-only Ibex probe used the pinned
+`d513671dae09e701ceb6cd732d2da5fb52c13856` checkout and the 33 `rtl/*.sv`
+files.  It produced a 43,919,278-byte envelope after 248 frontend diagnostics.
+The ordinary census reported missing primitive/include dependencies and
+aggregate package-default failures before the canonical E route, ending at
+`Instantiation:E:unsupported` for the `PmpAddrRst` aggregate default.  This
+bounded probe does not change the historical Ibex admission row or claim a
+simulator result.
+
 ## Current PicoRV32 re-probe
 
 The table above is the original cross-core census.  On 2026-11-07, after the
