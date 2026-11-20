@@ -73,6 +73,15 @@ private def structuredAtAllocCheck : Bool :=
 
 #guard structuredAtAllocCheck
 
+private def structuredCopyCheck : Bool :=
+  let m := LeanModels.C.C23.Mem.empty
+  let allocated := m.allocStructured LeanModels.C.C23.Duration.allocated 4
+    (some "int") (some (.cBuiltinKind .int))
+  let copied := allocated.1.copyStructuredType allocated.2 9
+  copied.structuredType? 9 == some (.cBuiltinKind .int)
+
+#guard structuredCopyCheck
+
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))
