@@ -112,10 +112,11 @@ are unwrapped by the probe. Variable, dependent-sized and incomplete arrays
 carry `"extent": null`, preserving the absence of a bound as frontend data.
 
 `structured_expr_types` is an optional list from the same probe. Each row
-contains the parser-provided expression source offset and its recursive
-`QualType` tree. The offset is joined to the expression span carried by the
-approved AST envelope. Missing rows remain an explicit absence and are never
-recovered by interpreting `qualType` text.
+contains the parser-provided expression source offset, optional end offset,
+Clang expression node kind, and its recursive `QualType` tree. The source
+range and node kind disambiguate nested parser nodes that begin at the same
+byte. Missing rows remain an explicit absence and are never recovered by
+interpreting `qualType` text.
 
 ## 2 Spans
 

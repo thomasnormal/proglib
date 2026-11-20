@@ -48,6 +48,15 @@ std::optional<int64_t> sourceOffset(const clang::Expr *expr,
   return static_cast<int64_t>(sources.getFileOffset(location));
 }
 
+std::optional<int64_t> sourceEndOffset(const clang::Expr *expr,
+                                       const clang::SourceManager &sources) {
+  if (!expr) return std::nullopt;
+  const auto location = sources.getExpansionLoc(expr->getEndLoc());
+  if (location.isInvalid() || !sources.isWrittenInMainFile(location))
+    return std::nullopt;
+  return static_cast<int64_t>(sources.getFileOffset(location));
+}
+
 std::optional<Json> typeTree(clang::QualType qualified,
                              const clang::ASTContext &context,
                              unsigned depth);
@@ -232,16 +241,21 @@ public:
   bool VisitExpr(clang::Expr *expr) {
     const auto offset = sourceOffset(expr, context->getSourceManager());
     if (!offset) return true;
+    const auto endOffset = sourceEndOffset(expr, context->getSourceManager());
+    if (!endOffset) return true;
     auto tree = typeTree(expr->getType(), *context, 0);
     if (!tree) {
       rows.push_back(llvm::json::Object{
           {"kind", "StructuredExprType"}, {"offset", *offset},
+          {"end_offset", *endOffset}, {"expr_kind", expr->getStmtClassName()},
           {"type", llvm::json::Object{{"kind", "unsupported"},
                                        {"reason", "unrepresented Clang QualType"}}}});
       return true;
     }
     rows.push_back(llvm::json::Object{{"kind", "StructuredExprType"},
                                       {"offset", *offset},
+                                      {"end_offset", *endOffset},
+                                      {"expr_kind", expr->getStmtClassName()},
                                       {"type", std::move(*tree)}});
     return true;
   }

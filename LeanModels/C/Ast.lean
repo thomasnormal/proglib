@@ -193,6 +193,11 @@ deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 structure StructuredExprType where
   offset : Nat
+  /-- End of the parser expression range, when Clang reports it. -/
+  endOffset : Option Nat := none
+  /-- Clang's expression node kind, used with the source range to disambiguate
+      nested nodes beginning at the same byte. -/
+  kind : String := ""
   type : LeanModels.Clang.QualType
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 

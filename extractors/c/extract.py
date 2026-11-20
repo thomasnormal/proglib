@@ -355,6 +355,12 @@ def structured_type_records(path):
                 type(record.get("offset")) is not int or record["offset"] < 0 or
                 not isinstance(record.get("type"), dict)):
             die("structured type probe returned an invalid record")
+        if record.get("kind") == "StructuredExprType":
+            if (type(record.get("end_offset")) is not int or
+                    record["end_offset"] < record["offset"] or
+                    not isinstance(record.get("expr_kind"), str) or
+                    not record["expr_kind"]):
+                die("structured expression type probe returned an invalid range")
         if record["type"].get("kind") == "unsupported":
             die("structured type probe refused a QualType: %s" %
                 record["type"].get("reason", "unspecified"))
@@ -1104,6 +1110,8 @@ def extract(path, source_name=None, standard="c23"):
         for record in structured_types:
             if record.get("kind") == "StructuredExprType":
                 structured_expr_rows.append({"offset": record["offset"],
+                                             "end_offset": record.get("end_offset"),
+                                             "expr_kind": record.get("expr_kind", ""),
                                              "type": join_type(record["type"])})
                 continue
             decl_id = decl_ids_by_offset.get(record["offset"])
