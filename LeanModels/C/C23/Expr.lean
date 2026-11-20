@@ -933,19 +933,26 @@ or `int << int`). -/
 /-- Apply an integer binary operator, at the type the frontend assigned.
 Every arm is `Value.lean`'s, so the wrap/refuse split and its J.2 indices
 are inherited rather than restated. -/
+def evalCRes (r : CRes CVal) : EvalM CVal :=
+  match r with
+  | .ok v => pure v
+  | .ub u => refuseValue u
+
+theorem evalCRes_renameAddress (resolve : ObjId → Nat) (r : CRes CVal) :
+    CVal.renameAddress resolve <$> evalCRes r =
+      evalCRes (CRes.renameAddress resolve r) := by
+  funext m
+  cases r <;> rfl
+
 def intBinop (op : String) (t : IntTy) (a b : Int) : EvalM CVal :=
-  let lift (r : CRes CVal) : EvalM CVal :=
-    match r with
-    | .ok v => pure v
-    | .ub u => refuseValue u
   match op with
-  | "+" => lift (addOp t a b)
-  | "-" => lift (subOp t a b)
-  | "*" => lift (mulOp t a b)
-  | "/" => lift (divOp t a b)
-  | "%" => lift (modOp t a b)
-  | "<<" => lift (shlOp t a b)
-  | ">>" => lift (shrOp t a b)
+  | "+" => evalCRes (addOp t a b)
+  | "-" => evalCRes (subOp t a b)
+  | "*" => evalCRes (mulOp t a b)
+  | "/" => evalCRes (divOp t a b)
+  | "%" => evalCRes (modOp t a b)
+  | "<<" => evalCRes (shlOp t a b)
+  | ">>" => evalCRes (shrOp t a b)
   -- §6.5.11-§6.5.13: bitwise AND/XOR/OR. Both operands are already at `t`,
   -- and the result is in range by construction, so no arm can overflow.
   | "&" => pure (.int t (bitAnd t a b))
@@ -2725,6 +2732,11 @@ theorem readMem' (f : Mem → MRes α) : MemInvariant (readMem f) := by
   | ok a => exact pure' a
   | error e => exact throw' e
 
+theorem evalCRes' (r : CRes CVal) : MemInvariant (evalCRes r) := by
+  cases r
+  · exact pure' _
+  · exact refuseValue' _
+
 theorem intTyOf' (ty : CType) : MemInvariant (intTyOf ty) := by
   first | simp only [intTyOf] | rw [intTyOf.eq_def]
   split
@@ -2760,6 +2772,7 @@ theorem intBinop' (op : String) (t : IntTy) (a b : Int) :
     | exact refuseValue' _
     | exact refuseUB' _
     | exact refuseUnsupported' _
+    | exact evalCRes' _
 
 theorem float32Binop' (op : String) (a b : Float32.Model) :
     MemInvariant (float32Binop op a b) := by
