@@ -545,6 +545,11 @@ def allSlots : Nat → SchedulerDesign → SlotState → List SvState
   | fuel + 1, d, s =>
       if quietB s then [s.store] else (nextStates d s).flatMap (allSlots fuel d)
 
+def allSlotStates : Nat → SchedulerDesign → SlotState → List SlotState
+  | 0, _, s => if quietB s then [s] else []
+  | fuel + 1, d, s =>
+      if quietB s then [s] else (nextStates d s).flatMap (allSlotStates fuel d)
+
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
     startupEdges := d.edgeIndices
@@ -680,38 +685,60 @@ theorem allSlots_complete : ∀ (n : Nat) (d : SchedulerDesign) (s t : SlotState
 
 /-! ## Executable audit rows -/
 
-private def raceDesign (tag : Nat := 0) : SchedulerDesign :=
-  { eval := fun _ resume _ => if resume == tag then .done else .done }
+/- A real source-shaped race receipt.  The two processes are the ordinary
+   `always @(posedge clk)` form, and the NBA values come from their AST
+   statements rather than from a hand-built update list.  Icarus Verilog
+   13.0 and Xcelium 24.03-s004 both admit this bench and report q=0 or q=1,
+   depending on the permitted active-event order (IEEE 1800-2023 §§4.6,
+   10.4.2). -/
+private def raceDesign : Design :=
+  { name := "scheduler_race"
+    decls := #[{ name := "clk", width := 1, isInput := true },
+      { name := "q", width := 8 }]
+    processes := #[
+      .alwaysPlain "clk" (.nbaAssign "q" (.lit (LVec.ofNat 8 0))),
+      .alwaysPlain "clk" (.nbaAssign "q" (.lit (LVec.ofNat 8 1)))] }
 
-private def raceStart (a b : Nat) : SlotState :=
-  { store := [("q", LVec.ofNat 8 0)]
-    active := [.update { owner := some 1, seq := some 0, target := "q", value := LVec.ofNat 8 a },
-               .update { owner := some 2, seq := some 0, target := "q", value := LVec.ofNat 8 b }] }
+private def raceScheduler : SchedulerDesign := SchedulerDesign.ofDesign raceDesign
 
-private def raceStores (a b : Nat) : List SvState := allSlots 4 (raceDesign a) (raceStart a b)
+private def raceSettled : List SlotState :=
+  allSlotStates 8 raceScheduler raceScheduler.initial
 
-#guard (raceStores 0 1).any (fun s => s.lookup "q" == some (LVec.ofNat 8 0))
-#guard (raceStores 0 1).any (fun s => s.lookup "q" == some (LVec.ofNat 8 1))
+private def raceAfterClock (s : SlotState) : List SlotState :=
+  allSlotStates 8 raceScheduler
+    (startWithInputs raceScheduler s [("clk", LVec.ofNat 1 1)])
 
-private def orderedStart : SlotState :=
-  { store := [("q", LVec.ofNat 1 0)]
-    active := [.update { owner := some 7, seq := some 0, target := "q", value := LVec.ofNat 1 0 },
-               .update { owner := some 7, seq := some 1, target := "q", value := LVec.ofNat 1 1 }] }
+private def raceStores : List SvState :=
+  (raceSettled.flatMap raceAfterClock).map SlotState.store
 
-private def orderedStores : List SvState := allSlots 4 raceDesign orderedStart
+#guard (raceStores.any (fun s => s.lookup "q" == some (LVec.ofNat 8 0)))
+#guard (raceStores.any (fun s => s.lookup "q" == some (LVec.ofNat 8 1)))
+
+private def orderedDesign : Design :=
+  { name := "scheduler_ordered_nba"
+    decls := #[{ name := "clk", width := 1, isInput := true },
+      { name := "q", width := 1 }]
+    processes := #[.alwaysPlain "clk" (.block #[
+      .nbaAssign "q" (.lit (LVec.ofNat 1 0)),
+      .nbaAssign "q" (.lit (LVec.ofNat 1 1))])] }
+
+private def orderedScheduler : SchedulerDesign := SchedulerDesign.ofDesign orderedDesign
+
+private def orderedStart : SlotState := orderedScheduler.initial
+
+private def orderedStores : List SvState :=
+  (allSlotStates 8 orderedScheduler orderedStart).flatMap fun s =>
+    allSlotStates 8 orderedScheduler
+      (startWithInputs orderedScheduler s [("clk", LVec.ofNat 1 1)])
+      |>.map SlotState.store
 
 #guard orderedStores.any (fun s => s.lookup "q" == some (LVec.ofNat 1 1))
 #guard !orderedStores.any (fun s => s.lookup "q" == some (LVec.ofNat 1 0))
 
 private def raceDesigns : List SchedulerDesign :=
-  (List.range 20).map (fun i => raceDesign i)
+  [raceScheduler, orderedScheduler]
 
-private def raceDesignPasses (d : SchedulerDesign) : Bool :=
-  let rs := allSlots 4 d (raceStart 0 1)
-  rs.any (fun s => s.lookup "q" == some (LVec.ofNat 8 0)) &&
-    rs.any (fun s => s.lookup "q" == some (LVec.ofNat 8 1))
-
-#guard raceDesigns.all raceDesignPasses
+#guard raceDesigns.all (fun d => d.admitted)
 
 /-! ## A1-A5 regression guards -/
 
@@ -871,7 +898,7 @@ private def unorderedInputs : SlotState :=
   { store := [("a", LVec.ofNat 1 0), ("b", LVec.ofNat 1 0)]
     active := (inputUpdates [("a", LVec.ofNat 1 1), ("b", LVec.ofNat 1 1)]).map Active.update }
 
-private def inputFirstStates : List SlotState := nextStates (raceDesign 0) unorderedInputs
+private def inputFirstStates : List SlotState := nextStates raceScheduler unorderedInputs
 
 #guard inputFirstStates.any (fun s => s.store.lookup "a" == some (LVec.ofNat 1 1))
 #guard inputFirstStates.any (fun s => s.store.lookup "b" == some (LVec.ofNat 1 1))
