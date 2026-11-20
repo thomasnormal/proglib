@@ -935,6 +935,46 @@ theorem ptrAddressCanonical_rename
     ptrAddressCanonical (m.renameAddresses rename) (Ptr.renameAddress rename p) := by
   simp [ptrAddressCanonical, hp, placement_renameAddresses, h, Ptr.renameAddress]
 
+theorem pointerBytesCanonical_renameAddresses
+    (rename : ObjId → Nat) (m : Mem)
+    (hcanon : pointerBytesCanonical m) :
+    pointerBytesCanonical (m.renameAddresses rename) := by
+  have hget : ∀ (o : ObjId),
+      (m.renameAddresses rename).get? o =
+        (m.get? o).map (CObj.renameAddress rename) := by
+    intro o
+    simp [get?, renameAddresses, List.getElem?_map]
+  have hptr : ∀ (p : Ptr), ptrAddressCanonical m p →
+      ptrAddressCanonical (m.renameAddresses rename) (Ptr.renameAddress rename p) := by
+    intro p hp
+    cases ho : p.obj with
+    | none => simp [ptrAddressCanonical, ho, Ptr.renameAddress]
+    | some o =>
+        have hplace : m.placement? o = some p.address := by
+          simpa [ptrAddressCanonical, ho] using hp
+        exact ptrAddressCanonical_rename rename m p o ho hplace
+  intro o c hc b hb
+  cases hg : m.get? o with
+  | none =>
+      have : (m.renameAddresses rename).get? o = none := by simp [hget, hg]
+      simp [this] at hc
+  | some c0 =>
+      have hc0 : c = CObj.renameAddress rename c0 := by
+        have hm := hget o
+        rw [hg] at hm
+        simpa [hm] using hc.symm
+      subst c
+      rcases List.mem_map.1 hb with ⟨b0, hb0, rfl⟩
+      have hbyte := hcanon o c0 hg b0 hb0
+      cases b0 with
+      | ptrByte p tag =>
+          simpa [byteAddressCanonical, CByte.renameAddress] using hptr p hbyte
+      | ptrIntByte p tag =>
+          simpa [byteAddressCanonical, CByte.renameAddress] using hptr p hbyte
+      | indet => trivial
+      | conc v => trivial
+      | funByte id => trivial
+
 theorem ptrByte_beq_rename_of_canonical
     (rename : ObjId → Nat) (m : Mem) (p q : Ptr)
     (hobj : p.obj = q.obj)
