@@ -66,6 +66,16 @@ checked CSR table lookup and universal canonical-E step, decode, relation,
 order, and progress premises remain explicit.  No RTL invariant or finite
 trace is claimed.
 
+## 2026-11-20 R1 illegal-boundary consumer recheck
+
+The loaded-core illegal family compiles for undecodable instructions and
+illegal CSR rows.  The checked theorem surface includes separate exact
+decode-failure and absent-CSR fields-to-ISA bridges, both loaded
+`Rv32iBoundary` consumers, the shared trap cycle dispatcher, and the loaded
+all-prefix refinement package.  The distinct parser evidence and common trap
+transition remain explicit with universal canonical-E step, relation, order,
+and progress premises.  No RTL invariant or finite trace is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
