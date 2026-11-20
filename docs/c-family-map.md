@@ -467,3 +467,7 @@ The envelope-side declaration lookup now requires exactly one structured row
 for an identity. Missing or duplicate rows return no observation, so malformed
 frontend evidence cannot silently select the first duplicate. `TypeBridgeTests`
 covers one valid identity, a missing identity, and a duplicate identity.
+
+The extractor now enforces the same uniqueness before JSON emission. A
+duplicate declaration identity in the structured probe is a loud extraction
+failure, and the extractor self-test covers duplicate and distinct identities.
