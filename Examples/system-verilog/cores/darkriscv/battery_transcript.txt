@@ -22,6 +22,15 @@ Stalled normalized simulator-row SHA-256 78dd0ab31c3d6fa7d63e5e28cd82c81b6aba3de
 Canonical E agrees with both simulators on all 1000/1000 stalled rows after
 IDACK capture and replay-field fixes.
 
+Data-memory stall witness: data_stall_tb.sv, with an ADDI/store/load image and
+DDACK low on every third active falling edge.  Icarus Verilog 13.0 and Xcelium
+24.03-s004 agree on 1000/1000 rows, digest
+8c7366959d7e65daef2499b62fc7f893f5b357e9df13d9e7002f709874b44f72.
+Canonical E first differs at row 1 field DADDR: canonical
+00000000000000000000000000000000, simulators
+00000000000000000000000000000101.  The same row-1 mismatch occurs with
+DDACK always high, so it is independent of the wait-state schedule.
+
 Input-driven instruction image: program_tb.sv, containing ADDI/ADDI/ADD
 followed by NOPs.  Both simulators and canonical E agree on 1000/1000 rows
 when the source's SIMULATION initialization is defined for both invocations.
