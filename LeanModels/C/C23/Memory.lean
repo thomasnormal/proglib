@@ -4147,6 +4147,72 @@ private theorem placementSet_map_rename_fresh
       simp [placementSet, hbeq, ih htail]
 
 
+theorem realloc_eq_reallocAt_default
+    (m : Mem) (p : Ptr) (size : Nat)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
+    m.realloc p size = m.reallocAt p size m.objs.length := by
+  have hno : ∀ x ∈ m.placements, x.1 ≠ m.objs.length := by
+    intro x hx
+    cases x with
+    | mk xo xv =>
+        intro hxo
+        cases hxo
+        exact hnew xv hx
+  have hplace : placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
+      m.objs.length m.objs.length = m.placements ++ [(m.objs.length, m.objs.length)] := by
+    revert hno
+    induction m.placements with
+    | nil =>
+        intro hno
+        simp [placementSet]
+    | cons x xs ih =>
+        intro hno
+        have hx : x.1 ≠ m.objs.length := hno x (by simp)
+        have htail : ∀ y ∈ xs, y.1 ≠ m.objs.length := by
+          intro y hy
+          exact hno y (by simp [hy])
+        have hbeq : ¬(x.1 == m.objs.length) := by
+          intro h
+          exact hx (of_decide_eq_true h)
+        simp [placementSet, hbeq, ih htail]
+  have hplace0 : placementSet m.placements m.objs.length m.objs.length =
+      m.placements ++ [(m.objs.length, m.objs.length)] := by
+    revert hno
+    induction m.placements with
+    | nil =>
+        intro hno
+        simp [placementSet]
+    | cons x xs ih =>
+        intro hno
+        have hx : x.1 ≠ m.objs.length := hno x (by simp)
+        have htail : ∀ y ∈ xs, y.1 ≠ m.objs.length := by
+          intro y hy
+          exact hno y (by simp [hy])
+        have hbeq : ¬(x.1 == m.objs.length) := by
+          intro h
+          exact hx (of_decide_eq_true h)
+        simp [placementSet, hbeq, ih htail]
+  cases hz : size == 0 with
+  | true => simp [realloc, reallocAt, hz]
+  | false =>
+      cases hp : p.obj with
+      | none =>
+          simp [realloc, reallocAt, hz, hp, malloc, mallocAt, allocAt, alloc,
+            Ptr.toObjectBound, Ptr.toObjectBoundAt, hplace, hplace0, placementSet]
+      | some o =>
+          cases hc : m.get? o with
+          | none => simp [realloc, reallocAt, hz, hp, hc]
+          | some c =>
+              by_cases hdur : c.dur == .allocated
+              · by_cases hlive : c.live
+                · by_cases hoff : p.off == 0
+                  · simp [realloc, reallocAt, hz, hp, hc, hdur, hlive, hoff,
+                      alloc, kill, copyStructuredType, rememberStructuredType,
+                      Ptr.toObjectBound, Ptr.toObjectBoundAt, hplace, hplace0, placementSet]
+                  · simp [realloc, reallocAt, hz, hp, hc, hdur, hlive, hoff]
+                · simp [realloc, reallocAt, hz, hp, hc, hdur, hlive]
+              · simp [realloc, reallocAt, hz, hp, hc, hdur]
+
 theorem reallocAt_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (p : Ptr) (size address : Nat)
     (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
@@ -4257,6 +4323,27 @@ theorem reallocAt_renameAddresses
                     hdur, hlive, hdur', hlive', Ptr.renameAddress]
               · simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hc', hget,
                   hdur, hdur', hlive', Ptr.renameAddress]
+
+theorem realloc_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (size : Nat)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.placements)
+    (haddr : rename m.objs.length = m.objs.length) :
+    (m.renameAddresses rename).realloc (Ptr.renameAddress rename p) size =
+      renameAddressReallocResult rename (m.realloc p size) := by
+  have hnewR : ∀ q, ((m.renameAddresses rename).objs.length, q) ∉
+      (m.renameAddresses rename).placements := by
+    intro q hq
+    simp only [renameAddresses] at hq
+    rcases List.mem_map.1 hq with ⟨⟨xo, xv⟩, hx, heq⟩
+    have hxo : xo = m.objs.length := by
+      simpa using congrArg Prod.fst heq
+    subst xo
+    exact False.elim (hnew xv hx)
+  rw [realloc_eq_reallocAt_default (m.renameAddresses rename)
+    (Ptr.renameAddress rename p) size hnewR]
+  rw [realloc_eq_reallocAt_default m p size hnew]
+  simpa [haddr] using
+    reallocAt_renameAddresses rename m p size m.objs.length hnew
 
 /-! ### S3 memory contract
 
