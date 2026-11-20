@@ -52,7 +52,7 @@ theorem Rv32iAddiInvariant.toMixedStep
     {State : Type} {machine : RvfiCycleMachine State}
     {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
     (invariant : Rv32iAddiInvariant machine rel admit) :
-    Rv32iCycleStepRefines machine rel admit := by
+    Rv32iLegacyCycleStepRefines machine rel admit := by
   exact rv32iCycleStepRefines_of_addi_memory machine rel admit
     invariant.step invariant.order
 
@@ -176,118 +176,5 @@ theorem addiRvfiCycleTrace_of_step
             · simpa [rvfiStateAfter, hmachine] using hfinal
 
 #print axioms LeanModels.Refine.addiRvfiCycleTrace_of_step
-
-/-- The ADDI-only invariant establishes the full structure-valued reset
-refinement, retaining the decoded program and cycle certificate at every
-target prefix. -/
-theorem rv32i_reset_addi_refines
-    {State : Type} (profile : PlatformProfile)
-    (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hinit : rel machine.init (rvMemoryMachineWith profile).init)
-    (hstep : ∀ (state : State) (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
-      let (state', observation) := machine.step state input
-      if observation.valid then
-        ∃ w rd rs1 imm,
-          input.memory = memoryState.memory ∧
-          observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
-          rel state'
-            { arch := addiNext memoryState.arch rd rs1 imm,
-              memory := memoryState.memory }
-      else rel state' memoryState)
-    (horder : ∀ (start : Nat) (state : State)
-      (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
-      let (_, observation) := machine.step state input
-      if observation.valid then observation.order = start else True)
-    {schedule target : Nat → Input}
-    (hschedule : ∀ n, admit (schedule n))
-    (progress : Rv32iRetiresTarget machine machine.init schedule target) :
-    Rv32iResetRefinement profile machine rel schedule target := by
-  exact rv32i_reset_refinement profile machine rel admit
-    (rv32iCycleStepRefines_of_addi_memory machine rel admit hstep horder)
-    hinit hschedule progress
-
-/-- Packaged-invariant form of the full ADDI reset contract. -/
-theorem rv32i_reset_addi_refines_of_invariant
-    {State : Type} (profile : PlatformProfile)
-    (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (invariant : Rv32iAddiInvariant machine rel admit)
-    (hinit : rel machine.init (rvMemoryMachineWith profile).init)
-    {schedule target : Nat → Input}
-    (hschedule : ∀ n, admit (schedule n))
-    (progress : Rv32iRetiresTarget machine machine.init schedule target) :
-    Rv32iResetRefinement profile machine rel schedule target := by
-  exact rv32i_reset_addi_refines profile machine rel admit hinit
-    invariant.step invariant.order hschedule progress
-
-/-- An order-aware, memory-threaded ADDI invariant refines every finite target
-retirement prefix from reset through the public committed-stream contract. -/
-theorem rv32i_reset_addi_stream_refines
-    {State : Type} (profile : PlatformProfile)
-    (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hinit : rel machine.init (rvMemoryMachineWith profile).init)
-    (hstep : ∀ (state : State) (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
-      let (state', observation) := machine.step state input
-      if observation.valid then
-        ∃ w rd rs1 imm,
-          input.memory = memoryState.memory ∧
-          observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
-          rel state'
-            { arch := addiNext memoryState.arch rd rs1 imm,
-              memory := memoryState.memory }
-      else rel state' memoryState)
-    (horder : ∀ (start : Nat) (state : State)
-      (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
-      let (_, observation) := machine.step state input
-      if observation.valid then observation.order = start else True)
-    {schedule target : Nat → Input}
-    (hschedule : ∀ n, admit (schedule n))
-    (progress : Rv32iRetiresTarget machine machine.init schedule target) :
-    ∀ k : Nat, ∃ boundary : Nat,
-      cycleTrace machine.toCycleMachine machine.init
-          (schedulePrefix schedule boundary) =
-        trace (rvMemoryMachineWith profile)
-          (rvMemoryMachineWith profile).init (schedulePrefix target k) ∧
-      rel (rvfiStateAfter machine machine.init
-          (schedulePrefix schedule boundary))
-        (rvMemoryStateAfter profile (rvMemoryMachineWith profile).init
-          (schedulePrefix target k)) := by
-  exact rv32i_reset_stream_refines profile machine rel admit
-    (rv32iCycleStepRefines_of_addi_memory machine rel admit hstep horder)
-    hinit hschedule progress
-
-/-- Packaged-invariant form of the direct committed-stream reset contract. -/
-theorem rv32i_reset_addi_stream_refines_of_invariant
-    {State : Type} (profile : PlatformProfile)
-    (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (invariant : Rv32iAddiInvariant machine rel admit)
-    (hinit : rel machine.init (rvMemoryMachineWith profile).init)
-    {schedule target : Nat → Input}
-    (hschedule : ∀ n, admit (schedule n))
-    (progress : Rv32iRetiresTarget machine machine.init schedule target) :
-    ∀ k : Nat, ∃ boundary : Nat,
-      cycleTrace machine.toCycleMachine machine.init
-          (schedulePrefix schedule boundary) =
-        trace (rvMemoryMachineWith profile)
-          (rvMemoryMachineWith profile).init (schedulePrefix target k) ∧
-      rel (rvfiStateAfter machine machine.init
-          (schedulePrefix schedule boundary))
-        (rvMemoryStateAfter profile (rvMemoryMachineWith profile).init
-          (schedulePrefix target k)) := by
-  exact rv32i_reset_addi_stream_refines profile machine rel admit hinit
-    invariant.step invariant.order hschedule progress
-
-#print axioms LeanModels.Refine.rv32i_reset_addi_stream_refines
-#print axioms LeanModels.Refine.rv32i_reset_addi_refines
-#print axioms LeanModels.Refine.Rv32iAddiInvariant.toMixedStep
-#print axioms LeanModels.Refine.rv32i_reset_addi_refines_of_invariant
-#print axioms LeanModels.Refine.rv32i_reset_addi_stream_refines_of_invariant
 
 end LeanModels.Refine

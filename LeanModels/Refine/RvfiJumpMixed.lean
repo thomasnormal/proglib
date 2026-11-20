@@ -163,7 +163,7 @@ theorem rv32iCycleStepRefines_of_jump_memory
       rel state memoryState → admit input →
       let (_, observation) := machine.step state input
       if observation.valid then observation.order = start else True) :
-    Rv32iCycleStepRefines machine rel admit := by
+    Rv32iLegacyCycleStepRefines machine rel admit := by
   intro start state memoryState input hrel hadmit
   have hcase := hstep state memoryState input hrel hadmit
   have horderCase := horder start state memoryState input hrel hadmit

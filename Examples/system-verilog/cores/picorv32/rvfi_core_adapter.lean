@@ -251,7 +251,7 @@ theorem CoreRvfiMachine.to_rv32i_step_refines
               (LeanModels.Refine.rv32iProgramRetirement memoryState instruction) ∧
       rel next (LeanModels.Refine.rv32iProgramStep memoryState instruction)
         else rel next memoryState)) :
-    LeanModels.Refine.Rv32iCycleStepRefines
+    LeanModels.Refine.Rv32iLegacyCycleStepRefines
       machine.toRvfiCycleMachine rel admit := by
   intro start state memoryState input hrel hadmit
   rcases hstep start state memoryState input hrel hadmit with
@@ -260,24 +260,6 @@ theorem CoreRvfiMachine.to_rv32i_step_refines
   simpa [CoreRvfiMachine.toRvfiCycleMachine, hmachine] using hcase
 
 #print axioms CoreRvfiMachine.to_rv32i_step_refines
-
-theorem CoreRvfiMachine.to_reset_addi_refinement
-    {d : CoreMemDesign} (profile : LeanModels.Rv.PlatformProfile)
-    (machine : CoreRvfiMachine d)
-    (rel : CoreMemState → LeanModels.Refine.RvMemoryState → Prop)
-    (admit : LeanModels.Refine.Input → Prop)
-    (invariant : LeanModels.Refine.Rv32iAddiInvariant
-      machine.toRvfiCycleMachine rel admit)
-    (hinit : rel machine.toRvfiCycleMachine.init
-      (LeanModels.Refine.rvMemoryMachineWith profile).init)
-    {schedule target : Nat → LeanModels.Refine.Input}
-    (hschedule : ∀ n, admit (schedule n))
-    (progress : LeanModels.Refine.Rv32iRetiresTarget
-      machine.toRvfiCycleMachine machine.toRvfiCycleMachine.init schedule target) :
-    LeanModels.Refine.Rv32iResetRefinement profile
-      machine.toRvfiCycleMachine rel schedule target := by
-  exact LeanModels.Refine.rv32i_reset_addi_refines_of_invariant profile
-    machine.toRvfiCycleMachine rel admit invariant hinit hschedule progress
 
 theorem rvfiStep_ok_of_fast_and_decode
     {d : CoreMemDesign} {st next : CoreMemState} {entry : SvState}
@@ -975,7 +957,7 @@ theorem CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary
               rel next
                 (LeanModels.Refine.rv32iProgramStep memoryState instruction)
         else rel next memoryState)) :
-    LeanModels.Refine.Rv32iCycleStepRefines
+    LeanModels.Refine.Rv32iLegacyCycleStepRefines
       machine.toRvfiCycleMachine rel admit := by
   intro start state memoryState input hrel hadmit
   rcases hstep start state memoryState input hrel hadmit with

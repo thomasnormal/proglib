@@ -449,7 +449,7 @@ theorem rvfiCycleStepRefines_of_rv32i_program
 
 The witness retains the exact cycle order, input, indexed post-state, and
 retirement.  Invalid rows carry the core relation across an ISA stutter. -/
-def Rv32iCycleStepRefines {State : Type}
+def Rv32iLegacyCycleStepRefines {State : Type}
     (machine : RvfiCycleMachine State)
     (rel : State → RvMemoryState → Prop) (admit : Input → Prop) : Prop :=
   ∀ (start : Nat) (state : State) (memoryState : RvMemoryState)
@@ -465,6 +465,46 @@ def Rv32iCycleStepRefines {State : Type}
           (rv32iProgramRetirement memoryState instruction) ∧
         rel state' (rv32iProgramStep memoryState instruction)
     else rel state' memoryState
+
+/-! The old contract's universally quantified `start` makes a valid row
+    impossible whenever the relation and admitted input are inhabited.  This
+    diagnostic is kept next to the definition while the order-indexed
+    replacement is introduced. -/
+theorem Rv32iLegacyCycleStepRefines.noValid
+    {State : Type} {machine : RvfiCycleMachine State}
+    {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
+    (hstep : Rv32iLegacyCycleStepRefines machine rel admit)
+    (state : State) (memoryState : RvMemoryState) (input : Input)
+    (hrel : rel state memoryState) (hadmit : admit input)
+    (hvalid : (machine.step state input).2.valid = true) : False := by
+  have hzero := hstep 0 state memoryState input hrel hadmit
+  have hone := hstep 1 state memoryState input hrel hadmit
+  simp only [hvalid, ↓reduceIte] at hzero hone
+  obtain ⟨_, _, horderZero, _⟩ := hzero
+  obtain ⟨_, _, horderOne, _⟩ := hone
+  omega
+
+#print axioms Rv32iLegacyCycleStepRefines.noValid
+
+/-! The corrected contract carries the retirement count in the relation.  A
+    valid observation is checked against the count at the current cut point,
+    and the relation advances only when that observation retires. -/
+def Rv32iCycleStepRefines {State : Type}
+    (machine : RvfiCycleMachine State)
+    (rel : Nat → State → RvMemoryState → Prop) (admit : Input → Prop) : Prop :=
+  ∀ (start : Nat) (state : State) (memoryState : RvMemoryState)
+    (input : Input),
+    rel start state memoryState → admit input →
+    let (state', observation) := machine.step state input
+    if observation.valid then
+      ∃ instruction,
+        input = rv32iProgramInput memoryState instruction ∧
+        observation.order = start ∧
+        Rv32iBoundary memoryState.arch input observation
+          (rv32iProgramStep memoryState instruction)
+          (rv32iProgramRetirement memoryState instruction) ∧
+        rel (start + 1) state' (rv32iProgramStep memoryState instruction)
+    else rel start state' memoryState
 
 /-! ## Raw RVFI certificate -/
 
@@ -591,7 +631,7 @@ threaded to the mixed architectural state. -/
 theorem rv32iRvfiCycleTrace_of_step
     {State : Type} (machine : RvfiCycleMachine State)
     (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hstep : Rv32iCycleStepRefines machine rel admit)
+    (hstep : Rv32iLegacyCycleStepRefines machine rel admit)
     (start : Nat) (coreState : State) (memoryState : RvMemoryState)
     (cycles : List Input) (hrel : rel coreState memoryState)
     (hall : ∀ input ∈ cycles, admit input) :
@@ -722,7 +762,7 @@ theorem rv32iRvfiCycleTrace_of_step_refines
     {State : Type} (profile : PlatformProfile)
     (machine : RvfiCycleMachine State)
     (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hstep : Rv32iCycleStepRefines machine rel admit)
+    (hstep : Rv32iLegacyCycleStepRefines machine rel admit)
     (start : Nat) (coreState : State) (memoryState : RvMemoryState)
     (cycles : List Input) (hrel : rel coreState memoryState)
     (hall : ∀ input ∈ cycles, admit input) :

@@ -434,7 +434,7 @@ theorem picorv32_addi_step_bridge
     {State : Type} {machine : RvfiCycleMachine State}
     {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
     (invariant : Rv32iAddiInvariant machine rel admit) :
-    Rv32iCycleStepRefines machine rel admit := by
+    Rv32iLegacyCycleStepRefines machine rel admit := by
   exact invariant.toMixedStep
 
 #print axioms picorv32_addi_step_bridge
@@ -443,7 +443,7 @@ theorem picorv32_upper_step_bridge
     {State : Type} {machine : RvfiCycleMachine State}
     {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
     (invariant : Rv32iUpperInvariant machine rel admit) :
-    Rv32iCycleStepRefines machine rel admit := by
+    Rv32iLegacyCycleStepRefines machine rel admit := by
   exact invariant.toMixedStep
 
 #print axioms picorv32_upper_step_bridge
@@ -755,59 +755,5 @@ theorem BoundedNextRetirement.toRetiresTarget {State : Type}
           exact ⟨n', by simpa [Nat.add_assoc] using hn'⟩
 
 #print axioms BoundedNextRetirement.toRetiresTarget
-
-/-- The separate R2 progress theorem.  The bounded next-retirement premise
-is the only liveness assumption; safety above does not imply it. -/
-theorem picoRV32_progress {State : Type}
-    (profile : PlatformProfile) (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hstep : Rv32iCycleStepRefines machine rel admit)
-    (start : Nat) (coreState : State) (memoryState : RvMemoryState)
-    (hrel : rel coreState memoryState)
-    {schedule target : Nat → Input}
-    (hschedule : ∀ n, admit (schedule n))
-    {resetRelease bound : Nat}
-    (progress : BoundedNextRetirement machine coreState schedule target
-      resetRelease bound) :
-    ∀ k : Nat, ∃ n : Nat, ∃ program : List Rv32iInstruction,
-      Rv32iRvfiCycleTrace machine start coreState memoryState
-        (schedulePrefix schedule n) program ∧
-      normalizeRvfiTrace? start
-        (rvfiObservations machine coreState (schedulePrefix schedule n)) =
-        some (trace (rvMemoryMachineWith profile) memoryState
-          (schedulePrefix target k)) := by
-  have htarget := progress.toRetiresTarget
-  intro k
-  obtain ⟨n, program, certificate, htrace, _⟩ :=
-    rv32i_progress_trace_refines profile machine rel admit hstep start
-      coreState memoryState hrel hschedule htarget k
-  exact ⟨n, program, certificate, htrace⟩
-
-#print axioms picoRV32_progress
-
-theorem picorv32_progress_bridge {State : Type}
-    (profile : PlatformProfile) (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hstep : Rv32iCycleStepRefines machine rel admit)
-    (start : Nat) (coreState : State) (memoryState : RvMemoryState)
-    (hrel : rel coreState memoryState)
-    {schedule target : Nat → Input}
-    (hschedule : ∀ n, admit (schedule n))
-    {resetRelease bound : Nat}
-    (progress : BoundedNextRetirement machine coreState schedule target
-      resetRelease bound) :
-    ∀ k : Nat, ∃ n : Nat, ∃ program : List Rv32iInstruction,
-      Rv32iRvfiCycleTrace machine start coreState memoryState
-        (schedulePrefix schedule n) program ∧
-      normalizeRvfiTrace? start
-        (rvfiObservations machine coreState (schedulePrefix schedule n)) =
-        some (trace (rvMemoryMachineWith profile) memoryState
-          (schedulePrefix target k)) := by
-  exact picoRV32_progress profile machine rel admit hstep start coreState
-    memoryState hrel hschedule progress
-
-#print axioms picorv32_progress_bridge
-
-
 
 end Examples.«system-verilog».cores.picorv32
