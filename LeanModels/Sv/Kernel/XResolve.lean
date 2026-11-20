@@ -194,6 +194,11 @@ when its source value has the same bits. -/
 def XRead (source concrete : LVec) : Prop :=
   concrete ∈ LVec.concretizations source
 
+theorem xRead_width {source concrete : LVec}
+    (h : XRead source concrete) :
+    concrete.width = source.width := by
+  simpa [LVec.width] using (mem_concretizations_resolves h).1.symm
+
 /-- A run's read witnesses, one independent witness per consulted site. -/
 inductive XReadRun : List LVec → List LVec → Prop where
   | nil : XReadRun [] []
