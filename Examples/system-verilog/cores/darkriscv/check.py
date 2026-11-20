@@ -48,7 +48,10 @@ def run_receipt() -> tuple[list[str], list[str]]:
         raise SystemExit(f"source SHA-256 {source_sha} is not the pinned {SOURCE_SHA256}")
 
     repo = Path(__file__).resolve().parents[4]
-    testbench = repo / "Examples/system-verilog/cores/darkriscv/nop_tb.sv"
+    testbench_text = os.environ.get("DARKRISCV_TESTBENCH")
+    testbench = (Path(testbench_text).resolve() if testbench_text
+                 else repo / "Examples/system-verilog/cores/darkriscv/nop_tb.sv")
+    top = os.environ.get("DARKRISCV_TOP", "darkriscv_nop_tb")
     with tempfile.TemporaryDirectory(
         prefix="darkriscv-receipt-",
         dir=os.environ.get("TMPDIR"),
@@ -68,7 +71,7 @@ def run_receipt() -> tuple[list[str], list[str]]:
             raise SystemExit("Xcelium xrun is required for this receipt")
         xcelium_rows = rows(run([
             "xrun", "-sv", "-q", "-I../rtl", "-top",
-            "darkriscv_nop_tb", str(testbench), str(source),
+            top, str(testbench), str(source),
         ], sim_work))
 
     if len(icarus_rows) != EXPECTED_ROWS or len(xcelium_rows) != EXPECTED_ROWS:
