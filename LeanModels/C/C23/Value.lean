@@ -361,6 +361,12 @@ def CByte.renameAddress (resolve : ObjId → Nat) : CByte → CByte
   | .funByte id => .funByte id
   | .indet => .indet
 
+theorem CByte.renameAddress_beq_funByte
+    (resolve : ObjId → Nat) (b : CByte) (id : DeclarationId) :
+    (CByte.renameAddress resolve b == CByte.funByte id) =
+      (b == CByte.funByte id) := by
+  cases b <;> rfl
+
 /-- A C value. `undef` is an indeterminate value that reached a use,
 which every consumer refuses. -/
 inductive CVal where
