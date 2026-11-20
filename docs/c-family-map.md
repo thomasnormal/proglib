@@ -312,6 +312,13 @@ its self-test covers the relocation case. This closes the stale-envelope
 instrument wall that previously made a rerun report runner errors at
 `memcpy-1.c` instead of a model verdict.
 
+Fresh rerun receipt for the pinned C1 300-file sample on 2026-11-20, using the
+repaired batch and relocated envelopes, is 91 scored MATCH, 0 DIVERGE, 172
+unsupported refusals, 6 UB refusals, 30 frontend rejects, 1
+`oracle-tests-compiler`, and 0 timeouts. The receipt was produced with the
+current parser and runner at commit `398a31727`. It is a C1 sample measurement,
+not the 2,214-file C1-C3 headline.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
