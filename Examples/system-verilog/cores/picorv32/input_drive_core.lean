@@ -10,8 +10,14 @@ open LeanModels.Refine LeanModels.Rv
 /- The loaded design is compiled once so the input-driven receipt can execute
 the source-shaped E route without re-elaborating the multi-megabyte envelope
 for every temporary probe. -/
-opaque picorv32_core_mem : Res CoreMemDesign :=
+def picorv32_core_mem : Res CoreMemDesign :=
   picorv32_r2.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 4294967295
+
+theorem picorv32_core_mem_unfolds :
+    picorv32_core_mem =
+      picorv32_r2.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 4294967295 := rfl
+
+#print axioms picorv32_core_mem_unfolds
 
 /-! A loaded canonical-E design is useful to an invariant only when its
     source-shaped design identity is retained alongside the machine adapter.
