@@ -1182,6 +1182,27 @@ theorem allocZeroedStructured_unique
 /-- Allocate at an explicit concrete placement.  The caller supplies the
 address choice; provenance remains the returned object id and is what
 `resolve` authorises. -/
+private theorem placementSet_map_rename_alloc_append
+    (xs : List (ObjId × Nat)) (rename : ObjId → Nat) (o address : Nat)
+    (hno : ∀ x ∈ xs, x.1 ≠ o) :
+    placementSet (xs.map (fun x => (x.1, rename x.1)) ++ [(o, o)]) o (rename o) =
+      (placementSet (xs ++ [(o, o)]) o address).map (fun x => (x.1, rename x.1)) := by
+  revert hno
+  induction xs with
+  | nil =>
+      intro hno
+      simp [placementSet]
+  | cons x xs ih =>
+      intro hno
+      have hx : x.1 ≠ o := hno x (by simp)
+      have htail : ∀ y ∈ xs, y.1 ≠ o := by
+        intro y hy
+        exact hno y (by simp [hy])
+      have hbeq : ¬(x.1 == o) := by
+        intro h
+        exact hx (of_decide_eq_true h)
+      simp [placementSet, hbeq, ih htail]
+
 def allocAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (address : Nat) : Mem × Ptr :=
   let (m', o) := m.alloc dur size ty
@@ -1193,6 +1214,28 @@ def allocAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType
   let (m', o) := m.allocStructured dur size ty structured
   ({ m' with placements := placementSet m'.placements o address },
     Ptr.toObjectBoundAt o address size)
+
+theorem allocAt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
+    (m.renameAddresses rename).allocAt dur size ty (rename m.objs.length) =
+      ((m.allocAt dur size ty address).1.renameAddresses rename,
+        Ptr.renameAddress rename (m.allocAt dur size ty address).2) := by
+  have hno : ∀ x ∈ m.placements, x.1 ≠ m.objs.length := by
+    intro x hx
+    cases x with
+    | mk xo xv =>
+        intro hxo
+        cases hxo
+        exact hnew xv hx
+  have hplace := placementSet_map_rename_alloc_append m.placements rename
+    m.objs.length address hno
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      simp [allocAt, alloc, renameAddresses, CObj.renameAddress,
+        Ptr.toObjectBoundAt, Ptr.renameAddress, hplace,
+        List.map_append, List.map_cons, List.map_nil, List.length_map]
+
 
 @[simp] theorem allocAtStructured_lookup
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
@@ -1236,6 +1279,27 @@ def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option
     (address : Nat) (q : ObjId) :
     (m.allocAt dur size ty address).1.structuredType? q = m.structuredType? q := by
   rfl
+
+theorem allocZeroedAt_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (address : Nat) (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
+    (m.renameAddresses rename).allocZeroedAt dur size ty (rename m.objs.length) =
+      ((m.allocZeroedAt dur size ty address).1.renameAddresses rename,
+        Ptr.renameAddress rename (m.allocZeroedAt dur size ty address).2) := by
+  have hno : ∀ x ∈ m.placements, x.1 ≠ m.objs.length := by
+    intro x hx
+    cases x with
+    | mk xo xv =>
+        intro hxo
+        cases hxo
+        exact hnew xv hx
+  have hplace := placementSet_map_rename_alloc_append m.placements rename
+    m.objs.length address hno
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      simp [allocZeroedAt, allocZeroed, renameAddresses, CObj.renameAddress,
+        Ptr.toObjectBoundAt, Ptr.renameAddress, hplace,
+        List.map_append, List.map_cons, List.map_nil, List.length_map]
 
 @[simp] theorem allocZeroedAt_structuredTypesUnique
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
