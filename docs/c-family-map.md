@@ -412,3 +412,9 @@ module and then exposed the next boundary in `Stmt.lean`: eight declaration,
 member-offset, and bit-field calls still require raw `String` keys. The wrapper
 cannot land soundly as a local alias replacement. No coercion façade was
 retained, and the live checker remains at its single honest alias finding.
+
+The first typed interface slice is now landed in the layout layer. Declaration
+bit-field, flexible-member, and member-offset queries take `CType` keys
+explicitly while field names remain `String`. The existing parser-native and
+legacy layout tables keep the same semantics, but callers no longer erase the
+type key to a raw string at these boundaries.

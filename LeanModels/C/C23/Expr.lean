@@ -615,14 +615,14 @@ def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
 /-- Resolve bit-field facts from an aggregate declaration before its legacy
 type-keyed table. -/
 def Layout.fieldBitsDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty field : String) : Option (Nat × Nat) :=
+    (ty : CType) (field : String) : Option (Nat × Nat) :=
   decl.bind (fun did => layout.fieldBitsDecl did field)
     |>.orElse (fun _ => layout.fieldBits ty field)
 
 /-- Resolve flexible-array membership from an aggregate declaration before
 its legacy type-keyed table. -/
 def Layout.flexibleFieldDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty field : String) : Bool :=
+    (ty : CType) (field : String) : Bool :=
   match decl with
   | some did =>
       if layout.flexibleFieldDecl did field then true
@@ -648,7 +648,7 @@ def Layout.fieldOffAt (layout : Layout) (base : Expr) (field : String) :
 legacy type-keyed table.  Aggregate initialization has no base expression, so
 its declaration identity is passed explicitly. -/
 def Layout.fieldOffDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty field : String) : Option Nat :=
+    (ty : CType) (field : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffDecl did field)
     |>.orElse (fun _ => layout.fieldOff ty field)
 
