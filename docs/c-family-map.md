@@ -551,6 +551,11 @@ Unstructured allocation wrappers now expose direct preservation lemmas as well.
 `calloc` modify object and placement state without adding a structured row, so
 the uniqueness invariant is carried through each API entry point.
 
+The structured explicit-placement variants now carry the same fresh-identity
+premise as ordinary structured allocation. `allocAtStructured` and
+`allocZeroedAtStructured` therefore preserve side-table uniqueness while their
+placement update remains orthogonal to parser-native type identity.
+
 The compound-literal registry has the same boundary. `rememberCompound` records
 the parser span and object identity without touching structured effective-type
 rows, and its lookup-preservation lemma keeps that separation explicit.
