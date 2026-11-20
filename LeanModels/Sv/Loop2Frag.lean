@@ -490,18 +490,18 @@ theorem forValues2_up {env : IEnv} {it p : String} {c : Cmp} (hc : c = .lt ∨ c
     rcases hc with rfl | rfl
     · by_cases hsb : s < B
       · have h1 : ¬ (B - s < 0) := by omega
-        simp [forFuel2, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1]
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1]
         rfl
       · have h1 : (B - s).toNat = 0 := by omega
-        simp [forFuel2, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1]
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1]
         rfl
     · by_cases hsb : s ≤ B
       · have h1 : ¬ (B - s + 1 < 0) := by omega
         have h2 : B + 1 - s = B - s + 1 := by omega
-        simp [forFuel2, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1, h2]
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1, h2]
         rfl
       · have h1 : (B + 1 - s).toNat = 0 := by omega
-        simp [forFuel2, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1]
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, evalInt_paramRef_of hB, Gen2.except_ok_bind, hsb, h1]
         rfl
   rw [forValues2, hf]
   simp only [forValuesFuel2, evalInt_int, procStepDelta2_inc]
