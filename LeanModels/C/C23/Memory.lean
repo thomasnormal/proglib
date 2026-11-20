@@ -1906,6 +1906,94 @@ def loadFunction (m : Mem) (p : Ptr) : MRes (Option DeclarationId) := do
         .error (.memUB (.nonValueRepresentation (Option.getD p.obj 0) off))
   | _ => pure none
 
+theorem loadFunction_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) :
+    (m.renameAddresses rename).loadFunction (Ptr.renameAddress rename p) =
+      (m.loadFunction p).map (fun x => x) := by
+  have hlist : ∀ (id : LeanModels.C.DeclarationId) (xs : List CByte) (n : Nat),
+      (xs.map (CByte.renameAddress rename) == List.replicate n (CByte.funByte id)) =
+        (xs == List.replicate n (CByte.funByte id)) := by
+    intro id xs
+    induction xs with
+    | nil => intro n; cases n <;> rfl
+    | cons x xs ih =>
+        intro n
+        cases n with
+        | zero => rfl
+        | succ n =>
+            simp only [List.map, List.replicate_succ, BEq.beq, List.beq]
+            have hx := CByte.renameAddress_beq_funByte rename x id
+            have hi := ih n
+            have hx' : instBEqCByte.beq (CByte.renameAddress rename x) (CByte.funByte id) =
+                instBEqCByte.beq x (CByte.funByte id) := by
+              simpa only [BEq.beq] using hx
+            have hi' : (List.map (CByte.renameAddress rename) xs).beq
+                (List.replicate n (CByte.funByte id)) =
+                xs.beq (List.replicate n (CByte.funByte id)) := by
+              simpa only [BEq.beq] using hi
+            rw [hx', hi']
+  simp only [loadFunction]
+  rw [resolve_renameAddresses]
+  cases h : m.resolve p 1 with
+  | error e =>
+      dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+        Except.pure, Except.map]
+  | ok r =>
+      cases r with
+      | mk o rest =>
+          cases rest with
+          | mk c off =>
+              dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+                Except.pure, Except.map]
+              have hhead :
+                  (List.drop off (CObj.renameAddress rename c).bytes).head? =
+                    Option.map (CByte.renameAddress rename) (List.drop off c.bytes).head? := by
+                simp [CObj.renameAddress]
+              have hbytes :
+                  List.take 8 (List.drop off (CObj.renameAddress rename c).bytes) =
+                    (List.take 8 (List.drop off c.bytes)).map (CByte.renameAddress rename) := by
+                simp [CObj.renameAddress, List.map_take, List.map_drop, List.map_map]
+              cases hh : (List.drop off c.bytes).head? with
+              | none => rw [hhead, hh]; rfl
+              | some b =>
+                  cases b with
+                  | funByte id =>
+                      rw [hhead, hh]
+                      simp only [Option.map, CByte.renameAddress]
+                      rw [hbytes]
+                      have hz := hlist id (List.take 8 (List.drop off c.bytes)) 8
+                      simp only [List.replicate_succ, List.beq, BEq.beq] at hz ⊢
+                      have hzr :
+                          (List.map (CByte.renameAddress rename)
+                            (List.take 8 (List.drop off c.bytes))).beq
+                              (List.replicate 8 (CByte.funByte id)) =
+                            (List.take 8 (List.drop off c.bytes)).beq
+                              (List.replicate 8 (CByte.funByte id)) := by
+                        simpa [BEq.beq, List.replicate_succ] using hz
+                      have hzr' :
+                          (List.map (CByte.renameAddress rename)
+                            (List.take 8 (List.drop off c.bytes))).beq
+                              [CByte.funByte id, CByte.funByte id, CByte.funByte id,
+                               CByte.funByte id, CByte.funByte id, CByte.funByte id,
+                               CByte.funByte id, CByte.funByte id] =
+                            (List.take 8 (List.drop off c.bytes)).beq
+                              [CByte.funByte id, CByte.funByte id, CByte.funByte id,
+                               CByte.funByte id, CByte.funByte id, CByte.funByte id,
+                               CByte.funByte id, CByte.funByte id] := by
+                        simpa [List.replicate_succ] using hzr
+                      simp only [hzr']
+                      by_cases ho :
+                          (List.take 8 (List.drop off c.bytes)).beq
+                              [CByte.funByte id, CByte.funByte id, CByte.funByte id,
+                               CByte.funByte id, CByte.funByte id, CByte.funByte id,
+                               CByte.funByte id, CByte.funByte id] = true
+                      · simp [ho, Ptr.renameAddress_obj]
+                      · simp [ho, Ptr.renameAddress_obj]
+                  | conc b => rw [hhead, hh]; rfl
+                  | ptrByte q k => rw [hhead, hh]; rfl
+                  | ptrIntByte q k => rw [hhead, hh]; rfl
+                  | indet => rw [hhead, hh]; rfl
+
 /-- Read a pointer: the eight bytes must be one pointer's representation,
 in order. Anything else is `J.2(12)` — including a torn pointer, which
 no sanitizer on either host detects. -/
