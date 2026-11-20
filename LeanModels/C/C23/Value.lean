@@ -421,6 +421,20 @@ def CVal.renameAddress (resolve : ObjId → Nat) : CVal → CVal
     CByte.renameAddress resolve .indet = .indet := by
   rfl
 
+@[simp] theorem CVal.renameAddress_ptr (resolve : ObjId → Nat) (p : Ptr) :
+    CVal.renameAddress resolve (.ptr p) = .ptr (Ptr.renameAddress resolve p) := by
+  rfl
+
+@[simp] theorem CVal.renameAddress_ptrInt (resolve : ObjId → Nat) (p : Ptr) :
+    CVal.renameAddress resolve (.ptrInt p) = .ptrInt (Ptr.renameAddress resolve p) := by
+  rfl
+
+@[simp] theorem CVal.renameAddress_aggregate (resolve : ObjId → Nat)
+    (ty : CType) (bs : List CByte) :
+    CVal.renameAddress resolve (.aggregate ty bs) =
+      .aggregate ty (bs.map (CByte.renameAddress resolve)) := by
+  rfl
+
 @[simp] theorem CVal.renameAddress_int (resolve : ObjId → Nat) (ty : IntTy) (v : Int) :
     CVal.renameAddress resolve (.int ty v) = .int ty v := by
   rfl
