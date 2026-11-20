@@ -592,3 +592,7 @@ destination.
 The four abstract `va_list` operations now expose lookup equality on successful
 results as well. Cursor updates cannot change parser-native effective-type
 identity.
+
+Unstructured allocation entry points now expose lookup equality too. Ordinary,
+zeroed, and explicit-placement allocation, plus `malloc` and `calloc`, leave
+the structured side table unchanged while extending object or placement state.
