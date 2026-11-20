@@ -1247,3 +1247,20 @@ unpacked port shape.
 
 The child two-clock instance fixture also completes eight ordinary-E rows with
 Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z clock and reset rows.
+
+## 2026-11-20 DarkRISCV and FemtoRV32 Quark census and E-RUN rerun
+
+The second-core rerun used the pinned public revisions without RTL changes.  The
+current DarkRISCV envelope is admitted at **177 / 0 / 0** rows
+(admitted / refused / not reached).  Its staged canonical-E path completes all
+four preparation stages, and the checked source-shaped clock route completes
+**1000 / 1000** rising-edge cycles.  The pinned Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 receipts agree on
+**1000 / 1000** simulator rows with normalized digest
+`9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
+
+The current FemtoRV32 Quark envelope remains **130 / 51 / 0**.  Canonical E
+refuses the envelope at the exact `FETCH_INSTR` untyped-width boundary, so its
+E-RUN is **0 / 0**.  Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the
+pinned source at the IEEE 1800-2023 §12.5 use-before-declared `instr` wall.
+The two-core rerun leaves the census and execution counts unchanged.
