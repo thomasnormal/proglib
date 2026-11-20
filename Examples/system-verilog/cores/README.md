@@ -1350,3 +1350,13 @@ coverage.  `lake env lean
 Examples/system-verilog/cores/picorv32/r1_csr.lean` passed, and all printed
 theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
 Universal loaded-core step and order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 fence class
+
+The loaded-core R1 fence package compiles for FENCE and FENCE.I.  Both exact
+decoder rows have memory-preserving ISA step theorems, RVFI retirement
+boundaries, loaded `Rv32iBoundary` bridges, and indexed exact-cycle refinement
+coverage.  `lake env lean Examples/system-verilog/cores/picorv32/r1_fence.lean`
+passed, and all printed theorem axiom sets are
+`[propext, Classical.choice, Quot.sound]`.  Universal loaded-core step and
+order premises remain explicit.
