@@ -104,9 +104,7 @@ private def structuredStoreCheck : Bool :=
   match allocated.1.storeInt p LeanModels.C.C23.IntTy.int_ 7 with
   | .error _ => false
   | .ok m' =>
-      match allocated.2.obj with
-      | some o => m'.structuredType? o == some (.cBuiltinKind .int)
-      | none => false
+      m'.structuredType? allocated.2 == some (.cBuiltinKind .int)
 
 #guard structuredStoreCheck
 

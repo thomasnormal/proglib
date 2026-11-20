@@ -571,9 +571,10 @@ Effective-type establishment now follows C17 §6.5p6 for allocated storage.
 declaration row, while declaration-backed objects continue to use the shared
 parser-native side table. A bridge guard exercises the allocated-store path.
 
-The storage boundary now proves source-pointer placement irrelevance for
-`free`, `realloc`, and `reallocAt`. Explicit destination placement and
-pointer-byte exposure remain the address-observing exceptions in the F2 design.
+The storage boundary keeps explicit destination placement and pointer-byte
+exposure as address-observing cases in the F2 design. Refusal-bearing `free`
+and `realloc` results are not asserted equal under source-address renaming,
+because their diagnostics retain the offending pointer representation.
 
 Successful byte and checked-integer stores now expose direct structured-type
 lookup-preservation lemmas. Their object-byte and legacy effective-type updates
@@ -599,20 +600,19 @@ the structured side table unchanged while extending object or placement state.
 
 The pointwise placement lemmas are now packaged as `Mem.AddressIndependent`.
 `addressIndependent_mem` covers resolution, byte and typed accesses, variadic
-cursors, character, floating, and pointer representations, `free`, and both
-realloc source-pointer cases. It also covers pointer-producing `offsetPtr` and
-`subscript` through map-under-renaming equations. Character loads remain
-placement-independent even when their stored pointer-byte values observe the
-pointee representation. The evaluator-level behavior-set theorem still
-consumes this memory contract.
+cursors, character, floating, and pointer representations. It also covers
+pointer-producing `offsetPtr` and `subscript` through map-under-renaming
+equations. Character loads remain placement-independent even when their stored
+pointer-byte values observe the pointee representation. Refusal payloads for
+relational comparisons, `free`, and `realloc` remain explicit exceptions. The
+evaluator-level behavior-set theorem still consumes this memory contract.
 
 Pointer equality and one-past boundary classification are now included as
 literal placement-independent comparisons. Relational cross-object failures
 remain outside this equality field because their refusal payloads retain the
 offending pointer values. Same-object relational ordering is included under
-its existing shared-provenance premise, and the unrestricted relational rule
-now has a `ptrLt_address_rename` theorem that renames refusal payloads
-structurally.
+its existing shared-provenance premise. Cross-object refusal payload renaming
+remains an explicit evaluator-relation case.
 
 Pointer-byte observation has its explicit exception theorem in
 `Ptr.exposedAddress_address`. It records the selected placement as the only
