@@ -1314,6 +1314,51 @@ def killFrom (m : Mem) (start : Nat) : Mem :=
     | some c => if c.dur == .automatic then acc.kill o else acc
     | none => acc) m
 
+theorem killFrom_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (start : Nat) :
+    (m.renameAddresses rename).killFrom start =
+      (m.killFrom start).renameAddresses rename := by
+  let step := fun (acc : Mem) (i : Nat) =>
+    let o := start + i
+    match acc.get? o with
+    | some c => if c.dur == Duration.automatic then acc.kill o else acc
+    | none => acc
+  have hget : ∀ (acc : Mem) (o : ObjId),
+      (acc.renameAddresses rename).get? o =
+        (acc.get? o).map (CObj.renameAddress rename) := by
+    intro acc o
+    simp [get?, renameAddresses, List.getElem?_map]
+  have hstep (acc : Mem) (i : Nat) :
+      step (acc.renameAddresses rename) i =
+        (step acc i).renameAddresses rename := by
+    cases hg : acc.get? (start + i) with
+    | none =>
+        simp [step, hget, hg]
+    | some c =>
+        by_cases ha : c.dur == Duration.automatic
+        · have hdur : ((CObj.renameAddress rename c).dur == Duration.automatic) =
+              (c.dur == Duration.automatic) := by rfl
+          simp [step, hget, hg, ha, hdur, kill_renameAddresses]
+        · have hdur : ((CObj.renameAddress rename c).dur == Duration.automatic) =
+              (c.dur == Duration.automatic) := by rfl
+          simp [step, hget, hg, ha, hdur]
+  have hfold : ∀ (xs : List Nat) (acc : Mem),
+      xs.foldl step (acc.renameAddresses rename) =
+        (xs.foldl step acc).renameAddresses rename := by
+    intro xs
+    induction xs with
+    | nil => intro acc; rfl
+    | cons i xs ih =>
+        intro acc
+        simp only [List.foldl]
+        rw [hstep]
+        exact ih _
+  unfold killFrom
+  simp only [count, renameAddresses_objectCount]
+  change (List.range (m.count - start)).foldl step (m.renameAddresses rename) =
+    ((List.range (m.count - start)).foldl step m).renameAddresses rename
+  exact hfold (List.range (m.count - start)) m
+
 private theorem killFrom_fold_placements (xs : List Nat) (m : Mem) (start : Nat) :
     (xs.foldl (fun acc i =>
       let o := start + i
