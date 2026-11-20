@@ -2637,6 +2637,33 @@ mirror is visible, not because it computes anything new. -/
 def subscript (m : Mem) (p : Ptr) (elemSize : Nat) (i : Int) : MRes Ptr :=
   m.offsetPtr p elemSize i
 
+theorem offsetPtr_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (elemSize : Nat) (i : Int) :
+    (m.renameAddresses rename).offsetPtr (Ptr.renameAddress rename p) elemSize i =
+      (m.offsetPtr p elemSize i).map (Ptr.renameAddress rename) := by
+  cases hp : p.obj with
+  | none => simp [offsetPtr, hp, Ptr.renameAddress, Except.map]
+  | some o =>
+      cases hc : m.get? o with
+      | none =>
+          have hc' : (m.renameAddresses rename).get? o = none := by
+            simpa [get?, renameAddresses] using
+              congrArg (Option.map (CObj.renameAddress rename)) hc
+          simp [offsetPtr, hp, hc, hc', Ptr.renameAddress, Except.map]
+      | some c =>
+          have hc' : (m.renameAddresses rename).get? o =
+              some (CObj.renameAddress rename c) := by
+            simpa [get?, renameAddresses] using
+              congrArg (Option.map (CObj.renameAddress rename)) hc
+          by_cases h1 : p.off + i * (elemSize : Int) < 0 <;>
+            by_cases h2 : (c.size : Int) < p.off + i * (elemSize : Int) <;>
+            by_cases h3 : p.bound.getD (c.size : Int) <
+              p.off + i * (elemSize : Int)
+          all_goals have hsize : c.size = c.bytes.length := rfl
+          all_goals simp only [CObj.size] at h2 h3
+          all_goals simp [offsetPtr, hp, hc, hc', Ptr.renameAddress,
+            CObj.renameAddress, CObj.size, hsize, h1, h2, h3, Except.map]
+
 /- Pointer arithmetic checks provenance, object bounds, and subobject bounds;
    the concrete placement is carried through a successful result but is not
    inspected by the checks or by their named refusals. -/
