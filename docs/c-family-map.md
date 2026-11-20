@@ -347,6 +347,13 @@ returning a string pointer, and a static pointer-array element report named
 plugin and no DIVERGE. String-object byte semantics remain a separate future
 family.
 
+The nested-array pointer family now refuses before returning a comparison
+value when the parser carries a pointer-to-array shape. The frozen
+`20080424-1.c` row reaches a named array-subobject refusal with the current
+structured envelope, and the focused harness records the corresponding
+out-of-bounds refusal when only expression observations are supplied. No
+pointer-array DIVERGE remains in the exercised receipt.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and

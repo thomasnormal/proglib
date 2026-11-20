@@ -1362,5 +1362,16 @@
     ],
     "structured_expect": "refuse",
     "structured_error": "pointer operation involving a string literal"
+  },
+  {
+    "id": "pointer-array-subobject-comparison",
+    "source": "/* PR tree-optimization/36008 */\n\nextern void abort (void);\n\nint g[48][3][3];\n\nvoid __attribute__ ((noinline))\nbar (int x[3][3], int y[3][3])\n{\n  static int i;\n  if (x != g[i + 8] || y != g[i++])\n    abort ();\n}\n\nstatic inline void __attribute__ ((always_inline))\nfoo (int x[][3][3])\n{\n  int i;\n  for (i = 0; i < 8; i++)\n    {\n      int k = i + 8;\n      bar (x[k], x[k - 8]);\n    }\n}\n\nint\nmain ()\n{\n  foo (g);\n  return 0;\n}\n",
+    "expect": "refuse",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "structured_expect": "refuse",
+    "structured_error": "outOfBounds"
   }
 ]
