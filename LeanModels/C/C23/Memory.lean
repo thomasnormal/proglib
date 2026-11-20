@@ -1317,6 +1317,14 @@ theorem decodeInt_renameAddresses_conc
   | cons b bs ih =>
       simp [decodeInt, CByte.renameAddress, ih, Function.comp_def]
 
+theorem decodeInt_renameAddresses_conc_of_some
+    (resolve : ObjId → Nat) (t : IntTy) (bs : List UInt8) (v : Int)
+    (h : decodeInt t (bs.map CByte.conc) = some v) :
+    decodeInt t ((bs.map CByte.conc).map (CByte.renameAddress resolve)) =
+      some v := by
+  rw [decodeInt_renameAddresses_conc]
+  exact h
+
 /-- One byte of an object representation as observed through a character
 lvalue.  Character accesses are allowed to inspect every object
 representation, including pointer representations (§6.5.1p7).  The
