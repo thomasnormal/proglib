@@ -1504,8 +1504,9 @@ def LeanModels.Sv.PExpr.hasMemoryReadList : List PExpr → Bool
 
 def LeanModels.Sv.PExpr.hasFunctionCall : PExpr → Bool
   | .functionCall _ _ => true
+  | .sysCall _ _ => true
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
-  | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasFunctionCall a
+  | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasFunctionCall a
   | .binary _ a b => LeanModels.Sv.PExpr.hasFunctionCall a ||
       LeanModels.Sv.PExpr.hasFunctionCall b
   | .ternary c a b => LeanModels.Sv.PExpr.hasFunctionCall c ||
@@ -1935,6 +1936,46 @@ def CoreMemDesign.evalExpr (E : CoreMemDesign) (env : IEnv) (elems : List (Strin
     (st : CoreMemState) (ctx : Option Nat) (e : PExpr) : Res LVec :=
   E.evalExprLocals env elems st ctx [] e
 
+mutual
+def LeanModels.Sv.PExpr.hasTestPlusargs : PExpr → Bool
+  | .sysCall .testPlusargs _ => true
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
+  | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasTestPlusargs a
+  | .binary _ a b => LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .ternary c a b => LeanModels.Sv.PExpr.hasTestPlusargs c ||
+      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .concat xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | .bitSel a b | .repl a b => LeanModels.Sv.PExpr.hasTestPlusargs a ||
+      LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .partSel a b c => LeanModels.Sv.PExpr.hasTestPlusargs a ||
+      LeanModels.Sv.PExpr.hasTestPlusargs b || LeanModels.Sv.PExpr.hasTestPlusargs c
+  | .arrayElem _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | .arrayPart _ xs _ a b => LeanModels.Sv.PExpr.hasTestPlusargsList xs ||
+      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .functionCall _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | _ => false
+
+def LeanModels.Sv.PExpr.hasTestPlusargsList : List PExpr → Bool
+  | [] => false
+  | x :: xs => LeanModels.Sv.PExpr.hasTestPlusargs x ||
+      LeanModels.Sv.PExpr.hasTestPlusargsList xs
+end
+
+def CoreMemDesign.evalRuntimeExpr (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (ctx : Option Nat)
+    (e : PExpr) : Res LVec :=
+  match e with
+  | .sysCall fn arg => E.evalSysCall env elems st [] fn arg
+  | .ternary c a b => do
+      let cv ← E.evalRuntimeExpr env elems st none c
+      let tv ← if LeanModels.Sv.PExpr.hasTestPlusargs a then E.evalRuntimeExpr env elems st ctx a
+        else E.evalExprLocals env elems st ctx [] a
+      let fv ← if LeanModels.Sv.PExpr.hasTestPlusargs b then E.evalRuntimeExpr env elems st ctx b
+        else E.evalExprLocals env elems st ctx [] b
+      .ok (LVec.ternary cv tv fv)
+  | _ => E.evalExprLocals env elems st ctx [] e
+
+
 /-! A continuous scalar assignment has no local bindings.  Once the source
 expression has no native-memory read, its `Expr2` lowering is independent of
 the state and can be reused from `CoreMemDesign.compiledAssigns`; a memory
@@ -1943,8 +1984,15 @@ read must stay on `evalExpr`, whose source-shaped evaluator threads
 def CoreMemDesign.evalScalarAssignAtView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (ctx : Option Nat) (index : Nat) (value : PExpr) : Res LVec :=
-  if LeanModels.Sv.PExpr.hasMemoryRead value ||
-            LeanModels.Sv.PExpr.hasMemoryRead value || LeanModels.Sv.PExpr.hasAggregateMember value then
+  if LeanModels.Sv.PExpr.hasTestPlusargs value &&
+      LeanModels.Sv.PExpr.hasFunctionCall value then
+    -- Calls, including `$test$plusargs`, depend on the explicit runtime
+    -- environment carried by `CoreMemDesign`.  Keep the parser-shaped
+    -- expression on the source evaluator instead of asking `Expr2` to
+    -- manufacture a declared-signal value for an external query.
+    E.evalRuntimeExpr env elems st ctx value
+  else if LeanModels.Sv.PExpr.hasMemoryRead value ||
+            LeanModels.Sv.PExpr.hasAggregateMember value then
     E.evalExpr env elems st ctx value
   else
     match E.compiledAssigns[index]? with
@@ -2432,45 +2480,6 @@ route, with the parser-native plain/inside `case` node handled by the case
 matcher below.  `casez`/`casex`, NBA, loops, and unsupported statements remain
 loud at their own node; no statement is lowered into a second AST. -/
 
-mutual
-def LeanModels.Sv.PExpr.hasTestPlusargs : PExpr → Bool
-  | .sysCall .testPlusargs _ => true
-  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
-  | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasTestPlusargs a
-  | .binary _ a b => LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
-  | .ternary c a b => LeanModels.Sv.PExpr.hasTestPlusargs c ||
-      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
-  | .concat xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
-  | .bitSel a b | .repl a b => LeanModels.Sv.PExpr.hasTestPlusargs a ||
-      LeanModels.Sv.PExpr.hasTestPlusargs b
-  | .partSel a b c => LeanModels.Sv.PExpr.hasTestPlusargs a ||
-      LeanModels.Sv.PExpr.hasTestPlusargs b || LeanModels.Sv.PExpr.hasTestPlusargs c
-  | .arrayElem _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
-  | .arrayPart _ xs _ a b => LeanModels.Sv.PExpr.hasTestPlusargsList xs ||
-      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
-  | .functionCall _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
-  | _ => false
-
-def LeanModels.Sv.PExpr.hasTestPlusargsList : List PExpr → Bool
-  | [] => false
-  | x :: xs => LeanModels.Sv.PExpr.hasTestPlusargs x ||
-      LeanModels.Sv.PExpr.hasTestPlusargsList xs
-end
-
-def CoreMemDesign.evalRuntimeExpr (E : CoreMemDesign) (env : IEnv)
-    (elems : List (String × Nat)) (st : CoreMemState) (ctx : Option Nat)
-    (e : PExpr) : Res LVec :=
-  match e with
-  | .sysCall fn arg => E.evalSysCall env elems st [] fn arg
-  | .ternary c a b => do
-      let cv ← E.evalRuntimeExpr env elems st none c
-      let tv ← if LeanModels.Sv.PExpr.hasTestPlusargs a then E.evalRuntimeExpr env elems st ctx a
-        else E.evalExprLocals env elems st ctx [] a
-      let fv ← if LeanModels.Sv.PExpr.hasTestPlusargs b then E.evalRuntimeExpr env elems st ctx b
-        else E.evalExprLocals env elems st ctx [] b
-      .ok (LVec.ternary cv tv fv)
-  | _ => E.evalExprLocals env elems st ctx [] e
-
 def CoreMemDesign.evalCombExpr (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (ctx : Option Nat) (e : PExpr) : Res LVec :=
@@ -2504,13 +2513,17 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
   | fuel + 1, .blockingAssign name value =>
       match SvState.lookup locals name with
       | some old => do
-          let v ← E.evalExprLocals env elems st (some old.width) locals value
+          let v ← if LeanModels.Sv.PExpr.hasTestPlusargs value then
+            E.evalRuntimeExpr env elems st (some old.width) value
+          else E.evalExprLocals env elems st (some old.width) locals value
           .ok (st, view, setAutomaticLocal locals name (v.resizeU old.width))
       | none =>
           match E.scalarTarget name with
           | none => .unsupported s!"9.2.2.2: scalar always_comb target '{name}' is undeclared"
           | some width => do
-              let v ← E.evalExprLocals env elems st (some width) locals value
+              let v ← if LeanModels.Sv.PExpr.hasTestPlusargs value then
+                E.evalRuntimeExpr env elems st (some width) value
+              else E.evalExprLocals env elems st (some width) locals value
               let st' := E.setScalarState st name v
               .ok (st', SvState.set view name v, locals)
   | fuel + 1, .blockingAssignL target value =>
@@ -2523,7 +2536,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
               let st' ← E.execScalarTarget env elems st target value
               .ok (st', E.scalar.view st'.scalar, locals)
           | some md => do
-              let v ← E.evalExprLocals env elems st (some md.shape.elemWidth) locals value
+              let v ← if LeanModels.Sv.PExpr.hasTestPlusargs value then
+                E.evalRuntimeExpr env elems st (some md.shape.elemWidth) value
+              else E.evalExprLocals env elems st (some md.shape.elemWidth) locals value
               let st' ← E.writeInitialCell env elems st target name md v
               .ok (st', view, locals)
       | .arrayElem name _ =>
@@ -2536,7 +2551,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
           if hi < lo then
             .unsupported "9.2.2.2: packed part-select has descending runtime bounds"
           else
-            let v ← E.evalExprLocals env elems st (some (hi - lo + 1)) locals value
+            let v ← if LeanModels.Sv.PExpr.hasTestPlusargs value then
+              E.evalRuntimeExpr env elems st (some (hi - lo + 1)) value
+            else E.evalExprLocals env elems st (some (hi - lo + 1)) locals value
             let st' ← E.writeScalarPartAssign env elems st name msb lsb v
             .ok (st', E.scalar.view st'.scalar, locals)
       | .aggregateMember base path =>
@@ -2547,7 +2564,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
               match decl.ty.resolve? steps with
               | none => .unsupported "9.2.2.2: aggregate always_comb target path is invalid"
               | some ty => do
-                  let v ← E.evalExprLocals env elems st (some ty.width) locals value
+                  let v ← if LeanModels.Sv.PExpr.hasTestPlusargs value then
+                    E.evalRuntimeExpr env elems st (some ty.width) value
+                  else E.evalExprLocals env elems st (some ty.width) locals value
                   match st.aggregates.write? decl.id steps (Val.ofLVec ty v) with
                   | none => .unsupported "9.2.2.2: aggregate always_comb target path is not writable"
                   | some aggregates' => .ok ({ st with aggregates := aggregates' }, view, locals)
@@ -2556,7 +2575,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
           .ok (st', E.scalar.view st'.scalar, locals)
       | _ => .unsupported "9.2.2.2: packed or concatenated always_comb target is outside this slice"
   | fuel + 1, .ifStmt cond yes no => do
-      let cv ← E.evalExprLocals env elems st (some 1) locals cond
+      let cv ← if LeanModels.Sv.PExpr.hasTestPlusargs cond then
+        E.evalRuntimeExpr env elems st (some 1) cond
+      else E.evalExprLocals env elems st (some 1) locals cond
       if cv.condTrue then E.execCombStmtFuel env elems st view locals fuel yes
       else match no with
         | none => .ok (st, view, locals)
