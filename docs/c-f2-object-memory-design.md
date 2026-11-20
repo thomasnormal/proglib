@@ -1,8 +1,9 @@
 # F2 object-memory design
 
 F2 defines one storage interface shared by the C and C++ lanes and available
-to Rust. The normative C profile is C23/N3220 with the admitted GNU extensions
-listed in docs/c-tier-architecture.md. The memory-relevant profile decisions
+to Rust. The normative C profile for this memory contract is GNU17 with the
+C17 clauses and admitted GNU extensions listed in docs/c-tier-architecture.md.
+The memory-relevant profile decisions
 cover `realloc(p, 0)`, trap and non-value representations, indeterminate
 values, `_BitInt`, packed and aligned members, zero-length arrays, `alloca`,
 statement-expression temporaries, and GNU VLA behavior. TS 6010 and DR 260
@@ -101,18 +102,17 @@ function, and temporaries follow the GNU statement-expression profile.
 
 Pointer/integer conversions use PNVI-ae-udi. A pointer-to-integer conversion
 exposes the selected address and sets the allocation's exposed flag. A reverse
-conversion recovers the live allocation whose exposed address interval
-contains the integer, derives the offset from that allocation's base, and
-retains empty provenance when no such allocation exists. Recovery also checks
-the target type's ABI alignment. It never fabricates an allocation identity
-from the integer alone. The exposed flag, recovery relation, and udi choice
-are explicit state. The udi choice is an explicit oracle argument at the first
-integer-to-pointer use. The relation contains one branch for every admissible
-choice, and a theorem quantifies over every branch under rule 4. An integer
-whose address interval contains no exposed live allocation yields a pointer
-with empty provenance. Alignment failures are undefined under C23 §6.3.2.3p7.
-A pointer with empty provenance and a non-null address remains a valid value
-for operations whose rules permit it, while dereference requires recovered
+conversion may recover a live allocation only when an explicit exposure map or
+witness identifies an exposed address interval, derives the offset from that
+allocation's base, and satisfies the target type's ABI alignment. The exposure
+map, recovery relation, and udi choice are explicit state or oracle arguments.
+The relation contains one branch for every admissible choice, and a theorem
+quantifies over every branch under rule 4. A raw integer carries no provenance
+or exposure witness and therefore does not fabricate an allocation identity.
+The current C tier refuses positive raw-integer recovery until the memory
+instance supplies that map. Alignment failures are undefined under C23
+§6.3.2.3p7. A non-null pointer with empty provenance is admitted only by a
+profile that explicitly permits it, and dereference always requires recovered
 live provenance.
 
 ## Operations, effects, and observations
