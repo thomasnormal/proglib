@@ -11,7 +11,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-TMPDIR = Path(os.environ.get("TMPDIR", str(ROOT / ".lake" / "tmp")))
+TMPDIR = Path(os.environ.get("LS_SV2_TMPDIR", "/scratch/gate/ls-sv2/tmp"))
 SOURCE = HERE / "rtl" / "darkriscv.v"
 ENVELOPE = HERE / "darkriscv.sv.json"
 PINNED_SOURCE = "46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0"
