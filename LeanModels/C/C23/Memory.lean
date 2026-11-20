@@ -1496,6 +1496,54 @@ def decodeFloat64 (bs : List CByte) : Option Float.Model :=
   if bs.any (fun b => match b with | .conc _ => false | _ => true) then none
   else some (Float.Model.ofBits (UInt64.ofNat (natOfBytes (bs.map (fun b => match b with | .conc x => x | _ => 0)))))
 
+theorem decodeFloat32_renameAddresses (rename : ObjId → Nat) (bs : List CByte) :
+    decodeFloat32 (bs.map (CByte.renameAddress rename)) = decodeFloat32 bs := by
+  have hb : ∀ b : CByte,
+      (match CByte.renameAddress rename b with | .conc _ => false | _ => true) =
+        (match b with | .conc _ => false | _ => true) := by
+    intro b
+    cases b <;> rfl
+  have hany :
+      (bs.map (CByte.renameAddress rename)).any
+          (fun b => match b with | .conc _ => false | _ => true) =
+        bs.any (fun b => match b with | .conc _ => false | _ => true) := by
+    rw [List.any_map]
+    apply List.any_congr rfl
+    exact hb
+  have hbytes :
+      (bs.map (CByte.renameAddress rename)).map
+          (fun b => match b with | .conc x => x | _ => 0) =
+        bs.map (fun b => match b with | .conc x => x | _ => 0) := by
+    rw [List.map_map]
+    apply List.map_congr_left
+    intro b hbmem
+    cases b <;> rfl
+  simp [decodeFloat32, hany, hbytes]
+
+theorem decodeFloat64_renameAddresses (rename : ObjId → Nat) (bs : List CByte) :
+    decodeFloat64 (bs.map (CByte.renameAddress rename)) = decodeFloat64 bs := by
+  have hb : ∀ b : CByte,
+      (match CByte.renameAddress rename b with | .conc _ => false | _ => true) =
+        (match b with | .conc _ => false | _ => true) := by
+    intro b
+    cases b <;> rfl
+  have hany :
+      (bs.map (CByte.renameAddress rename)).any
+          (fun b => match b with | .conc _ => false | _ => true) =
+        bs.any (fun b => match b with | .conc _ => false | _ => true) := by
+    rw [List.any_map]
+    apply List.any_congr rfl
+    exact hb
+  have hbytes :
+      (bs.map (CByte.renameAddress rename)).map
+          (fun b => match b with | .conc x => x | _ => 0) =
+        bs.map (fun b => match b with | .conc x => x | _ => 0) := by
+    rw [List.map_map]
+    apply List.map_congr_left
+    intro b hbmem
+    cases b <;> rfl
+  simp [decodeFloat64, hany, hbytes]
+
 def loadFloat32 (m : Mem) (p : Ptr) : MRes CVal := do
   let bs ← m.loadBytes p 4
   match decodeFloat32 bs with
@@ -1507,6 +1555,38 @@ def loadFloat64 (m : Mem) (p : Ptr) : MRes CVal := do
   match decodeFloat64 bs with
   | some f => pure (.float64 f)
   | none => .error (.memUB (.nonValueRepresentation (Option.getD p.obj 0) p.off.toNat))
+
+theorem loadFloat32_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) :
+    (m.renameAddresses rename).loadFloat32 (Ptr.renameAddress rename p) =
+      (m.loadFloat32 p).map (CVal.renameAddress rename) := by
+  simp only [loadFloat32, loadBytes_renameAddresses]
+  cases h : m.loadBytes p 4 with
+  | error e =>
+      dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+        Except.pure, Except.map]
+  | ok bs =>
+      dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+        Except.pure, Except.map]
+      cases hdec : decodeFloat32 bs with
+      | none => rw [decodeFloat32_renameAddresses, hdec]; rfl
+      | some f => rw [decodeFloat32_renameAddresses, hdec]; rfl
+
+theorem loadFloat64_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) :
+    (m.renameAddresses rename).loadFloat64 (Ptr.renameAddress rename p) =
+      (m.loadFloat64 p).map (CVal.renameAddress rename) := by
+  simp only [loadFloat64, loadBytes_renameAddresses]
+  cases h : m.loadBytes p 8 with
+  | error e =>
+      dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+        Except.pure, Except.map]
+  | ok bs =>
+      dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+        Except.pure, Except.map]
+      cases hdec : decodeFloat64 bs with
+      | none => rw [decodeFloat64_renameAddresses, hdec]; rfl
+      | some f => rw [decodeFloat64_renameAddresses, hdec]; rfl
 
 def storeFloat32 (m : Mem) (p : Ptr) (f : Float32.Model) : MRes Mem :=
   m.storeBytes p (encodeFloat32 f)
