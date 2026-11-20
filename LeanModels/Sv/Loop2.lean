@@ -1042,11 +1042,11 @@ theorem forFuel2_upto {env : IEnv} {it : String} {rhs : PExpr} {N : Nat}
       = .ok (N + 2) := by
   by_cases h0 : N = 0
   · subst h0
-    simp [forFuel2, Cmp.op, hb, Gen2.except_ok_bind]
+    simp [forFuel2, procLoopIterator, Cmp.op, hb, Gen2.except_ok_bind]
     rfl
   · have hpos : 0 < N := Nat.pos_of_ne_zero h0
     have hneg : ¬ ((N : Int) < 0) := by omega
-    simp [forFuel2, Cmp.op, hb, Gen2.except_ok_bind, hpos, hneg]
+    simp [forFuel2, procLoopIterator, Cmp.op, hb, Gen2.except_ok_bind, hpos, hneg]
     rfl
 
 /-- **The canonical unit-step header unrolls to `intRange 0 N`** in the instantiation `sem` uses

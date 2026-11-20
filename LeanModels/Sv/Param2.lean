@@ -1418,6 +1418,15 @@ def procStepDelta2 (env : IEnv) (iterator : String) : PExpr → Except String In
         | .error e => .error s!"for step amount: {e}"
   | _ => .error "for step outside the ++/--/literal-compound tier"
 
+/-- The loop-header comparison may carry the parser's source-shaped implicit
+32-bit conversion around the iterator when §11.8.1 chooses an unsigned common
+type.  It still denotes the same iterator value at the non-negative points
+admitted by the procedural-loop profile. -/
+def procLoopIterator : PExpr → Option String
+  | .genvarRef g => some g
+  | .resize _ (.genvarRef g) | .signedResize _ (.genvarRef g) => some g
+  | _ => none
+
 /-! The finite iterator trace for a symbolic procedural `for`.  Unlike the
 literal-unroll path in the extractor, this runs after parameter binding, so
 the same envelope can have a different number of iterations at each point.
@@ -1457,7 +1466,9 @@ def forFuel2 (env : IEnv) (iterator : String) (init condition step : PExpr) :
   if delta == 0 then
     throw "for step is zero"
   match condition with
-  | .binary op (.genvarRef g) rhs =>
+  | .binary op left rhs =>
+      let some g := procLoopIterator left
+        | throw "for condition is not a source-shaped iterator comparison"
       if g != iterator then throw "for condition reads a different iterator"
       let bound ← evalInt env rhs
       let trips : Int ← match op with

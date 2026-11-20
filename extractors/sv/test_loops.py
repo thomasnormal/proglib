@@ -4,6 +4,7 @@ from pathlib import Path
 import unittest
 
 from test_bit_queries import lower, nodes
+from test_local_scope_metadata import symbolic
 
 
 class Loops(unittest.TestCase):
@@ -51,6 +52,16 @@ class Loops(unittest.TestCase):
         design = lower("module top; initial repeat(2) begin integer value=0; value+=1; end endmodule")
         self.assertFalse(any(node.get("kind") == "Unsupported" for node in nodes(design)))
         self.assertTrue(any(node.get("static_local_storage") for node in nodes(design)))
+
+    def test_symbolic_unsigned_int_iterator_is_retained(self):
+        design = symbolic(
+            "module top #(parameter int unsigned N=4) "
+            "(input logic [N-1:0] a, output logic [N-1:0] y); "
+            "always_comb begin y[0]=a[0]; "
+            "for (int unsigned i=1; i<N; i++) y[i]=a[i]; end endmodule")
+        loops = [node for node in nodes(design) if node.get("kind") == "For"]
+        self.assertEqual(len(loops), 1)
+        self.assertEqual(loops[0]["iterator"], "i")
 
 
 if __name__ == "__main__":

@@ -22708,7 +22708,30 @@ def _sym_loop_condition_signed(statement, symbol):
                 if node is None:
                     return False
             return bool(node.type.isSigned)
-        return source_signed(condition.left) and source_signed(condition.right)
+        if source_signed(condition.left) and source_signed(condition.right):
+            return True
+        if not source_signed(condition.left) and not source_signed(condition.right):
+            op = str(getattr(condition, "op", "")).split(".")[-1]
+            if op not in ("LessThan", "LessEqual") or list(getattr(statement, "loopVars", ())) != [symbol]:
+                return False
+            initial = _literal_integral_value(getattr(symbol, "initializer", None))
+            delta = _sym_for_delta(statement, symbol)
+            return initial is not None and initial >= 0 and delta is not None and delta > 0
+        # OpenTitan's source-shaped ``for (int i = 1; i < N; i++)`` uses a
+        # signed 32-bit iterator with an unsigned ``int unsigned`` parameter.
+        # IEEE 1800-2023 §11.8.1 converts the comparison to unsigned, but the
+        # loop is equivalent to the retained linear trace while its iterator
+        # remains non-negative and advances.  The constant tier still rejects
+        # points whose unsigned bound cannot be represented by its exact
+        # 32-bit range, so do not admit a potentially wrapping decrement form.
+        if source_signed(condition.left) and not source_signed(condition.right):
+            op = str(getattr(condition, "op", "")).split(".")[-1]
+            if op not in ("LessThan", "LessEqual") or list(getattr(statement, "loopVars", ())) != [symbol]:
+                return False
+            initial = _literal_integral_value(getattr(symbol, "initializer", None))
+            delta = _sym_for_delta(statement, symbol)
+            return initial is not None and initial >= 0 and delta is not None and delta > 0
+        return False
     except Exception:
         return False
 
@@ -22760,11 +22783,17 @@ def _sym_loop_function_capture(statement, symbol):
 
 
 def _sym_loop_plain_int(symbol):
-    """Whether a procedural iterator is the supported signed 32-bit int."""
+    """Whether a procedural iterator is a 32-bit SystemVerilog integer.
+
+    Both ``int`` and ``int unsigned`` retain the same source-shaped iterator
+    node. The comparison helper below carries their signedness into the
+    admitted linear header instead of treating the unsigned spelling as a
+    different loop language.
+    """
     try:
         t = symbol.type
         return (type(t.canonicalType).__name__ == "PredefinedIntegerType"
-                and t.bitWidth == 32 and t.isSigned)
+                and t.bitWidth == 32)
     except Exception:
         return False
 

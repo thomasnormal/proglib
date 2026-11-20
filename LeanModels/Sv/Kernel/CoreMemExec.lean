@@ -1243,6 +1243,15 @@ def coreMemReactiveWrites : PProcess → List String
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body => coreMemStmtWrites body
   | _ => []
 
+/-! `always_comb` and `always_latch` are settled together by the canonical
+quiescence pass below. A continuous assignment between two such activations
+therefore remains source-shaped and executable. Plain implicit-event bodies
+run in the separate Active-region pass, so a reactive-to-assignment-to-implicit
+chain remains outside this zero-delay profile. -/
+def coreMemSeparateReactiveProc : PProcess → Bool
+  | .alwaysImplicit _ => true
+  | _ => false
+
 def coreMemReactiveReads : PProcess → List String
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body => coreMemStmtReadNames body
   | _ => []
@@ -1314,7 +1323,7 @@ def coreMemAssignReactiveChainViolAt (all : List PProcess) : List PProcess → O
           let readNames := coreMemSignalNames value
           if readNames.any (fun name => reactiveWrites.contains name) then
             let downstream := all.any fun q =>
-              coreMemReactiveProc q &&
+              coreMemSeparateReactiveProc q &&
                 (coreMemReactiveReads q).any (fun name => name == target)
             if downstream then some target else coreMemAssignReactiveChainViolAt all rest
           else coreMemAssignReactiveChainViolAt all rest
@@ -1325,7 +1334,7 @@ def coreMemAssignReactiveChainViolAt (all : List PProcess) : List PProcess → O
           let readNames := coreMemSignalNames value
           if readNames.any (fun name => reactiveWrites.contains name) then
             let downstream := all.any fun q =>
-              coreMemReactiveProc q &&
+              coreMemSeparateReactiveProc q &&
                 (coreMemReactiveReads q).any (fun name => name == targetName)
             if downstream then some targetName else coreMemAssignReactiveChainViolAt all rest
           else coreMemAssignReactiveChainViolAt all rest
@@ -2507,7 +2516,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
           E.execCombStmtFuel env elems st view locals fuel (.blockingAssign name value)
       | .arrayElem name [_] =>
           match E.memDecl? name with
-          | none => .unsupported s!"9.2.2.2: memory always_comb target '{name}' is undeclared"
+          | none => do
+              let st' ← E.execScalarTarget env elems st target value
+              .ok (st', E.scalar.view st'.scalar, locals)
           | some md => do
               let v ← E.evalExprLocals env elems st (some md.shape.elemWidth) locals value
               let st' ← E.writeInitialCell env elems st target name md v
@@ -3421,6 +3432,13 @@ private def auditW3bProcesses : List PProcess :=
 #guard coreMemReactiveReads auditW3bProcesses[2]! == ["t2"]
 #guard coreMemSignalNames (.ident "t") == ["t"]
 #guard coreMemAssignReactiveChainViol auditW3bProcesses == some "t2"
+
+private def auditW3cProcesses : List PProcess :=
+  [.alwaysComb (.blockingAssign "t" (.ident "q")),
+   .assign "t2" (.ident "t"),
+   .alwaysComb (.blockingAssign "y" (.ident "t2"))]
+
+#guard coreMemAssignReactiveChainViol auditW3cProcesses == none
 
 private def auditW4Processes : List PProcess :=
   [.assignL (.arrayElem "m4" [.int 0]) (.arrayElem "m3" [.int 0]),
