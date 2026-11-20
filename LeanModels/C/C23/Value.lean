@@ -389,6 +389,38 @@ def CVal.renameAddress (resolve : ObjId → Nat) : CVal → CVal
   | .aggregate ty bs => .aggregate ty (bs.map (CByte.renameAddress resolve))
   | .undef => .undef
 
+@[simp] theorem CByte.renameAddress_conc (resolve : ObjId → Nat) (b : UInt8) :
+    CByte.renameAddress resolve (.conc b) = .conc b := by
+  rfl
+
+@[simp] theorem CByte.renameAddress_funByte (resolve : ObjId → Nat) (id : DeclarationId) :
+    CByte.renameAddress resolve (.funByte id) = .funByte id := by
+  rfl
+
+@[simp] theorem CByte.renameAddress_indet (resolve : ObjId → Nat) :
+    CByte.renameAddress resolve .indet = .indet := by
+  rfl
+
+@[simp] theorem CVal.renameAddress_int (resolve : ObjId → Nat) (ty : IntTy) (v : Int) :
+    CVal.renameAddress resolve (.int ty v) = .int ty v := by
+  rfl
+
+@[simp] theorem CVal.renameAddress_float32 (resolve : ObjId → Nat) (v : Float32.Model) :
+    CVal.renameAddress resolve (.float32 v) = .float32 v := by
+  rfl
+
+@[simp] theorem CVal.renameAddress_float64 (resolve : ObjId → Nat) (v : Float.Model) :
+    CVal.renameAddress resolve (.float64 v) = .float64 v := by
+  rfl
+
+@[simp] theorem CVal.renameAddress_funPtr (resolve : ObjId → Nat) (id : DeclarationId) :
+    CVal.renameAddress resolve (.funPtr id) = .funPtr id := by
+  rfl
+
+@[simp] theorem CVal.renameAddress_undef (resolve : ObjId → Nat) :
+    CVal.renameAddress resolve .undef = .undef := by
+  rfl
+
 /-! ## §6.5.6-§6.5.8 Arithmetic — where the split lives
 
 Each operation computes the MATHEMATICAL result first, then decides by
