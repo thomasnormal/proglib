@@ -1684,6 +1684,7 @@ private def initialCheckTask : PStmt → Option String
   | .unsupported k _ =>
       if k == "SysCall:$fatal" then some "$fatal"
       else if k == "SysCall:$error" then some "$error"
+      else if k == "TimedStatement:DelayControl" then some "delay"
       else none
   | _ => none
 
@@ -1691,20 +1692,37 @@ private inductive InitialCheckWork where
   | stmt (body : PStmt)
   | list (bodies : List PStmt)
 
+private def initialDiagnosticOnly : PStmt → Except String Unit
+  | .block body => body.foldlM (fun _ stmt => initialDiagnosticOnly stmt) ()
+  | .ifStmt _ yes no => do
+      initialDiagnosticOnly yes
+      match no with
+      | none => pure ()
+      | some branch => initialDiagnosticOnly branch
+  | .unsupported k _ =>
+      match initialCheckTask (.unsupported k "") with
+      | some "$error" | some "delay" => pure ()
+      | some "$fatal" => throw "elaboration check executes $fatal"
+      | _ => throw "initial process is not an elaboration check"
+  | _ => throw "initial process is not an elaboration check"
+
 private def initialCheckWork (env : IEnv) : InitialCheckWork → Except String Unit
   | .stmt (.block body) => initialCheckWork env (.list body)
   | .stmt (.ifStmt cond yes no) => do
-      let v ← evalInt env cond
-      if v != 0 then
-        initialCheckWork env (.stmt yes)
-      else
-        match no with
-        | none => pure ()
-        | some branch => initialCheckWork env (.stmt branch)
+      match evalInt env cond with
+      | .ok v =>
+          if v != 0 then
+            initialCheckWork env (.stmt yes)
+          else
+            match no with
+            | none => pure ()
+            | some branch => initialCheckWork env (.stmt branch)
+      | .error _ => initialDiagnosticOnly (.ifStmt cond yes no)
   | .stmt (.unsupported k _) =>
       match initialCheckTask (.unsupported k "") with
       | some "$error" => pure ()
       | some "$fatal" => throw "elaboration check executes $fatal"
+      | some "delay" => pure ()
       | _ => throw "initial process is not an elaboration check"
   | .stmt _ => throw "initial process is not an elaboration check"
   | .list [] => pure ()
@@ -1717,6 +1735,22 @@ decreasing_by
 
 def initialCheckAdmits (env : IEnv) (body : PStmt) : Except String Unit :=
   initialCheckWork env (.stmt body)
+
+/-! Diagnostic-only initial checks may use a literal delay before `$error`.
+The delay and any signal-dependent condition affect only diagnostic output,
+which is outside the CoreMem state.  `$fatal` remains a refusal, and ordinary
+timed procedural statements never enter this adapter. -/
+#guard match initialCheckAdmits {}
+    (.block [.unsupported "TimedStatement:DelayControl" "#1",
+      .ifStmt (.ident "signal")
+        (.unsupported "SysCall:$error" "") none]) with
+  | .ok () => true
+  | _ => false
+#guard match initialCheckAdmits {}
+    (.block [.unsupported "TimedStatement:DelayControl" "#1",
+      .unsupported "SysCall:$fatal" ""]) with
+  | .error "elaboration check executes $fatal" => true
+  | _ => false
 
 def instEProcess2 (env : IEnv) (elems : List (String × Nat)) : PProcess → EProcess2
   | .alwaysImplicit b => .alwaysImplicit (instStmt2 env elems b)
