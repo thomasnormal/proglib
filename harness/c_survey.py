@@ -192,6 +192,34 @@ def envelope_error(entry, env):
     return None
 
 
+def resolve_envelope(entry, manifest_path):
+    """Resolve a manifest envelope after its cache was moved.
+
+    Older receipts recorded an absolute ``/tmp`` filename.  The manifest's
+    cache root and corpus/name identity are stable, so use those when the
+    recorded path is unavailable.  A unique recursive basename is accepted
+    for receipts produced by the older corpus fetchers.
+    """
+    recorded = Path(entry["envelope"]) if entry.get("envelope") else None
+    if recorded and recorded.is_file():
+        return recorded
+    root = Path(manifest_path).parent
+    corpus = str(entry.get("corpus", "")).replace("/", "_")
+    name = str(entry.get("name", ""))
+    candidates = [
+        root / "env" / corpus / (name + ".json"),
+        root / "env" / corpus / (name[:-2] + ".json" if name.endswith(".c") else name + ".json"),
+        root / "env" / (name[:-2] + ".json" if name.endswith(".c") else name + ".json"),
+    ]
+    candidates.extend((root / "env").glob("**/" + name + ".json"))
+    candidates.extend((root / "env").glob("**/" + (name[:-2] + ".json" if name.endswith(".c") else name + ".json")))
+    found = []
+    for candidate in candidates:
+        if candidate.is_file() and candidate not in found:
+            found.append(candidate)
+    return found[0] if len(found) == 1 else None
+
+
 def build(manifest_path, log_path, commit=None, measured_at=None):
     manifest, manifest_hash = load_manifest(manifest_path)
     by_name = {x["name"]: x for x in manifest.get("tests", [])}
@@ -201,13 +229,15 @@ def build(manifest_path, log_path, commit=None, measured_at=None):
         rec = by_name[name]
         token, detail = rows_by_name.get(name, ("runner-error", "missing log row"))
         detail = portable_detail(detail)
-        env_path = rec.get("envelope")
+        env_path = resolve_envelope(rec, manifest_path)
         env = None
         if rec.get("status") == "parsed" and env_path:
-            env = json.loads(Path(env_path).read_text())
+            env = json.loads(env_path.read_text())
             reason = envelope_error(rec, env)
             if reason:
                 raise ValueError(f"{name}: {reason}")
+        elif rec.get("status") == "parsed" and not env_path:
+            raise ValueError(f"{name}: stale envelope path could not be relocated")
         rows.append({
             "name": name,
             "corpus": rec.get("corpus", manifest.get("corpus", "gcc.c-torture/execute")),
@@ -324,6 +354,19 @@ def render(data):
 
 
 def selftest():
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="c-survey-resolve-") as tmp:
+        root = Path(tmp)
+        env = root / "env" / "c-testsuite_single-exec" / "00001.c.json"
+        env.parent.mkdir(parents=True)
+        env.write_text("{}")
+        relocated = resolve_envelope(
+            {"corpus": "c-testsuite/single-exec", "name": "00001.c",
+             "envelope": "/tmp/old/env/00001.c.json"},
+            root / "manifest.json")
+        if relocated != env:
+            print("c_survey --self-test: stale envelope was not relocated", file=sys.stderr)
+            return 1
     env = {
         "translation_unit": {
             "decls": [
