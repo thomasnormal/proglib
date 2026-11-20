@@ -397,6 +397,12 @@ theorem rememberStructuredType_unique
     (m.rememberStructuredType o ty).placements = m.placements := by
   cases ty <;> rfl
 
+theorem rememberStructuredType_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (o : ObjId) (ty : Option QualType) :
+    (m.renameAddresses rename).rememberStructuredType o ty =
+      (m.rememberStructuredType o ty).renameAddresses rename := by
+  cases ty <;> rfl
+
 def copyStructuredType (m : Mem) (old fresh : ObjId) : Mem :=
   m.rememberStructuredType fresh (m.structuredType? old)
 
@@ -1000,8 +1006,35 @@ def compoundObject? (m : Mem) (span : CSpan) : Option ObjId :=
     | some obj => if obj.live then some entry.2 else none
     | none => none
 
+theorem copyStructuredType_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (old fresh : ObjId) :
+    (m.renameAddresses rename).copyStructuredType old fresh =
+      (m.copyStructuredType old fresh).renameAddresses rename := by
+  change (m.renameAddresses rename).rememberStructuredType fresh (m.structuredType? old) =
+    (m.rememberStructuredType fresh (m.structuredType? old)).renameAddresses rename
+  exact rememberStructuredType_renameAddresses rename m fresh (m.structuredType? old)
+
 def rememberCompound (m : Mem) (span : CSpan) (o : ObjId) : Mem :=
   { m with compoundObjects := (span, o) :: m.compoundObjects }
+
+theorem rememberCompound_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (span : CSpan) (o : ObjId) :
+    (m.renameAddresses rename).rememberCompound span o =
+      (m.rememberCompound span o).renameAddresses rename := by
+  rfl
+
+theorem compoundObject_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (span : CSpan) :
+    (m.renameAddresses rename).compoundObject? span = m.compoundObject? span := by
+  cases hf : m.compoundObjects.find? (fun entry => entry.1 == span) with
+  | none => simp [compoundObject?, hf]
+  | some entry =>
+      have hget : (m.renameAddresses rename).get? entry.2 =
+          (m.get? entry.2).map (CObj.renameAddress rename) := by
+        simp [get?, renameAddresses, List.getElem?_map]
+      cases hg : m.get? entry.2 with
+      | none => simp [compoundObject?, hf, hget, hg]
+      | some obj => simp [compoundObject?, hf, hget, hg, CObj.renameAddress]
 
 @[simp] theorem rememberCompound_structuredTypesUnique
     (m : Mem) (span : CSpan) (o : ObjId)
