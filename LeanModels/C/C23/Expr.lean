@@ -1826,7 +1826,15 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       else do
         let lv ← evalExpr ctx l
         let rv ← evalExpr ctx r
-        evalArith ctx op lv rv ty (some l.ty) (some l)
+        let mem ← get
+        let stringPointer := fun value => match value with
+          | .ptr p => match p.obj.bind mem.get? with
+              | some obj => obj.effTy == some "char[]"
+              | none => false
+          | _ => false
+        if stringPointer lv || stringPointer rv then
+          refuseUnsupported "pointer operation involving a string literal"
+        else evalArith ctx op lv rv ty (some l.ty) (some l)
 
   -- §6.5.16p4 — `?:`, the third short-circuit: EXACTLY ONE arm runs. 42 sites.
   | .cond c t e _ _ => do

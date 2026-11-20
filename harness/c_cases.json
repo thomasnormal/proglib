@@ -1329,5 +1329,38 @@
     ],
     "layout_expect": "refuse",
     "layout_error": "unsupported bit-field width 40"
+  },
+  {
+    "id": "string-pointer-20030928-1-c",
+    "source": "#include <limits.h>\n\nvoid abort (void);\nvoid exit (int);\n\n#if INT_MAX <= 32767\nint main () { exit (0); }\n#else\nvoid get_addrs (const char**x, int *y)\n{\n  x[0] = \"a1111\" + (y[0] - 0x10000) * 2;\n  x[1] = \"a1112\" + (y[1] - 0x20000) * 2;\n  x[2] = \"a1113\" + (y[2] - 0x30000) * 2;\n  x[3] = \"a1114\" + (y[3] - 0x40000) * 2;\n  x[4] = \"a1115\" + (y[4] - 0x50000) * 2;\n  x[5] = \"a1116\" + (y[5] - 0x60000) * 2;\n  x[6] = \"a1117\" + (y[6] - 0x70000) * 2;\n  x[7] = \"a1118\" + (y[7] - 0x80000) * 2;\n}\n\nint main ()\n{\n  const char *x[8];\n  int y[8];\n  int i;\n\n  for (i = 0; i < 8; i++)\n    y[i] = 0x10000 * (i + 1);\n  get_addrs (x, y);\n  for (i = 0; i < 8; i++)\n    if (*x[i] != 'a')\n      abort ();\n  exit (0);\n}\n#endif\n",
+    "expect": "refuse",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "structured_expect": "refuse",
+    "structured_error": "pointer operation involving a string literal"
+  },
+  {
+    "id": "string-pointer-pr34415-c",
+    "source": "const char *__attribute__((noinline))\nfoo (const char *p)\n{\n  const char *end;\n  int len = 1;\n  for (;;)\n    {\n      int c = *p;\n      c = (c >= 'a' && c <= 'z' ? c - 'a' + 'A' : c);\n      if (c == 'B')\n\tend = p;\n      else if (c == 'A')\n\t{\n\t  end = p;\n\t  do\n\t    p++;\n\t  while (*p == '+');\n\t}\n      else\n\tbreak;\n      p++;\n      len++;\n    }\n  if (len > 2 && *p == ':')\n    p = end;\n  return p;\n}\n\nint\nmain (void)\n{\n  const char *input = \"Bbb:\";\n  return foo (input) != input + 2;\n}\n",
+    "expect": "refuse",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "structured_expect": "refuse",
+    "structured_error": "pointer operation involving a string literal"
+  },
+  {
+    "id": "string-pointer-pr53084-c",
+    "source": "/* PR middle-end/53084 */\n\nextern void abort (void);\n\n__attribute__((noinline, noclone)) void\nbar (const char *p)\n{\n  if (p[0] != 'o' || p[1] != 'o' || p[2])\n    abort ();\n}\n\nint\nmain ()\n{\n  static const char *const foo[] = {\"foo\" + 1};\n  bar (foo[0]);\n  return 0;\n}\n",
+    "expect": "refuse",
+    "return_value": 0,
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "structured_expect": "refuse",
+    "structured_error": "pointer operation involving a string literal"
   }
 ]
