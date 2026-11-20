@@ -56,6 +56,16 @@ and the loaded all-prefix refinement package.  Trap, return, and wake
 semantics remain explicit with universal canonical-E step, decode, relation,
 order, and progress premises.  No RTL invariant or finite trace is claimed.
 
+## 2026-11-20 R1 CSR consumer recheck
+
+The loaded-core implemented CSR family compiles for CSRRW, CSRRS, CSRRC,
+CSRRWI, CSRRSI, and CSRRCI.  The checked theorem surface includes the exact
+CSR-fields-to-ISA bridge, six loaded `Rv32iBoundary` consumers, the shared
+CSR cycle dispatcher, and the loaded all-prefix refinement package.  The
+checked CSR table lookup and universal canonical-E step, decode, relation,
+order, and progress premises remain explicit.  No RTL invariant or finite
+trace is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
