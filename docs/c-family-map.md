@@ -493,3 +493,8 @@ placement preservation, and dead-pointer results all quantify over the fresh
 `Mem` value. The trial was reverted without changing those statements. The
 next implementation must add side-table preservation lemmas before changing
 the evaluator transition.
+
+The side-table preservation slice is now available independently. A fresh
+`ObjId` can copy the old allocation's parser-native type observation, and the
+copy preserves concrete placements. `TypeBridgeTests` exercises that transfer
+without changing `realloc` itself.

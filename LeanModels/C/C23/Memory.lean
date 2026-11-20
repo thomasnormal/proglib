@@ -304,6 +304,20 @@ def rememberStructuredType (m : Mem) (o : ObjId) (ty : Option QualType) : Mem :=
     (m.rememberStructuredType o ty).placements = m.placements := by
   cases ty <;> rfl
 
+def copyStructuredType (m : Mem) (old fresh : ObjId) : Mem :=
+  m.rememberStructuredType fresh (m.structuredType? old)
+
+theorem copyStructuredType_lookup_new
+    (m : Mem) (old fresh : ObjId) (ty : QualType)
+    (h : m.structuredType? old = some ty) :
+    (m.copyStructuredType old fresh).structuredType? fresh = some ty := by
+  simp [copyStructuredType, h]
+
+@[simp] theorem copyStructuredType_placements
+    (m : Mem) (old fresh : ObjId) :
+    (m.copyStructuredType old fresh).placements = m.placements := by
+  simp [copyStructuredType]
+
 def emitStdout (m : Mem) (bytes : List CByte) : Mem :=
   { m with stdout := m.stdout ++ bytes }
 
