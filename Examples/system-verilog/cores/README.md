@@ -1360,3 +1360,14 @@ coverage.  `lake env lean Examples/system-verilog/cores/picorv32/r1_fence.lean`
 passed, and all printed theorem axiom sets are
 `[propext, Classical.choice, Quot.sound]`.  Universal loaded-core step and
 order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 illegal boundary
+
+The loaded-core R1 illegal boundary package compiles for an undecodable word
+and a decoded CSR instruction with an unimplemented address.  The two parser
+outcomes remain distinct and each has an exact trap step, RVFI retirement
+boundary, loaded `Rv32iBoundary` bridge, and indexed exact-cycle refinement
+coverage.  `lake env lean
+Examples/system-verilog/cores/picorv32/r1_illegal.lean` passed, and all printed
+theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
+Universal loaded-core step and order premises remain explicit.
