@@ -990,6 +990,75 @@ theorem storeBytes_structuredTypesUnique
   cases h
   exact hunique
 
+theorem storeBytes_structuredTypesUnique_of_ok
+    {m m' : Mem} {p : Ptr} {bs : List CByte}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeBytes p bs = .ok m') : structuredTypesUnique m' := by
+  unfold storeBytes at h
+  cases hr : m.resolve p bs.length with
+  | error e => simp [hr] at h
+  | ok result =>
+    simp [hr] at h
+    cases result with
+    | mk o c off =>
+      cases h
+      exact hunique
+
+theorem storeFloat32_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {f : Float32.Model}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeFloat32 p f = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFloat32] using h)
+
+theorem storeFloat64_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {f : Float.Model}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeFloat64 p f = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFloat64] using h)
+
+theorem storeInt_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {t : IntTy} {v : Int}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeInt p t v = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeInt] using h)
+
+theorem storePtr_structuredTypesUnique
+    {m m' : Mem} {p q : Ptr}
+    (hunique : structuredTypesUnique m)
+    (h : m.storePtr p q = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storePtr] using h)
+
+theorem storeFunction_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} {id : DeclarationId}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeFunction p id = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storeFunction] using h)
+
+theorem storePtrInt_structuredTypesUnique
+    {m m' : Mem} {p q : Ptr}
+    (hunique : structuredTypesUnique m)
+    (h : m.storePtrInt p q = .ok m') : structuredTypesUnique m' := by
+  exact storeBytes_structuredTypesUnique_of_ok hunique (by simpa [storePtrInt] using h)
+
+theorem storeIntChecked_structuredTypesUnique
+    {m m' : Mem} {alias : AliasModel} {p : Ptr} {t : IntTy}
+    {used : CType} {v : Int}
+    (hunique : structuredTypesUnique m)
+    (h : m.storeIntChecked alias p t used v = .ok m') :
+    structuredTypesUnique m' := by
+  unfold storeIntChecked at h
+  cases hr : m.resolve p (encodeInt t v).length with
+  | error e => simp [hr] at h
+  | ok result =>
+    cases result with
+    | mk o c off =>
+      cases he : checkEffectiveAt m alias o c off used none with
+      | error e => simp [hr, he] at h
+      | ok unit =>
+        simp [hr, he] at h
+        cases h
+        simpa [structuredTypesUnique, structuredTypeKeys] using hunique
+
 /-! ### §6.2.6.2 Integer representation
 
 Byte order is the profile's `little_endian`, and the extractor's profile gate
