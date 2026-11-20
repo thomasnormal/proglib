@@ -1277,3 +1277,15 @@ Examples/system-verilog/cores/picorv32/r1_branch.lean` passed, and every
 printed theorem axiom set is `[propext, Classical.choice, Quot.sound]`.
 The universal loaded-core step and order premises remain explicit, so this
 R1 result does not claim a finite-trace or RTL invariant proof.
+
+## 2026-11-20 PicoRV32 R1 complete memory class
+
+The loaded-core R1 memory package compiles for all eight RV32I memory forms.
+It covers signed and unsigned byte and halfword loads, word load, and byte,
+halfword, and word stores.  Each exact decoder row has a memory-preserving ISA
+step theorem, RVFI retirement boundary, loaded `Rv32iBoundary` bridge, and
+indexed exact-cycle refinement theorem over arbitrary architectural state and
+byte memory.  `lake env lean
+Examples/system-verilog/cores/picorv32/r1_mem_all.lean` passed, with every
+printed theorem axiom set equal to `[propext, Classical.choice, Quot.sound]`.
+The loaded-core invariant and universal order premises remain explicit.
