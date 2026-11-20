@@ -31524,6 +31524,31 @@ def _enum_base_node(sm, ct):
                         "lsb": {"kind": "Int", "span": None,
                                 "value": 0, "resolved_width": None},
                     }]
+            elif type(base_canonical).__name__ in ("PackedArrayType", "ScalarType"):
+                # A package typedef such as `typedef logic [3:0] action_mask_t`
+                # is represented by Slang as an enum base alias with no direct
+                # LogicType child on the EnumType syntax.  Recover its fixed
+                # packed width from the canonical base.  Parameter-dependent
+                # module-local enum bases stay on the existing loud path.
+                package_enum = False
+                try:
+                    package_enum = any(_pkg_of(ev) is not None
+                                       for ev in _enum_members(ct))
+                except Exception:
+                    package_enum = False
+                if package_enum or not _sym_family_point_dependent():
+                    width = int(base_canonical.bitWidth)
+                    if width == 1:
+                        packed = []
+                    elif width > 1:
+                        packed = [{
+                            "msb": {"kind": "Int", "span": None,
+                                    "value": width - 1,
+                                    "resolved_width": None},
+                            "lsb": {"kind": "Int", "span": None,
+                                    "value": 0,
+                                    "resolved_width": None},
+                        }]
             else:
                 package_scope = None
                 try:

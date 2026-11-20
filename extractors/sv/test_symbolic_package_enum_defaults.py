@@ -77,6 +77,25 @@ class SymbolicPackageEnumDefaults(unittest.TestCase):
         self.assertFalse(any(n.get("kind") == "Unsupported"
                              for n in module["processes"]))
 
+    def test_package_enum_alias_recovers_fixed_packed_shape(self):
+        source = (
+            "package p; typedef logic [3:0] mask_t; "
+            "typedef enum mask_t {CLR=4'h1, SET=4'h2} action_t; "
+            "endpackage module top(input p::action_t action, output logic y); "
+            "always_comb y = (action == p::CLR); endmodule"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "top.sv"
+            out = Path(directory) / "top.sv.json"
+            src.write_text(source)
+            extract.process_symbolic("top", [str(src)], [], str(out))
+            module = json.loads(out.read_text())["design"]["modules"][0]
+
+        enum = next(t for t in module["types"] if t["name"] == "action_t")
+        self.assertEqual(enum["base_width"]["packed"][0]["msb"]["value"], 3)
+        self.assertEqual(enum["base_width"]["packed"][0]["lsb"]["value"], 0)
+        self.assertEqual(enum["base_width"]["resolved"], 4)
+
 
 if __name__ == "__main__":
     unittest.main()
