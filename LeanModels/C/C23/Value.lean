@@ -563,6 +563,18 @@ theorem CByte.renameAddress_conc_list
   | nil => rfl
   | cons b bs ih => simp [CByte.renameAddress, ih]
 
+def CRes.renameAddress (resolve : ObjId → Nat) : CRes CVal → CRes CVal
+  | .ok v => .ok (CVal.renameAddress resolve v)
+  | .ub cause => .ub cause
+
+@[simp] theorem CRes.renameAddress_ok (resolve : ObjId → Nat) (v : CVal) :
+    CRes.renameAddress resolve (.ok v) = .ok (CVal.renameAddress resolve v) := by
+  rfl
+
+@[simp] theorem CRes.renameAddress_ub (resolve : ObjId → Nat) (cause : UB) :
+    CRes.renameAddress resolve (.ub cause) = .ub cause := by
+  rfl
+
 /-! ## §6.5.6-§6.5.8 Arithmetic — where the split lives
 
 Each operation computes the MATHEMATICAL result first, then decides by
@@ -587,10 +599,39 @@ def close (op : String) (t : IntTy) (v : Int) : CRes CVal :=
   else if t.signed then .ub (.signedOverflow op t v)
   else .ok (.int t (t.wrap v))
 
+@[simp] theorem CRes.renameAddress_close (resolve : ObjId → Nat)
+    (op : String) (t : IntTy) (v : Int) :
+    CRes.renameAddress resolve (close op t v) = close op t v := by
+  by_cases hrange : t.inRange v = true
+  · simp [close, hrange, CRes.renameAddress, CVal.renameAddress]
+  · by_cases hsigned : t.signed = true
+    · simp [close, hrange, hsigned, CRes.renameAddress, CVal.renameAddress]
+    · simp [close, hrange, hsigned, CRes.renameAddress, CVal.renameAddress]
+
 def addOp (t : IntTy) (a b : Int) : CRes CVal := close "+" t (a + b)
 def subOp (t : IntTy) (a b : Int) : CRes CVal := close "-" t (a - b)
 def mulOp (t : IntTy) (a b : Int) : CRes CVal := close "*" t (a * b)
 def negOp (t : IntTy) (a : Int) : CRes CVal := close "-" t (-a)
+
+@[simp] theorem CRes.renameAddress_addOp (resolve : ObjId → Nat)
+    (t : IntTy) (a b : Int) :
+    CRes.renameAddress resolve (addOp t a b) = addOp t a b := by
+  simp [addOp]
+
+@[simp] theorem CRes.renameAddress_subOp (resolve : ObjId → Nat)
+    (t : IntTy) (a b : Int) :
+    CRes.renameAddress resolve (subOp t a b) = subOp t a b := by
+  simp [subOp]
+
+@[simp] theorem CRes.renameAddress_mulOp (resolve : ObjId → Nat)
+    (t : IntTy) (a b : Int) :
+    CRes.renameAddress resolve (mulOp t a b) = mulOp t a b := by
+  simp [mulOp]
+
+@[simp] theorem CRes.renameAddress_negOp (resolve : ObjId → Nat)
+    (t : IntTy) (a : Int) :
+    CRes.renameAddress resolve (negOp t a) = negOp t a := by
+  simp [negOp]
 
 /-- C23 §6.5.6p7: the quotient is "the algebraic quotient with any
 fractional part discarded" — footnote 104 calls this *truncation toward
@@ -611,6 +652,15 @@ def divOp (t : IntTy) (a b : Int) : CRes CVal :=
   else if t.signed && a == t.minVal && b == -1 then .ub .divideOverflow
   else close "/" t (Int.tdiv a b)
 
+@[simp] theorem CRes.renameAddress_divOp (resolve : ObjId → Nat)
+    (t : IntTy) (a b : Int) :
+    CRes.renameAddress resolve (divOp t a b) = divOp t a b := by
+  by_cases hzero : b == 0
+  · simp [divOp, hzero]
+  · by_cases hover : t.signed && a == t.minVal && b == -1
+    · simp [divOp, hzero, hover]
+    · simp [divOp, hzero, hover]
+
 /-- C23 §6.5.6p7: the remainder pairs with the truncating quotient, so
 `(a/b)*b + a%b == a` and `a % b` takes the sign of `a`. Same two UB arms
 as `divOp` — **`J.2(41)`** for the zero divisor, **`J.2(35)`** for
@@ -619,6 +669,15 @@ def modOp (t : IntTy) (a b : Int) : CRes CVal :=
   if b == 0 then .ub (.divideByZero "%")
   else if t.signed && a == t.minVal && b == -1 then .ub .divideOverflow
   else close "%" t (Int.tmod a b)
+
+@[simp] theorem CRes.renameAddress_modOp (resolve : ObjId → Nat)
+    (t : IntTy) (a b : Int) :
+    CRes.renameAddress resolve (modOp t a b) = modOp t a b := by
+  by_cases hzero : b == 0
+  · simp [modOp, hzero]
+  · by_cases hover : t.signed && a == t.minVal && b == -1
+    · simp [modOp, hzero, hover]
+    · simp [modOp, hzero, hover]
 
 /-- `<<`, C23 §6.5.8 (C17 §6.5.7).
 
@@ -639,6 +698,19 @@ def shlOp (t : IntTy) (a b : Int) : CRes CVal :=
     if t.signed && !t.inRange r then .ub (.shiftOverflow a b t)
     else close "<<" t r
 
+@[simp] theorem CRes.renameAddress_shlOp (resolve : ObjId → Nat)
+    (t : IntTy) (a b : Int) :
+    CRes.renameAddress resolve (shlOp t a b) = shlOp t a b := by
+  by_cases hneg : b < 0
+  · simp [shlOp, hneg]
+  · by_cases hwidth : b ≥ (t.bits : Int)
+    · simp [shlOp, hneg, hwidth]
+    · by_cases hsign : t.signed && a < 0
+      · simp [shlOp, hneg, hwidth, hsign]
+      · by_cases hover : t.signed && !t.inRange (a * (2 : Int) ^ b.toNat)
+        · simp [shlOp, hneg, hwidth, hsign, hover]
+        · simp [shlOp, hneg, hwidth, hsign, hover]
+
 /-- `>>`, C23 §6.5.8. The count is constrained exactly as for `<<`
 (§6.5.8p3, **`J.2(48)`**).
 
@@ -657,6 +729,15 @@ def shrOp (t : IntTy) (a b : Int) : CRes CVal :=
   if b < 0 then .ub (.shiftCountNegative b)
   else if b ≥ (t.bits : Int) then .ub (.shiftCountTooLarge b t.bits)
   else close ">>" t (Int.fdiv a ((2 : Int) ^ b.toNat))
+
+@[simp] theorem CRes.renameAddress_shrOp (resolve : ObjId → Nat)
+    (t : IntTy) (a b : Int) :
+    CRes.renameAddress resolve (shrOp t a b) = shrOp t a b := by
+  by_cases hneg : b < 0
+  · simp [shrOp, hneg]
+  · by_cases hwidth : b ≥ (t.bits : Int)
+    · simp [shrOp, hneg, hwidth]
+    · simp [shrOp, hneg, hwidth]
 
 /-! ### §6.5.11-§6.5.13 — the bitwise operators
 
