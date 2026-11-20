@@ -529,3 +529,8 @@ the `Except` memory API.
 Automatic-scope cleanup now has the same proof. `killFrom` preserves
 `structuredTypesUnique` through every fold branch, including static-object
 skips and missing-object cases.
+
+The abstract `va_list` operations now preserve `structuredTypesUnique` on
+successful results. `vaStart`, `vaCopy`, `vaEnd`, and `vaArg` update only the
+cursor table, so parser-native effective-type identities remain unchanged
+through variadic argument traversal.
