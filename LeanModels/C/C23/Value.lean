@@ -287,12 +287,12 @@ theorem exposedAddress_provenance_irrel (o₁ o₂ : ObjId) (address : Nat) :
     exposedAddress (toObjectAt o₁ address) = exposedAddress (toObjectAt o₂ address) := by
   simp [exposedAddress_toObjectAt]
 
+/- A raw integer does not carry an exposure witness.  PNVI-ae-udi therefore
+   refuses every non-null recovery until an address-exposure map is supplied
+   by the memory instance.  This keeps an arbitrary integer from fabricating
+   provenance for object `n - 1`; zero remains the null pointer constant. -/
 def fromExposedAddress (n : Int) : Option Ptr :=
-  if n == 0 then some null
-  else if n > 0 then
-    let a := (n - 1).toNat
-    some (toObjectAt a a)
-  else none
+  if n == 0 then some null else none
 
 @[simp] theorem exposedAddress_null : exposedAddress Ptr.null = 0 := by
   simp [exposedAddress, Ptr.null]
@@ -303,33 +303,18 @@ theorem exposedAddress_nonnull (p : Ptr) (hp : p.obj.isSome) :
   | none => rw [h] at hp; simp at hp
   | some o => simp [exposedAddress, h]
 
-theorem fromExposedAddress_exposed_address (p : Ptr) (hp : p.obj.isSome) :
-    (fromExposedAddress (exposedAddress p)).map (fun q => q.address) = some p.address := by
-  cases h : p.obj with
-  | none => rw [h] at hp; simp at hp
-  | some o =>
-      have hn0 : ¬ ((p.address : Int) + 1 = 0) := by omega
-      have hpos : 0 < (p.address : Int) + 1 := by omega
-      simp [exposedAddress, fromExposedAddress, toObjectAt, h, hn0, hpos]
-
 @[simp] theorem fromExposedAddress_zero : fromExposedAddress 0 = some Ptr.null := by
   simp [fromExposedAddress]
 
 @[simp] theorem fromExposedAddress_negative (n : Int) (hn : n < 0) :
     fromExposedAddress n = none := by
   have hn0 : ¬ n = 0 := by omega
-  have hnp : ¬ 0 < n := by omega
-  simp [fromExposedAddress, hn, hn0, hnp]
+  simp [fromExposedAddress, hn0]
 
-theorem fromExposedAddress_positive_address (n : Int) (hn : 0 < n) :
-    (fromExposedAddress n).map (fun q => q.address) = some (n - 1).toNat := by
+@[simp] theorem fromExposedAddress_positive_none (n : Int) (hn : 0 < n) :
+    fromExposedAddress n = none := by
   have hn0 : ¬ n = 0 := by omega
-  simp [fromExposedAddress, toObjectAt, hn, hn0]
-
-theorem fromExposedAddress_positive_provenance (n : Int) (hn : 0 < n) :
-    (fromExposedAddress n).map (fun q => q.obj) = some (some (n - 1).toNat) := by
-  have hn0 : ¬ n = 0 := by omega
-  simp [fromExposedAddress, toObjectAt, hn, hn0]
+  simp [fromExposedAddress, hn0]
 
 end Ptr
 

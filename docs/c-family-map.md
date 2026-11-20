@@ -553,3 +553,9 @@ the uniqueness invariant is carried through each API entry point.
 The compound-literal registry has the same boundary. `rememberCompound` records
 the parser span and object identity without touching structured effective-type
 rows, and its lookup-preservation lemma keeps that separation explicit.
+
+The F2 pointer audit now has three differential rows. Pointer-address
+subtraction and integer-to-pointer exposure refuse before the missing layout or
+exposure witness can fabricate a result. The pointer-byte row remains a defined
+native operation, while the current tier refuses it when parser-native pointer
+layout is unavailable instead of reporting a false byte-level UB.
