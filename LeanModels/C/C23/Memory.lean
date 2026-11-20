@@ -336,6 +336,26 @@ def renameAddresses (resolve : ObjId → Nat) (m : Mem) : Mem :=
     vaCursors := m.vaCursors.map (fun (o, vs) => (o, vs.map (CVal.renameAddress resolve)))
     placements := m.placements.map (fun (o, _) => (o, resolve o)) }
 
+@[simp] theorem renameAddresses_objs (resolve : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses resolve).objs =
+      m.objs.map (CObj.renameAddress resolve) := by
+  rfl
+
+@[simp] theorem renameAddresses_stdout (resolve : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses resolve).stdout =
+      m.stdout.map (CByte.renameAddress resolve) := by
+  rfl
+
+@[simp] theorem renameAddresses_vaCursors (resolve : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses resolve).vaCursors =
+      m.vaCursors.map (fun (o, vs) => (o, vs.map (CVal.renameAddress resolve))) := by
+  rfl
+
+@[simp] theorem renameAddresses_placements (resolve : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses resolve).placements =
+      m.placements.map (fun (o, _) => (o, resolve o)) := by
+  rfl
+
 @[simp] theorem renameAddresses_structuredTypes
     (resolve : ObjId → Nat) (m : Mem) :
     (m.renameAddresses resolve).structuredTypes = m.structuredTypes := by
