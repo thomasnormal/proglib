@@ -433,6 +433,18 @@ theorem CByte.renameAddress_comp
       CByte.renameAddress (fun o => second o) b := by
   cases b <;> simp [CByte.renameAddress, Ptr.renameAddress_comp]
 
+theorem CByte.renameAddress_ptrByte
+    (resolve : ObjId → Nat) (p : Ptr) (k : Nat) :
+    CByte.renameAddress resolve (CByte.ptrByte p k) =
+      CByte.ptrByte (Ptr.renameAddress resolve p) k := by
+  rfl
+
+theorem CByte.renameAddress_ptrIntByte
+    (resolve : ObjId → Nat) (p : Ptr) (k : Nat) :
+    CByte.renameAddress resolve (CByte.ptrIntByte p k) =
+      CByte.ptrIntByte (Ptr.renameAddress resolve p) k := by
+  rfl
+
 theorem CVal.renameAddress_comp
     (first second : ObjId → Nat) (v : CVal) :
     CVal.renameAddress second (CVal.renameAddress first v) =
