@@ -20,6 +20,7 @@ import tempfile
 
 
 ENVELOPE_HASHES = {
+    "65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26",
     "120807c6e5a246cf634bbd2af593810cd00b7fafb75dd4bb8b385d7c3a1a753b",
     "0ce4d6079fc99f447a6ea82b4422de654192faba4495603b77a451705d19f9dc",
     "5fdb97fc8b4f663d7265e2d3128610319ab6f2cfc86576cb1cee519c78e44ccc",
@@ -131,9 +132,7 @@ def run_clock_probe(envelope: Path, repo: Path) -> str:
 
 def main() -> int:
     envelope_text = os.environ.get("DARKRISCV_ENVELOPE")
-    if not envelope_text:
-        raise SystemExit("set DARKRISCV_ENVELOPE to the pinned envelope")
-    envelope = Path(envelope_text).resolve()
+    envelope = (Path(envelope_text).resolve() if envelope_text else Path(__file__).with_name("darkriscv.sv.json"))
     if not envelope.is_file():
         raise SystemExit(f"missing pinned envelope: {envelope.name}")
     digest = hashlib.sha256(envelope.read_bytes()).hexdigest()

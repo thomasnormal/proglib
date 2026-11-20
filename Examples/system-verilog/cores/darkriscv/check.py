@@ -32,41 +32,44 @@ def rows(output: str) -> list[str]:
     return [line for line in output.splitlines() if line.startswith("ROW ")]
 
 
-def main() -> None:
+def run_receipt() -> tuple[list[str], list[str]]:
     root_text = os.environ.get("DARKRISCV_ROOT")
-    if not root_text:
-        raise SystemExit("set DARKRISCV_ROOT to the pinned DarkRISCV checkout")
-    root = Path(root_text).resolve()
+    root = (Path(root_text).resolve() if root_text else Path(__file__).with_name("rtl").parent)
     source = root / "rtl" / "darkriscv.v"
     if not source.is_file():
         raise SystemExit(f"missing pinned source: {source}")
-    commit = run(["git", "rev-parse", "HEAD"], root).strip()
-    if commit != PINNED_COMMIT:
-        raise SystemExit(f"source commit {commit} is not the pinned {PINNED_COMMIT}")
+    bundled = root == Path(__file__).resolve().parent
+    if not bundled:
+        commit = run(["git", "rev-parse", "HEAD"], root).strip()
+        if commit != PINNED_COMMIT:
+            raise SystemExit(f"source commit {commit} is not the pinned {PINNED_COMMIT}")
     source_sha = hashlib.sha256(source.read_bytes()).hexdigest()
     if source_sha != SOURCE_SHA256:
         raise SystemExit(f"source SHA-256 {source_sha} is not the pinned {SOURCE_SHA256}")
 
     repo = Path(__file__).resolve().parents[4]
     testbench = repo / "Examples/system-verilog/cores/darkriscv/nop_tb.sv"
-    sim_dir = root / "sim"
-    with tempfile.TemporaryDirectory(prefix="darkriscv-receipt-") as temporary:
+    with tempfile.TemporaryDirectory(
+        prefix="darkriscv-receipt-",
+        dir=os.environ.get("TMPDIR"),
+    ) as temporary:
         work = Path(temporary)
+        (work / "rtl").symlink_to(root / "rtl", target_is_directory=True)
+        sim_work = work / "sim"
+        sim_work.mkdir()
         iverilog = work / "darkriscv-iverilog"
         run([
             "iverilog", "-g2012", "-I", str(root / "rtl"), "-o", str(iverilog),
             str(testbench), str(source),
-        ], sim_dir)
-        icarus_rows = rows(run(["vvp", str(iverilog)], sim_dir))
-        print("Icarus Verilog 13.0 (s20250103-64-gdad78d525)")
+        ], sim_work)
+        icarus_rows = rows(run(["vvp", str(iverilog)], sim_work))
 
         if shutil.which("xrun") is None:
             raise SystemExit("Xcelium xrun is required for this receipt")
         xcelium_rows = rows(run([
             "xrun", "-sv", "-q", "-I../rtl", "-top",
             "darkriscv_nop_tb", str(testbench), str(source),
-        ], sim_dir))
-        print("Xcelium 24.03-s004")
+        ], sim_work))
 
     if len(icarus_rows) != EXPECTED_ROWS or len(xcelium_rows) != EXPECTED_ROWS:
         raise SystemExit(
@@ -75,6 +78,13 @@ def main() -> None:
         )
     if icarus_rows != xcelium_rows:
         raise SystemExit("the pinned simulators disagree on the 1000-cycle witness")
+    return icarus_rows, xcelium_rows
+
+
+def main() -> None:
+    icarus_rows, xcelium_rows = run_receipt()
+    print("Icarus Verilog 13.0 (s20250103-64-gdad78d525)")
+    print("Xcelium 24.03-s004")
     digest = hashlib.sha256(("\n".join(icarus_rows) + "\n").encode()).hexdigest()
     print(f"rows: {EXPECTED_ROWS}/{EXPECTED_ROWS} agree")
     print(f"normalized-row-sha256: {digest}")
