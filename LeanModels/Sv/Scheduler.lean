@@ -546,9 +546,25 @@ def allSlots : Nat → SchedulerDesign → SlotState → List SvState
       if quietB s then [s.store] else (nextStates d s).flatMap (allSlots fuel d)
 
 def allSlotStates : Nat → SchedulerDesign → SlotState → List SlotState
-  | 0, _, s => if quietB s then [s] else []
+  | 0, _, s => if quietB s || s.refusal.isSome then [s] else []
   | fuel + 1, d, s =>
-      if quietB s then [s] else (nextStates d s).flatMap (allSlotStates fuel d)
+      if quietB s || s.refusal.isSome then [s]
+      else (nextStates d s).flatMap (allSlotStates fuel d)
+
+inductive SlotOutcome where
+  | value (store : SvState)
+  | refusal (message : String)
+deriving Repr, DecidableEq, Inhabited
+
+def allSlotOutcomes : Nat → SchedulerDesign → SlotState → List SlotOutcome
+  | 0, _, s =>
+      if let some message := s.refusal then [.refusal message]
+      else if quietB s then [.value s.store]
+      else []
+  | fuel + 1, d, s =>
+      if let some message := s.refusal then [.refusal message]
+      else if quietB s then [.value s.store]
+      else (nextStates d s).flatMap (allSlotOutcomes fuel d)
 
 def SchedulerDesign.ofDesign (d : Design) : SchedulerDesign :=
   { eval := processEval d
@@ -987,6 +1003,8 @@ private def refusedDesign : SchedulerDesign :=
       processes := #[.unsupported "Initial" "initial process"] }
 
 #guard !refusedDesign.admitted
+#guard allSlotOutcomes 8 refusedDesign refusedDesign.initial ==
+  [.refusal "scheduler: unsupported statement 'Initial'"]
 example : ¬ RunDesign refusedDesign [] [] := by
   intro h
   unfold RunDesign refusedDesign at h
