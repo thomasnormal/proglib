@@ -374,6 +374,18 @@ theorem CByte.renameAddress_beq_funByte
       (b == CByte.funByte id) := by
   cases b <;> rfl
 
+theorem CByte.renameAddress_beq_conc
+    (resolve : ObjId → Nat) (b : CByte) (v : UInt8) :
+    (CByte.renameAddress resolve b == CByte.conc v) =
+      (b == CByte.conc v) := by
+  cases b <;> rfl
+
+theorem CByte.renameAddress_beq_indet
+    (resolve : ObjId → Nat) (b : CByte) :
+    (CByte.renameAddress resolve b == CByte.indet) =
+      (b == CByte.indet) := by
+  cases b <;> rfl
+
 /-! A placement map intentionally overwrites the concrete address carried by a
 pointer.  Since the derived pointer equality also observes that field, a
 general byte-equality commutation theorem is false for malformed pointer
