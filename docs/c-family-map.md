@@ -579,3 +579,7 @@ Successful byte and checked-integer stores now expose direct structured-type
 lookup-preservation lemmas. Their object-byte and legacy effective-type updates
 cannot alter parser-native declaration rows, and the bridge guard checks this
 projection on an allocated store.
+
+Lifetime-ending operations now expose the same projection. `kill`, `killFrom`,
+and successful `free` preserve every structured-type lookup while changing
+object liveness or tombstones.
