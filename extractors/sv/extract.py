@@ -31536,7 +31536,16 @@ def _enum_base_node(sm, ct):
                                        for ev in _enum_members(ct))
                 except Exception:
                     package_enum = False
-                if package_enum or not _sym_family_point_dependent():
+                # Canonical scalar and fixed packed aliases carry their own
+                # point-independent width even inside a parameterized module.
+                # Only a dimension whose syntax depends on a family parameter
+                # remains outside this recovery branch.
+                fixed_alias = type(base_canonical).__name__ == "ScalarType"
+                if type(base_canonical).__name__ == "PackedArrayType":
+                    fixed_alias = not _sym_syntax_point_dependent(
+                        getattr(getattr(base, "syntax", None), "dimensions", None),
+                        getattr(base, "parentScope", None) or _SYM.scope)
+                if package_enum or fixed_alias:
                     width = int(base_canonical.bitWidth)
                     if width == 1:
                         packed = []

@@ -96,6 +96,23 @@ class SymbolicPackageEnumDefaults(unittest.TestCase):
         self.assertEqual(enum["base_width"]["packed"][0]["lsb"]["value"], 0)
         self.assertEqual(enum["base_width"]["resolved"], 4)
 
+    def test_parameterized_module_scalar_enum_keeps_fixed_shape(self):
+        source = (
+            "module top #(parameter int N = 4)(input logic x, output logic y); "
+            "typedef enum logic {OFF=1'b0, ON=1'b1} state_t; state_t s; "
+            "always_comb y = (s == ON) ^ x; endmodule"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "top.sv"
+            out = Path(directory) / "top.sv.json"
+            src.write_text(source)
+            extract.process_symbolic("top", [str(src)], [], str(out))
+            module = json.loads(out.read_text())["design"]["modules"][0]
+
+        enum = next(t for t in module["types"] if t["name"] == "state_t")
+        self.assertEqual(enum["base_width"], {
+            "kind": "PackedType", "packed": [], "resolved": 1})
+
 
 if __name__ == "__main__":
     unittest.main()
