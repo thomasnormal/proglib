@@ -70,9 +70,16 @@ def run(clang, plugin, source):
     if not isinstance(document, list):
         raise RuntimeError("probe output is not an array")
     for record in document:
-        if (not isinstance(record, dict) or record.get("kind") != "StructuredType" or
+        if (not isinstance(record, dict) or record.get("kind") not in
+                ("StructuredType", "StructuredExprType") or
                 type(record.get("offset")) is not int or record["offset"] < 0):
             raise RuntimeError(f"invalid structured type record: {record!r}")
+        if record["kind"] == "StructuredExprType":
+            if (type(record.get("end_offset")) is not int or
+                    record["end_offset"] < record["offset"] or
+                    not isinstance(record.get("expr_kind"), str) or
+                    not record["expr_kind"]):
+                raise RuntimeError(f"invalid structured expression identity: {record!r}")
         validate_type(record.get("type"))
     return result.stdout, document
 
@@ -89,6 +96,9 @@ def self_test():
              "element": {"kind": "builtin", "name": "int"}, "extent": None}},
         {"kind": "StructuredType", "offset": 8,
          "type": {"kind": "record", "declaration": {"offset": 12}}},
+        {"kind": "StructuredExprType", "offset": 16, "end_offset": 19,
+         "expr_kind": "ArraySubscriptExpr",
+         "type": {"kind": "builtin", "name": "unsigned char"}},
     ]
     for record in records:
         validate_type(record["type"])
@@ -98,6 +108,14 @@ def self_test():
         pass
     else:
         raise RuntimeError("negative declaration offset was accepted")
+    try:
+        validate_type({"kind": "StructuredExprType", "offset": 4,
+                       "end_offset": 3, "expr_kind": "ArraySubscriptExpr",
+                       "type": {"kind": "builtin", "name": "int"}})
+    except RuntimeError:
+        pass
+    else:
+        raise RuntimeError("backward expression range was accepted")
     print("c_structured_type_determinism: self-test ok")
     return 0
 
