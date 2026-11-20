@@ -60,6 +60,7 @@ def _root_.LeanModels.Sv.PExpr.sigNames : PExpr → List String
       PExpr.sigNames a
   | .binary _ a b | .bitSel a b | .repl a b => PExpr.sigNames a ++ PExpr.sigNames b
   | .aggregateMember base path => base :: PExpr.sigNamesPath path
+  | .packageAggElem _ _ index => PExpr.sigNames index
   | .ternary c a b | .partSel c a b => PExpr.sigNames c ++ PExpr.sigNames a ++ PExpr.sigNames b
   | .concat xs | .functionCall _ xs => PExpr.sigNamesList xs
   | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .typeBits _ _ | .unsupported _ _ => []
@@ -235,6 +236,7 @@ def _root_.LeanModels.Sv.PExpr.unconverted : PExpr → List String
   | .ternary c a b | .partSel c a b => PExpr.unconverted c ++ PExpr.unconverted a ++ PExpr.unconverted b
   | .concat xs | .functionCall _ xs => PExpr.unconvertedList xs
   | .aggregateMember .. => []
+  | .packageAggElem _ _ index => PExpr.unconverted index
   | .ident _ | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _ | .typeBits _ _ => []
 
 /-- `unconverted` of a list. -/
@@ -444,6 +446,10 @@ theorem CoreMemDesign.evalV_congr {E : CoreMemDesign} {env : IEnv} {elems : List
   | ctx, .functionCall _ _, _ => by simp only [CoreMemDesign.evalV]
   | ctx, .aggregateMember _ _, _ => by
       simp [CoreMemDesign.evalV, CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf, instExpr2]
+  | ctx, .packageAggElem _ _ _, h => by
+      simp only [CoreMemDesign.readsV] at h
+      simp only [CoreMemDesign.evalV]
+      exact CoreMemDesign.evalScalarV_congr h
   | ctx, .arrayElem name indices, h => by
       cases indices with
       | nil =>

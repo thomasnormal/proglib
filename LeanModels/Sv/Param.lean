@@ -338,6 +338,8 @@ inductive PExpr where
   field name or a runtime index expression.  The path is retained until the
   aggregate E relation consumes it. -/
   | aggregateMember (base : String) (path : List (Option String × Option PExpr))
+  /-- Source-shaped read of one element of a package aggregate parameter. -/
+  | packageAggElem (package name : String) (index : PExpr)
   /-- Source-shaped automatic function call. -/
   | functionCall (name : String) (args : List PExpr)
   | unsupported (svKind : String) (text : String)
@@ -358,6 +360,13 @@ inductive PType where
   | packed (dims : List PDim) (resolved? : Option Nat)
   | typeRef (name : String) (pkg : Option String) (resolved? : Option Nat)
   | unrecoverable (resolved? : Option Nat)
+deriving Repr, BEq, Inhabited
+
+/-! Source-shaped aggregate declaration metadata. -/
+inductive PAggType where
+  | scalar (type : PType) (isSigned : Bool := false) (twoState : Bool := false)
+  | struct (fields : List (String × PAggType))
+  | array (msb lsb : PExpr) (elem : PAggType)
 deriving Repr, BEq, Inhabited
 
 /-- A `parameter` declaration (the design family's binder). `resolved?`
@@ -386,6 +395,16 @@ structure PParam where
   default's type, so value-position reads of it are loud there (`IEnv.stale`,
   `bindParams`). Set at load by `PDesign.markOverrideRetypes`. -/
   overrideRetypes : Bool := false
+  /-- Source-shaped aggregate type for a package parameter. -/
+  aggregate? : Option PAggType := none
+  /-- Keyed packed-struct elements of a fixed unpacked package parameter. -/
+  aggregateDefault? : Option (List (List (String × PExpr))) := none
+deriving Repr, BEq, Inhabited
+
+structure PackageAggValue where
+  msb : Int
+  lsb : Int
+  elements : List LVec
 deriving Repr, BEq, Inhabited
 
 /-- A `localparam` (evaluated from the bound parameters at
@@ -417,17 +436,6 @@ structure PEnumType where
   pkg : Option String := none
   base : PType
   members : List PEnumMember
-deriving Repr, BEq, Inhabited
-
-/-- Source-shaped aggregate declaration metadata retained by the symbolic
-frontend.  Aggregate values are kept as named fields and fixed index ranges
-until the E aggregate relation consumes them.  This metadata is deliberately
-separate from `PType`: a declaration can have an aggregate leaf whose packed
-type is still symbolic. -/
-inductive PAggType where
-  | scalar (type : PType) (isSigned : Bool := false) (twoState : Bool := false)
-  | struct (fields : List (String × PAggType))
-  | array (msb lsb : PExpr) (elem : PAggType)
 deriving Repr, BEq, Inhabited
 
 /-- A port / variable / net declaration with a symbolic type. Ports come
@@ -810,6 +818,7 @@ structure IEnv where
   retains the declared width, signedness, and every x/z bit for ordinary
   value positions. -/
   packageFvals : List ((String × String) × (LVec × Nat × Bool)) := []
+  packageAggs : List ((String × String) × PackageAggValue) := []
   widths : List (String × Nat) := []
   enums : List (String × Nat) := []
   members : List ((String × String) × LVec) := []
@@ -882,6 +891,12 @@ def IEnv.bindPackageFVal (env : IEnv) (pkg n : String) (v : LVec) (w : Nat) (s :
 
 def IEnv.packageFVal (env : IEnv) (pkg n : String) : Option (LVec × Nat × Bool) :=
   env.packageFvals.lookup (pkg, n)
+
+def IEnv.bindPackageAgg (env : IEnv) (pkg n : String) (v : PackageAggValue) : IEnv :=
+  { env with packageAggs := ((pkg, n), v) :: env.packageAggs }
+
+def IEnv.packageAgg? (env : IEnv) (pkg n : String) : Option PackageAggValue :=
+  env.packageAggs.lookup (pkg, n)
 
 /-- Self-determined type of a retained package parameter. -/
 def IEnv.packageConstType (env : IEnv) (pkg n : String) : Option (Nat × Bool) :=
@@ -1082,7 +1097,7 @@ def PExpr.isInt (env : IEnv) : PExpr → Bool
   | .unary (.m0 .neg) a | .unary (.m0 .pos) a | .unary .plus a => a.isInt env
   | .binary op l r => op.intArith && l.isInt env && r.isInt env
   | .ternary _ t e => t.isInt env && e.isInt env
-  | .functionCall .. | .aggregateMember .. | _ => false
+  | .functionCall .. | .aggregateMember .. | .packageAggElem .. | _ => false
 
 -- The INT-class test computes on syntax (and `vals` lookups): a `simp` that
 -- unfolds `evalInt` decides it by itself.
@@ -1101,7 +1116,7 @@ def PExpr.mentionsAny (names : List String) : PExpr → Bool
   | .concat ps | .arrayElem _ ps => PExpr.mentionsAnyList names ps
   | .arrayPart _ ps _ a b =>
       PExpr.mentionsAnyList names ps || a.mentionsAny names || b.mentionsAny names
-  | .aggregateMember .. => false
+  | .aggregateMember .. | .packageAggElem .. => false
   | .functionCall _ args => PExpr.mentionsAnyList names args
   | .lit _ | .ident _ | .genvarRef _ | .enumRef .. | .int _ | .fill _
   | .typeBits .. | .unsupported .. => false
@@ -1147,7 +1162,7 @@ def PExpr.readsSignalConst : PExpr → Bool
       b.readsSignalConst || m.readsSignalConst || l.readsSignalConst
   | .concat ps => PExpr.readsSignalConstList ps
   | .lit _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _ | .typeBits ..
-  | .fill _ | .functionCall .. | .aggregateMember .. | .unsupported .. => false
+  | .fill _ | .functionCall .. | .aggregateMember .. | .packageAggElem .. | .unsupported .. => false
 
 def PExpr.readsSignalConstList : List PExpr → Bool
   | [] => false
@@ -1160,6 +1175,7 @@ def PExpr.signalRoot? : PExpr → Option String
   | .bitSel b _ | .partSel b _ _ => b.signalRoot?
   | .arrayElem n _ | .arrayPart n .. => some n
   | .aggregateMember n _ => some n
+  | .packageAggElem pkg n _ => some (pkg ++ "::" ++ n)
   | _ => none
 
 /-- An order comparison spelled signed by the frontend (`s<` …). -/
@@ -1420,6 +1436,7 @@ def ctype (env : IEnv) : PExpr → Except String (Nat × Bool)
       if lv ≤ mv then .ok ((mv - lv).toNat + 1, false) else .error "bad part-select bounds"
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
   | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
+  | .packageAggElem pkg n _ => .error s!"package aggregate '{pkg}::{n}' in a constant context"
   | .fill _ => .error "unbased-unsized literal in a constant context (no context width)"
   | .concat ps => do
       let tys ← ctypeList env ps
@@ -1648,6 +1665,7 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
   | .functionCall n _ => .error s!"function '{n}' in a constant context"
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
   | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
+  | .packageAggElem pkg n _ => .error s!"package aggregate '{pkg}::{n}' in a constant context"
   | .fill _ => .error "unbased-unsized literal in a constant context (no context width)"
   | .concat ps => do
       let parts ← evalAtList env ps
@@ -2050,6 +2068,7 @@ def evalInt (env : IEnv) : PExpr → Except String Int
   | .cast s a => if s && a.isInt env then evalInt env a else evalSized env (.cast s a)
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
   | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
+  | .packageAggElem pkg n _ => .error s!"package aggregate '{pkg}::{n}' in a constant context"
   | .unsupported k _ => .error s!"unsupported node '{k}' in a constant context"
 
 /-- Exact-mode proof entry point.  INT-class trees whose constants are in
@@ -2277,12 +2296,45 @@ private def packageConstVecList (env : IEnv) : List PExpr → Except String (Lis
       .ok (v :: vs)
 end
 
+private def packageAggIndices (env : IEnv) (msb lsb : PExpr) : Except String (Int × Int) := do
+  pure (← evalInt env msb, ← evalInt env lsb)
+
+private def packageAggElement (env : IEnv) (row : List (String × PExpr)) : Except String LVec := do
+  let values ← packageConstVecList env (row.map (·.2))
+  if values.isEmpty then
+    .error "package aggregate struct pattern has no fields"
+  else
+    .ok (LVec.concatMany values.toArray)
+
+private def bindPackageAggregate (env : IEnv) (pkg : String) (p : PParam) : Res IEnv :=
+  match p.aggregate?, p.aggregateDefault? with
+  | some (.array msb lsb elem), some rows => do
+      let (m, l) ← match packageAggIndices env msb lsb with
+        | .ok bounds => .ok bounds
+        | .error e => .unsupported s!"package parameter '{pkg}::{p.name}': {e}"
+      let expected := (m - l).natAbs + 1
+      if rows.length != expected then
+        .unsupported s!"package parameter '{pkg}::{p.name}': assignment pattern array count mismatch"
+      else
+        match rows.mapM (packageAggElement env) with
+        | .error e => .unsupported s!"package parameter '{pkg}::{p.name}': {e}"
+        | .ok values => .ok (env.bindPackageAgg pkg p.name
+            { msb := m, lsb := l, elements := values })
+  | some _, _ => .unsupported s!"package parameter '{pkg}::{p.name}': aggregate default shape is unsupported"
+  | none, _ => .unsupported s!"package parameter '{pkg}::{p.name}': aggregate metadata is missing"
+
 /-- Bind the narrow package-parameter slice retained by the symbolic
 envelope. Package parameters are elaboration constants, never top-level
 override binders; their defaults are evaluated in declaration order. -/
 def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
   | [] => .ok env
   | (pkg, p) :: rest =>
+      if p.aggregate?.isSome then
+        match bindPackageAggregate env pkg p with
+        | .ok env' => bindPackageParams env' rest
+        | .unsupported msg => .unsupported msg
+        | .timeout => .timeout
+      else
       match p.default? with
       | none => .unsupported s!"package parameter '{pkg}::{p.name}' has no default"
       | some e =>
@@ -2389,7 +2441,7 @@ def selfWidth (env : IEnv) : PExpr → Option Nat
   -- Semantic-tier nodes: the M0 layer does not know element widths
   -- (`Param2.lean`'s `selfWidth2` does); `none` = unknowable here.
   | .bitSel .. | .partSel .. | .repl .. | .arrayElem .. | .arrayPart ..
-  | .aggregateMember .. => none
+  | .aggregateMember .. | .packageAggElem .. => none
   | .reduce .. => some 1
   | .cast _ a => selfWidth env a
   | .unsupported .. => none
@@ -2430,7 +2482,7 @@ def divOperandWidth (env : IEnv) : PExpr → Option Nat
   | .reduce .. => some 1
   | .cast _ operand => divOperandWidth env operand
   | .bitSel .. | .partSel .. | .repl .. | .arrayElem .. | .arrayPart ..
-  | .aggregateMember ..
+  | .aggregateMember .. | .packageAggElem ..
   | .functionCall ..
   | .unsupported .. => none
 
@@ -2598,6 +2650,8 @@ def instExpr (env : IEnv) (ctx : Option Nat) : PExpr → Expr
   | .aggregateMember .. =>
       .unsupported "MemberAccessExpression:aggregate"
         "source-shaped aggregate member path requires the E aggregate store"
+  | .packageAggElem pkg n _ =>
+      .unsupported "ParamRef:package-aggregate" s!"{pkg}::{n} outside the E aggregate route"
   | .functionCall n _ => .unsupported "CallExpression:user-function" s!"function '{n}' outside the M0 tier"
   | .unsupported k t => .unsupported k t
 

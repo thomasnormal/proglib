@@ -474,8 +474,8 @@ packed-array geometry table (`dims` — `dimTable`, evaluated once in that
 declaration scope). Verbatim the first half of `PDesign.instantiate2`'s `do`
 block. -/
 def PDesign.paramEnv2 (d : PDesign) (args : List Int) : Res IEnv := do
-  let envP ← bindPackageParams { int32 := true } d.packageParams
-  let envP ← bindPackageEnums envP d.enums
+  let envP ← bindPackageEnums { int32 := true } d.enums
+  let envP ← bindPackageParams envP d.packageParams
   let env0 ← bindParamsRes envP d.params args
   let env1 ← bindLocals env0 d.localParams
   let env2 ← bindEnums env1 d.enums

@@ -1009,6 +1009,7 @@ def coreMemSignalNames : PExpr → List String
       coreMemSignalNames c ++ coreMemSignalNames a ++ coreMemSignalNames b
   | .concat xs | .functionCall _ xs => coreMemSignalNamesList xs
   | .aggregateMember n _ => [n]
+  | .packageAggElem pkg n index => (pkg ++ "::" ++ n) :: coreMemSignalNames index
   | .lit _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _ | .int _ | .fill _
   | .typeBits ..
   | .unsupported _ _ => []
@@ -1043,7 +1044,7 @@ def CoreMemDesign.assignTopoB (E : CoreMemDesign) : Bool :=
 mutual
 def coreMemPExprHasMemory : PExpr → Bool
   | .arrayElem .. | .arrayPart .. => true
-  | .aggregateMember .. => true
+  | .aggregateMember .. | .packageAggElem .. => true
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
   | .sysCall _ a | .reduce _ a | .cast _ a => coreMemPExprHasMemory a
   | .binary _ a b => coreMemPExprHasMemory a || coreMemPExprHasMemory b
@@ -1456,7 +1457,7 @@ profiles refuse aggregate storage because their theorem state has no aggregate
 store, even though the legacy function-free gate also classifies it as outside
 its fragment. -/
 def LeanModels.Sv.PExpr.hasAggregateMember : PExpr → Bool
-  | .aggregateMember .. => true
+  | .aggregateMember .. | .packageAggElem .. => true
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
   | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasAggregateMember a
   | .binary _ a b => LeanModels.Sv.PExpr.hasAggregateMember a ||
@@ -1492,7 +1493,7 @@ def LeanModels.Sv.PExpr.hasMemoryRead : PExpr → Bool
       LeanModels.Sv.PExpr.hasMemoryRead b
   | .partSel a b c => LeanModels.Sv.PExpr.hasMemoryRead a ||
       LeanModels.Sv.PExpr.hasMemoryRead b || LeanModels.Sv.PExpr.hasMemoryRead c
-  | .aggregateMember .. => true
+  | .aggregateMember .. | .packageAggElem .. => true
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
   | .typeBits .. | .fill _ | .unsupported .. => false
 
@@ -1521,7 +1522,7 @@ def LeanModels.Sv.PExpr.hasFunctionCall : PExpr → Bool
   -- store.  Classify this source-shaped read as outside that theorem's
   -- function-free fragment, while canonical E evaluates it through
   -- `evalAggregateMember` above.
-  | .aggregateMember .. => true
+  | .aggregateMember .. | .packageAggElem .. => true
   | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _
   | .typeBits .. | .fill _ | .unsupported .. => false
 
@@ -1551,6 +1552,7 @@ def _root_.LeanModels.Sv.PExpr.hasGenvarRef : PExpr → Bool
   | .arrayElem _ xs => PExpr.hasGenvarRefList xs
   | .arrayPart _ xs _ a b => PExpr.hasGenvarRefList xs || a.hasGenvarRef || b.hasGenvarRef
   | .aggregateMember _ path => PExpr.hasGenvarRefPath path
+  | .packageAggElem _ _ index => index.hasGenvarRef
   | _ => false
 
 def _root_.LeanModels.Sv.PExpr.hasGenvarRefList : List PExpr → Bool
@@ -1572,6 +1574,7 @@ def coreMemReadExprs : PExpr → List PExpr
   | e@(.arrayPart _ indices _ a b) =>
       e :: (coreMemReadExprsList indices ++ coreMemReadExprs a ++ coreMemReadExprs b)
   | e@(.aggregateMember _ _) => [e]
+  | e@(.packageAggElem _ _ _) => [e]
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
   | .sysCall _ a | .reduce _ a | .cast _ a => coreMemReadExprs a
   | .binary _ a b | .bitSel a b | .repl a b =>

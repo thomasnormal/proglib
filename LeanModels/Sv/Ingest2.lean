@@ -88,6 +88,7 @@ deriving instance Lean.ToExpr for PDim
 deriving instance Lean.ToExpr for PType
 deriving instance Lean.ToExpr for PAggType
 deriving instance Lean.ToExpr for PParam
+deriving instance Lean.ToExpr for PackageAggValue
 deriving instance Lean.ToExpr for PLocalParam
 deriving instance Lean.ToExpr for EnumVal
 deriving instance Lean.ToExpr for PEnumMember
@@ -376,6 +377,9 @@ partial def parsePExpr (j : Json) : Except String PExpr := do
           | none, some ij => pure (none, some (← parsePExpr ij))
           | _, _ => throw "aggregate member step must contain exactly one of 'field' or 'index'"
         return .aggregateMember base path
+    | "PackageAggElem" =>
+        return .packageAggElem (← getStrField j "package")
+          (← getStrField j "name") (← parsePExpr (← getField j "index"))
     | "FunctionCall" =>
         return .functionCall (← getStrField j "name")
           (← (← (← getField j "args").getArr?).toList.mapM parsePExpr)
@@ -1054,14 +1058,25 @@ def parseModule2 (j : Json) : Except String PDesign :=
     for qj in packageJson do
       let pkg ← getStrField qj "package"
       let pname ← getStrField qj "name"
-      let default? ← match getOptField qj "default" with
+      let defaultVal ← match getOptField qj "default" with
         | none => pure none
         | some dj => pure (some (← withCtx s!"package parameter '{pkg}::{pname}' default" (parsePExpr dj)))
-      let type? ← match getOptField qj "type" with
+      let typeVal ← match getOptField qj "type" with
         | none => pure none
         | some tj => pure (some (← withCtx s!"package parameter '{pkg}::{pname}' type" (parsePType tj)))
-      let signed? ← parseOptSigned qj
-      let pp : PParam := PParam.mk pname default? (getOptInt qj "resolved") type? signed? false
+      let signedVal ← parseOptSigned qj
+      let aggregateVal ← match getOptField qj "aggregate" with
+        | none => pure none
+        | some aj => some <$> parsePAggType aj
+      let aggregateDefaultVal ← match getOptField qj "aggregate_default" with
+        | none => pure none
+        | some dj => do
+            let rows ← (← dj.getArr?).toList.mapM fun row => do
+              (← row.getArr?).toList.mapM fun fj => do
+                pure (← getStrField fj "name", ← parsePExpr (← getField fj "value"))
+            pure (some rows)
+      let pp : PParam := PParam.mk pname defaultVal (getOptInt qj "resolved")
+        typeVal signedVal false aggregateVal aggregateDefaultVal
       packageParams := packageParams ++ [(pkg, pp)]
     for pj in (← (← getField j "params").getArr?) do
       match ← getKind pj with

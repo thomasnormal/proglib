@@ -106,6 +106,7 @@ from a constant base that merely fails `evalInt` (such as the
 width-dependent `~K`), which stays loud on the static path. -/
 def PExpr.readsSignal : PExpr → Bool
   | .ident _ | .arrayElem .. | .arrayPart .. | .aggregateMember .. => true
+  | .packageAggElem _ _ index => index.readsSignal
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a | .sysCall _ a
   | .reduce _ a | .cast _ a => a.readsSignal
   | .binary _ l r | .bitSel l r | .repl l r => l.readsSignal || r.readsSignal
@@ -585,6 +586,8 @@ def selfWidth2 (env : IEnv) (elems : List (String × Nat)) : PExpr → Option Na
   | .arrayElem n is => arraySelWidth env (.arrayElem n is)
   | .arrayPart n is mode a b => arraySelWidth env (.arrayPart n is mode a b)
   | .aggregateMember .. => none
+  | .packageAggElem pkg name _ =>
+      (env.packageAgg? pkg name).bind (fun a => a.elements.head?.map (·.width))
   | .unsupported .. => none
 
 def selfWidthSum2 (env : IEnv) (elems : List (String × Nat)) : List PExpr → Option Nat
@@ -605,6 +608,8 @@ def divOperandWidth2 (env : IEnv) (elems : List (String × Nat)) : PExpr → Opt
   | .enumRef name _ pkg => env.enumWidth name pkg
   | .functionCall .. => none
   | .aggregateMember .. => none
+  | .packageAggElem pkg name _ =>
+      (env.packageAgg? pkg name).bind (fun a => a.elements.head?.map (·.width))
   | .fill _ => none
   | .unary (.m0 .lnot) _ => some 1
   | .unary (.m0 _) operand | .unary .plus operand => divOperandWidth2 env elems operand
@@ -816,6 +821,7 @@ def substFunction (bindings : List (String × PExpr)) : PExpr → PExpr
   | .ident n => bindings.lookup n |>.getD (.ident n)
   | .lit v => .lit v
   | .paramRef n p => .paramRef n p
+  | .packageAggElem pkg n index => .packageAggElem pkg n (substFunction bindings index)
   | .genvarRef n => .genvarRef n
   | .enumRef t m p => .enumRef t m p
   | .int v => .int v
@@ -903,6 +909,38 @@ def expandFunctionProcess (env : IEnv) : PProcess → PProcess
   | .initial b => .initial (expandFunctionStmt env b)
   | .unsupported k t => .unsupported k t
 
+private def packageAggIndices (msb lsb : Int) : List Int :=
+  if msb ≤ lsb then
+    (List.range ((lsb - msb + 1).toNat)).map (fun n => msb + Int.ofNat n)
+  else
+    (List.range ((msb - lsb + 1).toNat)).map (fun n => msb - Int.ofNat n)
+
+private def packageAggReadAt (env : IEnv) (elems : List (String × Nat))
+    (ctx : Option Nat) (pkg name : String) (index : PExpr) : Expr2 :=
+  match env.packageAgg? pkg name with
+  | none => .unsupported "ParamRef:package-aggregate" s!"{pkg}::{name}"
+  | some agg =>
+      let labels := packageAggIndices agg.msb agg.lsb
+      let values := labels.zip agg.elements
+      match evalInt env index with
+      | .ok selected =>
+          match values.find? (fun (label, _) => label == selected) with
+          | some (_, value) => .lit value
+          | none => .lit (LVec.xVec (agg.elements.head?.map (·.width) |>.getD 0))
+      | .error _ =>
+          let idxExpr := match index with
+            | .ident n => some (.ident n : Expr2)
+            | .lit v => some (.lit v : Expr2)
+            | _ => none
+          match idxExpr with
+          | none => .unsupported "ParamRef:package-aggregate" "dynamic package aggregate index"
+          | some idx =>
+              let indexWidth := (selfWidth2 env elems index).getD 32
+              values.foldr (fun (label, value) rest =>
+                .ternary (.binary .caseEq idx (.lit (LVec.ofInt indexWidth label)))
+                  (.lit value) rest)
+                (.lit (LVec.xVec (agg.elements.head?.map (·.width) |>.getD 0)))
+
 mutual
 /-- Lower a value-position expression to `Expr2` at context width `ctx`.
 Total: failures are loud `Expr2.unsupported` nodes, reached-sensitive. -/
@@ -916,6 +954,7 @@ def instExpr2 (env : IEnv) (elems : List (String × Nat)) (ctx : Option Nat) :
   | .aggregateMember .. =>
       .unsupported "MemberAccessExpression:aggregate"
         "source-shaped aggregate member path requires the E aggregate store"
+  | .packageAggElem pkg name index => packageAggReadAt env elems ctx pkg name index
   | .int v => intLit2 ctx v
   | .typeBits _ width => intLit2 ctx width
   | .fill b =>
@@ -1914,8 +1953,8 @@ def PDesign.instantiate2From (envI : IEnv) (d : PDesign) (args : List Int)
   if args.length != d.params.length then
     .unsupported s!"parameter arity: got {args.length}, want {d.params.length}"
   else do
-    let envP ← bindPackageParams envI d.packageParams
-    let envP ← bindPackageEnums envP d.enums
+    let envP ← bindPackageEnums envI d.enums
+    let envP ← bindPackageParams envP d.packageParams
     let env0 ← bindParamsRes envP d.params args
     let env1 ← bindLocals env0 d.localParams
     let env2 ← bindEnums env1 d.enums
@@ -1953,8 +1992,8 @@ def PDesign.instantiateFunctions2 (d : PDesign) (args : List Int)
   if args.length != d.params.length then
     .unsupported s!"parameter arity: got {args.length}, want {d.params.length}"
   else do
-    let envP ← bindPackageParams { int32 := true, functions := d.functions } d.packageParams
-    let envP ← bindPackageEnums envP d.enums
+    let envP ← bindPackageEnums { int32 := true, functions := d.functions } d.enums
+    let envP ← bindPackageParams envP d.packageParams
     let env0 ← bindParamsRes envP d.params args
     let env1 ← bindLocals env0 d.localParams
     let env2 ← bindEnums env1 d.enums

@@ -8247,6 +8247,28 @@ def _convert_unpacked_aggregate_member(sm, expression):
     IEEE member/index rules without recovering names from a flattened string.
     """
     try:
+        probe = expression
+        probe_steps = []
+        while type(probe).__name__ in ("MemberAccessExpression",
+                                       "ElementSelectExpression"):
+            if type(probe).__name__ == "MemberAccessExpression":
+                probe_steps.append({"field": probe.member.name})
+                probe = probe.value
+            else:
+                index = _convert_expr(sm, probe.selector)
+                if index is None or index.get("kind") == "Unsupported":
+                    break
+                probe_steps.append({"index": index})
+                probe = probe.value
+        probe_symbol = getattr(probe, "symbol", None)
+        if (probe_symbol is not None
+                and str(getattr(probe_symbol, "kind", "")).split(".")[-1] == "Parameter"
+                and _pkg_of(probe_symbol) is not None
+                and len(probe_steps) == 1 and "index" in probe_steps[0]):
+            return {"kind": "PackageAggElem", "span": node_span(sm, expression),
+                    "width": _safe_width(expression),
+                    "package": _pkg_of(probe_symbol), "name": probe_symbol.name,
+                    "index": probe_steps[0]["index"]}
         if not _has_unpacked_aggregate_path(expression):
             return None
         node = expression
@@ -8265,6 +8287,18 @@ def _convert_unpacked_aggregate_member(sm, expression):
         if not steps or not _storage_expression(node):
             return None
         symbol = getattr(node, "symbol", None)
+        if (symbol is not None
+                and str(getattr(symbol, "kind", "")).split(".")[-1] == "Parameter"
+                and _pkg_of(symbol) is not None):
+            # Package aggregate parameters are constants, but their element
+            # select remains a parser-shaped expression until Param2 binds
+            # the fixed value table. Keep the package identity and selector
+            # as a dedicated node rather than manufacturing a flat name.
+            if len(steps) == 1 and "index" in steps[0]:
+                return {"kind": "PackageAggElem", "span": node_span(sm, expression),
+                        "width": _safe_width(expression),
+                        "package": _pkg_of(symbol), "name": symbol.name,
+                        "index": steps[0]["index"]}
         base = _storage_name(symbol)
         if not base:
             return None
@@ -36532,6 +36566,44 @@ def _sym_package_params(sm):
                         continue
                     t = getattr(member, "type", None)
                     node = convert_param_sym(sm, member)
+                    aggregate_shape = _aggregate_shape_sym(
+                        sm, t, _decl_type_syntax(member), getattr(member, "syntax", None))
+                    if (aggregate_shape is not None and
+                            aggregate_shape.get("kind") in ("array", "struct")):
+                        node = dict(node)
+                        node["type"] = None
+                        node["aggregate"] = aggregate_shape
+                        initializer = getattr(member, "initializer", None)
+                        if (type(initializer).__name__ ==
+                                "SimpleAssignmentPatternExpression"):
+                            rows = []
+                            valid = True
+                            for element in initializer.elements:
+                                if type(element).__name__ != "StructuredAssignmentPatternExpression":
+                                    valid = False
+                                    break
+                                setters = list(getattr(element, "memberSetters", []))
+                                fields = []
+                                for setter in setters:
+                                    value = convert_expr(sm, setter.expr)
+                                    if value is None or value.get("kind") == "Unsupported":
+                                        valid = False
+                                        break
+                                    fields.append({"name": setter.member.name, "value": value})
+                                if not valid:
+                                    break
+                                rows.append(fields)
+                            if valid and rows:
+                                node.pop("default", None)
+                                node["aggregate_default"] = rows
+                            else:
+                                node["default"] = unsupported(
+                                    sm, initializer, "AssignmentPattern:aggregate-shape")
+                        else:
+                            node["default"] = unsupported(
+                                sm, initializer, "AssignmentPattern:aggregate-shape")
+                        if node.get("aggregate_default"):
+                            node.pop("default", None)
                     ptype = node.get("type")
                     # An untyped package parameter is the same 32-bit signed
                     # integer class as an untyped module parameter.  Keep its
@@ -36544,6 +36616,8 @@ def _sym_package_params(sm):
                             node["kind"] = "ParameterDecl"
                             node["default"] = node.pop("expr")
                         node = dict(node)
+                        if node.get("aggregate_default"):
+                            node.pop("default", None)
                         node["package"] = package.name
                         result.append(node)
                         continue
