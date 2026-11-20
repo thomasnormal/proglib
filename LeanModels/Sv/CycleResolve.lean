@@ -109,6 +109,16 @@ inductive CycleReadEqRun (name : String) :
       CycleReadEqRun name sources concreteTail →
       CycleReadEqRun name (source :: sources) (concrete :: concreteTail)
 
+theorem CycleXReadRun.append
+    {leftSource leftConcrete rightSource rightConcrete : List (CycleObs PortSample)}
+    (left : CycleXReadRun leftSource leftConcrete)
+    (right : CycleXReadRun rightSource rightConcrete) :
+    CycleXReadRun (leftSource ++ rightSource) (leftConcrete ++ rightConcrete) := by
+  induction left generalizing right with
+  | nil => simpa using right
+  | cons hhead htail ih =>
+      simpa using CycleXReadRun.cons hhead (ih right)
+
 theorem CycleXReadRun.read_eq_of_known
     {source concrete : List (CycleObs PortSample)}
     (hread : CycleXReadRun source concrete)
@@ -139,4 +149,5 @@ end LeanModels.Sv.Observe
 #print axioms LeanModels.Sv.Observe.CycleXRead.post_read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.width_eq
+#print axioms LeanModels.Sv.Observe.CycleXReadRun.append
 #print axioms LeanModels.Sv.Observe.CycleXReadRun.read_eq_of_known
