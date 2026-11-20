@@ -564,6 +564,30 @@ def vaArg (m : Mem) (p : Ptr) : MRes (CVal × Mem) :=
       | some [] => .error (.memUB (.outOfBounds o 0 1 0))
       | some (v :: vs) => .ok (v, { m with vaCursors := vaSet m.vaCursors o vs })
 
+theorem vaStart_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (args : List CVal) :
+    (m.renameAddresses rename).vaStart (Ptr.renameAddress rename p)
+        (args.map (CVal.renameAddress rename)) =
+      (m.vaStart p args).map (Mem.renameAddresses rename) := by
+  cases hp : p.obj with
+  | none => simp [vaStart, hp, Ptr.renameAddress, Except.map]
+  | some o =>
+      have hset : ∀ xs : List (ObjId × List CVal),
+          vaSet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o
+              (args.map (CVal.renameAddress rename)) =
+            (vaSet xs o args).map (fun x => (x.1, x.2.map (CVal.renameAddress rename))) := by
+        intro xs
+        induction xs with
+        | nil => simp [vaSet]
+        | cons x xs ih =>
+            cases x with
+            | mk q vs =>
+                by_cases hq : q == o <;>
+                  simp [vaSet, hq, ih, List.map_map, Function.comp_def]
+      simp [vaStart, hp, Ptr.renameAddress, renameAddresses]
+      rw [hset m.vaCursors]
+      rfl
+
 @[simp] theorem vaStart_address_irrel (m : Mem) (p : Ptr) (args : List CVal)
     (address : Nat) : vaStart m {p with address := address} args = vaStart m p args := by
   simp [vaStart]
