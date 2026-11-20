@@ -588,6 +588,28 @@ theorem vaStart_renameAddresses
       rw [hset m.vaCursors]
       rfl
 
+theorem vaEnd_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) :
+    (m.renameAddresses rename).vaEnd (Ptr.renameAddress rename p) =
+      (m.vaEnd p).map (Mem.renameAddresses rename) := by
+  cases hp : p.obj with
+  | none => simp [vaEnd, hp, Ptr.renameAddress, Except.map]
+  | some o =>
+      have hdrop : ∀ xs : List (ObjId × List CVal),
+          vaDrop (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o =
+            (vaDrop xs o).map (fun x => (x.1, x.2.map (CVal.renameAddress rename))) := by
+        intro xs
+        induction xs with
+        | nil => rfl
+        | cons x xs ih =>
+            cases x with
+            | mk q vs =>
+                by_cases hq : q == o <;>
+                  simp [vaDrop, hq, ih, List.map_map, Function.comp_def]
+      simp [vaEnd, hp, Ptr.renameAddress, renameAddresses]
+      rw [hdrop m.vaCursors]
+      rfl
+
 @[simp] theorem vaStart_address_irrel (m : Mem) (p : Ptr) (args : List CVal)
     (address : Nat) : vaStart m {p with address := address} args = vaStart m p args := by
   simp [vaStart]
