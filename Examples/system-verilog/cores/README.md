@@ -974,3 +974,22 @@ The checked-in differential receipt passes on Icarus Verilog 13.0
 `1111` and `x111` for the two source rows, and the envelope regenerates
 byte-identically with `python3
 Examples/system-verilog/sem2/invalid_chain2_wall/check.py`.
+
+## 2026-11-20 DarkRISCV current-source E-RUN boundary
+
+The pinned DarkRISCV source at public commit
+`bb6b483cc61a2886a0602c7e62b14f5995ddfbb9` was freshly extracted with the
+approved Slang frontend.  Its source hash is
+`46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0`, and the
+regenerated default envelope hash is
+`4a410a0fbc607495225c7d1cd758ceb16d0f71f5afedf4f5cdcf6ff2df7de081`.
+`harness/rv/core_census.py` reports 177 admitted, 0 refused, and 0 not
+reached rows.
+
+Canonical E completes two reset passes, clock preparation, edge execution, and
+NBA commit construction, which is the staged receipt 4/4.  The exact
+source-shaped first-clock transition does not return within the 180-second
+bound, so the complete source transition remains E-RUN 0/1.  The independent
+Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 receipt
+still agrees on 220/220 simulator rows with normalized digest
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
