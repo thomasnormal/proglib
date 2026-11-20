@@ -303,6 +303,12 @@ def typedBytesAggregate (s : State) (ty : Nat) (bytes : List Nat) : Option Cell 
               value :: atomicFields (index + 1) rest
         let fields := atomicFields 0 info.fieldOffsets
         some (.aggregate fields)
+      -- Any other struct or tuple: the layout table gives field offsets but not field types, so
+      -- neither a field's width nor its signedness is known (`(u8, u8)` would read 513 for its
+      -- first field, `(i8, u8)` 767 for -1).  Only `std::alloc::Layout`, whose two fields are
+      -- 8-byte unsigned integers (`size: usize` and the `usize`-represented `Alignment`), is
+      -- decoded; every other aggregate refuses.
+      else if !info.kind.contains "std::alloc::Layout" then none
       else
         let rec strictFields : Nat → List Nat → Option (List Cell)
           | _, [] => some []
