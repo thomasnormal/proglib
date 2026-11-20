@@ -149,6 +149,7 @@
       "name": "async_reset_comb_profile",
       "example": "seq_async_comb",
       "top": "async_reset_comb_profile",
+      "canonical_e": true,
       "clock": "clk",
       "signals": [
         "rstn",
@@ -178,7 +179,7 @@
           "d": "0"
         }
       ],
-      "measured": "A continuous next-state assignment may precede an asynchronous-reset always_ff in the same profile; comb settle feeds reset and edge phases, and the mixed cycle matches Icarus."
+      "measured": "2026-11-20: canonical E admits the source-shaped continuous next-state assignment beside the asynchronous-reset always_ff; canonical E, Icarus Verilog 13.0, and Xcelium 24.03-s004 match all five rows."
     },
     {
       "name": "mixed_comb_profile",
