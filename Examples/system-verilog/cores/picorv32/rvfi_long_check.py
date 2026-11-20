@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the unchanged PicoRV32 source for 1000 input-driven cycles.
+"""Run the unchanged PicoRV32 source for 2000 input-driven cycles.
 
 The checker compares every printed output row from Icarus Verilog and Xcelium.
 It does not compare a guessed model or alter the RTL.  A separate Lean probe
@@ -19,7 +19,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.v"
 TB = ROOT / "Examples/system-verilog/cores/picorv32/rvfi_long_probe.v"
-EXPECTED_CYCLES = 1000
+EXPECTED_CYCLES = 2000
 SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
 
