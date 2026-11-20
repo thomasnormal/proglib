@@ -650,6 +650,12 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => none
         | _ => none
     | _ => none
+  let observedFieldBitsFor := fun (t : CType) (f : String) =>
+    (observedRecordFacts envl).find? (fun row => row.1 == t)
+      |>.bind (fun row =>
+        row.2.2.fields.find? (fun field => field.name == f)
+          |>.filter (·.bitfield)
+          |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width))))
   let observedFlexibleDeclFor := fun (did : DeclarationId) (f : String) =>
     match ds.find? (fun q => match q with
       | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
@@ -787,12 +793,13 @@ def layoutFor (envl : Envelope) : Layout :=
           layout.fields.find? (fun field => field.name == f)
             |>.map (fun field => field.offsetBits / 8)
       | none => none
-    fieldBits := fun t f => match observedPointeeFor t with
+    fieldBits := fun t f => observedFieldBitsFor t f |>.orElse (fun _ => match observedPointeeFor t with
       | some (_, _, layout) =>
           layout.fields.find? (fun field => field.name == f)
             |>.filter (·.bitfield)
             |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width)))
       | none => none
+      )
     flexibleField := fun t f =>
       let find := fun row : CType × List (String × CType) × RecordLayout =>
         row.2.2.fields.find? (fun field => field.name == f)
