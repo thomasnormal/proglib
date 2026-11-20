@@ -421,6 +421,25 @@ def CVal.renameAddress (resolve : ObjId → Nat) : CVal → CVal
     CVal.renameAddress resolve .undef = .undef := by
   rfl
 
+theorem Ptr.renameAddress_comp
+    (first second : ObjId → Nat) (p : Ptr) :
+    (p.renameAddress first).renameAddress second =
+      p.renameAddress (fun o => second o) := by
+  cases h : p.obj <;> simp [Ptr.renameAddress, h]
+
+theorem CByte.renameAddress_comp
+    (first second : ObjId → Nat) (b : CByte) :
+    CByte.renameAddress second (CByte.renameAddress first b) =
+      CByte.renameAddress (fun o => second o) b := by
+  cases b <;> simp [CByte.renameAddress, Ptr.renameAddress_comp]
+
+theorem CVal.renameAddress_comp
+    (first second : ObjId → Nat) (v : CVal) :
+    CVal.renameAddress second (CVal.renameAddress first v) =
+      CVal.renameAddress (fun o => second o) v := by
+  cases v <;> simp [CVal.renameAddress, CByte.renameAddress_comp,
+    Ptr.renameAddress_comp]
+
 /-! ## §6.5.6-§6.5.8 Arithmetic — where the split lives
 
 Each operation computes the MATHEMATICAL result first, then decides by
