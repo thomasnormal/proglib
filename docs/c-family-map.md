@@ -305,6 +305,13 @@ rows report no model/native DIVERGE: one layout-plugin REFUSE and two
 structured-plugin REFUSE results. The rows remain registered as refusal walls
 so a later byte/provenance implementation can measure the exact flips.
 
+The batch survey controller now relocates a parsed envelope to the manifest's
+current cache root when a copied manifest contains an obsolete absolute path.
+It refreshes that envelope from the pinned source before invoking Lean, and
+its self-test covers the relocation case. This closes the stale-envelope
+instrument wall that previously made a rerun report runner errors at
+`memcpy-1.c` instead of a model verdict.
+
 The five authorised instrument-honesty actions are recorded here. H1 is
 already implemented: `abort` and `__builtin_abort` terminate through the
 `.aborted` outcome, and `scoreEnvelope` compares that outcome with the oracle
