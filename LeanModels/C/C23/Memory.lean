@@ -1618,6 +1618,20 @@ def free (m : Mem) (p : Ptr) : MRes Mem :=
                 else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+theorem free_structuredTypesUnique
+    {m m' : Mem} {p : Ptr} (h : structuredTypesUnique m)
+    (hr : m.free p = .ok m') : structuredTypesUnique m' := by
+  unfold free at hr
+  split at hr
+  · cases hr
+    exact h
+  · split at hr
+    · split at hr
+      · cases hr
+        exact kill_structuredTypesUnique m _ h
+      · simp_all
+    · simp_all
+
 @[simp] theorem free_null (m : Mem) :
     m.free Ptr.null = .ok m := by
   simp [free, Ptr.null]

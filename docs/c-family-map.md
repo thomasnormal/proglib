@@ -520,3 +520,8 @@ Lifetime termination and byte stores also preserve the same invariant. The
 memory lemmas cover `kill` and successful `storeBytes` results, so representation
 updates and tombstone transitions cannot duplicate or erase parser-native type
 identity metadata.
+
+The public `free` operation now has a corresponding `structuredTypesUnique`
+preservation theorem. Its null no-op and successful tombstone branches both
+retain the same identity table, so callers can compose the invariant through
+the `Except` memory API.
