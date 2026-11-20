@@ -544,3 +544,8 @@ Both `realloc` variants now preserve the invariant on successful results under
 the same fresh-identity premise used by structured allocation. The valid path
 copies the old parser-native observation to the fresh object before killing the
 old one, and the null-pointer path leaves the existing table unchanged.
+
+Unstructured allocation wrappers now expose direct preservation lemmas as well.
+`alloc`, `allocZeroed`, their explicit-placement variants, `malloc`, and
+`calloc` modify object and placement state without adding a structured row, so
+the uniqueness invariant is carried through each API entry point.
