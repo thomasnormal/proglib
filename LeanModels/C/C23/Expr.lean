@@ -1019,6 +1019,10 @@ def floatCast (v : CVal) (ty : CType) : EvalM CVal :=
         (Float.Model.unpack f))))
   | _, _ => refuseUnsupported "floating cast has incompatible source and destination"
 
+@[simp] theorem floatCast_renameAddress (resolve : ObjId → Nat) (v : CVal) (ty : CType) :
+    floatCast (CVal.renameAddress resolve v) ty = floatCast v ty := by
+  cases v <;> simp [floatCast, CVal.renameAddress]
+
 /-! C23 §6.3.1.4: conversion from a floating type to an integer type
 discards the fractional part toward zero. An infinite/NaN source, or an
 integral part outside the destination range, is undefined (`J.2(16)`).
