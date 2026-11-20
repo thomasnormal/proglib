@@ -1225,3 +1225,17 @@ memory-topology boundary after that wall, while the other remains at the
 same generate-loop refusal. Those observations remain a ranking input rather
 than an admission claim until their source-shaped envelopes are available to
 this tree.
+
+## Stall-rule ranking after canonical receipt repairs — 2026-11-20T20:23Z
+
+The current clean-room overview has advanced past the earlier generate-loop
+snapshot. Its latest real-source checks report FIFO loading ten processes and
+one memory before a deterministic symbolic-elaboration timeout, handshake
+reaching an internal time-zero event wall before child hierarchy and
+multi-clock structure, an integer multiplier loading 28 processes before a
+level-event instantiation timeout, and Kogge–Stone loading 29 processes and
+two memories before its declared-output memory target on the first run. The
+fixed-width float reduction remains at the mixed `always_comb` beside
+flip-flops profile refusal. These are measured ranking inputs only. No
+REAL-DESIGNS count transition is claimed, and no timed, memory, or equation
+semantics is admitted by this refresh.
