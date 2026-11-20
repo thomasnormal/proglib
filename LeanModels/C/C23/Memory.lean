@@ -1507,6 +1507,7 @@ theorem decodeInt_renameAddresses_conc_of_some
   rw [decodeInt_renameAddresses_conc]
   exact h
 
+
 /-- One byte of an object representation as observed through a character
 lvalue.  Character accesses are allowed to inspect every object
 representation, including pointer representations (§6.5.1p7).  The
@@ -1529,6 +1530,29 @@ def loadCharacter (m : Mem) (p : Ptr) (t : IntTy) : MRes CVal := do
           | .allocated => .indetAllocated o off
           | _ => .indetAutomatic o off))
       else .error (.memUB (.nonValueRepresentation o off))
+
+theorem loadCharacter_renameAddresses_of_conc
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (t : IntTy)
+    (o : ObjId) (c : CObj) (off : Nat) (b : UInt8)
+    (hr : m.resolve p 1 = .ok (o, c, off))
+    (hbytes : List.take 1 (List.drop off c.bytes) = [CByte.conc b]) :
+    (m.renameAddresses rename).loadCharacter (Ptr.renameAddress rename p) t =
+      .ok (.int t (t.wrap b.toNat)) := by
+  simp only [loadCharacter, resolve_renameAddresses, hr]
+  dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+    Except.pure, Except.map]
+  have hmapped :
+      List.take 1 (List.drop off (CObj.renameAddress rename c).bytes) =
+        [CByte.conc b] := by
+    simp only [CObj.renameAddress]
+    simpa [List.map_take, List.map_drop] using congrArg
+      (List.map (CByte.renameAddress rename)) hbytes
+  have hhead :
+      (List.drop off (CObj.renameAddress rename c).bytes).head? = some (CByte.conc b) := by
+    have hh := congrArg List.head? hmapped
+    simpa [List.head?_take] using hh
+  rw [hhead]
+  rfl
 
 theorem decodeInt_indet (t : IntTy) (bs : List CByte)
     (h : CByte.indet ∈ bs) : decodeInt t bs = none := by
