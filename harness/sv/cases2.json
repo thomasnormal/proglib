@@ -73755,6 +73755,8 @@
       "name": "profile_mixed_e_boundary",
       "example": "sem2/profile_mixed_e",
       "top": "profile_mixed_e",
+      "canonical_e": true,
+      "clock": "clk",
       "signals": [
         "rst",
         "d",
@@ -73764,32 +73766,26 @@
       "stimulus": [
         {
           "rst": "0",
-          "d": "0",
-          "clk": "0"
+          "d": "0"
         },
         {
           "rst": "1",
-          "d": "1",
-          "clk": "0"
+          "d": "1"
         },
         {
           "rst": "1",
-          "d": "1",
-          "clk": "1"
+          "d": "1"
         },
         {
           "rst": "1",
-          "d": "0",
-          "clk": "0"
+          "d": "0"
         },
         {
           "rst": "1",
-          "d": "0",
-          "clk": "1"
+          "d": "0"
         }
       ],
-      "refusal": "Clock:async-reset",
-      "measured": "2026-11-12: the source-shaped async-reset edge plus continuous output satisfies ffResetProfileB and ffMixedProfileB but remains outside ordinary E; the runner names Clock:async-reset while Icarus Verilog 13.0 and Xcelium 24.03-s004 provide the source trace."
+      "measured": "2026-11-20: canonical E admits the source-shaped async-reset edge beside the continuous assignment; canonical E, Icarus Verilog 13.0, and Xcelium 24.03-s004 match all eight rows, including x/z reset, clock, and data values."
     },
     {
       "name": "memory_edge_incdec_e",
