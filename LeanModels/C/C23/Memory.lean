@@ -457,6 +457,14 @@ theorem copyStructuredType_unique
 def emitStdout (m : Mem) (bytes : List CByte) : Mem :=
   { m with stdout := m.stdout ++ bytes }
 
+theorem emitStdout_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (bytes : List CByte) :
+    (m.renameAddresses rename).emitStdout (bytes.map (CByte.renameAddress rename)) =
+      (m.emitStdout bytes).renameAddresses rename := by
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      simp [emitStdout, renameAddresses, List.map_append]
+
 theorem emitStdout_structuredTypesUnique
     (m : Mem) (bytes : List CByte) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.emitStdout bytes) := by
