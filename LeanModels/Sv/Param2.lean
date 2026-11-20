@@ -1680,15 +1680,28 @@ structure EDesign2 where
   processes : Array EProcess2
 deriving Repr, Inhabited
 
-private def delayDigits : Bool → List Char → Bool
-  | seen, [] => seen
-  | seen, [';'] => seen
-  | seen, c :: rest => c.isDigit && delayDigits true rest
+private def takeDelayDigits : Bool → List Char → Option (List Char)
+  | seen, [] => if seen then some [] else none
+  | seen, c :: rest =>
+      if c.isDigit then takeDelayDigits true rest
+      else if seen then some (c :: rest)
+      else none
+
+private def delayUnitSuffix : List Char → Bool
+  | [] | [';'] => true
+  | ['s', ';'] | ['m', 's', ';'] | ['u', 's', ';']
+  | ['n', 's', ';'] | ['p', 's', ';'] | ['f', 's', ';'] => true
+  | _ => false
 
 private def literalDelayText (text : String) : Bool :=
   match text.toList with
-  | '#' :: digits => delayDigits false digits
+  | '#' :: rest =>
+      match takeDelayDigits false rest with
+      | some suffix => delayUnitSuffix suffix
+      | none => false
   | _ => false
+
+#guard literalDelayText "#1ps;"
 
 private def initialCheckTask : PStmt → Option String
   | .unsupported k text =>
@@ -1748,13 +1761,25 @@ def initialCheckAdmits (env : IEnv) (body : PStmt) : Except String Unit :=
 
 /-! Diagnostic-only initial checks may use a literal delay before `$error`.
 The delay and any signal-dependent condition affect only diagnostic output,
-which is outside the CoreMem state.  `$fatal` remains a refusal, and ordinary
+which is outside the CoreMem state.  This follows IEEE 1800-2023 §9.2.2's
+separate elaboration-time check form.  `$fatal` remains a refusal, and ordinary
 timed procedural statements never enter this adapter. -/
 #guard match initialCheckAdmits {}
     (.block [.unsupported "TimedStatement:DelayControl" "#1",
       .ifStmt (.ident "signal")
         (.unsupported "SysCall:$error" "") none]) with
   | .ok () => true
+  | _ => false
+#guard match initialCheckAdmits {}
+    (.block [.unsupported "TimedStatement:DelayControl" "#1ps;",
+      .ifStmt (.binary .cne (.ident "y") (.ident "x"))
+        (.unsupported "SysCall:$error" "") none]) with
+  | .ok () => true
+  | _ => false
+#guard match initialCheckAdmits {}
+    (.block [.unsupported "TimedStatement:DelayControl" "#1foo;",
+      .unsupported "SysCall:$error" ""]) with
+  | .error "initial process is not an elaboration check" => true
   | _ => false
 #guard match initialCheckAdmits {}
     (.block [.unsupported "TimedStatement:DelayControl" "#1",
