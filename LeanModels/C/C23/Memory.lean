@@ -1083,6 +1083,16 @@ def allocStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
   let (m', o) := m.alloc dur size ty
   (m'.rememberStructuredType o structured, o)
 
+theorem allocStructured_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : Option QualType) (haddr : rename m.objs.length = m.objs.length) :
+    (m.renameAddresses rename).allocStructured dur size ty structured =
+      ((m.allocStructured dur size ty structured).1.renameAddresses rename,
+        (m.allocStructured dur size ty structured).2) := by
+  unfold allocStructured
+  rw [alloc_renameAddresses rename m dur size ty haddr]
+  cases structured <;> rfl
+
 theorem allocStructured_unique
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
     (structured : QualType) (h : structuredTypesUnique m)
@@ -1120,6 +1130,16 @@ def allocZeroedStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option C
     (structured : Option QualType) : Mem × ObjId :=
   let (m', o) := m.allocZeroed dur size ty
   (m'.rememberStructuredType o structured, o)
+
+theorem allocZeroedStructured_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : Option QualType) (haddr : rename m.objs.length = m.objs.length) :
+    (m.renameAddresses rename).allocZeroedStructured dur size ty structured =
+      ((m.allocZeroedStructured dur size ty structured).1.renameAddresses rename,
+        (m.allocZeroedStructured dur size ty structured).2) := by
+  unfold allocZeroedStructured
+  rw [allocZeroed_renameAddresses rename m dur size ty haddr]
+  cases structured <;> rfl
 
 theorem allocZeroedStructured_unique
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
