@@ -94,6 +94,16 @@ refinement, and family-boundary refinement.  Universal execution, relation,
 order, and progress premises remain explicit.  No RTL invariant or finite
 trace is claimed.
 
+## 2026-11-20 R1 loaded ADDI boundary recheck
+
+The concrete loaded ADDI package compiles its resolved-parameter and RVFI
+shape facts, exact ADDI step and commit, loaded-cycle and total-step bridges,
+reset-specialized invariant and program refinements, typed ADDI prefixes, and
+the first-row reset-relation boundary.  The fields-to-ISA bridge and
+well-formedness preservation remain explicit.  The package still requires
+universal loaded-step and order premises, so no RTL invariant or finite trace
+is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
