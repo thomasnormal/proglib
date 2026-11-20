@@ -651,15 +651,12 @@ the edge consumes.  Icarus Verilog
 simulator rows.  Their normalized row digest is
 `e09707a2f1c72a59a341676d3a35602ad5fc20a1c86fd7d796d02cd062ffdf8f`.
 
-Replaying those rows through canonical E reaches the loaded design but rejects
-the comparison.  After correcting the source-level `IDACK` capture, the first
-differing row remains row 1, field `DATAO`: canonical E produces
-`0000000000000000xxxxxxxx00000000`, while the simulator row produces
-`00000000000000000000000000000000`.  The existing all-NOP and always-ready
-input-driven batteries remain 1000/1000.  This is a wrong-answer finding for
-the instruction-memory wait-state path, not a passing E-RUN claim.
-
-The checker reports the first failing field and both values directly.  The
+Replaying those rows through canonical E now agrees after two harness fixes.
+The testbench captures the newly scheduled `IDACK`, and the Lean replay uses
+its `IDACK` field instead of silently defaulting every acknowledgement to one.
+Icarus Verilog, Xcelium, and canonical E agree on **1000/1000** stalled rows,
+with normalized simulator-row digest
+`78dd0ab31c3d6fa7d63e5e28cd82c81b6aba3de94ac559865f2a631ec8089a4e`.  The
 corrupted-row negative control stays active on the passing battery.
 
 ## 2026-11-20 Quark current-source E-RUN boundary
@@ -1525,7 +1522,8 @@ geometry facts use only the expected smaller subsets.  The universal loaded
 
 The pinned DarkRISCV source at public commit
 `bb6b483cc61a2886a0602c7e62b14f5995ddfbb9` and its regenerated Slang envelope
-are checked into `darkriscv/rtl/` and `darkriscv/darkriscv.sv.json`, with
+with `SIMULATION` defined are checked into `darkriscv/rtl/` and
+`darkriscv/darkriscv.sv.json`, with
 source and envelope SHA-256 pins in `darkriscv/battery_transcript.txt`.  The
 source is unmodified and carries its BSD license.
 
@@ -1559,7 +1557,7 @@ The pinned PicoRV32 RISCV_FORMAL envelope
 `cpuregs` memory, 255 scalar declarations, 32 continuous assignments, and 22
 processes all came from the loaded `CoreMemDesign`; no source-level refusal was
 fabricated.  The same loader-backed command on the bundled DarkRISCV envelope
-(SHA-256 `65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26`)
+(SHA-256 `ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32`)
 emitted **176 ADMITTED / 0 REFUSED / 0 NOT REACHED**.
 
 ## 2026-11-20 DarkRISCV instruction-stream differential

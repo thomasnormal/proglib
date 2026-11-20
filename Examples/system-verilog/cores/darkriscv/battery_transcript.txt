@@ -9,7 +9,7 @@ PicoRV32 normalized binary cycle-row SHA-256 26b297fe4f6f66829d8ac7fdea88c64d9db
 
 DarkRISCV source commit bb6b483cc61a2886a0602c7e62b14f5995ddfbb9
 DarkRISCV source SHA-256 46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0
-DarkRISCV envelope SHA-256 65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26
+DarkRISCV envelope SHA-256 ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32
 Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on 1000/1000 rows.
 Canonical E agrees with both simulators on all printed fields for 1000/1000 source-shaped rising-edge cycles.
 DarkRISCV normalized simulator-row SHA-256 9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df
@@ -19,9 +19,8 @@ Stalled instruction-memory witness: instr_stall_tb.sv, with IDACK low on every
 third active falling edge and IDATA/IDACK captured for the following rising
 edge.  Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on 1000/1000 rows.
 Stalled normalized simulator-row SHA-256 78dd0ab31c3d6fa7d63e5e28cd82c81b6aba3de94ac559865f2a631ec8089a4e
-Canonical E first differs at row 1, field DATAO: canonical
-0000000000000000xxxxxxxx00000000, simulator
-00000000000000000000000000000000.  This is a 0/1000 three-way result.
+Canonical E agrees with both simulators on all 1000/1000 stalled rows after
+IDACK capture and replay-field fixes.
 
 Input-driven instruction image: program_tb.sv, containing ADDI/ADDI/ADD
 followed by NOPs.  Both simulators and canonical E agree on 1000/1000 rows

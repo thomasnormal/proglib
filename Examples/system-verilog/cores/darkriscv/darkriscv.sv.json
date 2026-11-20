@@ -9,7 +9,7 @@
   "top": "darkriscv",
   "source_files": [
     {
-      "path": "../../gate/ls-sv2/darkriscv-new/rtl/darkriscv.v",
+      "path": "Examples/system-verilog/cores/darkriscv/rtl/darkriscv.v",
       "sha256": "46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0"
     }
   ],
@@ -541,6 +541,49 @@
               "kind": "PackedType",
               "packed": [],
               "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 92,
+              "col": 23,
+              "end_line": 92,
+              "end_col": 30
+            },
+            "name": "ESIMREQ",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 93,
+              "col": 23,
+              "end_line": 93,
+              "end_col": 34
+            },
+            "name": "ESIMACK",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 93,
+                "col": 33,
+                "end_line": 93,
+                "end_col": 34
+              },
+              "value": 0,
+              "resolved_width": 32
             }
           },
           {
@@ -3605,6 +3648,258 @@
             },
             "init": null,
             "net_as_variable": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 834,
+              "col": 17,
+              "end_line": 834,
+              "end_col": 25
+            },
+            "name": "clocks",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 834,
+                "col": 24,
+                "end_line": 834,
+                "end_col": 25
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 834,
+              "col": 27,
+              "end_line": 834,
+              "end_col": 36
+            },
+            "name": "running",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 834,
+                "col": 35,
+                "end_line": 834,
+                "end_col": 36
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 834,
+              "col": 38,
+              "end_line": 834,
+              "end_col": 44
+            },
+            "name": "load",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 834,
+                "col": 43,
+                "end_line": 834,
+                "end_col": 44
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 834,
+              "col": 46,
+              "end_line": 834,
+              "end_col": 53
+            },
+            "name": "store",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 834,
+                "col": 52,
+                "end_line": 834,
+                "end_col": 53
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 834,
+              "col": 55,
+              "end_line": 834,
+              "end_col": 62
+            },
+            "name": "flush",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 834,
+                "col": 61,
+                "end_line": 834,
+                "end_col": 62
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 834,
+              "col": 64,
+              "end_line": 834,
+              "end_col": 70
+            },
+            "name": "halt",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 834,
+                "col": 69,
+                "end_line": 834,
+                "end_col": 70
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "signed": true
           }
         ],
         "processes": [
@@ -9851,6 +10146,1500 @@
               }
             },
             "net_declaration_assign": true
+          },
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 373,
+              "col": 5,
+              "end_line": 373,
+              "end_col": 49
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 373,
+                "col": 13,
+                "end_line": 373,
+                "end_col": 49
+              },
+              "stmts": [
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 0,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 1,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 2,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 3,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 4,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 5,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 6,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 7,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 8,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 9,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 10,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 11,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 12,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 13,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 14,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 15,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 16,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 17,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 18,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 19,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 20,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 21,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 22,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 23,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 24,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 25,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 26,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 27,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 28,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 29,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 30,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 373,
+                    "col": 37,
+                    "end_line": 373,
+                    "end_col": 49
+                  },
+                  "target": {
+                    "kind": "ArraySel",
+                    "span": {
+                      "line": 373,
+                      "col": 37,
+                      "end_line": 373,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "name": "REGS",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 373,
+                          "col": 42,
+                          "end_line": 373,
+                          "end_col": 43
+                        },
+                        "value": 31,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
+                  },
+                  "value": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 373,
+                      "col": 47,
+                      "end_line": 373,
+                      "end_col": 48
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "symbolic_for_unrolled": true,
+              "symbolic_for_iterations": 32
+            }
           },
           {
             "kind": "Assign",
@@ -24765,6 +26554,1667 @@
               }
             },
             "continuous_net_target": true
+          },
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 843,
+              "col": 9,
+              "end_line": 956,
+              "end_col": 12
+            },
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "CLK"
+              }
+            ],
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 844,
+                "col": 9,
+                "end_line": 956,
+                "end_col": 12
+              },
+              "stmts": [
+                {
+                  "kind": "If",
+                  "span": {
+                    "line": 845,
+                    "col": 13,
+                    "end_line": 899,
+                    "end_col": 16
+                  },
+                  "cond": {
+                    "kind": "Unary",
+                    "span": {
+                      "line": 845,
+                      "col": 16,
+                      "end_line": 845,
+                      "end_col": 21
+                    },
+                    "width": 1,
+                    "op": "!",
+                    "operand": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 845,
+                        "col": 17,
+                        "end_line": 845,
+                        "end_col": 21
+                      },
+                      "width": 1,
+                      "name": "XRES"
+                    }
+                  },
+                  "then": {
+                    "kind": "Block",
+                    "span": {
+                      "line": 846,
+                      "col": 13,
+                      "end_line": 899,
+                      "end_col": 16
+                    },
+                    "stmts": [
+                      {
+                        "kind": "BlockingAssign",
+                        "span": {
+                          "line": 847,
+                          "col": 17,
+                          "end_line": 847,
+                          "end_col": 35
+                        },
+                        "target": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 847,
+                            "col": 17,
+                            "end_line": 847,
+                            "end_col": 23
+                          },
+                          "width": 32,
+                          "name": "clocks",
+                          "signed": true
+                        },
+                        "value": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 847,
+                            "col": 26,
+                            "end_line": 847,
+                            "end_col": 34
+                          },
+                          "width": 32,
+                          "op": "+",
+                          "left": {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 847,
+                              "col": 26,
+                              "end_line": 847,
+                              "end_col": 32
+                            },
+                            "width": 32,
+                            "name": "clocks",
+                            "signed": true
+                          },
+                          "right": {
+                            "kind": "Int",
+                            "span": {
+                              "line": 847,
+                              "col": 33,
+                              "end_line": 847,
+                              "end_col": 34
+                            },
+                            "value": 1,
+                            "resolved_width": 32
+                          }
+                        }
+                      },
+                      {
+                        "kind": "If",
+                        "span": {
+                          "line": 849,
+                          "col": 17,
+                          "end_line": 874,
+                          "end_col": 20
+                        },
+                        "cond": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 849,
+                            "col": 20,
+                            "end_line": 849,
+                            "end_col": 23
+                          },
+                          "width": 1,
+                          "name": "HLT"
+                        },
+                        "then": {
+                          "kind": "Block",
+                          "span": {
+                            "line": 851,
+                            "col": 26,
+                            "end_line": 853,
+                            "end_col": 44
+                          },
+                          "stmts": [
+                            {
+                              "kind": "If",
+                              "span": {
+                                "line": 851,
+                                "col": 26,
+                                "end_line": 853,
+                                "end_col": 44
+                              },
+                              "cond": {
+                                "kind": "Ident",
+                                "span": {
+                                  "line": 851,
+                                  "col": 29,
+                                  "end_line": 851,
+                                  "end_col": 32
+                                },
+                                "width": 1,
+                                "name": "SCC"
+                              },
+                              "then": {
+                                "kind": "BlockingAssign",
+                                "span": {
+                                  "line": 851,
+                                  "col": 34,
+                                  "end_line": 851,
+                                  "end_col": 50
+                                },
+                                "target": {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 851,
+                                    "col": 34,
+                                    "end_line": 851,
+                                    "end_col": 39
+                                  },
+                                  "width": 32,
+                                  "name": "store",
+                                  "signed": true
+                                },
+                                "value": {
+                                  "kind": "Binary",
+                                  "span": {
+                                    "line": 851,
+                                    "col": 42,
+                                    "end_line": 851,
+                                    "end_col": 49
+                                  },
+                                  "width": 32,
+                                  "op": "+",
+                                  "left": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 851,
+                                      "col": 42,
+                                      "end_line": 851,
+                                      "end_col": 47
+                                    },
+                                    "width": 32,
+                                    "name": "store",
+                                    "signed": true
+                                  },
+                                  "right": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 851,
+                                      "col": 48,
+                                      "end_line": 851,
+                                      "end_col": 49
+                                    },
+                                    "value": 1,
+                                    "resolved_width": 32
+                                  }
+                                }
+                              },
+                              "else": {
+                                "kind": "If",
+                                "span": {
+                                  "line": 852,
+                                  "col": 26,
+                                  "end_line": 853,
+                                  "end_col": 44
+                                },
+                                "cond": {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 852,
+                                    "col": 29,
+                                    "end_line": 852,
+                                    "end_col": 32
+                                  },
+                                  "width": 1,
+                                  "name": "LCC"
+                                },
+                                "then": {
+                                  "kind": "BlockingAssign",
+                                  "span": {
+                                    "line": 852,
+                                    "col": 34,
+                                    "end_line": 852,
+                                    "end_col": 50
+                                  },
+                                  "target": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 852,
+                                      "col": 34,
+                                      "end_line": 852,
+                                      "end_col": 38
+                                    },
+                                    "width": 32,
+                                    "name": "load",
+                                    "signed": true
+                                  },
+                                  "value": {
+                                    "kind": "Binary",
+                                    "span": {
+                                      "line": 852,
+                                      "col": 42,
+                                      "end_line": 852,
+                                      "end_col": 49
+                                    },
+                                    "width": 32,
+                                    "op": "+",
+                                    "left": {
+                                      "kind": "Ident",
+                                      "span": {
+                                        "line": 852,
+                                        "col": 42,
+                                        "end_line": 852,
+                                        "end_col": 46
+                                      },
+                                      "width": 32,
+                                      "name": "load",
+                                      "signed": true
+                                    },
+                                    "right": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 852,
+                                        "col": 48,
+                                        "end_line": 852,
+                                        "end_col": 49
+                                      },
+                                      "value": 1,
+                                      "resolved_width": 32
+                                    }
+                                  }
+                                },
+                                "else": {
+                                  "kind": "BlockingAssign",
+                                  "span": {
+                                    "line": 853,
+                                    "col": 28,
+                                    "end_line": 853,
+                                    "end_col": 44
+                                  },
+                                  "target": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 853,
+                                      "col": 28,
+                                      "end_line": 853,
+                                      "end_col": 32
+                                    },
+                                    "width": 32,
+                                    "name": "halt",
+                                    "signed": true
+                                  },
+                                  "value": {
+                                    "kind": "Binary",
+                                    "span": {
+                                      "line": 853,
+                                      "col": 36,
+                                      "end_line": 853,
+                                      "end_col": 43
+                                    },
+                                    "width": 32,
+                                    "op": "+",
+                                    "left": {
+                                      "kind": "Ident",
+                                      "span": {
+                                        "line": 853,
+                                        "col": 36,
+                                        "end_line": 853,
+                                        "end_col": 40
+                                      },
+                                      "width": 32,
+                                      "name": "halt",
+                                      "signed": true
+                                    },
+                                    "right": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 853,
+                                        "col": 42,
+                                        "end_line": 853,
+                                        "end_col": 43
+                                      },
+                                      "value": 1,
+                                      "resolved_width": 32
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "else": {
+                          "kind": "If",
+                          "span": {
+                            "line": 856,
+                            "col": 17,
+                            "end_line": 874,
+                            "end_col": 20
+                          },
+                          "cond": {
+                            "kind": "Reduce",
+                            "span": {
+                              "line": 856,
+                              "col": 20,
+                              "end_line": 856,
+                              "end_col": 26
+                            },
+                            "width": 1,
+                            "op": "|",
+                            "operand": {
+                              "kind": "Ident",
+                              "span": {
+                                "line": 856,
+                                "col": 21,
+                                "end_line": 856,
+                                "end_col": 26
+                              },
+                              "width": 2,
+                              "name": "FLUSH"
+                            }
+                          },
+                          "then": {
+                            "kind": "Block",
+                            "span": {
+                              "line": 858,
+                              "col": 21,
+                              "end_line": 858,
+                              "end_col": 35
+                            },
+                            "stmts": [
+                              {
+                                "kind": "BlockingAssign",
+                                "span": {
+                                  "line": 858,
+                                  "col": 21,
+                                  "end_line": 858,
+                                  "end_col": 35
+                                },
+                                "target": {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 858,
+                                    "col": 21,
+                                    "end_line": 858,
+                                    "end_col": 26
+                                  },
+                                  "width": 32,
+                                  "name": "flush",
+                                  "signed": true
+                                },
+                                "value": {
+                                  "kind": "Binary",
+                                  "span": {
+                                    "line": 858,
+                                    "col": 27,
+                                    "end_line": 858,
+                                    "end_col": 34
+                                  },
+                                  "width": 32,
+                                  "op": "+",
+                                  "left": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 858,
+                                      "col": 27,
+                                      "end_line": 858,
+                                      "end_col": 32
+                                    },
+                                    "width": 32,
+                                    "name": "flush",
+                                    "signed": true
+                                  },
+                                  "right": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 858,
+                                      "col": 33,
+                                      "end_line": 858,
+                                      "end_col": 34
+                                    },
+                                    "value": 1,
+                                    "resolved_width": 32
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "else": {
+                            "kind": "Block",
+                            "span": {
+                              "line": 873,
+                              "col": 21,
+                              "end_line": 873,
+                              "end_col": 42
+                            },
+                            "stmts": [
+                              {
+                                "kind": "BlockingAssign",
+                                "span": {
+                                  "line": 873,
+                                  "col": 21,
+                                  "end_line": 873,
+                                  "end_col": 42
+                                },
+                                "target": {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 873,
+                                    "col": 21,
+                                    "end_line": 873,
+                                    "end_col": 28
+                                  },
+                                  "width": 32,
+                                  "name": "running",
+                                  "signed": true
+                                },
+                                "value": {
+                                  "kind": "Binary",
+                                  "span": {
+                                    "line": 873,
+                                    "col": 31,
+                                    "end_line": 873,
+                                    "end_col": 41
+                                  },
+                                  "width": 32,
+                                  "op": "+",
+                                  "left": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 873,
+                                      "col": 31,
+                                      "end_line": 873,
+                                      "end_col": 38
+                                    },
+                                    "width": 32,
+                                    "name": "running",
+                                    "signed": true
+                                  },
+                                  "right": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 873,
+                                      "col": 40,
+                                      "end_line": 873,
+                                      "end_col": 41
+                                    },
+                                    "value": 1,
+                                    "resolved_width": 32
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "kind": "If",
+                        "span": {
+                          "line": 876,
+                          "col": 17,
+                          "end_line": 898,
+                          "end_col": 20
+                        },
+                        "cond": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 876,
+                            "col": 20,
+                            "end_line": 876,
+                            "end_col": 27
+                          },
+                          "width": 1,
+                          "name": "ESIMREQ"
+                        },
+                        "then": {
+                          "kind": "Block",
+                          "span": {
+                            "line": 877,
+                            "col": 17,
+                            "end_line": 898,
+                            "end_col": 20
+                          },
+                          "stmts": [
+                            {
+                              "kind": "SysCall",
+                              "span": {
+                                "line": 878,
+                                "col": 21,
+                                "end_line": 878,
+                                "end_col": 110
+                              },
+                              "name": "$display",
+                              "format": "****************************************************************************",
+                              "args": [],
+                              "arg_signed": []
+                            },
+                            {
+                              "kind": "SysCall",
+                              "span": {
+                                "line": 879,
+                                "col": 21,
+                                "end_line": 880,
+                                "end_col": 60
+                              },
+                              "name": "$display",
+                              "format": "DarkRISCV Pipeline Report (%0d clocks, %0d instr, CPI = %.2f):",
+                              "args": [
+                                {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 880,
+                                    "col": 25,
+                                    "end_line": 880,
+                                    "end_col": 31
+                                  },
+                                  "width": 32,
+                                  "name": "clocks",
+                                  "signed": true
+                                },
+                                {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 880,
+                                    "col": 32,
+                                    "end_line": 880,
+                                    "end_col": 39
+                                  },
+                                  "width": 32,
+                                  "name": "running",
+                                  "signed": true
+                                },
+                                {
+                                  "kind": "Unsupported",
+                                  "span": {
+                                    "line": 880,
+                                    "col": 40,
+                                    "end_line": 880,
+                                    "end_col": 58
+                                  },
+                                  "sv_kind": "BinaryExpression:Divide-type",
+                                  "text": "1.0*clocks/running"
+                                }
+                              ],
+                              "arg_signed": [
+                                true,
+                                true,
+                                false
+                              ]
+                            },
+                            {
+                              "kind": "SysCall",
+                              "span": {
+                                "line": 882,
+                                "col": 21,
+                                "end_line": 889,
+                                "end_col": 45
+                              },
+                              "name": "$display",
+                              "format": "core%0d: %0d%% run, %0d%% wait (%0d%% i-bus, %0d%% d-bus/rd, %0d%% d-bus/wr), %0d%% flush",
+                              "args": [
+                                {
+                                  "kind": "ParamRef",
+                                  "span": {
+                                    "line": 883,
+                                    "col": 25,
+                                    "end_line": 883,
+                                    "end_col": 29
+                                  },
+                                  "name": "CPTR"
+                                },
+                                {
+                                  "kind": "Unsupported",
+                                  "span": {
+                                    "line": 884,
+                                    "col": 25,
+                                    "end_line": 884,
+                                    "end_col": 45
+                                  },
+                                  "sv_kind": "BinaryExpression:Divide-type",
+                                  "text": "100.0*running/clocks"
+                                },
+                                {
+                                  "kind": "Unsupported",
+                                  "span": {
+                                    "line": 885,
+                                    "col": 25,
+                                    "end_line": 885,
+                                    "end_col": 55
+                                  },
+                                  "sv_kind": "BinaryExpression:Divide-type",
+                                  "text": "100.0*(load+store+halt)/clocks"
+                                },
+                                {
+                                  "kind": "Unsupported",
+                                  "span": {
+                                    "line": 886,
+                                    "col": 25,
+                                    "end_line": 886,
+                                    "end_col": 42
+                                  },
+                                  "sv_kind": "BinaryExpression:Divide-type",
+                                  "text": "100.0*halt/clocks"
+                                },
+                                {
+                                  "kind": "Unsupported",
+                                  "span": {
+                                    "line": 887,
+                                    "col": 25,
+                                    "end_line": 887,
+                                    "end_col": 42
+                                  },
+                                  "sv_kind": "BinaryExpression:Divide-type",
+                                  "text": "100.0*load/clocks"
+                                },
+                                {
+                                  "kind": "Unsupported",
+                                  "span": {
+                                    "line": 888,
+                                    "col": 25,
+                                    "end_line": 888,
+                                    "end_col": 43
+                                  },
+                                  "sv_kind": "BinaryExpression:Divide-type",
+                                  "text": "100.0*store/clocks"
+                                },
+                                {
+                                  "kind": "Unsupported",
+                                  "span": {
+                                    "line": 889,
+                                    "col": 25,
+                                    "end_line": 889,
+                                    "end_col": 43
+                                  },
+                                  "sv_kind": "BinaryExpression:Divide-type",
+                                  "text": "100.0*flush/clocks"
+                                }
+                              ],
+                              "arg_signed": [
+                                true,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false
+                              ]
+                            },
+                            {
+                              "kind": "SysCall",
+                              "span": {
+                                "line": 896,
+                                "col": 21,
+                                "end_line": 896,
+                                "end_col": 110
+                              },
+                              "name": "$display",
+                              "format": "****************************************************************************",
+                              "args": [],
+                              "arg_signed": []
+                            },
+                            {
+                              "kind": "SysCall",
+                              "span": {
+                                "line": 897,
+                                "col": 21,
+                                "end_line": 897,
+                                "end_col": 31
+                              },
+                              "name": "$finish",
+                              "format": null,
+                              "args": [],
+                              "arg_signed": []
+                            }
+                          ]
+                        },
+                        "else": null
+                      }
+                    ]
+                  },
+                  "else": null
+                },
+                {
+                  "kind": "If",
+                  "span": {
+                    "line": 907,
+                    "col": 13,
+                    "end_line": 911,
+                    "end_col": 16
+                  },
+                  "cond": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 907,
+                      "col": 16,
+                      "end_line": 907,
+                      "end_col": 68
+                    },
+                    "width": 1,
+                    "op": "&&",
+                    "left": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 907,
+                        "col": 16,
+                        "end_line": 907,
+                        "end_col": 30
+                      },
+                      "width": 1,
+                      "op": "&&",
+                      "left": {
+                        "kind": "Unary",
+                        "span": {
+                          "line": 907,
+                          "col": 16,
+                          "end_line": 907,
+                          "end_col": 20
+                        },
+                        "width": 1,
+                        "op": "!",
+                        "operand": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 907,
+                            "col": 17,
+                            "end_line": 907,
+                            "end_col": 20
+                          },
+                          "width": 1,
+                          "name": "HLT"
+                        }
+                      },
+                      "right": {
+                        "kind": "Unary",
+                        "span": {
+                          "line": 907,
+                          "col": 24,
+                          "end_line": 907,
+                          "end_col": 30
+                        },
+                        "width": 1,
+                        "op": "!",
+                        "operand": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 907,
+                            "col": 25,
+                            "end_line": 907,
+                            "end_col": 30
+                          },
+                          "width": 2,
+                          "name": "FLUSH"
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 907,
+                        "col": 35,
+                        "end_line": 907,
+                        "end_col": 67
+                      },
+                      "width": 1,
+                      "op": "||",
+                      "left": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 907,
+                          "col": 35,
+                          "end_line": 907,
+                          "end_col": 49
+                        },
+                        "width": 1,
+                        "op": "===",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 907,
+                            "col": 35,
+                            "end_line": 907,
+                            "end_col": 41
+                          },
+                          "width": 32,
+                          "name": "XIDATA"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 907,
+                            "col": 44,
+                            "end_line": 907,
+                            "end_col": 49
+                          },
+                          "width": 32,
+                          "bits": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        }
+                      },
+                      "right": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 907,
+                          "col": 53,
+                          "end_line": 907,
+                          "end_col": 67
+                        },
+                        "width": 1,
+                        "op": "==",
+                        "left": {
+                          "kind": "Resize",
+                          "span": {
+                            "line": 907,
+                            "col": 53,
+                            "end_line": 907,
+                            "end_col": 64
+                          },
+                          "width": 32,
+                          "operand": {
+                            "kind": "PartSel",
+                            "span": {
+                              "line": 907,
+                              "col": 53,
+                              "end_line": 907,
+                              "end_col": 64
+                            },
+                            "width": 7,
+                            "value": {
+                              "kind": "Ident",
+                              "span": {
+                                "line": 907,
+                                "col": 53,
+                                "end_line": 907,
+                                "end_col": 59
+                              },
+                              "width": 32,
+                              "name": "XIDATA"
+                            },
+                            "msb": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 907,
+                                "col": 60,
+                                "end_line": 907,
+                                "end_col": 61
+                              },
+                              "value": 6,
+                              "resolved_width": 32
+                            },
+                            "lsb": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 907,
+                                "col": 62,
+                                "end_line": 907,
+                                "end_col": 63
+                              },
+                              "value": 0,
+                              "resolved_width": 32
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "Int",
+                          "span": {
+                            "line": 907,
+                            "col": 66,
+                            "end_line": 907,
+                            "end_col": 67
+                          },
+                          "value": 0,
+                          "resolved_width": 32
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "kind": "Block",
+                    "span": {
+                      "line": 908,
+                      "col": 13,
+                      "end_line": 911,
+                      "end_col": 16
+                    },
+                    "stmts": [
+                      {
+                        "kind": "SysCall",
+                        "span": {
+                          "line": 909,
+                          "col": 17,
+                          "end_line": 909,
+                          "end_col": 140
+                        },
+                        "name": "$display",
+                        "format": "invalid XIDATA=%x at %x %s",
+                        "args": [
+                          {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 909,
+                              "col": 55,
+                              "end_line": 909,
+                              "end_col": 61
+                            },
+                            "width": 32,
+                            "name": "XIDATA"
+                          },
+                          {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 909,
+                              "col": 62,
+                              "end_line": 909,
+                              "end_col": 64
+                            },
+                            "width": 32,
+                            "name": "PC"
+                          },
+                          {
+                            "kind": "Ternary",
+                            "span": {
+                              "line": 909,
+                              "col": 65,
+                              "end_line": 909,
+                              "end_col": 138
+                            },
+                            "width": 424,
+                            "cond": {
+                              "kind": "Binary",
+                              "span": {
+                                "line": 909,
+                                "col": 65,
+                                "end_line": 909,
+                                "end_col": 79
+                              },
+                              "width": 1,
+                              "op": "==",
+                              "left": {
+                                "kind": "Resize",
+                                "span": {
+                                  "line": 909,
+                                  "col": 65,
+                                  "end_line": 909,
+                                  "end_col": 76
+                                },
+                                "width": 32,
+                                "operand": {
+                                  "kind": "PartSel",
+                                  "span": {
+                                    "line": 909,
+                                    "col": 65,
+                                    "end_line": 909,
+                                    "end_col": 76
+                                  },
+                                  "width": 7,
+                                  "value": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 909,
+                                      "col": 65,
+                                      "end_line": 909,
+                                      "end_col": 71
+                                    },
+                                    "width": 32,
+                                    "name": "XIDATA"
+                                  },
+                                  "msb": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 909,
+                                      "col": 72,
+                                      "end_line": 909,
+                                      "end_col": 73
+                                    },
+                                    "value": 6,
+                                    "resolved_width": 32
+                                  },
+                                  "lsb": {
+                                    "kind": "Int",
+                                    "span": {
+                                      "line": 909,
+                                      "col": 74,
+                                      "end_line": 909,
+                                      "end_col": 75
+                                    },
+                                    "value": 0,
+                                    "resolved_width": 32
+                                  }
+                                }
+                              },
+                              "right": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 909,
+                                  "col": 78,
+                                  "end_line": 909,
+                                  "end_col": 79
+                                },
+                                "value": 0,
+                                "resolved_width": 32
+                              }
+                            },
+                            "then": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 909,
+                                "col": 80,
+                                "end_line": 909,
+                                "end_col": 135
+                              },
+                              "width": 424,
+                              "bits": "0010100001100011011010000110010101100011011010110010000001100110011011110111001000100000010001010100111001000100010010010100000101001110001000000110111101101110001000000111001001110100011011000010111101100011011011110110111001100110011010010110011100101110011101100110100000100000011000010110111001100100001000000111001101110010011000110010111101100011011011110110111001100110011010010110011100101110011011010110101100101001"
+                            },
+                            "else": {
+                              "kind": "Resize",
+                              "span": {
+                                "line": 909,
+                                "col": 136,
+                                "end_line": 909,
+                                "end_col": 138
+                              },
+                              "width": 424,
+                              "operand": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 909,
+                                  "col": 136,
+                                  "end_line": 909,
+                                  "end_col": 138
+                                },
+                                "width": 8,
+                                "bits": "00000000"
+                              }
+                            }
+                          }
+                        ],
+                        "arg_signed": [
+                          false,
+                          false,
+                          false
+                        ]
+                      },
+                      {
+                        "kind": "SysCall",
+                        "span": {
+                          "line": 910,
+                          "col": 17,
+                          "end_line": 910,
+                          "end_col": 27
+                        },
+                        "name": "$finish",
+                        "format": null,
+                        "args": [],
+                        "arg_signed": []
+                      }
+                    ]
+                  },
+                  "else": null
+                },
+                {
+                  "kind": "If",
+                  "span": {
+                    "line": 913,
+                    "col": 13,
+                    "end_line": 919,
+                    "end_col": 16
+                  },
+                  "cond": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 913,
+                      "col": 16,
+                      "end_line": 915,
+                      "end_col": 70
+                    },
+                    "width": 1,
+                    "op": "&&",
+                    "left": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 913,
+                        "col": 16,
+                        "end_line": 913,
+                        "end_col": 33
+                      },
+                      "width": 1,
+                      "op": "&&",
+                      "left": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 913,
+                          "col": 16,
+                          "end_line": 913,
+                          "end_col": 25
+                        },
+                        "width": 1,
+                        "op": "&&",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 913,
+                            "col": 16,
+                            "end_line": 913,
+                            "end_col": 19
+                          },
+                          "width": 1,
+                          "name": "LCC"
+                        },
+                        "right": {
+                          "kind": "Unary",
+                          "span": {
+                            "line": 913,
+                            "col": 21,
+                            "end_line": 913,
+                            "end_col": 25
+                          },
+                          "width": 1,
+                          "op": "!",
+                          "operand": {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 913,
+                              "col": 22,
+                              "end_line": 913,
+                              "end_col": 25
+                            },
+                            "width": 1,
+                            "name": "HLT"
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "Unary",
+                        "span": {
+                          "line": 913,
+                          "col": 27,
+                          "end_line": 913,
+                          "end_col": 33
+                        },
+                        "width": 1,
+                        "op": "!",
+                        "operand": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 913,
+                            "col": 28,
+                            "end_line": 913,
+                            "end_col": 33
+                          },
+                          "width": 2,
+                          "name": "FLUSH"
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 913,
+                        "col": 37,
+                        "end_line": 915,
+                        "end_col": 69
+                      },
+                      "width": 1,
+                      "op": "||",
+                      "left": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 913,
+                          "col": 37,
+                          "end_line": 914,
+                          "end_col": 69
+                        },
+                        "width": 1,
+                        "op": "||",
+                        "left": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 913,
+                            "col": 38,
+                            "end_line": 913,
+                            "end_col": 68
+                          },
+                          "width": 1,
+                          "op": "&&",
+                          "left": {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 913,
+                              "col": 38,
+                              "end_line": 913,
+                              "end_col": 45
+                            },
+                            "width": 1,
+                            "op": "==",
+                            "left": {
+                              "kind": "Resize",
+                              "span": {
+                                "line": 913,
+                                "col": 38,
+                                "end_line": 913,
+                                "end_col": 42
+                              },
+                              "width": 32,
+                              "operand": {
+                                "kind": "Ident",
+                                "span": {
+                                  "line": 913,
+                                  "col": 38,
+                                  "end_line": 913,
+                                  "end_col": 42
+                                },
+                                "width": 3,
+                                "name": "DLEN"
+                              }
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 913,
+                                "col": 44,
+                                "end_line": 913,
+                                "end_col": 45
+                              },
+                              "value": 4,
+                              "resolved_width": 32
+                            }
+                          },
+                          "right": {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 913,
+                              "col": 49,
+                              "end_line": 913,
+                              "end_col": 68
+                            },
+                            "width": 1,
+                            "op": "===",
+                            "left": {
+                              "kind": "PartSel",
+                              "span": {
+                                "line": 913,
+                                "col": 49,
+                                "end_line": 913,
+                                "end_col": 60
+                              },
+                              "width": 32,
+                              "value": {
+                                "kind": "Ident",
+                                "span": {
+                                  "line": 913,
+                                  "col": 49,
+                                  "end_line": 913,
+                                  "end_col": 54
+                                },
+                                "width": 32,
+                                "name": "DATAI"
+                              },
+                              "msb": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 913,
+                                  "col": 55,
+                                  "end_line": 913,
+                                  "end_col": 57
+                                },
+                                "value": 31,
+                                "resolved_width": 32
+                              },
+                              "lsb": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 913,
+                                  "col": 58,
+                                  "end_line": 913,
+                                  "end_col": 59
+                                },
+                                "value": 0,
+                                "resolved_width": 32
+                              }
+                            },
+                            "right": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 913,
+                                "col": 63,
+                                "end_line": 913,
+                                "end_col": 68
+                              },
+                              "width": 32,
+                              "bits": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 914,
+                            "col": 38,
+                            "end_line": 914,
+                            "end_col": 68
+                          },
+                          "width": 1,
+                          "op": "&&",
+                          "left": {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 914,
+                              "col": 38,
+                              "end_line": 914,
+                              "end_col": 45
+                            },
+                            "width": 1,
+                            "op": "==",
+                            "left": {
+                              "kind": "Resize",
+                              "span": {
+                                "line": 914,
+                                "col": 38,
+                                "end_line": 914,
+                                "end_col": 42
+                              },
+                              "width": 32,
+                              "operand": {
+                                "kind": "Ident",
+                                "span": {
+                                  "line": 914,
+                                  "col": 38,
+                                  "end_line": 914,
+                                  "end_col": 42
+                                },
+                                "width": 3,
+                                "name": "DLEN"
+                              }
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 914,
+                                "col": 44,
+                                "end_line": 914,
+                                "end_col": 45
+                              },
+                              "value": 2,
+                              "resolved_width": 32
+                            }
+                          },
+                          "right": {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 914,
+                              "col": 49,
+                              "end_line": 914,
+                              "end_col": 68
+                            },
+                            "width": 1,
+                            "op": "===",
+                            "left": {
+                              "kind": "PartSel",
+                              "span": {
+                                "line": 914,
+                                "col": 49,
+                                "end_line": 914,
+                                "end_col": 60
+                              },
+                              "width": 16,
+                              "value": {
+                                "kind": "Ident",
+                                "span": {
+                                  "line": 914,
+                                  "col": 49,
+                                  "end_line": 914,
+                                  "end_col": 54
+                                },
+                                "width": 32,
+                                "name": "DATAI"
+                              },
+                              "msb": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 914,
+                                  "col": 55,
+                                  "end_line": 914,
+                                  "end_col": 57
+                                },
+                                "value": 15,
+                                "resolved_width": 32
+                              },
+                              "lsb": {
+                                "kind": "Int",
+                                "span": {
+                                  "line": 914,
+                                  "col": 58,
+                                  "end_line": 914,
+                                  "end_col": 59
+                                },
+                                "value": 0,
+                                "resolved_width": 32
+                              }
+                            },
+                            "right": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 914,
+                                "col": 63,
+                                "end_line": 914,
+                                "end_col": 68
+                              },
+                              "width": 16,
+                              "bits": "xxxxxxxxxxxxxxxx"
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 915,
+                          "col": 38,
+                          "end_line": 915,
+                          "end_col": 68
+                        },
+                        "width": 1,
+                        "op": "&&",
+                        "left": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 915,
+                            "col": 38,
+                            "end_line": 915,
+                            "end_col": 45
+                          },
+                          "width": 1,
+                          "op": "==",
+                          "left": {
+                            "kind": "Resize",
+                            "span": {
+                              "line": 915,
+                              "col": 38,
+                              "end_line": 915,
+                              "end_col": 42
+                            },
+                            "width": 32,
+                            "operand": {
+                              "kind": "Ident",
+                              "span": {
+                                "line": 915,
+                                "col": 38,
+                                "end_line": 915,
+                                "end_col": 42
+                              },
+                              "width": 3,
+                              "name": "DLEN"
+                            }
+                          },
+                          "right": {
+                            "kind": "Int",
+                            "span": {
+                              "line": 915,
+                              "col": 44,
+                              "end_line": 915,
+                              "end_col": 45
+                            },
+                            "value": 1,
+                            "resolved_width": 32
+                          }
+                        },
+                        "right": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 915,
+                            "col": 49,
+                            "end_line": 915,
+                            "end_col": 68
+                          },
+                          "width": 1,
+                          "op": "===",
+                          "left": {
+                            "kind": "PartSel",
+                            "span": {
+                              "line": 915,
+                              "col": 49,
+                              "end_line": 915,
+                              "end_col": 60
+                            },
+                            "width": 8,
+                            "value": {
+                              "kind": "Ident",
+                              "span": {
+                                "line": 915,
+                                "col": 49,
+                                "end_line": 915,
+                                "end_col": 54
+                              },
+                              "width": 32,
+                              "name": "DATAI"
+                            },
+                            "msb": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 915,
+                                "col": 56,
+                                "end_line": 915,
+                                "end_col": 57
+                              },
+                              "value": 7,
+                              "resolved_width": 32
+                            },
+                            "lsb": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 915,
+                                "col": 58,
+                                "end_line": 915,
+                                "end_col": 59
+                              },
+                              "value": 0,
+                              "resolved_width": 32
+                            }
+                          },
+                          "right": {
+                            "kind": "Literal",
+                            "span": {
+                              "line": 915,
+                              "col": 64,
+                              "end_line": 915,
+                              "end_col": 68
+                            },
+                            "width": 8,
+                            "bits": "xxxxxxxx"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "kind": "Block",
+                    "span": {
+                      "line": 916,
+                      "col": 13,
+                      "end_line": 919,
+                      "end_col": 16
+                    },
+                    "stmts": [
+                      {
+                        "kind": "SysCall",
+                        "span": {
+                          "line": 917,
+                          "col": 17,
+                          "end_line": 917,
+                          "end_col": 61
+                        },
+                        "name": "$display",
+                        "format": "invalid DATAI@%x at %x",
+                        "args": [
+                          {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 917,
+                              "col": 51,
+                              "end_line": 917,
+                              "end_col": 56
+                            },
+                            "width": 32,
+                            "name": "DADDR"
+                          },
+                          {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 917,
+                              "col": 57,
+                              "end_line": 917,
+                              "end_col": 59
+                            },
+                            "width": 32,
+                            "name": "PC"
+                          }
+                        ],
+                        "arg_signed": [
+                          false,
+                          false
+                        ]
+                      },
+                      {
+                        "kind": "SysCall",
+                        "span": {
+                          "line": 918,
+                          "col": 17,
+                          "end_line": 918,
+                          "end_col": 27
+                        },
+                        "name": "$finish",
+                        "format": null,
+                        "args": [],
+                        "arg_signed": []
+                      }
+                    ]
+                  },
+                  "else": null
+                }
+              ]
+            }
           }
         ],
         "generates": [],

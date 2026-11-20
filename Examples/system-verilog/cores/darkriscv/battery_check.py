@@ -15,7 +15,7 @@ TMPDIR = Path(os.environ.get("TMPDIR", str(ROOT / ".lake" / "tmp")))
 SOURCE = HERE / "rtl" / "darkriscv.v"
 ENVELOPE = HERE / "darkriscv.sv.json"
 PINNED_SOURCE = "46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0"
-PINNED_ENVELOPE = "65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26"
+PINNED_ENVELOPE = "ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32"
 EXPECTED_CYCLES = 1000
 
 sys.path.insert(0, str(HERE))
@@ -83,7 +83,7 @@ def lean_rows(rows: list[list[tuple[str, str]]]) -> str:
 def make_probe(rows: list[list[tuple[str, str]]], corrupted: list[list[tuple[str, str]]]) -> str:
     expected = lean_rows(rows)
     wrong = lean_rows(corrupted)
-    stimuli = [(dict(row)["IDATA"], dict(row)["DDACK"], dict(row).get("instr_ack", "1")) for row in rows]
+    stimuli = [(dict(row)["IDATA"], dict(row)["DDACK"], dict(row).get("IDACK", "1")) for row in rows]
     if any(set(idata) - {"0", "1"} or set(ddack) - {"0", "1"} or set(idack) - {"0", "1"}
            for idata, ddack, idack in stimuli):
         raise RuntimeError("program input contains unknown instruction data")
