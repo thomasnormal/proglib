@@ -1409,3 +1409,15 @@ family-boundary refinement packages.  `lake env lean
 Examples/system-verilog/cores/picorv32/r1_rv32i.lean` passed, and all printed
 theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
 The universal loaded step and order premises remain explicit.
+
+## 2026-11-20 R2 statement audit after the all-family package
+
+The current R2 statement compiles after the complete R1 consumer package was
+checked.  The audit confirms the pinned 26-parameter RISCV_FORMAL vector,
+concrete one-rank register-file geometry, disabled RV32M parameters, explicit
+environment admission, exact RVFI decoder, fetch tie, stateful safety theorem,
+and separate bounded-progress theorem.  `lake env lean
+Examples/system-verilog/cores/picorv32/R2.lean` passed.  Printed proposition
+axioms remain within `[propext, Classical.choice, Quot.sound]` and the
+geometry facts use only the expected smaller subsets.  The universal loaded
+`PicoRV32Invariant.step` and order premises remain assumptions.
