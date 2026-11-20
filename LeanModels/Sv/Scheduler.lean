@@ -556,6 +556,10 @@ inductive SlotOutcome where
   | refusal (message : String)
 deriving Repr, DecidableEq, Inhabited
 
+def SlotOutcome.matches : SlotOutcome → SlotState → Prop
+  | .value store, s => quiet s ∧ s.store = store
+  | .refusal message, s => s.refusal = some message
+
 def allSlotOutcomes : Nat → SchedulerDesign → SlotState → List SlotOutcome
   | 0, _, s =>
       if let some message := s.refusal then [.refusal message]
@@ -698,6 +702,82 @@ theorem allSlots_complete : ∀ (n : Nat) (d : SchedulerDesign) (s t : SlotState
             rw [allSlots]
             simp only [hs, ↓reduceIte]
             exact List.mem_flatMap.mpr ⟨u, hnext, htail⟩
+
+theorem allSlotOutcomes_sound : ∀ (n : Nat) (d : SchedulerDesign)
+    (s : SlotState) (o : SlotOutcome),
+    o ∈ allSlotOutcomes n d s →
+      ∃ t, Steps (oneStep d) s t ∧ o.matches t
+  | 0, d, s, o, ho => by
+      cases hs : s.refusal with
+      | some message =>
+          have ho' : o = .refusal message := by
+            simpa [allSlotOutcomes, hs] using ho
+          subst o
+          exact ⟨s, Steps.refl s, hs⟩
+      | none =>
+          have ho'' : quietB s = true ∧ o = .value s.store := by
+            simpa [allSlotOutcomes, hs] using ho
+          have hq : quietB s = true := ho''.1
+          have ho' : o = .value s.store := ho''.2
+          subst o
+          exact ⟨s, Steps.refl s, by simpa [SlotOutcome.matches, quiet, hq]⟩
+  | n + 1, d, s, o, ho => by
+      cases hs : s.refusal with
+      | some message =>
+          have ho' : o = .refusal message := by
+            simpa [allSlotOutcomes, hs] using ho
+          subst o
+          exact ⟨s, Steps.refl s, hs⟩
+      | none =>
+          by_cases hq : quietB s = true
+          · have ho' : o = .value s.store := by
+              simpa [allSlotOutcomes, hs, hq] using ho
+            subst o
+            exact ⟨s, Steps.refl s, by simpa [SlotOutcome.matches, quiet, hq]⟩
+          · rw [allSlotOutcomes] at ho
+            simp only [hs, hq] at ho
+            obtain ⟨u, hu, ho⟩ := List.mem_flatMap.mp ho
+            have hu' : oneStep d s u := (mem_nextStates_iff d s u).mp hu
+            obtain ⟨t, ht, hmatch⟩ := allSlotOutcomes_sound n d u o ho
+            refine ⟨t, Steps.trans (Steps.tail (Steps.refl s) hu') ht, hmatch⟩
+
+inductive TerminalPath (d : SchedulerDesign) : Nat → SlotState → SlotState → Prop where
+  | terminal {n : Nat} {s : SlotState} :
+      (quiet s ∨ s.refusal.isSome = true) → TerminalPath d n s s
+  | head {n : Nat} {s u t : SlotState} :
+      quietB s = false → s.refusal = none → oneStep d s u →
+      TerminalPath d n u t → TerminalPath d (n + 1) s t
+
+theorem allSlotOutcomes_complete : ∀ (n : Nat) (d : SchedulerDesign)
+    (s t : SlotState),
+    TerminalPath d n s t →
+    (if h : t.refusal.isSome then
+        .refusal (t.refusal.get h)
+      else .value t.store) ∈ allSlotOutcomes n d s
+  | n, d, s, t, hpath => by
+      cases hpath with
+      | terminal hterminal =>
+          cases n with
+          | zero =>
+              cases hs : s.refusal with
+              | some message => simp [allSlotOutcomes, hs]
+              | none =>
+                  have hq : quietB s = true := by
+                    exact hterminal.resolve_right (by simp [hs])
+                  simp [allSlotOutcomes, hs, hq]
+          | succ n =>
+              cases hs : s.refusal with
+              | some message => simp [allSlotOutcomes, hs]
+              | none =>
+                  have hq : quietB s = true := by
+                    exact hterminal.resolve_right (by simp [hs])
+                  simp [allSlotOutcomes, hs, hq]
+      | @head n s u t hsQuiet hsRef hstep htail =>
+          have hu : u ∈ nextStates d s := (mem_nextStates_iff d s u).mpr hstep
+          rw [allSlotOutcomes]
+          have hq : quietB s ≠ true := by simpa using hsQuiet
+          simp only [hsRef, hq]
+          exact List.mem_flatMap.mpr ⟨u, hu, allSlotOutcomes_complete n d u t htail⟩
 
 /-! ## Executable audit rows -/
 
