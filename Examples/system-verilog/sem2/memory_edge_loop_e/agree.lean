@@ -47,7 +47,10 @@ def runRows (d : CoreMemDesign) (s : CoreMemState) : List SvState → Res (List 
           (SvState.showSignal (CoreMemState.view d s6) "q" == "xxxxxxxx") &&
           (SvState.showSignal (CoreMemState.view d s7) "q" == "xxxxxxxx") &&
           (SvState.showSignal (CoreMemState.view d s8) "q" == "zzzzzzzz")
-      | _ => false
-  | _ => false
+      | .timeout => false
+      | .unsupported _ => false
+      | .ok _ => false
+  | .timeout => false
+  | .unsupported _ => false
 
 end Examples.«system-verilog».sem2.memory_edge_loop_e

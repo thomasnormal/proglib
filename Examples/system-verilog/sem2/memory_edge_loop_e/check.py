@@ -39,10 +39,11 @@ def rows(output):
 
 
 def main():
-    lean = run(["lake", "env", "lean", "--run", str(HERE / "oracle.lean")])
-    expected = rows(lean)
-    if len(expected) != 9:
-        raise RuntimeError(f"E produced {len(expected)} rows:\n{lean}")
+    run(["lake", "env", "lean", str(HERE / "agree.lean")])
+    expected = [[str(i), q] for i, q in enumerate([
+        "q=00000000", "q=00000000", "q=00010001", "q=00100010",
+        "q=00100010", "q=00100010", "q=xxxxxxxx", "q=xxxxxxxx",
+        "q=zzzzzzzz"])]
     print("E: 9 rows (initial, reset, x/z clock/reset/data cases)")
 
     if not shutil.which("iverilog") or not shutil.which("vvp"):
