@@ -1023,3 +1023,22 @@ first-clock probe times out at the 180-second bound, so E-RUN remains **0/1**.
 The receipt checkers accept this current envelope pin.  The simulator receipt
 is unchanged at 220/220 rows with digest
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+## 2026-11-20 OpenTitan prim_arbiter_ppc canonical-E admission
+
+The pinned OpenTitan source at commit
+`0a6ff6855bd9c6489110df167501e4d5f5c9bdbd` was extracted with the approved
+Slang frontend from `prim_util_pkg.sv`, `prim_assert.sv`,
+`prim_leading_one_ppc.sv`, and `prim_arbiter_ppc.sv`.  The source-shaped
+hierarchical envelope has SHA-256
+`15e60ccaca6ab70a9fc2b07c31166eb466f536d499059e63c4bfcdd70d2b2e37`.
+Canonical E's `PDesign.instantiateE2H` admits the top and its child at
+`N=8`, `DW=32`, `EnDataPort=1`, and `CoreMemDesign.initialState` returns
+`ok`.  The assertion-only `$error` check remains an inert elaboration-time
+check.  The next source-shaped measurement is the first clocked transition
+through the retained mask process.
+
+The clean-room source `arbiter_packed_loop_unsigned_e.sv` preserves the
+`prim_leading_one_ppc` packed target and `int unsigned` parameter-bound loop.
+At `N=2` and `N=4`, ordinary E and both pinned simulators agree on all sixteen
+rows, including x/z inputs.  Icarus Verilog 13.0 reports
+`s20250103-64-gdad78d525`, and Xcelium reports 24.03-s004.
