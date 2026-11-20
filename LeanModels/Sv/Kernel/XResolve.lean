@@ -89,6 +89,11 @@ theorem typedResolution_twoState_total (source : LVec) :
     TypedResolution false source source.toTwoState := by
   exact twoStateBoundary_total source
 
+theorem typedResolution_twoState_eq_toTwoState {source result : LVec}
+    (h : TypedResolution false source result) :
+    result = source.toTwoState := by
+  exact twoStateBoundary_unique h (typedResolution_twoState_total source)
+
 /-- A decision is known when every correlated concretization gives the same
 boolean result. This is deliberately weaker than requiring every source bit
 to be known: `1'bx` is definitely true for a nonzero test, while `1'b0x` is
