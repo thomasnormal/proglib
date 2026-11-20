@@ -2439,6 +2439,68 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
       m.reallocAt p size address := by
   simp [reallocAt]
 
+/-! ### S3 memory contract
+
+`AddressIndependent` packages the pointwise placement-irrelevance facts used
+by the evaluator theorem. Destination placement remains an explicit argument
+of `reallocAt` and is therefore not quantified here. -/
+structure AddressIndependent (m : Mem) : Prop where
+  resolve : ∀ (p : Ptr) (n address : Nat),
+    m.resolve {p with address := address} n = m.resolve p n
+  loadBytes : ∀ (p : Ptr) (n address : Nat),
+    m.loadBytes {p with address := address} n = m.loadBytes p n
+  storeBytes : ∀ (p : Ptr) (bs : List CByte) (address : Nat),
+    m.storeBytes {p with address := address} bs = m.storeBytes p bs
+  loadIntChecked : ∀ (alias : AliasModel) (p : Ptr) (t : IntTy)
+    (used : CType) (address : Nat),
+    m.loadIntChecked alias {p with address := address} t used =
+      m.loadIntChecked alias p t used
+  storeIntChecked : ∀ (alias : AliasModel) (p : Ptr) (t : IntTy)
+    (used : CType) (v : Int) (address : Nat),
+    m.storeIntChecked alias {p with address := address} t used v =
+      m.storeIntChecked alias p t used v
+  loadPtr : ∀ (p : Ptr) (address : Nat),
+    m.loadPtr {p with address := address} = m.loadPtr p
+  storePtr : ∀ (p q : Ptr) (address : Nat),
+    m.storePtr {p with address := address} q = m.storePtr p q
+  vaStart : ∀ (p : Ptr) (args : List CVal) (address : Nat),
+    m.vaStart {p with address := address} args = m.vaStart p args
+  vaCopy : ∀ (dst src : Ptr) (addressDst addressSrc : Nat),
+    m.vaCopy {dst with address := addressDst} {src with address := addressSrc} =
+      m.vaCopy dst src
+  vaEnd : ∀ (p : Ptr) (address : Nat),
+    m.vaEnd {p with address := address} = m.vaEnd p
+  vaArg : ∀ (p : Ptr) (address : Nat),
+    m.vaArg {p with address := address} = m.vaArg p
+  free : ∀ (p : Ptr) (address : Nat),
+    m.free {p with address := address} = m.free p
+  realloc : ∀ (p : Ptr) (size address : Nat),
+    m.realloc {p with address := address} size = m.realloc p size
+  reallocAt : ∀ (p : Ptr) (size destination address : Nat),
+    m.reallocAt {p with address := address} size destination =
+      m.reallocAt p size destination
+
+theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
+  constructor
+  · exact fun p n address => resolve_address_irrel m p n address
+  · exact fun p n address => loadBytes_address_irrel m p n address
+  · exact fun p bs address => storeBytes_address_irrel m p bs address
+  · exact fun alias p t used address =>
+      loadIntChecked_address_irrel m alias p t used address
+  · exact fun alias p t used v address =>
+      storeIntChecked_address_irrel m alias p t used v address
+  · exact fun p address => loadPtr_address_irrel m p address
+  · exact fun p q address => storePtr_address_irrel m p q address
+  · exact fun p args address => vaStart_address_irrel m p args address
+  · exact fun dst src addressDst addressSrc =>
+      vaCopy_address_irrel m dst src addressDst addressSrc
+  · exact fun p address => vaEnd_address_irrel m p address
+  · exact fun p address => vaArg_address_irrel m p address
+  · exact fun p address => free_address_irrel m p address
+  · exact fun p size address => realloc_address_irrel m p size address
+  · exact fun p size destination address =>
+      reallocAt_source_address_irrel m p size destination address
+
 theorem realloc_structuredTypesUnique
     {m m' : Mem} {p q : Ptr} {size : Nat}
     (hunique : structuredTypesUnique m)

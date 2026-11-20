@@ -596,3 +596,8 @@ identity.
 Unstructured allocation entry points now expose lookup equality too. Ordinary,
 zeroed, and explicit-placement allocation, plus `malloc` and `calloc`, leave
 the structured side table unchanged while extending object or placement state.
+
+The pointwise placement lemmas are now packaged as `Mem.AddressIndependent`.
+`addressIndependent_mem` covers resolution, byte and typed accesses, variadic
+cursors, `free`, and both realloc source-pointer cases. The evaluator-level
+behavior-set theorem still consumes this memory contract.
