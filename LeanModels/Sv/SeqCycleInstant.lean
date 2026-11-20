@@ -454,14 +454,14 @@ theorem SeqRunsI.mono {r : Res CoreMemDesign} {P Q : List SvState → List (SvSt
 /-- **On a design whose only event is `posedge clk`, every cycle stimulus keeps the input discipline**, from every view:
 the low slot is a data row (the clock goes to 0: no rise), the high slot a data row or the instant `{posedge clk}`. -/
 theorem CoreMemDesign.SeqProfile.separated_cycleRows {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
-    (hnr : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.reset = none) :
+    (hnr : ∀ f, f ∈ E.edgeProcs → f.reset = none) :
     ∀ (v : SvState) (ins : List SvState), E.Separated v (cycleRows clk ins) := by
   -- every event is `posedge clk`
   have hev : ∀ e ∈ E.events, e = ⟨clk, .posedge⟩ := by
     intro e he
     obtain ⟨f, hf, he⟩ := CoreMemDesign.mem_events.mp he
-    have hr := hP.rise _ hf
-    simp only [CoreMemProc.OnRise] at hr
+    obtain ⟨p, hp, hpe⟩ := CoreMemDesign.mem_edgeProcs.mp hf
+    have hr := (hP.rise p hp).of_edge? hpe
     simp only [CoreMemEdge.events, CoreMemEdge.resetEvent?, hnr f hf, Option.map_none, Option.toList_none,
       List.mem_singleton, CoreMemEdge.clockEvent, hr.1, hr.2] at he
     exact he
@@ -515,7 +515,7 @@ theorem CoreMemDesign.SeqProfile.separated_cycleRows {E : CoreMemDesign} {clk : 
 over every typed data list, from every coherent state with a coherent memory. -/
 theorem SeqRunsM_iff {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
     {P : List ((SvState × MemV) × (SvState × MemV)) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
-    (hnr : ∀ f, CoreMemProc.edge f ∈ E.processes.toList → f.reset = none) :
+    (hnr : ∀ f, f ∈ E.edgeProcs → f.reset = none) :
     SeqRunsM r clk P ↔ ∀ (st : CoreMemState) (ins : List SvState), E.Coherent st → E.MemCoherent st.memory →
       (∀ d ∈ ins, E.DataTyped clk d) → ∃ rows, runCoreMemRows E st (cycleRows clk ins) = .ok rows ∧
         P (cyclePairs (rows.map fun s => (E.scalar.view s.scalar, E.memOf s.memory))) := by
@@ -700,7 +700,10 @@ def CoreMemProc.domain? : CoreMemProc → Option SeqEvent
   | .edge f => some f.clockEvent
   | .assign _ _ => none
   | .primitive _ _ _ => none
-  | .event _ _ => none
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => some f.clockEvent
+      | none => none
   | .initial _ => none
   | .comb _ => none
   | .implicit _ => none
@@ -734,6 +737,13 @@ def CoreMemDesign.crossings (E : CoreMemDesign) : List (SeqEvent × String × Se
         match E.domainOf x with
         | some B => if B = f.clockEvent then none else some (f.clockEvent, x, B)
         | none => none
+    | .event evs body =>
+        match coreMemEventEdge? evs body with
+        | some f => (dedupL (f.body.readNames.flatMap (E.stateReads (E.processes.size + 1)))).filterMap fun x =>
+            match E.domainOf x with
+            | some B => if B = f.clockEvent then none else some (f.clockEvent, x, B)
+            | none => none
+        | none => []
     | _ => []
 
 end LeanModels.Sv.Kernel

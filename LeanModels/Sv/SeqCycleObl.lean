@@ -281,34 +281,88 @@ end
 def CoreMemProc.unconverted : CoreMemProc → List String
   | .assign _ v => PExpr.unconverted v
   | .edge f => f.body.unconverted
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.unconverted
+      | none => []
   | _ => []
 
 /-- The names a process drives. -/
 def CoreMemProc.targets : CoreMemProc → List String
   | .assign (.ident n) _ => [n]
   | .edge f => f.body.writes.eraseDups
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.writes.eraseDups
+      | none => []
   | _ => []
 
 /-- The names a process reads. -/
 def CoreMemProc.reads : CoreMemProc → List String
   | .assign _ v => PExpr.sigNames v
   | .edge f => f.body.readNames
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.readNames
+      | none => []
   | _ => []
 
 /-- The asynchronous reset of an edge process, when it has one. -/
 def CoreMemProc.reset? : CoreMemProc → Option String
   | .edge f => f.reset
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.reset
+      | none => none
   | _ => none
 
 /-- Whether a process is an edge process with a blocking write. -/
 def CoreMemProc.blocking : CoreMemProc → Bool
   | .edge f => f.body.hasBlocking
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.hasBlocking
+      | none => false
   | _ => false
 
-/-- Whether a process is an edge process. -/
+/-- Whether a process is an edge process (a plain `always` on one clock edge is one, `CoreMemProc.edge?`). -/
 def CoreMemProc.isEdge : CoreMemProc → Bool
   | .edge _ => true
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some _ => true
+      | none => false
   | _ => false
+
+/-- The names an edge process drives. -/
+theorem CoreMemProc.targets_of_edge? {p : CoreMemProc} {f : CoreMemEdge} (h : p.edge? = some f) :
+    p.targets = f.body.writes.eraseDups := by
+  cases p with
+  | edge g =>
+      simp only [CoreMemProc.edge?, Option.some.injEq] at h
+      subst h
+      rfl
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemProc.targets, h]
+  | _ => exact absurd h (by simp [CoreMemProc.edge?])
+
+theorem CoreMemProc.isEdge_of_edge? {p : CoreMemProc} {f : CoreMemEdge} (h : p.edge? = some f) :
+    p.isEdge = true := by
+  cases p with
+  | edge g => rfl
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemProc.isEdge, h]
+  | _ => exact absurd h (by simp [CoreMemProc.edge?])
+
+theorem CoreMemProc.isEdge_of_none {p : CoreMemProc} (h : p.edge? = none) : p.isEdge = false := by
+  cases p with
+  | edge g => exact absurd h (by simp [CoreMemProc.edge?])
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemProc.isEdge, h]
+  | _ => rfl
 
 /-- The targets of the continuous assigns of a list. -/
 def assignTargets (ps : List CoreMemProc) : List String :=
@@ -639,7 +693,31 @@ end
 /-- A process whose edge body (if it is an edge process) is `nbaWhole`. -/
 def CoreMemProc.nbaWholeP : CoreMemProc → Bool
   | .edge f => f.body.nbaWhole
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.nbaWhole
+      | none => true
   | _ => true
+
+theorem CoreMemProc.nbaWholeP_of_edge? {p : CoreMemProc} {f : CoreMemEdge} (h : p.edge? = some f) :
+    p.nbaWholeP = f.body.nbaWhole := by
+  cases p with
+  | edge g =>
+      simp only [CoreMemProc.edge?, Option.some.injEq] at h
+      subst h
+      rfl
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemProc.nbaWholeP, h]
+  | _ => exact absurd h (by simp [CoreMemProc.edge?])
+
+theorem CoreMemProc.nbaWholeP_of_none {p : CoreMemProc} (h : p.edge? = none) : p.nbaWholeP = true := by
+  cases p with
+  | edge g => exact absurd h (by simp [CoreMemProc.edge?])
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemProc.nbaWholeP, h]
+  | _ => rfl
 
 /-- The names the processes drive, process by process. -/
 def CoreMemDesign.driven (E : CoreMemDesign) : List String := E.processes.toList.flatMap CoreMemProc.targets
@@ -689,6 +767,10 @@ def CoreMemDesign.oblSources (E : CoreMemDesign) : Bool := E.sources.all fun s =
 def CoreMemProc.sourceReadOk (srcs : List String) : CoreMemProc → Bool
   | .assign _ v => (PExpr.sigNames v).all fun x => !srcs.contains x
   | .edge f => f.body.readNames.all fun x => !srcs.contains x || f.reset == some x
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.readNames.all fun x => !srcs.contains x || f.reset == some x
+      | none => true
   | _ => true
 
 /-- No process reads an event source as data, except an edge process its own asynchronous reset. -/
@@ -786,12 +868,12 @@ theorem CoreMemDesign.source_undriven {E : CoreMemDesign} (hO : E.seqOblI = true
 
 /-- An edge process's clock and reset are event sources. -/
 theorem CoreMemDesign.clock_mem_sources {E : CoreMemDesign} {f : CoreMemEdge}
-    (hf : CoreMemProc.edge f ∈ E.processes.toList) : f.clock ∈ E.sources := by
+    (hf : f ∈ E.edgeProcs) : f.clock ∈ E.sources := by
   simp only [CoreMemDesign.sources, List.mem_map]
   exact ⟨f.clockEvent, CoreMemDesign.mem_events.mpr ⟨f, hf, by simp [CoreMemEdge.events]⟩, rfl⟩
 
 theorem CoreMemDesign.reset_mem_sources {E : CoreMemDesign} {f : CoreMemEdge}
-    (hf : CoreMemProc.edge f ∈ E.processes.toList) {r : String} (hr : f.reset = some r) : r ∈ E.sources := by
+    (hf : f ∈ E.edgeProcs) {r : String} (hr : f.reset = some r) : r ∈ E.sources := by
   simp only [CoreMemDesign.sources, List.mem_map]
   refine ⟨⟨r, if f.resetHigh then .posedge else .negedge⟩, CoreMemDesign.mem_events.mpr ⟨f, hf, ?_⟩, rfl⟩
   simp [CoreMemEdge.events, CoreMemEdge.resetEvent?, hr]
@@ -841,7 +923,9 @@ theorem CoreMemDesign.settleRaw_frame {E : CoreMemDesign} {mv : MemV} :
       | comb _ => simp [CoreMemDesign.settleRaw] at h
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
       | latch _ => simp [CoreMemDesign.settleRaw] at h
-      | event _ _ => simp [CoreMemDesign.settleRaw] at h
+      | event _ _ =>
+          simp only [CoreMemDesign.settleRaw] at h
+          exact CoreMemDesign.settleRaw_frame rest (idx + 1) r r' h x (by simpa [assignTargets] using hx)
       | unsupported _ _ => simp [CoreMemDesign.settleRaw] at h
 
 /-- The materialization reads a raw view only through its lookups. -/
@@ -943,7 +1027,11 @@ theorem CoreMemDesign.settleRaw_agree {E : CoreMemDesign} {mv : MemV} :
       | comb _ => simp [CoreMemDesign.settleRaw] at h
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
       | latch _ => simp [CoreMemDesign.settleRaw] at h
-      | event _ _ => simp [CoreMemDesign.settleRaw] at h
+      | event _ _ =>
+          simp only [CoreMemDesign.settleRaw] at h
+          obtain ⟨r2', h2, hfin⟩ := CoreMemDesign.settleRaw_agree rest (idx + 1) r1 r2 r1' ht.2
+            (fun x hx => hag x (by simpa [assignTargets] using hx)) h
+          exact ⟨r2', by simp [CoreMemDesign.settleRaw, h2], hfin⟩
       | unsupported _ _ => simp [CoreMemDesign.settleRaw] at h
 
 /-- **THE SETTLE IS A FIXPOINT**: under the topological obligation, from a materialized view (every view of a coherent
@@ -1220,7 +1308,39 @@ def CoreMemDesign.procQ (E : CoreMemDesign) (before after v : SvState) (mv : Mem
       let r ← E.execV v mv p.body
       .ok r.2.1
     else .ok []
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some p => if p.fires before after then do
+          let r ← E.execV v mv p.body
+          .ok r.2.1
+        else .ok []
+      | none => .ok []
   | _ => .ok []
+
+theorem CoreMemDesign.procQ_of_edge? {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {p : CoreMemProc}
+    {f : CoreMemEdge} (h : p.edge? = some f) :
+    E.procQ before after v mv p = if f.fires before after then do
+        let r ← E.execV v mv f.body
+        .ok r.2.1
+      else .ok [] := by
+  cases p with
+  | edge g =>
+      simp only [CoreMemProc.edge?, Option.some.injEq] at h
+      subst h
+      rfl
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemDesign.procQ, h]
+  | _ => exact absurd h (by simp [CoreMemProc.edge?])
+
+theorem CoreMemDesign.procQ_of_none {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {p : CoreMemProc}
+    (h : p.edge? = none) : E.procQ before after v mv p = .ok [] := by
+  cases p with
+  | edge g => exact absurd h (by simp [CoreMemProc.edge?])
+  | event evs body =>
+      simp only [CoreMemProc.edge?] at h
+      simp only [CoreMemDesign.procQ, h]
+  | _ => rfl
 
 /-- The edge pass over `p :: rest`, `p` in `nbaWhole` form: `p`'s updates (of signals `p` drives, no memory record),
 then the pass over `rest` on the same view. -/
@@ -1229,58 +1349,48 @@ theorem CoreMemDesign.edgesV_cons_inv {E : CoreMemDesign} {before after v : SvSt
     (h : E.edgesV before after v mv (p :: rest) = .ok r) :
     ∃ qp rr, E.procQ before after v mv p = .ok qp ∧ (∀ u ∈ qp, u.1 ∈ p.targets) ∧
       E.edgesV before after v mv rest = .ok rr ∧ r = (rr.1, qp ++ rr.2.1, rr.2.2) := by
-  cases p with
-  | edge f =>
-      simp only [CoreMemDesign.edgesV] at h
-      simp only [CoreMemDesign.procQ]
+  cases hpe : p.edge? with
+  | none =>
+      rw [CoreMemDesign.edgesV_cons_none hpe] at h
+      exact ⟨[], r, CoreMemDesign.procQ_of_none hpe, by simp, h, by simp⟩
+  | some f =>
+      rw [CoreMemDesign.edgesV_cons_some hpe] at h
+      rw [CoreMemDesign.procQ_of_edge? hpe, CoreMemProc.targets_of_edge? hpe]
+      rw [CoreMemProc.nbaWholeP_of_edge? hpe] at hp
       split at h
       · rename_i hf
         simp only [Res.bind_eq_ok, Res.ok.injEq] at h
         obtain ⟨⟨v1, a, ma⟩, h1, rr, h2, rfl⟩ := h
-        obtain ⟨rfl, ha, rfl⟩ := CoreMemDesign.execV_nbaWhole v mv f.body v1 a ma
-          (by simpa [CoreMemProc.nbaWholeP] using hp) h1
-        exact ⟨a, rr, by simp [hf, h1], fun u hu => by simp [CoreMemProc.targets, List.mem_eraseDups, ha u hu],
-          h2, by simp⟩
+        obtain ⟨rfl, ha, rfl⟩ := CoreMemDesign.execV_nbaWhole v mv f.body v1 a ma hp h1
+        exact ⟨a, rr, by simp [hf, h1], fun u hu => by simp [List.mem_eraseDups, ha u hu], h2, by simp⟩
       · rename_i hf
         exact ⟨[], r, by simp [hf], by simp, h, by simp⟩
-  | assign t e => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
-  | primitive _ _ _ => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
-  | initial b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
-  | comb b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
-  | implicit b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
-  | latch b => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
-  | event _ _ => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
-  | unsupported k t => simp only [CoreMemDesign.edgesV] at h; exact ⟨[], r, rfl, by simp, h, by simp⟩
 
 /-- The converse of `edgesV_cons_inv`. -/
 theorem CoreMemDesign.edgesV_cons_mk {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {p : CoreMemProc}
     {rest : List CoreMemProc} (hp : p.nbaWholeP = true) {qp : NbaQueue2} {rr : ExecV}
     (h1 : E.procQ before after v mv p = .ok qp) (h2 : E.edgesV before after v mv rest = .ok rr) :
     E.edgesV before after v mv (p :: rest) = .ok (rr.1, qp ++ rr.2.1, rr.2.2) := by
-  cases p with
-  | edge f =>
-      simp only [CoreMemDesign.procQ] at h1
-      simp only [CoreMemDesign.edgesV]
+  cases hpe : p.edge? with
+  | none =>
+      rw [CoreMemDesign.procQ_of_none hpe] at h1
+      simp only [Res.ok.injEq] at h1
+      subst h1
+      simp [CoreMemDesign.edgesV_cons_none hpe, h2]
+  | some f =>
+      rw [CoreMemDesign.procQ_of_edge? hpe] at h1
+      rw [CoreMemProc.nbaWholeP_of_edge? hpe] at hp
+      rw [CoreMemDesign.edgesV_cons_some hpe]
       split at h1
       · rename_i hf
         simp only [Res.bind_eq_ok, Res.ok.injEq] at h1
         obtain ⟨⟨v1, a, ma⟩, ha, rfl⟩ := h1
-        obtain ⟨rfl, -, rfl⟩ := CoreMemDesign.execV_nbaWhole v mv f.body v1 a ma
-          (by simpa [CoreMemProc.nbaWholeP] using hp) ha
+        obtain ⟨rfl, -, rfl⟩ := CoreMemDesign.execV_nbaWhole v mv f.body v1 a ma hp ha
         simp [hf, ha, h2]
       · rename_i hf
         simp only [Res.ok.injEq] at h1
         subst h1
         simp [hf, h2]
-  | assign t e => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
-  | primitive _ _ _ => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
-  | initial b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
-  | comb b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
-  | implicit b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
-  | latch b => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
-  | event _ _ => simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
-  | unsupported k t =>
-      simp only [CoreMemDesign.procQ, Res.ok.injEq] at h1; subst h1; simp [CoreMemDesign.edgesV, h2]
 
 /-- An edge pass over `nbaWhole` processes leaves the view alone and issues no memory record. -/
 theorem CoreMemDesign.edgesV_view {E : CoreMemDesign} {before after v : SvState} {mv : MemV} :
@@ -1312,50 +1422,14 @@ theorem CoreMemDesign.edgesV_perm {E : CoreMemDesign} {before after v : SvState}
   | cons x _ ih =>
       intro hw hnd r h
       have hnd' := (List.nodup_append.mp (by simpa [List.flatMap_cons] using hnd)).2.1
-      cases x with
-      | edge f =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          split at h
-          · rename_i hf
-            simp only [hf, ↓reduceIte]
-            simp only [Res.bind_eq_ok, Res.ok.injEq] at h
-            obtain ⟨⟨v1, a, ma⟩, h1, ⟨v2, b, mb⟩, h2, rfl⟩ := h
-            obtain ⟨rfl, -, rfl⟩ := CoreMemDesign.execV_nbaWhole v mv f.body v1 a ma
-              (by simpa [CoreMemProc.nbaWholeP] using hw (.edge f) (by simp)) h1
-            obtain ⟨hv2, hm2, r', h2', hv2', hm2', hc⟩ := ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h2
-            refine ⟨hv2, by simpa using hm2, (r'.1, a ++ r'.2.1, [] ++ r'.2.2), ?_, hv2', by simpa using hm2',
-              fun st hst => ?_⟩
-            · simp [h1, h2']
-            · show commitNba2 st (a ++ r'.2.1) = commitNba2 st (a ++ b)
-              rw [commitNba2_append, commitNba2_append]
-              exact hc _ (by rw [keys_commitNba2]; exact hst)
-          · rename_i hf
-            simp only [hf, Bool.false_eq_true, ↓reduceIte]
-            exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | assign t e =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | primitive _ _ _ =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | initial b =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | comb b =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | implicit b =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | latch b =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | event _ _ =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
-      | unsupported k t =>
-          simp only [CoreMemDesign.edgesV] at h ⊢
-          exact ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h
+      have hx := hw x (by simp)
+      obtain ⟨qx, rr, hqx, -, h2, rfl⟩ := CoreMemDesign.edgesV_cons_inv hx h
+      obtain ⟨hv2, hm2, r', h2', hv2', hm2', hc⟩ := ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' h2
+      refine ⟨hv2, hm2, (r'.1, qx ++ r'.2.1, r'.2.2), CoreMemDesign.edgesV_cons_mk hx hqx h2', hv2', hm2',
+        fun st hst => ?_⟩
+      show commitNba2 st (qx ++ r'.2.1) = commitNba2 st (qx ++ rr.2.1)
+      rw [commitNba2_append, commitNba2_append]
+      exact hc _ (by rw [keys_commitNba2]; exact hst)
   | swap x y l =>
       intro hw hnd r h
       have hy := hw y (by simp)
@@ -1400,8 +1474,9 @@ theorem CoreMemDesign.edgesV_filter {E : CoreMemDesign} {before after : SvState}
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
   | .latch b :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
-  | .event _ _ :: ps, v => by
-      simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
+  | .event evs body :: ps, v => by
+      cases hfe : coreMemEventEdge? evs body <;>
+        simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, hfe, CoreMemDesign.edgesV_filter ps]
   | .unsupported k t :: ps, v => by
       simp [CoreMemDesign.edgesV, List.filter_cons, CoreMemProc.isEdge, CoreMemDesign.edgesV_filter ps]
 
@@ -1938,17 +2013,20 @@ theorem CoreMemDesign.edgesV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.to
   | p :: rest, v, mv, r, h => by
       have hmono : ∀ x ∈ rest.flatMap CoreMemProc.targets, x ∈ (p :: rest).flatMap CoreMemProc.targets :=
         fun x hx => by simp only [List.flatMap_cons, List.mem_append]; exact Or.inr hx
-      cases p with
-      | edge f =>
-          simp only [CoreMemDesign.edgesV] at h
+      cases hpe : p.edge? with
+      | none =>
+          rw [CoreMemDesign.edgesV_cons_none hpe] at h
+          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
+      | some f =>
+          rw [CoreMemDesign.edgesV_cons_some hpe] at h
           split at h
           · simp only [Res.bind_eq_ok, Res.ok.injEq] at h
             obtain ⟨a, h1, b, h2, rfl⟩ := h
             have ha := CoreMemDesign.execV_frame hnd h4 v mv f.body a h1
             have hb := CoreMemDesign.edgesV_frame hnd h4 rest a.1 mv b h2
-            have hfa : ∀ x ∈ f.body.writes, x ∈ (CoreMemProc.edge f :: rest).flatMap CoreMemProc.targets :=
+            have hfa : ∀ x ∈ f.body.writes, x ∈ (p :: rest).flatMap CoreMemProc.targets :=
               fun x hx => by
-                simp only [List.flatMap_cons, List.mem_append, CoreMemProc.targets, List.mem_eraseDups]
+                simp only [List.flatMap_cons, List.mem_append, CoreMemProc.targets_of_edge? hpe, List.mem_eraseDups]
                 exact Or.inl hx
             refine ⟨fun x hx => ?_, fun u hu => ?_⟩
             · show SvState.lookup (E.matV b.1) x = _
@@ -1957,30 +2035,6 @@ theorem CoreMemDesign.edgesV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.to
               · exact hfa _ (ha.2 u hu)
               · exact hmono _ (hb.2 u hu)
           · exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | assign t e =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | primitive _ _ _ =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | initial b =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | comb b =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | implicit b =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | latch b =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | event _ _ =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
-      | unsupported k t =>
-          simp only [CoreMemDesign.edgesV] at h
-          exact (CoreMemDesign.edgesV_frame hnd h4 rest v mv r h).mono hmono
 
 /-- The continuous assigns' targets are driven names. -/
 theorem CoreMemDesign.assignTargets_driven {E : CoreMemDesign} :
@@ -2053,9 +2107,9 @@ theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} (hP : E.SeqProfileI)
   intro q hq
   cases q with
   | edge f =>
-      have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven hO (CoreMemDesign.clock_mem_sources hq)
+      have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven hO (CoreMemDesign.clock_mem_sources (CoreMemDesign.edge_mem_edgeProcs hq))
       have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
-        CoreMemDesign.source_undriven hO (CoreMemDesign.reset_mem_sources hq hr')
+        CoreMemDesign.source_undriven hO (CoreMemDesign.reset_mem_sources (CoreMemDesign.edge_mem_edgeProcs hq) hr')
       simp only [CoreMemProc.firesIn, Bool.not_eq_true]
       exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' => (hfix r (hres r hr')).symm
   | _ => simp [CoreMemProc.firesIn]
