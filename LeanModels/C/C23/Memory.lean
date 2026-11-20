@@ -305,6 +305,21 @@ def CObj.renameAddress (resolve : ObjId → Nat) (c : CObj) : CObj :=
     (CObj.renameAddress resolve c).size = c.size := by
   simp [CObj.renameAddress, CObj.size]
 
+@[simp] theorem CObj_renameAddress_dur
+    (resolve : ObjId → Nat) (c : CObj) :
+    (CObj.renameAddress resolve c).dur = c.dur := by
+  rfl
+
+@[simp] theorem CObj_renameAddress_live
+    (resolve : ObjId → Nat) (c : CObj) :
+    (CObj.renameAddress resolve c).live = c.live := by
+  rfl
+
+@[simp] theorem CObj_renameAddress_effTy
+    (resolve : ObjId → Nat) (c : CObj) :
+    (CObj.renameAddress resolve c).effTy = c.effTy := by
+  rfl
+
 /-! The representation-level memory rename used by the evaluator relation.
 Provenance keys and parser-native type rows stay fixed while concrete
 placements and every stored pointer representation follow `resolve`. -/
