@@ -1289,3 +1289,14 @@ byte memory.  `lake env lean
 Examples/system-verilog/cores/picorv32/r1_mem_all.lean` passed, with every
 printed theorem axiom set equal to `[propext, Classical.choice, Quot.sound]`.
 The loaded-core invariant and universal order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 register-register ALU class
+
+The loaded-core R1 register-register ALU package compiles for ADD, SUB, SLL,
+SLT, SLTU, XOR, SRL, SRA, OR, and AND.  It retains exact decoder rows,
+memory-preserving ISA steps, RVFI retirement boundaries, loaded `Rv32iBoundary`
+bridges, and indexed exact-cycle refinement over arbitrary architectural state
+and byte memory.  `lake env lean
+Examples/system-verilog/cores/picorv32/r1_alu.lean` passed, with every printed
+theorem axiom set equal to `[propext, Classical.choice, Quot.sound]`.
+Universal loaded-core step and order premises remain explicit.
