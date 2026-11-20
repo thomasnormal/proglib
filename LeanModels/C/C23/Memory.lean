@@ -289,6 +289,15 @@ def empty : Mem := { objs := [] }
 def structuredType? (m : Mem) (o : ObjId) : Option QualType :=
   m.structuredTypes.find? (fun entry => entry.1 == o) |>.map (·.2)
 
+def structuredTypeKeys (m : Mem) : List ObjId :=
+  m.structuredTypes.map (·.1)
+
+def structuredTypesUnique (m : Mem) : Prop :=
+  (m.structuredTypeKeys).Nodup
+
+@[simp] theorem empty_structuredTypesUnique : structuredTypesUnique Mem.empty := by
+  simp [structuredTypesUnique, structuredTypeKeys, empty]
+
 def rememberStructuredType (m : Mem) (o : ObjId) (ty : Option QualType) : Mem :=
   match ty with
   | none => m
@@ -298,6 +307,22 @@ def rememberStructuredType (m : Mem) (o : ObjId) (ty : Option QualType) : Mem :=
     (m : Mem) (o : ObjId) (ty : QualType) :
     (m.rememberStructuredType o (some ty)).structuredType? o = some ty := by
   simp [rememberStructuredType, structuredType?]
+
+theorem rememberStructuredType_unique
+    (m : Mem) (o : ObjId) (ty : QualType)
+    (h : structuredTypesUnique m)
+    (hnew : ∀ ty, (o, ty) ∉ m.structuredTypes) :
+    structuredTypesUnique (m.rememberStructuredType o (some ty)) := by
+  unfold structuredTypesUnique structuredTypeKeys
+  simp only [rememberStructuredType, List.map_cons]
+  apply List.nodup_cons.mpr
+  constructor
+  · intro hkey
+    rcases List.mem_map.1 hkey with ⟨⟨key, other⟩, hmem, heq⟩
+    simp at heq
+    subst key
+    exact hnew other hmem
+  · exact h
 
 @[simp] theorem rememberStructuredType_placements
     (m : Mem) (o : ObjId) (ty : Option QualType) :
@@ -329,6 +354,16 @@ theorem copyStructuredType_lookup_new
     (m.copyStructuredType old fresh).structuredType? fresh = some ty := by
   simp [copyStructuredType, h]
 
+theorem copyStructuredType_unique
+    (m : Mem) (old fresh : ObjId)
+    (h : structuredTypesUnique m)
+    (hnew : ∀ ty, (fresh, ty) ∉ m.structuredTypes) :
+    structuredTypesUnique (m.copyStructuredType old fresh) := by
+  cases hold : m.structuredType? old with
+  | none => simpa [copyStructuredType, hold, rememberStructuredType] using h
+  | some ty => simpa [copyStructuredType, hold] using
+      (rememberStructuredType_unique m fresh ty h hnew)
+
 @[simp] theorem copyStructuredType_placements
     (m : Mem) (old fresh : ObjId) :
     (m.copyStructuredType old fresh).placements = m.placements := by
@@ -336,6 +371,11 @@ theorem copyStructuredType_lookup_new
 
 def emitStdout (m : Mem) (bytes : List CByte) : Mem :=
   { m with stdout := m.stdout ++ bytes }
+
+theorem emitStdout_structuredTypesUnique
+    (m : Mem) (bytes : List CByte) (h : structuredTypesUnique m) :
+    structuredTypesUnique (m.emitStdout bytes) := by
+  simpa [structuredTypesUnique, structuredTypeKeys, emitStdout] using h
 
 @[simp] theorem emitStdout_placements (m : Mem) (bytes : List CByte) :
     (m.emitStdout bytes).placements = m.placements := by
