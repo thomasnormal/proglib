@@ -49,12 +49,19 @@ def _envelope(path: Path) -> tuple[str, list[int]]:
 
 
 def _probe(path: Path, args: list[int]) -> str:
-    relative = path.resolve().relative_to(ROOT).as_posix()
+    resolved = path.resolve()
+    try:
+        source_path = resolved.relative_to(ROOT).as_posix()
+    except ValueError:
+        # Pinned third-party envelopes are often kept in the lane scratch
+        # area.  The loader accepts an absolute path, and the census must not
+        # require copying a generated envelope into the repository.
+        source_path = resolved.as_posix()
     literal_args = " ".join(str(value) for value in args)
     source = f'''import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemExec
 open LeanModels.Sv LeanModels.Sv.Kernel
-load_design_sv2 core from "{relative}"
+load_design_sv2 core from "{source_path}"
 def procKind : CoreMemProc → String
   | .edge _ => "edge"
   | .assign _ _ => "assign"
@@ -96,6 +103,18 @@ def rows (d : CoreMemDesign) : String :=
     finally:
         probe.unlink(missing_ok=True)
     if result.returncode:
+        refused = " REFUSED — "
+        lines = result.stdout.splitlines()
+        for index, line in enumerate(lines):
+            marker_index = line.find(refused)
+            if marker_index < 0:
+                continue
+            message_lines = [line[marker_index + len(refused):]]
+            for continuation in lines[index + 1:]:
+                if "error(" in continuation:
+                    break
+                message_lines.append(continuation)
+            return "REFUSED\n" + "\n".join(message_lines).strip()
         raise RuntimeError(result.stdout)
     for line in reversed(result.stdout.splitlines()):
         if line.startswith('"') and line.endswith('"'):

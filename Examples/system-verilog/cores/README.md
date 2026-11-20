@@ -1290,6 +1290,24 @@ E-RUN is **0 / 0**.  Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the
 pinned source at the IEEE 1800-2023 §12.5 use-before-declared `instr` wall.
 The two-core rerun leaves the census and execution counts unchanged.
 
+## 2026-11-20 loader-backed Quark and SERV census
+
+The loader-backed census was extended to envelopes kept in the lane scratch
+area, so a refusal during `load_design_sv2` is now emitted as one `REFUSED`
+row instead of becoming a probe compilation error.  This changes no admission
+rule and accepts absolute envelope paths for external pinned source trees.
+
+| core | upstream revision | envelope SHA-256 | loader census | canonical-E E-RUN | pinned simulator result |
+| --- | --- | --- | --- | --- | --- |
+| FemtoRV32 Quark | `f5ada24ae6cca67d99889daec2c4ee44a6e59417` | `c713348d83761d2a9856c986eedde195782a72d9dbfaa6c29c8286598f0afc95` | 0 admitted / 1 refused / 0 not reached | 0/0, `FETCH_INSTR` untyped-width | Icarus 13.0 and Xcelium 24.03-s004 both refuse at use-before-declared `instr` |
+| SERV | `f200eb2ed7b69ac1c6b8eddd47654522aeee5ce8` | `16fda64594ee48e3e8bc3c14dd2072ef1e17b87f9261cea80cd4fdda4e9980ef` | 0 admitted / 1 refused / 0 not reached | 0/0, `RF_WIDTH` untyped-width | Icarus 13.0 and Xcelium 24.03-s004 agree on 220/220, digest `bbe7e48c24f4748f96beaf097df899183a5c15c0e7f51cad68d4057a034320ad` |
+
+The loader refusal messages are the exact IEEE 1800-2023 §6.20.2
+cross-checks.  Quark reports `localparam 'FETCH_INSTR': Constant:untyped-width`.
+SERV reports `parameter 'RF_WIDTH' default: Constant:untyped-width`.  Neither
+design reaches a canonical-E cycle, and the SERV simulator agreement is kept
+separate from that E result.
+
 ## 2026-11-20 PicoRV32 R1 conditional-branch class
 
 The loaded-core R1 branch package now has a clean compile receipt for all six
