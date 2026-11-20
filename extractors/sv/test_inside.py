@@ -32,6 +32,12 @@ class IntegralInside(unittest.TestCase):
             self.assertEqual((comparison["op"], comparison["width"]), ("==?", 1))
             self.assertEqual([comparison[s]["width"] for s in ("left", "right")], [4, 4])
 
+    def test_sized_binary_one_preserves_zero_extension(self):
+        design = expression("a inside {4'b1}", "logic [3:0] a;")
+        self.assert_clean(design)
+        root, = membership(design)
+        self.assertEqual(root["right"]["bits"], "0001")
+
     def test_signed_and_mixed_common_types(self):
         for item, extension in (("b", "SignedResize"), ("u", "Resize")):
             with self.subTest(item=item):
