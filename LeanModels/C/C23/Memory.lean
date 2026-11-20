@@ -2461,8 +2461,24 @@ structure AddressIndependent (m : Mem) : Prop where
       m.storeIntChecked alias p t used v
   loadPtr : ∀ (p : Ptr) (address : Nat),
     m.loadPtr {p with address := address} = m.loadPtr p
+  loadPtrInt : ∀ (p : Ptr) (address : Nat),
+    m.loadPtrInt {p with address := address} = m.loadPtrInt p
+  loadFunction : ∀ (p : Ptr) (address : Nat),
+    m.loadFunction {p with address := address} = m.loadFunction p
+  loadFloat32 : ∀ (p : Ptr) (address : Nat),
+    m.loadFloat32 {p with address := address} = m.loadFloat32 p
+  loadFloat64 : ∀ (p : Ptr) (address : Nat),
+    m.loadFloat64 {p with address := address} = m.loadFloat64 p
   storePtr : ∀ (p q : Ptr) (address : Nat),
     m.storePtr {p with address := address} q = m.storePtr p q
+  storePtrInt : ∀ (p q : Ptr) (address : Nat),
+    m.storePtrInt {p with address := address} q = m.storePtrInt p q
+  storeFunction : ∀ (p : Ptr) (id : DeclarationId) (address : Nat),
+    m.storeFunction {p with address := address} id = m.storeFunction p id
+  storeFloat32 : ∀ (p : Ptr) (f : Float32.Model) (address : Nat),
+    m.storeFloat32 {p with address := address} f = m.storeFloat32 p f
+  storeFloat64 : ∀ (p : Ptr) (f : Float.Model) (address : Nat),
+    m.storeFloat64 {p with address := address} f = m.storeFloat64 p f
   vaStart : ∀ (p : Ptr) (args : List CVal) (address : Nat),
     m.vaStart {p with address := address} args = m.vaStart p args
   vaCopy : ∀ (dst src : Ptr) (addressDst addressSrc : Nat),
@@ -2490,7 +2506,15 @@ theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
   · exact fun alias p t used v address =>
       storeIntChecked_address_irrel m alias p t used v address
   · exact fun p address => loadPtr_address_irrel m p address
+  · exact fun p address => loadPtrInt_address_irrel m p address
+  · exact fun p address => loadFunction_address_irrel m p address
+  · exact fun p address => loadFloat32_address_irrel m p address
+  · exact fun p address => loadFloat64_address_irrel m p address
   · exact fun p q address => storePtr_address_irrel m p q address
+  · exact fun p q address => storePtrInt_address_irrel m p q address
+  · exact fun p id address => storeFunction_address_irrel m p id address
+  · exact fun p f address => storeFloat32_address_irrel m p f address
+  · exact fun p f address => storeFloat64_address_irrel m p f address
   · exact fun p args address => vaStart_address_irrel m p args address
   · exact fun dst src addressDst addressSrc =>
       vaCopy_address_irrel m dst src addressDst addressSrc
