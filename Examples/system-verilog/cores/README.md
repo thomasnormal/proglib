@@ -1139,3 +1139,6 @@ Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z and conflict values.
 The invalid generated-chain companion remains its named duplicate generate-scope
 storage refusal, with both simulators rejecting the generated testbench's
 unpacked port shape.
+
+The child two-clock instance fixture also completes eight ordinary-E rows with
+Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z clock and reset rows.
