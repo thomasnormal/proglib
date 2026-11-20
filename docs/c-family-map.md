@@ -325,6 +325,14 @@ conversion. The join now filters by parser range, node kind, and expected
 QualType. The frozen `20000528-1.c` row MATCHes with and without structured
 observations, closing that DIVERGE against pinned Clang 21.1.8.
 
+The current-parser no-plugin rerun over the available external cache produced
+356 MATCH, 0 DIVERGE, 802 unsupported refusals, 19 UB refusals, 1 libc
+refusal, 1 oracle-tests-compiler row, 0 timeouts, and 1,035 not-parsed rows
+out of the frozen 2,214-file denominator. The missing rows reflect the
+external cache's partial C1/C3 source availability, so this receipt is a
+rerunnable partial-cache measurement rather than a replacement for the
+canonical full-survey headline.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and
