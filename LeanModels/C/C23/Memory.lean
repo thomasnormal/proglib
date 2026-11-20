@@ -361,6 +361,16 @@ def structuredTypesUnique (m : Mem) : Prop :=
 @[simp] theorem empty_structuredTypesUnique : structuredTypesUnique Mem.empty := by
   simp [structuredTypesUnique, structuredTypeKeys, empty]
 
+@[simp] theorem structuredTypesUnique_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (h : structuredTypesUnique m) :
+    structuredTypesUnique (m.renameAddresses rename) := by
+  simpa [structuredTypesUnique, structuredTypeKeys] using h
+
+@[simp] theorem structuredType_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (o : ObjId) :
+    (m.renameAddresses rename).structuredType? o = m.structuredType? o := by
+  rfl
+
 def rememberStructuredType (m : Mem) (o : ObjId) (ty : Option QualType) : Mem :=
   match ty with
   | none => m
