@@ -83,32 +83,40 @@ drivers, `CoreMemDesign.resolvedNets`). -/
 def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) (resolved : List String := []) : MetaM String := do
   let p ← whnf p
   let at_ := s!"process {i}"
-  if p.isAppOfArity ``CoreMemProc.edge 1 then
-    let f ← whnf (p.getArg! 0)
+  -- an edge process, or a plain `always` on one clock edge with an optional reset edge (`coreMemEventEdge?`)
+  let edge? : Option (Lean.Expr × String) ← do
+    if p.isAppOfArity ``CoreMemProc.edge 1 then pure (some (p.getArg! 0, "an edge process"))
+    else if p.isAppOfArity ``CoreMemProc.event 2 then
+      let o ← whnf (mkApp2 (mkConst ``coreMemEventEdge?) (p.getArg! 0) (p.getArg! 1))
+      if o.isAppOfArity ``Option.some 2 then pure (some (o.getArg! 1, "a plain `always` on one clock edge"))
+      else pure none
+    else pure none
+  if let some (f0, kind) := edge? then
+    let f ← whnf f0
     if f.isAppOf ``CoreMemEdge.mk then
       -- fields by projection, not by position: the record gains fields as the route grows
       if let some clk := clk? then
         let clock := strLit? (← whnf (← mkProjection f `clock))
         if clock.isSome && clock != some clk then
-          return s!"{at_} (an edge process) is clocked by `{clock.get!}`, not `{clk}`: outside the single-clock profile `posedge {clk}`; state the design over instants (`SeqDesignI`, `SeqRunsI`)"
+          return s!"{at_} ({kind}) is clocked by `{clock.get!}`, not `{clk}`: outside the single-clock profile `posedge {clk}`; state the design over instants (`SeqDesignI`, `SeqRunsI`)"
         let edge ← whnf (← mkProjection f `edge)
         if edge.isConstOf ``ClockEdge.negedge then
-          return s!"{at_} (an edge process) is sensitive to the falling edge of `{clk}`: outside the single-clock profile `posedge {clk}`; over instants `\{negedge {clk}}` is an instant of its own (`SeqDesignI`, `SeqRunsI`)"
+          return s!"{at_} ({kind}) is sensitive to the falling edge of `{clk}`: outside the single-clock profile `posedge {clk}`; over instants `\{negedge {clk}}` is an instant of its own (`SeqDesignI`, `SeqRunsI`)"
       let body ← whnf (← mkProjection f `body)
       if (body.find? (·.isConstOf ``PStmt.forLoop)).isSome then
-        return s!"{at_} (an edge process) has a procedural `for` loop: the memories slice (next), refused"
+        return s!"{at_} ({kind}) has a procedural `for` loop: the memories slice (next), refused"
       if (body.find? (·.isConstOf ``PExpr.functionCall)).isSome then
-        return s!"{at_} (an edge process) calls a function: outside the clocked profile (U5)"
+        return s!"{at_} ({kind}) calls a function: outside the clocked profile (U5)"
       if (body.find? (·.isConstOf ``PExpr.aggregateMember)).isSome then
-        return s!"{at_} (an edge process) reads an unpacked aggregate member (a struct field or an aggregate element, §7.2, §7.4): the clocked views carry no aggregate store, refused"
+        return s!"{at_} ({kind}) reads an unpacked aggregate member (a struct field or an aggregate element, §7.2, §7.4): the clocked views carry no aggregate store, refused"
       if (body.find? (·.isConstOf ``PStmt.unsupported)).isSome then
         match unsupportedStmtKind? body with
-        | some k => return s!"{at_} (an edge process) holds a statement ingestion kept unconverted ({k}), refused"
-        | none => return s!"{at_} (an edge process) holds a statement ingestion kept unconverted"
-      return s!"{at_} (an edge process): its body is outside the edge-body fragment the clocked stages mirror"
-    return s!"{at_} (an edge process): outside the clocked profile"
+        | some k => return s!"{at_} ({kind}) holds a statement ingestion kept unconverted ({k}), refused"
+        | none => return s!"{at_} ({kind}) holds a statement ingestion kept unconverted"
+      return s!"{at_} ({kind}): its body is outside the edge-body fragment the clocked stages mirror"
+    return s!"{at_} ({kind}): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.event 2 then
-    return s!"{at_} is a plain `always` with an explicit event list (`always @(a or b)`, kept as an event process): its event control is not one clock edge with an optional asynchronous reset, outside the clocked profile, refused"
+    return s!"{at_} is a plain `always` whose event list is not one clock edge with an optional asynchronous reset edge (a level-change event as in `always @(a or b)`, or more than two events; kept as an event process): outside the clocked profile, refused"
   if p.isAppOfArity ``CoreMemProc.comb 1 then
     return s!"{at_} is an always_comb process: always_comb beside flip-flops is the next slice (T7), refused"
   if p.isAppOfArity ``CoreMemProc.latch 1 then
@@ -177,6 +185,7 @@ def runProfile (g : MVarId) : TacticM Unit := do
     let gp ← mkFreshExprMVar (← mkEq t (toExpr true))
     unless ← closes gp.mvarId! (← `(tactic| simp (config := {decide := true}) [
         LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.Kernel.CoreMemDesign.procOkIB,
+        LeanModels.Sv.Kernel.coreMemEventEdge?, LeanModels.Sv.Kernel.CoreMemEvent.clockEdge?,
         LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
         LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
         LeanModels.Sv.PStmt.listEdgeOkB, LeanModels.Sv.PStmt.itemsEdgeOkB, LeanModels.Sv.PStmt.need,
@@ -430,6 +439,7 @@ def runDomains : TacticM Unit := do
     evalTactic (← `(tactic| have $h:ident := (rfl : $fI $ES = $fI $ES)))
     evalTactic (← `(tactic| conv at $h:ident => rhs; rw [← $hC:ident]; simp (config := {maxSteps := 4000000, decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.events,
       LeanModels.Sv.Kernel.CoreMemProc.events, LeanModels.Sv.Kernel.CoreMemEdge.events,
+      LeanModels.Sv.Kernel.coreMemEventEdge?, LeanModels.Sv.Kernel.CoreMemEvent.clockEdge?,
       LeanModels.Sv.Kernel.CoreMemEdge.clockEvent, LeanModels.Sv.Kernel.CoreMemEdge.resetEvent?,
       LeanModels.Sv.Kernel.CoreMemDesign.domains, LeanModels.Sv.Kernel.CoreMemDesign.domainOf,
       LeanModels.Sv.Kernel.CoreMemDesign.stateReads, LeanModels.Sv.Kernel.CoreMemDesign.crossings,
