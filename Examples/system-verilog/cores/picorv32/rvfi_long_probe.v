@@ -96,7 +96,7 @@ module tb_picorv32_rvfi_long;
     repeat (4) @(posedge clk);
     resetn <= 1;
     cycle = 0;
-    repeat (220) begin
+    repeat (1000) begin
       @(posedge clk);
       #1;
       $display("CYCLE %0d resetn=%b trap=%b mem_valid=%b mem_instr=%b mem_ready=%b mem_addr=%08x mem_wdata=%08x mem_wstrb=%x mem_rdata=%08x mem_la_read=%b mem_la_write=%b mem_la_addr=%08x mem_la_wdata=%08x mem_la_wstrb=%x rvfi_valid=%b rvfi_order=%016x rvfi_insn=%08x rvfi_trap=%b rvfi_halt=%b rvfi_intr=%b rvfi_mode=%x rvfi_ixl=%x rvfi_rs1_addr=%x rvfi_rs1_rdata=%08x rvfi_rs2_addr=%x rvfi_rs2_rdata=%08x rvfi_rd_addr=%x rvfi_rd_wdata=%08x rvfi_pc_rdata=%08x rvfi_pc_wdata=%08x rvfi_mem_addr=%08x rvfi_mem_rmask=%x rvfi_mem_wmask=%x rvfi_mem_rdata=%08x rvfi_mem_wdata=%08x", cycle, resetn, trap, mem_valid, mem_instr, mem_ready, mem_addr, mem_wdata, mem_wstrb, mem_rdata, mem_la_read, mem_la_write, mem_la_addr, mem_la_wdata, mem_la_wstrb, rvfi_valid, rvfi_order, rvfi_insn, rvfi_trap, rvfi_halt, rvfi_intr, rvfi_mode, rvfi_ixl, rvfi_rs1_addr, rvfi_rs1_rdata, rvfi_rs2_addr, rvfi_rs2_rdata, rvfi_rd_addr, rvfi_rd_wdata, rvfi_pc_rdata, rvfi_pc_wdata, rvfi_mem_addr, rvfi_mem_rmask, rvfi_mem_wmask, rvfi_mem_rdata, rvfi_mem_wdata);

@@ -81,8 +81,8 @@ def main() -> int:
     if sha256(ENVELOPE) != ENVELOPE_SHA256:
         raise RuntimeError("PicoRV32 envelope SHA-256 does not match the pinned receipt")
     simulator = run(["python3", str(CHECKER)], ROOT)
-    if "agree on 220/220 cycles" not in simulator:
-        raise RuntimeError("simulator receipt did not report 220/220 agreement")
+    if "agree on 1000/1000 cycles" not in simulator:
+        raise RuntimeError("simulator receipt did not report 1000/1000 agreement")
     e_run = canonical_e_receipt()
     expected = "E-RUN: design admitted; reactive region quiesces"
     if expected not in e_run:
