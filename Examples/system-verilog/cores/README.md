@@ -1091,6 +1091,21 @@ digest `9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
 Canonical-E and simulator results remain separate observations because the E
 route retains x-valued data-side columns.
 
+## 2026-11-20 PicoRV32 canonical-E 1000-cycle extension
+
+The pinned PicoRV32 source and RISCV_FORMAL envelope remain SHA-256
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622` and
+`17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236`.
+The input-driven checker now samples the unchanged source for **1000/1000**
+cycles, and Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium
+24.03-s004 agree on every row.  The normalized binary cycle-row digest is
+`2964537cc5bca6a301d4e4423ca20bb34aee9279f7356a01870797e8d02885d6`.
+
+The exact canonical-E input replay also agrees on **1000/1000** cycles across
+all 32 observed outputs.  The testbench used for this receipt is pinned by
+SHA-256 `20b5f36d4cc62ef0e44ae854a230fab44a2ccc6a3c0ff4c91e0b183e04e75770`.
+The census remains 360 admitted / 0 refused / 4 not reached.
+
 ## 2026-11-20 OpenTitan prim_arbiter_ppc canonical-E admission
 
 The pinned OpenTitan source at commit
