@@ -734,10 +734,7 @@ def CoreMemDesign.edgeQuiesceFast (E : CoreMemDesign) (limit : Nat)
   | n + 1 => do
       let next ← E.edgePassFast st before after combBefore
       let nextView := E.scalar.view next.scalar
-      let caused := E.processes.toList.any fun p =>
-        match p with
-        | .edge q => q.fires after nextView
-        | _ => false
+      let caused := E.processes.toList.any (CoreMemProc.firesIn after nextView)
       if caused then E.edgeQuiesceFast n next after nextView next
       else .ok next
 
@@ -757,10 +754,8 @@ theorem CoreMemDesign.edgeQuiesceFast_eq_edgeQuiesce
       | unsupported msg => simp [h]
       | ok next =>
           simp only [h, Res.ok_bind]
-          cases hca : E.processes.toList.any (fun p =>
-              match p with
-              | .edge q => q.fires after (E.scalar.view next.scalar)
-              | _ => false) with
+          cases hca : E.processes.toList.any
+              (CoreMemProc.firesIn after (E.scalar.view next.scalar)) with
           | false => simp [hca]
           | true => simp [hca, ih]
 

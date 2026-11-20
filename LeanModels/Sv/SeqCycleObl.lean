@@ -2112,6 +2112,26 @@ theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} (hP : E.SeqProfileI)
         CoreMemDesign.source_undriven hO (CoreMemDesign.reset_mem_sources (CoreMemDesign.edge_mem_edgeProcs hq) hr')
       simp only [CoreMemProc.firesIn, Bool.not_eq_true]
       exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' => (hfix r (hres r hr')).symm
+  | event events body =>
+      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hq
+      rw [Array.getElem?_toList] at hi
+      have hproc := hP.procs i (.event events body) hi
+      cases hfe : coreMemEventEdge? events body with
+      | none =>
+          rw [CoreMemDesign.ProcOkI, hfe] at hproc
+          exact False.elim hproc
+      | some f =>
+          have hf : f ∈ E.edgeProcs := CoreMemDesign.mem_edgeProcs.mpr
+            ⟨.event events body, hq, hfe⟩
+          have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven hO
+            (CoreMemDesign.clock_mem_sources hf)
+          have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
+            CoreMemDesign.source_undriven hO (CoreMemDesign.reset_mem_sources hf hr')
+          have heq := coreMemEventEdge?_spec hfe p s2
+          simp only [CoreMemProc.firesIn, Bool.not_eq_true] at heq ⊢
+          rw [heq.1]
+          exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' =>
+            (hfix r (hres r hr')).symm
   | _ => simp [CoreMemProc.firesIn]
 
 #print axioms CoreMemDesign.slot_noFollowup

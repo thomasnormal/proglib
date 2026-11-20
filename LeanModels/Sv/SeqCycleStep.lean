@@ -50,11 +50,6 @@ memory committed as given. -/
 def CoreMemDesign.committedState (E : CoreMemDesign) (r : CoreMemExecResult) (m : MemState) : CoreMemState :=
   { E.normalizeScalar r.state (E.scalarEdge.commit r.state.scalar r.scalarQ) with memory := m }
 
-/-- A process whose event occurs from the view `a` to the view `b`: an edge process whose edge fires (§9.4.2). -/
-def CoreMemProc.firesIn (a b : SvState) : CoreMemProc → Bool
-  | .edge q => q.fires a b
-  | _ => false
-
 /-- Some edge process of the design has its event from the view `a` to the view `b`. -/
 def CoreMemDesign.firesAny (E : CoreMemDesign) (a b : SvState) : Bool :=
   E.processes.toList.any (CoreMemProc.firesIn a b)

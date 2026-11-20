@@ -530,6 +530,8 @@ def coreMemEventSources : List PProcess → List String
   | .alwaysPlain clock _ :: rest => clock :: coreMemEventSources rest
   | .alwaysFFR clock reset _ _ :: rest =>
       clock :: reset :: coreMemEventSources rest
+  | .alwaysEvent events _ :: rest =>
+      events.map (·.signal) ++ coreMemEventSources rest
   | _ :: rest => coreMemEventSources rest
 
 def coreMemWritesNameTwice (name : String) (writes : List String) : Bool :=
@@ -2939,6 +2941,13 @@ def CoreMemEdge.fires (p : CoreMemEdge) (before after : SvState) : Bool :=
       else
         isNegedge (before.bit0 r) (after.bit0 r)
 
+/-- A retained edge or one-clock plain `always` event process fires across a
+state change. Event lists use the same IEEE edge table as edge processes. -/
+def CoreMemProc.firesIn (a b : SvState) : CoreMemProc → Bool
+  | .edge q => q.fires a b
+  | .event events _ => coreMemEventsFire a b events
+  | _ => false
+
 def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (view : SvState) (index : Nat) : List CoreMemProc →
     Res (CoreMemState × SvState)
@@ -3295,20 +3304,15 @@ def CoreMemDesign.edgeQuiesce (E : CoreMemDesign) (limit : Nat)
   | n + 1 => do
       let next ← E.edgePass st before after combBefore
       let nextView := E.scalar.view next.scalar
-      let caused := E.processes.toList.any fun p =>
-        match p with
-        | .edge q => q.fires after nextView
-        | _ => false
+      let caused := E.processes.toList.any (CoreMemProc.firesIn after nextView)
       if caused then E.edgeQuiesce n next after nextView next
       else .ok next
 
 theorem CoreMemDesign.edgeQuiesce_succ_of_no_followup
     {E : CoreMemDesign} {n : Nat} {st next combBefore : CoreMemState} {before after : SvState}
     (hp : E.edgePass st before after combBefore = .ok next)
-    (hc : (E.processes.toList.any (fun p =>
-      match p with
-      | .edge q => q.fires after (E.scalar.view next.scalar)
-      | _ => false)) = false) :
+    (hc : E.processes.toList.any
+      (CoreMemProc.firesIn after (E.scalar.view next.scalar)) = false) :
     E.edgeQuiesce (n + 1) st before after combBefore = .ok next := by
   rw [CoreMemDesign.edgeQuiesce]
   simp only [hp, Res.ok_bind, hc, Bool.false_eq_true, ↓reduceIte]
@@ -3321,10 +3325,8 @@ new §4.4/§4.5 iteration path instead. -/
 theorem CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup
     {E : CoreMemDesign} {st combBefore next : CoreMemState} {before after : SvState}
     (hp : E.edgePass st before after combBefore = .ok next)
-    (hc : (E.processes.toList.any (fun p =>
-      match p with
-      | .edge q => q.fires after (E.scalar.view next.scalar)
-      | _ => false)) = false) :
+    (hc : E.processes.toList.any
+      (CoreMemProc.firesIn after (E.scalar.view next.scalar)) = false) :
     E.edgeQuiesce 4096 st before after combBefore = .ok next := by
   apply CoreMemDesign.edgeQuiesce_succ_of_no_followup (n := 4095) hp hc
 
@@ -3350,10 +3352,7 @@ def CoreMemDesign.stepOnePassTrace (E : CoreMemDesign) (st : CoreMemState) (entr
   let (pre, before, after) ← E.prepareStep st entry
   let next ← E.edgePass pre before after pre
   let nextView := E.scalar.view next.scalar
-  let caused := E.processes.toList.any fun p =>
-    match p with
-    | .edge q => q.fires after nextView
-    | _ => false
+  let caused := E.processes.toList.any (CoreMemProc.firesIn after nextView)
   .ok (next, caused)
 
 def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) : Res CoreMemState := do
