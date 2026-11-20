@@ -2912,6 +2912,25 @@ def ptrEqBoundary (m : Mem) (a b : Ptr) : Bool :=
         (onePast a x && b.off == 0) || (onePast b y && a.off == 0)
   | _, _ => false
 
+theorem ptrEq_renameAddresses
+    (rename : ObjId → Nat) (a b : Ptr) :
+    ptrEq (Ptr.renameAddress rename a) (Ptr.renameAddress rename b) =
+      ptrEq a b := by
+  simp [ptrEq, Ptr.renameAddress]
+
+theorem ptrEqBoundary_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (a b : Ptr) :
+    ptrEqBoundary (m.renameAddresses rename)
+      (Ptr.renameAddress rename a) (Ptr.renameAddress rename b) =
+      ptrEqBoundary m a b := by
+  cases a with
+  | mk ao aa af ab =>
+      cases b with
+      | mk bo ba bf bb =>
+          cases ao <;> cases bo <;>
+            simp [ptrEqBoundary, Ptr.renameAddress, renameAddresses, get?,
+              CObj.renameAddress, List.getElem?_map, CObj_renameAddress_size]
+
 @[simp] theorem ptrEqBoundary_address_irrel (m : Mem) (a b : Ptr)
     (addressA addressB : Nat) :
     ptrEqBoundary m {a with address := addressA} {b with address := addressB} =
