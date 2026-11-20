@@ -124,6 +124,17 @@ private def allocatedEffectiveTypeCheck : Bool :=
 
 #guard allocatedEffectiveTypeCheck
 
+private def allocatedStructuredLookupCheck : Bool :=
+  let m := LeanModels.C.C23.Mem.empty
+  let allocated := m.alloc LeanModels.C.C23.Duration.allocated 4 none
+  let p := LeanModels.C.C23.Ptr.toObjectBound allocated.2 4
+  match allocated.1.storeIntChecked LeanModels.C.C23.Mem.cAliasModel p
+      LeanModels.C.C23.IntTy.int_ "int" 7 with
+  | .error _ => false
+  | .ok m' => m'.structuredType? allocated.2 == m.structuredType? allocated.2
+
+#guard allocatedStructuredLookupCheck
+
 private def compoundRegistryCheck : Bool :=
   let m := LeanModels.C.C23.Mem.empty
   let span : LeanModels.C.CSpan := default
