@@ -560,3 +560,8 @@ subtraction and integer-to-pointer exposure refuse before the missing layout or
 exposure witness can fabricate a result. The pointer-byte row remains a defined
 native operation, while the current tier refuses it when parser-native pointer
 layout is unavailable instead of reporting a false byte-level UB.
+
+Effective-type establishment now follows C17 §6.5p6 for allocated storage.
+`storeIntChecked` records the access type on an allocation without a structured
+declaration row, while declaration-backed objects continue to use the shared
+parser-native side table. A bridge guard exercises the allocated-store path.

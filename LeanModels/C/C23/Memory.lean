@@ -1339,12 +1339,11 @@ def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used :
   let (o, c, off) ← m.resolve p bs.length
   checkEffectiveAt m alias o c off used usedStructured
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
-  -- Aggregate objects have no single effective type for all of their
-  -- subobjects.  Their member declarations supply the type at each access,
-  -- so a scalar store must not stamp the enclosing aggregate with the first
-  -- member's spelling.  Scalar allocations already carry their declared
-  -- effective type from `alloc` and retain it here.
-  let effTy := c.effTy
+  -- Aggregate and declaration-backed objects have their effective type in
+  -- the parser-native side table.  An allocated object with no declaration
+  -- acquires the type of each non-character store under C17 §6.5p6.  Keep
+  -- the legacy field as the fallback for envelopes without structured rows.
+  let effTy := if (m.structuredType? o).isSome then c.effTy else some used
   return { m with objs := m.objs.set o { c with bytes := bytes, effTy := effTy } }
 
 /-- Write a pointer, as `pointer_64`'s eight tagged bytes. Kept whole so
