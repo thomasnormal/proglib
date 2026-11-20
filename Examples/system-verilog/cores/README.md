@@ -1300,3 +1300,13 @@ and byte memory.  `lake env lean
 Examples/system-verilog/cores/picorv32/r1_alu.lean` passed, with every printed
 theorem axiom set equal to `[propext, Classical.choice, Quot.sound]`.
 Universal loaded-core step and order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 immediate-ALU class
+
+The loaded-core R1 immediate-ALU package compiles for SLTI, SLTIU, XORI, ORI,
+ANDI, SLLI, SRLI, SRAI, and a negative-immediate ADDI boundary.  The package
+retains exact decoder rows, memory-preserving ISA steps, retirement boundaries,
+loaded `Rv32iBoundary` bridges, and indexed exact-cycle refinement coverage.
+`lake env lean Examples/system-verilog/cores/picorv32/r1_alu_imm.lean` passed,
+and every printed theorem axiom set is `[propext, Classical.choice, Quot.sound]`.
+Universal loaded-core step and order premises remain explicit.
