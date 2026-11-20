@@ -3396,6 +3396,12 @@ theorem ptrEq_renameAddresses
       ptrEqBoundary m a b := by
   simp [ptrEqBoundary]
 
+theorem ptrEqBoundary_renameAddresses (rename : ObjId → Nat) (m : Mem)
+    (a b : Ptr) :
+    ptrEqBoundary m (Ptr.renameAddress rename a) (Ptr.renameAddress rename b) =
+      ptrEqBoundary m a b := by
+  simp [ptrEqBoundary, Ptr.renameAddress]
+
 /-- **C23 §6.5.9p6 — relational.** Comparing pointers into DIFFERENT
 objects with `<`, `>`, `<=` or `>=` is UNDEFINED — "in all other cases,
 the behavior is undefined" (`J.2(45)`).
