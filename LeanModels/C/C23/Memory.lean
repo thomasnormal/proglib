@@ -2469,6 +2469,10 @@ structure AddressIndependent (m : Mem) : Prop where
   ptrEqBoundary : ∀ (a b : Ptr) (addressA addressB : Nat),
     ptrEqBoundary m {a with address := addressA} {b with address := addressB} =
       ptrEqBoundary m a b
+  ptrLtSameObject : ∀ (a b : Ptr) (addressA addressB : Nat),
+    (∃ o, a.obj = some o ∧ b.obj = some o) →
+    ptrLt {a with address := addressA} {b with address := addressB} =
+      .ok (a.off < b.off)
   storeBytes : ∀ (p : Ptr) (bs : List CByte) (address : Nat),
     m.storeBytes {p with address := address} bs = m.storeBytes p bs
   loadIntChecked : ∀ (alias : AliasModel) (p : Ptr) (t : IntTy)
@@ -2532,6 +2536,8 @@ theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
   · exact fun a b addressA addressB => ptrEq_address_irrel a b addressA addressB
   · exact fun a b addressA addressB =>
       ptrEqBoundary_address_irrel m a b addressA addressB
+  · exact fun a b addressA addressB h =>
+      ptrLt_same_object_address_irrel a b addressA addressB h
   · exact fun p bs address => storeBytes_address_irrel m p bs address
   · exact fun alias p t used address =>
       loadIntChecked_address_irrel m alias p t used address
