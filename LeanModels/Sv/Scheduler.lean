@@ -731,6 +731,8 @@ private def raceStores : List SvState :=
 #guard (raceStores.any (fun s => s.lookup "q" == some (LVec.ofNat 8 1)))
 
 private def orderedDesign : Design :=
+  -- Two NBAs in one source process must be performed in statement order
+  -- (§4.6(b), §10.4.2), even though each update is an Active/NBA event.
   { name := "scheduler_ordered_nba"
     decls := #[{ name := "clk", width := 1, isInput := true },
       { name := "q", width := 1 }]
@@ -750,6 +752,7 @@ private def orderedStores : List SvState :=
 
 #guard orderedStores.any (fun s => s.lookup "q" == some (LVec.ofNat 1 1))
 #guard !orderedStores.any (fun s => s.lookup "q" == some (LVec.ofNat 1 0))
+#guard orderedStores.all (fun s => s.lookup "q" == some (LVec.ofNat 1 1))
 
 private def raceDesigns : List SchedulerDesign :=
   [raceScheduler, orderedScheduler]
