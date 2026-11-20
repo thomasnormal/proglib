@@ -6,7 +6,7 @@ This table is generated from the pinned public-design census receipts. It measur
 
 | design | pinned source | unsupported nodes | loads into E | first E wall |
 | --- | --- | ---: | --- | --- |
-| `prim_fifo_sync` | OpenTitan 0a6ff685 | 36 | yes | `canonical-E hierarchy admission at defaults; package-qualified vbits and fixed package-enum aliases admitted; source-shaped diagnostic $error and #1ps checks are admitted only by the elaboration-check adapter` |
+| `prim_fifo_sync` | OpenTitan 0a6ff685 | 36 | yes | `canonical-E hierarchy admission at defaults; 8-cycle ordinary-E trace matches Xcelium 24.03-s004; Icarus 13.0 refuses the unchanged source at its packed-array parameter frontend wall; source-shaped diagnostic $error and #1ps checks are admitted only by the elaboration-check adapter` |
 | `prim_arbiter_ppc` | OpenTitan 0a6ff685 | 0 | yes | `canonical-E hierarchy admission and initialState at N=8,DW=32,EnDataPort=1; source-shaped loop family measured separately at N=2/N=4 with 16/16 rows matching both pinned simulators` |
 | `prim_packer` | OpenTitan 0a6ff685 | 20 | yes | `canonical-E hierarchy admission at defaults; fixed module-local scalar enum admitted; next walls are assertion/timing constructs` |
 | `CV32E40P` | openhwgroup v1.0.1 / 6148cf5 | 574 | yes | `Structure=true; EquationGate=false at the sole retained always_comb process (index 10: State_SN, OutVld_SO, enables, and case body); canonical-E complete equation tier remains outside admission` |
