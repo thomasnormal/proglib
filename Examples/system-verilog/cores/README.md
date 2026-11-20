@@ -1398,3 +1398,14 @@ The branch, memory, ALU, immediate, upper, jump, system, CSR, fence, illegal,
 and multiply/divide R1 receipts changed no census or execution count.  The
 next ladder item is the all-family RV32I R1 package, while the universal loaded
 step and order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 all-family package
+
+The loaded-core all-family R1 package compiles over the enabled ALU, branch,
+jump, memory, fence, system, CSR, and illegal instruction boundaries.  It
+retains the exact loaded-cycle step, reset relation, well-formedness
+preservation, initial-relation refinement, total-step refinement, and
+family-boundary refinement packages.  `lake env lean
+Examples/system-verilog/cores/picorv32/r1_rv32i.lean` passed, and all printed
+theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
+The universal loaded step and order premises remain explicit.
