@@ -276,6 +276,7 @@ Examples/system-verilog/seq_multi/edges_proof.lean
 Examples/system-verilog/seq_multi/sync2_proof.lean
 Examples/system-verilog/seq_cycle/seq_refusals.lean
 Examples/system-verilog/seq_cycle/seq_time_zero.lean
+Examples/system-verilog/seq_cycle/plain_proof.lean
 LeanModels
 
 LeanModels.Sv.Scheduler
