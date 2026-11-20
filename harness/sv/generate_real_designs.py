@@ -11,7 +11,7 @@ OUT = ROOT / "docs" / "sv-real-designs.md"
 # output table is generated; changing a result requires changing its measured
 # receipt and rerunning this script.
 ROWS = [
-    ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "no", "enum 'action_e': unrecoverable packed dimensions (prim_count)"),
+    ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "yes", "canonical-E hierarchy admission at defaults; package-qualified vbits and fixed package-enum aliases admitted; next walls are timed/assertion constructs"),
     ("prim_arbiter_ppc", "OpenTitan 0a6ff685", "0", "yes", "canonical-E hierarchy admission and initialState at N=8,DW=32,EnDataPort=1; source-shaped loop family measured separately at N=2/N=4 with 16/16 rows matching both pinned simulators"),
     ("prim_packer", "OpenTitan 0a6ff685", "20", "no", "enum 'flush_st_e': unrecoverable packed dimensions"),
     ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "no", "AlwaysPosedge:edge"),
