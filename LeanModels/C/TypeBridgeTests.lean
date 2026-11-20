@@ -117,6 +117,9 @@ private def compoundRegistryCheck : Bool :=
 
 #guard compoundRegistryCheck
 
+#guard LeanModels.C.C23.Ptr.fromExposedAddress 1 == none
+#guard LeanModels.C.C23.Ptr.fromExposedAddress 0 == some LeanModels.C.C23.Ptr.null
+
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))
