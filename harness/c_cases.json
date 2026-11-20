@@ -1258,5 +1258,17 @@
     "error": "no layout for declared type 'int[2]'",
     "structured_expect": "refuse",
     "structured_error": "pointer-integer value requires an unchanged cast back"
+  },
+  {
+    "id": "integer-to-pointer-arbitrary-refusal",
+    "source": "int main(void) { int *p = (int *)1; return *p; }",
+    "expect": "refuse",
+    "return_value": 0,
+    "error": "no layout for declared type 'int *'",
+    "structured_envelope_checks": [
+      "structured_types"
+    ],
+    "structured_expect": "refuse",
+    "structured_error": "integer-to-pointer conversion outside pointer type"
   }
 ]

@@ -312,6 +312,12 @@ load path. Both null and non-null pointer-byte rows MATCH pinned Clang 21.1.8
 with the structured-type plugin, 2 MATCH / 0 REFUSE / 0 DIVERGE. No-plugin
 runs retain the explicit parser-observation refusal boundary.
 
+The arbitrary integer-to-pointer F2 case is registered as a refusal row. A
+literal address cast is accepted by pinned Clang only as a source of later
+undefined behavior, while the current evaluator refuses before fabricating
+provenance. The row reports REFUSE with and without the structured-type plugin,
+so the future PNVI-ae-udi recovery implementation has a fixed wall to flip.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and
