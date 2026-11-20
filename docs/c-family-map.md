@@ -236,11 +236,12 @@ decided by the parser-native library with differential coverage.
 
 **F1 type-string gate audit (2026-11-19).** `tools/check_c_type_strings.py`
 is the repeatable gate for the five C type paths. Its self-test passes and the
-live audit reports one finding. The parser-native effective-type, pointer,
-qualification, record-identity, and array-shape families are covered by
-focused rows. The remaining `CType` alias is the last type-path debt. No F2
-store work starts until the checker reaches zero and the full survey is at
-least 1326/2214 with no DIVERGE.
+live audit reports zero string operations and one separate legacy `CType` alias
+debt. The parser-native effective-type, pointer, qualification,
+record-identity, and array-shape families are covered by focused rows. The
+remaining `CType` alias is the last type-path debt. No F2 store work starts
+until the alias migration and full survey gate reach the stated threshold of
+at least 1326/2214 with no DIVERGE.
 
 **CType migration price (2026-11-19).** Replacing `CType := String` requires
 one schema family. Every AST type field currently receives Clang's displayed
