@@ -8,7 +8,7 @@ import tempfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-TMP = Path(os.environ.get("LS_SV_TMPDIR", "/scratch/gate/ls-sv/tmp"))
+TMP = Path(os.environ.get("TMPDIR", "build-tmp"))
 TMP.mkdir(parents=True, exist_ok=True)
 SRC = HERE / "plain_generate_edge_e.sv"
 ENV = HERE / "plain_generate_edge_e.sv.json"
