@@ -504,3 +504,9 @@ explicit-placement reallocations. The existing old/new load, store, placement,
 and dead-pointer theorem family remains unchanged and compiles with the new
 side-table projection lemmas. The bridge test checks that the fresh pointer's
 identity retains the copied parser-native type.
+
+The side table now has an explicit `Nodup` identity invariant. Allocation and
+fresh-object transfer require a new object identity before adding a structured
+row, while byte, stdout, cursor, and placement operations preserve the
+invariant. This keeps duplicate effective-type identities loud at the memory
+boundary as well as in the envelope.
