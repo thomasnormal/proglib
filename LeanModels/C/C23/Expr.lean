@@ -605,6 +605,11 @@ def directDeclId : Expr → Option DeclarationId
 def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
     Option (Nat × Nat) :=
   (directDeclId base).bind (fun did => layout.fieldBitsDecl did field)
+    |>.orElse (fun _ =>
+      ((directDeclId base).bind (fun did => layout.structuredType did)).bind (fun structured =>
+        match structured.unqualified with
+        | .record handle => layout.fieldBitsDecl { value := handle.value } field
+        | _ => none))
     |>.orElse (fun _ => layout.fieldBits base.ty field)
 
 /-- Resolve bit-field facts from an aggregate declaration before its legacy
@@ -1494,7 +1499,7 @@ def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
       ctx.layout.bitFieldStorageSizeAt base recordTy,
       intTyOf? (ctx.layout.normalizeTy fieldTy) with
   | some (offsetBits, width), some recordSize, some storageTy =>
-      if width > 52 || (storageTy.signed && width > 52) then
+      if width > 8 then
         refuseUnsupported s!"unsupported bit-field width {width} for '{fieldTy}'"
       else
       let basePtr := { fieldPtr with off := fieldPtr.off - (offsetBits / 8 : Int), bound := none }
@@ -1515,6 +1520,9 @@ def storeBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
       ctx.layout.bitFieldStorageSizeAt base recordTy,
       intTyOf? (ctx.layout.normalizeTy fieldTy), v with
   | some (offsetBits, width), some recordSize, some storageTy, .int _ n =>
+      if width > 8 then
+        refuseUnsupported s!"unsupported bit-field width {width} for '{fieldTy}'"
+      else
       let fieldTy' := (intTyOf? (ctx.layout.normalizeTy fieldTy)).getD storageTy
       -- C23 §6.3.1.3p3 leaves conversion to a signed type outside its
       -- range implementation-defined (J.3.6(3)).  The pinned profile's
@@ -1918,6 +1926,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .compoundAssign op l r computeLHSType computeResultType ty _ => do
       if compoundAssignmentHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in compound assignment"
+      match l with
+      | .member base field _ _ _ _ =>
+          if ctx.layout.fieldBitsAt base field |>.isSome then
+            refuseUnsupported "compound assignment to a bit-field"
+      | _ => pure ()
       let p ← evalLValue ctx l
       let lStructured := ctx.layout.structuredTypeAt l
       let rv ← evalExpr ctx r

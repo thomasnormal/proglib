@@ -333,6 +333,13 @@ external cache's partial C1/C3 source availability, so this receipt is a
 rerunnable partial-cache measurement rather than a replacement for the
 canonical full-survey headline.
 
+The plugin receipt's bit-field wrong-answer cluster is now refusal-only. The
+registered rows cover one compound bit-field assignment and three widths above
+the supported exact path. They report named layout or width refusals against
+pinned Clang 21.1.8 with no DIVERGE. The evaluator refuses compound assignment
+to a bit-field and widths above eight bits until the shared read-modify-write
+store is implemented.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and
