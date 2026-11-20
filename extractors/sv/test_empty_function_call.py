@@ -145,6 +145,24 @@ class EmptyFunctionCalls(unittest.TestCase):
         self.assertEqual(local["expr"]["name"], "f")
         self.assertTrue(local["expr"]["symbolic_user_function_retained"])
 
+    def test_symbolic_default_mode_keeps_qualified_package_function(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source_path = Path(directory) / "qualified_default.sv"
+            output_path = Path(directory) / "qualified_default.sv.json"
+            source_path.write_text(
+                "package p; function automatic integer f(input integer x); "
+                "return (x > 1) ? $clog2(x) : 1; endfunction endpackage "
+                "module top #(parameter integer N = 8); "
+                "localparam integer W = p::f(N); "
+                "logic [W-1:0] value; assign value = W; endmodule")
+            extract.process_symbolic("top", [str(source_path)], [],
+                                     str(output_path))
+            envelope = json.loads(output_path.read_text())
+        module = envelope["design"]["modules"][0]
+        local = next(p for p in module["params"] if p["name"] == "W")
+        self.assertEqual(local["expr"]["kind"], "FunctionCall")
+        self.assertEqual(local["expr"]["name"], "f")
+
     def test_symbolic_qualified_package_if_return_is_retained(self):
         with tempfile.TemporaryDirectory() as directory:
             source_path = Path(directory) / "qualified_if.sv"
