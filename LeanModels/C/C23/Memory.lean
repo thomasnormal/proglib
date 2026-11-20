@@ -1059,6 +1059,20 @@ theorem storeBytes_structuredTypesUnique_of_ok
       cases h
       exact hunique
 
+theorem storeBytes_structuredType_lookup
+    {m m' : Mem} {p : Ptr} {bs : List CByte} (q : ObjId)
+    (h : m.storeBytes p bs = .ok m') :
+    m'.structuredType? q = m.structuredType? q := by
+  unfold storeBytes at h
+  cases hr : m.resolve p bs.length with
+  | error e => simp [hr] at h
+  | ok result =>
+    cases result with
+    | mk o c off =>
+      simp [hr] at h
+      cases h
+      rfl
+
 theorem storeFloat32_structuredTypesUnique
     {m m' : Mem} {p : Ptr} {f : Float32.Model}
     (hunique : structuredTypesUnique m)
@@ -1113,6 +1127,24 @@ theorem storeIntChecked_structuredTypesUnique
         simp [hr, he] at h
         cases h
         simpa [structuredTypesUnique, structuredTypeKeys] using hunique
+
+theorem storeIntChecked_structuredType_lookup
+    {m m' : Mem} {alias : AliasModel} {p : Ptr} {t : IntTy}
+    {used : CType} {v : Int} (usedStructured : Option QualType) (q : ObjId)
+    (h : m.storeIntChecked alias p t used v usedStructured = .ok m') :
+    m'.structuredType? q = m.structuredType? q := by
+  unfold storeIntChecked at h
+  cases hr : m.resolve p (encodeInt t v).length with
+  | error e => simp [hr] at h
+  | ok result =>
+    cases result with
+    | mk o c off =>
+      cases he : checkEffectiveAt m alias o c off used usedStructured with
+      | error e => simp [hr, he] at h
+      | ok unit =>
+        simp [hr, he] at h
+        cases h
+        rfl
 
 /-! ### §6.2.6.2 Integer representation
 

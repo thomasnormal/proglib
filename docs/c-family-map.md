@@ -574,3 +574,8 @@ parser-native side table. A bridge guard exercises the allocated-store path.
 The storage boundary now proves source-pointer placement irrelevance for
 `free`, `realloc`, and `reallocAt`. Explicit destination placement and
 pointer-byte exposure remain the address-observing exceptions in the F2 design.
+
+Successful byte and checked-integer stores now expose direct structured-type
+lookup-preservation lemmas. Their object-byte and legacy effective-type updates
+cannot alter parser-native declaration rows, and the bridge guard checks this
+projection on an allocated store.
