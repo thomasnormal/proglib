@@ -1154,6 +1154,35 @@ invariant.  The next R1 family is the exact illegal-instruction and illegal-
 CSR boundary, while the DarkRISCV source-shaped scalar transition remains a
 separate execution wall.
 
+## 2026-11-20 census rerank after illegal, immediate-ALU, and ADDI R1 items
+
+The stall-rule rerun passed `harness/rv/core_census.py --self-test` and the
+current pinned PicoRV32 RISCV_FORMAL envelope census.  PicoRV32 remains
+**360 admitted / 0 refused / 4 not reached**, with the four rows confined to
+inactive default generate branches.  The measured execution receipts remain
+PicoRV32 **1000/1000** and DarkRISCV **1000/1000** through their checked
+canonical-E routes.  Quark remains **0/0** at its `FETCH_INSTR`
+untyped-width wall, and SERV remains **0/0** at its `RF_WIDTH` wall with
+**910/41/203** current source-overlay census rows.
+
+The three R1 items changed no census or execution count and added no loaded
+core invariant.  The next item is a concrete proof audit of the R2 statement
+and its consumption map, while the DarkRISCV source-shaped scalar transition
+remains a separate execution wall.
+
+## 2026-11-20 R2 statement and consumption-map audit
+
+The pinned R2 statement compiles from the current tree.  Its audit covers the
+named RISCV_FORMAL parameter vector and envelope, fixed environment with
+always-ready program memory and explicit reset, interrupt, coprocessor, and
+four-state input restrictions, the exact RVFI decoder, program fetch tie,
+stateful ISA safety conclusion, and separate bounded progress premise.  The
+consumption map names every enabled RV32I family and the concrete ADDI,
+register-file, RVFI, and memory-route consumers.  `#print axioms` reports only
+the standard `propext`, `Classical.choice`, and `Quot.sound` set for the
+proposition-bearing statement theorems.  The universal loaded-step and order
+premises remain assumptions, so no loaded RTL refinement theorem is claimed.
+
 ## 2026-11-20 OpenTitan prim_arbiter_ppc canonical-E admission
 
 The pinned OpenTitan source at commit
