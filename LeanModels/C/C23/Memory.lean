@@ -1304,6 +1304,19 @@ def decodeInt (t : IntTy) (bs : List CByte) : Option Int :=
   | none => none
   | some xs => some (t.wrap (natOfBytes xs))
 
+theorem encodeInt_renameAddresses (resolve : ObjId → Nat) (t : IntTy) (v : Int) :
+    (encodeInt t v).map (CByte.renameAddress resolve) = encodeInt t v := by
+  simp [encodeInt, CByte.renameAddress]
+
+theorem decodeInt_renameAddresses_conc
+    (resolve : ObjId → Nat) (t : IntTy) (bs : List UInt8) :
+    decodeInt t ((bs.map CByte.conc).map (CByte.renameAddress resolve)) =
+      decodeInt t (bs.map CByte.conc) := by
+  induction bs with
+  | nil => rfl
+  | cons b bs ih =>
+      simp [decodeInt, CByte.renameAddress, ih, Function.comp_def]
+
 /-- One byte of an object representation as observed through a character
 lvalue.  Character accesses are allowed to inspect every object
 representation, including pointer representations (§6.5.1p7).  The
