@@ -404,7 +404,12 @@ deriving Repr, Inhabited
 /-- Parser-native structured type for a declaration occurrence. -/
 def Envelope.structuredTypeFor (envl : Envelope) (id : DeclarationId) :
     Option LeanModels.Clang.QualType :=
-  envl.structuredTypes.find? (fun row => row.declaration == id) |>.map (·.type)
+  -- A declaration identity must select exactly one parser observation. A
+  -- duplicate is malformed frontend evidence and refuses instead of silently
+  -- choosing whichever row happened to be listed first.
+  match envl.structuredTypes.filter (fun row => row.declaration == id) with
+  | [row] => some row.type
+  | _ => none
 
 /-! ## Structural queries
 

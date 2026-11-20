@@ -455,3 +455,8 @@ and bridge-fixture sites. The constructor arity change also touches statement
 parameter guards and layout census joins. The metadata should therefore be
 carried by a declaration-identity table on the envelope first, with AST
 constructor changes deferred until all consumers can use the same lookup.
+
+The envelope-side declaration lookup now requires exactly one structured row
+for an identity. Missing or duplicate rows return no observation, so malformed
+frontend evidence cannot silently select the first duplicate. `TypeBridgeTests`
+covers one valid identity, a missing identity, and a duplicate identity.
