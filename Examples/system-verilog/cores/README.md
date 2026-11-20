@@ -1456,8 +1456,10 @@ source and envelope SHA-256 pins in `darkriscv/battery_transcript.txt`.  The
 source is unmodified and carries its BSD license.
 
 `darkriscv/battery_check.py` runs the source through Icarus Verilog 13.0
-(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E.  The three
-runs agree bit-for-bit on every printed field for **1000/1000** rising edges.
+(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E.  With the
+source's `SIMULATION` initialization explicitly enabled in both simulator
+invocations, the three runs agree bit-for-bit on every printed field for
+**1000/1000** rising edges.
 The battery corrupts one expected row and checks that Lean rejects it.  The
 normalized simulator-row digest is
 `9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
@@ -1494,15 +1496,16 @@ source is unchanged at public commit `bb6b483cc61a2886a0602c7e62b14f5995ddfbb9`,
 with source SHA-256
 `46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0`.
 
-Both pinned simulators produce 1000 rows, but they disagree at cycle 1 on the
-uninitialized `DATAO` bus.  Icarus Verilog 13.0 prints
-`data_out=00000000`; Xcelium 24.03-s004 prints `data_out=0000xx00`.  Their
-normalized row digests are respectively
-`a0b3583d0ad2d2c8b0a9fd05b9dec1d531b90042b8aad096956595e266b90e12` and
-`9100c87137ea0f9817fea31ee84d771487b1b31c5b41b9780b0d8b1020cd605f`.
-The differential harness rejects this input-driven stream before a canonical-E
-comparison, so no three-way agreement is claimed.  The existing all-NOP
-three-way battery remains 1000/1000.
+The first run omitted the source's `SIMULATION` define and exposed a simulator
+initialization mismatch at cycle 1 on the uninitialized `DATAO` bus.  Icarus
+Verilog 13.0 printed `data_out=00000000`; Xcelium 24.03-s004 printed
+`data_out=0000xx00`.  This was a harness configuration error, not a choice
+between oracle values.  `check.py` now defines `SIMULATION` for both compiler
+invocations, enabling the source's explicit register-file initialization.  The
+input-driven stream then agrees on **1000/1000** rows, with normalized digest
+`a0b3583d0ad2d2c8b0a9fd05b9dec1d531b90042b8aad096956595e266b90e12`, and the
+canonical-E battery accepts the same stream.  The original disagreement is
+retained as the exact diagnostic that closed the wrong-answer report.
 
 ## 2026-11-20 PicoRV32 stalled and unknown-register E-RUN battery
 

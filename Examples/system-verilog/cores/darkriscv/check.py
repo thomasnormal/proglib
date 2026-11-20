@@ -82,7 +82,8 @@ def run_receipt() -> tuple[list[str], list[str]]:
         sim_work.mkdir()
         iverilog = work / "darkriscv-iverilog"
         run([
-            "iverilog", "-g2012", "-I", str(root / "rtl"), "-o", str(iverilog),
+            "iverilog", "-g2012", "-DSIMULATION", "-I", str(root / "rtl"),
+            "-o", str(iverilog),
             str(testbench), str(source),
         ], sim_work)
         icarus_rows = rows(run(["vvp", str(iverilog)], sim_work))
@@ -90,7 +91,7 @@ def run_receipt() -> tuple[list[str], list[str]]:
         if shutil.which("xrun") is None:
             raise SystemExit("Xcelium xrun is required for this receipt")
         xcelium_rows = rows(run([
-            "xrun", "-sv", "-q", "-I../rtl", "-top",
+            "xrun", "-sv", "-q", "-define", "SIMULATION", "-I../rtl", "-top",
             top, str(testbench), str(source),
         ], sim_work))
 
