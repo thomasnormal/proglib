@@ -1126,3 +1126,10 @@ The same ordinary-route receipt covers `generate_typed_localparam_param_e` at W=
 Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z rows. The companion
 `nested_unpacked_target` row remains a named `UnpackedDecl:rank` refusal while both simulators
 agree on its source rows.
+
+The next ordinary-route receipt covers the automatic-local `always_comb`,
+automatic-local initializer, and automatic-local reentry fixtures, plus the
+unconditional generate-case fixture. Their ordinary E rows match Xcelium
+24.03-s004, while Icarus Verilog 13.0 explicitly refuses the automatic-lifetime
+syntax. The `typed_named_unpacked` companion remains its named undeclared
+continuous-target refusal, with both simulators agreeing on source rows.
