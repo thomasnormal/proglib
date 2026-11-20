@@ -539,3 +539,8 @@ Typed stores now expose the same successful-result preservation boundary. The
 generic byte-store proof covers integer, floating, pointer, function-pointer,
 and pointer-integer representations, while checked integer stores preserve the
 side table across their effective-type check and object-byte update.
+
+Both `realloc` variants now preserve the invariant on successful results under
+the same fresh-identity premise used by structured allocation. The valid path
+copies the old parser-native observation to the fresh object before killing the
+old one, and the null-pointer path leaves the existing table unchanged.

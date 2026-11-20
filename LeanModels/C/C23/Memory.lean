@@ -2181,6 +2181,54 @@ def reallocAt (m : Mem) (p : Ptr) (size address : Nat) : MRes (Mem × Ptr) :=
       else .error (.memUB (.freeUnmatched p))
     | none => .error (.memUB (.freeUnmatched p))
 
+theorem realloc_structuredTypesUnique
+    {m m' : Mem} {p q : Ptr} {size : Nat}
+    (hunique : structuredTypesUnique m)
+    (hnew : ∀ ty, (m.objs.length, ty) ∉ m.structuredTypes)
+    (hr : realloc m p size = .ok (m', q)) : structuredTypesUnique m' := by
+  unfold realloc at hr
+  split at hr
+  · simp_all
+  · cases hp : p.obj with
+    | none =>
+      simp [hp] at hr
+      cases hr
+      simpa [malloc, alloc, structuredTypesUnique, structuredTypeKeys] using hunique
+    | some o =>
+      cases hc : m.get? o with
+      | none => simp [hp, hc] at hr
+      | some c =>
+        split at hr
+        · simp [hp, hc] at hr
+          cases hr
+          apply kill_structuredTypesUnique
+          apply copyStructuredType_unique m o m.objs.length hunique hnew
+        · simp [hp, hc] at hr
+
+theorem reallocAt_structuredTypesUnique
+    {m m' : Mem} {p q : Ptr} {size address : Nat}
+    (hunique : structuredTypesUnique m)
+    (hnew : ∀ ty, (m.objs.length, ty) ∉ m.structuredTypes)
+    (hr : reallocAt m p size address = .ok (m', q)) : structuredTypesUnique m' := by
+  unfold reallocAt at hr
+  split at hr
+  · simp_all
+  · cases hp : p.obj with
+    | none =>
+      simp [hp] at hr
+      cases hr
+      simpa [mallocAt, allocAt, alloc, structuredTypesUnique, structuredTypeKeys] using hunique
+    | some o =>
+      cases hc : m.get? o with
+      | none => simp [hp, hc] at hr
+      | some c =>
+        split at hr
+        · simp [hp, hc] at hr
+          cases hr
+          apply kill_structuredTypesUnique
+          apply copyStructuredType_unique m o m.objs.length hunique hnew
+        · simp [hp, hc] at hr
+
 /-- For a valid allocated object and nonzero size, `reallocAt` returns a fresh
     pointer at exactly the caller-selected concrete placement. -/
 theorem reallocAt_valid_address (m : Mem) (p : Ptr) (size address : Nat)
