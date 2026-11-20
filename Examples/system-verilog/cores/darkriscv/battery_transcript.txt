@@ -1,0 +1,18 @@
+D battery transcript, 2026-11-20
+
+PicoRV32 input-driven source: pinned SHA-256 0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622
+PicoRV32 RISCV_FORMAL envelope: pinned SHA-256 17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236
+PicoRV32 testbench: pinned SHA-256 e0e70dd2b37165b8538894c7fb92ab86cbf497905c6fe48fb30a4b6e0379dd2a
+Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on 2000/2000 cycles.
+Canonical E agrees on 2000/2000 cycles and all 32 observed outputs.
+PicoRV32 normalized binary cycle-row SHA-256 26b297fe4f6f66829d8ac7fdea88c64d9db9ddfbbf6e7ac81739355b5531f038
+
+DarkRISCV source commit bb6b483cc61a2886a0602c7e62b14f5995ddfbb9
+DarkRISCV source SHA-256 46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0
+DarkRISCV envelope SHA-256 65c4f65221abb19517fc1e3232295b29454d7d244d585452cac41b93ab239e26
+Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on 1000/1000 rows.
+Canonical E agrees with both simulators on all printed fields for 1000/1000 source-shaped rising-edge cycles.
+DarkRISCV normalized simulator-row SHA-256 9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df
+Negative control: an altered cycle row is rejected by the Lean comparator.
+
+rv32ui source inventory: 42 programs, compiled-and-run 0/42. The host lacks the RISC-V cross-toolchain and reset/memory build configuration required to turn the upstream assembly sources into this testbench's image. No rv32ui simulator or Lean result is claimed.

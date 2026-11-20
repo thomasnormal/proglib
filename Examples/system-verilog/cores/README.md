@@ -1446,3 +1446,25 @@ Examples/system-verilog/cores/picorv32/R2.lean` passed.  Printed proposition
 axioms remain within `[propext, Classical.choice, Quot.sound]` and the
 geometry facts use only the expected smaller subsets.  The universal loaded
 `PicoRV32Invariant.step` and order premises remain assumptions.
+
+## 2026-11-20 DarkRISCV bundled three-way battery
+
+The pinned DarkRISCV source at public commit
+`bb6b483cc61a2886a0602c7e62b14f5995ddfbb9` and its regenerated Slang envelope
+are checked into `darkriscv/rtl/` and `darkriscv/darkriscv.sv.json`, with
+source and envelope SHA-256 pins in `darkriscv/battery_transcript.txt`.  The
+source is unmodified and carries its BSD license.
+
+`darkriscv/battery_check.py` runs the source through Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E.  The three
+runs agree bit-for-bit on every printed field for **1000/1000** rising edges.
+The battery corrupts one expected row and checks that Lean rejects it.  The
+normalized simulator-row digest is
+`9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
+
+The checked-in `darkriscv/rv32ui/programs.txt` inventories 42 upstream
+`riscv-tests` RV32UI programs.  This host has no cross-toolchain and no image
+builder for the testbench, so the compiled-and-run count is **0/42**.  No
+RV32UI simulator or Lean result is claimed.  The bundled witness remains an
+all-NOP image and does not exercise a memory stall or an unknown-valued
+register.
