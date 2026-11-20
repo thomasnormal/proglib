@@ -438,3 +438,11 @@ allocation, placement, and object-resolution theorem family. The first
 compile exposed those constructor and theorem boundaries before any evaluator
 callsite could be migrated. No partial field was retained and the alias gate
 remains at its single `CType := String` finding.
+
+The remaining envelope migration scope is now counted from the AST itself.
+`LeanModels/C/Ast.lean` has 21 expression constructor arms and 4 declaration
+constructor arms carrying `CType`, in addition to the `TypeNode` and layout
+tables. A sound replacement must carry parser-native type evidence through
+those 25 arms and their JSON loader cases before the effective-type store can
+drop its spelling key. This is the next schema family after the priced layout
+and allocation boundaries.
