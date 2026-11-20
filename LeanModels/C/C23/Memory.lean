@@ -636,6 +636,16 @@ def allocStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
   let (m', o) := m.alloc dur size ty
   (m'.rememberStructuredType o structured, o)
 
+theorem allocStructured_unique
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : QualType) (h : structuredTypesUnique m)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
+    structuredTypesUnique
+      (m.allocStructured dur size ty (some structured)).1 := by
+  change structuredTypesUnique
+    (m.rememberStructuredType m.objs.length (some structured))
+  exact rememberStructuredType_unique m m.objs.length structured h hnew
+
 @[simp] theorem allocStructured_lookup
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (structured : QualType) :
     (m.allocStructured dur size ty (some structured)).1.structuredType?
@@ -653,6 +663,16 @@ def allocZeroedStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option C
     (structured : Option QualType) : Mem × ObjId :=
   let (m', o) := m.allocZeroed dur size ty
   (m'.rememberStructuredType o structured, o)
+
+theorem allocZeroedStructured_unique
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (structured : QualType) (h : structuredTypesUnique m)
+    (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
+    structuredTypesUnique
+      (m.allocZeroedStructured dur size ty (some structured)).1 := by
+  change structuredTypesUnique
+    (m.rememberStructuredType m.objs.length (some structured))
+  exact rememberStructuredType_unique m m.objs.length structured h hnew
 
 @[simp] theorem allocZeroedStructured_lookup
     (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (structured : QualType) :

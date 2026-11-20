@@ -510,3 +510,8 @@ fresh-object transfer require a new object identity before adding a structured
 row, while byte, stdout, cursor, and placement operations preserve the
 invariant. This keeps duplicate effective-type identities loud at the memory
 boundary as well as in the envelope.
+
+Structured allocation now exposes uniqueness lemmas under the explicit fresh
+identity premise. Both indeterminate and zeroed allocation preserve the
+side-table `Nodup` invariant before an evaluator state transition consumes
+their returned object.
