@@ -330,6 +330,15 @@ theorem renameAddresses_idem (resolve : ObjId → Nat) (m : Mem) :
       simp [renameAddresses, CObj.renameAddress, List.map_map,
         CVal.renameAddress_idem, CByte.renameAddress_idem]
 
+theorem renameAddresses_comp
+    (first second : ObjId → Nat) (m : Mem) :
+    (m.renameAddresses first).renameAddresses second =
+      m.renameAddresses second := by
+  cases m with
+  | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
+      simp [renameAddresses, CObj.renameAddress, List.map_map,
+        CVal.renameAddress_comp, CByte.renameAddress_comp]
+
 def empty : Mem := { objs := [] }
 
 def structuredType? (m : Mem) (o : ObjId) : Option QualType :=
