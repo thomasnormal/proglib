@@ -326,6 +326,13 @@ def CObj.renameAddress (resolve : ObjId → Nat) (c : CObj) : CObj :=
       c.bytes.map (CByte.renameAddress resolve) := by
   rfl
 
+theorem CObj.renameAddress_comp
+    (first second : ObjId → Nat) (c : CObj) :
+    CObj.renameAddress second (CObj.renameAddress first c) =
+      CObj.renameAddress (fun o => second o) c := by
+  cases c
+  simp [CObj.renameAddress, CByte.renameAddress_comp]
+
 /-! The representation-level memory rename used by the evaluator relation.
 Provenance keys and parser-native type rows stay fixed while concrete
 placements and every stored pointer representation follow `resolve`. -/
