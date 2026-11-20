@@ -38,6 +38,15 @@ package.  Width, signedness, and post-memory state remain explicit, together
 with universal canonical-E step, decode, relation, order, and progress
 premises.  No RTL invariant or finite trace is claimed.
 
+## 2026-11-20 R1 fence consumer recheck
+
+The loaded-core fence family compiles for FENCE and FENCE.I.  The checked
+theorem surface includes the exact memory-preserving fields-to-ISA bridge, two
+loaded `Rv32iBoundary` consumers, the shared fence cycle dispatcher, and the
+loaded all-prefix refinement package.  The universal canonical-E step,
+decode, relation, order, and progress premises remain explicit.  No RTL
+invariant or finite trace is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
