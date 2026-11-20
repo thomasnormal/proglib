@@ -446,3 +446,12 @@ tables. A sound replacement must carry parser-native type evidence through
 those 25 arms and their JSON loader cases before the effective-type store can
 drop its spelling key. This is the next schema family after the priced layout
 and allocation boundaries.
+
+The first declaration-only implementation trial was priced and reverted on
+2026-11-20. Adding an optional `QualType` to the four declaration constructors
+(`VarDecl`, `ParmVarDecl`, `FieldDecl`, and `TypedefDecl`) compiled through the
+AST and JSON loader, then reached roughly thirty `Torture.lean` pattern-match
+and bridge-fixture sites. The constructor arity change also touches statement
+parameter guards and layout census joins. The metadata should therefore be
+carried by a declaration-identity table on the envelope first, with AST
+constructor changes deferred until all consumers can use the same lookup.
