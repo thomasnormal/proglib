@@ -779,6 +779,39 @@ theorem ptrAddressCanonical_rename
     ptrAddressCanonical (m.renameAddresses rename) (Ptr.renameAddress rename p) := by
   simp [ptrAddressCanonical, hp, placement_renameAddresses, h, Ptr.renameAddress]
 
+theorem ptrByte_beq_rename_of_canonical
+    (rename : ObjId → Nat) (m : Mem) (p q : Ptr)
+    (hobj : p.obj = q.obj)
+    (hp : ptrAddressCanonical m p) (hq : ptrAddressCanonical m q) :
+    (CByte.renameAddress rename (CByte.ptrByte p 0) ==
+      CByte.renameAddress rename (CByte.ptrByte q 0)) =
+    (CByte.ptrByte p 0 == CByte.ptrByte q 0) := by
+  cases p with
+  | mk po pa pf pb =>
+      cases q with
+      | mk qo qa qf qb =>
+          cases po with
+          | none =>
+              cases qo with
+              | none => rfl
+              | some qo => cases hobj
+          | some po =>
+              cases qo with
+              | none => cases hobj
+              | some qo =>
+                  have hpo : m.placement? po = some pa := by
+                    simpa [ptrAddressCanonical] using hp
+                  have hqo : m.placement? qo = some qa := by
+                    simpa [ptrAddressCanonical] using hq
+                  have hpoq : po = qo := by
+                    simpa using hobj
+                  subst hpoq
+                  have haddr : pa = qa := by simpa [hpo] using hqo
+                  subst haddr
+                  simp [CByte.renameAddress, Ptr.renameAddress, BEq.beq,
+                    LeanModels.C.C23.instBEqCByte.beq,
+                    LeanModels.C.C23.instBEqPtr.beq]
+
 theorem vaStart_placement_lookup {m m' : Mem} {p : Ptr} {args : List CVal} (q : ObjId)
     (h : vaStart m p args = .ok m') : m'.placement? q = m.placement? q := by
   have hp : m'.placements = m.placements := vaStart_placements h
