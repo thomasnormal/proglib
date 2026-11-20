@@ -1133,3 +1133,9 @@ unconditional generate-case fixture. Their ordinary E rows match Xcelium
 24.03-s004, while Icarus Verilog 13.0 explicitly refuses the automatic-lifetime
 syntax. The `typed_named_unpacked` companion remains its named undeclared
 continuous-target refusal, with both simulators agreeing on source rows.
+
+The resolved-net multiple-driver fixture also passes eight ordinary rows with
+Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z and conflict values.
+The invalid generated-chain companion remains its named duplicate generate-scope
+storage refusal, with both simulators rejecting the generated testbench's
+unpacked port shape.
