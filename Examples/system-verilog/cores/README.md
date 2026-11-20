@@ -94,6 +94,17 @@ PicoRV32 is the first candidate to revisit after the remaining unpacked-memory
 and module-member boundaries land in the SV tier.  No core was rewritten to
 fit the loader.
 
+## Current CV32E40P admission refresh — 2026-11-20
+
+The checked-in `alu_div/cv32e40p_alu_div.sv.json` envelope now passes the
+ordinary canonical-E loader at parameter point `(C_WIDTH, C_LOG_WIDTH) =
+(8, 3)`.  The loader returns a `CoreMemDesign` with 26 processes and
+`Structure=true`; its next boundary is `EquationGate=false`, which keeps the
+complete equation tier outside this admission result.  The generated
+real-design table records `CV32E40P` as loading into E with that equation gate
+as its remaining boundary.  No simulator-run result is claimed here because
+the pinned source is not present in this worktree.
+
 ## Current PicoRV32 re-probe
 
 The table above is the original cross-core census.  On 2026-11-07, after the
