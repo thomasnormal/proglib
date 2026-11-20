@@ -606,6 +606,11 @@ placement-independent even when their stored pointer-byte values observe the
 pointee representation. The evaluator-level behavior-set theorem still
 consumes this memory contract.
 
+Pointer equality and one-past boundary classification are now included as
+literal placement-independent comparisons. Relational cross-object failures
+remain outside this equality field because their refusal payloads retain the
+offending pointer values.
+
 The function-pointer store accessor now has its explicit named
 `storeFunction_address_irrel` proof, completing the contract's representation
 store cases.

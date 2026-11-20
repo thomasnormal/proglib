@@ -2462,6 +2462,11 @@ structure AddressIndependent (m : Mem) : Prop where
   subscript : ∀ (p : Ptr) (elemSize : Nat) (i : Int) (address : Nat),
     m.subscript {p with address := address} elemSize i =
       (m.subscript p elemSize i).map (fun q => {q with address := address})
+  ptrEq : ∀ (a b : Ptr) (addressA addressB : Nat),
+    ptrEq {a with address := addressA} {b with address := addressB} = ptrEq a b
+  ptrEqBoundary : ∀ (a b : Ptr) (addressA addressB : Nat),
+    ptrEqBoundary m {a with address := addressA} {b with address := addressB} =
+      ptrEqBoundary m a b
   storeBytes : ∀ (p : Ptr) (bs : List CByte) (address : Nat),
     m.storeBytes {p with address := address} bs = m.storeBytes p bs
   loadIntChecked : ∀ (alias : AliasModel) (p : Ptr) (t : IntTy)
@@ -2519,6 +2524,9 @@ theorem addressIndependent_mem (m : Mem) : AddressIndependent m := by
       offsetPtr_address_irrel m p elemSize i address
   · exact fun p elemSize i address =>
       subscript_address_irrel m p elemSize i address
+  · exact fun a b addressA addressB => ptrEq_address_irrel a b addressA addressB
+  · exact fun a b addressA addressB =>
+      ptrEqBoundary_address_irrel m a b addressA addressB
   · exact fun p bs address => storeBytes_address_irrel m p bs address
   · exact fun alias p t used address =>
       loadIntChecked_address_irrel m alias p t used address
