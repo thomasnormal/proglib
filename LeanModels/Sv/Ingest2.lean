@@ -742,6 +742,12 @@ def parsePProcess (j : Json) : Except String PProcess := do
             if (getOptField j "areset_n").isSome || (getOptField j "areset").isSome then
               throw "AlwaysPosedge:edge-reset — negative-edge clock with asynchronous reset is outside the first E edge packet"
             return .alwaysFFNegedge clock body
+        | some "pos" | some "posedge" =>
+            -- Slang may spell the source edge explicitly in a retained
+            -- `AlwaysPosedge` node.  This is the same positive-edge event
+            -- already represented by `PProcess.alwaysFF`, so preserve the
+            -- node and continue through the ordinary reset/style cases.
+            pure ()
         | some _ =>
             throw "AlwaysPosedge:edge — edge-qualified clock requires its retained event semantics"
         | none => pure ()
@@ -2004,6 +2010,10 @@ private def unsupMemberText : String := r#"{
 #guard match (Json.parse r#"{"kind":"AlwaysPosedge","style":"always_ff","clock":"clk",
   "areset_n":"rst_n","body":{"kind":"Empty"}}"# >>= parsePProcess) with
   | .ok (.alwaysFFR "clk" "rst_n" _ false) => true
+  | _ => false
+#guard match (Json.parse r#"{"kind":"AlwaysPosedge","style":"always_ff","clock":"clk",
+  "edge":"posedge","body":{"kind":"Empty"}}"# >>= parsePProcess) with
+  | .ok (.alwaysFF "clk" _) => true
   | _ => false
 -- A `localparam` inside a generate block is retained as a source-shaped
 -- lexical declaration for canonical E (§27.4).
