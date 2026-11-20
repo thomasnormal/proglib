@@ -837,9 +837,38 @@ private theorem killFrom_fold_placements (xs : List Nat) (m : Mem) (start : Nat)
       · simp [hget, ha, kill]
       · simp [hget, ha]
 
+private theorem killFrom_fold_structuredTypesUnique
+    (xs : List Nat) (m : Mem) (start : Nat)
+    (hunique : structuredTypesUnique m) :
+    structuredTypesUnique
+      (xs.foldl (fun acc i =>
+        let o := start + i
+        match acc.get? o with
+        | some c => if c.dur == .automatic then acc.kill o else acc
+        | none => acc) m) := by
+  induction xs generalizing m with
+  | nil => exact hunique
+  | cons i xs ih =>
+    simp only [List.foldl]
+    cases hget : m.get? (start + i) with
+    | none => exact ih m hunique
+    | some c =>
+      by_cases ha : (c.dur == .automatic) = true
+      · simp [hget, ha]
+        apply ih
+        exact kill_structuredTypesUnique m (start + i) hunique
+      · simp [hget, ha]
+        exact ih m hunique
+
 @[simp] theorem killFrom_placements (m : Mem) (start : Nat) :
     (m.killFrom start).placements = m.placements := by
   exact killFrom_fold_placements (List.range (m.count - start)) m start
+
+theorem killFrom_structuredTypesUnique
+    (m : Mem) (start : Nat) (hunique : structuredTypesUnique m) :
+    structuredTypesUnique (m.killFrom start) := by
+  exact killFrom_fold_structuredTypesUnique
+    (List.range (m.count - start)) m start hunique
 
 @[simp] theorem placementValid_killFrom (m : Mem) (start address size alignment : Nat)
     (hvalid : placementValid m address size alignment = true) :
