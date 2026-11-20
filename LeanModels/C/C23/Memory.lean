@@ -4362,9 +4362,14 @@ theorem reallocAt_renameAddresses
                           simp [mR', m', renameAddresses, CObj.renameAddress,
                             hplace, hfresh, List.map_append, List.map_take,
                             List.map_replicate, CObj.size]
-                    change (mR'.copyStructuredType o m.objs.length).kill o =
-                      ((m'.copyStructuredType o m.objs.length).kill o).renameAddresses rename
-                    rw [hbase, copyStructuredType_renameAddresses, kill_renameAddresses]
+                    have hmem :
+                        (mR'.copyStructuredType o m.objs.length).kill o =
+                          ((m'.copyStructuredType o m.objs.length).kill o).renameAddresses rename := by
+                      rw [hbase, copyStructuredType_renameAddresses, kill_renameAddresses]
+                    simpa only [mR', m', renameAddresses, CObj.renameAddress,
+                      freshR, fresh, hfresh, hplace, List.map_append,
+                      List.map_take, List.map_replicate, CObj.size,
+                      CByte.renameAddress_indet] using hmem
                   · simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hc', hget,
                       hdur, hlive, hoff, hdur', hlive', Ptr.renameAddress]
                 · simp [reallocAt, renameAddressReallocResult, hz, hp, hc, hc', hget,
