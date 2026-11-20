@@ -1703,6 +1703,22 @@ theorem storeIntChecked_renameAddresses
                     hconc]
                   rfl
 
+theorem storeIntChecked_loadIntChecked_rename
+    {m m' : Mem} (rename : ObjId → Nat) (alias : AliasModel) (p : Ptr)
+    (t : IntTy) (used : CType) (v r : Int)
+    (usedStructured : Option QualType := none)
+    (hs : m.storeIntChecked alias p t used v usedStructured = .ok m')
+    (hl : m'.loadIntChecked alias p t used usedStructured = .ok (.int t r)) :
+    ((m.renameAddresses rename).storeIntChecked alias (Ptr.renameAddress rename p)
+        t used v usedStructured >>= fun m'' =>
+      m''.loadIntChecked alias (Ptr.renameAddress rename p) t used usedStructured) =
+      (.ok (.int t r) : MRes CVal) := by
+  dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
+    Except.pure, Except.map]
+  simp only [storeIntChecked_renameAddresses, hs, Except.map, Except.bind, Except.pure]
+  simpa [hl, CVal.renameAddress, Except.map] using
+    loadIntChecked_renameAddresses rename m' alias p t used usedStructured
+
 /-- Write a pointer, as `pointer_64`'s eight tagged bytes. Kept whole so
 that a partial overwrite makes the remaining bytes UNREADABLE as a
 pointer rather than silently valid. -/
