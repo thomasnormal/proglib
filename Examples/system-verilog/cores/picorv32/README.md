@@ -2138,3 +2138,12 @@ points. `r1_addi`, `r1_upper`, `r1_jump`, `r1_branch`, `r1_alu`, `r1_alu_imm`,
 instruction-family wrapper therefore remain kernel-checked and available to a
 future loaded-core invariant. This audit does not promote the finite E-RUN into
 a universal RTL theorem.
+
+## 2026-11-20 W5 one-cycle cost remeasurement
+
+The current loaded canonical-E entry point was rerun through one reset-release
+`CoreMemDesign.fastStepCanonical` call.  It returned `one-cycle-ok` in 13.669
+seconds and peaked at 0.226 GiB under the 12 GiB `lean_memory_gate` scope with
+swap disabled and one Lean thread.  This confirms that one symbolic E cycle
+fits the direct proof budget.  It does not establish that a full cycle-by-cycle
+invariant proof is tractable, and no universal ADDI invariant is claimed.
