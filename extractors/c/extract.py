@@ -464,6 +464,17 @@ def nonempty(node):
             for c in (node.get("inner") or [])]
 
 
+def duplicate_structured_decl(rows):
+    """Return the first duplicated declaration identity, if any."""
+    seen = set()
+    for row in rows:
+        declaration = row.get("decl_id")
+        if declaration in seen:
+            return declaration
+        seen.add(declaration)
+    return None
+
+
 class Extractor:
     def __init__(self, target, source_text, string_bytes=None, floating_bits=None,
                  record_layouts=None, member_record_ids=None):
@@ -1120,6 +1131,10 @@ def extract(path, source_name=None, standard="c23"):
             structured_rows.append({"decl_id": decl_id,
                                     "type": join_type(record["type"])})
 
+    duplicate = duplicate_structured_decl(structured_rows)
+    if duplicate is not None:
+        die("structured type observations duplicate declaration identity %r" % duplicate)
+
     # The corpus lives in ANOTHER repository (tools/ctwin/ in sunfish), so a
     # path relative to this root would be a fiction.  `--source-name` records
     # the corpus's own path in its own repo; without it we fall back to a
@@ -1253,6 +1268,15 @@ def selftest():
     fields = ex.e_RecordDecl(attributed)["fields"]
     check("field attribute preserves FieldDecl", [x["kind"] for x in fields],
           ["Unsupported", "FieldDecl"])
+
+    # 8. A declaration identity is a unique join key. Duplicate structured
+    # observations must be refused before the envelope reaches Lean.
+    check("duplicate structured declaration is detected",
+          duplicate_structured_decl([{"decl_id": "id-1"}, {"decl_id": "id-1"}]),
+          "id-1")
+    check("distinct structured declarations are accepted",
+          duplicate_structured_decl([{"decl_id": "id-1"}, {"decl_id": "id-2"}]),
+          None)
 
     print("extract --selftest:", "ok" if ok else "FAILED")
     return 0 if ok else 1
