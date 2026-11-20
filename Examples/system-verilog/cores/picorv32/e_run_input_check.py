@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare the loaded PicoRV32 against both simulators for 1000 input cycles.
+"""Compare the loaded PicoRV32 against both simulators for 2000 input cycles.
 
 The testbench prints every observed output in bit form, retaining mixed
 four-state values that hexadecimal formatting would hide.  The Lean side
@@ -21,10 +21,10 @@ ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.v"
 ENVELOPE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
 TESTBENCH = ROOT / "Examples/system-verilog/cores/picorv32/rvfi_long_e_probe.v"
-EXPECTED_CYCLES = 1000
+EXPECTED_CYCLES = 2000
 SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
-TESTBENCH_SHA256 = "20b5f36d4cc62ef0e44ae854a230fab44a2ccc6a3c0ff4c91e0b183e04e75770"
+TESTBENCH_SHA256 = "e0e70dd2b37165b8538894c7fb92ab86cbf497905c6fe48fb30a4b6e0379dd2a"
 
 INPUTS = {
     "resetn", "mem_ready", "mem_rdata", "pcpi_wr", "pcpi_rd",
@@ -44,7 +44,7 @@ WIDTHS = {
 }
 
 
-def run(command: list[str], cwd: Path, timeout: int = 300) -> str:
+def run(command: list[str], cwd: Path, timeout: int = 900) -> str:
     result = subprocess.run(
         command, cwd=cwd, text=True, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, check=False, timeout=timeout,
@@ -135,7 +135,7 @@ def make_lean_probe(rows: list[dict[str, str]]) -> str:
 open LeanModels.Sv LeanModels.Sv.Kernel
 namespace Examples.«system-verilog».cores.picorv32
 set_option maxRecDepth 100000
-set_option maxHeartbeats 2000000
+set_option maxHeartbeats 6000000
 def lowEntry (clk : String) (data : SvState) : SvState := (clk, ⟨#[.l0]⟩) :: data
 def highEntry (clk : String) : SvState := [(clk, ⟨#[.l1]⟩)]
 def rows : List SvState := [
@@ -213,7 +213,7 @@ def main() -> int:
     ).encode()).hexdigest()
     print("Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on %d/%d cycles" %
           (len(icarus), EXPECTED_CYCLES))
-    print("canonical-E: 1000/1000 cycles and all 32 observed outputs match")
+    print("canonical-E: 2000/2000 cycles and all 32 observed outputs match")
     print("source SHA-256: " + SOURCE_SHA256)
     print("envelope SHA-256: " + ENVELOPE_SHA256)
     print("testbench SHA-256: " + TESTBENCH_SHA256)

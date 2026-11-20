@@ -1106,6 +1106,19 @@ all 32 observed outputs.  The testbench used for this receipt is pinned by
 SHA-256 `20b5f36d4cc62ef0e44ae854a230fab44a2ccc6a3c0ff4c91e0b183e04e75770`.
 The census remains 360 admitted / 0 refused / 4 not reached.
 
+## 2026-11-20 PicoRV32 canonical-E 2000-cycle extension
+
+The pinned PicoRV32 source and RISCV_FORMAL envelope remain unchanged.  The
+input-driven checker now samples the source for **2000/2000** cycles, and
+Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 agree
+on every row.  The normalized binary cycle-row digest is
+`26b297fe4f6f66829d8ac7fdea88c64d9db9ddfbbf6e7ac81739355b5531f038`.
+
+The exact canonical-E replay agrees on **2000/2000** cycles across all 32
+observed outputs.  The updated source-shaped testbench has SHA-256
+`e0e70dd2b37165b8538894c7fb92ab86cbf497905c6fe48fb30a4b6e0379dd2a`.
+The census remains 360 admitted / 0 refused / 4 not reached.
+
 ## 2026-11-20 census rerank after three R1 consumer rechecks
 
 The stall-rule rerun passed the census self-test and the current pinned
