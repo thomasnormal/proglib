@@ -31,6 +31,17 @@ Canonical E first differs at row 1 field DADDR: canonical
 00000000000000000000000000000101.  The same row-1 mismatch occurs with
 DDACK always high, so it is independent of the wait-state schedule.
 
+Clean-room DADDR scheduling differential: daddr_cleanroom.sv, with one
+posedge process assigning `q <= d` and one continuous assignment `y = q`.
+Source SHA-256 a841e5a7e7429682a6547af2fb2d5f1a5b7eab3d5576a9282ed237c10dbe055e,
+envelope SHA-256 a826a0d077adbc091dd4353c115a4961bcccc6fb4f148eca7a7f85480bed1b89,
+and testbench SHA-256 b44041bf89e1ff71d72df944bcbdb7141d5c1cd9406ef5af6d5b74ed3e89e596.
+Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on
+all 5 rows, including x and z inputs. Canonical E agrees on all 4 driven
+posedge rows, bit for bit. The canonical rows are 5, 0, x, z for both q and y.
+This fixture reproduces the register-to-continuous-output shape without the
+DarkRISCV pipeline and does not reproduce the DADDR mismatch.
+
 Input-driven instruction image: program_tb.sv, containing ADDI/ADDI/ADD
 followed by NOPs.  Both simulators and canonical E agree on 1000/1000 rows
 when the source's SIMULATION initialization is defined for both invocations.

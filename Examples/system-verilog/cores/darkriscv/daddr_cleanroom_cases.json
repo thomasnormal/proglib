@@ -1,0 +1,1 @@
+{"fuel":4096,"cases":[{"name":"daddr_cleanroom","signals":["d","q","y"],"clock":"clk","clock_edge":"posedge","stimulus":[{"d":"00000000000000000000000000000101"},{"d":"00000000000000000000000000000000"},{"d":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},{"d":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}]}
