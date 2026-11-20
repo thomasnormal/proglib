@@ -195,11 +195,6 @@ obligation:
   all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
   `CoreRvfiMachine.to_reset_addi_refinement` composes that invariant with the
   all-prefix reset contract once initial relation and progress are supplied.
-  `r1_addi.picorv32_loaded_addi_invariant` packages those exact premises at
-  the pinned loaded design boundary while retaining the loader equality.
-  `r1_addi.picorv32_loaded_addi_program_refinement_from_initial_relation`
-  composes that invariant with the explicit loaded reset relation and the
-  program-image all-prefix contract.
   `r1_addi.picorv32_loaded_addi_typed_program_prefix_from_initial_relation`
   retains an `AddiInstruction` list, its exact input fold, and the final
   relation for each target prefix.
@@ -251,16 +246,6 @@ obligation:
   `r1_illegal.picorv32_illegal_fields_isa_step` and
   `r1_illegal.picorv32_illegal_csr_fields_isa_step` provide the two exact
   illegal-trap bridges while retaining decode failure versus absent CSR rows.
-  `r1_addi.picorv32_addi_exact_cycle_step_refines` is the PicoRV32-scoped
-  consumer that applies this exact-cycle ADDI obligation to the mixed step
-  dispatcher without weakening the source-step or order premises.
-  `r1_addi.picorv32_loaded_addi_exact_cycle_step_refines_of_total` derives
-  that loaded consumer from a total canonical-step witness by constructing the
-  exact RVFI machine through `CoreRvfiMachine.ofTotal`.
-  `r1_addi.picorv32_loaded_addi_program_refinement_of_total` packages the
-  same total-step ADDI obligation into the reset-specialized all-prefix
-  contract, retaining the loaded reset relation, schedule, and progress
-  premises.
   `r1_addi.picorv32_addi_class_preserves_reset_wf` carries the reset
   `ArchState.WF` fact through the pinned `addi x1, x0, 5` transition.
   `CoreAddiBoundary.to_rv32i_boundary` lifts each exact ADDI witness into the
