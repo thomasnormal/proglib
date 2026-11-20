@@ -1851,6 +1851,11 @@ theorem storePtrInt_placement_lookup {m m' : Mem} {p q : Ptr}
     m.storePtrInt {p with address := address} q = m.storePtrInt p q := by
   simp [storePtrInt, storeBytes_address_irrel]
 
+@[simp] theorem storeFunction_address_irrel (m : Mem) (p : Ptr)
+    (id : DeclarationId) (address : Nat) :
+    m.storeFunction {p with address := address} id = m.storeFunction p id := by
+  simp [storeFunction, storeBytes_address_irrel]
+
 def ptrEqBoundary (m : Mem) (a b : Ptr) : Bool :=
   match a.obj, b.obj with
   | some x, some y =>
