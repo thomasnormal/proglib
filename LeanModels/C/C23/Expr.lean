@@ -1048,6 +1048,19 @@ def float32ToInt (f : Float32.Model) (t : IntTy) : EvalM CVal :=
       else refuseValue (.floatingToIntegralOutOfRange t)
   | none => refuseValue (.floatingToIntegralOutOfRange t)
 
+@[simp] theorem float32ToInt_renameAddress (resolve : ObjId → Nat)
+    (f : Float32.Model) (t : IntTy) :
+    CVal.renameAddress resolve <$> float32ToInt f t = float32ToInt f t := by
+  funext m
+  simp only [float32ToInt]
+  cases hq : LeanModels.SoftFloat.valQ (Float32.Model.unpack f) with
+  | none => simp [hq, CVal.renameAddress, map_eq_pure_bind, SemMWith.run_bind,
+      SemMWith.run_pure, SemMWith.run_throw, refuseValue]
+  | some q =>
+      simp only [hq]
+      split <;> simp [CVal.renameAddress, map_eq_pure_bind, SemMWith.run_bind,
+        SemMWith.run_pure, SemMWith.run_throw, refuseValue]
+
 def float64ToInt (f : Float.Model) (t : IntTy) : EvalM CVal :=
   match LeanModels.SoftFloat.valQ (Float.Model.unpack f) with
   | some q =>
@@ -1055,6 +1068,19 @@ def float64ToInt (f : Float.Model) (t : IntTy) : EvalM CVal :=
       if t.inRange n then pure (.int t n)
       else refuseValue (.floatingToIntegralOutOfRange t)
   | none => refuseValue (.floatingToIntegralOutOfRange t)
+
+@[simp] theorem float64ToInt_renameAddress (resolve : ObjId → Nat)
+    (f : Float.Model) (t : IntTy) :
+    CVal.renameAddress resolve <$> float64ToInt f t = float64ToInt f t := by
+  funext m
+  simp only [float64ToInt]
+  cases hq : LeanModels.SoftFloat.valQ (Float.Model.unpack f) with
+  | none => simp [hq, CVal.renameAddress, map_eq_pure_bind, SemMWith.run_bind,
+      SemMWith.run_pure, SemMWith.run_throw, refuseValue]
+  | some q =>
+      simp only [hq]
+      split <;> simp [CVal.renameAddress, map_eq_pure_bind, SemMWith.run_bind,
+        SemMWith.run_pure, SemMWith.run_throw, refuseValue]
 
 /-! ### Projecting a value
 
