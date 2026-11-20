@@ -1110,3 +1110,12 @@ The clean-room source `arbiter_packed_loop_unsigned_e.sv` preserves the
 At `N=2` and `N=4`, ordinary E and both pinned simulators agree on all sixteen
 rows, including x/z inputs.  Icarus Verilog 13.0 reports
 `s20250103-64-gdad78d525`, and Xcelium reports 24.03-s004.
+
+## 2026-11-20 clean-room ordinary-E family receipt
+
+The ordinary-route batch receipt
+`generated_packed_select`, `parameterized_constant_cast_e`,
+`initial_parameter_fatal_check_e`, `event_control_repro`, and
+`member_index_repro` passed with eight rows per point.  The parameterized
+families cover `N=1,4` and `W=8,N=2`, and every row agrees with Icarus Verilog
+13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004, including x/z rows.
