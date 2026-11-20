@@ -110,6 +110,13 @@ private def structuredStoreCheck : Bool :=
 
 #guard structuredStoreCheck
 
+private def compoundRegistryCheck : Bool :=
+  let m := LeanModels.C.C23.Mem.empty
+  let span : LeanModels.C.CSpan := default
+  (m.rememberCompound span 7).structuredType? 7 == none
+
+#guard compoundRegistryCheck
+
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))
