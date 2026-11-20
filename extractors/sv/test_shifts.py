@@ -110,6 +110,12 @@ class Shifts(unittest.TestCase):
                           "initial missing = 1; endmodule")
         self.assertIn("Shift:invalid-compilation", [node.get("sv_kind") for node in nodes(design)])
 
+    def test_sibling_definition_error_does_not_poison_shift_wall(self):
+        design = symbolic("module divider; logic [7:0] value; assign value = value >> 1; "
+                          "endmodule module sibling; initial missing = 1; endmodule")
+        self.assertNotIn("Shift:invalid-compilation",
+                         [node.get("sv_kind") for node in nodes(design)])
+
 
 if __name__ == "__main__":
     unittest.main()
