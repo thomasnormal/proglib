@@ -405,3 +405,10 @@ rows. The three historical failed rows are canonical-runner refusals on
 unbound declarations while pinned native runs abort; they are not model/native
 value divergences. H1--H5 are instrument changes; the remaining registry
 centralisation is an architecture item for the family plan.
+
+The first mechanical `CType` wrapper migration was priced and reverted. After
+explicitly adapting `Ast.lean`, the compiler reached the shared expression
+module and then exposed the next boundary in `Stmt.lean`: eight declaration,
+member-offset, and bit-field calls still require raw `String` keys. The wrapper
+cannot land soundly as a local alias replacement. No coercion façade was
+retained, and the live checker remains at its single honest alias finding.
