@@ -126,11 +126,20 @@ theorem runCoreMemRows_cons {E : CoreMemDesign} {st : CoreMemState} {row : SvSta
 `CoreMemDesign.initial`. -/
 theorem CoreMemDesign.initialState_of_quiet {E : CoreMemDesign}
     (hni : ∀ p ∈ E.processes.toList, ∀ b, p ≠ .initial b) (hcomb : E.hasComb = false) (hrm : E.readmemh = []) :
-    E.initialState = E.settleCanonical E.env E.elems E.initial E.processes.toList := by
+    E.initialState = (do
+      let declared ← E.execDeclInitializers E.initial E.declInitializers
+      E.settleCanonical E.env E.elems declared E.processes.toList) := by
   unfold CoreMemDesign.initialState
   rw [List.filterMap_eq_nil_iff.mpr (fun p hp => ?_)]
   · simp [hrm, hcomb, CoreMemDesign.settleCanonical]
-    cases h : E.settleAssignQuiesce 4096 E.env E.elems E.initial E.processes.toList <;> simp [h]
+    cases hdecl : E.execDeclInitializers E.initial E.declInitializers with
+    | timeout => simp [hdecl]
+    | unsupported msg => simp [hdecl]
+    | ok declared =>
+        cases hsettle : E.settleAssignQuiesce 4096 E.env E.elems declared E.processes.toList with
+        | timeout => simp [hdecl, hsettle]
+        | unsupported msg => simp [hdecl, hsettle]
+        | ok settled => simp [hdecl, hsettle]
   · cases p with
     | initial b => exact absurd rfl (hni _ hp b)
     | _ => rfl

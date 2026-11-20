@@ -519,6 +519,7 @@ def _root_.LeanModels.Sv.PStmt.edgeOkB : PStmt → Bool
   | .caseStmt s items d _ _ =>
       !LeanModels.Sv.PExpr.hasFunctionCall s && PStmt.itemsEdgeOkB items && PStmt.optEdgeOkB d
   | .localDecl .. => false
+  | .automaticDecl .. => false
   | .forLoop .. => false
   | .unsupported .. => false
 termination_by structural s => s
@@ -552,6 +553,7 @@ def _root_.LeanModels.Sv.PStmt.need : PStmt → Nat
   | .ifStmt _ y n => 1 + max (PStmt.need y) (PStmt.optNeed n)
   | .block body => 1 + PStmt.listNeed body
   | .caseStmt _ items d _ _ => 1 + max (PStmt.itemsNeed items) (PStmt.optNeed d)
+  | .automaticDecl .. => 1
   | _ => 1
 termination_by structural s => s
 
@@ -705,6 +707,8 @@ def CoreMemDesign.execV (E : CoreMemDesign) (v : SvState) (mv : MemV) : PStmt �
           else .unsupported s!"12.5.3: {caseCheckName qualifier}"
   | .localDecl .. =>
       .unsupported "9.4.2: a procedural local declaration in an edge body is outside the clocked profile"
+  | .automaticDecl .. =>
+      .unsupported "9.4.2: an automatic procedural declaration in an edge body is outside the clocked profile"
   | .forLoop .. =>
       .unsupported "9.4.2: a procedural `for` loop in an edge body is outside the clocked profile (the memories slice)"
   | .unsupported kind text => .unsupported s!"{kind}: {text}"
@@ -1598,7 +1602,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
     ∀ (b : PStmt) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st →
       E.MemCoherent st.memory → b.edgeOkB = true → b.need ≤ fuel →
       E.execV (E.scalar.view st.scalar) (E.memOf st.memory) b = .ok (v', q, mq) →
-      ∃ st', E.execStmtFuel E.env E.elems st fuel b = .ok ⟨st', q, mq.map E.memRec⟩ ∧
+      ∃ st', E.execStmtFuel E.env E.elems st [] fuel b = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
         E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r
   | .nbaAssign t e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
@@ -1610,7 +1614,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           simp only [hw, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨x, hx, rfl, rfl, rfl⟩ := hv
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, hw, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hw, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
             CoreMemDesign.issueTarget, CoreMemExec.fromQueue]
   | .nbaAssignL lhs e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
@@ -1625,7 +1629,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
               simp only [hw, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
               obtain ⟨x, hx, rfl, rfl, rfl⟩ := hv
               refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-              simp [CoreMemDesign.execStmtFuel, hw, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
+              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hw, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
                 CoreMemDesign.issueTarget, CoreMemExec.fromQueue]
       | arrayElem name indices =>
           cases hmd : E.memDecl? name with
@@ -1634,7 +1638,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
               obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
               dsimp only at hx hws
               refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-              simp [CoreMemDesign.execStmtFuel, hmd, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
+              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hmd, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
                 CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
           | some md =>
               cases indices with
@@ -1652,39 +1656,52 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
                       have hidx : E.evalIndex E.env E.elems st index = .ok iv := by
                         rw [CoreMemDesign.evalIndex_eq hmc index hbt]; exact hiv
                       refine ⟨st, ?_, rfl, hc, rfl, hrec⟩
-                      rw [hmap]
                       have hex : E.evalExpr E.env E.elems st (some md.shape.elemWidth) e = .ok x := by
                         rw [CoreMemDesign.evalExpr_eq hmc _ e hb]; exact hx
-                      simp only [CoreMemDesign.execStmtFuel, hmd, hex, Res.ok_bind, CoreMemDesign.issueTarget, hidx,
-                        MemState.issueNba, hblk, hs]
-                      cases md.shape.index? index.signedCast iv <;> rfl
+                      simp only [CoreMemDesign.execStmtFuel, hmd, Res.bind_eq_ok,
+                        CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems
+                          (some md.shape.elemWidth) e hb, hx, CoreMemExec.withLocals,
+                        CoreMemDesign.issueTarget, hidx, MemState.issueNba, hblk, hs]
+                      cases hshape : md.shape.index? index.signedCast iv with
+                      | none =>
+                          have hmap' := hmap
+                          rw [hshape] at hmap'
+                          simp only [CoreMemExec.fromQueue, CoreMemExec.withLocals, Res.ok.injEq,
+                            Prod.mk.injEq]
+                          simpa [PExpr.signedCast] using hmap'.symm
+                      | some k =>
+                          have hmap' := hmap
+                          rw [hshape] at hmap'
+                          simp only [CoreMemExec.fromQueue, CoreMemExec.withLocals, Res.ok.injEq,
+                            Prod.mk.injEq]
+                          simpa [PExpr.signedCast] using hmap'.symm
       | bitSel name idx =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | partSel name a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | concat parts =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | arrayPart name indices mode a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | aggregateMember _ _ =>
           simp [PLhs.hasCall] at hbt
@@ -1702,8 +1719,10 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
             simp [hw'])
           obtain ⟨h1, h2⟩ := CoreMemDesign.setV_spec hc hxid x
           refine ⟨_, ?_, h1, h2, E.setScalarState_memory _ _ _, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, hw,
-            CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx]
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingIdentLocal,
+            CoreMemDesign.execBlockingTarget, hw,
+            CoreMemDesign.evalExpr_eq hmc (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx]
   | .blockingAssignL lhs e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
@@ -1721,8 +1740,10 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
                 simp [hw'])
               obtain ⟨h1, h2⟩ := CoreMemDesign.setV_spec hc hxid x
               refine ⟨_, ?_, h1, h2, E.setScalarState_memory _ _ _, by simp⟩
-              simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, hw,
-                CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx]
+              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingIdentLocal,
+                CoreMemDesign.execBlockingTarget, hw,
+                CoreMemDesign.evalExpr_eq hmc (some w) e hb,
+                CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx]
       | arrayElem name indices =>
           cases hmd : E.memDecl? name with
           | some md => simp [CoreMemDesign.execV, hmd] at hv
@@ -1732,40 +1753,45 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
               dsimp only at hx hw'
               obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
               refine ⟨st', ?_, hv'', hc', hm', by simp⟩
-              simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, hmd,
-                CoreMemDesign.execScalarTarget, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx, hs']
+              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, hmd,
+                CoreMemDesign.execScalarTarget, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
+                CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
       | bitSel name idx =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
           dsimp only at hx hw'
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx, hs']
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
+            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
       | partSel name a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
           dsimp only at hx hw'
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx, hs']
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
+            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
       | concat parts =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
           dsimp only at hx hw'
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx, hs']
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
+            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
       | arrayPart name indices mode a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
           dsimp only at hx hw'
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, hx, hs']
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
+            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
       | aggregateMember _ _ =>
           simp [PLhs.hasCall] at hbt
   | .ifStmt c y n, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
@@ -1782,19 +1808,28 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
       by_cases hct : cv.condTrue = true
       · simp only [hct, ↓reduceIte] at hv
         obtain ⟨st', hs, hv', hc', hm', hr⟩ := CoreMemDesign.execStmtFuel_V hnd h4 y f st v' q mq hc hmc hy hfy hv
-        exact ⟨st', by simp [CoreMemDesign.execStmtFuel, hcv', hct, hs], hv', hc', hm', hr⟩
+        refine ⟨st', ?_, hv', hc', hm', hr⟩
+        simp only [CoreMemDesign.execStmtFuel]
+        rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some 1) c hcf]
+        simp [hcv, hct, hs]
       · simp only [hct, Bool.false_eq_true, ↓reduceIte] at hv
         cases n with
         | none =>
             simp only [CoreMemDesign.execOptV, Res.ok.injEq, Prod.mk.injEq] at hv
             obtain ⟨rfl, rfl, rfl⟩ := hv
-            exact ⟨st, by simp [CoreMemDesign.execStmtFuel, hcv', hct], rfl, hc, rfl, by simp⟩
+            refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
+            simp only [CoreMemDesign.execStmtFuel]
+            rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some 1) c hcf]
+            simp [hcv, hct]
         | some s =>
             simp only [PStmt.optEdgeOkB] at hn
             simp only [PStmt.optNeed] at hfn
             simp only [CoreMemDesign.execOptV] at hv
             obtain ⟨st', hs, hv', hc', hm', hr⟩ := CoreMemDesign.execStmtFuel_V hnd h4 s f st v' q mq hc hmc hn hfn hv
-            exact ⟨st', by simp [CoreMemDesign.execStmtFuel, hcv', hct, hs], hv', hc', hm', hr⟩
+            refine ⟨st', ?_, hv', hc', hm', hr⟩
+            simp only [CoreMemDesign.execStmtFuel]
+            rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some 1) c hcf]
+            simp [hcv, hct, hs]
   | .block body, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB] at hb
@@ -1811,7 +1846,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
       have hfi : PStmt.itemsNeed items ≤ f := by omega
       have hfd : PStmt.optNeed d ≤ f := by omega
       have hdef : ∀ s, d = some s → E.execV (E.scalar.view st.scalar) (E.memOf st.memory) s = .ok (v', q, mq) →
-          ∃ st', E.execStmtFuel E.env E.elems st f s = .ok ⟨st', q, mq.map E.memRec⟩ ∧
+          ∃ st', E.execStmtFuel E.env E.elems st [] f s = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
             E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r := by
         intro s hds hx
         subst hds
@@ -1822,11 +1857,13 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
       obtain ⟨sv, hsv, hv⟩ := hv
       have hsv' : E.evalExpr E.env E.elems st none subject = .ok sv := by
         rw [CoreMemDesign.evalExpr_eq hmc none subject hs]; exact hsv
+      have hsvLoc : E.evalExprLocals E.env E.elems st none [] subject = .ok sv := by
+        rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems none subject hs]; exact hsv
       have hrun : E.execItemsV (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items
           (E.execOptV (E.scalar.view st.scalar) (E.memOf st.memory) d) = .ok (v', q, mq) →
           ∃ sel st', coreMemSelectCase E E.env E.elems st sv mode items d = .ok sel ∧
             ((sel = none ∧ st' = st ∧ q = [] ∧ mq = []) ∨
-              ∃ body, sel = some body ∧ E.execStmtFuel E.env E.elems st f body = .ok ⟨st', q, mq.map E.memRec⟩) ∧
+              ∃ body, sel = some body ∧ E.execStmtFuel E.env E.elems st [] f body = .ok ⟨st', q, mq.map E.memRec, []⟩) ∧
             E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r := by
         intro hr
         rcases CoreMemDesign.execItems_V hnd h4 sv mode items f st _ _ hc hmc hi hfi hr with
@@ -1846,8 +1883,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           obtain ⟨sel, st', hsel, hcase, h2, h3, h4', h5⟩ := hrun hv
           refine ⟨st', ?_, h2, h3, h4', h5⟩
           rcases hcase with ⟨rfl, rfl, rfl, rfl⟩ | ⟨body, rfl, hs⟩
-          · simp [CoreMemDesign.execStmtFuel, hsv', hsel]
-          · simp [CoreMemDesign.execStmtFuel, hsv', hsel, hs]
+          · simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hsv', hsvLoc, hsel]
+          · simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hsv', hsvLoc, hsel, hs]
       all_goals
           simp only [Res.bind_eq_ok] at hv
           obtain ⟨n, hn, hv⟩ := hv
@@ -1858,8 +1895,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
             obtain ⟨sel, st', hsel, hcase, h2, h3, h4', h5⟩ := hrun hv
             refine ⟨st', ?_, h2, h3, h4', h5⟩
             rcases hcase with ⟨rfl, rfl, rfl, rfl⟩ | ⟨body, rfl, hs⟩
-            · simp [CoreMemDesign.execStmtFuel, hsv', hn', hok, hsel]
-            · simp [CoreMemDesign.execStmtFuel, hsv', hn', hok, hsel, hs]
+            · simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hsv', hsvLoc, hn', hok, hsel]
+            · simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hsv', hsvLoc, hn', hok, hsel, hs]
           · simp at hv
   | .forLoop .., _, _, _, _, _, _, _, hb, _, _ => by simp [PStmt.edgeOkB] at hb
   | .unsupported .., _, _, _, _, _, _, _, hb, _, _ => by simp [PStmt.edgeOkB] at hb
@@ -1870,7 +1907,7 @@ theorem CoreMemDesign.execStmtsFuel_V {E : CoreMemDesign}
     ∀ (bs : List PStmt) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st →
       E.MemCoherent st.memory → PStmt.listEdgeOkB bs = true → PStmt.listNeed bs ≤ fuel →
       E.execListV (E.scalar.view st.scalar) (E.memOf st.memory) bs = .ok (v', q, mq) →
-      ∃ st', E.execStmtsFuel E.env E.elems st fuel bs = .ok ⟨st', q, mq.map E.memRec⟩ ∧
+      ∃ st', E.execStmtsFuel E.env E.elems st [] fuel bs = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
         E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r
   | [], fuel, st, v', q, mq, hc, _, _, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.listNeed] at hf; omega⟩
@@ -1903,7 +1940,7 @@ theorem CoreMemDesign.execItems_V {E : CoreMemDesign}
       E.Coherent st → E.MemCoherent st.memory → PStmt.itemsEdgeOkB items = true → PStmt.itemsNeed items ≤ fuel →
       E.execItemsV (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items dflt = .ok res →
       (∃ body st', (∀ d, coreMemSelectCase E E.env E.elems st sv mode items d = .ok (some body)) ∧
-          E.execStmtFuel E.env E.elems st fuel body = .ok ⟨st', res.2.1, res.2.2.map E.memRec⟩ ∧
+          E.execStmtFuel E.env E.elems st [] fuel body = .ok ⟨st', res.2.1, res.2.2.map E.memRec, []⟩ ∧
           E.scalar.view st'.scalar = res.1 ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ res.2.2, E.RecOk r) ∨
         ((∀ d, coreMemSelectCase E E.env E.elems st sv mode items d = .ok d) ∧ dflt = .ok res)
   | [], fuel, st, dflt, res, hc, _, _, _, hv => by
@@ -2188,7 +2225,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
     ∀ (procs : List CoreMemProc), (∀ p ∈ procs, CoreMemDesign.ProcShapeI p) →
     ∀ (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st → E.MemCoherent st.memory →
       E.edgesV before after (E.scalar.view st.scalar) (E.memOf st.memory) procs = .ok (v', q, mq) →
-      ∃ st', E.runEdges E.env E.elems st before after procs = .ok ⟨st', q, mq.map E.memRec⟩ ∧
+      ∃ st', E.runEdges E.env E.elems st before after procs = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
         E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r
   | [], _, st, v', q, mq, hc, _, hv => by
       simp only [CoreMemDesign.edgesV, Res.ok.injEq, Prod.mk.injEq] at hv
