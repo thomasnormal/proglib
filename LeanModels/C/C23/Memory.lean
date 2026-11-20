@@ -287,6 +287,11 @@ namespace Mem
 def CObj.renameAddress (resolve : ObjId → Nat) (c : CObj) : CObj :=
   { c with bytes := c.bytes.map (CByte.renameAddress resolve) }
 
+@[simp] theorem CObj_renameAddress_size
+    (resolve : ObjId → Nat) (c : CObj) :
+    (CObj.renameAddress resolve c).size = c.size := by
+  simp [CObj.renameAddress, CObj.size]
+
 /-! The representation-level memory rename used by the evaluator relation.
 Provenance keys and parser-native type rows stay fixed while concrete
 placements and every stored pointer representation follow `resolve`. -/
@@ -1165,6 +1170,30 @@ def resolve (m : Mem) (p : Ptr) (n : Nat) : MRes (ObjId × CObj × Nat) :=
       else if p.off + (n : Int) > (p.bound.getD (c.size : Int)) then
         .error (.memUB (.outOfBounds o p.off n c.size))
       else .ok (o, c, p.off.toNat)
+
+theorem resolve_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (n : Nat) :
+    (m.renameAddresses rename).resolve (Ptr.renameAddress rename p) n =
+      (m.resolve p n).map (fun r =>
+        (r.1, CObj.renameAddress rename r.2.1, r.2.2)) := by
+  cases hp : p.obj with
+  | none => simp [resolve, hp, Ptr.renameAddress, Except.map]
+  | some o =>
+    cases hc : m.get? o with
+    | none =>
+        have hc' : (m.renameAddresses rename).get? o = none := by
+          simpa [get?, renameAddresses] using
+            congrArg (Option.map (CObj.renameAddress rename)) hc
+        simp [resolve, hp, hc, hc', Ptr.renameAddress, Except.map]
+    | some c =>
+        have hc' : (m.renameAddresses rename).get? o =
+            some (CObj.renameAddress rename c) := by
+          simpa [get?, renameAddresses] using
+            congrArg (Option.map (CObj.renameAddress rename)) hc
+        simp [resolve, hp, hc, hc', Ptr.renameAddress, CObj.renameAddress,
+          CObj.size, List.length_map, Except.map]
+        <;> repeat' first | split | simp_all [CObj.renameAddress, CObj.size]
+        <;> subst_vars <;> simp_all
 
 /-! ### §6.3.2.1p2 Lvalue conversion — reading bytes out -/
 
