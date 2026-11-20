@@ -1207,3 +1207,21 @@ literal `#1` occurs only in an initial diagnostic check, so the canonical E
 adapter preserves the `assign y = x` state while treating the diagnostic-only
 delay as outside the state observation.  This does not admit general
 `TimedStatement:DelayControl` processes or advance `prim_fifo_sync`'s wall.
+
+## Post-R14 generate-loop event remeasurement — 2026-11-20T19:51Z
+
+The source-shaped `plain_generate_edge_e` receipt was rerun after the R14
+substitution landing. Slang re-extraction reproduces the checked-in envelope,
+the ordinary census reports zero refusals, and canonical E, Icarus Verilog
+13.0, and Xcelium 24.03-s004 match all eight rows, including x/z clock and
+data values. This clears the explicit `AlwaysEvent` inside `GenerateFor`
+family for the retained-process route and does not lower or unroll the source.
+
+The checked-in pinned real-design table is unchanged by this clean-room
+receipt, so no REAL-DESIGNS count transition is claimed. The current
+clean-room overview still identifies generate-loop expansion as the first
+clocked wall for its two unavailable real-design probes. One probe exposes a
+memory-topology boundary after that wall, while the other remains at the
+same generate-loop refusal. Those observations remain a ranking input rather
+than an admission claim until their source-shaped envelopes are available to
+this tree.
