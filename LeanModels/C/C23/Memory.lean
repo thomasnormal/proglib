@@ -220,6 +220,11 @@ These operations take and return `Mem` explicitly rather than living in a
 state monad, which is what makes the lift a lift rather than a rewrite. -/
 abbrev MRes (α : Type) := Except Refusal α
 
+theorem mres_map_error_bind {α β : Type} (g : α → β) (e : Refusal)
+    (k : β → MRes α) :
+    ((Except.map g (.error e) >>= k) : MRes α) = .error e := by
+  rfl
+
 /-- Core Lean gives `Except` no `BEq`, and every gate in
 `Examples/c/sunfish/memory.lean` compares one. SCOPED, so it does not
 leak into the other lanes: it is generic plumbing, and lifting it to
