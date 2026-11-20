@@ -1680,11 +1680,21 @@ structure EDesign2 where
   processes : Array EProcess2
 deriving Repr, Inhabited
 
+private def delayDigits : Bool → List Char → Bool
+  | seen, [] => seen
+  | seen, [';'] => seen
+  | seen, c :: rest => c.isDigit && delayDigits true rest
+
+private def literalDelayText (text : String) : Bool :=
+  match text.toList with
+  | '#' :: digits => delayDigits false digits
+  | _ => false
+
 private def initialCheckTask : PStmt → Option String
-  | .unsupported k _ =>
+  | .unsupported k text =>
       if k == "SysCall:$fatal" then some "$fatal"
       else if k == "SysCall:$error" then some "$error"
-      else if k == "TimedStatement:DelayControl" then some "delay"
+      else if k == "TimedStatement:DelayControl" && literalDelayText text then some "delay"
       else none
   | _ => none
 
@@ -1699,8 +1709,8 @@ private def initialDiagnosticOnly : PStmt → Except String Unit
       match no with
       | none => pure ()
       | some branch => initialDiagnosticOnly branch
-  | .unsupported k _ =>
-      match initialCheckTask (.unsupported k "") with
+  | .unsupported k text =>
+      match initialCheckTask (.unsupported k text) with
       | some "$error" | some "delay" => pure ()
       | some "$fatal" => throw "elaboration check executes $fatal"
       | _ => throw "initial process is not an elaboration check"
@@ -1718,8 +1728,8 @@ private def initialCheckWork (env : IEnv) : InitialCheckWork → Except String U
             | none => pure ()
             | some branch => initialCheckWork env (.stmt branch)
       | .error _ => initialDiagnosticOnly (.ifStmt cond yes no)
-  | .stmt (.unsupported k _) =>
-      match initialCheckTask (.unsupported k "") with
+  | .stmt (.unsupported k text) =>
+      match initialCheckTask (.unsupported k text) with
       | some "$error" => pure ()
       | some "$fatal" => throw "elaboration check executes $fatal"
       | some "delay" => pure ()
