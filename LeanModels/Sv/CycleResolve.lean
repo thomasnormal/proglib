@@ -55,8 +55,22 @@ theorem CycleXRead.post_read_eq_of_known {source concrete : CycleObs PortSample}
   intro name
   exact optionXRead_eq_of_known (hread name).2 (fun value hvalue => hknown name value hvalue)
 
+theorem CycleXRead.read_eq_of_known {source concrete : CycleObs PortSample}
+    (hread : CycleXRead source concrete)
+    (hknownPre : ∀ name value, source.pre.read name = some value →
+      value.bits.toList.all Logic.isKnown = true)
+    (hknownPost : ∀ name value, source.post.read name = some value →
+      value.bits.toList.all Logic.isKnown = true) :
+    ∀ name,
+      source.pre.read name = concrete.pre.read name ∧
+        source.post.read name = concrete.post.read name := by
+  intro name
+  exact ⟨hread.pre_read_eq_of_known hknownPre name,
+    hread.post_read_eq_of_known hknownPost name⟩
+
 end LeanModels.Sv.Observe
 
 #print axioms LeanModels.Sv.Observe.optionXRead_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.pre_read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.post_read_eq_of_known
+#print axioms LeanModels.Sv.Observe.CycleXRead.read_eq_of_known
