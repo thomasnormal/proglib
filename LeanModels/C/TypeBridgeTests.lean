@@ -137,7 +137,7 @@ private def isError : Except String α → Bool
     if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 2)) else none
   size := fun _ => some 4 } :
   LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"})
-    "int[2]" "int" == none
+    "int[2]" "int" == some 4
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
     if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 3)) else none

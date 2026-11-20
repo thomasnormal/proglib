@@ -305,6 +305,13 @@ rows report no model/native DIVERGE: one layout-plugin REFUSE and two
 structured-plugin REFUSE results. The rows remain registered as refusal walls
 so a later byte/provenance implementation can measure the exact flips.
 
+The structured expression observation now carries parser range and node-kind
+identity in addition to the start offset. The pointer-byte character rows use
+that disambiguated `ArraySubscriptExpr` observation to select the character
+load path. Both null and non-null pointer-byte rows MATCH pinned Clang 21.1.8
+with the structured-type plugin, 2 MATCH / 0 REFUSE / 0 DIVERGE. No-plugin
+runs retain the explicit parser-observation refusal boundary.
+
 The batch survey controller now relocates a parsed envelope to the manifest's
 current cache root when a copied manifest contains an obsolete absolute path.
 It refreshes that envelope from the pinned source before invoking Lean, and

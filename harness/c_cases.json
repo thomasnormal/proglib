@@ -535,8 +535,8 @@
     "expect": "refuse",
     "return_value": 0,
     "error": "no layout for declared type 'int *'",
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "pointer-long-roundtrip",
@@ -1185,8 +1185,8 @@
     "expect": "refuse",
     "return_value": 0,
     "error": "no layout for declared type 'int *'",
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_expect": "match",
+    "structured_return_value": 0
   },
   {
     "id": "structured-typedef-pointer",

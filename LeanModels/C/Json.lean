@@ -468,6 +468,8 @@ def parseStructuredType (j : Json) : Except String StructuredType := withCtx "st
 
 def parseStructuredExprType (j : Json) : Except String StructuredExprType := withCtx "structured_expr_type" do
   return { offset := ← getNat j "offset"
+           endOffset := ← getOptNat j "end_offset"
+           kind := (← getOptStr j "expr_kind").getD ""
            type := ← parseStructuredQualType (← getField j "type") }
 
 def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
