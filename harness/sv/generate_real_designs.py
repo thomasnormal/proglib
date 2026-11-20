@@ -13,7 +13,7 @@ OUT = ROOT / "docs" / "sv-real-designs.md"
 ROWS = [
     ("prim_fifo_sync", "OpenTitan 0a6ff685", "36", "yes", "canonical-E hierarchy admission at defaults; 8-cycle ordinary-E trace matches Xcelium 24.03-s004; Icarus 13.0 refuses the unchanged source at its packed-array parameter frontend wall; source-shaped diagnostic $error and #1ps checks are admitted only by the elaboration-check adapter"),
     ("prim_arbiter_ppc", "OpenTitan 0a6ff685", "0", "yes", "canonical-E hierarchy admission and initialState at N=8,DW=32,EnDataPort=1; source-shaped loop family measured separately at N=2/N=4 with 16/16 rows matching both pinned simulators"),
-    ("prim_packer", "OpenTitan 0a6ff685", "20", "yes", "canonical-E hierarchy admission at defaults; fixed module-local scalar enum and prim_count child parameter override admitted; remaining source-shaped wall is diagnostic $error"),
+    ("prim_packer", "OpenTitan 0a6ff685", "20", "yes", "canonical-E hierarchy admission at defaults; ten-cycle ordinary-E trace matches Xcelium 26.09-s001 and Icarus 13.0 after active-region comb/continuous quiescence; remaining source-shaped wall is diagnostic $error"),
     ("CV32E40P", "openhwgroup v1.0.1 / 6148cf5", "574", "yes", "Structure=true; EquationGate=false at the sole retained always_comb process (index 10: State_SN, OutVld_SO, enables, and case body); canonical-E complete equation tier remains outside admission"),
     ("Ibex", "lowRISC d513671d", "396", "no", "AlwaysLatch:unknown process kind"),
     ("PicoRV32", "YosysHQ ef203c2b", "0", "yes", "time-zero initialState + input-driven RVFI E-RUN: 220/220 cycles agree with both pinned simulators; census 360 admitted, 0 refused, 4 not reached"),

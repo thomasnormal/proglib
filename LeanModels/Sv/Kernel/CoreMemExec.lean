@@ -3102,6 +3102,27 @@ def CoreMemDesign.settleCanonical (E : CoreMemDesign) (env : IEnv) (elems : List
     (st : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
   E.settleAssignQuiesce 4096 env elems st procs
 
+/-! Continuous assignments and procedural combinational blocks share the
+active region.  A combinational block can therefore change a continuous
+assignment's source, which in turn must wake a later combinational block in
+the same slot.  The ordinary `runComb` fixed point only observes procedural
+updates, so this wrapper alternates its retained comb pass with the
+source-shaped continuous-assignment settle until both regions are quiet
+(IEEE 1800-2023 §4.5). -/
+def CoreMemDesign.runCombSettleQuiesce (E : CoreMemDesign) (limit : Nat)
+    (before current : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
+  match limit with
+  | 0 => .unsupported "4.5: combinational and continuous regions did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let combed ← E.runComb before current procs
+      let settled ← E.settleCanonical E.env E.elems combed procs
+      let beforeView := E.scalar.view current.scalar
+      let settledView := E.scalar.view settled.scalar
+      if beforeView == settledView then
+        .ok settled
+      else
+        E.runCombSettleQuiesce n combed settled procs
+
 def CoreMemDesign.settleAssignWithView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (procs : List CoreMemProc) :
@@ -3290,9 +3311,9 @@ def CoreMemDesign.edgePass (E : CoreMemDesign)
       E.runImplicit st settled E.processes.toList
     else .ok settled
   let combed ← if E.hasComb then
-      E.runComb combBefore activated E.processes.toList
-    else .ok activated
-  E.settleCanonical E.env E.elems combed E.processes.toList
+      E.runCombSettleQuiesce 4096 combBefore activated E.processes.toList
+    else E.settleCanonical E.env E.elems activated E.processes.toList
+  .ok combed
 
 /-- Run edge/NBA/settle passes until the commit causes no further edge event.
 IEEE 1800-2023 §§4.4 and 4.5 schedule NBA-caused events in the same time slot.
@@ -3340,7 +3361,7 @@ def CoreMemDesign.prepareStep (E : CoreMemDesign) (st : CoreMemState) (entry : S
   let inputState := E.normalizeScalar { st with memory := memoryInput } inputStore
   let pre0 ← E.settleCanonical E.env E.elems inputState E.processes.toList
   let pre ← if E.hasComb then
-      E.runComb st pre0 E.processes.toList
+      E.runCombSettleQuiesce 4096 st pre0 E.processes.toList
     else .ok pre0
   let pre ← if E.hasImplicit then
       E.runImplicit st pre E.processes.toList
