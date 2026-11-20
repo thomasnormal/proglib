@@ -2264,14 +2264,14 @@ invariant proof is tractable, and no universal ADDI invariant is claimed.
 ## 2026-11-20 clocked-stage refusal table on current master
 
 The real RISCV_FORMAL envelope was rerun through `sv_structure` at the same
-26-parameter default vector after the clocked-stage landings on master
-`74377495d`.  The pass still stops during controlled instantiation and emits no
-construct-level refusal.  The measured result is one normalization failure,
-with no clean-room construct fixture justified:
+26-parameter default vector on the current tree.  The pass still stops during
+controlled instantiation and emits no construct-level refusal.  The measured
+result is one normalization failure, with no clean-room construct fixture
+justified:
 
 | stage | count | exact result | elapsed | peak RSS |
 | --- | ---: | --- | ---: | ---: |
-| loaded-design instantiation / controlled simp | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at isDefEq, maximum number of heartbeats (200000) has been reached` | 68.09 s | 2,360,184 kB |
+| loaded-design instantiation / controlled simp | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at simp, maximum number of heartbeats (200000) has been reached` | 50.15 s | 3,244,864 kB |
 | construct/profile refusal | 0 | no construct classifier was reached | — | — |
 
 The current clocked route therefore provides no measured PicoRV32 refusal to
@@ -2295,7 +2295,8 @@ SeqDesignI (picorv32_r2.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295
 `sv_structure` reached controlled simplification but stopped before any
 process/profile refusal.  With `maxRecDepth 10000` and `maxHeartbeats 200000`
 the exact error was `Tactic simp failed with a nested error: (deterministic)
-timeout at isDefEq, maximum number of heartbeats (200000)`.  A 2,000,000-heartbeat
+timeout at simp, maximum number of heartbeats (200000)`.  The measured run
+took 50.15 seconds and peaked at 3,244,864 KiB RSS.  A 2,000,000-heartbeat
 rerun made no construct-level progress and was stopped after several minutes.
 The earlier `sv_seq_inst` reproduction at `maxRecDepth 10000` likewise stopped
 at deterministic `isDefEq` timeout after 50.496 seconds, with 2,428,704 KB peak
