@@ -606,6 +606,26 @@ receipt reports the canonical-E run length and the simulator witness
 separately, without claiming byte-for-byte equality of their x-valued
 data-side output columns.
 
+## 2026-11-20 DarkRISCV clocked slot-stage measurement
+
+The first real slot equation attempt uses the loaded, unmodified
+`darkriscv.sv.json` term at `CPTR = 0`.  `sv_seq_inst [dark.e, dark.pdesign]`
+reaches the explicit instantiated design.  Applying `sv_seq_cycle` to the
+canonical scalar view and an empty input row then stops in controlled
+simplification with
+
+```
+Tactic `simp` failed with a nested error:
+(deterministic) timeout at `isDefEq`, maximum number of heartbeats
+(8000000) has been reached
+```
+
+The run took about eight minutes and reached 4,362,020 KiB resident memory in
+the sampled process.  This is a normalization cost boundary, not a
+construct-level refusal.  No slot equation or `CoreMemDesign.step_seqI`
+instance is claimed for DarkRISCV from this attempt, and no clean-room refusal
+fixture is added.
+
 ## 2026-11-20 Quark current-source E-RUN boundary
 
 The pinned FemtoRV32 Quark source at public commit
