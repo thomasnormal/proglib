@@ -1009,3 +1009,17 @@ bound, so the complete source transition remains E-RUN 0/1.  The independent
 Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 receipt
 still agrees on 220/220 simulator rows with normalized digest
 `8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
+
+## 2026-11-20 DarkRISCV current-extractor receipt
+
+The same pinned source was regenerated with the extractor at the current
+master.  The source hash remains
+`46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0`, while
+the current envelope hash is
+`0ce4d6079fc99f447a6ea82b4422de654192faba4495603b77a451705d19f9dc`.
+The census remains **177 admitted / 0 refused / 0 not reached**.  The
+canonical-E staged path completes 4/4 stages, and the exact source-shaped
+first-clock probe times out at the 180-second bound, so E-RUN remains **0/1**.
+The receipt checkers accept this current envelope pin.  The simulator receipt
+is unchanged at 220/220 rows with digest
+`8bb5b339ce1a3805726358b0fc27c35fa654edfb76441abe7c8d9010fea753dc`.
