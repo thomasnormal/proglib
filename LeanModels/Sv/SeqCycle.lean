@@ -352,9 +352,8 @@ theorem CoreMemDesign.evalExprLocals_eq_evalV {E : CoreMemDesign} {st : CoreMemS
   | ctx, .typeBits _ _, _ => by
       simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV, CoreMemDesign.evalScalarLocals,
         CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
-  | ctx, .sysCall _ _, _ => by
-      simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV, CoreMemDesign.evalScalarLocals,
-        CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
+  | ctx, .sysCall _ _, h => by
+      simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
   | ctx, .partSel _ _ _, _ => by
       simp [CoreMemDesign.evalExprLocals, CoreMemDesign.evalV, CoreMemDesign.evalScalarLocals,
         CoreMemDesign.evalScalarV, CoreMemDesign.widthsOf]
@@ -1328,12 +1327,13 @@ theorem seq_noAggregate_of_noCall : ∀ (e : PExpr), LeanModels.Sv.PExpr.hasFunc
   | .unsupported _ _, _ => rfl
   | .functionCall _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
   | .aggregateMember _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
-  | .unary _ a, h | .resize _ a, h | .signedResize _ a, h | .squash2 _ a, h | .sysCall _ a, h | .reduce _ a, h
+  | .unary _ a, h | .resize _ a, h | .signedResize _ a, h | .squash2 _ a, h | .reduce _ a, h
   | .cast _ a, h => by
       have ha := seq_noAggregate_of_noCall a
       simp only [LeanModels.Sv.PExpr.hasFunctionCall] at h
       simp only [LeanModels.Sv.PExpr.hasAggregateMember]
       exact ha h
+  | .sysCall _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
   | .binary _ a b, h | .bitSel a b, h | .repl a b, h => by
       have ha := seq_noAggregate_of_noCall a
       have hb := seq_noAggregate_of_noCall b
@@ -1420,7 +1420,8 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
               · simp only [CoreMemDesign.settleRaw, hmr, Bool.true_or, ↓reduceIte, hsw, Res.bind_eq_ok] at hs
                 obtain ⟨x, hx, hs⟩ := hs
                 refine hstep x hs ?_
-                simp only [CoreMemDesign.evalScalarAssignAtView, hmr, Bool.true_or, ↓reduceIte]
+                simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, Bool.and_false,
+                  Bool.true_or, ↓reduceIte]
                 rw [CoreMemDesign.evalExpr_eq hmc (some dc.width) value hfc, hv]
                 exact hx
               · rw [Bool.not_eq_true] at hmr
@@ -1430,7 +1431,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
                 obtain ⟨x, hx, hs⟩ := hs
                 refine hstep x hs ?_
                 simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, seq_noAggregate_of_noCall value hfc,
-                  Bool.or_false, Bool.false_eq_true, ↓reduceIte, hc']
+                  Bool.or_false, Bool.and_false, Bool.false_eq_true, ↓reduceIte, hc']
                 exact hx
           | _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | edge f =>

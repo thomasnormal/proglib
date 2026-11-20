@@ -1,7 +1,8 @@
 /-
 The system-function expression wall for IEEE 1800-2023 §20.2.2.
-The parser-native call is retained as `SysCall` and the current value tier
-refuses its external plusarg environment explicitly.
+The parser-native call is retained as `SysCall`.  The declared-signal `Expr2`
+view records its missing external plusarg environment as an explicit refusal;
+the source-shaped `CoreMemDesign` runtime carries that environment.
 -/
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemExec

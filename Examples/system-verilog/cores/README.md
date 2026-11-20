@@ -951,19 +951,22 @@ returns the same final memory cells, `REGS[2] = 32'h000000a5` and
 `REGS[1] = 32'h0000005a`.  No whole-core DarkRISCV E-RUN result is claimed by
 this clean-room receipt.
 
-## 2026-11-19 DarkRISCV system-function expression wall
+## 2026-11-20 DarkRISCV system-function expression wall
 
 The repository-local clean-room fixture `darkriscv/walls/function_call_expression.sv`
 retains the parser's source-shaped `$test$plusargs("flag")` expression inside an
 `always_comb` assignment.  Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on
-both input rows with no plusarg and with `+flag`.  Without the plusarg the
-outputs are `0, 0`, and with it they are `0, 1` for inputs `0, 1`.
+all eight rows for plusarg absence and presence with inputs `0`, `1`, `x`, and
+`z`.  Without the plusarg the output is `0` for every input.  With `+flag`, the
+output is the input value, including `x` and `z`.
 
 The symbolic envelope is `077ff21c54062b54502c686f88f7953014b178a6e9b3f41a76db275d3f9938d4`.
-Canonical E loads the envelope, then refuses the first execution with
-`unsupported expression 'SysCall'`.  This is the current E boundary for the
-parser-retained system-function expression.  No whole-core DarkRISCV E-RUN
-result is claimed by this clean-room receipt.
+The declared-signal `Expr2` view retains its explicit refusal because it has no
+plusarg environment.  Canonical E's source-shaped `CoreMemDesign` carries
+`CoreMemDesign.withPlusargs` and executes the call at run time.  The checked
+probe `darkriscv/walls/function_call_expression_probe.lean` returns all eight
+rows, including the four-state `x` and `z` values.  No whole-core DarkRISCV
+E-RUN result is claimed by this clean-room receipt.
 
 ## 2026-11-19 member-element-index receipt correction
 
