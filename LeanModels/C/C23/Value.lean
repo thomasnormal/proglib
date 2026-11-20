@@ -367,6 +367,20 @@ theorem CByte.renameAddress_beq_funByte
       (b == CByte.funByte id) := by
   cases b <;> rfl
 
+/-! A placement map intentionally overwrites the concrete address carried by a
+pointer.  Since the derived pointer equality also observes that field, a
+general byte-equality commutation theorem is false for malformed pointer
+representations.  Valid-memory invariants must therefore constrain stored
+pointer bytes before a pointer-load renaming theorem can be stated. -/
+theorem CByte.renameAddress_beq_not_general :
+    let rename : ObjId → Nat := fun _ => 7
+    let q₁ : Ptr := ⟨some 0, 11, 0, none⟩
+    let q₂ : Ptr := ⟨some 0, 22, 0, none⟩
+    (CByte.ptrByte (Ptr.renameAddress rename q₁) 0 ==
+      CByte.ptrByte (Ptr.renameAddress rename q₂) 0) ≠
+    (CByte.ptrByte q₁ 0 == CByte.ptrByte q₂ 0) := by
+  decide
+
 /-- A C value. `undef` is an indeterminate value that reached a use,
 which every consumer refuses. -/
 inductive CVal where
