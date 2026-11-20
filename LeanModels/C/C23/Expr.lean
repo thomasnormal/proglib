@@ -740,10 +740,10 @@ def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
 
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
-  (directDeclId base).bind layout.structuredTypeDecl |>.orElse (fun _ =>
-    (Expr.span base).offset.bind (fun offset =>
-      (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName base.ty).orElse
-        (fun _ => layout.structuredExprType offset)))
+  (Expr.span base).offset.bind (fun offset =>
+    (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName base.ty).orElse
+      (fun _ => layout.structuredExprType offset)) |>.orElse (fun _ =>
+    (directDeclId base).bind layout.structuredTypeDecl)
 
 /-- Resolve an aggregate's element extent from its declaration's structured
 array type before using the legacy spelling-derived element table.  The
@@ -1260,7 +1260,15 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
   -- §6.5.7p8 — pointer + integer, and it is the pointer rule that applies
   -- whenever either operand is one. Measured: 8 `+`, 4 `-`.
   | .ptr p, .int _ i =>
-      if op == "+" || op == "-" then
+      let nestedArrayPointer :=
+        (base.bind (ctx.layout.structuredTypeAt ·)).bind
+          LeanModels.Clang.QualType.pointee |>.map (fun pointee =>
+            match pointee.unqualified with
+            | .array _ _ => true
+            | _ => false) |>.getD false
+      if nestedArrayPointer then
+        refuseUnsupported "pointer operation on an array subobject"
+      else if op == "+" || op == "-" then
         match ctx.layout.pointeeSizeAt base ty with
         | some esz => do
             let d := if op == "+" then i else -i
@@ -1269,7 +1277,15 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
         | none => refuseUnsupported s!"no size for pointee of '{ty}'"
       else refuseUnsupported s!"operator '{op}' on a pointer and an integer"
   | .int _ i, .ptr p =>
-      if op == "+" then
+      let nestedArrayPointer :=
+        (base.bind (ctx.layout.structuredTypeAt ·)).bind
+          LeanModels.Clang.QualType.pointee |>.map (fun pointee =>
+            match pointee.unqualified with
+            | .array _ _ => true
+            | _ => false) |>.getD false
+      if nestedArrayPointer then
+        refuseUnsupported "pointer operation on an array subobject"
+      else if op == "+" then
         match ctx.layout.pointeeSizeAt base ty with
         | some esz => do
             let q ← readMem (fun m => Mem.offsetPtr m p esz i)
@@ -1279,7 +1295,15 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
   -- §6.5.10p7 vs §6.5.9p6 — the asymmetry: `==`/`!=` across unrelated
   -- objects is DEFINED, `<` and friends are UNDEFINED.
   | .ptr a, .ptr b =>
-      if op == "-" then
+      let nestedArrayPointer :=
+        (base.bind (ctx.layout.structuredTypeAt ·)).bind
+          LeanModels.Clang.QualType.pointee |>.map (fun pointee =>
+            match pointee.unqualified with
+            | .array _ _ => true
+            | _ => false) |>.getD false
+      if nestedArrayPointer then
+        refuseUnsupported "pointer operation on an array subobject"
+      else if op == "-" then
         -- C23 §6.5.7p9: subtracting pointers is defined only within one
         -- array (including its one-past element), and the byte distance must
         -- be an exact multiple of the element size.  The envelope retains
