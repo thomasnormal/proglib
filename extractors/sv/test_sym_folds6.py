@@ -218,5 +218,15 @@ class DiagnosticDelaySourceShape(unittest.TestCase):
             unsupported_texts(env, "TimedStatement:DelayControl"), ["#1ps;"])
 
 
+class InactiveInstanceParameterShape(unittest.TestCase):
+    def test_unbased_unsized_parameter_override_is_retained(self):
+        env = extract_sym(
+            "module child #(parameter logic [3:0] P = '0) (input logic a);"
+            " endmodule"
+            " module top(input logic a);"
+            " child #(.P('0)) u(.a(a)); endmodule", "top")
+        self.assertNotIn("UninstantiatedDefSymbol:parameters", kinds(env))
+
+
 if __name__ == "__main__":
     unittest.main()

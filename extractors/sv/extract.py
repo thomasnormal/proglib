@@ -35119,6 +35119,13 @@ def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
                         "else": _sym_uninstantiated_port_expr(sm, children[2], scope)}
             return _syntax_unsupported(sm, syntax,
                                        "UninstantiatedDefSymbol:expression")
+        if syntax.kind == SyntaxKind.UnbasedUnsizedLiteralExpression:
+            literal = str(getattr(syntax, "literal", "")).strip().lower()
+            if literal in ("'0", "'1", "'x", "'z"):
+                return {"kind": "Fill", "span": _syntax_span(sm, syntax),
+                        "bit": literal[-1]}
+            return _syntax_unsupported(sm, syntax,
+                                       "UninstantiatedDefSymbol:expression")
         if syntax.kind in SYM_SYNTAX_UNOPS:
             children = _syntax_children(syntax)
             if len(children) != 1:
