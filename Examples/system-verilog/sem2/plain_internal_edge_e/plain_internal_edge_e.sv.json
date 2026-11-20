@@ -10,7 +10,7 @@
   "source_files": [
     {
       "path": "Examples/system-verilog/sem2/plain_internal_edge_e/plain_internal_edge_e.sv",
-      "sha256": "07ba6910e9460be78a0dd34aa0f85970d9c384f7845abb2efc77b65ffd5c35b5"
+      "sha256": "1cef98488b58d0fe544284d6803541a0bdef404e7f68f003124f04063fc2b267"
     }
   ],
   "packages": [],
@@ -22,7 +22,7 @@
         "span": {
           "line": 1,
           "col": 1,
-          "end_line": 7,
+          "end_line": 4,
           "end_col": 10
         },
         "name": "plain_internal_edge_e",
@@ -50,9 +50,9 @@
             "kind": "Port",
             "span": {
               "line": 1,
-              "col": 59,
+              "col": 47,
               "end_line": 1,
-              "end_col": 60
+              "end_col": 48
             },
             "name": "d",
             "dir": "in",
@@ -65,12 +65,12 @@
           {
             "kind": "Port",
             "span": {
-              "line": 2,
-              "col": 18,
-              "end_line": 2,
-              "end_col": 25
+              "line": 1,
+              "col": 63,
+              "end_line": 1,
+              "end_col": 64
             },
-            "name": "g_plain",
+            "name": "g",
             "dir": "out",
             "width": {
               "kind": "PackedType",
@@ -81,44 +81,12 @@
           {
             "kind": "Port",
             "span": {
-              "line": 2,
-              "col": 27,
-              "end_line": 2,
-              "end_col": 34
+              "line": 1,
+              "col": 66,
+              "end_line": 1,
+              "end_col": 67
             },
-            "name": "q_plain",
-            "dir": "out",
-            "width": {
-              "kind": "PackedType",
-              "packed": [],
-              "resolved": 1
-            }
-          },
-          {
-            "kind": "Port",
-            "span": {
-              "line": 2,
-              "col": 36,
-              "end_line": 2,
-              "end_col": 40
-            },
-            "name": "g_ff",
-            "dir": "out",
-            "width": {
-              "kind": "PackedType",
-              "packed": [],
-              "resolved": 1
-            }
-          },
-          {
-            "kind": "Port",
-            "span": {
-              "line": 2,
-              "col": 42,
-              "end_line": 2,
-              "end_col": 46
-            },
-            "name": "q_ff",
+            "name": "q",
             "dir": "out",
             "width": {
               "kind": "PackedType",
@@ -132,10 +100,10 @@
           {
             "kind": "AlwaysEvent",
             "span": {
-              "line": 3,
+              "line": 2,
               "col": 3,
-              "end_line": 3,
-              "end_col": 38
+              "end_line": 2,
+              "end_col": 32
             },
             "events": [
               {
@@ -146,29 +114,29 @@
             "body": {
               "kind": "NonblockingAssign",
               "span": {
-                "line": 3,
+                "line": 2,
                 "col": 25,
-                "end_line": 3,
-                "end_col": 38
+                "end_line": 2,
+                "end_col": 32
               },
               "target": {
                 "kind": "Ident",
                 "span": {
-                  "line": 3,
+                  "line": 2,
                   "col": 25,
-                  "end_line": 3,
-                  "end_col": 32
+                  "end_line": 2,
+                  "end_col": 26
                 },
                 "width": 1,
-                "name": "g_plain"
+                "name": "g"
               },
               "value": {
                 "kind": "Ident",
                 "span": {
-                  "line": 3,
-                  "col": 36,
-                  "end_line": 3,
-                  "end_col": 37
+                  "line": 2,
+                  "col": 30,
+                  "end_line": 2,
+                  "end_col": 31
                 },
                 "width": 1,
                 "name": "d"
@@ -178,127 +146,43 @@
           {
             "kind": "AlwaysEvent",
             "span": {
-              "line": 4,
+              "line": 3,
               "col": 3,
-              "end_line": 4,
-              "end_col": 45
+              "end_line": 3,
+              "end_col": 33
             },
             "events": [
               {
                 "edge": "posedge",
-                "signal": "g_plain"
+                "signal": "g"
               }
             ],
             "body": {
               "kind": "NonblockingAssign",
               "span": {
-                "line": 4,
-                "col": 29,
-                "end_line": 4,
-                "end_col": 45
+                "line": 3,
+                "col": 23,
+                "end_line": 3,
+                "end_col": 33
               },
               "target": {
                 "kind": "Ident",
                 "span": {
-                  "line": 4,
-                  "col": 29,
-                  "end_line": 4,
-                  "end_col": 36
+                  "line": 3,
+                  "col": 23,
+                  "end_line": 3,
+                  "end_col": 24
                 },
                 "width": 1,
-                "name": "q_plain"
+                "name": "q"
               },
               "value": {
                 "kind": "Literal",
                 "span": {
-                  "line": 4,
-                  "col": 40,
-                  "end_line": 4,
-                  "end_col": 44
-                },
-                "width": 1,
-                "bits": "1"
-              }
-            }
-          },
-          {
-            "kind": "AlwaysPosedge",
-            "span": {
-              "line": 5,
-              "col": 3,
-              "end_line": 5,
-              "end_col": 38
-            },
-            "style": "always_ff",
-            "clock": "clk",
-            "body": {
-              "kind": "NonblockingAssign",
-              "span": {
-                "line": 5,
-                "col": 28,
-                "end_line": 5,
-                "end_col": 38
-              },
-              "target": {
-                "kind": "Ident",
-                "span": {
-                  "line": 5,
+                  "line": 3,
                   "col": 28,
-                  "end_line": 5,
+                  "end_line": 3,
                   "end_col": 32
-                },
-                "width": 1,
-                "name": "g_ff"
-              },
-              "value": {
-                "kind": "Ident",
-                "span": {
-                  "line": 5,
-                  "col": 36,
-                  "end_line": 5,
-                  "end_col": 37
-                },
-                "width": 1,
-                "name": "d"
-              }
-            }
-          },
-          {
-            "kind": "AlwaysPosedge",
-            "span": {
-              "line": 6,
-              "col": 3,
-              "end_line": 6,
-              "end_col": 42
-            },
-            "style": "always_ff",
-            "clock": "g_ff",
-            "body": {
-              "kind": "NonblockingAssign",
-              "span": {
-                "line": 6,
-                "col": 29,
-                "end_line": 6,
-                "end_col": 42
-              },
-              "target": {
-                "kind": "Ident",
-                "span": {
-                  "line": 6,
-                  "col": 29,
-                  "end_line": 6,
-                  "end_col": 33
-                },
-                "width": 1,
-                "name": "q_ff"
-              },
-              "value": {
-                "kind": "Literal",
-                "span": {
-                  "line": 6,
-                  "col": 37,
-                  "end_line": 6,
-                  "end_col": 41
                 },
                 "width": 1,
                 "bits": "1"
