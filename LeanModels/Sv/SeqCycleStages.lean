@@ -281,6 +281,22 @@ def mirrorOf (eN : Name) : MetaM (Option (Name × Name × Name)) := do
   let mDef := eN.getPrefix ++ `mirror_def
   if (← getEnv).contains mEq then return some (mN, mEq, mDef) else return none
 
+/-- What an instantiation that did not normalize is stuck on, read off its term: the route's function the pass does not
+evaluate at these parameters and the construct it stands for (in the order checked). -/
+def stuckReasons : List (Name × String) :=
+  [(``LeanModels.Sv.genvarSeq,
+     "a generate loop: the clocked instantiation pass does not expand a `for` generate construct (the route's `genvarSeq`; a conditional generate is evaluated)"),
+   (``coreMemExpandIters,
+     "a generate loop: the clocked instantiation pass does not expand a `for` generate construct (the route's `coreMemExpandIters`)"),
+   (``LeanModels.Sv.evalAt,
+     "a sized constant expression (a dimension or a generate condition) with an operator the pass does not evaluate, or a generate condition the hypotheses on the parameters do not decide (the route's `evalAt`; the pass evaluates parameter reads, integer literals, `+ - *` and comparisons)"),
+   (``LeanModels.Sv.evalSized,
+     "a sized constant expression the pass does not evaluate (the route's `evalSized`)")]
+
+/-- The reason an instantiation is stuck (`stuckReasons`), when its term holds one of the named functions. -/
+def stuckReason? (t : Lean.Expr) : Option String :=
+  (stuckReasons.find? fun (n, _) => (t.find? (·.isConstOf n)).isSome).map (·.2)
+
 /-- The instantiation's three outcomes for `r = X.e P…`: the `ok` goal with `hSeq : <normal form> = E` substituted
 away, the refused outcomes closed (or named). Returns the `ok` goal. -/
 def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
@@ -304,10 +320,14 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
       evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hI:ident))
     catch _ => pure ()
     unless (← getGoals).isEmpty do
-      let msg ← (do
-        let h ← (← getMainGoal).withContext do getLocalDeclFromUserName `hSeqInst
-        pure m!"{h.type}")
-      throwError "{stage}: the route does not instantiate this design at these parameters; its outcome: {msg}"
+      let h ← (← getMainGoal).withContext do getLocalDeclFromUserName `hSeqInst
+      let ht ← instantiateMVars h.type
+      if let some why := stuckReason? ht then
+        throwError "{stage}: the instantiation does not normalize at these parameters: {why}, refused"
+      -- an `if` left standing: a condition on the parameters that the hypotheses in context do not decide
+      if let some c := ht.find? (fun e => e.isAppOfArity ``ite 5 && !(e.getArg! 1).hasLooseBVars) then
+        throwError "{stage}: the instantiation does not normalize at these parameters: the hypotheses in context do not decide `{c.getArg! 1}` (a conditional generate construct takes its arm from a hypothesis on the parameters, and an `int` parameter needs both of its bounds), refused"
+      throwError "{stage}: the route does not instantiate this design at these parameters; its outcome: {ht}"
   setGoals [gOk]
   try
     evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hI:ident))

@@ -12,7 +12,8 @@ design is computation at the design's symbolic parameters, and these macros do i
 * `sv_seq_inst [X.e, X.pdesign] at hE` turns `hE : X.e P… = .ok E` into `hE : <normal form> = E`: the route's
   instantiation (`PDesign.instantiateCoreMemFrom`) evaluated at the symbolic parameters through its definitions'
   equation lemmas; the side conditions on the parameters (the 32-bit range of an `int` parameter, a declared width
-  `[P-1:0]`, the unsigned range of an `int unsigned` parameter) are closed by `omega` from the hypotheses in context.
+  `[P-1:0]`, the unsigned range of an `int unsigned` parameter, the condition of a conditional generate construct)
+  are closed by `omega` from the hypotheses in context. A generate loop is not expanded (the stage names it).
 * `sv_seq_profile` closes `E.SeqProfile clk` on the normal form (`hE` substituted).
 * `sv_seq_cycle h : E.cycleV clk v d using hE` (or `E.cycleMV clk (v, mv) d`) adds `h : … = <the computed result>`:
   THE CYCLE EQUATIONS, the pre and post sample of one cycle evaluated from the route's own definitions on a symbolic
@@ -168,6 +169,146 @@ theorem seqE_evalAt_mul (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
       .ok (canonInt ty.1 ty.2 (a * b))) := by
   simp only [evalAt, SymBinOp.constClass]
   rfl
+
+/-! ## The condition of a conditional generate construct
+
+The route selects the arm of `if (c) … else …` by `evalGenGuard` (the condition typed by `ctype` and evaluated at its
+type by `evalAt`, IEEE 1800-2017 §27.5, §11.6). The instantiation pass evaluates a comparison of two constant
+operands through the lemmas below (each is `evalAt`'s own arm for that operator: the operands at their common type, the
+frontend's signedness check kept, the 0/1 result converted to the condition's type); the arithmetic pass then decides
+the comparison by `omega` from the hypotheses in context, so a structure theorem states the arm it is about as a
+hypothesis on the parameters (`(h : REG = 0)`, `(h : 1 ≤ REG)`). A condition the hypotheses do not decide stays an
+`if`, and the stage reports the design as not instantiated at these parameters. -/
+
+/-- `evalAt` on `l == r`. -/
+theorem seqE_evalAt_eq (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .eq) l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      let a ← evalAt env (max wl wr, sl && sr) l
+      let b ← evalAt env (max wl wr, sl && sr) r
+      .ok (convertConst 1 ty.1 ty.2 (if a == b then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+/-- `evalAt` on `l != r`. -/
+theorem seqE_evalAt_ne (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .ne) l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      let a ← evalAt env (max wl wr, sl && sr) l
+      let b ← evalAt env (max wl wr, sl && sr) r
+      .ok (convertConst 1 ty.1 ty.2 (if a != b then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_slt (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary .slt l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (true && !(sl && sr) || false && (sl && sr)) = true then
+        .error s!"'{(SymBinOp.slt).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a < b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_sle (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary .sle l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (true && !(sl && sr) || false && (sl && sr)) = true then
+        .error s!"'{(SymBinOp.sle).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a ≤ b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_sgt (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary .sgt l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (true && !(sl && sr) || false && (sl && sr)) = true then
+        .error s!"'{(SymBinOp.sgt).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a > b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_sge (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary .sge l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (true && !(sl && sr) || false && (sl && sr)) = true then
+        .error s!"'{(SymBinOp.sge).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a ≥ b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_lt (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .lt) l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (false && !(sl && sr) || true && (sl && sr)) = true then
+        .error s!"'{((SymBinOp.m0 .lt)).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a < b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_le (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .le) l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (false && !(sl && sr) || true && (sl && sr)) = true then
+        .error s!"'{((SymBinOp.m0 .le)).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a ≤ b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_gt (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .gt) l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (false && !(sl && sr) || true && (sl && sr)) = true then
+        .error s!"'{((SymBinOp.m0 .gt)).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a > b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+theorem seqE_evalAt_ge (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .ge) l r) = (do
+      let (wl, sl) ← ctype env l
+      let (wr, sr) ← ctype env r
+      if (false && !(sl && sr) || true && (sl && sr)) = true then
+        .error s!"'{((SymBinOp.m0 .ge)).sym}' contradicts the operand signedness (constant tier)"
+      else do
+        let a ← evalAt env (max wl wr, sl && sr) l
+        let b ← evalAt env (max wl wr, sl && sr) r
+        .ok (convertConst 1 ty.1 ty.2 (if decide (a ≥ b) = true then 1 else 0))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+/-- A 0/1 value is nonzero exactly when its condition holds (the route's arm selection `v != 0`). -/
+theorem seqE_ite_ne_zero (c : Prop) [Decidable c] : ((if c then (1 : Int) else 0) != 0) = decide c := by
+  split <;> simp_all
 
 /-! ## Per-signal equations: a decision stays an `if` on the values it decides
 
@@ -404,17 +545,32 @@ macro "sv_seq_arith_pass" " at " h:ident : tactic =>
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
       Nat.sub_add_cancel] at $h:ident)
 
-/-- The instantiation pass with the sized constant expressions (a parameter of an unsigned type). Run only on an
-instantiation the first pass leaves short of its normal form, so a design without them costs what it did. -/
+/-- The instantiation pass with the sized constant expressions (a parameter of an unsigned type, the condition of a
+conditional generate construct) and the route's generate expansion of a conditional arm. Run only on an instantiation
+the first pass leaves short of its normal form, so a design without these constructs costs what it did. -/
 macro "sv_seq_inst_pass2" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
   `(tactic| sv_seq_inst_pass [$ls,*, LeanModels.Sv.evalSized, LeanModels.Sv.ctype,
       LeanModels.Sv.PExpr.pushedTarget, LeanModels.Sv.SymBinOp.constClass, LeanModels.Sv.Kernel.seqE_evalAt_int,
       LeanModels.Sv.Kernel.seqE_evalAt_param, LeanModels.Sv.Kernel.seqE_evalAt_sub,
-      LeanModels.Sv.Kernel.seqE_evalAt_add, LeanModels.Sv.Kernel.seqE_evalAt_mul] at $h:ident)
+      LeanModels.Sv.Kernel.seqE_evalAt_add, LeanModels.Sv.Kernel.seqE_evalAt_mul,
+      LeanModels.Sv.Kernel.seqE_evalAt_eq, LeanModels.Sv.Kernel.seqE_evalAt_ne, LeanModels.Sv.Kernel.seqE_evalAt_slt,
+      LeanModels.Sv.Kernel.seqE_evalAt_sle, LeanModels.Sv.Kernel.seqE_evalAt_sgt, LeanModels.Sv.Kernel.seqE_evalAt_sge,
+      LeanModels.Sv.Kernel.seqE_evalAt_lt, LeanModels.Sv.Kernel.seqE_evalAt_le, LeanModels.Sv.Kernel.seqE_evalAt_gt,
+      LeanModels.Sv.Kernel.seqE_evalAt_ge, LeanModels.Sv.evalGenGuard,
+      LeanModels.Sv.Kernel.coreMemExpandItem, LeanModels.Sv.Kernel.coreMemGeneratedDeclsItem,
+      LeanModels.Sv.Kernel.coreMemBindVals, LeanModels.Sv.Kernel.coreMemScopeEnv,
+      LeanModels.Sv.Kernel.coreMemSubstProcess, LeanModels.Sv.Kernel.coreMemSubstStmt,
+      LeanModels.Sv.Kernel.coreMemSubstStmtOpt, LeanModels.Sv.Kernel.coreMemSubstStmtList,
+      LeanModels.Sv.Kernel.coreMemSubstCaseItems, LeanModels.Sv.Kernel.coreMemSubstExpr,
+      LeanModels.Sv.Kernel.coreMemSubstLhs, LeanModels.Sv.Kernel.coreMemSubstDecl,
+      LeanModels.Sv.Kernel.coreMemSubstType, LeanModels.Sv.Kernel.coreMemSubstDim, and_assoc] at $h:ident)
 
-/-- The arithmetic pass after `sv_seq_inst_pass2`: the unsigned 32-bit wraps, by `omega` from the context. -/
+/-- The arithmetic pass after `sv_seq_inst_pass2`: the unsigned 32-bit wraps and the generate conditions, by `omega`
+from the context. -/
 macro "sv_seq_arith_pass2" " at " h:ident : tactic =>
   `(tactic| simp (disch := omega) only [LeanModels.Sv.CombView.canonInt32_of_bounds,
+      LeanModels.Sv.CombView.convertConst32, LeanModels.Sv.CombView.convertConst1_ite,
+      LeanModels.Sv.Kernel.seqE_ite_ne_zero, decide_eq_true_eq, beq_iff_eq, bne_iff_ne, ne_eq, if_pos, if_neg,
       LeanModels.Sv.Kernel.seqE_canonU32_of_bounds, LeanModels.Sv.Kernel.seqE_convertU32_of_bounds,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
       LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel] at $h:ident)
@@ -436,7 +592,8 @@ macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : 
       LeanModels.Sv.Kernel.PDesign.instantiateCoreMemFrom, $ls,*] at $h:ident
     sv_seq_inst_pass [$ls,*] at $h:ident
     (try sv_seq_arith_pass at $h:ident)
-    -- short of the normal form: the sized constant expressions
+    -- short of the normal form: the sized constant expressions and the conditional generate constructs (a condition,
+    -- decided by the arithmetic pass, opens the chosen arm to the next round)
     repeat (
       fail_if_success (sv_seq_inst_done $h:ident)
       sv_seq_inst_pass2 [$ls,*] at $h:ident
