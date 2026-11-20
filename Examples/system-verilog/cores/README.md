@@ -1320,3 +1320,12 @@ coverage.  `lake env lean
 Examples/system-verilog/cores/picorv32/r1_upper.lean` passed, and all printed
 theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
 Universal loaded-core step and order premises remain explicit.
+
+## 2026-11-20 PicoRV32 R1 jump class
+
+The loaded-core R1 jump package compiles for JAL and JALR.  Both exact decoder
+rows have memory-preserving ISA step theorems, RVFI retirement boundaries,
+loaded `Rv32iBoundary` bridges, and indexed exact-cycle refinement coverage.
+`lake env lean Examples/system-verilog/cores/picorv32/r1_jump.lean` passed, and
+all printed theorem axiom sets are `[propext, Classical.choice, Quot.sound]`.
+Universal loaded-core step and order premises remain explicit.
