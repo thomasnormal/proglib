@@ -88,6 +88,49 @@ theorem CycleXRead.width_eq {source concrete : CycleObs PortSample}
   intro name
   exact ⟨optionXRead_width (hread name).1, optionXRead_width (hread name).2⟩
 
+/-! A complete observation trace carries one independent witness per cycle.
+The relation is paired structurally so a concrete trace cannot gain or lose a
+sample while its per-cycle reads are being resolved. -/
+
+inductive CycleXReadRun : List (CycleObs PortSample) → List (CycleObs PortSample) → Prop where
+  | nil : CycleXReadRun [] []
+  | cons {source concrete : CycleObs PortSample}
+      {sources concreteTail : List (CycleObs PortSample)} :
+      CycleXRead source concrete → CycleXReadRun sources concreteTail →
+      CycleXReadRun (source :: sources) (concrete :: concreteTail)
+
+inductive CycleReadEqRun (name : String) :
+    List (CycleObs PortSample) → List (CycleObs PortSample) → Prop where
+  | nil : CycleReadEqRun name [] []
+  | cons {source concrete : CycleObs PortSample}
+      {sources concreteTail : List (CycleObs PortSample)} :
+      (source.pre.read name = concrete.pre.read name ∧
+        source.post.read name = concrete.post.read name) →
+      CycleReadEqRun name sources concreteTail →
+      CycleReadEqRun name (source :: sources) (concrete :: concreteTail)
+
+theorem CycleXReadRun.read_eq_of_known
+    {source concrete : List (CycleObs PortSample)}
+    (hread : CycleXReadRun source concrete)
+    (hknown : ∀ cycle, cycle ∈ source →
+      (∀ name value, cycle.pre.read name = some value →
+        value.bits.toList.all Logic.isKnown = true) ∧
+      (∀ name value, cycle.post.read name = some value →
+        value.bits.toList.all Logic.isKnown = true)) :
+    ∀ name, CycleReadEqRun name source concrete := by
+  induction hread with
+  | nil =>
+      intro name
+      exact .nil
+  | @cons source concrete sources concreteTail hhead htail ih =>
+      intro name
+      apply CycleReadEqRun.cons
+      · have hknownHead := hknown source (by simp)
+        exact hhead.read_eq_of_known hknownHead.1 hknownHead.2 name
+      · apply ih
+        intro cycle hcycle
+        exact hknown cycle (by simp [hcycle])
+
 end LeanModels.Sv.Observe
 
 #print axioms LeanModels.Sv.Observe.optionXRead_eq_of_known
@@ -96,3 +139,4 @@ end LeanModels.Sv.Observe
 #print axioms LeanModels.Sv.Observe.CycleXRead.post_read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.read_eq_of_known
 #print axioms LeanModels.Sv.Observe.CycleXRead.width_eq
+#print axioms LeanModels.Sv.Observe.CycleXReadRun.read_eq_of_known
