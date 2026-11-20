@@ -76,6 +76,14 @@ all-prefix refinement package.  The distinct parser evidence and common trap
 transition remain explicit with universal canonical-E step, relation, order,
 and progress premises.  No RTL invariant or finite trace is claimed.
 
+## 2026-11-20 R1 immediate-ALU consumer recheck
+
+The loaded-core remaining immediate-ALU family compiles for SLTI, SLTIU,
+XORI, ORI, ANDI, SLLI, SRLI, SRAI, and a negative ADDI encoding.  The checked
+class consumers retain the exact immediate decoder, shared ALU step and
+commit semantics, and the canonical ISA definitions.  No RTL invariant or
+finite trace is claimed.
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
