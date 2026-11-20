@@ -3052,6 +3052,14 @@ def member (p : Ptr) (fieldOff : Nat) : Ptr :=
     (member {p with address := address} fieldOff).address = address := by
   simp [member]
 
+theorem decay_renameAddress (rename : ObjId → Nat) (o : ObjId) :
+    Ptr.renameAddress rename (decay o) = {decay o with address := rename o} := by
+  simp [decay, Ptr.renameAddress, Ptr.toObject, Ptr.toObjectAt]
+
+theorem addrOf_renameAddress (rename : ObjId → Nat) (o : ObjId) :
+    Ptr.renameAddress rename (addrOf o) = {addrOf o with address := rename o} := by
+  simp [addrOf, Ptr.renameAddress, Ptr.toObject, Ptr.toObjectAt]
+
 def memberRange (p : Ptr) (fieldOff fieldSize : Nat) : Ptr :=
   let start := p.off + (fieldOff : Int)
   { p with off := start, bound := some (start + (fieldSize : Int)) }
@@ -3059,6 +3067,17 @@ def memberRange (p : Ptr) (fieldOff fieldSize : Nat) : Ptr :=
 @[simp] theorem memberRange_address_irrel (p : Ptr) (fieldOff fieldSize address : Nat) :
     (memberRange {p with address := address} fieldOff fieldSize).address = address := by
   simp [memberRange]
+
+theorem member_renameAddress (rename : ObjId → Nat) (p : Ptr) (fieldOff : Nat) :
+    Ptr.renameAddress rename (member p fieldOff) =
+      member (Ptr.renameAddress rename p) fieldOff := by
+  cases p <;> rfl
+
+theorem memberRange_renameAddress (rename : ObjId → Nat) (p : Ptr)
+    (fieldOff fieldSize : Nat) :
+    Ptr.renameAddress rename (memberRange p fieldOff fieldSize) =
+      memberRange (Ptr.renameAddress rename p) fieldOff fieldSize := by
+  cases p <;> rfl
 
 /-- **C23 §6.5.7p9 — pointer arithmetic**, and this is a constraint on
 FORMING the pointer, not only on using it: the result must point into the
