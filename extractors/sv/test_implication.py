@@ -141,6 +141,21 @@ class LogicalImplication(unittest.TestCase):
         self.assertEqual(root["right"]["width"], 3)
         self.assertFalse(any(n.get("kind") == "Unsupported" for n in nodes(design)))
 
+    def test_symbolic_loop_iterator_cast_keeps_genvar_reference(self):
+        design = symbolic(
+            "module divider #(parameter int unsigned N=4) "
+            "(output logic [N-1:0] result); "
+            "always_comb begin "
+            "for (int i=0; i<N; i++) result[i] = N'(unsigned'(i)); "
+            "end endmodule")
+        casts = [n for n in nodes(design)
+                 if n.get("kind") == "SignedResize" and n.get("width") == 4]
+        self.assertTrue(casts)
+        self.assertTrue(any(
+            n.get("kind") == "GenvarRef" for n in nodes(casts[0])))
+        self.assertFalse(any(n.get("sv_kind") == "ConversionExpression:Explicit"
+                             for n in nodes(design)))
+
     def test_frontend_error_barrier_in_both_modes(self):
         body = "logic a, b, result; int unrelated = missing; initial result = a -> b; endmodule"
         for design in (lower("module top; " + body, require_valid=False), symbolic("module divider; " + body)):

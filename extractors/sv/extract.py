@@ -8763,7 +8763,15 @@ def _convert_integral_cast(sm, expr):
             and target_width is not None and target_width > 0
             and expr.type.isIntegral):
         operand = _convert_expr(sm, expr.operand)
-        if width_of(operand) != source_width or not _case_expression_ok(operand):
+        # A symbolic procedural/generate loop iterator is retained as a
+        # parser-native GenvarRef. Its source width comes from the frontend's
+        # int type, while the envelope node intentionally has no frozen width
+        # until the instantiation pass binds the iterator. Preserve the cast
+        # around that reference so canonical E applies the exact resize at the
+        # instantiated point.
+        operand_width_ok = (width_of(operand) == source_width or
+                            operand.get("kind") == "GenvarRef")
+        if not operand_width_ok or not _case_expression_ok(operand):
             return unsupported(sm, expr, "ConversionExpression:Explicit")
         if source_width == target_width:
             return operand
