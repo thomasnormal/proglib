@@ -12,7 +12,7 @@ design is computation at the design's symbolic parameters, and these macros do i
 * `sv_seq_inst [X.e, X.pdesign] at hE` turns `hE : X.e P… = .ok E` into `hE : <normal form> = E`: the route's
   instantiation (`PDesign.instantiateCoreMemFrom`) evaluated at the symbolic parameters through its definitions'
   equation lemmas; the side conditions on the parameters (the 32-bit range of an `int` parameter, a declared width
-  `[P-1:0]`) are closed by `omega` from the hypotheses in context.
+  `[P-1:0]`, the unsigned range of an `int unsigned` parameter) are closed by `omega` from the hypotheses in context.
 * `sv_seq_profile` closes `E.SeqProfile clk` on the normal form (`hE` substituted).
 * `sv_seq_cycle h : E.cycleV clk v d using hE` (or `E.cycleMV clk (v, mv) d`) adds `h : … = <the computed result>`:
   THE CYCLE EQUATIONS, the pre and post sample of one cycle evaluated from the route's own definitions on a symbolic
@@ -43,6 +43,11 @@ theorem seqE_except_pure {ε α : Type} (a : α) : (pure a : Except ε α) = .ok
 theorem seqE_natAbs_sub_one_add_one (N : Nat) (h : 1 ≤ N) : ((N : Int) - 1).natAbs + 1 = N := by omega
 
 theorem seqE_natAbs_sub_one (N : Nat) (h : 1 ≤ N) : ((N : Int) - 1).natAbs = N - 1 := by omega
+
+/-- The declared width of `[A+B-1:0]` at parameters with `A + B ≥ 1`. -/
+theorem seqE_natAbs_add_sub_one_add_one (A B : Nat) (h : 1 ≤ A + B) :
+    ((A : Int) + (B : Int) - 1).natAbs + 1 = A + B := by
+  omega
 
 /-- No positive edge into a 0. -/
 theorem seqE_isPosedge_l0 (b : Logic) : isPosedge b .l0 = false := by cases b <;> rfl
@@ -86,6 +91,83 @@ theorem seqE_replVec_bit (n : Nat) (b : Logic) : LVec.replVec n ⟨#[b]⟩ = LVe
   apply Array.ext'
   rw [Array.toList_flatten, Array.toList_replicate, List.map_replicate, Array.toList_replicate]
   exact h n
+
+/-! ## Constant expressions over a parameter of an unsigned type
+
+A dimension `[W-1:0]` over `parameter int W` is INT-class and the instantiation evaluates it in 32-bit signed arithmetic
+(`evalIntExact`). Over `parameter int unsigned W` it is not: the instantiation sizes the expression (§11.6:
+`evalSized`, the propagated type `ctype`, the evaluation at that type `evalAt`) and wraps every value to the unsigned
+32-bit type. The instantiation pass evaluates that route through the lemmas below (a parameter read, an integer
+literal, `+`, `-`, `*`; any other operator stays as the route left it and the stage reports the design as not
+instantiated), and the arithmetic pass reads a wrapped value as itself where `omega` places it in `[0, 2^32)` from the
+hypotheses in context. -/
+
+/-- An unsigned 32-bit wrap of a value in `[0, 2^32)` is the value. -/
+theorem seqE_canonU32_of_bounds {v : Int} (h1 : 0 ≤ v) (h2 : v < 4294967296) : canonInt 32 false v = v := by
+  have h : (2 : Int) ^ 32 = 4294967296 := by decide
+  unfold canonInt
+  simp only [Bool.false_and, Bool.false_eq_true, ↓reduceIte]
+  rw [h]
+  exact Int.emod_eq_of_lt h1 h2
+
+/-- The conversion of a 32-bit value in `[0, 2^32)` to the unsigned 32-bit type is the value. -/
+theorem seqE_convertU32_of_bounds {v : Int} (h1 : 0 ≤ v) (h2 : v < 4294967296) :
+    convertConst 32 32 false v = v := by
+  have h : (2 : Int) ^ 32 = 4294967296 := by decide
+  unfold convertConst
+  simp only [Bool.false_eq_true, ↓reduceIte]
+  rw [h]
+  have e : v.emod 4294967296 = v := Int.emod_eq_of_lt h1 h2
+  rw [e]
+  exact seqE_canonU32_of_bounds h1 h2
+
+/-- `evalAt` on an integer literal. -/
+theorem seqE_evalAt_int (env : IEnv) (ty : Nat × Bool) (v : Int) :
+    evalAt env ty (.int v) = .ok (convertConst 32 ty.1 ty.2 v) := by
+  simp only [evalAt]
+
+/-- `evalAt` on a parameter read. -/
+theorem seqE_evalAt_param (env : IEnv) (ty : Nat × Bool) (n : String) :
+    evalAt env ty (.paramRef n none) = (match env.vals.lookup n with
+      | some v => .ok (convertConst 32 ty.1 ty.2 v)
+      | none =>
+          match env.nvals.lookup n with
+          | some (v, w, _) => .ok (convertConst w ty.1 ty.2 v)
+          | none => .error s!"unbound parameter '{n}'") := by
+  simp only [evalAt]
+  cases h1 : List.lookup n env.vals with
+  | some v => rfl
+  | none =>
+      cases h2 : List.lookup n env.nvals with
+      | none => rfl
+      | some t => rfl
+
+/-- `evalAt` on a difference: both operands at the propagated type, the result wrapped to it. -/
+theorem seqE_evalAt_sub (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .sub) l r) = (do
+      let a ← evalAt env ty l
+      let b ← evalAt env ty r
+      .ok (canonInt ty.1 ty.2 (a - b))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+/-- `evalAt` on a sum. -/
+theorem seqE_evalAt_add (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .add) l r) = (do
+      let a ← evalAt env ty l
+      let b ← evalAt env ty r
+      .ok (canonInt ty.1 ty.2 (a + b))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
+
+/-- `evalAt` on a product. -/
+theorem seqE_evalAt_mul (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
+    evalAt env ty (.binary (.m0 .mul) l r) = (do
+      let a ← evalAt env ty l
+      let b ← evalAt env ty r
+      .ok (canonInt ty.1 ty.2 (a * b))) := by
+  simp only [evalAt, SymBinOp.constClass]
+  rfl
 
 /-! ## Per-signal equations: a decision stays an `if` on the values it decides
 
@@ -322,13 +404,43 @@ macro "sv_seq_arith_pass" " at " h:ident : tactic =>
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
       Nat.sub_add_cancel] at $h:ident)
 
+/-- The instantiation pass with the sized constant expressions (a parameter of an unsigned type). Run only on an
+instantiation the first pass leaves short of its normal form, so a design without them costs what it did. -/
+macro "sv_seq_inst_pass2" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
+  `(tactic| sv_seq_inst_pass [$ls,*, LeanModels.Sv.evalSized, LeanModels.Sv.ctype,
+      LeanModels.Sv.PExpr.pushedTarget, LeanModels.Sv.SymBinOp.constClass, LeanModels.Sv.Kernel.seqE_evalAt_int,
+      LeanModels.Sv.Kernel.seqE_evalAt_param, LeanModels.Sv.Kernel.seqE_evalAt_sub,
+      LeanModels.Sv.Kernel.seqE_evalAt_add, LeanModels.Sv.Kernel.seqE_evalAt_mul] at $h:ident)
+
+/-- The arithmetic pass after `sv_seq_inst_pass2`: the unsigned 32-bit wraps, by `omega` from the context. -/
+macro "sv_seq_arith_pass2" " at " h:ident : tactic =>
+  `(tactic| simp (disch := omega) only [LeanModels.Sv.CombView.canonInt32_of_bounds,
+      LeanModels.Sv.Kernel.seqE_canonU32_of_bounds, LeanModels.Sv.Kernel.seqE_convertU32_of_bounds,
+      LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
+      LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel] at $h:ident)
+
+open Lean Elab Tactic Meta in
+/-- Succeeds when `h` is an instantiation in normal form, `<the design as a structure literal> = E` (then no further
+instantiation pass is run: a design without a conditional generate construct costs one pass, as before). -/
+elab "sv_seq_inst_done " h:ident : tactic => withMainContext do
+  let d ← getLocalDeclFromUserName h.getId
+  let t := (← instantiateMVars d.type).consumeMData
+  unless t.isAppOfArity ``Eq 3 &&
+      (t.getArg! 1).consumeMData.isAppOf ``LeanModels.Sv.Kernel.CoreMemDesign.mk do
+    throwError "sv_seq_inst: the instantiation is not in normal form"
+
 /-- **`sv_seq_inst [X.e, X.pdesign] at hE`**: `hE : X.e P… = .ok E` becomes `hE : <normal form> = E`. -/
 macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
   `(tactic| (
     simp only [LeanModels.Sv.Kernel.PDesign.instantiateE2, LeanModels.Sv.Kernel.PDesign.instantiateCoreMem,
       LeanModels.Sv.Kernel.PDesign.instantiateCoreMemFrom, $ls,*] at $h:ident
     sv_seq_inst_pass [$ls,*] at $h:ident
-    (try sv_seq_arith_pass at $h:ident)))
+    (try sv_seq_arith_pass at $h:ident)
+    -- short of the normal form: the sized constant expressions
+    repeat (
+      fail_if_success (sv_seq_inst_done $h:ident)
+      sv_seq_inst_pass2 [$ls,*] at $h:ident
+      (try sv_seq_arith_pass2 at $h:ident))))
 
 /-! The profile's conjuncts on a normal form (the arguments of `SeqProfile.of_B` / `SeqProfileI.of_B` after the edge
 view's `rfl`), one tactic each: `sv_seq_profile`, `sv_seq_profileI` and the structure stage's diagnosis
@@ -496,8 +608,9 @@ macro "sv_seq_eval_arith" : conv =>
   `(conv| simp (disch := omega) only [if_pos, if_neg, Nat.max_eq_left, Nat.max_eq_right, Int.min_eq_left,
       Int.min_eq_right, Int.max_eq_left,
       Int.max_eq_right, LeanModels.Sv.CombView.canonInt32_of_bounds,
+      LeanModels.Sv.Kernel.seqE_canonU32_of_bounds, LeanModels.Sv.Kernel.seqE_convertU32_of_bounds,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
-      Nat.sub_add_cancel])
+      LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel])
 
 /-- **`sv_seq_cycle h : E.cycleV clk v d using hE [facts]`**: `h : E.cycleV clk v d = <the computed pre and post
 views>`, where `hE : <normal form> = E` comes from `sv_seq_inst`. -/
