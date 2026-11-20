@@ -1262,3 +1262,8 @@ The three preceding items recorded current-head wall evidence without changing E
 ## Parameter-sized assignment-pattern storage refusal receipt — 2026-11-20T20:47:17Z
 
 The new source-shaped `assignment_pattern_storage_refuse` fixture isolates a package parameter that is a one-rank unpacked array of packed four-state elements initialized by `'{default: '0}`. Slang extraction retains the aggregate declaration and records `AssignmentPattern:integral-shape`; ordinary canonical E reaches the exact `aggregate default shape is unsupported` refusal during package binding. Xcelium 24.03-s004 matches all four source rows (`y=0`, `y=x`, `y=x`, `y=1`); Icarus Verilog 13.0 explicitly refuses the faithful package-array assignment pattern at its parser. This records the Ibex-shaped storage wall under IEEE 1800-2023 §§7.4 and 10.9 without claiming a canonical-E value.
+
+
+## Post-storage-receipt real-design census — 2026-11-20T20:49:47Z
+
+The generated `docs/sv-real-designs.md` page remains current at the public head and still reports three designs loading into E and five non-loading rows. The assignment-pattern storage receipt does not move the Ibex row because the pinned complete-source census still stops at `AlwaysLatch:unknown process kind`. `prim_fifo_sync`, `prim_arbiter_ppc`, `prim_packer`, CV32E40P, PicoRV32, DarkRISCV, and FemtoRV32 Quark retain their existing load cells. The generated `prim_packer` description now records a ten-cycle ordinary-E trace and names Xcelium 26.09-s001, so this remeasurement claims the generated-page text only and does not substitute that version for the lane's pinned Xcelium 24.03-s004 oracle. No E-ROWS or REAL-DESIGNS count transition is claimed.
