@@ -28,6 +28,7 @@ module darkriscv_instr_stall_tb;
   reg sampled_instr_ack;
   integer i;
   integer stall_tick = 0;
+  reg next_ack;
 
   darkriscv dut (
     .CLK(clk), .RES(reset),
@@ -53,10 +54,15 @@ module darkriscv_instr_stall_tb;
     sampled_instr_data <= instr_data;
     sampled_instr_ack <= instr_ack;
     stall_tick = stall_tick + 1;
-    if (instr_req)
-      instr_ack <= (stall_tick % 3 == 0) ? 1'b0 : 1'b1;
-    else
-      instr_ack <= 1'b1;
+    if (instr_req) begin
+      next_ack = (stall_tick % 3 == 0) ? 1'b0 : 1'b1;
+      instr_ack <= next_ack;
+      sampled_instr_ack <= next_ack;
+    end else begin
+      next_ack = 1'b1;
+      instr_ack <= next_ack;
+      sampled_instr_ack <= next_ack;
+    end
   end
 
   initial begin
