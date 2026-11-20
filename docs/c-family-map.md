@@ -485,3 +485,11 @@ Explicit-placement allocation now has structured variants with the same
 identity and placement guarantees. `realloc` remains a separate lifetime
 transition until the standard's effective-type transfer rule is recorded in
 the shared store contract.
+
+The first `realloc` transfer trial followed the F2 contract's rule that copied
+bytes carry effective-type state into the fresh allocation. It exposed the
+existing theorem family as the next boundary: old/new load and store lemmas,
+placement preservation, and dead-pointer results all quantify over the fresh
+`Mem` value. The trial was reverted without changing those statements. The
+next implementation must add side-table preservation lemmas before changing
+the evaluator transition.
