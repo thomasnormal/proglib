@@ -116,6 +116,20 @@ aggregate package-default failures before the canonical E route, ending at
 bounded probe does not change the historical Ibex admission row or claim a
 simulator result.
 
+## Clocked-route refusal remeasurement — 2026-11-20
+
+At public master `57e26b5fbdc4659f46d0ba0a54be2a910d724185`, the clocked
+refusal suite was rerun with
+`lake env lean Examples/system-verilog/seq_cycle/seq_refusals.lean`.
+The suite passed without message drift.  Plain one-edge processes, optional
+clock-first asynchronous reset, unsigned dimension parameters, typed packed
+initializers, and conditional generate arms remain admitted in the worked
+examples.  Procedural loops in edge bodies, generate loops, three-edge lists,
+level events, and reset-first event lists remain loud refusals.  The latter
+refusal is the profile's source-order convention, and no new real-design
+admission is claimed by this remeasurement.
+
+
 ## Current PicoRV32 re-probe
 
 The table above is the original cross-core census.  On 2026-11-07, after the
