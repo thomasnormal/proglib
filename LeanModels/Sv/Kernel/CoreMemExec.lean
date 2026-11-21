@@ -1171,6 +1171,44 @@ def coreMemLhsReadNamesList : List PLhs → List String
 
 end
 
+def coreMemPProcessEdgeSources : PProcess → List String
+  | .alwaysFF clock _ | .alwaysFFNegedge clock _ | .alwaysPlain clock _ => [clock]
+  | .alwaysFFR clock reset _ _ => [clock, reset]
+  | .alwaysEvent events _ => events.map (·.signal)
+  | _ => []
+
+def coreMemPProcessReadNames : PProcess → List String
+  | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
+  | .alwaysFFR _ _ body _ | .alwaysEvent _ body => coreMemStmtReadNames body
+  | _ => []
+
+def coreMemHasCommonEventSource (p q : PProcess) : Bool :=
+  (coreMemPProcessEdgeSources p).any (fun source =>
+    (coreMemPProcessEdgeSources q).contains source)
+
+def coreMemEdgeBlockingReadRacePair (p q : PProcess) : Bool :=
+  coreMemHasCommonEventSource p q &&
+    ((coreMemProcBlockingWrites p).any (fun name =>
+      (coreMemPProcessReadNames q).contains name) ||
+     (coreMemProcBlockingWrites q).any (fun name =>
+      (coreMemPProcessReadNames p).contains name))
+
+def coreMemEdgeBlockingReadRaceAt (p : PProcess) : List PProcess → Bool
+  | [] => false
+  | q :: rest =>
+      coreMemEdgeBlockingReadRacePair p q || coreMemEdgeBlockingReadRaceAt p rest
+
+def coreMemEdgeBlockingReadRace : List PProcess → Bool
+  | [] => false
+  | p :: rest => coreMemEdgeBlockingReadRaceAt p rest || coreMemEdgeBlockingReadRace rest
+
+def coreMemEdgeBlockingReadRaceViol (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  if coreMemEdgeBlockingReadRace (d.processes ++ generated) then
+    some ("Event:edge-blocking-race",
+      "4.7/10.4.1: same-edge blocking read/write processes have schedule-dependent visibility; canonical E refuses the race")
+  else none
+
 /-! A reactive body may read a signal that it assigned earlier in the same
 process.  That sequential source order is defined by IEEE 1800-2023 §9.2.2.2
 and does not create an inter-process scheduling cycle.  Keep only reads that
@@ -1404,7 +1442,9 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
       else match coreMemEventSourceMultiWriteViol d generated with
       | some (kind, msg) => .unsupported s!"{kind}: {msg}"
       | none =>
-          match coreMemTimeZeroEventSourceViol d generated with
+          match coreMemEdgeBlockingReadRaceViol d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none => match coreMemTimeZeroEventSourceViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none =>
             let allProcesses := d.processes ++ generated
