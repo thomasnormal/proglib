@@ -5,7 +5,8 @@ The F1 gate is deliberately fail-closed. A structured ``QualType`` bridge
 may coexist with the legacy alias while migration is in progress, but the
 gate must report every remaining type-string operation before F1 can close.
 This checker scans only the named C type paths and never inspects corpus
-source or parser output.
+source or parser output. The legacy ``CType := String`` alias is itself a
+finding until the declaration and expression constructors carry QualType.
 """
 
 from __future__ import annotations
@@ -98,7 +99,7 @@ def main() -> int:
     print(f"check_c_type_strings: {len(rows)} remaining type-string operation(s); "
           f"{len(aliases)} legacy CType alias(es)",
           file=sys.stderr)
-    return 1 if rows else 0
+    return 1 if rows or aliases else 0
 
 
 if __name__ == "__main__":
