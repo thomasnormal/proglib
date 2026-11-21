@@ -239,6 +239,7 @@ inductive Expr where
   | compoundAssign (op : String) (lhs rhs : Expr)
       (computeLHSType computeResultType ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
+      (structuredComputeLHSType structuredComputeResultType : Option LeanModels.Clang.QualType)
   | unop (op : String) (sub : Expr) (isPostfix : Bool) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   | cond (c t e : Expr) (ty : String) (span : CSpan)
@@ -470,7 +471,7 @@ def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .intLit _ _ _ q | .charLit _ _ _ q | .strLit _ _ _ _ q
   | .floatLit _ _ _ _ _ q | .boolLit _ _ _ q | .choose _ _ _ _ _ q
   | .declRef _ _ _ _ _ q | .member _ _ _ _ _ _ q | .index _ _ _ _ q
-  | .call _ _ _ _ q | .binop _ _ _ _ _ q | .compoundAssign _ _ _ _ _ _ _ q
+  | .call _ _ _ _ q | .binop _ _ _ _ _ q | .compoundAssign _ _ _ _ _ _ _ q _ _
   | .unop _ _ _ _ _ q | .cond _ _ _ _ _ q | .paren _ _ _ q
   | .implicitCast _ _ _ _ q | .cast _ _ _ _ q | .initList _ _ _ _ q
   | .arrayInitList _ _ _ _ _ q | .designatedUpdate _ _ _ _ q
@@ -584,8 +585,9 @@ def Expr.sizes (es : List Expr) : Nat := (es.flatMap Expr.subexprs).length
     (Expr.binop op l r t sp q).size = l.size + r.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_compoundAssign (l r : Expr) (op lhsTy resultTy t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
-    (Expr.compoundAssign op l r lhsTy resultTy t sp q).size = l.size + r.size + 1 := by
+@[simp] theorem Expr.size_compoundAssign (l r : Expr) (op lhsTy resultTy t : String) (sp : CSpan)
+    (q lhsQ resultQ : Option LeanModels.Clang.QualType) :
+    (Expr.compoundAssign op l r lhsTy resultTy t sp q lhsQ resultQ).size = l.size + r.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
 @[simp] theorem Expr.size_cond (c a b : Expr) (t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
