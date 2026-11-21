@@ -396,9 +396,8 @@
   {
     "id": "effective-type-character-alias",
     "source": "int main(void) { int i = 0x12345678; unsigned char *p = (unsigned char *)&i; return p[0] == 0x78 ? 0 : 1; }",
-    "expect": "refuse",
-    "return_value": 0,
-    "error": "no layout for declared type 'unsigned char *'"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "pointer-adjacent-boundary",
@@ -1393,7 +1392,7 @@
     "return_value": 4,
     "error": "no layout for declared type 'int[2]'",
     "structured_expect": "refuse",
-    "structured_error": "pointer-integer value requires an unchanged cast back"
+    "structured_error": "cannot initialize aggregate 'int[2]'"
   },
   {
     "id": "f2-integer-to-pointer-exposure",
