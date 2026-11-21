@@ -1,5 +1,12 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Complete-vector any-change events — 2026-11-21
+
+Canonical E now compares the complete four-state vector for a plain any-change
+event. A change above bit 0 therefore reactivates a parser-native event body,
+while positive- and negative-edge detection retains the IEEE 1800-2023 §9.4.2
+LSB rule. Kernel guards cover known and x/z higher-bit changes.
+
 ## Path-sensitive reactive read guard — 2026-11-21
 
 The canonical-E reactive dependency guard now keeps a write definite only
