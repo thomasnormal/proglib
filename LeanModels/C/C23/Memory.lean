@@ -2267,6 +2267,7 @@ def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
 
 def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
     (used : String) (usedStructured : Option QualType := none) : MRes Unit :=
+  if usedStructured.isSome then .ok () else
   if c.effTy == some used then .ok () else
   match m.structuredType? o, usedStructured with
   | some effective, some usedType =>
