@@ -94,7 +94,7 @@ increments target the same four kinds. One function serves both.
 
 namespace LeanModels.C.C23
 
-open LeanModels.C (CType Expr CSpan DeclarationId)
+open LeanModels.C (Expr CSpan DeclarationId)
 
 /-! ## The evaluation monad -/
 
@@ -398,22 +398,22 @@ the C type parser `docs/c-envelope-schema.md` §3 exists to avoid. -/
 
 Every table is keyed on the type spelling **exactly as the AST carries
 it** — `"Pos"`, `"const Pos *"` — never on a parsed type. That is the
-same decision `docs/c-envelope-schema.md` §3 made for `CType` itself, and
+same decision `docs/c-envelope-schema.md` §3 made for `String` itself, and
 it is what keeps the C type parser out of the tier. -/
 structure Layout where
   declSize : DeclarationId → Option Nat := fun _ => none
   structuredType : DeclarationId → Option LeanModels.Clang.QualType := fun _ => none
   structuredExprType : Nat → Option LeanModels.Clang.QualType := fun _ => none
-  structuredExprTypeAt : Nat → Option Nat → String → CType → Option LeanModels.Clang.QualType :=
+  structuredExprTypeAt : Nat → Option Nat → String → String → Option LeanModels.Clang.QualType :=
     fun offset _ _ _ => structuredExprType offset
   pointeeSizeDecl : DeclarationId → Option Nat := fun _ => none
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
-  fieldOffTypeDecl : DeclarationId → CType → Option Nat := fun _ _ => none
+  fieldOffTypeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldSizeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldOffDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldBitsDecl : DeclarationId → String → Option (Nat × Nat) := fun _ _ => none
   flexibleFieldDecl : DeclarationId → String → Bool := fun _ _ => false
-  membersDecl : DeclarationId → Option (List (String × CType)) := fun _ => none
+  membersDecl : DeclarationId → Option (List (String × String)) := fun _ => none
   memberRecordDecl : DeclarationId → String → Option DeclarationId := fun _ _ => none
   isUnionDecl : DeclarationId → Bool := fun _ => false
 
@@ -435,12 +435,12 @@ def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
 
 /-- Resolve bit-field facts from parser-native aggregate declaration identity. -/
 def Layout.fieldBitsDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty : CType) (field : String) : Option (Nat × Nat) :=
+    (ty : String) (field : String) : Option (Nat × Nat) :=
   decl.bind (fun did => layout.fieldBitsDecl did field)
 
 /-- Resolve flexible-array membership from parser-native declaration identity. -/
 def Layout.flexibleFieldDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty : CType) (field : String) : Bool :=
+    (ty : String) (field : String) : Bool :=
   match decl with
   | some did =>
       layout.flexibleFieldDecl did field
@@ -460,26 +460,26 @@ def Layout.fieldOffAt (layout : Layout) (base : Expr) (field : String) :
 Aggregate initialization has no base expression, so its declaration identity
 is passed explicitly. -/
 def Layout.fieldOffDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty : CType) (field : String) : Option Nat :=
+    (ty : String) (field : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffDecl did field)
 
 /-- Resolve an anonymous-member offset through parser-native base declaration identity. -/
 def Layout.fieldOffTypeDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty fieldTy : CType) : Option Nat :=
+    (ty fieldTy : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffTypeDecl did fieldTy)
 
 /-- Resolve a member extent from parser-native member facts. -/
-def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field : String) (fieldTy : CType)
+def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field : String) (fieldTy : String)
     (recordLike : Bool) : Option Nat :=
   if recordLike then
     layout.fieldSizeAt base field
   else
     layout.fieldSizeAt base field
 
-def Layout.arrayElementSizeAt (_layout : Layout) (_arrayTy _elementTy : CType) :
+def Layout.arrayElementSizeAt (_layout : Layout) (_arrayTy _elementTy : String) :
     Option Nat := none
 
-def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
+def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : String) :
     Option Nat :=
   decl.bind layout.declSize |>.orElse (fun _ =>
     decl.bind layout.structuredType
@@ -491,7 +491,7 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
 /-- Resolve the byte size needed by an expression load through the
 declaration identity carried by that expression before consulting the
 legacy type-keyed layout table. -/
-def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : CType) :
+def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : String) :
     Option Nat :=
   ((directDeclId expression).bind layout.structuredType |>.orElse
     (fun _ => (Expr.span expression).offset.bind (fun offset =>
@@ -502,7 +502,7 @@ def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : CType) :
 
 /-- Resolve an indexed element stride from parser-native array or pointee
 observations before falling back to the expression's declaration size. -/
-def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : CType) :
+def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : String) :
     Option Nat :=
   (directDeclId base).bind (fun did =>
       (layout.elementSizeDecl did).orElse (fun _ => layout.pointeeSizeDecl did))
@@ -524,7 +524,7 @@ def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : CType) :
     |>.orElse (fun _ => layout.exprSizeAt base ty)
 
 def Layout.arrayElementSizeDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (arrayTy elementTy : CType) : Option Nat :=
+    (arrayTy elementTy : String) : Option Nat :=
   match decl.bind layout.structuredType |>.map LeanModels.Clang.QualType.unqualified with
   | some (.array element _) =>
       let resolvedElement :=
@@ -556,7 +556,7 @@ array type before using the legacy spelling-derived element table.  The
 element spelling remains the table's existing key, while the parser owns the
 array shape and extent. -/
 def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty : CType) : Option (CType × Nat) :=
+    (ty : String) : Option (String × Nat) :=
   match decl.bind layout.structuredTypeDecl with
   | some structured =>
       match structured.unqualified with
@@ -566,7 +566,7 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
 
 /-- Resolve aggregate member order from parser-native object declaration identity. -/
 def Layout.membersDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty : CType) : Option (List (String × CType)) :=
+    (ty : String) : Option (List (String × String)) :=
     decl.bind layout.membersDecl
 
 /-- Resolve a nested record's declaration identity from the parent object and
@@ -577,7 +577,7 @@ def Layout.memberRecordDeclAt (layout : Layout) (decl : Option DeclarationId)
 
 /-- Resolve union classification from parser-native object declaration identity. -/
 def Layout.isUnionDeclAt (layout : Layout) (decl : Option DeclarationId)
-    (ty : CType) : Bool :=
+    (ty : String) : Bool :=
   match decl with
   | some did => layout.isUnionDecl did
   | none => false
@@ -587,7 +587,7 @@ def Layout.isUnionDeclAt (layout : Layout) (decl : Option DeclarationId)
 aggregate observations suppress the scalar declaration type, while legacy
 layouts use their member and element tables for the same decision. -/
 def Layout.storageTypeAt (layout : Layout) (decl : Option DeclarationId)
-    (ty : CType) : Option CType :=
+    (ty : String) : Option String :=
   match decl.bind layout.structuredTypeDecl with
   | some structured => if structured.aggregateObject then none else some ty
   | none => none
@@ -595,7 +595,7 @@ def Layout.storageTypeAt (layout : Layout) (decl : Option DeclarationId)
 /-- Resolve a pointer stride from the declaration identity that owns the
 pointer expression, then from the parser-native type-layout table.  There is
 no spelling peel fallback here. -/
-def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : CType) :
+def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : String) :
     Option Nat :=
   base.bind (fun expression =>
     (directDeclId expression).bind layout.pointeeSizeDecl)
@@ -608,7 +608,7 @@ def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : CType) :
 parser-observed pointee for an arrow base.  Missing observations stay a loud
 layout absence. -/
 def Layout.bitFieldStorageSizeAt (layout : Layout) (base : Option Expr)
-    (recordTy : CType) : Option Nat :=
+    (recordTy : String) : Option Nat :=
   match base with
   | some expression =>
       match layout.structuredTypeAt expression with
@@ -670,7 +670,7 @@ structure Ctx where
   /-- Parser-owned identity for the hosted `stdout` stream object. -/
   stdoutObj : Option ObjId := none
   /-- Statement-layer aggregate initialization for compound literals. -/
-  compoundInit : Nat → Env → IdEnv → Layout → Ptr → CType → Expr → EvalM Unit :=
+  compoundInit : Nat → Env → IdEnv → Layout → Ptr → String → Expr → EvalM Unit :=
     fun _ _ _ _ _ _ _ => refuseUnsupported "compound literal initializer callback unavailable"
 
 def isStdoutRef : Expr → Bool
@@ -918,11 +918,11 @@ def pointerTypeOfNode (structured : Option LeanModels.Clang.QualType) : Bool :=
 
 /-! Parser-native type decisions. Missing observations remain a refusal. -/
 def structuredPointerObject (structured : Option LeanModels.Clang.QualType)
-    (fallback : CType) : Bool :=
+    (fallback : String) : Bool :=
   pointerTypeOfNode structured
 
 def structuredIndexable (structured : Option LeanModels.Clang.QualType)
-    (fallback : CType) : Bool :=
+    (fallback : String) : Bool :=
   structured.map (fun type => type.unqualified.indexable) |>.getD false
 
 def pointerIntegerTypeOfNode (structured : Option LeanModels.Clang.QualType) : Bool :=
@@ -934,7 +934,7 @@ def pointerIntegerTypeOfNode (structured : Option LeanModels.Clang.QualType) : B
     | some it => it.bits >= 64
     | none => false
 
-def checkVaType (ctx : Ctx) (ty : CType) (structured : Option LeanModels.Clang.QualType)
+def checkVaType (ctx : Ctx) (ty : String) (structured : Option LeanModels.Clang.QualType)
     (v : CVal) : EvalM CVal :=
   match v with
   | .int actual _ =>
@@ -969,7 +969,7 @@ def compatiblePointerTypesNode
   | _, _ => false
 
 def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
-    (t : IntTy) (ty : CType)
+    (t : IntTy) (ty : String)
     (structured : Option LeanModels.Clang.QualType := none) : MRes CVal :=
   match Mem.loadPtrInt m p with
   | .ok q => .ok (.ptrInt q)
@@ -978,7 +978,7 @@ def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
 /-- Load whatever an lvalue of this type holds — an integer or a pointer.
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
 implicit of the whole corpus.** -/
-def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
+def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
   if structured.bind floatBitsOfStructured == some 32 then
     readMem (fun m => Mem.loadFloat32 m p)
@@ -1008,7 +1008,7 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
         | none => refuseUnsupported s!"aggregate load without a layout '{ty}'"
 
 /-- Store a value at an address, at the lvalue's type. -/
-def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
+def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (v : CVal)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM Unit :=
   match v with
   | .funPtr id => writeMem (fun m => Mem.storeFunction m p id)
@@ -1096,8 +1096,8 @@ def chooseCond : Expr → Option Bool
   | _ => none
 
 /-- The non-short-circuit binary rules, once both operands have values. -/
-def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
-    (elemTy : Option CType := none) (base : Option Expr := none)
+def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
+    (elemTy : Option String := none) (base : Option Expr := none)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
   match lv, rv with
   | .float32 a, .float32 b => float32Binop op a b
@@ -1362,8 +1362,8 @@ def bitFieldStoreBytes (bs : List CByte) (offset width value : Nat) : List CByte
   bs.mapIdx updateByte
 
 
-def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
-    (fieldTy : CType) (fieldPtr : Ptr) (base : Option Expr := none)
+def loadBitFieldAt (ctx : Ctx) (recordTy : String) (field : String)
+    (fieldTy : String) (fieldPtr : Ptr) (base : Option Expr := none)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal := do
   match (base.map (ctx.layout.fieldBitsAt · field)).getD none,
       ctx.layout.bitFieldStorageSizeAt base recordTy,
@@ -1384,8 +1384,8 @@ def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
   | some _, _, none => refuseUnsupported s!"unsupported bit-field type '{fieldTy}'"
   | none, _, _ => refuseUnsupported s!"no bit-field layout for '{field}'"
 
-def storeBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
-    (fieldTy : CType) (fieldPtr : Ptr) (v : CVal) (base : Option Expr := none)
+def storeBitFieldAt (ctx : Ctx) (recordTy : String) (field : String)
+    (fieldTy : String) (fieldPtr : Ptr) (v : CVal) (base : Option Expr := none)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM Unit := do
   match (base.map (ctx.layout.fieldBitsAt · field)).getD none,
       ctx.layout.bitFieldStorageSizeAt base recordTy,
@@ -2064,7 +2064,7 @@ Takes `base` — a strict SUBTERM — rather than the reassembled node. The
 node this replaces was rebuilt as `.member base field arrow ty sp`, which
 is not a subterm of anything, and that is what defeated the recursion. -/
 def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
-    (fieldTy : CType) (recordId : Option DeclarationId) : EvalM Ptr := do
+    (fieldTy : String) (recordId : Option DeclarationId) : EvalM Ptr := do
   let basePtr ← if arrow then (do let v ← evalExpr ctx base; asPtr v)
                 else evalLValue ctx base
   let off? := if field.isEmpty then
@@ -2092,7 +2092,7 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
 
 /-- §6.5.3.2p2 — the ADDRESS of `base[idx]`. Same discipline: the parts,
 never the rebuilt node. -/
-def indexAddr (ctx : Ctx) (base idx : Expr) (ty : CType) : EvalM Ptr := do
+def indexAddr (ctx : Ctx) (base idx : Expr) (ty : String) : EvalM Ptr := do
   match ctx.layout.structuredTypeAt base with
   | some structuredType =>
       if !structuredIndexable (some structuredType) base.ty then
@@ -2188,7 +2188,7 @@ right's…" would be unprovable here, which is the point. -/
 
 /-- §6.5.14p4 — `&&` short-circuits: a false left operand answers 0 **in
 the left operand's own out-memory**, whatever the right operand is. -/
-theorem and_shortCircuits (ctx : Ctx) (l r : Expr) (ty : CType) (sp : CSpan)
+theorem and_shortCircuits (ctx : Ctx) (l r : Expr) (ty : String) (sp : CSpan)
     (m m' : Mem) (t : IntTy)
     (hl : EvalM.run m (evalExpr ctx l) = .ok (.ok (.int t 0), m')) :
     EvalM.run m (evalExpr ctx (.binop "&&" l r ty sp none)) = .ok (.ok (ofBool false), m') := by
@@ -2199,7 +2199,7 @@ theorem and_shortCircuits (ctx : Ctx) (l r : Expr) (ty : CType) (sp : CSpan)
 
 /-- §6.5.15p4 — `||` is the mirror: a TRUE left operand answers 1 in the
 left operand's own out-memory, and the right operand is not evaluated. -/
-theorem or_shortCircuits (ctx : Ctx) (l r : Expr) (ty : CType) (sp : CSpan)
+theorem or_shortCircuits (ctx : Ctx) (l r : Expr) (ty : String) (sp : CSpan)
     (m m' : Mem) (t : IntTy) (n : Int) (hn : n ≠ 0)
     (hl : EvalM.run m (evalExpr ctx l) = .ok (.ok (.int t n), m')) :
     EvalM.run m (evalExpr ctx (.binop "||" l r ty sp none)) = .ok (.ok (ofBool true), m') := by
@@ -2210,7 +2210,7 @@ theorem or_shortCircuits (ctx : Ctx) (l r : Expr) (ty : CType) (sp : CSpan)
 
 /-- §6.5.16p4 — `?:` evaluates EXACTLY ONE arm, and the theorem names
 only the arm that ran. -/
-theorem cond_takesOneArm (ctx : Ctx) (c t e : Expr) (ty : CType) (sp : CSpan)
+theorem cond_takesOneArm (ctx : Ctx) (c t e : Expr) (ty : String) (sp : CSpan)
     (m m' : Mem) (it : IntTy)
     (hc : EvalM.run m (evalExpr ctx c) = .ok (.ok (.int it 0), m')) :
     EvalM.run m (evalExpr ctx (.cond c t e ty sp none)) = EvalM.run m' (evalExpr ctx e) := by
@@ -2324,69 +2324,69 @@ theorem Expr.nodeIsPure_of_isPure {e : Expr} (h : Expr.isPure e = true) :
   cases e <;>
     simp_all [Expr.isPure, Expr.subexprs, Expr.nodeIsPure, List.all_cons, List.all_append]
 
-theorem Expr.isPure_paren {s : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_paren {s : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.paren s t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_implicitCast {ck : String} {s : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_implicitCast {ck : String} {s : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.implicitCast ck s t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_cast {ck : String} {s : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_cast {ck : String} {s : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.cast ck s t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_member {b : Expr} {f : String} {a : Bool} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_member {b : Expr} {f : String} {a : Bool} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     {recordId : Option DeclarationId}
     (h : Expr.isPure (.member b f a t sp recordId q) = true) : Expr.isPure b = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_unop {op : String} {s : Expr} {post : Bool} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_unop {op : String} {s : Expr} {post : Bool} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.unop op s post t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_index_base {b i : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_index_base {b i : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.index b i t sp q) = true) : Expr.isPure b = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1
 
-theorem Expr.isPure_index_idx {b i : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_index_idx {b i : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.index b i t sp q) = true) : Expr.isPure i = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.2
 
-theorem Expr.isPure_binop_l {op : String} {l r : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_binop_l {op : String} {l r : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.binop op l r t sp q) = true) : Expr.isPure l = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1
 
-theorem Expr.isPure_binop_r {op : String} {l r : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_binop_r {op : String} {l r : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.binop op l r t sp q) = true) : Expr.isPure r = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.2
 
-theorem Expr.isPure_cond_c {c a b : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_cond_c {c a b : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.cond c a b t sp q) = true) : Expr.isPure c = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1.1
 
-theorem Expr.isPure_cond_t {c a b : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_cond_t {c a b : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.cond c a b t sp q) = true) : Expr.isPure a = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1.2
 
-theorem Expr.isPure_cond_e {c a b : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+theorem Expr.isPure_cond_e {c a b : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.cond c a b t sp q) = true) : Expr.isPure b = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
@@ -2587,7 +2587,7 @@ theorem asPtr' (v : CVal) : MemInvariant (asPtr v) := by
 theorem asInt' (v : CVal) : MemInvariant (asInt v) := by
   cases v <;> first | exact pure' _ | exact refuseUnsupported' _ | exact refuseUB' _
 
-theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
+theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none) :
     MemInvariant (loadAt alias p ty size structured) := by
   unfold loadAt
@@ -2659,8 +2659,8 @@ theorem floatCast' (v : CVal) (structured : Option LeanModels.Clang.QualType) :
     | exact pure' _
     | exact refuseUnsupported' _
 
-theorem evalArith' (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
-    (elemTy : Option CType := none) (base : Option Expr := none)
+theorem evalArith' (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
+    (elemTy : Option String := none) (base : Option Expr := none)
     (structured : Option LeanModels.Clang.QualType := none) :
     MemInvariant (evalArith ctx op lv rv ty elemTy base structured) := by
   cases elemTy <;> cases base <;> cases structured <;> cases lv <;> cases rv <;>
@@ -2757,13 +2757,13 @@ needs an induction of its own: both take strict SUBTERMS, which is the
 same property that made the termination measure work. -/
 
 theorem MemInvariant.memberAddr' {ctx : Ctx} {base : Expr} {field : String} {arrow : Bool}
-    {fieldTy : CType} {recordId : Option DeclarationId}
+    {fieldTy : String} {recordId : Option DeclarationId}
     (hv : MemInvariant (evalExpr ctx base)) (hl : MemInvariant (evalLValue ctx base)) :
     MemInvariant (memberAddr ctx base field arrow fieldTy recordId) := by
   first | simp only [memberAddr] | rw [memberAddr.eq_def]
   mem_inv
 
-theorem MemInvariant.indexAddr' {ctx : Ctx} {base idx : Expr} {ty : CType}
+theorem MemInvariant.indexAddr' {ctx : Ctx} {base idx : Expr} {ty : String}
     (hb : MemInvariant (evalExpr ctx base)) (hi : MemInvariant (evalExpr ctx idx)) :
     MemInvariant (indexAddr ctx base idx ty) := by
   first | simp only [indexAddr] | rw [indexAddr.eq_def]

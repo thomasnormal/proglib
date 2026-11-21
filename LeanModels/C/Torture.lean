@@ -117,12 +117,12 @@ remain an explicit layout absence. -/
 
 /-- The unit's own typedefs, as a spelling map. A lookup, not a
 computation — so resolving through it invents nothing. -/
-def typedefsOf (envl : Envelope) : List (CType × CType) :=
+def typedefsOf (envl : Envelope) : List (String × String) :=
   envl.unit.items.filterMap fun i => match i with
     | .decl (.typedef _ nm ty _ _ _) => some (nm, ty)
     | _ => none
 
-def resolve (tds : List (CType × CType)) : Nat → CType → CType
+def resolve (tds : List (String × String)) : Nat → String → String
   | 0, t => t
   | n + 1, t0 =>
       let t := t0
@@ -297,7 +297,7 @@ the fact is admitted only after the declaration id and every field have
 matched the parser-native layout observation above.  No size or offset is
 reconstructed from that spelling. -/
 def observedRecordFacts (envl : Envelope) :
-    List (CType × List (String × CType) × RecordLayout) :=
+    List (String × List (String × String) × RecordLayout) :=
   let ds := allDecls envl
   let nestedFacts := fun fields : List Decl =>
     fields.flatMap fun child => match child with
@@ -388,7 +388,7 @@ def observedRecordFacts (envl : Envelope) :
 
 /-! **SIZE AND ALIGNMENT** come from parser-native observations.  The former
 recursive spelling-based computation was removed because it reconstructed ABI
-rules from `CType` text.  Missing observations remain a loud layout absence. -/
+rules from `String` text.  Missing observations remain a loud layout absence. -/
 
 /-- The layout for ONE test, built from its own envelope. -/
 def layoutFor (envl : Envelope) : Layout :=
@@ -467,16 +467,16 @@ def layoutFor (envl : Envelope) : Layout :=
         | _ => false) with
       | some (.var _ _ _ _ _ (some rid) _ _ _) => fromRecord rid
       | _ => none
-  let observedFor := fun t : CType =>
+  let observedFor := fun t : String =>
     -- Parser-native observations use the exact Clang type key. Legacy
     -- normalization remains confined to the fallback layout path.
     observed.find? (fun row => row.1 == t)
   -- Legacy type-spelling pointee lookup is deliberately absent. Member
   -- layout is keyed by the parser's declaration identity, and an envelope
   -- lacking that observation must refuse instead of peeling a display spelling.
-  let observedPointeeFor : CType → Option (CType × List (String × CType) × RecordLayout) :=
+  let observedPointeeFor : String → Option (String × List (String × String) × RecordLayout) :=
     fun _ => none
-  let observedFieldSizeFor := fun (t : CType) (f : String) =>
+  let observedFieldSizeFor := fun (t : String) (f : String) =>
     match observedPointeeFor t with
     | some (_, _, layout) => recordFieldSize layout f
     | none => none
@@ -514,7 +514,7 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => none
         | _ => none
     | _ => none
-  let observedFieldBitsFor := fun (t : CType) (f : String) =>
+  let observedFieldBitsFor := fun (t : String) (f : String) =>
     (observedRecordFacts envl).find? (fun row => row.1 == t)
       |>.bind (fun row =>
         row.2.2.fields.find? (fun field => field.name == f)
@@ -538,17 +538,17 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => false
         | _ => false
     | _ => false
-  let observedFieldOffType := fun (t : CType) (memberTy : CType) =>
+  let observedFieldOffType := fun (t : String) (memberTy : String) =>
     match observedPointeeFor t with
     | some (_, members, layout) =>
-        let rec seek : List (String × CType) → List RecordLayoutField → Option Nat
+        let rec seek : List (String × String) → List RecordLayoutField → Option Nat
           | (_, ty) :: ms, field :: fs =>
               if ty == memberTy then some (field.offsetBits / 8)
               else seek ms fs
           | _, _ => none
         seek members layout.fields
     | none => none
-  let observedFieldOffTypeDeclFor := fun (did : DeclarationId) (memberTy : CType) =>
+  let observedFieldOffTypeDeclFor := fun (did : DeclarationId) (memberTy : String) =>
     match ds.find? (fun q => match q with
       | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
           ds.any (fun r => match r with
@@ -565,7 +565,7 @@ def layoutFor (envl : Envelope) : Layout :=
                 let members := fields.filterMap fun field => match field with
                   | .field name mty _ _ _ _ _ => some (name.getD "", mty)
                   | _ => none
-                let rec seekDecl : List (String × CType) → List RecordLayoutField → Option Nat
+                let rec seekDecl : List (String × String) → List RecordLayoutField → Option Nat
                   | (_, ty) :: ms, field :: fs =>
                       if ty == memberTy then some (field.offsetBits / 8)
                       else seekDecl ms fs
@@ -574,11 +574,11 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => none
         | _ => none
     | _ => none
-  let observedTypeSize := fun t : CType =>
+  let observedTypeSize := fun t : String =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
   let observedDeclSize := fun id : DeclarationId =>
     envl.typeLayouts.find? (fun row => row.declaration == some id) |>.map (·.sizeBytes)
-  let observedPointeeSize := fun t : CType =>
+  let observedPointeeSize := fun t : String =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.pointeeSizeBytes)
   let observedDeclPointeeSize := fun id : DeclarationId =>
     envl.typeLayouts.find? (fun row => row.declaration == some id) |>.bind (·.pointeeSizeBytes)
@@ -586,7 +586,7 @@ def layoutFor (envl : Envelope) : Layout :=
     envl.typeLayouts.find? (fun row => row.declaration == some id) |>.bind (·.elementSizeBytes)
   let observedExprType := fun offset : Nat =>
     envl.structuredExprTypes.find? (fun row => row.offset == offset) |>.map (·.type)
-  let observedExprTypeAt := fun (offset : Nat) (endOffset : Option Nat) (kind : String) (_expected : CType) =>
+  let observedExprTypeAt := fun (offset : Nat) (endOffset : Option Nat) (kind : String) (_expected : String) =>
     let rows := envl.structuredExprTypes.filter (fun row =>
       row.offset == offset && row.endOffset == endOffset &&
       (kind.isEmpty || row.kind.isEmpty || row.kind == kind))
@@ -599,11 +599,11 @@ def layoutFor (envl : Envelope) : Layout :=
      extent by its constant element count only when the division is exact.
      This is only a bridge between two AST-derived views; no ABI size is
      reconstructed here. -/
-  let observedArrayElem := fun t : CType =>
+  let observedArrayElem := fun t : String =>
     -- Parser TypeLayout carries the exact element stride. Missing parser
     -- evidence remains absent here rather than triggering a spelling scan.
     envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.elementSizeBytes)
-  let observedUnion := fun t : CType =>
+  let observedUnion := fun t : String =>
     (observed.find? (fun row => row.1 == t)).map (·.2.2.tagKind == "union") |>.getD false
   let observedUnionDeclFor := fun (did : DeclarationId) =>
     match ds.find? (fun q => match q with
