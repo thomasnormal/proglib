@@ -427,7 +427,7 @@ def coreMemEventEdge : PEventEdge → ClockEdge → Bool
 
 def coreMemEventFires (old new : SvState) (e : CoreMemEvent) : Bool :=
   match e.edge with
-  | .any => SvState.bit0 old e.signal != SvState.bit0 new e.signal
+  | .any => SvState.lookup old e.signal != SvState.lookup new e.signal
   | .posedge => isPosedge (SvState.bit0 old e.signal) (SvState.bit0 new e.signal)
   | .negedge => isNegedge (SvState.bit0 old e.signal) (SvState.bit0 new e.signal)
 
@@ -3580,6 +3580,19 @@ private def auditW5Complete : PStmt :=
     .blockingAssign "t" (.ident "e")]
 
 #guard coreMemReactiveDependencyViol [.alwaysComb auditW5Complete] == none
+
+/-! An any-change event observes the complete four-state vector, while an
+edge event uses its LSB (§9.4.2).  A change in a higher bit must therefore
+fire `@*` even when bit 0 is unchanged. -/
+#guard coreMemEventFires
+    [("v", LVec.ofNat 2 0)] [("v", LVec.ofNat 2 2)]
+    { signal := "v", edge := .any }
+#guard !(coreMemEventFires
+    [("v", LVec.ofNat 2 0)] [("v", LVec.ofNat 2 2)]
+    { signal := "v", edge := .posedge })
+#guard coreMemEventFires
+    [("v", ⟨#[.l0, .lx]⟩)] [("v", ⟨#[.l0, .lz]⟩)]
+    { signal := "v", edge := .any }
 
 private def auditW4Processes : List PProcess :=
   [.assignL (.arrayElem "m4" [.int 0]) (.arrayElem "m3" [.int 0]),
