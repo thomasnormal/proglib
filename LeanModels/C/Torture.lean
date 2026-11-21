@@ -135,7 +135,7 @@ def torScalarSize : CType → Option Nat
 computation — so resolving through it invents nothing. -/
 def typedefsOf (envl : Envelope) : List (CType × CType) :=
   envl.unit.items.filterMap fun i => match i with
-    | .decl (.typedef _ nm ty _ _) => some (nm, ty)
+    | .decl (.typedef _ nm ty _ _ _) => some (nm, ty)
     | _ => none
 
 def resolve (tds : List (CType × CType)) : Nat → CType → CType
@@ -186,7 +186,7 @@ tables has no size or member offsets, so every use refuses — the honest zero.
 No ABI packing rule is reconstructed from a type spelling. -/
 def recordHasBitfield (fields : List Decl) : Bool :=
   fields.any fun d => match d with
-    | .field _ _ (some _) _ _ _ => true
+    | .field _ _ (some _) _ _ _ _ => true
     | _ => false
 
 def recordHasUnsupported (fields : List Decl) : Bool :=
@@ -209,8 +209,8 @@ def recordHasBlockingUnsupported (fields : List Decl) : Bool :=
 def fieldsOf (fields : List Decl) : Option (List (String × CType)) :=
   if recordHasBitfield fields || recordHasUnsupported fields || fields.isEmpty then none
   else some (fields.filterMap fun d => match d with
-    | .field (some fn) fty _ _ _ _ => some (fn, fty)
-    | .field none _ _ _ _ _ => none
+    | .field (some fn) fty _ _ _ _ _ => some (fn, fty)
+    | .field none _ _ _ _ _ _ => none
     | _ => none)
 
 mutual
@@ -237,7 +237,7 @@ its child declarations so the identity-backed layout table can index nested
 named and anonymous records without reconstructing a type spelling. -/
 mutual
 def declTree : Decl → List Decl
-  | d@(.record _ _ fields _ _) => d :: declsTree fields
+  | d@(.record _ _ fields _ _ _) => d :: declsTree fields
   | d => [d]
 
 def declsTree : List Decl → List Decl
@@ -253,34 +253,34 @@ def allDecls (envl : Envelope) : List Decl :=
 def recordsOf (envl : Envelope) : List (String × List (String × CType) × Bool) :=
   let ds := allDecls envl
   let records := ds.filterMap fun d => match d with
-    | .record _ (some nm) fields (some layout) _ =>
+    | .record _ (some nm) fields (some layout) _ _ =>
         (fieldsOf fields).map (fun fs =>
           ((if layout.tagKind == "union" then "union " else "struct ") ++ nm, fs,
             layout.tagKind == "union"))
-    | .record (some rid) (some nm) fields none _ =>
+    | .record (some rid) (some nm) fields none _ _ =>
         (fieldsOf fields).map (fun fs =>
           (if envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false
            then "union " ++ nm else "struct " ++ nm,
            fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
-    | .record none (some nm) fields none _ =>
+    | .record none (some nm) fields none _ _ =>
         (fieldsOf fields).map (fun fs => (nm, fs, false))
     | _ => none
   let anonymous := ds.filterMap fun d => match d with
-    | .var _ _ ty _ _ (some rid) _ _ =>
+    | .var _ _ ty _ _ (some rid) _ _ _ =>
         match ds.find? (fun q => match q with
-          | .record id none _ _ _ => id == some rid
+          | .record id none _ _ _ _ => id == some rid
           | _ => false) with
-        | some (.record (some rid) none fields _ _) =>
+        | some (.record (some rid) none fields _ _ _) =>
             (fieldsOf fields).map (fun fs =>
               (ty, fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
-        | some (.record none none fields _ _) =>
+        | some (.record none none fields _ _ _) =>
             (fieldsOf fields).map (fun fs => (ty, fs, false))
         | _ => none
-    | .record (some rid) none fields none sp =>
+    | .record (some rid) none fields none sp _ =>
         match ds.find? (fun q => match q with
-          | .typedef _ _ _ _ tsp => tsp.line == sp.line
+          | .typedef _ _ _ _ tsp _ => tsp.line == sp.line
           | _ => false) with
-        | some (.typedef _ nm _ _ _) =>
+        | some (.typedef _ nm _ _ _ _) =>
             (fieldsOf fields).map (fun fs =>
               (if envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false
                then "union " ++ nm else "struct " ++ nm,
@@ -297,7 +297,7 @@ def observedRecordLayouts (envl : Envelope) :
     List (DeclarationId × RecordLayout) :=
   let ds := allDecls envl
   ds.filterMap fun d => match d with
-    | .record (some id) _ _ (some layout) _ => some (id, layout)
+    | .record (some id) _ _ (some layout) _ _ => some (id, layout)
     | _ => none
 
 def observedRecordLayout? (envl : Envelope) (id : DeclarationId) :
@@ -327,13 +327,13 @@ def recordFieldSize (layout : RecordLayout) (field : String) : Option Nat :=
 
 def recordLayoutMatchesFields : List Decl → List RecordLayoutField → Bool
   | [], [] => true
-  | .record _ _ _ _ _ :: .field none _ _ _ _ _ :: ds, field :: fs =>
+  | .record _ _ _ _ _ _ :: .field none _ _ _ _ _ _ :: ds, field :: fs =>
       -- An anonymous aggregate is represented twice by Clang's tree: the
       -- child RecordDecl and its nameless FieldDecl.  The layout dump has
       -- one blank slot for that aggregate, so consume both parser nodes.
       if field.name == "" then recordLayoutMatchesFields ds fs
       else false
-  | .field name _ bits _ _ _ :: ds, field :: fs =>
+  | .field name _ bits _ _ _ _ :: ds, field :: fs =>
       (match name with
        | some nm => field.name == nm
        | none => field.name == "") &&
@@ -343,7 +343,7 @@ def recordLayoutMatchesFields : List Decl → List RecordLayoutField → Bool
        | none, none => true
        | _, _ => false) &&
       recordLayoutMatchesFields ds fs
-  | .record _ _ _ _ _ :: ds, field :: fs =>
+  | .record _ _ _ _ _ _ :: ds, field :: fs =>
       -- Clang emits one blank layout entry for an anonymous aggregate
       -- member.  Consume that entry when the parser child has no named
       -- field of its own.  Named nested records still expose their outer
@@ -361,9 +361,9 @@ def checkedRecordLayout? (fields : List Decl) (layout : RecordLayout) :
       recordLayoutMatchesFields fields layout.fields then some layout else none
 
 #guard recordLayoutMatchesFields
-   [.field (some "a") "int" none none none default,
-   .record none none [] none default,
-   .field (some "b") "int" none none none default]
+   [.field (some "a") "int" none none none default none,
+   .record none none [] none default none,
+   .field (some "b") "int" none none none default none]
   [{ name := "a", offsetBits := 0, bitfield := false },
    { name := "b", offsetBits := 32, bitfield := false }]
 #guard ("union (unnamed at x)".startsWith "union (unnamed")
@@ -380,19 +380,19 @@ def observedRecordFacts (envl : Envelope) :
   let ds := allDecls envl
   let nestedFacts := fun fields : List Decl =>
     fields.flatMap fun child => match child with
-      | .record (some childRecordId) none nested (some layout) childSpan =>
+      | .record (some childRecordId) none nested (some layout) childSpan _ =>
           match fields.find? (fun f => match f with
-            | .field _ _ty _ _ (some rid) fspan =>
+            | .field _ _ty _ _ (some rid) fspan _ =>
                 rid == childRecordId ||
                   (fspan.line == childSpan.line && fspan.col == childSpan.col)
-            | .field _ _ty _ _ none fspan =>
+            | .field _ _ty _ _ none fspan _ =>
                 fspan.line == childSpan.line && fspan.col == childSpan.col
             | _ => false) with
-          | some (.field _ ty _ _ _ _) =>
+          | some (.field _ ty _ _ _ _ _) =>
               match checkedRecordLayout? nested layout with
               | some checked =>
                   let members := nested.filterMap fun field => match field with
-                    | .field name mty _ _ _ _ => some (name.getD "", mty)
+                    | .field name mty _ _ _ _ _ => some (name.getD "", mty)
                     | _ => none
                   let keyTy := ty
                   [(keyTy, members, checked)]
@@ -401,10 +401,10 @@ def observedRecordFacts (envl : Envelope) :
       | _ => []
   let nestedFacts2 := fun fields : List Decl =>
     nestedFacts fields ++ fields.flatMap (fun child => match child with
-      | .record _ _ nested _ _ => nestedFacts nested
+      | .record _ _ nested _ _ _ => nestedFacts nested
       | _ => [])
   let facts := ds.filterMap fun d => match d with
-    | .record (some recordId) (some nm) fields (some _) _ =>
+    | .record (some recordId) (some nm) fields (some _) _ _ =>
         match observedRecordLayout? envl recordId |>.bind (checkedRecordLayout? fields) with
         | none => none
         | some checked =>
@@ -412,19 +412,19 @@ def observedRecordFacts (envl : Envelope) :
             else
               let tag := if checked.tagKind == "union" then "union " else "struct "
               let members := fields.filterMap fun field => match field with
-                | .field name ty _ _ _ _ => some (name.getD "", ty)
+                | .field name ty _ _ _ _ .. => some (name.getD "", ty)
                 | _ => none
               some (tag ++ nm, members, checked)
-    | .record (some recordId) none fields (some layout) sp =>
+    | .record (some recordId) none fields (some layout) sp .. =>
         -- Clang gives an anonymous record its declaration identity and
         -- parser-native layout, while the typedef on the same source line
         -- supplies the language-visible type name.  Join those two AST
         -- declarations by their frontend span; never infer a name from
         -- source text or ABI spelling.
         let varTy? := ds.find? (fun q => match q with
-          | .var _ _ _ _ _ (some rid) _ _ => rid == recordId
+          | .var _ _ _ _ _ (some rid) _ _ .. => rid == recordId
           | _ => false) |>.bind (fun q => match q with
-            | .var _ _ ty _ _ _ _ _ => some ty
+            | .var _ _ ty _ _ _ _ _ .. => some ty
             | _ => none)
         match varTy? with
         | some ty =>
@@ -434,22 +434,22 @@ def observedRecordFacts (envl : Envelope) :
                 if recordHasBlockingUnsupported fields then none
                 else
                   let members := fields.filterMap fun field => match field with
-                    | .field name ty _ _ _ _ => some (name.getD "", ty)
+                    | .field name ty _ _ _ _ .. => some (name.getD "", ty)
                     | _ => none
                   let keyTy := ty
                   some (keyTy, members, checked)
         | none => match ds.find? (fun q => match q with
-          | .typedef _ nm ty _ tsp =>
+          | .typedef _ nm ty _ tsp .. =>
               tsp.line == sp.line && (ty == "struct " ++ nm || ty == "union " ++ nm)
           | _ => false) with
-        | some (.typedef _ nm _ _ _) =>
+        | some (.typedef _ nm _ _ _ ..) =>
             match checkedRecordLayout? fields layout with
             | none => none
             | some checked =>
                 if recordHasBlockingUnsupported fields then none
                 else
                   let members := fields.filterMap fun field => match field with
-                    | .field name ty _ _ _ _ => some (name.getD "", ty)
+                    | .field name ty _ _ _ _ .. => some (name.getD "", ty)
                     | _ => none
                   let tag := if checked.tagKind == "union" then "union " else "struct "
                   some (tag ++ nm, members, checked)
@@ -457,7 +457,7 @@ def observedRecordFacts (envl : Envelope) :
         | none => none
     | _ => none
   facts ++ ds.flatMap (fun d => match d with
-    | .record _ _ fields _ _ => nestedFacts2 fields
+    | .record _ _ fields _ _ _ => nestedFacts2 fields
     | _ => [])
 
 
@@ -532,9 +532,9 @@ def layoutFor (envl : Envelope) : Layout :=
   let declFieldOff := fun did f =>
     let recordFact := fun (rid : DeclarationId) =>
       match ds.find? (fun q : Decl => match q with
-        | .record (some rrid) _ _ _ _ => rrid == rid
+        | .record (some rrid) _ .. => rrid == rid
         | _ => false) with
-      | some (.record (some rrid) _ fields _ _) =>
+      | some (.record (some rrid) _ fields ..) =>
           match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
           | some checked =>
               checked.fields.find? (fun field : RecordLayoutField => field.name == f)
@@ -543,28 +543,28 @@ def layoutFor (envl : Envelope) : Layout :=
       | _ => none
     recordFact did |>.orElse (fun _ =>
       match ds.find? (fun q : Decl => match q with
-        | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did
+        | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did
         | _ => false) with
-      | some (.var _ _ _ _ _ (some rid) _ _) => recordFact rid
+      | some (.var _ _ _ _ _ (some rid) _ _ _) => recordFact rid
       | _ => structuredRecordIdFor did |>.bind (fun rid => recordFact rid))
   let parentRecordIdFor := fun did =>
     if (observedRecordLayout? envl did).isSome then some did else
       match ds.find? (fun q => match q with
-        | .var (some vid) _ _ _ _ rid _ _ => vid == did && rid.isSome
+        | .var (some vid) _ _ _ _ rid _ _ _ => vid == did && rid.isSome
         | _ => false) with
-      | some (.var _ _ _ _ _ (some rid) _ _) => some rid
+      | some (.var _ _ _ _ _ (some rid) _ _ _) => some rid
       | _ => structuredRecordIdFor did
   let memberRecordDeclFor := fun (did : DeclarationId) (fieldName : String) =>
     match parentRecordIdFor did with
     | some parentId =>
         match ds.find? (fun q => match q with
-          | .record (some rid) _ _ _ _ => rid == parentId
+          | .record (some rid) _ .. => rid == parentId
           | _ => false) with
-        | some (.record _ _ fields _ _) =>
+        | some (.record _ _ fields ..) =>
             match fields.find? (fun field => match field with
-              | .field (some name) _ _ _ _ _ => name == fieldName
+              | .field (some name) _ _ _ _ _ _ => name == fieldName
               | _ => false) with
-            | some (.field _ _ _ (some fieldId) _ _) =>
+            | some (.field _ _ _ (some fieldId) _ _ _) =>
                 match (envl.structuredTypeFor fieldId).map LeanModels.Clang.QualType.unqualified with
                 | some (.record handle) => some { value := handle.value }
                 | _ => none
@@ -574,12 +574,12 @@ def layoutFor (envl : Envelope) : Layout :=
   let observedMembersDeclFor := fun (did : DeclarationId) =>
     let fromRecord := fun (rid : DeclarationId) =>
       match ds.find? (fun q => match q with
-        | .record (some rrid) _ _ _ _ => rrid == rid
+        | .record (some rrid) _ .. => rrid == rid
         | _ => false) with
-      | some (.record (some rrid) _ fields _ _) =>
+      | some (.record (some rrid) _ fields ..) =>
           match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
           | some _ => some (fields.filterMap fun field => match field with
-              | .field name mty _ _ _ _ => some (name.getD "", mty)
+              | .field name mty _ _ _ _ _ => some (name.getD "", mty)
               | _ => none)
           | none => none
       | _ => none
@@ -589,13 +589,13 @@ def layoutFor (envl : Envelope) : Layout :=
     | some (.record handle) => fromRecord {value := handle.value}
     | _ =>
       match ds.find? (fun q => match q with
-        | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+        | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
             ds.any (fun r => match r with
-              | .record (some rrid) _ fields (some layout) _ =>
+              | .record (some rrid) _ fields (some layout) _ _ .. =>
                   rrid == rid && (checkedRecordLayout? fields layout).isSome
               | _ => false)
         | _ => false) with
-      | some (.var _ _ _ _ _ (some rid) _ _) => fromRecord rid
+      | some (.var _ _ _ _ _ (some rid) _ _ _) => fromRecord rid
       | _ => none
   -- Feed checked parser-native records into the structural array/typedef
   -- fallback too.  An anonymous typedef such as `Data` has no named
@@ -618,30 +618,30 @@ def layoutFor (envl : Envelope) : Layout :=
     | none => none
   let observedFieldSizeDeclFor := fun (did : DeclarationId) (f : String) =>
     match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
           ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ => rrid == rid
+            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
             | _ => false)
       | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _) =>
+    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
         match ds.find? (fun q => match q with
-          | .record (some rrid) _ _ (some _) _ => rrid == rid
+          | .record (some rrid) _ _ (some _) _ _ => rrid == rid
           | _ => false) with
-        | some (.record _ _ _ (some layout) _) => recordFieldSize layout f
+        | some (.record _ _ _ (some layout) ..) => recordFieldSize layout f
         | _ => none
     | _ => none
   let observedFieldBitsDeclFor := fun (did : DeclarationId) (f : String) =>
     match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
           ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ => rrid == rid
+            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
             | _ => false)
       | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _) =>
+    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
         match ds.find? (fun q => match q with
-          | .record (some rrid) _ _ (some _) _ => rrid == rid
+          | .record (some rrid) _ _ (some _) _ _ => rrid == rid
           | _ => false) with
-        | some (.record (some rrid) _ _ _ _) =>
+        | some (.record (some rrid) _ _ _ ..) =>
             match observedRecordLayout? envl rrid with
             | some layout =>
                 layout.fields.find? (fun field => field.name == f)
@@ -658,16 +658,16 @@ def layoutFor (envl : Envelope) : Layout :=
           |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width))))
   let observedFlexibleDeclFor := fun (did : DeclarationId) (f : String) =>
     match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
           ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ => rrid == rid
+            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
             | _ => false)
       | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _) =>
+    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
         match ds.find? (fun q => match q with
-          | .record (some rrid) _ _ _ _ => rrid == rid
+          | .record (some rrid) _ .. => rrid == rid
           | _ => false) with
-        | some (.record (some rrid) _ _ _ _) =>
+        | some (.record (some rrid) _ _ _ ..) =>
             match observedRecordLayout? envl rrid with
             | some layout => layout.fields.find? (fun field => field.name == f)
                 |>.map (·.incompleteArray) |>.getD false
@@ -686,20 +686,20 @@ def layoutFor (envl : Envelope) : Layout :=
     | none => none
   let observedFieldOffTypeDeclFor := fun (did : DeclarationId) (memberTy : CType) =>
     match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
           ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ => rrid == rid
+            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
             | _ => false)
       | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _) =>
+    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
         match ds.find? (fun q => match q with
-          | .record (some rrid) _ fields (some layout) _ => rrid == rid
+          | .record (some rrid) _ fields (some layout) _ _ .. => rrid == rid
           | _ => false) with
-        | some (.record (some rrid) _ fields (some _) _) =>
+        | some (.record (some rrid) _ fields (some _) ..) =>
             match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields ·) with
             | some layout =>
                 let members := fields.filterMap fun field => match field with
-                  | .field name mty _ _ _ _ => some (name.getD "", mty)
+                  | .field name mty _ _ _ _ _ => some (name.getD "", mty)
                   | _ => none
                 let rec seekDecl : List (String × CType) → List RecordLayoutField → Option Nat
                   | (_, ty) :: ms, field :: fs =>
@@ -745,16 +745,16 @@ def layoutFor (envl : Envelope) : Layout :=
     (recsWithObserved.find? (fun row => row.1 == t)).map (·.2.2) |>.getD false
   let observedUnionDeclFor := fun (did : DeclarationId) =>
     match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ => vid == did &&
+      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
           ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ => rrid == rid
+            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
             | _ => false)
       | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _) =>
+    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
         match ds.find? (fun q => match q with
-          | .record (some rrid) _ _ _ _ => rrid == rid
+          | .record (some rrid) _ .. => rrid == rid
           | _ => false) with
-        | some (.record (some rrid) _ fields (some _) _) =>
+        | some (.record (some rrid) _ fields (some _) ..) =>
             match observedRecordLayout? envl rrid with
             | some layout =>
                 (checkedRecordLayout? fields layout).map (·.tagKind == "union") |>.getD false
@@ -917,7 +917,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
   | [], acc, ids => pure (acc, ids)
   | d :: ds, acc, ids =>
     match d with
-    | .var declaration nm ty storage init _recordId _vaList _ =>
+    | .var declaration nm ty storage init _recordId _vaList _ _ =>
         match acc.lookup? nm with
         | some o =>
             let ids' := match declaration with
@@ -972,7 +972,7 @@ every function frame inherits.  `declare` then only binds the local spelling
 to that existing object on each invocation. -/
 def staticDecls (envl : Envelope) : List LeanModels.C.Decl :=
   (allDecls envl).filter fun d => match d with
-    | .var _ _ _ (some "static") _ _ _ _ => true
+    | .var _ _ _ (some "static") _ _ _ _ _ => true
     | _ => false
 
 def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
@@ -980,7 +980,7 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
   | [], acc, ids => pure (acc, ids)
   | d :: ds, acc, ids =>
     match d with
-    | .var (some declaration) nm ty _ init _ _ _ => do
+    | .var (some declaration) nm ty _ init _ _ _ _ => do
         match lay.sizeAt (some declaration) ty with
         | none => refuseUnsupported s!"no layout for declared type '{ty}'"
         | some sz => do
@@ -1000,7 +1000,7 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
                 initObject fuel ({ env := acc, idEnv := ids', layout := lay } : Ctx).withCompoundInit
                   (Ptr.toObject o) ty e none declaration
                 setupStaticsWithIds fuel lay ds acc ids'
-    | .var none _ _ _ _ _ _ _ => setupStaticsWithIds fuel lay ds acc ids
+    | .var none _ _ _ _ _ _ _ _ => setupStaticsWithIds fuel lay ds acc ids
     | _ => setupStaticsWithIds fuel lay ds acc ids
 
 /-- **THE ORACLE-TESTS-COMPILER SHAPE, re-derived from the ingested AST.**

@@ -758,7 +758,7 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
   | _, ctx, [] => pure ctx
   | fuel + 1, ctx, d :: ds =>
     match d with
-    | .var id name ty storage init _recordId vaList _ => do
+    | .var id name ty storage init _recordId vaList _ structuredType => do
         if storage == some "static" then
           match id with
           | some declaration =>
@@ -779,8 +779,7 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             let m ← get
             let dur := if storage == some "static" then Duration.static_ else Duration.automatic
             let storageTy := ctx.layout.storageTypeAt id ty
-            let (m', o) := m.allocStructured dur sz storageTy
-              (id.bind ctx.layout.structuredTypeDecl)
+            let (m', o) := m.allocStructured dur sz storageTy structuredType
             set m'
             let idEnv' := match id with
               | some declaration => (declaration, o) :: ctx.idEnv
@@ -791,11 +790,10 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             | none => declare fuel ctx' ds
             | some e => do
                 -- §6.7.11 — scalar or aggregate, one entry point.
-                initObject fuel ctx' (Ptr.toObject o) ty e
-                  (id.bind ctx.layout.structuredTypeDecl) id
+                initObject fuel ctx' (Ptr.toObject o) ty e structuredType id
                 declare fuel ctx' ds
     | .empty _ => declare fuel ctx ds
-    | .record _ _ _ _ _ | .enum _ _ _ | .typedef _ _ _ _ _ =>
+    | .record .. | .enum .. | .typedef .. =>
         declare fuel ctx ds
     | _ => refuseUnsupported "non-object declaration in a block"
 
@@ -875,7 +873,7 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
   | _, _ :: _, [] => refuseUnsupported "fewer arguments than parameters"
   | ctx, d :: ps, v :: vs =>
     match d with
-    | .param id n ty vaList _ =>
+    | .param id n ty vaList _ structuredType =>
         match if vaList then some 1 else lay.sizeAt id ty with
         | none => refuseUnsupported s!"no layout for parameter type '{ty}'"
         | some sz => do
@@ -889,11 +887,10 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
             -- claimed, so it is not taken.)
             let m ← get
             let storageTy := lay.storageTypeAt id ty
-            let (m', o) := m.allocStructured .automatic sz storageTy
-              (id.bind lay.structuredTypeDecl)
+            let (m', o) := m.allocStructured .automatic sz storageTy structuredType
             set m'
             liftEval (storeAt Mem.cAliasModel (Ptr.toObject o) (lay.normalizeTy ty) v
-              (id.bind lay.structuredTypeDecl))
+              structuredType)
             -- …and the ONLY difference an unnamed parameter makes is that
             -- no identifier denotes the object, which in this model is
             -- exactly one thing: no environment entry. This is the single
@@ -914,8 +911,8 @@ those bound side effects.  This structural shape is the small registered
 route's conservative guard: refuse it before the body rather than inventing
 the missing parser fact. -/
 def hasUnretainedParamArrayEffects (lay : Layout) : List LeanModels.C.Decl → Bool
-  | .param id _ ty _ _ :: .param id' _ pty _ _ ::
-      .param id₂ _ ty₂ _ _ :: .param id₂' _ pty₂ _ _ :: _ =>
+  | .param id _ ty _ _ .. :: .param id' _ pty _ _ .. ::
+      .param id₂ _ ty₂ _ _ .. :: .param id₂' _ pty₂ _ _ .. :: _ =>
       !structuredPointerObject (id.bind lay.structuredType) ty &&
       structuredPointerObject (id'.bind lay.structuredType) pty &&
       !structuredPointerObject (id₂.bind lay.structuredType) ty₂ &&
@@ -925,7 +922,7 @@ def hasUnretainedParamArrayEffects (lay : Layout) : List LeanModels.C.Decl → B
 def hasUnnamedPointerParam (lay : Layout) : List LeanModels.C.Decl → Bool
   | d :: ps =>
       match d with
-      | .param (some id) none ty _ _ =>
+      | .param (some id) none ty _ _ .. =>
           let isPointer := structuredPointerObject (lay.structuredType id) ty
           isPointer || hasUnnamedPointerParam lay ps
       | _ => hasUnnamedPointerParam lay ps
@@ -939,8 +936,8 @@ def stmtCallFree (s : Stmt) : Bool :=
   s.substmts.all (fun sub => sub.ownExprs.all Expr.isPure)
 
 def Decl.identity? : Decl → Option DeclarationId
-  | .var id _ _ _ _ _ _ _ => id
-  | .param id _ _ _ _ => id
+  | .var id .. => id
+  | .param id .. => id
   | _ => none
 
 def Stmt.localIds (s : Stmt) : List DeclarationId :=

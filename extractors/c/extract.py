@@ -1135,6 +1135,21 @@ def extract(path, source_name=None, standard="c23"):
             structured_rows.append({"decl_id": decl_id,
                                     "type": join_type(record["type"])})
 
+    structured_by_decl = {row["decl_id"]: row["type"] for row in structured_rows}
+    def attach_decl_type(value):
+        if isinstance(value, dict):
+            out = {key: attach_decl_type(item) for key, item in value.items()}
+            if value.get("kind") in {"FunctionDecl", "VarDecl", "ParmVarDecl", "FieldDecl",
+                                      "RecordDecl", "TypedefDecl", "EnumDecl", "EnumConstantDecl"}:
+                decl_id = value.get("decl_id")
+                if decl_id in structured_by_decl:
+                    out["structured_type"] = structured_by_decl[decl_id]
+            return out
+        if isinstance(value, list):
+            return [attach_decl_type(item) for item in value]
+        return value
+    top = [attach_decl_type(item) for item in top]
+
     duplicate = duplicate_structured_decl(structured_rows)
     if duplicate is not None:
         die("structured type observations duplicate declaration identity %r" % duplicate)
