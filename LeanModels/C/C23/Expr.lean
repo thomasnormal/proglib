@@ -608,7 +608,7 @@ def directDeclId : Expr → Option DeclarationId
   | .paren sub _ _ .. => directDeclId sub
   | _ => none
 
-/-- Resolve bit-field facts through the parser-native declaration key first. -/
+/-- Resolve bit-field facts through parser-native declaration identity. -/
 def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
     Option (Nat × Nat) :=
   (directDeclId base).bind (fun did => layout.fieldBitsDecl did field)
@@ -617,70 +617,54 @@ def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
         match structured.unqualified with
         | .record handle => layout.fieldBitsDecl { value := handle.value } field
         | _ => none))
-    |>.orElse (fun _ => layout.fieldBits base.ty field)
 
-/-- Resolve bit-field facts from an aggregate declaration before its legacy
-type-keyed table. -/
+
+/-- Resolve bit-field facts from parser-native aggregate declaration identity. -/
 def Layout.fieldBitsDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) (field : String) : Option (Nat × Nat) :=
   decl.bind (fun did => layout.fieldBitsDecl did field)
-    |>.orElse (fun _ => layout.fieldBits ty field)
 
-/-- Resolve flexible-array membership from an aggregate declaration before
-its legacy type-keyed table. -/
+/-- Resolve flexible-array membership from parser-native declaration identity. -/
 def Layout.flexibleFieldDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) (field : String) : Bool :=
   match decl with
   | some did =>
-      if layout.flexibleFieldDecl did field then true
-      else layout.flexibleField ty field
-  | none => layout.flexibleField ty field
+      layout.flexibleFieldDecl did field
+  | none => false
 
-/-- Resolve a member extent through the parser declaration identity before the
-spelling fallback. A structured record observation makes the declaration
-identity authoritative for both offset and extent. -/
+/-- Resolve a member extent through parser-native declaration identity. -/
 def Layout.fieldSizeAt (layout : Layout) (base : Expr) (field : String) :
     Option Nat :=
   (directDeclId base).bind (fun did => layout.fieldSizeDecl did field)
-    |>.orElse (fun _ => layout.fieldSize base.ty field)
 
-/-- Resolve a named member offset through the declaration identity of its
-base object before the legacy type-keyed offset table. -/
+/-- Resolve a named member offset through parser-native base declaration identity. -/
 def Layout.fieldOffAt (layout : Layout) (base : Expr) (field : String) :
     Option Nat :=
   (directDeclId base).bind (fun did => layout.fieldOffDecl did field)
-    |>.orElse (fun _ => layout.fieldOff base.ty field)
 
-/-- Resolve a member offset from an object's declaration identity before the
-legacy type-keyed table.  Aggregate initialization has no base expression, so
-its declaration identity is passed explicitly. -/
+/-- Resolve a member offset from an object's parser-native declaration identity.
+Aggregate initialization has no base expression, so its declaration identity
+is passed explicitly. -/
 def Layout.fieldOffDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) (field : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffDecl did field)
-    |>.orElse (fun _ => layout.fieldOff ty field)
 
-/-- Resolve an anonymous-member offset through the base declaration before
-the legacy type-keyed anonymous-member table. -/
+/-- Resolve an anonymous-member offset through parser-native base declaration identity. -/
 def Layout.fieldOffTypeDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty fieldTy : CType) : Option Nat :=
   decl.bind (fun did => layout.fieldOffTypeDecl did fieldTy)
-    |>.orElse (fun _ => layout.fieldOffType ty fieldTy)
 
-/-- Resolve a member extent from parser-native facts, then from the declared
-field type, with the legacy field-size table as the final fallback. -/
+/-- Resolve a member extent from parser-native member facts. -/
 def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field : String) (fieldTy : CType)
     (recordLike : Bool) : Option Nat :=
   if recordLike then
-    layout.fieldSizeAt base field |>.orElse
-      (fun _ => layout.size (layout.normalizeTy fieldTy))
+    layout.fieldSizeAt base field
   else
-    (layout.size (layout.normalizeTy fieldTy)).orElse
-      (fun _ => layout.fieldSizeAt base field)
+    layout.fieldSizeAt base field
 
 def Layout.arrayElementSizeAt (layout : Layout) (arrayTy elementTy : CType) :
     Option Nat :=
-  layout.arrayElementSize arrayTy |>.orElse
-    (fun _ => layout.size (layout.normalizeTy elementTy))
+  layout.arrayElementSize arrayTy
 
 def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
     Option Nat :=
@@ -689,7 +673,7 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
       |>.bind (LeanModels.Clang.QualType.resolveTypedefs
         (fun declaration => layout.structuredType { value := declaration.value }) 32)
       |>.bind objectSizeOfStructured)
-    |>.orElse (fun _ => layout.size (layout.normalizeTy ty))
+
 
 /-- Resolve the byte size needed by an expression load through the
 declaration identity carried by that expression before consulting the
@@ -774,11 +758,10 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
       | .array _ none | _ => none
   | none => layout.elem ty
 
-/-- Resolve aggregate member order from the object's declaration before the
-legacy type-keyed member table. -/
+/-- Resolve aggregate member order from parser-native object declaration identity. -/
 def Layout.membersDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) : Option (List (String × CType)) :=
-    decl.bind layout.membersDecl |>.orElse (fun _ => layout.members ty)
+    decl.bind layout.membersDecl
 
 /-- Resolve a nested record's declaration identity from the parent object and
 field name. Missing identity remains an explicit absence. -/
@@ -786,13 +769,12 @@ def Layout.memberRecordDeclAt (layout : Layout) (decl : Option DeclarationId)
     (field : String) : Option DeclarationId :=
   decl.bind (fun did => layout.memberRecordDecl did field)
 
-/-- Resolve union classification from the object's declaration before the
-legacy type-keyed record tag table. -/
+/-- Resolve union classification from parser-native object declaration identity. -/
 def Layout.isUnionDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) : Bool :=
   match decl with
-  | some did => layout.isUnionDecl did || layout.isUnion ty
-  | none => layout.isUnion ty
+  | some did => layout.isUnionDecl did
+  | none => false
 
 
 /-- Effective-type metadata for a declaration allocation.  Parser-native
@@ -811,7 +793,6 @@ def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : CType) :
     Option Nat :=
   base.bind (fun expression =>
     (directDeclId expression).bind layout.pointeeSizeDecl)
-    |>.orElse (fun _ => layout.pointeeSize ty)
     |>.orElse (fun _ =>
       base.bind (layout.structuredTypeAt ·)
         |>.bind LeanModels.Clang.QualType.pointee
