@@ -821,7 +821,7 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
             | none => setupStaticsWithIds fuel lay ds acc ids'
             | some e => do
                 initObject fuel ({ env := acc, idEnv := ids', layout := lay } : Ctx).withCompoundInit
-                  (Ptr.toObject o) ty e none declaration
+                  (Ptr.toObject o) ty e (some declaration |>.bind lay.structuredTypeDecl) declaration
                 setupStaticsWithIds fuel lay ds acc ids'
     | .var none _ _ _ _ _ _ _ _ => setupStaticsWithIds fuel lay ds acc ids
     | _ => setupStaticsWithIds fuel lay ds acc ids
