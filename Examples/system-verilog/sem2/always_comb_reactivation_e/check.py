@@ -4,7 +4,6 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-import os
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
@@ -69,9 +68,7 @@ def tb(case):
 
 
 def source_rows(case, simulator):
-    scratch = Path(os.environ.get("TMPDIR", "/scratch/thomas-ahle/gate/ls-sv/tmp"))
-    scratch.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="sv-comb-reactivation-", dir=scratch) as work:
+    with tempfile.TemporaryDirectory(prefix=".sv-comb-reactivation-", dir=ROOT) as work:
         work = Path(work)
         tb_path = work / "tb.sv"
         tb_path.write_text(tb(case))
