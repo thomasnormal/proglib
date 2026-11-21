@@ -94,7 +94,46 @@ theorem picorv32_regs_quiet_read_step {E : CoreMemDesign} (hE : regs.e = .ok E)
     isPosedge_self, seqK_index?, hmv, LVec.resizeU_of_width]
   all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv]
 
+/-! A rising-edge write row of the loaded register-file leaf.  The source uses
+    `~waddr[4:0]`, so address one writes memory index 30.  The simultaneous
+    read of that index observes the NBA value, while the read of index 29
+    observes its previous memory value. -/
+
+private def picorv32_regs_write_view (c wen wa ra1 ra2 wd rd1 rd2 : LVec) : SvState :=
+  [("clk", c), ("wen", wen), ("waddr", wa), ("raddr1", ra1), ("raddr2", ra2), ("wdata", wd),
+   ("rdata1", rd1), ("rdata2", rd2)]
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 4000000 in
+theorem picorv32_regs_write_read_step {E : CoreMemDesign} (hE : regs.e = .ok E)
+    (wd rd1 rd2 : LVec) (mv : MemV) (hwd : wd.width = 32)
+    (hrd1 : rd1.width = 32) (hrd2 : rd2.width = 32)
+    (hmv : ∀ k, (mv "regs" k).width = 32) :
+    E.slotV (picorv32_regs_write_view (LVec.ofNat 1 0) (LVec.ofNat 1 1)
+        (LVec.ofNat 6 1) (LVec.ofNat 6 1) (LVec.ofNat 6 2) wd rd1 rd2) mv
+        [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 1), ("waddr", LVec.ofNat 6 1),
+         ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd)] =
+      .ok (picorv32_regs_write_view (LVec.ofNat 1 1) (LVec.ofNat 1 1)
+        (LVec.ofNat 6 1) (LVec.ofNat 6 1) (LVec.ofNat 6 2) wd wd
+        (memRd mv "regs" (some 29) 32),
+        memWrite mv "regs" (some 30) wd) := by
+  obtain ⟨E', hE', hP, hO⟩ := (show SeqDesignI regs.e by sv_structure)
+  rw [hE] at hE'
+  cases hE'
+  sv_seq_inst [regs.e, regs.pdesign] at hE
+  sv_seq_cycle hcyc : E.slotV (picorv32_regs_write_view (LVec.ofNat 1 0) (LVec.ofNat 1 1)
+      (LVec.ofNat 6 1) (LVec.ofNat 6 1) (LVec.ofNat 6 2) wd rd1 rd2) mv
+      [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 1), ("waddr", LVec.ofNat 6 1),
+       ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd)] using hE
+      [picorv32_regs_write_view, hwd, hrd1, hrd2, regs_evalSized_not_signal]
+  rw [hcyc]
+  have hpos : isPosedge (LVec.ofBitVec 0#1).bits[0] (LVec.ofBitVec 1#1).bits[0] = true := by rfl
+  simp [hpos, picorv32_regs_write_view, memRd, memIss, commitMemV,
+    seqK_index?, hmv, LVec.resizeU_of_width]
+  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge]
+
 #print axioms picorv32_regs_wdata_undriven
 #print axioms picorv32_regs_quiet_read_step
+#print axioms picorv32_regs_write_read_step
 
 end Examples.«system-verilog».cores.picorv32
