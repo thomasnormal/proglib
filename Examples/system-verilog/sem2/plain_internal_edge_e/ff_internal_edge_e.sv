@@ -1,4 +1,4 @@
-module ff_internal_edge_e(input logic clk, d, output logic g, q);
+module ff_internal_edge_e(input logic clk, d, e, output logic g, q);
   always_ff @(posedge clk) g <= d;
-  always_ff @(posedge g) q <= 1'b1;
+  always_ff @(posedge g) q <= e;
 endmodule

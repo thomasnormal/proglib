@@ -866,6 +866,64 @@ theorem CoreMemProc.events_eq (p : CoreMemProc) :
 /-- **The edge processes of a design**, in process order (a plain `always` on one clock edge read as one). -/
 def CoreMemDesign.edgeProcs (E : CoreMemDesign) : List CoreMemEdge := E.processes.toList.filterMap CoreMemProc.edge?
 
+/-- The old follow-up test that scanned only the normalized edge-process view. -/
+def CoreMemDesign.firesEdges (E : CoreMemDesign) (a b : SvState) : Bool :=
+  E.edgeProcs.any (fun f => f.fires a b)
+
+/-- Every retained event process is one of the clock-edge forms admitted by `edge?`.
+This is the condition under which the process-wide follow-up test is exactly the
+old edge-process test. -/
+def CoreMemDesign.allEventsAreEdges (E : CoreMemDesign) : Prop :=
+  ∀ evs body, CoreMemProc.event evs body ∈ E.processes.toList →
+    ∃ f, coreMemEventEdge? evs body = some f
+
+/-- **R13 conservativity**: when a design has no non-edge plain `always` event,
+the broadened in-slot follow-up test is equal to the former edge-only test. -/
+theorem CoreMemDesign.firesAny_eq_firesEdges_of_allEventsAreEdges
+    {E : CoreMemDesign} {a b : SvState} (hall : E.allEventsAreEdges) :
+    E.firesAny a b = E.firesEdges a b := by
+  unfold CoreMemDesign.firesAny CoreMemDesign.firesEdges CoreMemDesign.edgeProcs
+  have aux : ∀ (ps : List CoreMemProc),
+      (∀ p ∈ ps, p.edge? = none → CoreMemProc.firesIn a b p = false) →
+      ps.any (CoreMemProc.firesIn a b) =
+        (List.filterMap CoreMemProc.edge? ps).any (fun f => f.fires a b) := by
+    intro ps
+    induction ps with
+    | nil => intro _; simp
+    | cons p ps ih =>
+      intro hp
+      have htail : ∀ q ∈ ps, q.edge? = none → CoreMemProc.firesIn a b q = false := by
+        intro q hq hn
+        exact hp q (by simp [hq]) hn
+      have iht := ih htail
+      cases p with
+      | edge f => simp [CoreMemProc.edge?, CoreMemProc.firesIn, iht]
+      | event evs body =>
+          cases he : coreMemEventEdge? evs body with
+          | none =>
+              have hzero := hp (.event evs body) (by simp)
+                (by simp [CoreMemProc.edge?, he])
+              have hfalse : coreMemEventsFire a b evs = false := by
+                simpa [CoreMemProc.firesIn] using hzero
+              simp [CoreMemProc.edge?, CoreMemProc.firesIn, he, hfalse, iht]
+          | some f =>
+              have hfire := coreMemEventEdge?_spec he a b |>.1
+              simp [CoreMemProc.edge?, CoreMemProc.firesIn, he, hfire, iht]
+      | assign target value => simp [CoreMemProc.edge?, CoreMemProc.firesIn, iht]
+      | primitive op target inputs => simp [CoreMemProc.edge?, CoreMemProc.firesIn, iht]
+      | initial body => simp [CoreMemProc.edge?, CoreMemProc.firesIn, iht]
+      | _ => simp [CoreMemProc.edge?, CoreMemProc.firesIn, iht]
+  apply aux E.processes.toList
+  intro p hp hn
+  cases p with
+  | event evs body =>
+      obtain ⟨f, hf⟩ := hall evs body hp
+      simp [CoreMemProc.edge?, hf] at hn
+  | edge f => simp [CoreMemProc.edge?] at hn
+  | _ => simp [CoreMemProc.firesIn]
+
+#print axioms CoreMemDesign.firesAny_eq_firesEdges_of_allEventsAreEdges
+
 theorem CoreMemDesign.mem_edgeProcs {E : CoreMemDesign} {f : CoreMemEdge} :
     f ∈ E.edgeProcs ↔ ∃ p ∈ E.processes.toList, p.edge? = some f := by
   simp [CoreMemDesign.edgeProcs, List.mem_filterMap]

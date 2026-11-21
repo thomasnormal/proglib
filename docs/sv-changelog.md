@@ -1,5 +1,15 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Internal-edge follow-up receipt — 2026-11-21
+
+The R13 source-shaped receipt now makes the second `posedge g` process capture a
+changing `e` input. Its 21-row runner covers `0→x`, `0→z`, `x→1`, `z→1`,
+`1→x`, and `x→z`, with x/z data and clock values, and matches Icarus Verilog
+13.0 and Xcelium 24.03-s004 for the plain `always` and `always_ff` twins.
+The clocked theory also proves that the broadened process-wide follow-up test
+reduces to the former edge-only test when every retained event is an admitted
+edge form.
+
 ## Complete-vector any-change events — 2026-11-21
 
 Canonical E now compares the complete four-state vector for a plain any-change
