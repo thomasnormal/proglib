@@ -316,6 +316,13 @@ def initObject : Nat → Ctx → Ptr → String → Expr →
         let bytes? := match decoded with
           | some bs => some (bs.map (fun b => CByte.conc (UInt8.ofNat b)))
           | none => (plainStringBytes value).map (fun bs => bs ++ [CByte.conc 0])
+        let structuredCharArray := structured.bind fun q =>
+          match q.unqualified with
+          | .array element (some n) =>
+              match intTyOfStructured element with
+              | some t => if t.bits == 8 then some n else none
+              | none => none
+          | _ => none
         match ctx.layout.elemDeclAt declaration ty, bytes? with
         | some (et, n), some bytes =>
             let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
@@ -346,7 +353,16 @@ def initObject : Nat → Ctx → Ptr → String → Expr →
                       liftEval (writeMem (fun m => m.storeBytes p padded))
                     else refuseUnsupported "wide string literal has incomplete element bytes"
                 | none => refuseUnsupported "wide string literal lacks element layout"
-        | _, _ => do
+        | _, some bytes =>
+            match structuredCharArray with
+            | some n =>
+                let copied := bytes.take n
+                let padded := copied ++ List.replicate (n - copied.length) (CByte.conc 0)
+                liftEval (writeMem (fun m => m.storeBytes p padded))
+            | none => do
+                let v ← evalE ctx (.strLit value decoded ty default none)
+                liftEval (storeAt Mem.cAliasModel p ty v structured)
+        | _, none => do
             let v ← evalE ctx (.strLit value decoded ty default none)
             liftEval (storeAt Mem.cAliasModel p ty v structured)
     -- §6.7.11p11 — a scalar initializer is a single expression.
