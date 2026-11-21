@@ -1780,7 +1780,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 if t != IntTy.ulong then
                   refuseUnsupported "__sync_add_and_fetch_8: destination is not unsigned long long"
                 else do
-                  let old ← liftEval (loadAt Mem.cAliasModel dp ty (prog.layout.size ty) structured)
+                  let old ← liftEval (loadAt Mem.cAliasModel dp ty none structured)
                   let (_, x) ← asInt old
                   let result := t.wrap (x + y)
                   liftEval (storeAt Mem.cAliasModel dp ty (.int t result) structured)

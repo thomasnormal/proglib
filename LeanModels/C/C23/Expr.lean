@@ -601,8 +601,7 @@ def Layout.arrayElementSizeDeclAt (layout : Layout) (decl : Option DeclarationId
       decl.bind layout.elementSizeDecl |>.orElse
         (fun _ => objectSizeOfStructured resolvedElement)
   | some _ => none
-  | none => decl.bind layout.elementSizeDecl |>.orElse
-      (fun _ => layout.arrayElementSizeAt arrayTy elementTy)
+  | none => none
 
 def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
     Option LeanModels.Clang.QualType :=
@@ -631,7 +630,7 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
       | .array _ (some extent) =>
           layout.arrayElementType ty |>.map (fun element => (element, extent))
       | .array _ none | _ => none
-  | none => layout.elem ty
+  | none => none
 
 /-- Resolve aggregate member order from parser-native object declaration identity. -/
 def Layout.membersDeclAt (layout : Layout) (decl : Option DeclarationId)
@@ -659,7 +658,7 @@ def Layout.storageTypeAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) : Option CType :=
   match decl.bind layout.structuredTypeDecl with
   | some structured => if structured.aggregateObject then none else some ty
-  | none => if (layout.members ty).isSome || (layout.elem ty).isSome then none else some ty
+  | none => none
 
 /-- Resolve a pointer stride from the declaration identity that owns the
 pointer expression, then from the parser-native type-layout table.  There is
@@ -687,7 +686,7 @@ def Layout.bitFieldStorageSizeAt (layout : Layout) (base : Option Expr)
           else
             layout.sizeAt (directDeclId expression) recordTy
       | none => layout.sizeAt (directDeclId expression) recordTy
-  | none => layout.size recordTy
+  | none => layout.sizeAt none recordTy
 
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/
@@ -1547,7 +1546,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
       if op == "*" then (do let v ← evalExpr ctx sub; asPtr v)
       else refuseUnsupported s!"unary '{op}' is not an lvalue"
   | .compoundLit init ty span .. => do
-      match ctx.layout.size ty with
+      match ctx.layout.sizeAt none ty with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
           let m ← get
@@ -1555,8 +1554,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
             | some existing => pure existing
             | none =>
             let storageTy :=
-              if (ctx.layout.members ty).isSome || (ctx.layout.elem ty).isSome
-              then none else some ty
+              none
             let (m', fresh) := m.alloc .automatic sz storageTy
             set (m'.rememberCompound span fresh)
             pure fresh
@@ -1570,7 +1568,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
 def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .paren sub _ _ .. => evalExpr ctx sub
   | .compoundLit init ty span .. => do
-      match ctx.layout.size ty with
+      match ctx.layout.sizeAt none ty with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
           let m ← get
@@ -1578,8 +1576,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             | some existing => pure existing
             | none =>
             let storageTy :=
-              if (ctx.layout.members ty).isSome || (ctx.layout.elem ty).isSome
-              then none else some ty
+              none
             let (m', fresh) := m.alloc .automatic sz storageTy
             set (m'.rememberCompound span fresh)
             pure fresh
