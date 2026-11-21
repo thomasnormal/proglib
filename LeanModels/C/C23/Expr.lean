@@ -1760,12 +1760,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         -- answer to `J.3.6(3)`, not the standard's (see `Value.convert`).
         let v ← evalExpr ctx sub
         let (_, n) ← asInt v
-        let targetStructured := span.offset.bind (fun offset =>
-          (ctx.layout.structuredExprTypeAt offset span.endOffset "" ty).orElse
-            (fun _ => ctx.layout.structuredExprType offset))
-        let t ← match targetStructured.bind intTyOfStructured with
+        let t ← match structuredType.bind intTyOfStructured with
           | some projected => pure projected
-          | none => intTyOf (ctx.layout.normalizeTy ty)
+          | none => refuseUnsupported "integral cast lacks parser-native destination type"
         pure (convert t n)
       else if ck == "IntegralToBoolean" then do
         let v ← evalExpr ctx sub
@@ -2199,7 +2196,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | _ => refuseUnsupported "indirect call lost its callee value"
 
   -- §6.5.4.4 — `sizeof`, answered by the layout, never computed here.
-  | .typeTrait trait argTy sub ty _ .. =>
+  | .typeTrait trait argTy sub ty _ structuredType =>
       if trait != "sizeof" then refuseUnsupported s!"type trait '{trait}'"
       else
         let key := match argTy with
@@ -2210,10 +2207,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | some k => ctx.layout.sizeAt decl k
           | none => decl.bind ctx.layout.declSize
         match size? with
-        | some n => do let t ← intTyOf (ctx.layout.normalizeTy ty); pure (.int t (n : Int))
+        | some n =>
+            match structuredType.bind intTyOfStructured with
+            | some t => pure (.int t (n : Int))
+            | none => refuseUnsupported "sizeof result lacks parser-native QualType"
         | none => refuseUnsupported s!"sizeof: no layout for operand type '{key.getD ""}'"
 
-  | .constExpr v (some sub) ty _ .. => do
+  | .constExpr v (some sub) ty _ structuredType => do
       -- Clang's folded spelling drops the sign from a negative constant
       -- (`value = "1"`, with `sub = -1`).  The approved AST keeps that
       -- operand, so evaluate it rather than treating the diagnostic value as
@@ -2224,10 +2224,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | .funPtr id => pure (.funPtr id)
       | _ =>
           let (_, n) ← asInt sv
-          let t ← intTyOf (ctx.layout.normalizeTy ty)
-          pure (.int t n)
-  | .constExpr v none ty _ .. => do
-      let t ← intTyOf (ctx.layout.normalizeTy ty)
+          match structuredType.bind intTyOfStructured with
+          | some t => pure (.int t n)
+          | none => refuseUnsupported "constant expression lacks parser-native QualType"
+  | .constExpr v none ty _ structuredType => do
+      let t ← match structuredType.bind intTyOfStructured with
+        | some t => pure t
+        | none => refuseUnsupported "constant expression lacks parser-native QualType"
       match v.toInt? with
       | some n => pure (.int t n)
       | none => refuseUnsupported s!"constant expression '{v}'"
