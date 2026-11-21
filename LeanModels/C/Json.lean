@@ -380,8 +380,12 @@ partial def parseDecl (j : Json) : Except String Decl := do
     -- `name` is OPTIONAL (§6.7.6.3): absent and `null` are one absence.
     | "ParmVarDecl" =>
         let id ← getOptStr j "decl_id"
-        return .param (id.map DeclarationId.mk) (← getOptStr j "name")
-          (← getStr j "type") (← getBool j "va_list") span (← parseRequiredStructuredQualType j "structured_type")
+        let name ← getOptStr j "name"
+        let structuredType ← match name with
+          | some _ => parseRequiredStructuredQualType j "structured_type"
+          | none => parseOptStructuredQualType j "structured_type"
+        return .param (id.map DeclarationId.mk) name
+          (← getStr j "type") (← getBool j "va_list") span structuredType
     | "FieldDecl" =>
         return .field (← getOptStr j "name") (← getStr j "type") (← getOptNat j "bits")
           ((← getOptStr j "decl_id").map DeclarationId.mk)
@@ -390,7 +394,7 @@ partial def parseDecl (j : Json) : Except String Decl := do
     | "RecordDecl" =>
         return .record ((← getOptStr j "decl_id").map DeclarationId.mk) (← getOptStr j "name")
           (← (← getArr j "fields").mapM parseDecl) (← getOptRecordLayout j) span
-          (← parseRequiredStructuredQualType j "structured_type")
+          (← parseOptStructuredQualType j "structured_type")
     | "TypedefDecl" =>
         return .typedef ((← getOptStr j "decl_id").map DeclarationId.mk)
           (← getStr j "name") (← getStr j "type")
@@ -401,7 +405,7 @@ partial def parseDecl (j : Json) : Except String Decl := do
     | "EnumDecl" =>
         return .enum (← getOptStr j "name")
           (← (← getArr j "constants").mapM parseDecl) span
-          (← parseRequiredStructuredQualType j "structured_type")
+          (← parseOptStructuredQualType j "structured_type")
     | "EnumConstantDecl" =>
         -- `value` is OPTIONAL: clang does not always fold one.
         let id ← getOptStr j "decl_id"
@@ -469,14 +473,18 @@ partial def parseStmt (j : Json) : Except String Stmt := do
 def parseFunctionDefn (j : Json) : Except String FunctionDefn :=
   withCtx "FunctionDecl" do
     let id ← getOptStr j "decl_id"
+    let body ← match getOptNode j "body" with
+      | none => pure none
+      | some v => some <$> parseStmt v
+    let structuredType ← match body with
+      | some _ => parseRequiredStructuredQualType j "structured_type"
+      | none => parseOptStructuredQualType j "structured_type"
     return { id := id.map DeclarationId.mk, name := ← getStr j "name", ty := ← getStr j "type"
-             structuredType := ← parseRequiredStructuredQualType j "structured_type"
+             structuredType := structuredType
              storage := ← getOptStr j "storage"
              params := ← (← getArr j "params").mapM parseDecl
              variadic := ← getBool j "variadic"
-             body := ← (match getOptNode j "body" with
-                        | none => pure none
-                        | some v => some <$> parseStmt v)
+             body := body
              span := ← nodeSpan j }
 
 def parseTopLevel (j : Json) : Except String TopLevel := do

@@ -143,7 +143,7 @@ def clang_json(path):
     command = [clang_executable()] + AST_FLAGS
     if plugin:
         command += ["-Xclang", "-load", "-Xclang", plugin,
-                    "-Xclang", "-plugin", "-Xclang",
+                    "-Xclang", "-add-plugin", "-Xclang",
                     "lean-c-structured-types"]
     out = subprocess.run(command + [path],
                          capture_output=True, text=True)

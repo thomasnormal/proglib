@@ -46,7 +46,8 @@ def validate_type(value):
     elif kind in ("record", "enumeration", "typedef"):
         declaration = value.get("declaration")
         if (not isinstance(declaration, dict) or
-                type(declaration.get("offset")) is not int or declaration["offset"] < 0):
+                not isinstance(declaration.get("id"), str) or
+                not declaration["id"]):
             raise RuntimeError(f"invalid declaration identity: {value!r}")
     elif kind == "unsupported":
         if not isinstance(value.get("reason"), str) or not value["reason"]:
@@ -58,13 +59,18 @@ def validate_type(value):
 def run(clang, plugin, source):
     command = [clang, "--no-default-config", "-std=c23", "-fsyntax-only",
                "-Xclang", "-load", "-Xclang", plugin,
-               "-Xclang", "-plugin", "-Xclang", "lean-c-structured-types",
+               "-Xclang", "-add-plugin", "-Xclang", "lean-c-structured-types",
                str(source)]
     result = subprocess.run(command, capture_output=True, text=False)
     if result.returncode:
         raise RuntimeError(result.stderr.decode("utf-8", "replace"))
+    marker = b"LEAN_C_STRUCTURED_TYPES="
+    records = [line[len(marker):] for line in result.stderr.splitlines()
+               if line.startswith(marker)]
+    if len(records) != 1:
+        raise RuntimeError("probe did not emit exactly one structured stderr record")
     try:
-        document = json.loads(result.stdout.decode("utf-8"))
+        document = json.loads(records[0].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise RuntimeError(f"probe output is not one JSON document: {error}")
     if not isinstance(document, list):
@@ -81,7 +87,20 @@ def run(clang, plugin, source):
                     not record["expr_kind"]):
                 raise RuntimeError(f"invalid structured expression identity: {record!r}")
         validate_type(record.get("type"))
-    return result.stdout, document
+    ids = {}
+    def canonical(value):
+        if isinstance(value, dict):
+            out = {}
+            for key, item in value.items():
+                if key in ("id", "decl_id", "expr_id") and isinstance(item, str) and item.startswith("0x"):
+                    item = ids.setdefault(item, "id" + str(len(ids)))
+                out[key] = canonical(item)
+            return out
+        if isinstance(value, list):
+            return [canonical(item) for item in value]
+        return value
+    normalized = canonical(document)
+    return json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode(), normalized
 
 
 def self_test():
@@ -95,7 +114,7 @@ def self_test():
          "type": {"kind": "array",
              "element": {"kind": "builtin", "name": "int"}, "extent": None}},
         {"kind": "StructuredType", "offset": 8,
-         "type": {"kind": "record", "declaration": {"offset": 12}}},
+         "type": {"kind": "record", "declaration": {"id": "decl-12"}}},
         {"kind": "StructuredExprType", "offset": 16, "end_offset": 19,
          "expr_kind": "ArraySubscriptExpr",
          "type": {"kind": "builtin", "name": "unsigned char"}},
@@ -103,11 +122,11 @@ def self_test():
     for record in records:
         validate_type(record["type"])
     try:
-        validate_type({"kind": "record", "declaration": {"offset": -1}})
+        validate_type({"kind": "record", "declaration": {"id": ""}})
     except RuntimeError:
         pass
     else:
-        raise RuntimeError("negative declaration offset was accepted")
+        raise RuntimeError("empty declaration identity was accepted")
     try:
         validate_type({"kind": "StructuredExprType", "offset": 4,
                        "end_offset": 3, "expr_kind": "ArraySubscriptExpr",
