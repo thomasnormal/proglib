@@ -28,6 +28,8 @@ ENVELOPE_HASHES = {
     "a453663fe639176f1ff29d1aa3a1501dd1af0637551de625fe25c68b50f3f8c7",
     "ddba565006335191c35955bd27c4c36ca134e57d8084864269b4a2f4fb77b96f",
 }
+SOURCE = Path(__file__).with_name("rtl") / "darkriscv.v"
+SOURCE_SHA256 = "46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0"
 STAGED_CHECK = Path(__file__).with_name("e_check.py")
 TIMEOUT_SECONDS = 180
 CYCLE_COUNT = 1000
@@ -131,6 +133,8 @@ def run_clock_probe(envelope: Path, repo: Path) -> str:
 
 
 def main() -> int:
+    if hashlib.sha256(SOURCE.read_bytes()).hexdigest() != SOURCE_SHA256:
+        raise SystemExit("DarkRISCV RTL SHA-256 does not match the pinned source")
     envelope_text = os.environ.get("DARKRISCV_ENVELOPE")
     envelope = (Path(envelope_text).resolve() if envelope_text else Path(__file__).with_name("darkriscv.sv.json"))
     if not envelope.is_file():
