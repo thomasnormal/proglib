@@ -2254,7 +2254,7 @@ def cAliasCompatibleStructured : QualType → QualType → Bool := fun used eff 
 
 def cAliasModel : AliasModel where
   compatible := fun _ _ => false
-  compatibleUsed := fun _ _ _ => false
+  compatibleUsed := fun _ used eff => used == eff
 
 def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
     (used : String) (usedStructured : Option QualType := none) : MRes Unit :=
