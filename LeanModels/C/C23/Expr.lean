@@ -492,11 +492,6 @@ def directDeclId : Expr → Option DeclarationId
 def Layout.fieldBitsAt (layout : Layout) (base : Expr) (field : String) :
     Option (Nat × Nat) :=
   (directDeclId base).bind (fun did => layout.fieldBitsDecl did field)
-    |>.orElse (fun _ =>
-      ((directDeclId base).bind (fun did => layout.structuredType did)).bind (fun structured =>
-        match structured.unqualified with
-        | .record handle => layout.fieldBitsDecl { value := handle.value } field
-        | _ => none))
 
 
 /-- Resolve bit-field facts from parser-native aggregate declaration identity. -/
@@ -1438,7 +1433,7 @@ def bitFieldStoreBytes (bs : List CByte) (offset width value : Nat) : List CByte
 def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
     (fieldTy : CType) (fieldPtr : Ptr) (base : Option Expr := none)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal := do
-  match (base.map (ctx.layout.fieldBitsAt · field)).getD (ctx.layout.fieldBits recordTy field),
+  match (base.map (ctx.layout.fieldBitsAt · field)).getD none,
       ctx.layout.bitFieldStorageSizeAt base recordTy,
       structured.bind intTyOfStructured with
   | some (offsetBits, width), some recordSize, some storageTy =>
@@ -1460,7 +1455,7 @@ def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
 def storeBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
     (fieldTy : CType) (fieldPtr : Ptr) (v : CVal) (base : Option Expr := none)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM Unit := do
-  match (base.map (ctx.layout.fieldBitsAt · field)).getD (ctx.layout.fieldBits recordTy field),
+  match (base.map (ctx.layout.fieldBitsAt · field)).getD none,
       ctx.layout.bitFieldStorageSizeAt base recordTy,
       structured.bind intTyOfStructured, v with
   | some (offsetBits, width), some recordSize, some storageTy, .int _ n =>
