@@ -192,10 +192,10 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
                               {"declaration", std::move(*declaration)}};
   }
   if (const auto *alias = llvm::dyn_cast<clang::TypedefType>(type)) {
-    auto declaration = declarationType(alias->getDecl(), context);
-    if (!declaration) return std::nullopt;
-    return llvm::json::Object{{"kind", "typedef"},
-                              {"declaration", std::move(*declaration)}};
+    // A use-site QualType must expose the parser-resolved representation to
+    // scalar operations. The typedef declaration identity remains present on
+    // its own Decl observation, so resolving this node does not use spelling.
+    return typeTree(alias->getDecl()->getUnderlyingType(), context, depth + 1);
   }
   return llvm::json::Object{
       {"kind", "unsupported"},
