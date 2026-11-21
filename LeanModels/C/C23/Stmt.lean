@@ -83,7 +83,7 @@ treating a TIMEOUT as an observation.
 
 namespace LeanModels.C.C23
 
-open LeanModels.C (CType Expr Stmt Decl)
+open LeanModels.C (Expr Stmt Decl)
 
 /-! ## The monad
 
@@ -176,7 +176,7 @@ mutual
 observation when one is available.  Older envelopes still use the existing
 spelling fallback through `zeroInit`; the parser-native branch is selected
 before that fallback and therefore does not inspect the display type. -/
-def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
+def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : String)
     (structured : Option LeanModels.Clang.QualType) (declaration : Option DeclarationId) : ExecM Unit :=
   if structuredPointerObject structured ty then
     liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
@@ -196,13 +196,13 @@ def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
 
 /-- §6.7.11p10 — initialize an object to zero, as if it had static
 storage duration. Type-directed: see the section note. -/
-def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM Unit
+def zeroInit : Nat → Ctx → Ptr → String → Option DeclarationId → ExecM Unit
   | 0, _, _, _, _ => exhausted
   | _, _, _, ty, _ =>
       refuseUnsupported s!"zero initialization lacks parser-native QualType for '{ty}'"
 
 /-- Zero the elements of an array, from index `i` up. -/
-def zeroElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat →
+def zeroElems : Nat → Ctx → Ptr → String → Nat → Nat → Nat →
     Option LeanModels.Clang.QualType → ExecM Unit
   | 0, _, _, _, _, _, _, _ => exhausted
   | fuel + 1, ctx, p, et, esz, n, i, structured =>
@@ -212,7 +212,7 @@ def zeroElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat →
       zeroElems fuel ctx p et esz n (i + 1) structured
 
 /-- Zero the members of a structure, in declaration order. -/
-def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → Option DeclarationId → ExecM Unit
+def zeroMembers : Nat → Ctx → Ptr → String → List (String × String) → Option DeclarationId → ExecM Unit
   | 0, _, _, _, _, _ => exhausted
   | _, _, _, _, [], _ => pure ()
   | fuel + 1, ctx, p, ty, (nm, mty) :: rest, declaration => do
@@ -240,7 +240,7 @@ mutual
 A scalar initializer is an assignment (§6.7.11p11). A brace-enclosed list
 initializes an aggregate member by member (p9), **in declaration order**,
 and every member the list does not reach is zeroed (p10). -/
-def initObject : Nat → Ctx → Ptr → CType → Expr →
+def initObject : Nat → Ctx → Ptr → String → Expr →
     Option LeanModels.Clang.QualType → Option DeclarationId → ExecM Unit
   | 0, _, _, _, _, _, _ => exhausted
   | fuel + 1, ctx, p, ty, e, structured, declaration =>
@@ -355,7 +355,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
         liftEval (storeAt Mem.cAliasModel p ty v structured)
 
 /-- Array elements, then zero-fill (§6.7.11p10). -/
-def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List Expr →
+def initElems : Nat → Ctx → Ptr → String → Nat → Nat → Nat → List Expr →
     Option LeanModels.Clang.QualType → ExecM Unit
   | 0, _, _, _, _, _, _, _, _ => exhausted
   | fuel + 1, ctx, p, et, esz, n, i, es, structured =>
@@ -371,7 +371,7 @@ def initElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat → List E
           initElems fuel ctx p et esz n (i + 1) rest structured
 
 /-- Structure members in declaration order, then zero-fill. -/
-def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → List Expr → Option DeclarationId → ExecM Unit
+def initMembers : Nat → Ctx → Ptr → String → List (String × String) → List Expr → Option DeclarationId → ExecM Unit
   | 0, _, _, _, _, _, _ => exhausted
   | fuel + 1, ctx, p, ty, ms, es, declaration =>
     match ms, es with
@@ -415,7 +415,7 @@ def compoundInitContext : Nat → Ctx → Ctx
   | depth + 1, ctx =>
       { ctx with compoundInit := compoundInitCallback depth ctx }
 
-def compoundInitCallback : Nat → Ctx → Nat → Env → IdEnv → Layout → Ptr → CType → Expr → EvalM Unit
+def compoundInitCallback : Nat → Ctx → Nat → Env → IdEnv → Layout → Ptr → String → Expr → EvalM Unit
   | depth, ctx, fuel, env, ids, layout, p, ty, e =>
       let nested := compoundInitContext depth
         { ctx with env := env, idEnv := ids, layout := layout }

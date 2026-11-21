@@ -52,7 +52,6 @@ namespace LeanModels.C.C23
 
 open LeanModels.Clang (QualType)
 
-open LeanModels.C (CType)
 
 /-! ## §6.2.4 Storage durations of objects -/
 
@@ -143,7 +142,7 @@ inductive MemFault where
   correctly and expensive to install later — and no sanitizer on either
   development host detects a strict-aliasing violation, so without it the
   project has no instrument that would ever notice one. -/
-  | effectiveType (o : ObjId) (off : Nat) (used : CType) (eff : CType)
+  | effectiveType (o : ObjId) (off : Nat) (used : String) (eff : String)
   /-- **`J.2(45)`**, §6.5.9p6: pointers into DIFFERENT objects compared
   with a relational operator. Note the asymmetry with `==`, which
   §6.5.10p7 leaves fully DEFINED across unrelated objects — same clause
@@ -261,7 +260,7 @@ structure CObj where
   and `J.2(10)` is detectable instead of being a segfault. -/
   live : Bool
   bytes : List CByte
-  effTy : Option CType
+  effTy : Option String
 deriving Repr, Inhabited, BEq
 
 /-- The object's size in bytes. **Computed, not carried.** An object that
@@ -1200,14 +1199,14 @@ INDETERMINATE. Returns the new memory and the object's id.
 
 Every automatic object is created this way on block entry — which is the
 locals-are-objects decision, executed. -/
-def alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × ObjId :=
+def alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option String) : Mem × ObjId :=
   let o := m.objs.length
   ({ m with
       objs := m.objs ++ [⟨dur, true, List.replicate size .indet, ty⟩]
       placements := m.placements ++ [(o, o)] }, o)
 
 theorem alloc_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (haddr : rename m.objs.length = m.objs.length) :
     (m.renameAddresses rename).alloc dur size ty =
       ((m.alloc dur size ty).1.renameAddresses rename, (m.alloc dur size ty).2) := by
@@ -1216,13 +1215,13 @@ theorem alloc_renameAddresses
       simp [alloc, renameAddresses, CObj.renameAddress, haddr,
         List.map_append, List.map_cons, List.map_nil, List.length_map]
 
-def allocStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+def allocStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) : Mem × ObjId :=
   let (m', o) := m.alloc dur size ty
   (m'.rememberStructuredType o structured, o)
 
 theorem allocStructured_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) (haddr : rename m.objs.length = m.objs.length) :
     (m.renameAddresses rename).allocStructured dur size ty structured =
       ((m.allocStructured dur size ty structured).1.renameAddresses rename,
@@ -1232,7 +1231,7 @@ theorem allocStructured_renameAddresses
   cases structured <;> rfl
 
 theorem allocStructured_unique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : QualType) (h : structuredTypesUnique m)
     (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
     structuredTypesUnique
@@ -1242,20 +1241,20 @@ theorem allocStructured_unique
   exact rememberStructuredType_unique m m.objs.length structured h hnew
 
 @[simp] theorem allocStructured_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (structured : QualType) :
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String) (structured : QualType) :
     (m.allocStructured dur size ty (some structured)).1.structuredType?
         (m.allocStructured dur size ty (some structured)).2 = some structured := by
   simp [allocStructured]
 
 /-- `calloc`'s object (§7.24.3.2p2): all bits zero, hence determinate. -/
-def allocZeroed (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) : Mem × ObjId :=
+def allocZeroed (m : Mem) (dur : Duration) (size : Nat) (ty : Option String) : Mem × ObjId :=
   let o := m.objs.length
   ({ m with
       objs := m.objs ++ [⟨dur, true, List.replicate size (.conc 0), ty⟩]
       placements := m.placements ++ [(o, o)] }, o)
 
 theorem allocZeroed_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (haddr : rename m.objs.length = m.objs.length) :
     (m.renameAddresses rename).allocZeroed dur size ty =
       ((m.allocZeroed dur size ty).1.renameAddresses rename, (m.allocZeroed dur size ty).2) := by
@@ -1264,13 +1263,13 @@ theorem allocZeroed_renameAddresses
       simp [allocZeroed, renameAddresses, CObj.renameAddress, haddr,
         List.map_append, List.map_cons, List.map_nil, List.length_map]
 
-def allocZeroedStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+def allocZeroedStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) : Mem × ObjId :=
   let (m', o) := m.allocZeroed dur size ty
   (m'.rememberStructuredType o structured, o)
 
 theorem allocZeroedStructured_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) (haddr : rename m.objs.length = m.objs.length) :
     (m.renameAddresses rename).allocZeroedStructured dur size ty structured =
       ((m.allocZeroedStructured dur size ty structured).1.renameAddresses rename,
@@ -1280,7 +1279,7 @@ theorem allocZeroedStructured_renameAddresses
   cases structured <;> rfl
 
 theorem allocZeroedStructured_unique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : QualType) (h : structuredTypesUnique m)
     (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
     structuredTypesUnique
@@ -1290,29 +1289,29 @@ theorem allocZeroedStructured_unique
   exact rememberStructuredType_unique m m.objs.length structured h hnew
 
 @[simp] theorem alloc_structuredTypesUnique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (h : structuredTypesUnique m) :
     structuredTypesUnique (m.alloc dur size ty).1 := by
   simpa [alloc, structuredTypesUnique, structuredTypeKeys] using h
 
 @[simp] theorem alloc_structuredType_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (q : ObjId) :
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String) (q : ObjId) :
     (m.alloc dur size ty).1.structuredType? q = m.structuredType? q := by
   rfl
 
 @[simp] theorem allocZeroed_structuredTypesUnique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (h : structuredTypesUnique m) :
     structuredTypesUnique (m.allocZeroed dur size ty).1 := by
   simpa [allocZeroed, structuredTypesUnique, structuredTypeKeys] using h
 
 @[simp] theorem allocZeroed_structuredType_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (q : ObjId) :
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String) (q : ObjId) :
     (m.allocZeroed dur size ty).1.structuredType? q = m.structuredType? q := by
   rfl
 
 @[simp] theorem allocZeroedStructured_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) (structured : QualType) :
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String) (structured : QualType) :
     (m.allocZeroedStructured dur size ty (some structured)).1.structuredType?
         (m.allocZeroedStructured dur size ty (some structured)).2 = some structured := by
   simp [allocZeroedStructured]
@@ -1341,20 +1340,20 @@ private theorem placementSet_map_rename_alloc_append
         exact hx (of_decide_eq_true h)
       simp [placementSet, hbeq, ih htail]
 
-def allocAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+def allocAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) : Mem × Ptr :=
   let (m', o) := m.alloc dur size ty
   ({ m' with placements := placementSet m'.placements o address },
     Ptr.toObjectBoundAt o address size)
 
-def allocAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+def allocAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) (address : Nat) : Mem × Ptr :=
   let (m', o) := m.allocStructured dur size ty structured
   ({ m' with placements := placementSet m'.placements o address },
     Ptr.toObjectBoundAt o address size)
 
 theorem allocAt_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
     (m.renameAddresses rename).allocAt dur size ty (rename m.objs.length) =
       ((m.allocAt dur size ty address).1.renameAddresses rename,
@@ -1376,7 +1375,7 @@ theorem allocAt_renameAddresses
 
 
 theorem allocAtStructured_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) (address : Nat)
     (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
     (m.renameAddresses rename).allocAtStructured dur size ty structured
@@ -1405,7 +1404,7 @@ theorem allocAtStructured_renameAddresses
             List.length_map]
 
 @[simp] theorem allocAtStructured_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : QualType) (address : Nat) :
     (m.allocAtStructured dur size ty (some structured) address).1.structuredType?
         (m.allocStructured dur size ty (some structured)).2 =
@@ -1414,7 +1413,7 @@ theorem allocAtStructured_renameAddresses
   exact allocStructured_lookup m dur size ty structured
 
 theorem allocAtStructured_unique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : QualType) (address : Nat)
     (h : structuredTypesUnique m)
     (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
@@ -1423,32 +1422,32 @@ theorem allocAtStructured_unique
   simpa [allocAtStructured, structuredTypesUnique, structuredTypeKeys] using
     allocStructured_unique m dur size ty structured h hnew
 
-def allocZeroedAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+def allocZeroedAt (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) : Mem × Ptr :=
   let (m', o) := m.allocZeroed dur size ty
   ({ m' with placements := placementSet m'.placements o address },
     Ptr.toObjectBoundAt o address size)
 
-def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+def allocZeroedAtStructured (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) (address : Nat) : Mem × Ptr :=
   let (m', o) := m.allocZeroedStructured dur size ty structured
   ({ m' with placements := placementSet m'.placements o address },
     Ptr.toObjectBoundAt o address size)
 
 @[simp] theorem allocAt_structuredTypesUnique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.allocAt dur size ty address).1 := by
   simpa [allocAt, alloc, structuredTypesUnique, structuredTypeKeys] using h
 
 @[simp] theorem allocAt_structuredType_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) (q : ObjId) :
     (m.allocAt dur size ty address).1.structuredType? q = m.structuredType? q := by
   rfl
 
 theorem allocZeroedAt_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
     (m.renameAddresses rename).allocZeroedAt dur size ty (rename m.objs.length) =
       ((m.allocZeroedAt dur size ty address).1.renameAddresses rename,
@@ -1469,19 +1468,19 @@ theorem allocZeroedAt_renameAddresses
         List.map_append, List.map_cons, List.map_nil, List.length_map]
 
 @[simp] theorem allocZeroedAt_structuredTypesUnique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) (h : structuredTypesUnique m) :
     structuredTypesUnique (m.allocZeroedAt dur size ty address).1 := by
   simpa [allocZeroedAt, allocZeroed, structuredTypesUnique, structuredTypeKeys] using h
 
 @[simp] theorem allocZeroedAt_structuredType_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) (q : ObjId) :
     (m.allocZeroedAt dur size ty address).1.structuredType? q = m.structuredType? q := by
   rfl
 
 theorem allocZeroedAtStructured_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (rename : ObjId → Nat) (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : Option QualType) (address : Nat)
     (hnew : ∀ q, (m.objs.length, q) ∉ m.placements) :
     (m.renameAddresses rename).allocZeroedAtStructured dur size ty structured
@@ -1512,7 +1511,7 @@ theorem allocZeroedAtStructured_renameAddresses
             List.map_append, List.map_cons, List.map_nil, List.length_map]
 
 @[simp] theorem allocZeroedAtStructured_lookup
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : QualType) (address : Nat) :
     (m.allocZeroedAtStructured dur size ty (some structured) address).1.structuredType?
         (m.allocZeroedStructured dur size ty (some structured)).2 =
@@ -1521,7 +1520,7 @@ theorem allocZeroedAtStructured_renameAddresses
   exact allocZeroedStructured_lookup m dur size ty structured
 
 theorem allocZeroedAtStructured_unique
-    (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+    (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (structured : QualType) (address : Nat)
     (h : structuredTypesUnique m)
     (hnew : ∀ q, (m.objs.length, q) ∉ m.structuredTypes) :
@@ -2240,9 +2239,9 @@ structure AliasModel where
   /-- Whether an lvalue access type may inspect bytes carrying `eff`.
   Languages with a borrow or provenance discipline can supply another
   instance without changing the byte store. -/
-  compatible : CType → CType → Bool
+  compatible : String → String → Bool
   /-- Structured parser evidence for the access type. -/
-  compatibleUsed : Option QualType → CType → CType → Bool :=
+  compatibleUsed : Option QualType → String → String → Bool :=
     fun _ used eff => compatible used eff
 
 def isCharacterType : QualType → Bool
@@ -2258,7 +2257,7 @@ def cAliasModel : AliasModel where
   compatibleUsed := fun _ _ _ => false
 
 def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
-    (used : CType) (usedStructured : Option QualType := none) : MRes Unit :=
+    (used : String) (usedStructured : Option QualType := none) : MRes Unit :=
   match c.effTy with
   | none => .ok ()
   | some eff =>
@@ -2266,7 +2265,7 @@ def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
       else .error (.memUB (.effectiveType o off used eff))
 
 def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
-    (used : CType) (usedStructured : Option QualType := none) : MRes Unit :=
+    (used : String) (usedStructured : Option QualType := none) : MRes Unit :=
   match m.structuredType? o, usedStructured with
   | some effective, some usedType =>
       if cAliasCompatibleStructured usedType effective then .ok ()
@@ -2275,7 +2274,7 @@ def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off 
 
 theorem checkEffectiveAt_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (o : ObjId)
-    (c : CObj) (off : Nat) (used : CType) (usedStructured : Option QualType := none) :
+    (c : CObj) (off : Nat) (used : String) (usedStructured : Option QualType := none) :
     checkEffectiveAt (m.renameAddresses rename) alias o
         (CObj.renameAddress rename c) off used usedStructured =
       checkEffectiveAt m alias o c off used usedStructured := by
@@ -2370,7 +2369,7 @@ theorem loadInt_renameAddresses
               exact loadIntResolved_renameAddresses rename t o c off
 
 /-- Integer lvalue access with the §6.5.1p6-p7 effective-type check. -/
-def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType)
+def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : String)
     (usedStructured : Option QualType := none) : MRes CVal := do
   let width := max 1 (t.bits / 8)
   let (o, c, off) ← m.resolve p width
@@ -2379,7 +2378,7 @@ def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : 
 
 theorem loadIntChecked_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy)
-    (used : CType) (usedStructured : Option QualType := none) :
+    (used : String) (usedStructured : Option QualType := none) :
     (m.renameAddresses rename).loadIntChecked alias (Ptr.renameAddress rename p) t
         used usedStructured =
       (m.loadIntChecked alias p t used usedStructured).map
@@ -2410,7 +2409,7 @@ def storeInt (m : Mem) (p : Ptr) (t : IntTy) (v : Int) : MRes Mem :=
   m.storeBytes p (encodeInt t v)
 
 /-- Integer store with effective-type establishment for allocated storage. -/
-def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : CType) (v : Int)
+def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : String) (v : Int)
     (usedStructured : Option QualType := none) : MRes Mem := do
   let bs := encodeInt t v
   let (o, c, off) ← m.resolve p bs.length
@@ -2425,7 +2424,7 @@ def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used :
 
 theorem storeIntChecked_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy)
-    (used : CType) (v : Int) (usedStructured : Option QualType := none) :
+    (used : String) (v : Int) (usedStructured : Option QualType := none) :
     (m.renameAddresses rename).storeIntChecked alias (Ptr.renameAddress rename p) t used v
         usedStructured =
       (m.storeIntChecked alias p t used v usedStructured).map
@@ -2469,7 +2468,7 @@ theorem storeIntChecked_renameAddresses
 
 theorem storeIntChecked_loadIntChecked_rename
     {m m' : Mem} (rename : ObjId → Nat) (alias : AliasModel) (p : Ptr)
-    (t : IntTy) (used : CType) (v r : Int)
+    (t : IntTy) (used : String) (v r : Int)
     (usedStructured : Option QualType := none)
     (hs : m.storeIntChecked alias p t used v usedStructured = .ok m')
     (hl : m'.loadIntChecked alias p t used usedStructured = .ok (.int t r)) :
@@ -3361,7 +3360,7 @@ theorem storePtrInt_placement_lookup {m m' : Mem} {p q : Ptr}
   simp [loadInt, resolve_address_irrel]
 
 @[simp] theorem loadIntChecked_address_irrel (m : Mem) (alias : AliasModel)
-    (p : Ptr) (t : IntTy) (used : CType) (address : Nat) :
+    (p : Ptr) (t : IntTy) (used : String) (address : Nat) :
     m.loadIntChecked alias {p with address := address} t used =
       m.loadIntChecked alias p t used := by
   simp [loadIntChecked, resolve_address_irrel]
@@ -3372,7 +3371,7 @@ theorem storePtrInt_placement_lookup {m m' : Mem} {p q : Ptr}
   simp [storeInt, storeBytes_address_irrel]
 
 @[simp] theorem storeIntChecked_address_irrel (m : Mem) (alias : AliasModel)
-    (p : Ptr) (t : IntTy) (used : CType) (v : Int) (address : Nat) :
+    (p : Ptr) (t : IntTy) (used : String) (v : Int) (address : Nat) :
     m.storeIntChecked alias {p with address := address} t used v =
       m.storeIntChecked alias p t used v := by
   simp [storeIntChecked, resolve_address_irrel]
@@ -4007,7 +4006,7 @@ theorem free_valid_storeFunction (m : Mem) (p : Ptr) (o : ObjId) (c : CObj)
   rfl
 
 theorem free_valid_loadIntChecked (m : Mem) (alias : AliasModel)
-    (p : Ptr) (o : ObjId) (c : CObj) (t : IntTy) (used : CType)
+    (p : Ptr) (o : ObjId) (c : CObj) (t : IntTy) (used : String)
     (hp : p.obj = some o) (hc : m.get? o = some c)
     (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0) :
     (m.free p).map (fun m' => m'.loadIntChecked alias p t used) =
@@ -4024,7 +4023,7 @@ theorem free_valid_loadIntChecked (m : Mem) (alias : AliasModel)
   rfl
 
 theorem free_valid_storeIntChecked (m : Mem) (alias : AliasModel)
-    (p : Ptr) (o : ObjId) (c : CObj) (t : IntTy) (used : CType) (v : Int)
+    (p : Ptr) (o : ObjId) (c : CObj) (t : IntTy) (used : String) (v : Int)
     (hp : p.obj = some o) (hc : m.get? o = some c)
     (hdur : c.dur = .allocated) (hlive : c.live = true) (hoff : p.off = 0) :
     (m.free p).map (fun m' => m'.storeIntChecked alias p t used v) =
@@ -4400,11 +4399,11 @@ structure AddressIndependent (m : Mem) : Prop where
   storeBytes : ∀ (p : Ptr) (bs : List CByte) (address : Nat),
     m.storeBytes {p with address := address} bs = m.storeBytes p bs
   loadIntChecked : ∀ (alias : AliasModel) (p : Ptr) (t : IntTy)
-    (used : CType) (address : Nat),
+    (used : String) (address : Nat),
     m.loadIntChecked alias {p with address := address} t used =
       m.loadIntChecked alias p t used
   storeIntChecked : ∀ (alias : AliasModel) (p : Ptr) (t : IntTy)
-    (used : CType) (v : Int) (address : Nat),
+    (used : String) (v : Int) (address : Nat),
     m.storeIntChecked alias {p with address := address} t used v =
       m.storeIntChecked alias p t used v
   storeInt : ∀ (p : Ptr) (t : IntTy) (v : Int) (address : Nat),
@@ -4774,7 +4773,7 @@ theorem reallocAt_valid_old_storeFunction (m : Mem) (p : Ptr) (size address : Na
   rfl
 
 theorem reallocAt_valid_old_loadIntChecked (m : Mem) (alias : AliasModel)
-    (p : Ptr) (size address : Nat) (t : IntTy) (used : CType)
+    (p : Ptr) (size address : Nat) (t : IntTy) (used : String)
     (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
     (hc : m.get? o = some c) (hdur : c.dur = .allocated)
     (hlive : c.live = true) (hoff : p.off = 0) :
@@ -4790,7 +4789,7 @@ theorem reallocAt_valid_old_loadIntChecked (m : Mem) (alias : AliasModel)
   rfl
 
 theorem reallocAt_valid_old_storeIntChecked (m : Mem) (alias : AliasModel)
-    (p : Ptr) (size address : Nat) (t : IntTy) (used : CType) (v : Int)
+    (p : Ptr) (size address : Nat) (t : IntTy) (used : String) (v : Int)
     (o : ObjId) (c : CObj) (hsize : size ≠ 0) (hp : p.obj = some o)
     (hc : m.get? o = some c) (hdur : c.dur = .allocated)
     (hlive : c.live = true) (hoff : p.off = 0) :
@@ -4930,14 +4929,14 @@ operations above and each RUN on the shipped corpus in
 nobody checked. -/
 
 /-- `alloc` places the new object where its returned id says it is. -/
-@[simp] theorem get?_alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType) :
+@[simp] theorem get?_alloc (m : Mem) (dur : Duration) (size : Nat) (ty : Option String) :
     (m.alloc dur size ty).1.get? (m.alloc dur size ty).2
       = some ⟨dur, true, List.replicate size .indet, ty⟩ := by
   simp [alloc, get?]
 
 /-- C23 §6.2.4: a freshly created object is INSIDE its lifetime, so every
 in-bounds access resolves. This is the base case every frame entry uses. -/
-theorem resolve_alloc (m : Mem) (dur : Duration) (size n : Nat) (ty : Option CType)
+theorem resolve_alloc (m : Mem) (dur : Duration) (size n : Nat) (ty : Option String)
     (h : n ≤ size) :
     (m.alloc dur size ty).1.resolve (Ptr.toObject (m.alloc dur size ty).2) n
       = .ok ((m.alloc dur size ty).2,
@@ -4948,14 +4947,14 @@ theorem resolve_alloc (m : Mem) (dur : Duration) (size n : Nat) (ty : Option CTy
 /-- Explicit placement changes only the concrete address.  Provenance,
     offset, and the one-past bound are independent of that open choice. -/
 theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address₁ address₂ : Nat) :
+    (ty : Option String) (address₁ address₂ : Nat) :
     let p₁ := (m.allocAt dur size ty address₁).2
     let p₂ := (m.allocAt dur size ty address₂).2
     p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
   simp [allocAt, alloc, Ptr.toObjectBoundAt]
 
 @[simp] theorem allocAt_pointer_shape (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address : Nat) :
+    (ty : Option String) (address : Nat) :
     (m.allocAt dur size ty address).2 =
       ⟨some (m.objs.length), address, 0, some size⟩ := by
   simp [allocAt, alloc, Ptr.toObjectBoundAt]
@@ -4963,7 +4962,7 @@ theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
 /-- The resolver observes provenance, offset, lifetime, and bounds, but not
     the concrete placement chosen for a fresh allocation. -/
 @[simp] theorem allocAt_resolve_placement_irrel (m : Mem) (dur : Duration)
-    (size : Nat) (ty : Option CType) (address₁ address₂ n : Nat) :
+    (size : Nat) (ty : Option String) (address₁ address₂ n : Nat) :
     (m.allocAt dur size ty address₁).1.resolve
         (m.allocAt dur size ty address₁).2 n =
       (m.allocAt dur size ty address₂).1.resolve
@@ -4976,7 +4975,7 @@ theorem allocAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
     (Ptr.toObjectBoundAt (m.alloc dur size ty).2 address₂ size) n address₁
 
 theorem allocAt_loadBytes_placement_irrel (m : Mem) (dur : Duration)
-    (size : Nat) (ty : Option CType) (address₁ address₂ n : Nat) :
+    (size : Nat) (ty : Option String) (address₁ address₂ n : Nat) :
     (m.allocAt dur size ty address₁).1.loadBytes
         (m.allocAt dur size ty address₁).2 n =
       (m.allocAt dur size ty address₂).1.loadBytes
@@ -4985,7 +4984,7 @@ theorem allocAt_loadBytes_placement_irrel (m : Mem) (dur : Duration)
     resolve, get?, resolve_address_irrel]
 
 theorem allocAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
-    (size : Nat) (ty : Option CType) (address₁ address₂ : Nat)
+    (size : Nat) (ty : Option String) (address₁ address₂ : Nat)
     (bs : List CByte) :
     ((m.allocAt dur size ty address₁).1.storeBytes
       (m.allocAt dur size ty address₁).2 bs).map (fun m' => m'.objs) =
@@ -4998,7 +4997,7 @@ theorem allocAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
       resolve, get?, CObj.size, resolve_address_irrel, Except.map, hbs] <;> rfl
 
 @[simp] theorem allocZeroedAt_resolve_placement_irrel (m : Mem) (dur : Duration)
-    (size : Nat) (ty : Option CType) (address₁ address₂ n : Nat) :
+    (size : Nat) (ty : Option String) (address₁ address₂ n : Nat) :
     (m.allocZeroedAt dur size ty address₁).1.resolve
         (m.allocZeroedAt dur size ty address₁).2 n =
       (m.allocZeroedAt dur size ty address₂).1.resolve
@@ -5011,7 +5010,7 @@ theorem allocAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
     (Ptr.toObjectBoundAt (m.allocZeroed dur size ty).2 address₂ size) n address₁
 
 theorem allocZeroedAt_loadBytes_placement_irrel (m : Mem) (dur : Duration)
-    (size : Nat) (ty : Option CType) (address₁ address₂ n : Nat) :
+    (size : Nat) (ty : Option String) (address₁ address₂ n : Nat) :
     (m.allocZeroedAt dur size ty address₁).1.loadBytes
         (m.allocZeroedAt dur size ty address₁).2 n =
       (m.allocZeroedAt dur size ty address₂).1.loadBytes
@@ -5020,7 +5019,7 @@ theorem allocZeroedAt_loadBytes_placement_irrel (m : Mem) (dur : Duration)
     resolve, get?, resolve_address_irrel]
 
 theorem allocZeroedAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
-    (size : Nat) (ty : Option CType) (address₁ address₂ : Nat)
+    (size : Nat) (ty : Option String) (address₁ address₂ : Nat)
     (bs : List CByte) :
     ((m.allocZeroedAt dur size ty address₁).1.storeBytes
       (m.allocZeroedAt dur size ty address₁).2 bs).map (fun m' => m'.objs) =
@@ -5046,17 +5045,17 @@ theorem allocZeroedAt_storeBytes_objs_irrel (m : Mem) (dur : Duration)
     (allocZeroedAt_resolve_placement_irrel m .allocated (n * size) none
       address₁ address₂ offset)
 
-@[simp] theorem allocAt_ptr (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+@[simp] theorem allocAt_ptr (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) :
     (m.allocAt dur size ty address).2.address = address := by
   simp [allocAt, Ptr.toObjectBoundAt]
 
-@[simp] theorem allocAt_provenance (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+@[simp] theorem allocAt_provenance (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) :
     (m.allocAt dur size ty address).2.obj = some (m.alloc dur size ty).2 := by
   simp [allocAt, Ptr.toObjectBoundAt]
 
-theorem allocAt_placement (m : Mem) (dur : Duration) (size : Nat) (ty : Option CType)
+theorem allocAt_placement (m : Mem) (dur : Duration) (size : Nat) (ty : Option String)
     (address : Nat) :
     (m.allocAt dur size ty address).2.obj = some (m.alloc dur size ty).2 ∧
       ((m.alloc dur size ty).2, address) ∈ (m.allocAt dur size ty address).1.placements := by
@@ -5067,7 +5066,7 @@ theorem allocAt_placement (m : Mem) (dur : Duration) (size : Nat) (ty : Option C
   exact ⟨rfl, placementSet_mem _ _ _⟩
 
 theorem allocAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address : Nat) :
+    (ty : Option String) (address : Nat) :
     (m.allocAt dur size ty address).1.placement?
         (m.alloc dur size ty).2 = some address := by
   change ((placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
@@ -5077,7 +5076,7 @@ theorem allocAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
   rfl
 
 theorem allocAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address : Nat) (q : ObjId)
+    (ty : Option String) (address : Nat) (q : ObjId)
     (hq : q ≠ m.objs.length) :
     (m.allocAt dur size ty address).1.placement? q = m.placement? q := by
   change ((placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
@@ -5088,7 +5087,7 @@ theorem allocAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
   simp [List.find?_append, hq, hq']
 
 theorem allocZeroedAt_placement (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address : Nat) :
+    (ty : Option String) (address : Nat) :
     (m.allocZeroedAt dur size ty address).2.obj =
         some (m.allocZeroed dur size ty).2 ∧
       ((m.allocZeroed dur size ty).2, address) ∈
@@ -5100,20 +5099,20 @@ theorem allocZeroedAt_placement (m : Mem) (dur : Duration) (size : Nat)
   exact ⟨rfl, placementSet_mem _ _ _⟩
 
 theorem allocZeroedAt_placement_irrel (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address₁ address₂ : Nat) :
+    (ty : Option String) (address₁ address₂ : Nat) :
     let p₁ := (m.allocZeroedAt dur size ty address₁).2
     let p₂ := (m.allocZeroedAt dur size ty address₂).2
     p₁.obj = p₂.obj ∧ p₁.off = p₂.off ∧ p₁.bound = p₂.bound := by
   simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt]
 
 @[simp] theorem allocZeroedAt_pointer_shape (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address : Nat) :
+    (ty : Option String) (address : Nat) :
     (m.allocZeroedAt dur size ty address).2 =
       ⟨some (m.objs.length), address, 0, some size⟩ := by
   simp [allocZeroedAt, allocZeroed, Ptr.toObjectBoundAt]
 
 theorem allocZeroedAt_placement_lookup (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address : Nat) :
+    (ty : Option String) (address : Nat) :
     (m.allocZeroedAt dur size ty address).1.placement?
         (m.allocZeroed dur size ty).2 = some address := by
   change ((placementSet (m.placements ++ [(m.objs.length, m.objs.length)])
@@ -5233,7 +5232,7 @@ theorem reallocAt_null_loadBytes (m : Mem) (size address n : Nat)
   simp [hn]
 
 theorem reallocAt_null_loadIntChecked_full (m : Mem) (alias : AliasModel)
-    (size address : Nat) (t : IntTy) (used : CType)
+    (size address : Nat) (t : IntTy) (used : String)
     (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
         (fun r => r.1.loadIntChecked alias r.2 t used) =
@@ -5261,7 +5260,7 @@ theorem reallocAt_null_storeBytes_full (m : Mem) (size address : Nat)
   rfl
 
 theorem reallocAt_null_storeIntChecked (m : Mem) (alias : AliasModel)
-    (size address : Nat) (t : IntTy) (used : CType) (v : Int)
+    (size address : Nat) (t : IntTy) (used : String) (v : Int)
     (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
         (fun r => (r.1.storeIntChecked alias r.2 t used v).map
@@ -5272,7 +5271,7 @@ theorem reallocAt_null_storeIntChecked (m : Mem) (alias : AliasModel)
   rfl
 
 theorem reallocAt_null_storeIntChecked_full (m : Mem) (alias : AliasModel)
-    (size address : Nat) (t : IntTy) (used : CType) (v : Int)
+    (size address : Nat) (t : IntTy) (used : String) (v : Int)
     (hsize : size ≠ 0) :
     (reallocAt m Ptr.null size address).map
         (fun r => r.1.storeIntChecked alias r.2 t used v) =
@@ -5480,7 +5479,7 @@ theorem reallocAt_null_storeBytes_objs_irrel
   exact mallocAt_storeBytes_objs_irrel m size address₁ address₂ bs
 
 theorem allocZeroedAt_existing_placement (m : Mem) (dur : Duration) (size : Nat)
-    (ty : Option CType) (address : Nat) (q : ObjId)
+    (ty : Option String) (address : Nat) (q : ObjId)
     (hq : q ≠ m.objs.length) :
     (m.allocZeroedAt dur size ty address).1.placement? q = m.placement? q := by
   change ((placementSet (m.placements ++ [(m.objs.length, m.objs.length)])

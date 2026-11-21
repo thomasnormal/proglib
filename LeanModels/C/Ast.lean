@@ -18,7 +18,7 @@ and what the `#guard`s of `Examples/c/sunfish/` are stated about.
 Three shapes are worth reading before the constructors, because each is a
 decision the census or the schema forced rather than a convenience:
 
-* **`CType` remains the frontend spelling during this migration.** Every
+* **`String` remains the frontend spelling during this migration.** Every
   declaration and expression node also carries the optional recursive
   `LeanModels.Clang.QualType` observed by the approved Clang plugin. The
   extractor joins that observation by the Clang node identity from the same
@@ -47,8 +47,6 @@ def pinnedFrontendVersion : String :=
 
 /-- Frontend type text retained only as source metadata. Semantic consumers
 use the parser-native QualType carried on the node. -/
-abbrev CType := String
-
 /- Clang's declaration handle is an identity, not a source spelling. Keep it
    distinct from names even though the frontend currently serializes the
    token as text. -/
@@ -211,70 +209,70 @@ arrived at from the language rather than borrowed. -/
 /-- C expressions — the 19 expression kinds of the pinned vocabulary. -/
 inductive Expr where
   /-- Literals keep their SOURCE SPELLING; see the module docstring. -/
-  | intLit (value : String) (ty : CType) (span : CSpan)
+  | intLit (value : String) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | charLit (value : String) (ty : CType) (span : CSpan)
+  | charLit (value : String) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | strLit (value : String) (decodedBytes : Option (List Nat)) (ty : CType) (span : CSpan)
+  | strLit (value : String) (decodedBytes : Option (List Nat)) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   | floatLit (value : String) (bitsHex : Option String) (bitWidth : Option Nat)
-      (ty : CType) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
+      (ty : String) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
   /-- C23's `true`/`false` literals, retained from clang's semantic node. -/
-  | boolLit (value : Bool) (ty : CType) (span : CSpan)
+  | boolLit (value : Bool) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- GNU `__builtin_choose_expr`: condition and both parser branches. -/
-  | choose (cond thenBranch elseBranch : Expr) (ty : CType) (span : CSpan)
+  | choose (cond thenBranch elseBranch : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- A name, with the kind of declaration it resolved to. -/
   | declRef (id : Option DeclarationId) (name : String) (declKind : String)
-      (ty : CType) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
-  | member (base : Expr) (field : String) (arrow : Bool) (ty : CType) (span : CSpan)
+      (ty : String) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
+  | member (base : Expr) (field : String) (arrow : Bool) (ty : String) (span : CSpan)
       (recordId : Option DeclarationId) (structuredType : Option LeanModels.Clang.QualType)
-  | index (base : Expr) (idx : Expr) (ty : CType) (span : CSpan)
+  | index (base : Expr) (idx : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- A call. An INDIRECT call is one whose callee is not a `declRef` to a
   function — all 19 in the corpus go through the `movecb` parameter. -/
-  | call (callee : Expr) (args : List Expr) (ty : CType) (span : CSpan)
+  | call (callee : Expr) (args : List Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | binop (op : String) (lhs rhs : Expr) (ty : CType) (span : CSpan)
+  | binop (op : String) (lhs rhs : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   | compoundAssign (op : String) (lhs rhs : Expr)
-      (computeLHSType computeResultType ty : CType) (span : CSpan)
+      (computeLHSType computeResultType ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | unop (op : String) (sub : Expr) (isPostfix : Bool) (ty : CType) (span : CSpan)
+  | unop (op : String) (sub : Expr) (isPostfix : Bool) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | cond (c t e : Expr) (ty : CType) (span : CSpan)
+  | cond (c t e : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | paren (sub : Expr) (ty : CType) (span : CSpan)
+  | paren (sub : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- An implicit conversion, carrying clang's `castKind`. The 8 kinds are
   the whole conversion lattice and they arrive PRE-SOLVED — the tier never
   re-derives a promotion, it reads one off. -/
-  | implicitCast (cast : String) (sub : Expr) (ty : CType) (span : CSpan)
+  | implicitCast (cast : String) (sub : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | cast (cast : String) (sub : Expr) (ty : CType) (span : CSpan)
+  | cast (cast : String) (sub : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | initList (inits : List Expr) (unionField : Option String) (ty : CType) (span : CSpan)
+  | initList (inits : List Expr) (unionField : Option String) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- Clang's `InitListExpr` retains both `inner` and `array_filler` fields. -/
   | arrayInitList (inits filler : List Expr) (unionField : Option String)
-      (ty : CType) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
+      (ty : String) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
   /-- C23 designated-update initialization: initialize the base object, then
       apply the parser's update list to the same object. -/
-  | designatedUpdate (base update : Expr) (ty : CType) (span : CSpan)
+  | designatedUpdate (base update : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | implicitValueInit (ty : CType) (span : CSpan)
+  | implicitValueInit (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | compoundLit (init : Expr) (ty : CType) (span : CSpan)
+  | compoundLit (init : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- `sizeof`/`alignof`, over a type or over an expression. -/
-  | typeTrait (trait : String) (argType : Option CType) (sub : Option Expr)
-      (ty : CType) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
-  | constExpr (value : String) (sub : Option Expr) (ty : CType) (span : CSpan)
+  | typeTrait (trait : String) (argType : Option String) (sub : Option Expr)
+      (ty : String) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
+  | constExpr (value : String) (sub : Option Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- C23 §6.5.3.3 / §7.16: parser-resolved `va_arg` operand and result
   type. The cursor is abstract state, not an ABI representation. -/
-  | vaArg (ap : Expr) (ty : CType) (span : CSpan)
+  | vaArg (ap : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- Outside the pinned vocabulary: clang's own class name and ≤200 chars
   of source. Never silently dropped, never guessed at. -/
@@ -296,7 +294,7 @@ def Expr.span : Expr → CSpan
 /-- C declarations that can appear at BLOCK scope as well as file scope —
 everything but a function definition. -/
 inductive Decl where
-  | var (id : Option DeclarationId) (name : String) (ty : CType)
+  | var (id : Option DeclarationId) (name : String) (ty : String)
       (storage : Option String) (init : Option Expr)
       (recordId : Option DeclarationId) (vaList : Bool) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
@@ -309,7 +307,7 @@ inductive Decl where
   real name, and something downstream would eventually look it up. The
   absence is decided in exactly ONE place, `C23.bindParams`
   (`docs/backlog/c.md` 2026-08-24-c-20). -/
-  | param (id : Option DeclarationId) (name : Option String) (ty : CType)
+  | param (id : Option DeclarationId) (name : Option String) (ty : String)
       (vaList : Bool) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- A member declarator. `bits` is the BIT-FIELD WIDTH (§6.7.2.1p4) and
@@ -318,13 +316,13 @@ inductive Decl where
   1` and `unsigned int b` are DIFFERENT PROGRAMS with different observable
   behaviour, and an AST that cannot tell them apart makes the model answer
   correctly about whichever one it happened to build. -/
-  | field (name : Option String) (ty : CType) (bits : Option Nat)
+  | field (name : Option String) (ty : String) (bits : Option Nat)
       (fieldId : Option DeclarationId) (recordId : Option DeclarationId) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   | record (id : Option DeclarationId) (name : Option String) (fields : List Decl)
       (layout : Option RecordLayout) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
-  | typedef (id : Option DeclarationId) (name : String) (ty : CType)
+  | typedef (id : Option DeclarationId) (name : String) (ty : String)
       (underlying : Option TypeNode) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   | enum (name : Option String) (constants : List Decl) (span : CSpan)
@@ -379,7 +377,7 @@ clang's `storageClass` — `"static"`, or `none` for external linkage. -/
 structure FunctionDefn where
   id : Option DeclarationId := none
   name : String
-  ty : CType
+  ty : String
   /-- Parser-native function QualType joined by the declaration identity. -/
   structuredType : Option LeanModels.Clang.QualType := none
   storage : Option String
@@ -451,7 +449,7 @@ Version-neutral: it reads a field the `c-0.1` envelope already carries
 (`docs/c-envelope-schema.md` §3), and every semantic layer needs it. An
 `unsupported` leaf has no type, and `""` resolves to nothing, so a
 consumer refuses rather than inventing one. -/
-def Expr.ty : Expr → CType
+def Expr.ty : Expr → String
   | .intLit _ t _ .. | .charLit _ t _ .. | .floatLit _ _ _ t _ .. => t
   | .strLit _ _ t _ .. => t
   | .boolLit _ t _ .. => t
@@ -560,59 +558,59 @@ def Expr.sizes (es : List Expr) : Nat := (es.flatMap Expr.subexprs).length
 -- the TACTIC and wrong about the FACT — see `Expr.size_pos` below, which the
 -- argument-list measure does need.)
 
-@[simp] theorem Expr.size_member (b : Expr) (f : String) (a : Bool) (t : CType) (s : CSpan)
+@[simp] theorem Expr.size_member (b : Expr) (f : String) (a : Bool) (t : String) (s : CSpan)
     (recordId : Option DeclarationId) (q : Option LeanModels.Clang.QualType) :
     (Expr.member b f a t s recordId q).size = b.size + 1 := by
   simp [Expr.size, Expr.subexprs]
 
-@[simp] theorem Expr.size_index (b i : Expr) (t : CType) (s : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_index (b i : Expr) (t : String) (s : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.index b i t s q).size = b.size + i.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_paren (sub : Expr) (t : CType) (s : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_paren (sub : Expr) (t : String) (s : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.paren sub t s q).size = sub.size + 1 := by
   simp [Expr.size, Expr.subexprs]
 
-@[simp] theorem Expr.size_call (c : Expr) (args : List Expr) (t : CType) (s : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_call (c : Expr) (args : List Expr) (t : String) (s : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.call c args t s q).size = c.size + Expr.sizes args + 1 := by
   simp [Expr.size, Expr.sizes, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_unop (sub : Expr) (op : String) (post : Bool) (t : CType) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_unop (sub : Expr) (op : String) (post : Bool) (t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.unop op sub post t sp q).size = sub.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_binop (l r : Expr) (op : String) (t : CType) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_binop (l r : Expr) (op : String) (t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.binop op l r t sp q).size = l.size + r.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_compoundAssign (l r : Expr) (op lhsTy resultTy t : CType) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_compoundAssign (l r : Expr) (op lhsTy resultTy t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.compoundAssign op l r lhsTy resultTy t sp q).size = l.size + r.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_cond (c a b : Expr) (t : CType) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_cond (c a b : Expr) (t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.cond c a b t sp q).size = c.size + a.size + b.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_choose (c a b : Expr) (t : CType) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_choose (c a b : Expr) (t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.choose c a b t sp q).size = c.size + a.size + b.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_implicitCast (sub : Expr) (ck : String) (t : CType) (sp : CSpan)
+@[simp] theorem Expr.size_implicitCast (sub : Expr) (ck : String) (t : String) (sp : CSpan)
     (q : Option LeanModels.Clang.QualType) :
     (Expr.implicitCast ck sub t sp q).size = sub.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_cast (sub : Expr) (ck : String) (t : CType) (sp : CSpan)
+@[simp] theorem Expr.size_cast (sub : Expr) (ck : String) (t : String) (sp : CSpan)
     (q : Option LeanModels.Clang.QualType) :
     (Expr.cast ck sub t sp q).size = sub.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
-@[simp] theorem Expr.size_compoundLit (i : Expr) (t : CType) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
+@[simp] theorem Expr.size_compoundLit (i : Expr) (t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.compoundLit i t sp q).size = i.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 
 @[simp] theorem Expr.size_constExpr (value : String) (sub : Expr)
-    (ty : CType) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
+    (ty : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.constExpr value (some sub) ty sp q).size = sub.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
 

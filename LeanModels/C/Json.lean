@@ -251,7 +251,7 @@ partial def parseExpr (j : Json) : Except String Expr := do
   let kind ← getStr j "kind"
   withCtx kind do
     let span ← nodeSpan j
-    let ty : Except String CType := getStr j "type"
+    let ty : Except String String := getStr j "type"
     let structuredType ←
       if kind == "Unsupported" then
         pure none
@@ -334,7 +334,7 @@ partial def parseExpr (j : Json) : Except String Expr := do
         | some _ => throw "type-trait operand lacks parser-native structured type"
         | none =>
             let sub ← optSub "sub"
-            return .typeTrait (← getStr j "trait") (none : Option CType)
+            return .typeTrait (← getStr j "trait") (none : Option String)
               sub (← ty) span structuredType
     | "ConstantExpr" =>
         let value? ← getOptStr j "value"

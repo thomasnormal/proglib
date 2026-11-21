@@ -490,7 +490,7 @@ inductive CVal where
   /-- C23 function pointer identity, represented by Clang's declaration id;
   no machine address or calling convention is modeled. -/
   | funPtr (id : DeclarationId)
-  | aggregate (ty : CType) (bytes : List CByte)
+  | aggregate (ty : String) (bytes : List CByte)
   | undef
 deriving Repr, Inhabited, BEq
 
@@ -525,7 +525,7 @@ def CVal.renameAddress (resolve : ObjId → Nat) : CVal → CVal
   rfl
 
 @[simp] theorem CVal.renameAddress_aggregate (resolve : ObjId → Nat)
-    (ty : CType) (bs : List CByte) :
+    (ty : String) (bs : List CByte) :
     CVal.renameAddress resolve (.aggregate ty bs) =
       .aggregate ty (bs.map (CByte.renameAddress resolve)) := by
   rfl
