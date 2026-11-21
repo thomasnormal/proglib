@@ -669,7 +669,11 @@ and Xcelium 24.03-s004 agree on all 1000 simulator rows, with normalized digest
 `927d07f3dfa24bfd33f661260d6aef87f14f7641a98f8c594681814cf1e80cdd`.
 
 Canonical E agrees with both simulators on all 1000/1000 rows.  The checked-in
-simulator transcript is `darkriscv/data_stall_simulator_transcript.txt`.
+simulator transcript is `darkriscv/data_stall_simulator_transcript.txt`, and
+`darkriscv/data_stall_check.py` reruns both simulators, validates that
+transcript, replays the rows through canonical E, and rejects a corrupted-row
+negative control.  Its pinned transcript SHA-256 is
+`927d07f3dfa24bfd33f661260d6aef87f14f7641a98f8c594681814cf1e80cdd`.
 
 ## 2026-11-20 Quark current-source E-RUN boundary
 
