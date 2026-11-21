@@ -1617,3 +1617,12 @@ all **39/39** output fields on **300/300** cycles.  The normalized row digest
 is `59d138f1727a1dd00fb3ead5124bd1a5c4fd5983865ae7eaa62b9090ab24ac7a`.
 The testbench SHA-256 is
 `1dc356fbe89e36a5cd5e66006fdc32d9b7106f49f364c44ebcaa2b0ad42952fe`.
+
+## 2026-11-21 PicoRV32 wrapper deletion audit
+
+The former per-class `r1_*` PicoRV32 files were removed after the independent
+audit showed that they only restated the universal loaded-step and order
+premises. The generic RVFI adapter and ISA-side boundary infrastructure remain
+for the first invariant that discharges those premises on the loaded design.
+The older dated receipts above describe their historical state and are not
+current theorem claims.

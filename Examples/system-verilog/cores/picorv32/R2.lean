@@ -41,168 +41,26 @@ set_option autoImplicit false
 
 /-! ## R2 consumption map
 
-The loaded-core proof consumes one concrete obligation at each boundary.  The
-`PicoRV32Invariant.init` field supplies reset and initial-memory relation data.
-Its `PicoRV32Invariant.step` field supplies `RvfiE.StepRefines`, whose valid
-row cases consume the exact `Rv32iBoundary` family and whose invalid cases
-must carry the relation across a bubble.  `PicoRV32FetchTie` supplies the
-program-image word equality used by `PicoRV32R2Statement.safety`.  The
-separate `BoundedNextRetirement` premise supplies liveness to
-`picoRV32_progress`; it is not inferred from safety.  The R1 files listed
-below are the currently available boundary families consumed by that step
-obligation:
+The real proof still has two obligations. `PicoRV32Invariant.init` supplies
+the reset and initial-memory relation, while `PicoRV32Invariant.step` supplies
+the order-indexed `RvfiE.StepRefines` fact. `PicoRV32FetchTie` supplies the
+program-image word equality used by the safety theorem, and
+`BoundedNextRetirement` is the separate progress premise.
 
-* `r1_addi.lean`, `r1_alu_imm.lean`, and `r1_alu.lean` for immediate and
-  register ALU rows;
-* `r1_upper.lean`, `r1_branch.lean`, and `r1_jump.lean` for upper-immediate,
-  conditional-branch, and jump rows;
-* `r1_mem.lean` and `r1_mem_all.lean` for every load/store width and sign;
-* trap, CSR, fence, and RV32M classes are deliberately absent.  PicoRV32's
-  RVFI decoder rejects trap and halt rows, the core has no M-mode CSR/MRET/WFI
-  behavior, and the pinned parameters disable RV32M.  These ISA-only files
-  were removed because they cannot be consumed by a theorem about this core;
-* `LeanModels.Refine.RvfiAddiProgress` for the packaged ADDI-only invariant
-  bridge `Rv32iAddiInvariant.toMixedStep` and its reset-stream refinement;
-* `r1_addi.lean` for the loaded-envelope ADDI configuration, resolved
-  parameter vector, declaration prefix, field-presence, and exact RVFI-width
-  facts that feed that decoder;
-* `picorv32_loaded_cpuregs_one_rank_unpacked`,
-  `picorv32_loaded_cpuregs_cell_shape`, and `picorv32_loaded_regfile_size` for
-  the concrete register-file geometry consumed by the canonical one-rank
-  memory relation;
-* `picorv32_loaded_inactive_generate_params` for the four default-disabled
-  generate branches reported by the census;
-* `rvfi_ports.lean` for the exact-width RVFI decoder and `rvfi_proof.lean`
-  for the measured observation witness;
-* `rvfi_addi_boundary.lean` for the measured raw ADDI row and its
-  `addiBoundary`-to-ISA step and memory-machine commit bridges.
-* `rvfi_core_adapter.lean` for the refusal-preserving canonical RVFI adapter,
-  the `CoreAddiBoundary` state relation, and its exact canonical-step
-  constructors for the measured first and second ADDI rows.  Its
-  `r1_addi.picorv32_addi1_loaded_rv32i_boundary_of_step` and
-  `picorv32_addi2_loaded_rv32i_boundary_of_step` wrappers carry the measured
-  first two rows into the same indexed dispatcher used by the universal
-  invariant, while retaining the source-step and exact-port-sample premises.
-  `r1_addi.picorv32_addi1_loaded_rv32i_boundary_of_reset_relation` additionally
-  carries the reset relation's architectural well-formedness into that first
-  loaded-row boundary.
-  `r1_mem.picorv32_lw_loaded_rv32i_boundary_of_step` and
-  `picorv32_sw_loaded_rv32i_boundary_of_step` provide the corresponding
-  memory-row consumers with explicit load and store post-memory states.
-  `r1_upper.picorv32_lui_loaded_rv32i_boundary_of_step` and
-  `picorv32_auipc_loaded_rv32i_boundary_of_step` provide the corresponding
-  LUI and AUIPC consumers through the decoded upper-immediate witness.
-  `r1_jump.picorv32_jal_loaded_rv32i_boundary_of_step` and
-  `picorv32_jalr_loaded_rv32i_boundary_of_step` provide the corresponding
-  JAL and JALR consumers through the decoded jump witness.
-  `r1_branch` provides the six conditional-branch consumers through one
-  condition-indexed decoded witness.  Its
-  `r1_branch.picorv32_branch_exact_cycle_step_refines` theorem consumes the
-  common exact branch boundary directly in the mixed cycle dispatcher,
-  retaining the source instruction and architectural continuation.
-  `r1_branch.picorv32_loaded_branch_program_refinement_of_total` packages one
-  condition-indexed branch instruction into the loaded all-prefix contract
-  from total canonical execution.
-  `r1_alu` provides the ten register-register ALU consumers, and its generic
-  operation-indexed witness also covers the immediate ALU forms from
-  `r1_alu_imm`.  Its
-  `r1_alu.picorv32_alu_exact_cycle_step_refines` theorem consumes the generic
-  exact ALU boundary in the mixed cycle dispatcher while retaining the
-  operation and source operands.
-  `r1_alu_imm` provides the nine remaining immediate ALU raw boundaries that
-  instantiate that generic consumer.
-  `r1_alu.picorv32_loaded_alu_program_refinement_of_total` packages one
-  operation-indexed ALU instruction into the loaded reset-specialized
-  all-prefix contract from total canonical execution.
-  `r1_mem_all` provides the five load and three store consumers through the
-  memory-threaded MemInstruction witness.  Its
-  `r1_mem_all.picorv32_mem_exact_cycle_step_refines` theorem consumes the
-  generic exact memory boundary in the mixed cycle dispatcher while retaining
-  width, signedness, and the post-memory state.
-  `rv32iProgramState_preserves_WF` and
-  `picorv32_reset_relation_program_state_preserves_WF` preserve the
-  architectural x0 invariant from the explicit reset relation through every
-  mixed program prefix.
-  `rvfi_core_adapter.CoreRv32iBoundary` is the family-tagged composition
-  boundary for that premise.  Its
-  `CoreRv32iBoundary.to_rv32i_boundary` projection converts each retained
-  ALU, branch, jump, memory, fence, system, CSR, or trap witness to the
-  corresponding mixed boundary while preserving the exact canonical step.
-  `CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary` is the invariant
-  adapter that consumes this projection while retaining the order and
-  relation-continuation obligations.
-  `CoreRvfiMachine.ofTotal` packages a proved total canonical step and RVFI
-  decode witness into the machine consumed by these R1 bridges, while
-  `CoreRvfiMachine.ofTotal_exact` preserves the witness equality.
-  `rvfiObservation_memAddr_of_valid` theorem ties a valid decoded row's
-  memory address back to the exact known-width port sample without a
-  four-state default.
-  Its `rvfiObservation_memAddr_of_valid_view` specialization exposes the
-  same fact directly from the canonical `CoreMemState.view`.
-  Its
-  `CoreRvfiMachine.to_addi_invariant` theorem is the bridge from an explicit
-  all-admitted-step premise and order premise to `Rv32iAddiInvariant`, and
-  `CoreRvfiMachine.to_reset_addi_refinement` composes that invariant with the
-  all-prefix reset contract once initial relation and progress are supplied.
-  `r1_addi.picorv32_loaded_addi_typed_program_prefix_from_initial_relation`
-  retains an `AddiInstruction` list, its exact input fold, and the final
-  relation for each target prefix.
-  `r1_addi.picorv32_loaded_addi_program_state_preserves_WF` carries the
-  reset relation's x0 invariant through an ADDI-only architectural prefix.
-  `r1_addi.picorv32_addi1_boundary_of_reset_relation` consumes an explicit
-  reset relation while keeping the measured first-row state equality visible.
-  `r1_addi.picorv32_addi1_fields_of_wf_state` proves the same row's wire
-  fields for every reset-PC state with a well-formed x0, leaving nonzero reset
-  registers unresolved.
-  `r1_addi.picorv32_addi_fields_isa_step` bridges any such exact ADDI row
-  fields to the ISA memory step without requiring a changed-write list.
-  `r1_branch.picorv32_branch_fields_isa_step` provides the corresponding
-  exact architectural step bridge for every conditional-branch row.
-  `r1_jump.picorv32_jal_fields_isa_step` and
-  `r1_jump.picorv32_jalr_fields_isa_step` provide the corresponding exact
-  JAL and JALR step bridges while retaining their distinct decoder shapes.
-  `r1_jump.picorv32_jump_exact_cycle_step_refines` consumes the common exact
-  jump boundary in the mixed cycle dispatcher while preserving the distinct
-  JAL and JALR target semantics carried by `JumpInstruction`.
-  `r1_jump.picorv32_loaded_jump_program_refinement_of_total` packages one
-  retained JAL or JALR instruction into the loaded all-prefix contract from
-  total canonical execution.
-  `r1_upper.picorv32_lui_fields_isa_step` and
-  `r1_upper.picorv32_auipc_fields_isa_step` provide the corresponding exact
-  LUI and AUIPC step bridges while retaining their distinct source operands.
-  `r1_upper.picorv32_upper_exact_cycle_step_refines` consumes the shared
-  upper-immediate boundary in the mixed cycle dispatcher and embeds its
-  retained LUI/AUIPC witness into the exact RV32I instruction union.
-  `r1_upper.picorv32_loaded_upper_program_refinement_of_total` packages one
-  retained LUI or AUIPC instruction into the loaded all-prefix contract from
-  total canonical execution.
-  `r1_mem.picorv32_sw_fields_isa_step` and
-  `r1_mem.picorv32_lw_fields_isa_step` provide the corresponding exact word
-  store and load step bridges with their memory effects explicit.
-  `r1_mem_all.picorv32_mem_fields_isa_step` provides the shared exact bridge
-  for byte, halfword, and word loads and stores, retaining signedness.
-  `r1_mem_all.picorv32_loaded_mem_program_refinement_of_total` packages one
-  retained load/store instruction into the loaded all-prefix contract from
-  total canonical execution.
-  `r1_alu.picorv32_alu_fields_isa_step` provides the shared exact bridge for
-  register, immediate, and pc-based ALU source forms.
-  `r1_addi.picorv32_addi_class_preserves_reset_wf` carries the reset
-  `ArchState.WF` fact through the pinned `addi x1, x0, 5` transition.
-  `CoreAddiBoundary.to_rv32i_boundary` lifts each exact ADDI witness into the
-  indexed RV32I dispatcher while retaining its architectural post-state and
-  retirement.  The machine's encoder is state-dependent because the concrete
-  E-RUN memory response is selected from the core's sampled address.
-  A conversion from
-  four-state `mem_addr` to an architectural word remains an explicit loaded-
-  core premise, not an inferred default.
-  The pinned design leaves nonzero `cpuregs` unresolved at reset because
-  `REGS_INIT_ZERO = 0`.  The R2 statement therefore does not introduce a
-  second ISA-side read-before-write language.  `decodePost` and `rvfiStep`
-  admit only known-width RVFI samples, so the loaded invariant must prove the
-  corresponding sample is known or preserve the exact decoder refusal.
+The former `r1_*` files were deleted because they only repackaged those
+obligations or proved ISA facts for fixed words. They did not establish a fact
+about the loaded PicoRV32 design. The remaining useful infrastructure is
+`rvfi_ports.lean` for the exact RVFI decoder, `rvfi_core_adapter.lean` for the
+generic family boundary and future invariant bridge, and the RVFI boundary
+files for their explicitly typed observation data. None of these files claims
+that the current envelope satisfies the missing step invariant.
 
-These are boundary consumers for a future loaded-core invariant.  They do not
-assert that the current PicoRV32 envelope executes in canonical E. -/
+The first real target is one ADDI class over `CoreMemDesign.step` for the
+loaded envelope. It must establish the source instruction, decoded operands,
+retirement order, architectural post-state, and relation continuation. The
+canonical clocked route currently stops during normalization of the full
+PicoRV32 envelope before it can produce the structure equation.
+-/
 
 set_option maxRecDepth 100000 in
 load_design_sv2 picorv32_r2
@@ -351,27 +209,6 @@ theorem picorv32_rv32m_disabled :
   decide
 
 #print axioms picorv32_rv32m_disabled
-
-/-! The first loaded-core consumer is the packaged ADDI bridge.  Keeping this
-typed wrapper beside the core statement makes the obligation visible to the
-eventual E-specific invariant without introducing a second ADDI theorem. -/
-theorem picorv32_addi_step_bridge
-    {State : Type} {machine : RvfiCycleMachine State}
-    {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
-    (invariant : Rv32iAddiInvariant machine rel admit) :
-    Rv32iLegacyCycleStepRefines machine rel admit := by
-  exact invariant.toMixedStep
-
-#print axioms picorv32_addi_step_bridge
-
-theorem picorv32_upper_step_bridge
-    {State : Type} {machine : RvfiCycleMachine State}
-    {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
-    (invariant : Rv32iUpperInvariant machine rel admit) :
-    Rv32iLegacyCycleStepRefines machine rel admit := by
-  exact invariant.toMixedStep
-
-#print axioms picorv32_upper_step_bridge
 
 /-- The literal parametric envelope and its explicit pinned instantiation.
 `Design2` may contain the loader's loud refusal while the corresponding E
