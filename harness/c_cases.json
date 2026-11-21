@@ -1414,5 +1414,85 @@
     "error": "no layout for declared type 'int *'",
     "structured_expect": "match",
     "structured_return_value": 0
+  },
+  {
+    "id": "oracle-clean-20000113_1",
+    "source": "void abort (void);\nvoid exit (int);\n\nstruct x { \n  unsigned x1:1;\n  unsigned x2:2;\n  unsigned x3:3;\n};\n\nvoid\nfoobar (int x, int y, int z)\n{\n  struct x a = {x, y, z};\n  struct x b = {x, y, z};\n  struct x *c = &b;\n\n  c->x3 += (a.x2 - a.x1) * c->x2;\n  if (a.x1 != 1 || c->x3 != 5)\n    abort ();\n  exit (0);\n}\n\nint\nmain(void)\n{\n  foobar (1, 2, 3);\n}\n\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "oracle-clean-bf_sign_2",
+    "source": "/* \n This test checks promotion of bitfields.  Bitfields should be promoted\n very much like chars and shorts: \n\n Bitfields (signed or unsigned) should be promoted to signed int if their\n value will fit in a signed int, otherwise to an unsigned int if their \n value will fit in an unsigned int, otherwise we don't promote them (ANSI/ISO\n does not specify the behavior of bitfields larger than an unsigned int).\n\n We test the behavior by subtracting two from the promoted value: this will\n result in a negitive value for signed types, a positive value for unsigned\n types.  This test (of course) assumes that the compiler is correctly \n implementing signed and unsigned arithmetic.\n */\n\nvoid abort (void);\nvoid exit (int);\n\nstruct X {\n  unsigned int\t     u3:3;\n    signed long int  s31:31;\n    signed long int  s32:32;\n  unsigned long int  u31:31;\n  unsigned long int  u32:32;\n  unsigned long long ull3 :3;\n  unsigned long long ull35:35;\n  unsigned u15:15;\n};\n\nstruct X x;\n\nint\nmain (void)\n{\n  if ((x.u3 - 2) >= 0)\t\t/* promoted value should be signed */\n    abort ();\n\n  if ((x.s31 - 2) >= 0)\t\t/* promoted value should be signed */\n    abort ();\n\n  if ((x.s32 - 2) >= 0)\t\t/* promoted value should be signed */\n    abort ();\n\n  if ((x.u15 - 2) >= 0)\t\t/* promoted value should be signed */\n    abort ();\n\n  /* Conditionalize check on whether integers are 4 bytes or larger, i.e.\n     larger than a 31 bit bitfield.  */\n  if (sizeof (int) >= 4)\n    {\n      if ((x.u31 - 2) >= 0)\t/* promoted value should be signed */\n\tabort ();\n    }\n  else\n    {\n      if ((x.u31 - 2) < 0)\t/* promoted value should be UNsigned */\n\tabort ();\n    }\n\n  if ((x.u32 - 2) < 0)\t\t/* promoted value should be UNsigned */\n    abort ();\n\n  if ((x.ull3 - 2) >= 0)\t/* promoted value should be signed */\n    abort ();\n\n  if ((x.ull35 - 2) < 0)\t/* promoted value should be UNsigned */\n    abort ();\n\n  exit (0);\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "oracle-clean-bitfld_8",
+    "source": "struct mouse_button_str {\n        unsigned char left      : 1;\n        unsigned char right     : 1;\n        unsigned char middle    : 1;\n        } button;\n\nstatic char fct (struct mouse_button_str newbutton) __attribute__ ((__noipa__));\nstatic char\nfct (struct mouse_button_str newbutton)\n{\n  char l = newbutton.left;\n  char r = newbutton.right;\n  char m = newbutton.middle;\n\treturn l || r || m;\n}\n\nint main(void)\n{\n  struct mouse_button_str newbutton1;\n  newbutton1.left = 1;\n  newbutton1.middle = 1;\n  newbutton1.right = 1;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n\n  newbutton1.left = 0;\n  newbutton1.middle = 1;\n  newbutton1.right = 1;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 1;\n  newbutton1.middle = 0;\n  newbutton1.right = 1;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 1;\n  newbutton1.middle = 1;\n  newbutton1.right = 0;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n\n\n  newbutton1.left = 1;\n  newbutton1.middle = 0;\n  newbutton1.right = 0;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 0;\n  newbutton1.middle = 1;\n  newbutton1.right = 0;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 0;\n  newbutton1.middle = 0;\n  newbutton1.right = 1;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 0;\n  newbutton1.middle = 0;\n  newbutton1.right = 0;\n  if (fct (newbutton1))\n    __builtin_abort ();\n}",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "oracle-clean-bitfld_9",
+    "source": "struct mouse_button_str {\n        unsigned char left      : 1;\n        unsigned char right     : 1;\n        unsigned char middle    : 1;\n        } button;\n\nstatic char fct (struct mouse_button_str newbutton) __attribute__ ((__noipa__));\nstatic char\nfct (struct mouse_button_str newbutton)\n{\n  char l = newbutton.left;\n  char r = newbutton.right;\n  char m = newbutton.middle;\n  return l && r && m;\n}\n\nint main(void)\n{\n  struct mouse_button_str newbutton1;\n  newbutton1.left = 1;\n  newbutton1.middle = 1;\n  newbutton1.right = 1;\n  if (!fct (newbutton1))\n    __builtin_abort ();\n\n  newbutton1.left = 0;\n  newbutton1.middle = 1;\n  newbutton1.right = 1;\n  if (fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 1;\n  newbutton1.middle = 0;\n  newbutton1.right = 1;\n  if (fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 1;\n  newbutton1.middle = 1;\n  newbutton1.right = 0;\n  if (fct (newbutton1))\n    __builtin_abort ();\n\n\n  newbutton1.left = 1;\n  newbutton1.middle = 0;\n  newbutton1.right = 0;\n  if (fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 0;\n  newbutton1.middle = 1;\n  newbutton1.right = 0;\n  if (fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 0;\n  newbutton1.middle = 0;\n  newbutton1.right = 1;\n  if (fct (newbutton1))\n    __builtin_abort ();\n  newbutton1.left = 0;\n  newbutton1.middle = 0;\n  newbutton1.right = 0;\n  if (fct (newbutton1))\n    __builtin_abort ();\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "oracle-clean-pr108498_2",
+    "source": "/* PR tree-optimization/108498 */\n/* { dg-require-effective-target int32plus } */\n\nstruct U { char c[16]; };\nstruct V { char c[16]; };\nstruct S { unsigned int a : 3, b : 8, c : 21; struct U d; unsigned int e; struct V f; unsigned int g : 5, h : 27; };\nstruct T { unsigned int a : 16, b : 8, c : 8; struct U d; unsigned int e; struct V f; unsigned int g : 5, h : 27; };\n\n__attribute__((noipa)) void\nfoo (struct S *p)\n{\n  p->b = 231;\n  p->c = 42;\n  p->d = (struct U) { \"abcdefghijklmno\" };\n  p->e = 0xdeadbeef;\n  p->f = (struct V) { \"ABCDEFGHIJKLMNO\" };\n}\n\n__attribute__((noipa)) void\nbar (struct S *p)\n{\n  p->b = 231;\n  p->c = 42;\n  p->d = (struct U) { \"abcdefghijklmno\" };\n  p->e = 0xdeadbeef;\n  p->f = (struct V) { \"ABCDEFGHIJKLMNO\" };\n  p->g = 12;\n}\n\n__attribute__((noipa)) void\nbaz (struct T *p)\n{\n  p->c = 42;\n  p->d = (struct U) { \"abcdefghijklmno\" };\n  p->e = 0xdeadbeef;\n  p->f = (struct V) { \"ABCDEFGHIJKLMNO\" };\n  p->g = 12;\n}\n\nint\nmain ()\n{\n  if (__CHAR_BIT__ != 8 || __SIZEOF_INT__ != 4)\n    return 0;\n  struct S s = {};\n  struct T t = {};\n  foo (&s);\n  if (s.a != 0 || s.b != 231 || s.c != 42\n      || __builtin_memcmp (&s.d.c, \"abcdefghijklmno\", 16) || s.e != 0xdeadbeef\n      || __builtin_memcmp (&s.f.c, \"ABCDEFGHIJKLMNO\", 16) || s.g != 0 || s.h != 0)\n    __builtin_abort ();\n  __builtin_memset (&s, 0, sizeof (s));\n  s.a = 7;\n  s.g = 31;\n  s.h = (1U << 27) - 1;\n  foo (&s);\n  if (s.a != 7 || s.b != 231 || s.c != 42\n      || __builtin_memcmp (&s.d.c, \"abcdefghijklmno\", 16) || s.e != 0xdeadbeef\n      || __builtin_memcmp (&s.f.c, \"ABCDEFGHIJKLMNO\", 16) || s.g != 31 || s.h != (1U << 27) - 1)\n    __builtin_abort ();\n  __builtin_memset (&s, 0, sizeof (s));\n  bar (&s);\n  if (s.a != 0 || s.b != 231 || s.c != 42\n      || __builtin_memcmp (&s.d.c, \"abcdefghijklmno\", 16) || s.e != 0xdeadbeef\n      || __builtin_memcmp (&s.f.c, \"ABCDEFGHIJKLMNO\", 16) || s.g != 12 || s.h != 0)\n    __builtin_abort ();\n  __builtin_memset (&s, 0, sizeof (s));\n  s.a = 7;\n  s.g = 31;\n  s.h = (1U << 27) - 1;\n  bar (&s);\n  if (s.a != 7 || s.b != 231 || s.c != 42\n      || __builtin_memcmp (&s.d.c, \"abcdefghijklmno\", 16) || s.e != 0xdeadbeef\n      || __builtin_memcmp (&s.f.c, \"ABCDEFGHIJKLMNO\", 16) || s.g != 12 || s.h != (1U << 27) - 1)\n    __builtin_abort ();\n  baz (&t);\n  if (t.a != 0 || t.b != 0 || t.c != 42\n      || __builtin_memcmp (&t.d.c, \"abcdefghijklmno\", 16) || t.e != 0xdeadbeef\n      || __builtin_memcmp (&t.f.c, \"ABCDEFGHIJKLMNO\", 16) || t.g != 12 || t.h != 0)\n    __builtin_abort ();\n  __builtin_memset (&s, 0, sizeof (s));\n  t.a = 7;\n  t.b = 255;\n  t.g = 31;\n  t.h = (1U << 27) - 1;\n  baz (&t);\n  if (t.a != 7 || t.b != 255 || t.c != 42\n      || __builtin_memcmp (&t.d.c, \"abcdefghijklmno\", 16) || t.e != 0xdeadbeef\n      || __builtin_memcmp (&t.f.c, \"ABCDEFGHIJKLMNO\", 16) || t.g != 12 || t.h != (1U << 27) - 1)\n    __builtin_abort ();\n  return 0;\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "oracle-clean-pr110166_1",
+    "source": "struct s\n{\n  int t : 1;\n  int t1 : 1;\n};\n\nint f(struct s t) __attribute__((noinline));\nint f(struct s t)\n{\n   int c = t.t;\n   int d = t.t1;\n   if (c > d)\n     t.t = d;\n   else\n     t.t = c;\n  return t.t;\n}\n\nint main(void)\n{\n        struct s t;\n        for(int i = -1;i <= 0; i++)\n        {\n          for(int j = -1;j <= 0; j++)\n          {\n\t\tstruct s t = {i, j};\n                int r = f(t);\n                int exp = i < j ? i : j;\n                if (exp != r)\n                 __builtin_abort();\n          }\n        }\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "oracle-clean-pr70566",
+    "source": "/* PR target/70566.  */\n\n#define NULL 0\n\nstruct mystruct\n{\n  unsigned int f1 : 1;\n  unsigned int f2 : 1;\n  unsigned int f3 : 1;\n};\n\n__attribute__ ((noinline)) void\nmyfunc (int a, void *b)\n{\n}\n__attribute__ ((noinline)) int\nmyfunc2 (void *a)\n{\n  return 0;\n}\n\nstatic void\nset_f2 (struct mystruct *user, int f2)\n{\n  if (user->f2 != f2)\n    myfunc (myfunc2 (NULL), NULL);\n  else\n    __builtin_abort ();\n}\n\n__attribute__ ((noinline)) void\nfoo (void *data)\n{\n  struct mystruct *user = data;\n  if (!user->f2)\n    set_f2 (user, 1);\n}\n\nint\nmain (void)\n{\n  struct mystruct a;\n  a.f1 = 1;\n  a.f2 = 0;\n  foo (&a);\n  return 0;\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
+  },
+  {
+    "id": "oracle-clean-pr86844",
+    "source": "/* PR tree-optimization/86844 */\n\n__attribute__((noipa)) void\nfoo (int *p)\n{\n  *p = 0;\n  *((char *)p + 3) = 1;\n  *((char *)p + 1) = 2;\n  *((char *)p + 2) = *((char *)p + 6);\n}\n\nint\nmain ()\n{\n  int a[2] = { -1, 0 };\n  if (sizeof (int) != 4)\n    return 0;\n  ((char *)a)[6] = 3;\n  foo (a);\n  if (((char *)a)[0] != 0 || ((char *)a)[1] != 2\n      || ((char *)a)[2] != 3 || ((char *)a)[3] != 1)\n    __builtin_abort ();\n  return 0;\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "structured_envelope_checks": [
+      "structured_types"
+    ]
   }
 ]
