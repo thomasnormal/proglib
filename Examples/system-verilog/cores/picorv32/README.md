@@ -2186,7 +2186,7 @@ The normalized binary cycle-row SHA-256 is
 The fixed PicoRV32 battery was rerun with reset, ALU, taken branch, full-word
 store/load, a memory stall schedule, and an uninitialized-register read.  Icarus
 Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on
-300/300 cycles.  Canonical E agrees bit-for-bit on 300/300 cycles and all 32
+300/300 cycles.  Canonical E agrees bit-for-bit on 300/300 cycles and all 39
 observed outputs.  The checked-in simulator transcript is
 `pico_simulator_transcript.txt` with SHA-256
 `a8d08e260de3066218edfd2cb0ccb19ebc1b9316746cc0cd32f2982965ea0345`.
