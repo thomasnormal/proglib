@@ -3,10 +3,11 @@
 ## Canonical-E preemption refusal — 2026-11-21
 
 Canonical E now refuses a reactive process with multiple blocking writes when
-another reactive process can read an intermediate value. IEEE 1800-2023 §4.7
-permits suspension between those writes, so the atomic executor cannot claim a
-single result. The `preempt_block_refuse` receipt records the refusal and four
-matching source rows from Icarus Verilog 13.0 and Xcelium Verilog 24.03-s004.
+another process, including a continuous assignment, can read an intermediate
+value. IEEE 1800-2023 §4.7 permits suspension between those writes, so the
+atomic executor cannot claim a single result. The `preempt_block_refuse`
+receipt records the refusal and four matching source rows from Icarus Verilog
+13.0 and Xcelium Verilog 24.03-s004.
 
 ## Canonical-E self-read differential classification — 2026-11-21
 
