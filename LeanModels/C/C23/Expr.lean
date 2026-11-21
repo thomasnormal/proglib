@@ -2145,13 +2145,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
 
   -- A bare name in value position is an enumeration constant; every other
   -- name arrives wrapped in a conversion or a decay.
-  | .declRef (some id) name declKind ty _ .. =>
+  | .declRef (some id) name declKind ty _ structuredType =>
       if declKind == "EnumConstantDecl" then
         match (ctx.enumIds.find? (·.1 == id)).map (·.2) with
         | some n => do
-            let t := (ctx.layout.structuredTypeDecl id).bind intTyOfStructured
-              |>.getD (intTyOf? (ctx.layout.normalizeTy ty) |>.getD IntTy.int_)
-            pure (.int t n)
+            match structuredType.bind intTyOfStructured with
+            | some t => pure (.int t n)
+            | none => refuseUnsupported "enumeration constant lacks parser-native QualType"
         | none => refuseUnsupported s!"unknown enum declaration '{id.value}' (name '{name}')"
       else match ctx.idEnv.lookup? id with
         | some o =>
@@ -2160,10 +2160,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.sizeAt (some id) ty)
               (ctx.layout.structuredTypeDecl id)
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
-  | .declRef none name declKind ty _ .. =>
+  | .declRef none name declKind ty _ structuredType =>
       if declKind == "EnumConstantDecl" then
         match (ctx.enums.find? (·.1 == name)).map (·.2) with
-        | some n => do let t ← intTyOf (ctx.layout.normalizeTy ty); pure (.int t n)
+        | some n =>
+            match structuredType.bind intTyOfStructured with
+            | some t => pure (.int t n)
+            | none => refuseUnsupported "enumeration constant lacks parser-native QualType"
         | none => refuseUnsupported s!"unknown enum constant '{name}'"
       else match ctx.env.lookup? name with
         | some o =>
