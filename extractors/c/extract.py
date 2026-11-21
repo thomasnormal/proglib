@@ -356,13 +356,13 @@ def structured_type_records(records):
     if not isinstance(records, list):
         die("structured type probe returned a non-array")
     for record in records:
-        if (not isinstance(record, dict) or record.get("kind") not in ("StructuredType", "StructuredExprType") or
+        if (not isinstance(record, dict) or record.get("kind") not in ("StructuredType", "StructuredExprType", "StructuredExprArgType") or
                 (record.get("kind") == "StructuredType" and not isinstance(record.get("decl_id"), str)) or
-                (record.get("kind") == "StructuredExprType" and not isinstance(record.get("expr_id"), str)) or
+                (record.get("kind") in ("StructuredExprType", "StructuredExprArgType") and not isinstance(record.get("expr_id"), str)) or
                 type(record.get("offset")) is not int or record["offset"] < 0 or
                 not isinstance(record.get("type"), dict)):
             die("structured type probe returned an invalid record")
-        if record.get("kind") == "StructuredExprType":
+        if record.get("kind") in ("StructuredExprType", "StructuredExprArgType"):
             if (type(record.get("end_offset")) is not int or
                     record["end_offset"] < record["offset"] or
                     not isinstance(record.get("expr_kind"), str) or
@@ -1134,8 +1134,9 @@ def extract(path, source_name=None, standard="c23"):
                 return [join_type(item) for item in value]
             return value
         for record in structured_types:
-            if record.get("kind") == "StructuredExprType":
+            if record.get("kind") in ("StructuredExprType", "StructuredExprArgType"):
                 structured_expr_rows.append({"expr_id": record["expr_id"],
+                                             "arg": record.get("kind") == "StructuredExprArgType",
                                              "offset": record["offset"],
                                              "end_offset": record.get("end_offset"),
                                              "expr_kind": record.get("expr_kind", ""),
@@ -1145,12 +1146,15 @@ def extract(path, source_name=None, standard="c23"):
                                     "type": join_type(record["type"])})
 
     structured_by_decl = {row["decl_id"]: row["type"] for row in structured_rows}
-    structured_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows}
+    structured_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows if not row.get("arg")}
+    structured_arg_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows if row.get("arg")}
     def attach_decl_type(value):
         if isinstance(value, dict):
             out = {key: attach_decl_type(item) for key, item in value.items()}
             if value.get("kind") in EXPRS and value.get("expr_id") in structured_by_expr:
                 out["structured_type"] = structured_by_expr[value["expr_id"]]
+            if value.get("kind") == "UnaryExprOrTypeTraitExpr" and value.get("expr_id") in structured_arg_by_expr:
+                out["structured_arg_type"] = structured_arg_by_expr[value["expr_id"]]
             if value.get("kind") in {"FunctionDecl", "VarDecl", "ParmVarDecl", "FieldDecl",
                                       "RecordDecl", "TypedefDecl", "EnumDecl", "EnumConstantDecl"}:
                 decl_id = value.get("decl_id")

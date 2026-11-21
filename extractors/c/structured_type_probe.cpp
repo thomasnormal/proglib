@@ -304,6 +304,20 @@ public:
                                         {"type", std::move(*tree)}});
     };
     emit(expr);
+    if (const auto *trait = llvm::dyn_cast<clang::UnaryExprOrTypeTraitExpr>(expr)) {
+      if (trait->isArgumentType()) {
+        auto tree = typeTree(trait->getArgumentType(), *context, 0);
+        if (tree) {
+          rows.push_back(llvm::json::Object{
+              {"kind", "StructuredExprArgType"},
+              {"expr_id", nodeId(expr)},
+              {"offset", sourceOffset(expr, context->getSourceManager()).value_or(0)},
+              {"end_offset", sourceEndOffset(expr, context->getSourceManager()).value_or(0)},
+              {"expr_kind", expr->getStmtClassName()},
+              {"type", std::move(*tree)}});
+        }
+      }
+    }
     if (const auto *init = llvm::dyn_cast<clang::InitListExpr>(expr)) {
       // Clang's JSON dump may expose the syntactic or semantic InitListExpr
       // form depending on the parent. Observe both parser nodes so the

@@ -77,10 +77,10 @@ def run(clang, plugin, source):
         raise RuntimeError("probe output is not an array")
     for record in document:
         if (not isinstance(record, dict) or record.get("kind") not in
-                ("StructuredType", "StructuredExprType") or
+                ("StructuredType", "StructuredExprType", "StructuredExprArgType") or
                 type(record.get("offset")) is not int or record["offset"] < 0):
             raise RuntimeError(f"invalid structured type record: {record!r}")
-        if record["kind"] == "StructuredExprType":
+        if record["kind"] in ("StructuredExprType", "StructuredExprArgType"):
             if (type(record.get("end_offset")) is not int or
                     record["end_offset"] < record["offset"] or
                     not isinstance(record.get("expr_kind"), str) or

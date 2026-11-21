@@ -267,7 +267,8 @@ inductive Expr where
       (structuredType : Option LeanModels.Clang.QualType)
   /-- `sizeof`/`alignof`, over a type or over an expression. -/
   | typeTrait (trait : String) (argType : Option String) (sub : Option Expr)
-      (ty : String) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType)
+      (ty : String) (span : CSpan)
+      (structuredArgType structuredType : Option LeanModels.Clang.QualType)
   | constExpr (value : String) (sub : Option Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- C23 §6.5.3.3 / §7.16: parser-resolved `va_arg` operand and result
@@ -474,7 +475,7 @@ def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .implicitCast _ _ _ _ q | .cast _ _ _ _ q | .initList _ _ _ _ q
   | .arrayInitList _ _ _ _ _ q | .designatedUpdate _ _ _ _ q
   | .implicitValueInit _ _ q | .compoundLit _ _ _ q
-  | .typeTrait _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
+  | .typeTrait _ _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
   | .unsupported .. => none
 
 /-- clang's own class name for this node, for diagnostics. A refusal a
