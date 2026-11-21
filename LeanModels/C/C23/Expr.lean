@@ -1134,9 +1134,12 @@ def asInt (v : CVal) : EvalM (IntTy × Int) :=
 the tier carries clang's `qualType` string rather than a type tree
 (`docs/c-envelope-schema.md` §3). Measured: 199 distinct pointer/array
 spellings on expression nodes, every one ending in `*` or `]`. -/
+def pointerTypeOfNode (structured : Option LeanModels.Clang.QualType) : Bool :=
+  structured.map (fun type => type.unqualified.pointerObject) |>.getD false
+
 def isPtrType (ty : CType)
     (structured : Option LeanModels.Clang.QualType := none) : Bool :=
-  structured.map (fun type => type.unqualified.pointerObject) |>.getD false
+  pointerTypeOfNode structured
 
 /-! Parser-native type decisions.  The spelling fallback is retained only for
 older envelopes that have no structured observation.  When clang supplied a
@@ -1144,19 +1147,18 @@ older envelopes that have no structured observation.  When clang supplied a
 display spelling. -/
 def structuredPointerObject (structured : Option LeanModels.Clang.QualType)
     (fallback : CType) : Bool :=
-  structured.map (fun type => type.unqualified.pointerObject) |>.getD (isPtrType fallback)
+  pointerTypeOfNode structured
 
 def structuredIndexable (structured : Option LeanModels.Clang.QualType)
     (fallback : CType) : Bool :=
-  structured.map (fun type => type.unqualified.indexable) |>.getD (isPtrType fallback)
+  structured.map (fun type => type.unqualified.indexable) |>.getD false
 
-def isPtrIntType (ty : CType)
-    (structured : Option LeanModels.Clang.QualType := none) : Bool :=
+def pointerIntegerTypeOfNode (structured : Option LeanModels.Clang.QualType) : Bool :=
   -- The pinned profile has 64-bit object pointers.  A 64-bit integer type
   -- can represent every exposed address produced by this memory model, so
   -- C23's pointer/integer conversion boundary includes the profile's long
   -- and long-long spellings as well as the exact-width typedefs.
-  match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
+  match structured.bind intTyOfStructured with
     | some it => it.bits >= 64
     | none => false
 
@@ -1187,8 +1189,11 @@ may carry the same object provenance. The legacy envelope has no structured
 target type at a cast occurrence, so only the exact parser spelling or the
 standard character/void exceptions are admitted here. Incompatible legacy
 spellings refuse instead of being peeled by a local type parser. -/
-def compatiblePointerTypes (ctx : Ctx) (a b : CType) : Bool :=
-  ctx.layout.normalizeTy a == ctx.layout.normalizeTy b
+def compatiblePointerTypesNode
+    (a b : Option LeanModels.Clang.QualType) : Bool :=
+  match a, b with
+  | some left, some right => left.unqualified == right.unqualified
+  | _, _ => false
 
 def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
     (t : IntTy) (ty : CType)
@@ -1217,7 +1222,7 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
   else do
     match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
     | some t =>
-        if isPtrIntType ty structured then
+        if pointerIntegerTypeOfNode structured then
           -- A uintptr_t object may contain the profile's preserved pointer
           -- token or an ordinary integer.  Try the parser-native pointer
           -- representation first, then use the ordinary integer rule.
@@ -1237,7 +1242,7 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
   | .funPtr id => writeMem (fun m => Mem.storeFunction m p id)
   | .ptr q => writeMem (fun m => Mem.storePtr m p q)
   | .ptrInt q =>
-      if isPtrIntType ty structured then writeMem (fun m => Mem.storePtrInt m p q)
+      if pointerIntegerTypeOfNode structured then writeMem (fun m => Mem.storePtrInt m p q)
       else refuseUnsupported "pointer-integer value stored outside uintptr_t/intptr_t"
   | .int _ n => do
       let t ← match structured.bind intTyOfStructured with
@@ -1733,8 +1738,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           pure (CVal.ptr (Ptr.toObject o))
 
   -- ===== §6.3 — the conversion lattice, all eight castKinds =====
-  | .implicitCast ck sub ty span ..
-  | .cast ck sub ty span .. =>
+  | .implicitCast ck sub ty span structuredType
+  | .cast ck sub ty span structuredType =>
       if ck == "LValueToRValue" then do
         if isStdoutRef sub then
           match ctx.stdoutObj with
@@ -1798,7 +1803,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           t == "char *" || t == "const char *" ||
           t == "unsigned char *" || t == "const unsigned char *"
         if isVoidOrCharPtr ty || isVoidOrCharPtr sub.ty ||
-            compatiblePointerTypes ctx ty sub.ty then
+            compatiblePointerTypesNode structuredType sub.structuredType? then
           evalExpr ctx sub
         else
           refuseUnsupported "pointer bit-cast across incompatible effective types"
@@ -1836,7 +1841,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | .float64 f => float64ToInt f t
         | _ => refuseUnsupported "non-floating value in floating-to-integral conversion"
       else if ck == "PointerToIntegral" then
-        if isPtrIntType (ctx.layout.normalizeTy ty) then do
+        if pointerIntegerTypeOfNode structuredType then do
           let v ← evalExpr ctx sub
           let p ← asPtr v
           -- C23 §6.3.2.3p6 leaves the representation implementation-defined.
@@ -1847,7 +1852,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           pure (.ptrInt p)
         else refuseUnsupported "pointer-to-integer conversion outside uintptr_t/intptr_t"
       else if ck == "IntegralToPointer" then
-        if isPtrType ty (ctx.layout.structuredTypeAt sub) then do
+        if pointerTypeOfNode structuredType then do
           let v ← evalExpr ctx sub
           match v with
           | .ptrInt p => pure (.ptr p)
