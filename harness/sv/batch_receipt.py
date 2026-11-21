@@ -385,6 +385,10 @@ FIXTURES: tuple[Fixture, ...] = (
              Port("wr_en", 1), Port("rd_en", 1), Port("addr", 2), Port("d", 4)),
             (Port("q", 4),), points=(Point("D4A2", (4, 2)), Point("D8A3", (8, 3))),
             retain_loops=True, retain_proc_rewrites=True),
+    Fixture("generated_memory_chain.sv", "generated_memory_chain",
+            (Port("clk", 1, clock=True), Port("state", 8)), (Port("out", 8),),
+            points=(Point("W4", (4,)), Point("W8", (8,))),
+            retain_loops=True, retain_proc_rewrites=True),
     Fixture("timed_event_loop.sv", "timed_event_loop",
             (Port("x", 8),), (Port("y", 4),)),
     Fixture("implicit_clock_event.sv", "implicit_event",
@@ -893,6 +897,9 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
     if fixture.top == "fifo_symbolic_depth" and point.args:
         if port.name == "addr":
             return point.args[1]
+    if fixture.top == "generated_memory_chain" and point.args:
+        if port.name in ("state", "out"):
+            return point.args[0]
     if fixture.top == "constant_function_top" and point.args:
         if port.name == "x":
             return point.args[0]
@@ -974,6 +981,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "fifo_memory_repro": ("W", "D", "A"),
             "fifo_fixed_depth": ("WIDTH",),
             "fifo_symbolic_depth": ("DEPTH", "ADDR"),
+            "generated_memory_chain": ("WIDTH",),
             "package_typed_child_parameter_e": ("W",),
             "localparam_shift": ("E",),
             "memory_edge_loop": ("W", "N"),
