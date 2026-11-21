@@ -10,7 +10,7 @@
   "source_files": [
     {
       "path": "Examples/system-verilog/sem2/plain_internal_edge_e/ff_internal_edge_e.sv",
-      "sha256": "8b1315724b384ddbf3b6172c439276bd365861f5d67a55e41f0cfb46ad8e7ef1"
+      "sha256": "445e71631a2895d8eb37aa40a530c9210a65fafb7b5f9481018d57930f6c1529"
     }
   ],
   "packages": [],
@@ -66,12 +66,12 @@
             "kind": "Port",
             "span": {
               "line": 1,
-              "col": 60,
+              "col": 47,
               "end_line": 1,
-              "end_col": 61
+              "end_col": 48
             },
-            "name": "g",
-            "dir": "out",
+            "name": "e",
+            "dir": "in",
             "width": {
               "kind": "PackedType",
               "packed": [],
@@ -85,6 +85,22 @@
               "col": 63,
               "end_line": 1,
               "end_col": 64
+            },
+            "name": "g",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 66,
+              "end_line": 1,
+              "end_col": 67
             },
             "name": "q",
             "dir": "out",
@@ -145,7 +161,7 @@
               "line": 3,
               "col": 3,
               "end_line": 3,
-              "end_col": 36
+              "end_col": 33
             },
             "style": "always_ff",
             "clock": "g",
@@ -155,7 +171,7 @@
                 "line": 3,
                 "col": 26,
                 "end_line": 3,
-                "end_col": 36
+                "end_col": 33
               },
               "target": {
                 "kind": "Ident",
@@ -169,15 +185,15 @@
                 "name": "q"
               },
               "value": {
-                "kind": "Literal",
+                "kind": "Ident",
                 "span": {
                   "line": 3,
                   "col": 31,
                   "end_line": 3,
-                  "end_col": 35
+                  "end_col": 32
                 },
                 "width": 1,
-                "bits": "1"
+                "name": "e"
               }
             }
           }
