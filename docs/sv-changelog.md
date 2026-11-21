@@ -1,5 +1,15 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Time-zero continuous-to-combinational quiescence — 2026-11-21
+
+Canonical E now carries the already-quiesced continuous-assignment state into
+the `always_comb` startup pass. The previous path discarded that settled state
+and restarted assignment evaluation from the raw x state, so
+`assign a = b; assign b = 1'b1; always_comb y = a;` produced `y=x` even though
+Icarus Verilog 13.0 and Xcelium 24.03-s004 produced `y=1`. The new
+source-shaped receipt covers the zero-time and settled observations and matches
+both pinned simulators. This follows IEEE 1800-2023 §§4.5, 9.2.2.2, and 10.3.
+
 ## Internal-edge follow-up receipt — 2026-11-21
 
 The R13 source-shaped receipt now makes the second `posedge g` process capture a

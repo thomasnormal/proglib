@@ -3334,7 +3334,7 @@ def CoreMemDesign.initialState (E : CoreMemDesign) : Res CoreMemState := do
     .ok settled
   else
     let (settled, settledView) ←
-      E.settleAssignWithView E.env E.elems base (E.scalar.view base.scalar) E.processes.toList
+      E.settleAssignWithView E.env E.elems settled (E.scalar.view settled.scalar) E.processes.toList
     let combed ← E.runCombInitialQuiesce 4096 settled E.processes.toList
     let combedView := E.scalar.view combed.scalar
     let (final, _) ← E.settleAssignWithView E.env E.elems combed combedView E.processes.toList
