@@ -482,11 +482,13 @@ def layoutFor (envl : Envelope) : Layout :=
     | none => none
   let observedFieldSizeDeclFor := fun (did : DeclarationId) (f : String) =>
     match ds.find? (fun q => match q with
+      | .record (some rrid) _ _ (some _) _ _ => rrid == did
       | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
           ds.any (fun r => match r with
             | .record (some rrid) _ _ (some _) _ _ => rrid == rid
             | _ => false)
       | _ => false) with
+    | some (.record _ _ _ (some layout) ..) => recordFieldSize layout f
     | some (.var _ _ _ _ _ (some rid) _ _ _) =>
         match ds.find? (fun q => match q with
           | .record (some rrid) _ _ (some _) _ _ => rrid == rid
