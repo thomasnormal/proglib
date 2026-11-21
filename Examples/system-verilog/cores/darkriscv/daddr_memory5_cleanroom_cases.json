@@ -1,0 +1,1 @@
+{"fuel":4096,"cases":[{"name":"daddr_memory5_cleanroom","signals":["y"],"clock":"clk","clock_edge":"posedge","stimulus":[{"idx":"00001","d":"00000000000000000000000000000101"},{"idx":"00001","d":"00000000000000000000000000000000"},{"idx":"00010","d":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},{"idx":"00010","d":"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"}]}]}

@@ -42,6 +42,25 @@ posedge rows, bit for bit. The canonical rows are 5, 0, x, z for both q and y.
 This fixture reproduces the register-to-continuous-output shape without the
 DarkRISCV pipeline and does not reproduce the DADDR mismatch.
 
+A second clean-room fixture, daddr_memory5_cleanroom.sv, uses a 32-cell,
+32-bit unpacked memory, a 5-bit runtime index, an edge NBA write, and a
+continuous readback. Source SHA-256 e4e13204e8fe4696eab7d3de52373df63f2d2c12f5f7a43e643580fc0f31bb71,
+envelope SHA-256 8c86a13b736c1750328add62b00790d2c4bfafe1e5dc05dae2a080cb6b045b4a,
+and testbench SHA-256 6104ceb86ce00e9384b0e7ae8669a35e0bb858ea383fe6f13f059602842e0a08.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all 5 rows, including
+x and z inputs. Canonical E agrees on all 4 driven rows, so the generic
+5-bit dynamic-memory NBA path also does not reproduce the DADDR mismatch.
+
+DarkRISCV internal-state trace with the same four instruction inputs shows the
+pipeline-specific boundary. Before the first post-reset rising edge, canonical
+E has IDATA1=ADDI but XIDATA=0. Before the following store edge, XIDATA is
+still 0, and after that edge the canonical memory cell REGS[1] remains 0.
+At the corresponding simulator row, the store DADDR is 5. The later canonical
+load row has DPTR=2 and DADDR=0, while the following ADDI row has SIMM=1 and
+DADDR=1. This localizes the wrong answer to the pipeline's pre-edge
+continuous/decode state settling around XIDATA and the dynamic REGS NBA, not
+to the generic register-to-net or 5-bit memory primitives.
+
 Input-driven instruction image: program_tb.sv, containing ADDI/ADDI/ADD
 followed by NOPs.  Both simulators and canonical E agree on 1000/1000 rows
 when the source's SIMULATION initialization is defined for both invocations.
