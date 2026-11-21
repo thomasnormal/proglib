@@ -1,11 +1,9 @@
 # C survey measurement, 2026-11-21
 
-The fresh approved-plugin replay used Clang 21.1.8 and the corrected structured QualType extractor at commit `532aa55c6`. It regenerated the 2,214-row manifest and ran the bounded batch runner.
+The fresh approved-plugin replay used Clang 21.1.8, parser-native structured `QualType` observations, and the regenerated 2,214-row manifest. The bounded batch runner used one million fuel per file, a 90-second per-file wall timeout, four child runners, and `TMPDIR=/scratch/thomas-ahle/gate/ls-cpp/tmp`.
 
-The result is **466 MATCH / 2,214 manifest rows**, with 2,132 active rows after 82 no-entry-point rows. Counts are 466 passed, 1 failed, 1 oracle/compiler row, 6 libc refusals, 86 UB refusals, 316 unsupported refusals, 1 timeout, 372 not-ingested rows, 965 frontend rejections, and 82 no-entry-point rows.
+The result is **610 MATCH / 2,214 manifest rows**, with an active basis of 2,131 after 83 no-entry-point rows. Counts are 610 passed, 2 failed, 1 oracle/compiler row, 7 libc refusals, 55 UB refusals, 506 unsupported refusals, 2 timeouts, 78 not-ingested rows, and 953 frontend rejections. No DIVERGE verdict was reported.
 
-Against the 1,326 MATCH receipt at `3cf3da8cc`, 459 still match. Among the former matches, 296 are current ingestion refusals, 396 are frontend rejections, 126 are unsupported refusals, 48 are UB refusals, and 1 failed. The 48 UB rows remain unclassified until sanitizer witnesses are checked.
+Against the 1,326 MATCH receipt at `3cf3da8cc`, the current replay is lower by 716 MATCH rows. The receipt records the changed verdict classes and parser/instrument state for follow-up. This measurement is authoritative for the current S1 gate. The eight required clean-sanitizer witness rows have a separate receipt and none remains an unwitnessed clean-sanitizer UB verdict.
 
-The current frontend rejection count is 965, compared with 806 on the 2026-11-18 receipt. Current not-ingested rows are 372, compared with 229, accounting for the increase in rejected rows.
-
-The S1 gate is not met. The structured-type family must continue with declaration, cast/conversion, member/layout, and sizeof/alignof cases, while the survey and UB-witness checks remain open.
+The largest dynamic wall is frontend rejection at 953 rows. The static structured-type wall is present in 667 rows and is sole in 344 rows. The S1 gate remains open until the structured-type family reaches at least 1,326 MATCH / 2,214, with zero type-string operations, zero `CType` aliases, zero DIVERGE, and zero unwitnessed UB verdicts.
