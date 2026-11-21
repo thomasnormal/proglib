@@ -16,3 +16,10 @@ and `-fno-sanitize-recover=all`.
 verdict is therefore an unwitnessed-UB classification until the evaluator
 returns a loud UB refusal. The other four rows have no sanitizer finding in
 this audit. No DIVERGE verdict is claimed by this receipt.
+
+The follow-up replay after the signed-shift boundary reports four failed rows
+and one loud unsupported refusal. The remaining failed rows are
+`20031204-1.c`, `20230630-2.c`, `20230630-4.c`, and `960321-1.c`. Their native
+and sanitizer outcomes remain the same as the table above. The two aborting
+rows abort without a sanitizer diagnostic. The two clean rows need evaluator
+diagnosis before they can be counted as MATCH or a named refusal.
