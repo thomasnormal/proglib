@@ -2270,13 +2270,14 @@ swap disabled and one Lean thread.  This confirms that one symbolic E cycle
 fits the direct proof budget.  It does not establish that a full cycle-by-cycle
 invariant proof is tractable, and no universal ADDI invariant is claimed.
 
-## 2026-11-21 clocked-stage refusal table on the current tree
+## 2026-11-21 clocked-stage refusal table after `74377495d`
 
 The real RISCV_FORMAL envelope was rerun through `sv_structure` at the pinned
-26-parameter default vector on tree `77d32659b`.  The pass stopped in controlled
-instantiation before the construct/profile classifier.  The refusal table is
-therefore grouped explicitly as zero reached rows.  A construct is not assigned
-a refusal message when this pass never inspected it.
+26-parameter default vector on descendant tree `00e4bc6ea` (which contains
+`74377495d`).  The pass stopped in controlled instantiation before the
+construct/profile classifier.  The refusal table is therefore grouped
+explicitly as zero reached rows.  A construct is not assigned a refusal
+message when this pass never inspected it.
 
 | construct family | refusal count | exact refusal message | status |
 | --- | ---: | --- | --- |
@@ -2288,13 +2289,14 @@ a refusal message when this pass never inspected it.
 | several continuous drivers / resolved net | 0 | — | not reached |
 | level or unsupported event list | 0 | — | not reached |
 | unsupported declaration shape | 0 | — | not reached |
-| normalization before profile classification | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at isDefEq, maximum number of heartbeats (200000) has been reached` | reached |
+| source-shaped normalization before profile classification | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at whnf, maximum number of heartbeats (200000) has been reached` | reached |
 
-The run elapsed 60.56 seconds and reached a peak direct RSS of 817,284 KiB
-with one Lean thread.  Since no construct refusal was reached, no clean-room
-refusal fixture is attributed to PicoRV32.  The general tactic refusal families
-remain tracked by the clocked-stage report and are not evidence about this
-real-core run.
+The run elapsed 45.835 seconds and reached a peak process-tree RSS of
+3,153,892 KiB with one Lean thread.  Since no construct refusal was reached,
+no clean-room refusal fixture is attributed to PicoRV32.  The only refusal
+message printed by this run is the normalization timeout above.  The general
+tactic refusal families remain tracked by the clocked-stage report and are not
+evidence about this real-core run.
 
 ## 2026-11-20 real ADDI invariant stage boundary
 
