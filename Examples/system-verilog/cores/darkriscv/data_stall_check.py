@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""Check the pinned DarkRISCV data-memory-stall battery end to end."""
+
+from __future__ import annotations
+
+import hashlib
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import tempfile
+
+from battery_check import FIELDS, expected_rows, run_lean
+
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
+SOURCE = HERE / "rtl" / "darkriscv.v"
+TESTBENCH = HERE / "data_stall_tb.sv"
+TRANSCRIPT = HERE / "data_stall_simulator_transcript.txt"
+SOURCE_SHA256 = "46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0"
+TRANSCRIPT_SHA256 = "927d07f3dfa24bfd33f661260d6aef87f14f7641a98f8c594681814cf1e80cdd"
+EXPECTED_CYCLES = 1000
+
+
+def parse_stall_rows(output: str) -> list[dict[str, str]]:
+    lines = [line for line in output.splitlines() if line.startswith("ROW ")]
+    rows = [dict(re.findall(r"(\w+)=([^ ]+)", line)) for line in lines]
+    if len(rows) != EXPECTED_CYCLES:
+        raise RuntimeError(f"expected {EXPECTED_CYCLES} simulator rows, got {len(rows)}")
+    for row in rows:
+        row.setdefault("instr_ack", "1")
+        required = {name for name, _, _ in FIELDS} | {"cycle", "instr_ack"}
+        if set(row) != required:
+            raise RuntimeError(f"simulator row fields changed: {sorted(row)}")
+    return rows
+
+
+def raw_rows(rows: list[dict[str, str]]) -> list[str]:
+    return ["ROW " + " ".join(f"{name}={value}" for name, value in row.items())
+            for row in rows]
+
+
+def run(command: list[str], cwd: Path) -> str:
+    result = subprocess.run(
+        command, cwd=cwd, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, check=False, timeout=900,
+    )
+    if result.returncode:
+        raise RuntimeError("command failed (%d): %s\n%s" %
+                           (result.returncode, " ".join(command), result.stdout))
+    return result.stdout
+
+
+def simulator_rows() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    with tempfile.TemporaryDirectory(prefix="darkriscv-data-stall-",
+                                      dir=os.environ.get("TMPDIR")) as work:
+        directory = Path(work)
+        sim_work = directory / "sim"
+        sim_work.mkdir()
+        (directory / "rtl").symlink_to(SOURCE.parent, target_is_directory=True)
+        executable = directory / "darkriscv-data-stall"
+        common = ["-g2012", "-DSIMULATION", "-I", str(SOURCE.parent),
+                  "-o", str(executable), str(TESTBENCH), str(SOURCE)]
+        run(["iverilog", *common], sim_work)
+        icarus = parse_stall_rows(run(["vvp", str(executable)], sim_work))
+        xcelium = parse_stall_rows(run([
+            "xrun", "-sv", "-q", "-define", "SIMULATION", "-I../rtl",
+            "-top", "darkriscv_data_stall_tb", str(TESTBENCH), str(SOURCE),
+        ], sim_work))
+    return icarus, xcelium
+
+
+def main() -> int:
+    if shutil.which("iverilog") is None or shutil.which("xrun") is None:
+        raise SystemExit("Icarus Verilog 13.0 and Xcelium 24.03-s004 are required")
+    if hashlib.sha256(SOURCE.read_bytes()).hexdigest() != SOURCE_SHA256:
+        raise SystemExit("bundled DarkRISCV source hash mismatch")
+    transcript_hash = hashlib.sha256(TRANSCRIPT.read_bytes()).hexdigest()
+    if TRANSCRIPT_SHA256 and transcript_hash != TRANSCRIPT_SHA256:
+        raise SystemExit("data-stall transcript hash mismatch")
+    icarus, xcelium = simulator_rows()
+    if icarus != xcelium:
+        raise SystemExit("Icarus and Xcelium disagree on data-stall rows")
+    transcript = parse_stall_rows(TRANSCRIPT.read_text())
+    if transcript != icarus:
+        raise SystemExit("checked-in data-stall transcript differs from simulators")
+    lean_ok, corrupted_ok, first_mismatch = run_lean(expected_rows(raw_rows(icarus)))
+    if not lean_ok:
+        raise SystemExit("canonical E differs at " + first_mismatch)
+    if corrupted_ok:
+        raise SystemExit("negative control accepted a corrupted row")
+    digest = hashlib.sha256(TRANSCRIPT.read_bytes()).hexdigest()
+    if len(icarus) != EXPECTED_CYCLES:
+        raise SystemExit("unexpected data-stall row count")
+    print("Icarus Verilog 13.0 (s20250103-64-gdad78d525)")
+    print("Xcelium 24.03-s004")
+    print(f"three-way data-stall rows: {len(icarus)}/{EXPECTED_CYCLES} agree bit-for-bit")
+    print(f"simulator-transcript-sha256: {digest}")
+    print("negative control: corrupted cycle row rejected by the Lean comparator")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
