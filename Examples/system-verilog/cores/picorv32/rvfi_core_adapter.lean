@@ -188,34 +188,34 @@ theorem CoreRvfiMachine.step_eq_of_exact
 
 theorem CoreRvfiMachine.to_addi_invariant
     {d : CoreMemDesign} (machine : CoreRvfiMachine d)
-    {rel : CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
+    {rel : Nat → CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
     {admit : LeanModels.Refine.Input → Prop}
-    (hstep : ∀ (state : CoreMemState)
+    (hstep : ∀ (start : Nat) (state : CoreMemState)
       (memoryState : LeanModels.Refine.RvMemoryState)
       (input : LeanModels.Refine.Input),
-      rel state memoryState → admit input →
+      rel start state memoryState → admit input →
       ∃ next : CoreMemState, ∃ observation : RvfiObservation,
         rvfiStep d state (machine.encode state input) = .ok (next, observation) ∧
         (if observation.valid then
           ∃ w rd rs1 imm,
             input.memory = memoryState.memory ∧
             observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
-            rel next
+            rel (start + 1) next
               { arch := LeanModels.Refine.addiNext memoryState.arch rd rs1 imm,
                 memory := memoryState.memory }
-        else rel next memoryState))
+        else rel start next memoryState))
     (horder : ∀ (start : Nat) (state : CoreMemState)
       (memoryState : LeanModels.Refine.RvMemoryState)
       (input : LeanModels.Refine.Input)
       (next : CoreMemState) (observation : RvfiObservation),
-      rel state memoryState → admit input →
+      rel start state memoryState → admit input →
       rvfiStep d state (machine.encode state input) = .ok (next, observation) →
       if observation.valid then observation.order = start else True) :
     LeanModels.Refine.Rv32iAddiInvariant
       machine.toRvfiCycleMachine rel admit := by
   refine ⟨?_, ?_⟩
-  · intro state memoryState input hrel hadmit
-    rcases hstep state memoryState input hrel hadmit with
+  · intro start state memoryState input hrel hadmit
+    rcases hstep start state memoryState input hrel hadmit with
       ⟨next, observation, hrun, hcase⟩
     have hmachine := machine.step_eq_of_exact hrun
     simpa [CoreRvfiMachine.toRvfiCycleMachine, hmachine] using hcase
@@ -234,12 +234,12 @@ theorem CoreRvfiMachine.to_addi_invariant
 
 theorem CoreRvfiMachine.to_rv32i_step_refines
     {d : CoreMemDesign} (machine : CoreRvfiMachine d)
-    {rel : CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
+    {rel : Nat → CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
     {admit : LeanModels.Refine.Input → Prop}
     (hstep : ∀ (start : Nat) (state : CoreMemState)
       (memoryState : LeanModels.Refine.RvMemoryState)
       (input : LeanModels.Refine.Input),
-      rel state memoryState → admit input →
+      rel start state memoryState → admit input →
       ∃ next : CoreMemState, ∃ observation : RvfiObservation,
         rvfiStep d state (machine.encode state input) = .ok (next, observation) ∧
         (if observation.valid then
@@ -249,9 +249,9 @@ theorem CoreRvfiMachine.to_rv32i_step_refines
             LeanModels.Refine.Rv32iBoundary memoryState.arch input observation
               (LeanModels.Refine.rv32iProgramStep memoryState instruction)
               (LeanModels.Refine.rv32iProgramRetirement memoryState instruction) ∧
-      rel next (LeanModels.Refine.rv32iProgramStep memoryState instruction)
-        else rel next memoryState)) :
-    LeanModels.Refine.Rv32iLegacyCycleStepRefines
+      rel (start + 1) next (LeanModels.Refine.rv32iProgramStep memoryState instruction)
+        else rel start next memoryState)) :
+    LeanModels.Refine.Rv32iCycleStepRefines
       machine.toRvfiCycleMachine rel admit := by
   intro start state memoryState input hrel hadmit
   rcases hstep start state memoryState input hrel hadmit with
@@ -940,12 +940,12 @@ theorem CoreRv32iBoundary.to_rv32i_boundary
 
 theorem CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary
     {d : CoreMemDesign} (machine : CoreRvfiMachine d)
-    {rel : CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
+    {rel : Nat → CoreMemState → LeanModels.Refine.RvMemoryState → Prop}
     {admit : LeanModels.Refine.Input → Prop}
     (hstep : ∀ (start : Nat) (state : CoreMemState)
       (memoryState : LeanModels.Refine.RvMemoryState)
       (input : LeanModels.Refine.Input),
-      rel state memoryState → admit input →
+      rel start state memoryState → admit input →
       ∃ next : CoreMemState, ∃ observation : RvfiObservation,
         rvfiStep d state (machine.encode state input) = .ok (next, observation) ∧
         (if observation.valid then
@@ -954,10 +954,10 @@ theorem CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary
             observation.order = start ∧
             ∀ instruction : LeanModels.Refine.Rv32iInstruction,
               input = LeanModels.Refine.rv32iProgramInput memoryState instruction →
-              rel next
+                rel (start + 1) next
                 (LeanModels.Refine.rv32iProgramStep memoryState instruction)
-        else rel next memoryState)) :
-    LeanModels.Refine.Rv32iLegacyCycleStepRefines
+        else rel start next memoryState)) :
+    LeanModels.Refine.Rv32iCycleStepRefines
       machine.toRvfiCycleMachine rel admit := by
   intro start state memoryState input hrel hadmit
   rcases hstep start state memoryState input hrel hadmit with

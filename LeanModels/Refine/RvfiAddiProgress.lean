@@ -28,21 +28,21 @@ dependent cycle-step predicates at every reset theorem call.
 -/
 structure Rv32iAddiInvariant {State : Type}
     (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop) : Prop where
-  step : ∀ (state : State) (memoryState : RvMemoryState) (input : Input),
-    rel state memoryState → admit input →
+    (rel : Nat → State → RvMemoryState → Prop) (admit : Input → Prop) : Prop where
+  step : ∀ (start : Nat) (state : State) (memoryState : RvMemoryState) (input : Input),
+    rel start state memoryState → admit input →
     let (state', observation) := machine.step state input
     if observation.valid then
       ∃ w rd rs1 imm,
         input.memory = memoryState.memory ∧
         observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
-        rel state'
+            rel (start + 1) state'
           { arch := addiNext memoryState.arch rd rs1 imm,
             memory := memoryState.memory }
-    else rel state' memoryState
+      else rel start state' memoryState
   order : ∀ (start : Nat) (state : State)
     (memoryState : RvMemoryState) (input : Input),
-    rel state memoryState → admit input →
+    rel start state memoryState → admit input →
     let (_, observation) := machine.step state input
     if observation.valid then observation.order = start else True
 
@@ -50,9 +50,9 @@ structure Rv32iAddiInvariant {State : Type}
 obligation. -/
 theorem Rv32iAddiInvariant.toMixedStep
     {State : Type} {machine : RvfiCycleMachine State}
-    {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
+    {rel : Nat → State → RvMemoryState → Prop} {admit : Input → Prop}
     (invariant : Rv32iAddiInvariant machine rel admit) :
-    Rv32iLegacyCycleStepRefines machine rel admit := by
+    Rv32iCycleStepRefines machine rel admit := by
   exact rv32iCycleStepRefines_of_addi_memory machine rel admit
     invariant.step invariant.order
 

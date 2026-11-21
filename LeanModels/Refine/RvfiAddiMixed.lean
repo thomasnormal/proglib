@@ -123,26 +123,26 @@ a captured trace.
 theorem rv32iCycleStepRefines_of_addi_memory
     {State : Type}
     (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hstep : ∀ (state : State) (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
+    (rel : Nat → State → RvMemoryState → Prop) (admit : Input → Prop)
+    (hstep : ∀ (start : Nat) (state : State) (memoryState : RvMemoryState) (input : Input),
+      rel start state memoryState → admit input →
       let (state', observation) := machine.step state input
       if observation.valid then
         ∃ w rd rs1 imm,
           input.memory = memoryState.memory ∧
           observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
-          rel state'
+            rel (start + 1) state'
             { arch := addiNext memoryState.arch rd rs1 imm,
               memory := memoryState.memory }
-      else rel state' memoryState)
+      else rel start state' memoryState)
     (horder : ∀ (start : Nat) (state : State)
       (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
+      rel start state memoryState → admit input →
       let (_, observation) := machine.step state input
       if observation.valid then observation.order = start else True) :
-    Rv32iLegacyCycleStepRefines machine rel admit := by
+    Rv32iCycleStepRefines machine rel admit := by
   intro start state memoryState input hrel hadmit
-  have hcase := hstep state memoryState input hrel hadmit
+  have hcase := hstep start state memoryState input hrel hadmit
   have horderCase := horder start state memoryState input hrel hadmit
   rcases hmachine : machine.step state input with ⟨state', observation⟩
   simp only [hmachine] at hcase horderCase ⊢
@@ -150,7 +150,7 @@ theorem rv32iCycleStepRefines_of_addi_memory
   · have hcase' : ∃ w rd rs1 imm,
         input.memory = memoryState.memory ∧
         observation.addiBoundary memoryState.arch input w rd rs1 imm ∧
-        rel state'
+          rel (start + 1) state'
           { arch := addiNext memoryState.arch rd rs1 imm,
             memory := memoryState.memory } := by
       simpa [hv] using hcase
@@ -196,7 +196,7 @@ theorem rv32iCycleStepRefines_of_addi_memory
       cases hvalue : observation.valid with
       | false => exact rfl
       | true => exact False.elim (hv hvalue)
-    have hrel' : rel state' memoryState := by
+    have hrel' : rel start state' memoryState := by
       simpa [hv, hv'] using hcase
     simp only [hv]
     exact hrel'
