@@ -73408,10 +73408,9 @@
       "measured": "2026-11-12: source-shaped always @* case/latch execution remains waiting at time zero; later input wakes and latch rows are matched."
     },
     {
-      "name": "untyped_localparam_refuse",
+      "name": "untyped_localparam_exact",
       "example": "sem2/untyped_localparam_refuse",
       "top": "untyped_localparam_refuse",
-      "refusal": "Constant:untyped-width",
       "signals": [
         "k",
         "a"
@@ -73419,7 +73418,26 @@
       "stimulus": [
         {}
       ],
-      "measured": "2026-11-12: IEEE 1800-2023 §§6.20.2 and 11.6.1 leave the untyped initializer's self-determined width observable; Icarus Verilog 13.0 and Xcelium 24.03-s004 disagree on the lossless intermediate width. E refuses Constant:untyped-width at default and N=8 rather than choose a tool-dependent result."
+      "measured": "2026-11-21: IEEE 1800-2023 §6.20.2 self-determined untyped constants; Xcelium is the oracle for Icarus lossless-width deviation. Rows cover multiply/divide, add/mod, signed int arithmetic, and the 32-bit boundary.",
+      "oracle_disagreement": {
+        "id": "icarus-lossless-untyped-width",
+        "sim": "iverilog",
+        "declared": "2026-11-21",
+        "reference": "IEEE 1800-2023 §6.20.2 and §§11.6, 11.8 require the final value self-determined type and width. Xcelium follows the standard; Icarus 13.0 retains lossless intermediate widths.",
+        "observed": "Icarus Verilog 13.0 produces lossless-width values while Xcelium and the exact model follow the final-value width.",
+        "retirement_condition": "When Icarus uses the final-value width for untyped parameter and localparam expressions, retire this declaration.",
+        "source_sha256": "e6c85eaec75f5228c7b4af414880747a518a5eb28a1fdee6eeb36a457080ec67",
+        "envelope_sha256": "6369de2598fb4dd27ea802de91221b4603396570acd89d21d1483cca1aa50bcb",
+        "case_sha256": "b474db2918d83c157e1ad7c4d6adebecf37ccad740e051889d82eadb09882220",
+        "testbench_sha256": "f119da76912b03320bf2eed97030daa5114eaa9d9d8b730e9582830d6853c6bd",
+        "sigma": "src",
+        "sim_trace": [
+          "CYCLE 0 k=00000000000000000010011100010000 a=00000000000000000000001010000111"
+        ],
+        "lean_trace": [
+          "CYCLE 0 k=00000000000000000000010110000010 a=11111111111111111111110101110111"
+        ]
+      }
     },
     {
       "name": "int32_negative_shift_e",
