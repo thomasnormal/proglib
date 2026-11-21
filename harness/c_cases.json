@@ -519,7 +519,8 @@
     "expect": "refuse",
     "error": "no layout for declared type 'int[2]'",
     "layout_expect": "refuse",
-    "layout_error": "pointer-integer value requires an unchanged cast back"
+    "layout_error": "pointer-integer value requires an unchanged cast back",
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "integer-to-pointer-exposure-wall",
@@ -527,7 +528,7 @@
     "expect": "refuse",
     "error": "no layout for declared type 'int[2]'",
     "structured_expect": "refuse",
-    "structured_error": "pointer-integer value requires an unchanged cast back"
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "pointer-bytes-character-wall",
