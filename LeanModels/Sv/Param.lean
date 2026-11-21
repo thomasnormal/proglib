@@ -3187,6 +3187,12 @@ where
               match p.default? with
               | none => throw s!"parameter '{p.name}' has no default"
               | some e => do
+                  match e with
+                  | .paramRef n (some pkg) =>
+                      if (env.packageAgg? pkg n).isSome then
+                        throw s!"parameter '{p.name}' default '{pkg}::{n}' is an aggregate value outside the Nat parameter binder"
+                      else pure ()
+                  | _ => pure ()
                   let v ← (p.evalDefault env e).mapError fun m => s!"parameter '{p.name}' default: {m}"
                   match ← (p.defaultConstType env).mapError
                       (fun m => s!"parameter '{p.name}' default type: {m}") with
