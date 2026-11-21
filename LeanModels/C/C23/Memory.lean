@@ -2233,17 +2233,15 @@ def indetFault (dur : Duration) (o : ObjId) (off : Nat) : MemFault :=
   | .allocated => .indetAllocated o off
   | _ => .indetAutomatic o off
 
-/-- The character-type exception in C23 §6.5.1p7.  This first memory
-access slice compares the parser-carried type spellings exactly; the
-declaration-identity normalizer supplies aliases before an object is
-allocated, while an unrecognised spelling remains a loud mismatch. -/
+/-- The character-type exception in C23 §6.5.1p7. Effective-type checks
+consume parser-native `QualType` observations. Missing observations remain a
+loud mismatch. -/
 structure AliasModel where
   /-- Whether an lvalue access type may inspect bytes carrying `eff`.
   Languages with a borrow or provenance discipline can supply another
   instance without changing the byte store. -/
   compatible : CType → CType → Bool
-  /-- Structured parser evidence for the access type.  The legacy spelling
-  arguments remain for envelopes produced before the QualType bridge. -/
+  /-- Structured parser evidence for the access type. -/
   compatibleUsed : Option QualType → CType → CType → Bool :=
     fun _ used eff => compatible used eff
 
@@ -2252,40 +2250,12 @@ def isCharacterType : QualType → Bool
   | .cBuiltinKind .char | .cBuiltinKind .signedChar | .cBuiltinKind .unsignedChar => true
   | _ => false
 
-def cAliasCompatible : CType → CType → Bool := fun used eff =>
-    let unqual : CType → CType
-      | "const char" | "volatile char" => "char"
-      | "const signed char" | "volatile signed char" => "signed char"
-      | "const unsigned char" | "volatile unsigned char" => "unsigned char"
-      | "const short" | "volatile short" => "short"
-      | "const unsigned short" | "volatile unsigned short" => "unsigned short"
-      | "const int" | "volatile int" => "int"
-      | "const unsigned int" | "volatile unsigned int" => "unsigned int"
-      | "const long" | "volatile long" => "long"
-      | "const unsigned long" | "volatile unsigned long" => "unsigned long"
-      | "const long long" | "volatile long long" => "long long"
-      | "const unsigned long long" | "volatile unsigned long long" => "unsigned long long"
-      | "const _Bool" | "volatile _Bool" => "_Bool"
-      | t => t
-    let used' := unqual used
-    let eff' := unqual eff
-    let scalar := match eff' with
-      | "char" | "signed char" | "unsigned char" | "short" |
-          "unsigned short" | "int" | "unsigned int" | "long" |
-          "unsigned long" | "long long" | "unsigned long long" | "_Bool" => true
-      | _ => false
-    scalar == false || used' == eff' || used' == "char" ||
-      used' == "signed char" || used' == "unsigned char"
-
 def cAliasCompatibleStructured : QualType → QualType → Bool := fun used eff =>
   isCharacterType used || used.unqualified == eff.unqualified
 
 def cAliasModel : AliasModel where
-  compatible := cAliasCompatible
-  compatibleUsed := fun usedStructured used eff =>
-    match usedStructured with
-    | some structured => isCharacterType structured || cAliasCompatible used eff
-    | none => cAliasCompatible used eff
+  compatible := fun _ _ => false
+  compatibleUsed := fun _ _ _ => false
 
 def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
     (used : CType) (usedStructured : Option QualType := none) : MRes Unit :=

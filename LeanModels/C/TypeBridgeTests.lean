@@ -279,8 +279,9 @@ private def compoundRegistryCheck : Bool :=
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.isCharacterType (.cBuiltin "unsigned char")
-#guard LeanModels.C.C23.Mem.cAliasCompatible "int" "volatile int"
-#guard LeanModels.C.C23.Mem.cAliasModel.compatibleUsed
+#guard LeanModels.C.C23.Mem.cAliasCompatibleStructured
+  (.cBuiltinKind .unsignedChar) (.cBuiltinKind .int)
+#guard !LeanModels.C.C23.Mem.cAliasModel.compatibleUsed
   (some (.cBuiltinKind .unsignedChar)) "short" "int"
 #guard (({ LeanModels.C.C23.Layout.unknown with
   isUnion := fun ty => ty == "union U" } : LeanModels.C.C23.Layout).isUnion "union U")
