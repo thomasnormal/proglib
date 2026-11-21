@@ -370,6 +370,11 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("ff_only_control.sv", "ff_only_control",
             (Port("clk", 1, clock=True), Port("data", 1)), (Port("q", 1),),
             retain_proc_rewrites=True),
+    Fixture("fifo_parameterized_memory.sv", "fifo_memory_repro",
+            (Port("clk", 1, clock=True), Port("rstn", 1, reset_active_low=True),
+             Port("addr", 2), Port("d", 4)), (Port("q", 4),),
+            points=(Point("W4D4A2", (4, 4, 2)), Point("W8D8A3", (8, 8, 3))),
+            retain_proc_rewrites=True),
     Fixture("timed_event_loop.sv", "timed_event_loop",
             (Port("x", 8),), (Port("y", 4),)),
     Fixture("implicit_clock_event.sv", "implicit_event",
@@ -867,6 +872,11 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
         return point.args[0]
     if fixture.top == "duplicate_active_scope" and point.args:
         return point.args[0]
+    if fixture.top == "fifo_memory_repro" and point.args:
+        if port.name in ("d", "q"):
+            return point.args[0]
+        if port.name == "addr":
+            return point.args[2]
     if fixture.top == "constant_function_top" and point.args:
         if port.name == "x":
             return point.args[0]
@@ -945,6 +955,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "package_child_parameter_generate_e": ("USE",),
             "generate_if_control": ("USE",),
             "duplicate_active_scope": ("N",),
+            "fifo_memory_repro": ("W", "D", "A"),
             "package_typed_child_parameter_e": ("W",),
             "localparam_shift": ("E",),
             "memory_edge_loop": ("W", "N"),
