@@ -98,6 +98,10 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
     return typeTree(paren->getInnerType(), context, depth + 1);
   if (const auto *elaborated = llvm::dyn_cast<clang::ElaboratedType>(type))
     return typeTree(elaborated->getNamedType(), context, depth + 1);
+  if (const auto *typeofExpr = llvm::dyn_cast<clang::TypeOfExprType>(type))
+    return typeTree(typeofExpr->getUnderlyingExpr()->getType(), context, depth + 1);
+  if (const auto *typeofType = llvm::dyn_cast<clang::TypeOfType>(type))
+    return typeTree(typeofType->getUnmodifiedType(), context, depth + 1);
   if (const auto *builtin = llvm::dyn_cast<clang::BuiltinType>(type)) {
     if (builtin->getKind() == clang::BuiltinType::BuiltinFn)
       return llvm::json::Object{{"kind", "builtin_function"}};
