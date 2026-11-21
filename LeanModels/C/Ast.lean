@@ -89,15 +89,15 @@ deriving Repr, Inhabited, BEq, DecidableEq
 
 /-- The structured type tree, emitted only under a `TypedefDecl`. -/
 inductive TypeNode where
-  | builtin (name : CType)
+  | builtin (name : String)
   | pointer (inner : TypeNode)
   | array (inner : TypeNode) (extent : Option Nat)
   | paren (inner : TypeNode)
   | elaborated (inner : TypeNode)
   | qualified (isConst : Bool) (isVolatile : Bool) (inner : TypeNode)
-  | record (id : Option DeclarationId) (ty : CType)
-  | enumeration (id : Option DeclarationId) (ty : CType)
-  | typedefRef (id : Option DeclarationId) (ty : CType)
+  | record (id : Option DeclarationId) (ty : String)
+  | enumeration (id : Option DeclarationId) (ty : String)
+  | typedefRef (id : Option DeclarationId) (ty : String)
   | funcProto (ret : TypeNode) (params : List TypeNode) (variadic : Bool)
   | unsupported (cKind : String) (text : String)
 deriving Repr, Inhabited, BEq
@@ -170,7 +170,7 @@ This supplements record layouts for declarator-shaped objects such as nested
 function-pointer objects whose size is a frontend fact but has no record node. -/
 structure TypeLayout where
   declaration : Option DeclarationId := none
-  ty : CType
+  ty : String
   sizeBytes : Nat
   alignmentBytes : Nat
   /-- For a declared pointer object, Clang's exact byte size of its pointee.
@@ -178,7 +178,7 @@ structure TypeLayout where
   subscripting needs its stride. -/
   pointeeSizeBytes : Option Nat := none
   /-- For a declared array object, Clang's exact parser element type. -/
-  elementType : Option CType := none
+  elementType : Option String := none
   /-- For a declared array object, Clang's exact byte size of one element. -/
   elementSizeBytes : Option Nat := none
 deriving Repr, Inhabited, BEq, Lean.ToExpr
@@ -407,7 +407,7 @@ deriving Repr, Inhabited
 prototype. The corpus has exactly 27 (the libc slice). -/
 structure External where
   name : String
-  ty : Option CType
+  ty : Option String
 deriving Repr, Inhabited, BEq
 
 /-- The `c-0.1` envelope. The full pinned frontend version is retained and
