@@ -27,6 +27,8 @@ PATHS = (
 
 PATTERNS = (
     re.compile(r"\.(?:startsWith|endsWith|contains|splitOn|dropEnd|trimAscii|drop)\b"),
+    re.compile(r"\b(?:intTyOf\??|isPtrType|isPtrIntType|compatiblePointerTypes|normalizeTy)\b"),
+    re.compile(r"(?:\b(?:ty|fieldTy|computeLHSType|computeResultType)\s*(?:==|!=)|(?:==|!=)\s*\b(?:ty|fieldTy|computeLHSType|computeResultType))\s*\"(?:_?Bool|char|signed char|unsigned char|short|unsigned short|int|unsigned int|long|unsigned long|long long|unsigned long long|float|double|long double)\""),
 )
 
 ALIAS_PATTERN = re.compile(r"abbrev\s+CType\s*:=\s*String")
@@ -48,7 +50,7 @@ def findings(paths: tuple[Path, ...] = PATHS) -> list[tuple[str, int, str]]:
         for number, line in enumerate(path.read_text().splitlines(), 1):
             # Kernel guards exercise string/list helpers as data. They are
             # instrumentation, not semantic operations on a C type.
-            if line.lstrip().startswith("#guard"):
+            if line.lstrip().startswith(("#guard", "--")):
                 continue
             if (any(pattern.search(line) for pattern in PATTERNS) and
                     not NON_TYPE_RECEIVERS.search(line)):
@@ -70,12 +72,15 @@ def self_test() -> int:
     sample.write_text(
         "abbrev CType := String\n"
         "def typeCase (ty : CType) := ty.endsWith \"*\"\n"
+        "def ptrCase (ty : CType) := intTyOf? ty\n"
+        "def litCase (ty : CType) := ty == \"float\"\n"
+        "def normCase (layout : Layout) (ty : CType) := layout.normalizeTy ty\n"
         "def byteCase (bytes : List Nat) := bytes.drop 1\n"
         "def nameCase (nm : String) := nm.contains \"x\"\n")
     try:
         got = findings((sample,))
         aliases = legacy_aliases((sample,))
-        if len(got) != 1 or got[0][1] != 2 or len(aliases) != 1 or aliases[0][1] != 1:
+        if len(got) != 4 or got[0][1] != 2 or len(aliases) != 1 or aliases[0][1] != 1:
             print("check_c_type_strings --self-test: failed", file=sys.stderr)
             return 1
     finally:
