@@ -102,15 +102,16 @@ function, and temporaries follow the GNU statement-expression profile.
 
 Pointer/integer conversions use PNVI-ae-udi. A pointer-to-integer conversion
 exposes the selected address and sets the allocation's exposed flag. A reverse
-conversion may recover a live allocation only when an explicit exposure map or
-witness identifies an exposed address interval, derives the offset from that
-allocation's base, and satisfies the target type's ABI alignment. The exposure
-map, recovery relation, and udi choice are explicit state or oracle arguments.
-The relation contains one branch for every admissible choice, and a theorem
-quantifies over every branch under rule 4. A raw integer carries no provenance
-or exposure witness and therefore does not fabricate an allocation identity.
-The current C tier refuses positive raw-integer recovery until the memory
-instance supplies that map. Alignment failures are undefined under C23
+conversion may recover a live allocation only through the explicit exposure map
+carried in the store or oracle record. Recovery derives the offset from the
+allocation base, checks the target ABI alignment, and preserves the allocation
+provenance. The exposure map and udi choice are explicit relation arguments.
+The relation admits every allowed udi resolution, and the correctness theorem
+quantifies over all of them. A raw integer carries no provenance or exposure
+state and therefore does not fabricate an allocation identity. The ambiguous
+one-past or adjacent-allocation recovery case is a named refusal under the
+PNVI-ae profile. An empty-provenance non-null pointer remains a value, while
+dereference requires live recovered provenance. Alignment failures are undefined under C23
 §6.3.2.3p7. A non-null pointer with empty provenance is admitted only by a
 profile that explicitly permits it, and dereference always requires recovered
 live provenance.
@@ -142,10 +143,48 @@ record, so a caller cannot hide a placement decision in evaluator fuel or in
 a host-side global.
 
 Allocation, deallocation, reallocation, and address exposure are internal
-steps, not observable events. Observables are external I/O calls, exit status,
-and the undefined-behavior outcome. The compiler-correctness theorem therefore
+steps, not observable events. Observables are volatile accesses ordered by
+C17 §5.1.2.3p6, external I/O calls, exit status, divergence, and the
+undefined-behavior outcome. The compiler-correctness theorem therefore
 allows an unused allocation/free pair to disappear. External-call events are
 the observable boundary and carry footprints rather than host addresses.
+
+
+## Language interface and hooks
+
+The shared interface is parameterized by a language record rather than a
+second store implementation:
+
+    structure Language where
+      AllocId : Type
+      Tag : Type
+      ByteState : Type
+      AllocState : Type
+      onAlloc : AllocRequest -> AllocState -> AllocState
+      onRead : Access -> AllocState -> Result Unit
+      onWrite : Access -> Value -> AllocState -> Result AllocState
+      onCopy : CopyAccess -> AllocState -> Result AllocState
+      onDealloc : AllocId -> AllocState -> Result AllocState
+      onRetag : Access -> AllocState -> Result AllocState
+
+C instantiates the hooks with declared/effective type and C lifetime state. C++
+adds active union members, subobjects, pointer-interconvertibility and
+temporary lifetime. Rust supplies borrow tags and per-location alias state.
+Every hook receives the allocation and byte footprint relevant to the event,
+and every refusal is part of the shared result type.
+
+## GNU17 decision table
+
+| Decision | Profile rule | Contract
+| --- | --- | --- |
+| pointer/integer provenance | PNVI-ae-udi | exposure map is explicit, ambiguous one-past recovery refuses |
+| `realloc(p, 0)` | GNU17 implementation-defined behavior | profile parameter, with old lifetime ending before a successful replacement |
+| effective type | C17 §6.5p6-p7 | every non-character store updates affected allocated bytes, character stores do not retype |
+| union access | C17 §6.5.2.3p3 | bytes are reinterpreted through the selected member and common-initial-sequence rules |
+| uninitialized lvalue read | C17 §6.3.2.1p2 | undefined or named refusal according to storage duration and representation |
+| character observation | C17 §6.5.1p7 | unsigned-character reads are defined and quantify unspecified byte values |
+| pointer alignment | C23 §6.3.2.3p7 | invalid alignment is undefined behavior |
+| allocation failure | GNU17 allocator profile | null result is an allowed defined outcome |
 
 ## Address independence and refinement
 
@@ -162,7 +201,11 @@ sets:
 
 The theorem applies to a per-allocation move when the program does not observe
 that allocation's address. Its exceptions are one-past-the-end equality,
-alignment undefined behavior on casts, and integer reads of pointer bytes.
+alignment undefined behavior on casts, and integer reads of pointer bytes. A
+removal lemma permits an allocation and its matching deallocation to disappear
+when no observable footprint or later live pointer depends on them. The relation
+also covers values retained in registers and overlapping storage by requiring
+the same source allocation and lifetime state on both sides.
 Programs that observe addresses are proved for every admissible placement and
 exposure resolution. The flat-memory refinement is an XLEN-parameterized
 forward simulation. It maps each live allocation to its chosen interval and
