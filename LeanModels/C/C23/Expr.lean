@@ -1405,9 +1405,9 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
       -- Shifts take the LEFT operand's type (§6.5.8p3); every other
       -- operator has already had both operands converted to a common type.
       if op == "<<" || op == ">>" then intBinop op t a b
-      else match intTyOf? (ctx.layout.normalizeTy ty) with
+      else match structured.bind intTyOfStructured with
         | some rt => intBinop op rt a b
-        | none => intBinop op t a b        -- a comparison: the result is `int`
+        | none => refuseUnsupported "integer operator lacks parser-native result type"
   | _, _ => refuseUnsupported "operator operands have unsupported value kinds (C23 6.5)"
 
 /-! ## §6.5 — the evaluator
@@ -1981,7 +1981,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             -- of compound assignment. Reuse the provenance-checked pointer
             -- arithmetic rule, so one-past and object bounds stay exact.
             let nv ← evalArith ctx (if op == "++" then "+" else "-") old
-              (.int IntTy.int_ 1) (ctx.layout.normalizeTy sub.ty)
+              (.int IntTy.int_ 1) (ctx.layout.normalizeTy sub.ty) none (some sub) subStructured
             match sub with
             | .member base field arrow fieldTy _ _ .. =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
@@ -2043,7 +2043,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           -- pointer-plus/minus-integer rule as the corresponding binary
           -- operator, with the lvalue evaluated once.  `evalArith` already
           -- performs the provenance, bound, and element-size checks.
-          let nv ← evalArith ctx (compoundBase op) old rv computeResultType
+          let nv ← evalArith ctx (compoundBase op) old rv computeResultType none (some l) lStructured
           match l with
           | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
@@ -2082,7 +2082,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let (_, rvN) ← asInt rv
           let old' := convert lhsT oldN
           let rv' := convert resultT rvN
-          let nv ← evalArith ctx (compoundBase op) old' rv' computeResultType
+          let nv ← evalArith ctx (compoundBase op) old' rv' computeResultType none (some l) lStructured
           let storageT ← match lStructured.bind intTyOfStructured with
             | some projected => pure projected
             | none => intTyOf (ctx.layout.normalizeTy l.ty)
