@@ -2365,3 +2365,10 @@ prior output values, and well-shaped 4-state memory contents.  Its proof uses
 `sv_structure`, `sv_seq_inst`, `sv_seq_cycle`, and the generated index and
 settling equations.  `#print axioms` reports only
 `[propext, Classical.choice, Quot.sound]`.
+
+The same loaded-leaf equation is checked for an unknown write-enable.  On the
+same rising edge with `wen = 1'bx`, E's `condTrue` rule takes the `if` else
+branch.  The memory stays unchanged, `rdata1` reads the prior `regs[30]`, and
+`rdata2` reads the prior `regs[29]`, for arbitrary 4-state memory contents.
+This theorem is `picorv32_regs_unknown_wen_step` and has the same three-axiom
+footprint.
