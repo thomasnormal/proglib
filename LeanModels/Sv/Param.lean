@@ -3035,12 +3035,14 @@ theorem evalUntyped_legacy_preserved (env : IEnv) (e : PExpr) (v : Int)
   | false => simpa [evalUntypedLegacy, h] using hold
   | true => simp [evalUntypedLegacy, h] at hold
 
-/-- The old accepted constants retain both their value and self-determined
-width. -/
-theorem evalUntyped_legacy_width (env : IEnv) (e : PExpr) (v : Int) (w : Nat) (s : Bool)
+/-- Every old accepted constant retains its value, and its self-determined
+width remains the `ctype` width used by the exact evaluator. -/
+theorem evalUntyped_legacy_value_and_width (env : IEnv) (e : PExpr) (v : Int)
+    (w : Nat) (s : Bool)
     (hold : evalUntypedLegacy env e = .ok v)
     (hty : ctype env e = .ok (w, s)) :
-    ctype env e = .ok (w, s) := hty
+    evalUntyped env e = .ok v ∧ ctype env e = .ok (w, s) := by
+  exact ⟨evalUntyped_legacy_preserved env e v hold, hty⟩
 
 /- Negative and oversized shifts in the historical untyped constant tier stay
    loud: their self-determined width is not fixed by a declared `int` target.
