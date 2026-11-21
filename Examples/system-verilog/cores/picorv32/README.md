@@ -2352,3 +2352,16 @@ child-process peak RSS was 1,900,040 KiB.  The proof is checked in
 
 The leaf result is a structural admission result.  It does not claim a
 behavioral step equation for the register file or for the full core.
+
+## 2026-11-21 real register-file write/read step
+
+The loaded `picorv32_regs` leaf now has a kernel-checked rising-edge equation
+in `picorv32_regs_refines.lean`.  For a 0-to-1 clock, `wen = 1`, `waddr = 1`,
+and both read addresses 1 and 2, the source-shaped `~address[4:0]` expressions
+resolve to memory indices 30 and 29.  The exact `slotV` result writes `wdata`
+to `regs[30]`, drives `rdata1` with that new value, and drives `rdata2` with
+the prior value at `regs[29]`.  The theorem quantifies arbitrary 32-bit data,
+prior output values, and well-shaped 4-state memory contents.  Its proof uses
+`sv_structure`, `sv_seq_inst`, `sv_seq_cycle`, and the generated index and
+settling equations.  `#print axioms` reports only
+`[propext, Classical.choice, Quot.sound]`.
