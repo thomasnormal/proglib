@@ -2272,6 +2272,7 @@ def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off 
   | some effective, some usedType =>
       if cAliasCompatibleStructured usedType effective then .ok ()
       else .error (.memUB (.effectiveType o off used (c.effTy.getD used)))
+  | none, none => .ok ()
   | _, _ => checkEffective alias o c off used usedStructured
 
 theorem checkEffectiveAt_renameAddresses
