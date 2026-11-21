@@ -305,9 +305,7 @@ partial def parseExpr (j : Json) : Except String Expr := do
     | "BinaryOperator" =>
         return .binop (← getStr j "op") (← sub "lhs") (← sub "rhs") (← ty) span structuredType
     | "CompoundAssignOperator" =>
-        return .compoundAssign (← getStr j "op") (← sub "lhs") (← sub "rhs")
-          (← getStr j "compute_lhs_type") (← getStr j "compute_result_type")
-          (← ty) span structuredType
+        throw "compound assignment lacks parser-native compute type observations"
     | "UnaryOperator" =>
         return .unop (← getStr j "op") (← sub "sub") (← getBool j "postfix")
           (← ty) span structuredType
@@ -332,8 +330,12 @@ partial def parseExpr (j : Json) : Except String Expr := do
     | "ImplicitValueInitExpr" => return .implicitValueInit (← ty) span structuredType
     | "CompoundLiteralExpr" => return .compoundLit (← sub "init") (← ty) span structuredType
     | "UnaryExprOrTypeTraitExpr" =>
-        return .typeTrait (← getStr j "trait") (← getOptStr j "arg_type")
-          (← optSub "sub") (← ty) span structuredType
+        match getOptNode j "arg_type" with
+        | some _ => throw "type-trait operand lacks parser-native structured type"
+        | none =>
+            let sub ← optSub "sub"
+            return .typeTrait (← getStr j "trait") (none : Option CType)
+              sub (← ty) span structuredType
     | "ConstantExpr" =>
         let value? ← getOptStr j "value"
         match value? with
