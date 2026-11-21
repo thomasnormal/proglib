@@ -1672,6 +1672,20 @@ def coreMemExternalReadExprs (body : PStmt) : List PExpr :=
     | .ident name => !locals.contains name
     | _ => true
 
+/-! IEEE 1800-2023 §9.2.2.2.1 removes variables written by an
+`always_comb` body from that block's implicit sensitivity list.  Keep this
+separate from the raw `always @*` read set above: §9.4.2.2 includes the
+variables read by an implicit event control, while `always_comb` deliberately
+does not re-arm on its own writes. -/
+def coreMemCombExternalReadExprs (body : PStmt) : List PExpr :=
+  let locals := coreMemAutomaticNames body
+  let writes := coreMemStmtWrites body
+  (coreMemStmtReadExprs body).filter fun expr =>
+    match expr with
+    | .ident name => !locals.contains name && !writes.contains name
+    | _ => true
+
+
 /-! The ordinary E entry is defined after the source-shaped sensitivity
 walkers so its derived cache is built once at instantiation, never in a cycle.
 The source nodes remain in `CoreMemProc`; this is an evaluator cache only. -/
@@ -1681,7 +1695,7 @@ def CoreMemDesign.compileCombReads (E : CoreMemDesign) :
   E.processes.map fun p =>
     match p with
     | .comb body =>
-        let reads := coreMemExternalReadExprs body
+        let reads := coreMemCombExternalReadExprs body
         if reads.all (fun e => !LeanModels.Sv.PExpr.hasMemoryRead e &&
             !LeanModels.Sv.PExpr.hasFunctionCall e) then
           some (reads.map (instExpr2 E.env E.elems none))
@@ -2728,7 +2742,7 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | [] => .ok current
   | .primitive _ _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .comb body :: rest => do
-      let reads := coreMemExternalReadExprs body
+      let reads := coreMemCombExternalReadExprs body
       let ready ← E.readChangedAt before current beforeView currentView index reads
       if !ready then
         E.runCombAt before beforeView current currentView (index + 1) rest
