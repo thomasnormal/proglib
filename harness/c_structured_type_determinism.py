@@ -22,6 +22,8 @@ def validate_type(value):
     if kind == "builtin":
         if not isinstance(value.get("name"), str) or not value["name"]:
             raise RuntimeError(f"invalid builtin type: {value!r}")
+    elif kind == "builtin_function":
+        pass
     elif kind == "pointer":
         validate_type(value.get("pointee"))
     elif kind == "array":
@@ -113,6 +115,8 @@ def self_test():
         {"kind": "StructuredType", "offset": 6,
          "type": {"kind": "array",
              "element": {"kind": "builtin", "name": "int"}, "extent": None}},
+        {"kind": "StructuredExprType", "offset": 8, "end_offset": 8,
+         "expr_kind": "DeclRefExpr", "type": {"kind": "builtin_function"}},
         {"kind": "StructuredType", "offset": 8,
          "type": {"kind": "record", "declaration": {"id": "decl-12"}}},
         {"kind": "StructuredExprType", "offset": 16, "end_offset": 19,

@@ -146,6 +146,7 @@ private def compoundRegistryCheck : Bool :=
 #guard same scalar.toQualType (.ok (.cBuiltinKind .unsignedShort))
 #guard same (TypeNode.builtin "int8_t").toQualType (.ok (.cBuiltinKind .signedChar))
 #guard same (TypeNode.builtin "uintptr_t").toQualType (.ok (.cBuiltinKind .unsignedLong))
+#guard LeanModels.Clang.QualType.beq .builtinFunction .builtinFunction
 #guard same pointerToScalar.toQualType
   (.ok (.pointer (.cBuiltinKind .unsignedShort)))
 #guard same functionType.toQualType

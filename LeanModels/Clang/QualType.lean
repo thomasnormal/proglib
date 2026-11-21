@@ -74,6 +74,8 @@ inductive QualType where
   C profile has not normalized into the C++ integer taxonomy yet. -/
   | cBuiltin (name : String)
   | cBuiltinKind (kind : CBuiltin)
+  /-- Clang's placeholder type for a builtin varargs callee. -/
+  | builtinFunction
   | void
   | pointer (pointee : QualType)
   | array (element : QualType) (extent : Option Nat)
@@ -93,6 +95,7 @@ mutual
     | .builtin left, .builtin right => left == right
     | .cBuiltin left, .cBuiltin right => left == right
     | .cBuiltinKind left, .cBuiltinKind right => left == right
+    | .builtinFunction, .builtinFunction => true
     | .pointer left, .pointer right => QualType.beq left right
     | .array left le, .array right re =>
         QualType.beq left right && le == re
