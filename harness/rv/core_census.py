@@ -61,6 +61,7 @@ def _probe(path: Path, args: list[int]) -> str:
     source = f'''import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemExec
 open LeanModels.Sv LeanModels.Sv.Kernel
+set_option maxRecDepth 100000 in
 load_design_sv2 core from "{source_path}"
 def procKind : CoreMemProc → String
   | .edge _ => "edge"
