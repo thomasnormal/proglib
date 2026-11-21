@@ -23,13 +23,13 @@ Canonical E agrees with both simulators on all 1000/1000 stalled rows after
 IDACK capture and replay-field fixes.
 
 Data-memory stall witness: data_stall_tb.sv, with an ADDI/store/load image and
-DDACK low on every third active falling edge.  Icarus Verilog 13.0 and Xcelium
-24.03-s004 agree on 1000/1000 rows, digest
-8c7366959d7e65daef2499b62fc7f893f5b357e9df13d9e7002f709874b44f72.
-Canonical E first differs at row 1 field DADDR: canonical
-00000000000000000000000000000000, simulators
-00000000000000000000000000000101.  The same row-1 mismatch occurs with
-DDACK always high, so it is independent of the wait-state schedule.
+DDACK low on every third active falling edge.  The testbench captures IDATA on
+the falling edge before the displayed rising-edge row, matching the value
+sampled by the RTL.  Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on
+1000/1000 rows, digest
+927d07f3dfa24bfd33f661260d6aef87f14f7641a98f8c594681814cf1e80cdd.
+Canonical E agrees with both simulators on all 1000/1000 rows.  The checked-in
+simulator transcript is data_stall_simulator_transcript.txt.
 
 Clean-room DADDR scheduling differential: daddr_cleanroom.sv, with one
 posedge process assigning `q <= d` and one continuous assignment `y = q`.
