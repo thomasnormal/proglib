@@ -8,6 +8,9 @@ module always_comb_case_memory_canonical_e_tb;
     sel = 2'd1; #1 $display("ROW i=1 q=%b", q);
     sel = 2'd2; #1 $display("ROW i=2 q=%b", q);
     d = 4'h5; #1 $display("ROW i=3 q=%b", q);
+    sel = 2'bx1; d = 4'bx101; #1 $display("ROW i=4 q=%b", q);
+    sel = 2'b0z; d = 4'bz010; #1 $display("ROW i=5 q=%b", q);
+    sel = 2'bz0; d = 4'b101x; #1 $display("ROW i=6 q=%b", q);
     $finish;
   end
 endmodule
