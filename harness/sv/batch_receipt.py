@@ -351,6 +351,8 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("x", 8),), (Port("y", 1),)),
     Fixture("signed_self_determined.sv", "signed_self_determined",
             (Port("a", 4), Port("b", 4), Port("en", 1)), (Port("y", 1),)),
+    Fixture("process_atomic_guard.sv", "process_atomic_guard",
+            (Port("a", 1), Port("b", 1)), (Port("q", 1), Port("r", 1), Port("z", 1))),
     Fixture("timed_event_loop.sv", "timed_event_loop",
             (Port("x", 8),), (Port("y", 4),)),
     Fixture("implicit_clock_event.sv", "implicit_event",
