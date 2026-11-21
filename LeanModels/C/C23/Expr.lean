@@ -558,6 +558,14 @@ def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
           (fun _ => layout.structuredExprType offset))).orElse (fun _ =>
         (directDeclId base).bind layout.structuredTypeDecl)
 
+def Layout.fieldBitsAtResolved (layout : Layout) (base : Expr) (field : String) :
+    Option (Nat × Nat) :=
+  (layout.fieldBitsAt base field).orElse (fun _ =>
+    (layout.structuredTypeAt base).bind (fun q =>
+      match q.unqualified with
+      | .record handle => layout.fieldBitsDecl { value := handle.value } field
+      | _ => none))
+
 /-- Resolve an aggregate's element extent from its declaration's structured
 array type before using the legacy spelling-derived element table.  The
 element spelling remains the table's existing key, while the parser owns the
@@ -1535,7 +1543,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | none =>
               match sub with
               | .member base field arrow fieldTy _ _ .. =>
-                  if ctx.layout.fieldBitsAt base field |>.isSome then
+                  if ctx.layout.fieldBitsAtResolved base field |>.isSome then
                     loadBitFieldAt ctx base.ty field fieldTy p (some base) structuredType
                   else
                     loadAt ctx.aliasModel p ty
@@ -1682,7 +1690,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let lStructured := ctx.layout.structuredTypeAt l
         match l with
         | .member base field arrow fieldTy _ _ .. =>
-            if ctx.layout.fieldBitsAt base field |>.isSome then
+            if ctx.layout.fieldBitsAtResolved base field |>.isSome then
               storeBitFieldAt ctx base.ty field fieldTy p v (some base) lStructured
               -- §6.5.16.2: the assignment expression has the value after
               -- conversion to the assigned bit-field type.  Returning the
@@ -1769,7 +1777,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let subStructured := ctx.layout.structuredTypeAt sub
         let old ← match sub with
           | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAt base field |>.isSome then
+              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
                 loadBitFieldAt ctx base.ty field fieldTy p (some base) subStructured
               else loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
           | _ => loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
@@ -1782,7 +1790,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               (.int IntTy.int_ 1) sub.ty none (some sub) subStructured
             match sub with
             | .member base field arrow fieldTy _ _ .. =>
-                if ctx.layout.fieldBitsAt base field |>.isSome then
+                if ctx.layout.fieldBitsAtResolved base field |>.isSome then
                   storeBitFieldAt ctx base.ty field fieldTy p nv (some base) subStructured
                 else storeAt ctx.aliasModel p sub.ty nv
             | _ => storeAt ctx.aliasModel p sub.ty nv
@@ -1799,7 +1807,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                 let stored := convert storedT nv
                 match sub with
                 | .member base field arrow fieldTy _ _ .. =>
-                    if ctx.layout.fieldBitsAt base field |>.isSome then
+                    if ctx.layout.fieldBitsAtResolved base field |>.isSome then
                       storeBitFieldAt ctx base.ty field fieldTy p stored (some base) subStructured
                     else storeAt ctx.aliasModel p sub.ty stored subStructured
                 | _ => storeAt ctx.aliasModel p sub.ty stored subStructured
@@ -1814,7 +1822,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         refuseUnsupported "unsequenced side effects in compound assignment"
       match l with
       | .member base field _ _ _ _ .. =>
-          if ctx.layout.fieldBitsAt base field |>.isSome then
+          if ctx.layout.fieldBitsAtResolved base field |>.isSome then
             refuseUnsupported "compound assignment to a bit-field"
       | _ => pure ()
       let p ← evalLValue ctx l
@@ -1827,7 +1835,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       -- `x |= foo()` where `foo` updates `x`).
       let old ← match l with
         | .member base field arrow fieldTy _ _ .. =>
-            if ctx.layout.fieldBitsAt base field |>.isSome then
+            if ctx.layout.fieldBitsAtResolved base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p (some base) lStructured
             else
               loadAt ctx.aliasModel p l.ty
@@ -1844,7 +1852,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let nv ← evalArith ctx (compoundBase op) old rv computeResultType none (some l) lStructured
           match l with
           | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAt base field |>.isSome then
+              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p nv (some base) lStructured
               else
                 storeAt ctx.aliasModel p l.ty nv
@@ -1855,7 +1863,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let nv ← float32Binop (compoundBase op) a b
           match l with
           | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAt base field |>.isSome then
+              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
                 storeAt ctx.aliasModel p l.ty nv
@@ -1866,7 +1874,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let nv ← float64Binop (compoundBase op) a b
           match l with
           | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAt base field |>.isSome then
+              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
                 storeAt ctx.aliasModel p l.ty nv
@@ -1883,7 +1891,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- either way (§6.3.2.1p2).
   | .member base field arrow ty span recordId structuredType => do
       let p ← memberAddr ctx base field arrow ty recordId
-      if ctx.layout.fieldBitsAt base field |>.isSome then
+      if ctx.layout.fieldBitsAtResolved base field |>.isSome then
         loadBitFieldAt ctx base.ty field ty p (some base) structuredType
       else
         loadAt ctx.aliasModel p ty (ctx.layout.exprSizeAt (.member base field arrow ty span recordId structuredType) ty)
