@@ -333,7 +333,10 @@ partial def parseExpr (j : Json) : Except String Expr := do
     | "CompoundLiteralExpr" => return .compoundLit (← sub "init") (← ty) span structuredType
     | "UnaryExprOrTypeTraitExpr" =>
         match getOptNode j "arg_type" with
-        | some _ => throw "type-trait operand lacks parser-native structured type"
+        | some arg =>
+            let argType ← getStr arg "qualType"
+            return .typeTrait (← getStr j "trait") (some argType)
+              (none : Option Expr) (← ty) span structuredType
         | none =>
             let sub ← optSub "sub"
             return .typeTrait (← getStr j "trait") (none : Option String)
