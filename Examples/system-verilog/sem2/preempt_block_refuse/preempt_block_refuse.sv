@@ -11,5 +11,5 @@ module preempt_block_refuse (
     q = a;
     r = q;
   end
-  always_comb z = q;
+  assign z = q;
 endmodule

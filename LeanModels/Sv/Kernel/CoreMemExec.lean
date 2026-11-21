@@ -1187,6 +1187,8 @@ def coreMemPProcessAllReadNames : PProcess → List String
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
   | .alwaysFFR _ _ body _ | .alwaysEvent _ body | .initial body =>
       coreMemStmtReadNames body
+  | .assign _ value => coreMemSignalNames value
+  | .assignL target value => coreMemLhsReadNames target ++ coreMemSignalNames value
   | _ => []
 
 def coreMemPProcessReactive : PProcess → Bool
@@ -3623,7 +3625,7 @@ private def auditPreemptiveProcesses : List PProcess :=
   [.alwaysComb (.block [
       .blockingAssign "q" (.ident "a"),
       .blockingAssign "r" (.ident "q")]),
-   .alwaysComb (.blockingAssign "z" (.ident "q"))]
+   .assign "z" (.ident "q")]
 
 #guard coreMemPreemptiveBlockingViol auditPreemptiveProcesses
 #guard (coreMemPreemptiveBlockingViolReport
