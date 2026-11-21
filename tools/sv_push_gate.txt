@@ -295,3 +295,4 @@ Examples/system-verilog/sem2/always_comb_reactivation_e/agree.lean
 
 Examples/system-verilog/sem2/edge_blocking_race_refuse/agree.lean
 Examples/system-verilog/sem2/kogge_output_declared_target_e/agree.lean
+Examples/system-verilog/sem2/duplicate_active_scope_e/agree.lean

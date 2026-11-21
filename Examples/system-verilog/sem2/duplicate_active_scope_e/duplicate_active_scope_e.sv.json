@@ -1,0 +1,525 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "duplicate_active_scope_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/duplicate_active_scope_e/duplicate_active_scope_e.sv",
+      "sha256": "9a5784fe54e18a4b821466c2f376fcfa1d3a4ccaa36eb0a74f8e44064fb1eee3"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 15,
+          "end_col": 10
+        },
+        "name": "duplicate_active_scope_e",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 1,
+              "col": 49,
+              "end_line": 1,
+              "end_col": 52
+            },
+            "name": "N",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 49,
+                      "end_line": 1,
+                      "end_col": 52
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 49,
+                      "end_line": 1,
+                      "end_col": 52
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 1,
+                "col": 51,
+                "end_line": 1,
+                "end_col": 52
+              },
+              "value": 2,
+              "resolved_width": 32
+            },
+            "resolved": 2
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 24,
+              "end_line": 2,
+              "end_col": 25
+            },
+            "name": "x",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 2,
+                      "col": 17,
+                      "end_line": 2,
+                      "end_col": 20
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 2,
+                        "col": 17,
+                        "end_line": 2,
+                        "end_col": 18
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 2,
+                        "col": 19,
+                        "end_line": 2,
+                        "end_col": 20
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 21,
+                      "end_line": 2,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 2
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 48,
+              "end_line": 2,
+              "end_col": 49
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 2,
+                      "col": 41,
+                      "end_line": 2,
+                      "end_col": 44
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 2,
+                        "col": 41,
+                        "end_line": 2,
+                        "end_col": 42
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 2,
+                        "col": 43,
+                        "end_line": 2,
+                        "end_col": 44
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 45,
+                      "end_line": 2,
+                      "end_col": 46
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 2
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "GenerateIf",
+            "span": {
+              "line": 4,
+              "col": 5,
+              "end_line": 8,
+              "end_col": 8
+            },
+            "label": "first",
+            "else_label": null,
+            "cond": {
+              "kind": "Binary",
+              "span": {
+                "line": 4,
+                "col": 9,
+                "end_line": 4,
+                "end_col": 14
+              },
+              "width": 1,
+              "op": "s>",
+              "left": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 4,
+                  "col": 9,
+                  "end_line": 4,
+                  "end_col": 10
+                },
+                "name": "N"
+              },
+              "right": {
+                "kind": "Int",
+                "span": {
+                  "line": 4,
+                  "col": 13,
+                  "end_line": 4,
+                  "end_col": 14
+                },
+                "value": 0,
+                "resolved_width": 32
+              }
+            },
+            "then": [
+              {
+                "kind": "Var",
+                "span": {
+                  "line": 5,
+                  "col": 13,
+                  "end_line": 5,
+                  "end_col": 18
+                },
+                "name": "first.value",
+                "width": {
+                  "kind": "PackedType",
+                  "packed": [],
+                  "resolved": 1
+                },
+                "init": null
+              },
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 6,
+                  "col": 14,
+                  "end_line": 6,
+                  "end_col": 26
+                },
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 6,
+                    "col": 14,
+                    "end_line": 6,
+                    "end_col": 19
+                  },
+                  "width": 1,
+                  "name": "first.value"
+                },
+                "value": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 6,
+                    "col": 22,
+                    "end_line": 6,
+                    "end_col": 26
+                  },
+                  "width": 1,
+                  "name": "x",
+                  "indices": [
+                    {
+                      "kind": "Int",
+                      "span": {
+                        "line": 6,
+                        "col": 24,
+                        "end_line": 6,
+                        "end_col": 25
+                      },
+                      "value": 0,
+                      "resolved_width": 32
+                    }
+                  ],
+                  "part": null
+                }
+              },
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 7,
+                  "col": 14,
+                  "end_line": 7,
+                  "end_col": 26
+                },
+                "target": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 7,
+                    "col": 14,
+                    "end_line": 7,
+                    "end_col": 18
+                  },
+                  "width": 1,
+                  "name": "y",
+                  "indices": [
+                    {
+                      "kind": "Int",
+                      "span": {
+                        "line": 7,
+                        "col": 16,
+                        "end_line": 7,
+                        "end_col": 17
+                      },
+                      "value": 0,
+                      "resolved_width": 32
+                    }
+                  ],
+                  "part": null
+                },
+                "value": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 7,
+                    "col": 21,
+                    "end_line": 7,
+                    "end_col": 26
+                  },
+                  "width": 1,
+                  "name": "first.value"
+                }
+              }
+            ],
+            "else": null
+          },
+          {
+            "kind": "GenerateIf",
+            "span": {
+              "line": 9,
+              "col": 5,
+              "end_line": 13,
+              "end_col": 8
+            },
+            "label": "second",
+            "else_label": null,
+            "cond": {
+              "kind": "Binary",
+              "span": {
+                "line": 9,
+                "col": 9,
+                "end_line": 9,
+                "end_col": 14
+              },
+              "width": 1,
+              "op": "s>",
+              "left": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 9,
+                  "col": 9,
+                  "end_line": 9,
+                  "end_col": 10
+                },
+                "name": "N"
+              },
+              "right": {
+                "kind": "Int",
+                "span": {
+                  "line": 9,
+                  "col": 13,
+                  "end_line": 9,
+                  "end_col": 14
+                },
+                "value": 1,
+                "resolved_width": 32
+              }
+            },
+            "then": [
+              {
+                "kind": "Var",
+                "span": {
+                  "line": 10,
+                  "col": 13,
+                  "end_line": 10,
+                  "end_col": 18
+                },
+                "name": "second.value",
+                "width": {
+                  "kind": "PackedType",
+                  "packed": [],
+                  "resolved": 1
+                },
+                "init": null
+              },
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 11,
+                  "col": 14,
+                  "end_line": 11,
+                  "end_col": 26
+                },
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 11,
+                    "col": 14,
+                    "end_line": 11,
+                    "end_col": 19
+                  },
+                  "width": 1,
+                  "name": "second.value"
+                },
+                "value": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 11,
+                    "col": 22,
+                    "end_line": 11,
+                    "end_col": 26
+                  },
+                  "width": 1,
+                  "name": "x",
+                  "indices": [
+                    {
+                      "kind": "Int",
+                      "span": {
+                        "line": 11,
+                        "col": 24,
+                        "end_line": 11,
+                        "end_col": 25
+                      },
+                      "value": 1,
+                      "resolved_width": 32
+                    }
+                  ],
+                  "part": null
+                }
+              },
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 12,
+                  "col": 14,
+                  "end_line": 12,
+                  "end_col": 26
+                },
+                "target": {
+                  "kind": "ArraySel",
+                  "span": {
+                    "line": 12,
+                    "col": 14,
+                    "end_line": 12,
+                    "end_col": 18
+                  },
+                  "width": 1,
+                  "name": "y",
+                  "indices": [
+                    {
+                      "kind": "Int",
+                      "span": {
+                        "line": 12,
+                        "col": 16,
+                        "end_line": 12,
+                        "end_col": 17
+                      },
+                      "value": 1,
+                      "resolved_width": 32
+                    }
+                  ],
+                  "part": null
+                },
+                "value": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 12,
+                    "col": 21,
+                    "end_line": 12,
+                    "end_col": 26
+                  },
+                  "width": 1,
+                  "name": "second.value"
+                }
+              }
+            ],
+            "else": null
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
