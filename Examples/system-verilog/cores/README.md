@@ -663,17 +663,13 @@ corrupted-row negative control stays active on the passing battery.
 
 `darkriscv/data_stall_tb.sv` keeps the pinned RTL unchanged and drives an
 ADDI/store/load sequence while lowering `DDACK` on every third active falling
-edge.  Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all 1000 simulator
-rows, with normalized digest
-`8c7366959d7e65daef2499b62fc7f893f5b357e9df13d9e7002f709874b44f72`.
+edge.  The testbench captures `IDATA` on the falling edge before each displayed
+rising-edge row, which is the value sampled by the RTL.  Icarus Verilog 13.0
+and Xcelium 24.03-s004 agree on all 1000 simulator rows, with normalized digest
+`927d07f3dfa24bfd33f661260d6aef87f14f7641a98f8c594681814cf1e80cdd`.
 
-Canonical E does not agree with that replay.  Its first mismatch is row 1,
-field `DADDR`, where canonical E reports
-`00000000000000000000000000000000` and the simulators report
-`00000000000000000000000000000101`.  The mismatch is present with DDACK
-always high as well as with the data stall schedule, so it is independent of
-the wait-state input.  This is a current wrong-answer target, not a passing
-E-RUN result.
+Canonical E agrees with both simulators on all 1000/1000 rows.  The checked-in
+simulator transcript is `darkriscv/data_stall_simulator_transcript.txt`.
 
 ## 2026-11-20 Quark current-source E-RUN boundary
 
