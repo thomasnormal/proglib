@@ -399,8 +399,12 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
                   | _ => evalE ctx e
                 liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off) v)
               else
+                let recordId := declaration.bind (fun did => ctx.layout.structuredTypeDecl did) |>.bind (fun q =>
+                  match q.unqualified with
+                  | .record handle => some { value := handle.value }
+                  | _ => none)
                 initObject fuel ctx (Mem.member p off) mty e
-                  ((declaration.bind (fun did => ctx.layout.fieldStructuredDecl did nm)).orElse (fun _ =>
+                  ((recordId.bind (fun did => ctx.layout.fieldStructuredDecl did nm)).orElse (fun _ =>
                     ctx.layout.memberRecordDeclAt declaration nm |>.bind ctx.layout.structuredTypeDecl))
                   (ctx.layout.memberRecordDeclAt declaration nm)
           | none => refuseUnsupported s!"no offset for member '{nm}'"
