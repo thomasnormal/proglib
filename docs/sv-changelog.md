@@ -7087,3 +7087,11 @@ The clean-room `inside_fixed` row now uses the source spelling `4'b1`, the
 literal form named by the IEEE 1800-2023 §11.4.13 audit. Slang retains its
 four-bit `0001` value, and canonical E matches Xcelium 24.03-s004 on all seven
 rows. The extractor regression test locks the zero-extension result.
+## Packed output bit-select targets — 2026-11-21
+
+Canonical E now handles Slang's parser-native `ArraySel` spelling for a
+packed scalar target in a continuous assignment. When the target name resolves
+to scalar storage, the executor reuses its existing four-state bit-write path,
+while an unresolved name remains the loud IEEE 1800-2023 §10.3 refusal. The
+source-shaped `kogge_output_declared_target_e` receipt covers known, x, and z
+rows against Icarus Verilog 13.0 and Xcelium 24.03-s004.
