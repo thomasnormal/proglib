@@ -291,6 +291,14 @@ public:
                                         {"type", std::move(*tree)}});
     };
     emit(expr);
+    if (const auto *init = llvm::dyn_cast<clang::InitListExpr>(expr)) {
+      // Clang's JSON dump may expose the syntactic or semantic InitListExpr
+      // form depending on the parent. Observe both parser nodes so the
+      // same-invocation identity join can retain whichever node the dump
+      // carried, without falling back to a source-offset join.
+      emit(init->getSyntacticForm());
+      emit(init->getSemanticForm());
+    }
     return true;
   }
 };
