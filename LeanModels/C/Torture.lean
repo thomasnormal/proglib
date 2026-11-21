@@ -108,28 +108,12 @@ def Verdict.detail : Verdict → String
   | .notIngested w => w
   | .runnerError w => w
 
-/-! ## The layout, from the PROFILE and not from a host
+/-! ## The layout, from parser-native observations
 
-`docs/c-profile.md` pins `char_bit_8`, `int_32`, `long_64`. A spelling
-outside the table gets `none`, which is a loud refusal at the use site
-rather than a guessed size — the same discipline `Layout.unknown` exists
-for. -/
-/-- The SCALAR spellings, from `docs/c-profile.md`'s `char_bit_8`,
-`int_32`, `long_64`. `double` is deliberately absent — floats are a named
-decision, not an oversight. -/
-def torScalarSize : CType → Option Nat
-  | "char" | "signed char" | "unsigned char" | "_Bool" | "bool" => some 1
-  | "short" | "short int" | "unsigned short" => some 2
-  | "int" | "unsigned int" | "unsigned" | "int32_t" | "uint32_t" => some 4
-  | "long" | "unsigned long" | "long long" | "unsigned long long"
-  | "long int" | "unsigned long int" => some 8
-  | "intptr_t" | "uintptr_t" => some 8
-  | "int64_t" | "uint64_t" => some 8
-  | "__int128" | "unsigned __int128" | "__uint128_t" => some 16
-  | _ => none
-
-#guard torScalarSize "int (*)[1]" == none
-#guard torScalarSize "enum E" == none
+Scalar and aggregate sizes are admitted only from Clang's `QualType` and
+`TypeLayout` observations. The former spelling-based scalar table was deleted
+because a type spelling is not a semantic type identity. Missing observations
+remain an explicit layout absence. -/
 
 /-- The unit's own typedefs, as a spelling map. A lookup, not a
 computation — so resolving through it invents nothing. -/
@@ -465,59 +449,9 @@ def observedRecordFacts (envl : Envelope) :
   offset := 0, tokenLength := 1, name := "S", tagKind := "struct",
   sizeBytes := 1, alignmentBytes := 1, fields := [] }
 
-/-- **SIZE AND ALIGNMENT TOGETHER**, under the profile's declared
-`natural_alignment` rule (`docs/c-profile.md` §4a, J.3.9(1)).
-
-They are one function because they are one recursion: a structure's size
-needs its members' ALIGNMENTS, and a member's alignment may itself be a
-structure's. Splitting them would be two walks that must agree.
-
-* a scalar is its own alignment — the profile's rule, probed on both hosts;
-* an array is `n × elem`, aligned as its element (§6.2.5p20: no padding);
-* a **struct** places each member at the next offset satisfying that
-  member's alignment, in declaration order, and its size is rounded up to
-  its widest member's alignment so that arrays of it stay aligned;
-* a **union** puts every member at 0 and takes the largest size, rounded up
-  the same way.
-
-**Union-ness is carried by the parser-native `RecordLayout.tagKind` bit** in
-the fallback table. The recursive size and offset walks consume that bit
-directly, so they do not inspect a `struct`/`union` display spelling. A
-declaration without a layout observation remains in the legacy table with
-the conservative struct fallback and is covered by the existing loud
-refusal when its members cannot be sized. A translation unit declaring both
-`struct u` and `union u` therefore keeps distinct parser-native keys rather
-than relying on a spelling test in the walk.
-
-A tag with no declaration in the unit gets `none` — a loud refusal at the
-use site, which is what an incomplete type deserves. -/
-def sizeAlign (tds : List (CType × CType))
-    (recs : List (String × List (String × CType) × Bool)) :
-    Nat → CType → Option (Nat × Nat)
-  | 0, _ => none
-  | n + 1, t0 =>
-      -- QUALIFIERS COME OFF BEFORE THE TYPEDEF IS RESOLVED, and both come off
-      -- before anything is asked about the type. §6.2.5p28: a qualified type
-      -- has the SAME representation and alignment as its unqualified version,
-      -- so a size question is entitled to ignore the qualifier -- and only a
-      -- size question is. Without this, a file-scope `volatile short` has no
-      -- size and its whole program refuses (20030128-1.c).
-      let t := resolve tds 8 t0
-      match if t == "float" then some 4 else if t == "double" then some 8 else torScalarSize t with
-      | some sz => some (sz, sz)
-      | none =>
-        let record := recs.find? (·.1 == t)
-        match record with
-            | none => none
-            | some r =>
-                let isUnion := r.2.2
-                let step := fun (acc : Option (Nat × Nat)) (m : String × CType) =>
-                  match acc, sizeAlign tds recs n m.2 with
-                  | some (off, al), some (msz, mal) =>
-                      if isUnion then some (Nat.max off msz, Nat.max al mal)
-                      else some (roundUp off mal + msz, Nat.max al mal)
-                  | _, _ => none
-                (r.2.1.foldl step (some (0, 1))).map fun p => (roundUp p.1 p.2, p.2)
+/-! **SIZE AND ALIGNMENT** come from parser-native observations.  The former
+recursive spelling-based computation was removed because it reconstructed ABI
+rules from `CType` text.  Missing observations remain a loud layout absence. -/
 
 /-- The layout for ONE test, built from its own envelope. -/
 def layoutFor (envl : Envelope) : Layout :=
@@ -765,9 +699,7 @@ def layoutFor (envl : Envelope) : Layout :=
       | some sz => some sz
       | none => match observedFor t with
         | some (_, _, layout) => some layout.sizeBytes
-        | none =>
-            (observedArrayElem t).orElse
-              (fun _ => (sizeAlign tds recsWithObserved 16 t).map (·.1))
+        | none => observedArrayElem t
     declSize := observedDeclSize
     structuredType := fun id => envl.structuredTypeFor id
     structuredExprType := observedExprType
