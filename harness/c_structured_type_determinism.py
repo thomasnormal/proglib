@@ -24,6 +24,8 @@ def validate_type(value):
             raise RuntimeError(f"invalid builtin type: {value!r}")
     elif kind == "builtin_function":
         pass
+    elif kind == "restrict":
+        validate_type(value.get("base"))
     elif kind == "pointer":
         validate_type(value.get("pointee"))
     elif kind == "array":
