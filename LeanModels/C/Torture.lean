@@ -685,24 +685,7 @@ def layoutFor (envl : Envelope) : Layout :=
       | none => none
     membersDecl := observedMembersDeclFor
     memberRecordDecl := memberRecordDeclFor
-    -- The evaluator's own normalizer, built from THIS unit's typedefs. The
-    -- table in `intTyOf?` cannot do this job: `ull` is `unsigned long` in one
-    -- test and `unsigned long long` in another, so the answer is a property
-    -- of the translation unit and not of the spelling.
-    normalizeTy := fun t =>
-      let q := t
-      let rec ptrIntAlias : Nat → CType → Option CType
-        | 0, _ => none
-        | n + 1, x =>
-            if x == "uintptr_t" then some "uintptr_t"
-            else if x == "intptr_t" then some "intptr_t"
-            else match tds.find? (·.1 == x) with
-              | some (_, under) => ptrIntAlias n under
-              | none => none
-      match ptrIntAlias 8 q with
-      | some marker => marker
-      | none => resolve tds 8 q }
-
+  }
 /-- Peel the conversions a value arrives wrapped in. -/
 def peelVal : Expr → Expr
   | .implicitCast _ s _ _ .. => peelVal s
