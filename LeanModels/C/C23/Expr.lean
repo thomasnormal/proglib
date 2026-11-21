@@ -1188,20 +1188,19 @@ def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
 implicit of the whole corpus.** -/
 def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
-  if structured.bind floatBitsOfStructured == some 32 || ty == "float" then
+  if structured.bind floatBitsOfStructured == some 32 then
     readMem (fun m => Mem.loadFloat32 m p)
-  else if structured.bind floatBitsOfStructured == some 64 || ty == "double" then
+  else if structured.bind floatBitsOfStructured == some 64 then
     readMem (fun m => Mem.loadFloat64 m p)
-  else if structured.bind intTyOfStructured |>.map (fun t => t.bits == 8) |>.getD
-      (ty == "char" || ty == "signed char" || ty == "unsigned char") then
-    match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
+  else if structured.bind intTyOfStructured |>.map (fun t => t.bits == 8) |>.getD false then
+    match structured.bind intTyOfStructured with
     | some t => readMem (fun m => Mem.loadCharacter m p t)
     | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
   else if structuredPointerObject structured ty then do
     let q ← readMem (fun m => Mem.loadPtr m p)
     pure (.ptr q)
   else do
-    match structured.bind intTyOfStructured |>.orElse (fun _ => intTyOf? ty) with
+    match structured.bind intTyOfStructured with
     | some t =>
         if pointerIntegerTypeOfNode structured then
           -- A uintptr_t object may contain the profile's preserved pointer
@@ -1228,11 +1227,11 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
   | .int _ n => do
       let t ← match structured.bind intTyOfStructured with
         | some projected => pure projected
-        | none => intTyOf ty
+        | none => refuseUnsupported "integer store lacks parser-native QualType"
       writeMem (fun m => Mem.storeIntChecked m alias p t ty n structured)
-  | .float32 f => if structured.bind floatBitsOfStructured == some 32 || ty == "float" then writeMem (fun m => Mem.storeFloat32 m p f)
+  | .float32 f => if structured.bind floatBitsOfStructured == some 32 then writeMem (fun m => Mem.storeFloat32 m p f)
                  else refuseUnsupported "floating store without a floating layout"
-  | .float64 f => if structured.bind floatBitsOfStructured == some 64 || ty == "double" then writeMem (fun m => Mem.storeFloat64 m p f)
+  | .float64 f => if structured.bind floatBitsOfStructured == some 64 then writeMem (fun m => Mem.storeFloat64 m p f)
                  else refuseUnsupported "floating store without a floating layout"
   | .aggregate _ bs => writeMem (fun m => Mem.storeBytes m p bs)
   | .undef => refuseUnsupported "storing an indeterminate value"
