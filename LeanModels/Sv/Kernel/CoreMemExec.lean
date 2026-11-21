@@ -3113,7 +3113,22 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
                "23.3.3: unpacked port connection actual is not a whole array")
       | .arrayElem name [_] =>
           match E.memDecl? name with
-          | none => .unsupported s!"10.3: continuous memory target '{name}' is undeclared"
+          | none =>
+              -- Slang uses `ArraySel` for a packed bit-select written with
+              -- the source spelling `name[index]`.  When the declaration is
+              -- scalar storage, this is the same packed target handled by
+              -- the parser-native `.bitSel` arm above, not an unpacked
+              -- memory target.  Preserve the source node and dispatch to the
+              -- scalar four-state update instead of reporting a false §10.3
+              -- undeclared-memory refusal.
+              match E.scalarWidth? name with
+              | some _ =>
+                  let st' ← E.writeScalarBitAssign env elems st name (match target with
+                    | .arrayElem _ [ix] => ix
+                    | _ => .int 0) value
+                  let view' := E.scalar.view st'.scalar
+                  E.settleAssignAt env elems st' view' (index + 1) rest
+              | none => .unsupported s!"10.3: continuous memory target '{name}' is undeclared"
           | some md =>
               let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
               let st' ← E.writeMemoryAssign env elems st target md v
