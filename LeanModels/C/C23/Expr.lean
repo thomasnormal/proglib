@@ -1731,12 +1731,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                   if ctx.layout.fieldBitsAt base field |>.isSome then
                     loadBitFieldAt ctx base.ty field fieldTy p (some base) structuredType
                   else
-                    loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
-                      (ctx.layout.size (ctx.layout.normalizeTy ty))
+                    loadAt ctx.aliasModel p ty
+                      (ctx.layout.exprSizeAt sub ty)
                       (ctx.layout.structuredTypeAt sub)
               | _ =>
-                  loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
-                    (ctx.layout.size (ctx.layout.normalizeTy ty))
+                  loadAt ctx.aliasModel p ty
+                    (ctx.layout.exprSizeAt sub ty)
                     (ctx.layout.structuredTypeAt sub)
       else if ck == "ArrayToPointerDecay" then do
         -- §6.3.2.1p3 — 405 sites, the LARGEST pointer producer there is.
@@ -2095,12 +2095,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       if ctx.layout.fieldBitsAt base field |>.isSome then
         loadBitFieldAt ctx base.ty field ty p (some base) structuredType
       else
-        loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
+        loadAt ctx.aliasModel p ty (ctx.layout.exprSizeAt (.member base field arrow ty span recordId structuredType) ty)
   | .index base idx ty _ .. => do
       let p ← indexAddr ctx base idx ty
       let pointee := (ctx.layout.structuredTypeAt base).bind
         LeanModels.Clang.QualType.pointee
-      loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
+      loadAt ctx.aliasModel p ty
         (ctx.layout.exprSizeAt base ty) pointee
 
   -- ===== §6.4.4 — constants =====
