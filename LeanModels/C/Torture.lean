@@ -623,55 +623,18 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => false
         | _ => false
     | _ => false
-  { size := fun t => match observedTypeSize t with
-      | some sz => some sz
-      | none => match observedFor t with
-        | some (_, _, layout) => some layout.sizeBytes
-        | none => observedArrayElem t
-    declSize := observedDeclSize
+  { declSize := observedDeclSize
     structuredType := fun id => envl.structuredTypeFor id
     structuredExprType := observedExprType
     structuredExprTypeAt := observedExprTypeAt
-    typeSize := observedTypeSize
-    pointeeSize := observedPointeeSize
     pointeeSizeDecl := observedDeclPointeeSize
     elementSizeDecl := observedDeclElementSize
-    fieldSize := observedFieldSizeFor
     fieldSizeDecl := observedFieldSizeDeclFor
     fieldBitsDecl := observedFieldBitsDeclFor
     flexibleFieldDecl := observedFlexibleDeclFor
-    fieldOffType := observedFieldOffType
     fieldOffTypeDecl := observedFieldOffTypeDeclFor
     fieldOffDecl := declFieldOff
-    elem := fun _ => none
-    isUnion := observedUnion
     isUnionDecl := observedUnionDeclFor
-    fieldOff := fun t f => match observedPointeeFor t with
-      | some (_, _, layout) =>
-          layout.fields.find? (fun field => field.name == f)
-            |>.map (fun field => field.offsetBits / 8)
-      | none => none
-    fieldBits := fun t f => observedFieldBitsFor t f |>.orElse (fun _ => match observedPointeeFor t with
-      | some (_, _, layout) =>
-          layout.fields.find? (fun field => field.name == f)
-            |>.filter (·.bitfield)
-            |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width)))
-      | none => none
-      )
-    flexibleField := fun t f =>
-      let find := fun row : CType × List (String × CType) × RecordLayout =>
-        row.2.2.fields.find? (fun field => field.name == f)
-          |>.map (·.incompleteArray) |>.getD false
-      let result := match observedFor t with
-        | some row => find row
-        | none => match observedPointeeFor t with
-          | some row => find row
-          | none => false
-      result
-    members := fun t =>
-      match observedFor t with
-      | some (_, members, _) => some members
-      | none => none
     membersDecl := observedMembersDeclFor
     memberRecordDecl := memberRecordDeclFor
   }

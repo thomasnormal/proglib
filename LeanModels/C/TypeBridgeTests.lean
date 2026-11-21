@@ -189,13 +189,9 @@ private def compoundRegistryCheck : Bool :=
 #guard LeanModels.C.C23.intTyOfStructured
   (.enumeration {value := "enum-1"}) == some LeanModels.C.C23.IntTy.int_
 #guard ({ LeanModels.C.C23.Layout.unknown with
-  size := fun _ => some 4
-  declSize := fun id => if id.value == "object-1" then some 8 else none } :
-  LeanModels.C.C23.Layout).sizeAt (some {value := "object-1"}) "int" == some 8
-#guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
     if id.value == "scalar-1" then some (.qualified true false (.cBuiltinKind .int)) else none
-  size := fun _ => none } :
+  declSize := fun _ => none } :
   LeanModels.C.C23.Layout).sizeAt (some {value := "scalar-1"}) "const int" == some 4
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
@@ -243,28 +239,12 @@ private def compoundRegistryCheck : Bool :=
   LeanModels.C.C23.Layout).bitFieldStorageSizeAt
     (some (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default none)) "struct R" == some 8
 #guard ({ LeanModels.C.C23.Layout.unknown with
-  structuredType := fun id =>
-    if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 2)) else none
-  size := fun _ => some 4 } :
-  LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"})
-    "int[2]" "int" == some 4
-#guard ({ LeanModels.C.C23.Layout.unknown with
   structuredExprType := fun offset =>
     if offset == 12 then some (.pointer (.cBuiltinKind .int)) else none } :
   LeanModels.C.C23.Layout).structuredTypeAt
     (.declRef none "p" "VarDecl" "int *"
       (CSpan.mk 1 (some 12) (some 1) 1 (some 13) (some 2) none none) none) ==
     some (LeanModels.Clang.QualType.pointer (.cBuiltinKind .int))
-#guard ({ LeanModels.C.C23.Layout.unknown with
-  structuredType := fun id =>
-    if id.value == "vla-1" then some (.array (.cBuiltinKind .int) none) else none
-  elem := fun _ => some ("int", 4) } :
-  LeanModels.C.C23.Layout).elemDeclAt (some {value := "vla-1"}) "int[n]" == none
-#guard ({ LeanModels.C.C23.Layout.unknown with
-  structuredType := fun id =>
-    if id.value == "scalar-1" then some (.cBuiltinKind .int) else none
-  elem := fun _ => some ("int", 4) } :
-  LeanModels.C.C23.Layout).elemDeclAt (some {value := "scalar-1"}) "int" == none
 #guard LeanModels.C.C23.Mem.isCharacterType
   (.qualified true false (.cBuiltinKind .unsignedChar))
 #guard !LeanModels.C.C23.Mem.isCharacterType (.cBuiltin "unsigned char")
@@ -272,8 +252,6 @@ private def compoundRegistryCheck : Bool :=
   (.cBuiltinKind .unsignedChar) (.cBuiltinKind .int)
 #guard !LeanModels.C.C23.Mem.cAliasModel.compatibleUsed
   (some (.cBuiltinKind .unsignedChar)) "short" "int"
-#guard (({ LeanModels.C.C23.Layout.unknown with
-  isUnion := fun ty => ty == "union U" } : LeanModels.C.C23.Layout).isUnion "union U")
 #guard (({ LeanModels.C.C23.Layout.unknown with
   isUnionDecl := fun id => id.value == "union-1" } : LeanModels.C.C23.Layout).isUnionDeclAt
     (some {value := "union-1"}) "union U")
