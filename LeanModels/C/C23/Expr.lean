@@ -1305,7 +1305,8 @@ def chooseCond : Expr → Option Bool
 
 /-- The non-short-circuit binary rules, once both operands have values. -/
 def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
-    (elemTy : Option CType := none) (base : Option Expr := none) : EvalM CVal :=
+    (elemTy : Option CType := none) (base : Option Expr := none)
+    (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
   match lv, rv with
   | .float32 a, .float32 b => float32Binop op a b
   | .float64 a, .float64 b => float64Binop op a b
@@ -1377,8 +1378,8 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
                       refuseUnsupported "operator '-' on pointers with non-integral element distance"
                     else
                       let q := d / (esz : Int)
-                      match intTyOf? (ctx.layout.normalizeTy ty) with
-                      | none => refuseUnsupported "operator '-' pointer difference has unknown result type"
+                      match structured.bind intTyOfStructured with
+                      | none => refuseUnsupported "operator '-' pointer difference lacks parser-native result type"
                       | some rt =>
                           if !rt.inRange q then
                             refuseUnsupported "operator '-' pointer difference is out of range"
@@ -1848,7 +1849,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- The unevaluated operand is never run, so the memory it WOULD have
   -- produced never exists — there is nothing to speak about, which is
   -- precisely what the amendment forbids concluding. 181 sites in all.
-  | .binop op l r ty _ .. =>
+  | .binop op l r ty _ structuredType =>
       if op != "&&" && op != "||" && op != "," && op != "=" &&
           binaryHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in binary operands"
@@ -1913,7 +1914,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | _ => false
         if stringPointer lv || stringPointer rv then
           refuseUnsupported "pointer operation involving a string literal"
-        else evalArith ctx op lv rv ty (some l.ty) (some l)
+        else evalArith ctx op lv rv ty (some l.ty) (some l) structuredType
 
   -- §6.5.16p4 — `?:`, the third short-circuit: EXACTLY ONE arm runs. 42 sites.
   | .cond c t e _ _ .. => do
@@ -2885,9 +2886,10 @@ theorem floatCast' (v : CVal) (ty : CType) :
     | exact refuseUnsupported' _
 
 theorem evalArith' (ctx : Ctx) (op : String) (lv rv : CVal) (ty : CType)
-    (elemTy : Option CType := none) (base : Option Expr := none) :
-    MemInvariant (evalArith ctx op lv rv ty elemTy base) := by
-  cases elemTy <;> cases base <;> cases lv <;> cases rv <;>
+    (elemTy : Option CType := none) (base : Option Expr := none)
+    (structured : Option LeanModels.Clang.QualType := none) :
+    MemInvariant (evalArith ctx op lv rv ty elemTy base structured) := by
+  cases elemTy <;> cases base <;> cases structured <;> cases lv <;> cases rv <;>
     first | simp only [evalArith] | rw [evalArith.eq_def]
   repeat (any_goals split)
   all_goals first
