@@ -1,0 +1,35 @@
+{
+ "current_active_total": 2132,
+ "current_counts": {
+  "failed": 1,
+  "no-entry-point": 82,
+  "not-ingested": 372,
+  "not-parsed": 965,
+  "oracle-tests-compiler": 1,
+  "passed": 466,
+  "refused-libc": 6,
+  "refused-ub": 86,
+  "refused-unsupported": 316,
+  "timeout": 1
+ },
+ "current_match": 466,
+ "full_manifest_rows": 2214,
+ "instrument_notes": {
+  "envelope_refresh": "approved plugins, parser-native structured QualType, current extractor identities",
+  "rejected_delta_from_2026_11_18": "current not-parsed 965 versus 806 on 2026-11-18, +159. The remainder of the +213 historical increase is current not-ingested 372 versus 229."
+ },
+ "measured_at_utc": "2026-11-21 10:45:00 UTC",
+ "measured_commit": "532aa55c6",
+ "old_active_total": 2112,
+ "old_match": 1326,
+ "old_passed_rows_by_current_verdict": {
+  "failed": 1,
+  "not-ingested": 296,
+  "not-parsed": 396,
+  "passed": 459,
+  "refused-ub": 48,
+  "refused-unsupported": 126
+ },
+ "old_receipt_commit": "3cf3da8cc",
+ "ub_witness_status": "Required sanitizer witnesses for current refused-ub rows remain to be audited. No clean-sanitizer refusal is claimed as correct."
+}
