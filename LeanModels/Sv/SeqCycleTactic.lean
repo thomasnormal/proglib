@@ -525,6 +525,8 @@ macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ide
       LeanModels.Sv.Kernel.coreMemHasCommonEventSource,
       LeanModels.Sv.Kernel.coreMemPProcessEdgeSources,
       LeanModels.Sv.Kernel.coreMemPProcessReadNames,
+      LeanModels.Sv.Kernel.coreMemCombSelfReadViol,
+      LeanModels.Sv.Kernel.coreMemStmtReadBeforeWritesFrom,
       LeanModels.Sv.Kernel.coreMemPreemptiveBlockingViolReport,
       LeanModels.Sv.Kernel.coreMemPreemptiveBlockingViol,
       LeanModels.Sv.Kernel.coreMemPreemptiveBlockingViolAt,

@@ -16720,7 +16720,6 @@
     },
     {
       "name": "rbw_cond",
-      "canonical_e": true,
       "example": "sem2/rbw_cond",
       "top": "rbw_cond",
       "signals": [
@@ -16757,7 +16756,7 @@
         }
       ],
       "refusal": "AlwaysComb:self-read",
-      "measured": "WP4 2026-10-28, Icarus 12.0 on this stimulus: y = 0 0 1 1 1; the settle answer (Verilator 5.042, Yosys 0.53, run2 before the guard) is y = 0 1 0 1 0; Icarus reads the previous run's value at cycle(s) 1, 2, 4 (IEEE 1800-2023 9.2.2.2.1); Xcelium 24.03 (WP4 batched testbench, the license gate on the internal Xcelium host) y = 0 0 1 1 1: from cycle 1 on the same stale trace as Icarus; at cycle 0 the two simulators order the block's time-zero run against the first stimulus differently"
+      "measured": "2026-11-21 audit closure: canonical E now refuses this always_comb read-before-write shape as AlwaysComb:self-read. Icarus Verilog 13.0 and Xcelium Verilog 24.03-s004 retain the previous activation value, while a settle/fixpoint executor would expose the newly written value, so no canonical answer is claimed (IEEE 1800-2023 §9.2.2.2.1)"
     },
     {
       "name": "rbw_case_item",
