@@ -657,7 +657,10 @@ its `IDACK` field instead of silently defaulting every acknowledgement to one.
 Icarus Verilog, Xcelium, and canonical E agree on **1000/1000** stalled rows,
 with normalized simulator-row digest
 `78dd0ab31c3d6fa7d63e5e28cd82c81b6aba3de94ac559865f2a631ec8089a4e`.  The
-corrupted-row negative control stays active on the passing battery.
+checked-in transcript is `darkriscv/instr_stall_simulator_transcript.txt`, and
+`darkriscv/instr_stall_check.py` reruns both simulators, validates the
+transcript, replays the rows through canonical E, and rejects a corrupted-row
+negative control.
 
 ## 2026-11-20 DarkRISCV data-memory stall differential
 
