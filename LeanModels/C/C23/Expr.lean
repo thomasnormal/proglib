@@ -416,6 +416,7 @@ structure Layout where
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
   fieldOffTypeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldSizeDecl : DeclarationId → String → Option Nat := fun _ _ => none
+  fieldStructuredDecl : DeclarationId → String → Option LeanModels.Clang.QualType := fun _ _ => none
   fieldOffDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldBitsDecl : DeclarationId → String → Option (Nat × Nat) := fun _ _ => none
   flexibleFieldDecl : DeclarationId → String → Bool := fun _ _ => false
@@ -633,6 +634,7 @@ def Layout.unknown : Layout :=
     pointeeSizeDecl := fun _ => none
     elementSizeDecl := fun _ => none
     fieldSizeDecl := fun _ _ => none
+    fieldStructuredDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
     fieldBitsDecl := fun _ _ => none
     flexibleFieldDecl := fun _ _ => false
