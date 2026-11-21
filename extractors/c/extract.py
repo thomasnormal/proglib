@@ -107,7 +107,8 @@ def canonicalize_ids(tree):
         if isinstance(value, dict):
             for key in list(value):
                 item = value[key]
-                if (key == "id" or key.endswith("Id") or key == "referencedMemberDecl") and isinstance(item, str):
+                if (key == "id" or key.endswith("Id") or key.endswith("_id") or
+                        key == "referencedMemberDecl") and isinstance(item, str):
                     value[key] = canon(item)
                 else:
                     walk(item)
@@ -138,7 +139,13 @@ def frontend_version():
 
 
 def clang_json(path):
-    out = subprocess.run([clang_executable()] + AST_FLAGS + [path],
+    plugin = os.environ.get(STRUCTURED_TYPE_PLUGIN_ENV)
+    command = [clang_executable()] + AST_FLAGS
+    if plugin:
+        command += ["-Xclang", "-load", "-Xclang", plugin,
+                    "-Xclang", "-plugin", "-Xclang",
+                    "lean-c-structured-types"]
+    out = subprocess.run(command + [path],
                          capture_output=True, text=True)
     if out.returncode != 0:
         die("clang rejected %s (exit %d).  A partial AST is a DIFFERENT "
@@ -146,7 +153,22 @@ def clang_json(path):
                                                  out.stderr[:2000]))
     if not out.stdout:
         die("clang produced no AST for %s\n%s" % (path, out.stderr[:2000]))
-    return json.loads(out.stdout)
+    try:
+        tree = json.loads(out.stdout)
+    except json.JSONDecodeError as error:
+        die("clang produced invalid JSON for %s: %s" % (path, error))
+    structured = None
+    if plugin:
+        marker = "LEAN_C_STRUCTURED_TYPES="
+        records = [line[len(marker):] for line in out.stderr.splitlines()
+                   if line.startswith(marker)]
+        if len(records) != 1:
+            die("structured type plugin did not return exactly one node-id record")
+        try:
+            structured = json.loads(records[0])
+        except json.JSONDecodeError as error:
+            die("structured type plugin returned invalid JSON: %s" % error)
+    return tree, structured
 
 
 def string_byte_records(path):
@@ -324,34 +346,19 @@ def record_kind_records(tree):
     return records
 
 
-def structured_type_records(path):
+def structured_type_records(records):
     """Observe Clang's recursive QualType tree through the pinned plugin.
 
-    The plugin reports only parser-native source offsets.  The extractor
-    joins those offsets to declaration IDs in the approved AST dump below,
-    so no address or type spelling crosses the frontend boundary.
+    The plugin reports Clang node IDs and source ranges. The extractor has
+    already run it with the JSON AST in one invocation, so node IDs are the
+    join key and ranges are provenance only.
     """
-    plugin = os.environ.get(STRUCTURED_TYPE_PLUGIN_ENV)
-    if not plugin:
-        return None
-    if not os.path.isfile(plugin):
-        die("%s does not name a plugin file" % STRUCTURED_TYPE_PLUGIN_ENV)
-    command = ([clang_executable()] + PROFILE_FLAGS + ["-fsyntax-only",
-               "-Xclang", "-load", "-Xclang", plugin,
-               "-Xclang", "-plugin", "-Xclang", "lean-c-structured-types",
-               path])
-    out = subprocess.run(command, capture_output=True)
-    if out.returncode:
-        die("structured type probe rejected %s: %s" %
-            (path, out.stderr.decode(errors="replace")[:2000]))
-    try:
-        records = json.loads(out.stdout.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        die("structured type probe returned invalid JSON: %s" % error)
     if not isinstance(records, list):
         die("structured type probe returned a non-array")
     for record in records:
         if (not isinstance(record, dict) or record.get("kind") not in ("StructuredType", "StructuredExprType") or
+                (record.get("kind") == "StructuredType" and not isinstance(record.get("decl_id"), str)) or
+                (record.get("kind") == "StructuredExprType" and not isinstance(record.get("expr_id"), str)) or
                 type(record.get("offset")) is not int or record["offset"] < 0 or
                 not isinstance(record.get("type"), dict)):
             die("structured type probe returned an invalid record")
@@ -1006,7 +1013,9 @@ def extract(path, source_name=None, standard="c23"):
     AST_FLAGS = PROFILE_FLAGS + ["-fsyntax-only", "-Xclang", "-ast-dump=json"]
     check_profile()
     src = open(path, "rb").read()
-    tu = canonicalize_ids(clang_json(path))
+    raw_tu, raw_structured_types = clang_json(path)
+    joined = canonicalize_ids({"ast": raw_tu, "structured": raw_structured_types})
+    tu = joined["ast"]
     member_record_ids = {}
     def collect_member_records(node, record_id=None):
         if isinstance(node, dict):
@@ -1023,7 +1032,7 @@ def extract(path, source_name=None, standard="c23"):
     string_bytes = string_byte_records(path)
     floating_bits = floating_bit_records(path)
     record_layouts = record_layout_records(path)
-    structured_types = structured_type_records(path)
+    structured_types = structured_type_records(joined["structured"])
     ex = Extractor(target, src.decode(), string_bytes, floating_bits, record_layouts,
                    member_record_ids)
     ex.collect_labels(tu)
@@ -1103,9 +1112,8 @@ def extract(path, source_name=None, standard="c23"):
         if record.get("offset") in var_decl_ids_by_offset:
             record["decl_id"] = var_decl_ids_by_offset[record["offset"]]
 
-    # Join structured QualType observations by the parser's declaration
-    # offsets.  The tree itself remains a frontend observation.  Missing
-    # identity is a loud refusal in the ingester, never a spelling fallback.
+    # Join structured QualType observations by the parser node IDs from the
+    # same Clang invocation.  Offsets remain provenance for diagnostics only.
     structured_rows = []
     structured_expr_rows = []
     if structured_types is not None:
@@ -1114,31 +1122,30 @@ def extract(path, source_name=None, standard="c23"):
                 out = {key: join_type(item) for key, item in value.items()}
                 if value.get("kind") in ("record", "enumeration", "typedef"):
                     declaration = value.get("declaration") or {}
-                    offset = declaration.get("offset")
-                    if offset not in decl_ids_by_offset:
-                        die("structured type declaration offset has no AST identity")
-                    out["declaration"] = {"id": decl_ids_by_offset[offset]}
+                    if not isinstance(declaration.get("id"), str):
+                        die("structured type declaration has no parser node identity")
                 return out
             if isinstance(value, list):
                 return [join_type(item) for item in value]
             return value
         for record in structured_types:
             if record.get("kind") == "StructuredExprType":
-                structured_expr_rows.append({"offset": record["offset"],
+                structured_expr_rows.append({"expr_id": record["expr_id"],
+                                             "offset": record["offset"],
                                              "end_offset": record.get("end_offset"),
                                              "expr_kind": record.get("expr_kind", ""),
                                              "type": join_type(record["type"])})
                 continue
-            decl_id = decl_ids_by_offset.get(record["offset"])
-            if decl_id is None:
-                die("structured type occurrence offset has no AST identity")
-            structured_rows.append({"decl_id": decl_id,
+            structured_rows.append({"decl_id": record["decl_id"],
                                     "type": join_type(record["type"])})
 
     structured_by_decl = {row["decl_id"]: row["type"] for row in structured_rows}
+    structured_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows}
     def attach_decl_type(value):
         if isinstance(value, dict):
             out = {key: attach_decl_type(item) for key, item in value.items()}
+            if value.get("kind") in EXPRS and value.get("id") in structured_by_expr:
+                out["structured_type"] = structured_by_expr[value["id"]]
             if value.get("kind") in {"FunctionDecl", "VarDecl", "ParmVarDecl", "FieldDecl",
                                       "RecordDecl", "TypedefDecl", "EnumDecl", "EnumConstantDecl"}:
                 decl_id = value.get("decl_id")

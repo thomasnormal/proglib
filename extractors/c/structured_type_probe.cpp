@@ -1,9 +1,10 @@
 // Parser-native Clang QualType projection for the C envelope.
 //
-// The probe walks Clang's QualType tree and emits source offsets for the
-// declaration occurrence and for record/enum/typedef identities.  The Python
-// extractor joins those offsets to the declaration IDs already canonicalized
-// from the same AST dump.  No type spelling is parsed in either layer.
+// The probe walks Clang's QualType tree and emits Clang node identities for
+// declarations and expressions. The Python extractor runs this plugin with
+// the JSON AST in one invocation, then canonicalizes the shared node IDs.
+// Source ranges remain provenance only. No type spelling is parsed in either
+// layer.
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/Type.h"
@@ -16,6 +17,9 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <optional>
+#include <cstdint>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -29,6 +33,12 @@
 namespace {
 
 using Json = llvm::json::Value;
+
+std::string nodeId(const void *node) {
+  std::ostringstream text;
+  text << "0x" << std::hex << reinterpret_cast<uintptr_t>(node);
+  return text.str();
+}
 
 std::optional<int64_t> sourceOffset(const clang::Decl *decl,
                                     const clang::SourceManager &sources) {
@@ -63,10 +73,8 @@ std::optional<Json> typeTree(clang::QualType qualified,
 
 std::optional<Json> declarationType(const clang::Decl *decl,
                                     const clang::ASTContext &context) {
-  const auto offset = sourceOffset(decl->getCanonicalDecl(),
-                                   context.getSourceManager());
-  if (!offset) return std::nullopt;
-  return llvm::json::Object{{"offset", *offset},
+  if (!decl) return std::nullopt;
+  return llvm::json::Object{{"id", nodeId(decl)},
                             {"kind", decl->getDeclKindName()}};
 }
 
@@ -211,7 +219,7 @@ public:
     // Clang materializes parameter declarations while walking a function
     // prototype in a declarator. They have a source location but no AST
     // declaration node in the JSON dump, so emitting them would make the
-    // approved offset join fail. The containing function type already
+    // approved node-identity join fail. The containing function type already
     // carries the complete parameter tree, including an absent bound.
     if (const auto *parameter = llvm::dyn_cast<clang::ParmVarDecl>(decl))
       if (!parameter->getIdentifier()) return true;
@@ -227,12 +235,14 @@ public:
     auto tree = typeTree(qualified, *context, 0);
     if (!tree) {
       rows.push_back(llvm::json::Object{
-          {"kind", "StructuredType"}, {"offset", *occurrence},
+          {"kind", "StructuredType"}, {"decl_id", nodeId(decl)},
+          {"offset", *occurrence},
           {"type", llvm::json::Object{{"kind", "unsupported"},
                                        {"reason", "unrepresented Clang QualType"}}}});
       return true;
     }
     rows.push_back(llvm::json::Object{{"kind", "StructuredType"},
+                                      {"decl_id", nodeId(decl)},
                                       {"offset", *occurrence},
                                       {"type", std::move(*tree)}});
     return true;
@@ -246,13 +256,15 @@ public:
     auto tree = typeTree(expr->getType(), *context, 0);
     if (!tree) {
       rows.push_back(llvm::json::Object{
-          {"kind", "StructuredExprType"}, {"offset", *offset},
+          {"kind", "StructuredExprType"}, {"expr_id", nodeId(expr)},
+          {"offset", *offset},
           {"end_offset", *endOffset}, {"expr_kind", expr->getStmtClassName()},
           {"type", llvm::json::Object{{"kind", "unsupported"},
                                        {"reason", "unrepresented Clang QualType"}}}});
       return true;
     }
     rows.push_back(llvm::json::Object{{"kind", "StructuredExprType"},
+                                      {"expr_id", nodeId(expr)},
                                       {"offset", *offset},
                                       {"end_offset", *endOffset},
                                       {"expr_kind", expr->getStmtClassName()},
@@ -267,7 +279,8 @@ public:
     Visitor visitor;
     visitor.context = &context;
     visitor.TraverseDecl(context.getTranslationUnitDecl());
-    llvm::outs() << llvm::json::Value(std::move(visitor.rows)) << "\n";
+    llvm::errs() << "LEAN_C_STRUCTURED_TYPES="
+                 << llvm::json::Value(std::move(visitor.rows)) << "\n";
   }
 };
 
@@ -288,7 +301,7 @@ public:
     }
     return true;
   }
-  ActionType getActionType() override { return ReplaceAction; }
+  ActionType getActionType() override { return AddAfterMainAction; }
 };
 
 clang::FrontendPluginRegistry::Add<Action> registration(

@@ -839,9 +839,9 @@ def layoutFor (envl : Envelope) : Layout :=
 
 /-- Peel the conversions a value arrives wrapped in. -/
 def peelVal : Expr → Expr
-  | .implicitCast _ s _ _ => peelVal s
-  | .cast _ s _ _ => peelVal s
-  | .paren s _ _ => peelVal s
+  | .implicitCast _ s _ _ .. => peelVal s
+  | .cast _ s _ _ .. => peelVal s
+  | .paren s _ _ .. => peelVal s
   | e => e
 
 /-- **THE ORACLE GUARD.** `exit(n)` is the verdict channel, not a library
@@ -857,12 +857,12 @@ Measured when it was written: all 36 tests that refused on `exit` contain
 `exit(0)` and nothing else, so this guard is free today. It is here
 because it is what makes the reading honest rather than lucky. -/
 def constInt : Expr → Option Int
-  | .paren sub _ _ => constInt sub
-  | .implicitCast _ sub _ _ => constInt sub
-  | .cast _ sub _ _ => constInt sub
-  | .intLit v _ _ => v.toInt?
-  | .charLit v _ _ => v.toInt?
-  | .binop op l r _ _ => do
+  | .paren sub _ _ .. => constInt sub
+  | .implicitCast _ sub _ _ .. => constInt sub
+  | .cast _ sub _ _ .. => constInt sub
+  | .intLit v _ _ .. => v.toInt?
+  | .charLit v _ _ .. => v.toInt?
+  | .binop op l r _ _ .. => do
       let a ← constInt l
       let b ← constInt r
       match op with
@@ -880,7 +880,7 @@ def constInt : Expr → Option Int
 
 def exitIsAlwaysZero (envl : Envelope) : Bool :=
   envl.unit.exprs.all fun e => match e with
-    | .call callee args _ _ =>
+    | .call callee args _ _ .. =>
         if calleeNameOf callee == "exit" then
           match args with
           | [a] => match constInt (peelVal a) with
@@ -1024,7 +1024,7 @@ discipline applied to the other end of the oracle. -/
 def hasDeclareCallDefine (envl : Envelope) (sym : String) : Bool :=
   let calls (es : List Expr) (nm : String) : Bool :=
     es.any fun e => match e with
-      | .call callee _ _ _ => calleeNameOf callee == nm
+      | .call callee _ _ _ .. => calleeNameOf callee == nm
       | _ => false
   let defn? := envl.unit.functionDefns.find? (·.name == sym)
   match defn? with

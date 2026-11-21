@@ -271,26 +271,26 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
   | 0, _, _, _, _, _, _ => exhausted
   | fuel + 1, ctx, p, ty, e, structured, declaration =>
     match e with
-    | .implicitValueInit _ _ => zeroInitStructured fuel ctx p ty structured declaration
+    | .implicitValueInit _ _ .. => zeroInitStructured fuel ctx p ty structured declaration
     -- Clang wraps nested aggregate initializers in ConstantExpr nodes even
     -- when their value is the parser's InitListExpr. Preserve §6.7.11's
     -- aggregate walk instead of sending that wrapper to evalExpr, where the
     -- value-position InitListExpr is intentionally loud.
-    | .constExpr _ (some (.initList _ _ _ _)) _ _ =>
+    | .constExpr _ (some (.initList _ _ _ _ ..)) _ _ .. =>
         initObject fuel ctx p ty
-          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured declaration
-    | .constExpr _ (some (.arrayInitList _ _ _ _ _)) _ _ =>
+          (match e with | .constExpr _ (some sub) _ _ .. => sub | _ => e) structured declaration
+    | .constExpr _ (some (.arrayInitList _ _ _ _ _ ..)) _ _ .. =>
         initObject fuel ctx p ty
-          (match e with | .constExpr _ (some sub) _ _ => sub | _ => e) structured declaration
-    | .designatedUpdate base update _ _ => do
+          (match e with | .constExpr _ (some sub) _ _ .. => sub | _ => e) structured declaration
+    | .designatedUpdate base update _ _ .. => do
         initObject fuel ctx p ty base structured declaration
         initObject fuel ctx p ty update structured declaration
-    | .arrayInitList inits filler field _ _ =>
+    | .arrayInitList inits filler field _ _ .. =>
         -- Clang's array_filler is [default filler, positional entries...].
         -- Only its implicit-zero default is in tier; retain and refuse other
         -- shapes rather than guessing their repeated initialization semantics.
         match inits, filler, ctx.layout.elemDeclAt declaration ty with
-        | [], .implicitValueInit _ _ :: entries, some (et, n) =>
+        | [], .implicitValueInit _ _ _ :: entries, some (et, n) =>
             match ctx.layout.arrayElementSizeDeclAt declaration ty et with
             | some esz =>
                 let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
@@ -300,7 +300,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
                 initElems fuel ctx p et esz n 0 entries elementStructured
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | _, _, _ => refuseUnsupported "unsupported Clang array_filler initializer"
-    | .initList inits field _ _ =>
+    | .initList inits field _ _ .. =>
         let initTy := ctx.layout.normalizeTy ty
         -- An array whose element is a union still starts with the parser's
         -- `union ...` spelling (`union u0[4]`).  §6.7.11 applies the array
@@ -338,7 +338,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
     -- the literal's parser-native bytes, including its terminating null.
     -- This copies into the destination array; it does not store the
     -- literal pointer's tagged representation bytes.
-    | .strLit value decoded _ _ =>
+    | .strLit value decoded _ _ .. =>
         let bytes? := match decoded with
           | some bs => some (bs.map (fun b => CByte.conc (UInt8.ofNat b)))
           | none => (plainStringBytes value).map (fun bs => bs ++ [CByte.conc 0])
@@ -369,7 +369,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
                     else refuseUnsupported "wide string literal has incomplete element bytes"
                 | none => refuseUnsupported "wide string literal lacks element layout"
         | _, _ => do
-            let v ← evalE ctx (.strLit value decoded ty default)
+            let v ← evalE ctx (.strLit value decoded ty default none)
             liftEval (storeAt Mem.cAliasModel p (ctx.layout.normalizeTy ty) v structured)
     -- §6.7.11p11 — a scalar initializer is a single expression.
     | _ => do
@@ -404,7 +404,7 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
     | (nm, mty) :: mrest, e :: erest =>
         if ctx.layout.flexibleFieldDeclAt declaration ty nm then
           match e with
-          | .implicitValueInit _ _ => initMembers fuel ctx p ty mrest erest declaration
+          | .implicitValueInit _ _ .. => initMembers fuel ctx p ty mrest erest declaration
           | _ => refuseUnsupported s!"explicit initializer for flexible array member '{nm}'"
         else if nm.isEmpty && (ctx.layout.fieldBitsDeclAt declaration ty nm).isSome then
           -- §6.7.11p9: an unnamed bit-field has no member and consumes no
@@ -416,7 +416,7 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
           | some off =>
               if ctx.layout.fieldBitsDeclAt declaration ty nm |>.isSome then
                 let v ← match e with
-                  | .implicitValueInit _ _ =>
+                  | .implicitValueInit _ _ .. =>
                       pure (.int ((intTyOf? (ctx.layout.normalizeTy mty)).getD IntTy.int_) 0)
                   | _ => evalE ctx e
                 liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off) v)

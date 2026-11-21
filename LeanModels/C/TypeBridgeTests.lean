@@ -205,12 +205,12 @@ private def compoundRegistryCheck : Bool :=
 #guard ({ LeanModels.C.C23.Layout.unknown with
   elementSizeDecl := fun id => if id.value == "array-1" then some 4 else none } :
   LeanModels.C.C23.Layout).elementSizeAt
-    (.declRef (some {value := "array-1"}) "a" "VarDecl" "int[2]" default) "int" == some 4
+    (.declRef (some {value := "array-1"}) "a" "VarDecl" "int[2]" default none) "int" == some 4
 #guard ({ LeanModels.C.C23.Layout.unknown with
   fieldOffDecl := fun id field =>
     if id.value == "record-1" && field == "x" then some 8 else none } :
   LeanModels.C.C23.Layout).fieldOffAt
-    (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default) "x" == some 8
+    (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default none) "x" == some 8
 #guard ({ LeanModels.C.C23.Layout.unknown with
   fieldOffDecl := fun id field =>
     if id.value == "record-1" && field == "x" then some 8 else none } :
@@ -225,7 +225,7 @@ private def compoundRegistryCheck : Bool :=
   fieldSizeDecl := fun id field =>
     if id.value == "record-1" && field == "x" then some 4 else none } :
   LeanModels.C.C23.Layout).fieldExtentAt
-    (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default) "x" "int" true == some 4
+    (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default none) "x" "int" true == some 4
 #guard ({ LeanModels.C.C23.Layout.unknown with
   fieldBitsDecl := fun id field =>
     if id.value == "record-1" && field == "x" then some (8, 3) else none } :
@@ -242,7 +242,7 @@ private def compoundRegistryCheck : Bool :=
 #guard ({ LeanModels.C.C23.Layout.unknown with
   declSize := fun id => if id.value == "record-1" then some 8 else none } :
   LeanModels.C.C23.Layout).bitFieldStorageSizeAt
-    (some (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default)) "struct R" == some 8
+    (some (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default none)) "struct R" == some 8
 #guard ({ LeanModels.C.C23.Layout.unknown with
   elementSizeDecl := fun id => if id.value == "array-1" then some 4 else none } :
   LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"}) "int[2]" "int" == some 4
@@ -263,8 +263,8 @@ private def compoundRegistryCheck : Bool :=
     if offset == 12 then some (.pointer (.cBuiltinKind .int)) else none } :
   LeanModels.C.C23.Layout).structuredTypeAt
     (.declRef none "p" "VarDecl" "int *"
-      (CSpan.mk 1 (some 12) (some 1) 1 (some 13) (some 2) none none)) ==
-    some (.pointer (.cBuiltinKind .int))
+      (CSpan.mk 1 (some 12) (some 1) 1 (some 13) (some 2) none none) none) ==
+    some (LeanModels.Clang.QualType.pointer (.cBuiltinKind .int))
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
     if id.value == "vla-1" then some (.array (.cBuiltinKind .int) none) else none
@@ -295,7 +295,7 @@ private def compoundRegistryCheck : Bool :=
   (.qualified true false (.typedefRef {value := "P"})) ==
     some (.qualified true false (.pointer (.cBuiltinKind .int)))
 #guard LeanModels.C.C23.functionPointerBitCast
-  (.cast "BitCast" (.unsupported "Opaque" "" default) "opaque" default)
+  (.cast "BitCast" (.unsupported "Opaque" "" default) "opaque" default none)
 #guard isError (TypeNode.typedefRef none "T" |>.toQualType)
 #guard isError (TypeNode.enumeration none "enum E" |>.toQualType)
 
