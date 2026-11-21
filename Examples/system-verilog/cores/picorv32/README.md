@@ -2183,6 +2183,23 @@ binary testbench SHA-256
 The normalized binary cycle-row SHA-256 is
 `ebd3e54471927fc1387e502ba0ef7f33026de7eb890bd75cbff89627d09cf5ef`.
 
+## 2026-11-21 E-RUN battery transcripts
+
+The fixed PicoRV32 battery was rerun with reset, ALU, taken branch, full-word
+store/load, a memory stall schedule, and an uninitialized-register read.  Icarus
+Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on
+300/300 cycles.  Canonical E agrees bit-for-bit on 300/300 cycles and all 32
+observed outputs.  The checked-in simulator transcript is
+`pico_simulator_transcript.txt` with SHA-256
+`a8d08e260de3066218edfd2cb0ccb19ebc1b9316746cc0cd32f2982965ea0345`.
+The existing harness negative control corrupts an output row and rejects it.
+
+DarkRISCV's pinned 1000-row battery has a checked-in simulator transcript at
+`Examples/system-verilog/cores/darkriscv/dark_simulator_transcript.txt` with
+SHA-256 `9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
+Both pinned simulators agree on all 1000 rows, and `battery_check.py` compares
+the transcript against canonical E with its corrupted-row negative control.
+
 ## 2026-11-20 R1 ADDI premise audit
 
 The loaded-core R1 obligation is the `Rv32iAddiInvariant` consumed by

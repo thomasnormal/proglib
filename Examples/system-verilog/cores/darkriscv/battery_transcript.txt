@@ -70,3 +70,11 @@ printed DATAO=00000000 while Xcelium printed DATAO=0000xx00.  This diagnostic
 identified a harness configuration error and is not used as an oracle result.
 
 rv32ui source inventory: 42 programs, compiled-and-run 0/42. The host lacks the RISC-V cross-toolchain and reset/memory build configuration required to turn the upstream assembly sources into this testbench's image. No rv32ui simulator or Lean result is claimed.
+
+Checked-in simulator transcript for the 1000-row passing battery:
+`dark_simulator_transcript.txt` contains the Icarus and Xcelium-identical rows
+from `nop_tb.sv`, with SHA-256
+9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df.  The
+pinned versions are Icarus Verilog 13.0
+(s20250103-64-gdad78d525) and Xcelium 24.03-s004.  `battery_check.py` replays
+these rows through canonical E and its corrupted-row negative control.
