@@ -45,9 +45,8 @@ def pinnedFrontendVersion : String :=
   "clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock " ++
     "334cf9a5e6c0331e9f261eaf01fc3568724fcce9)"
 
-/-- A type, as clang spells it (`"int"`, `"const char[121]"`,
-`"int (*)(Move, void *)"`). See the module docstring: this is the
-frontend's string, deliberately unparsed. -/
+/-- Frontend type text retained only as source metadata. Semantic consumers
+use the parser-native QualType carried on the node. -/
 abbrev CType := String
 
 /- Clang's declaration handle is an identity, not a source spelling. Keep it
