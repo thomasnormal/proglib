@@ -149,10 +149,10 @@ profiled hosts fold true, exactly as `int_32` and `long_64` are pinned.
 
 What is still a named zero: `_Alignas` and `#pragma pack` are outside the pin
 and outside the modelled vocabulary. The extractor retains their clang
-attribute nodes as `unsupported` children of the record, and `recordsOf`
-omits any record containing one, so every use refuses rather than receiving a
-natural-alignment offset. Bit-fields use the separate checked observations
-below; the legacy spelling fallback still omits them. -/
+attribute nodes as `unsupported` children of the record, and the checked
+record observation rejects unsupported layout, so every use refuses rather
+than receiving a natural-alignment offset. Bit-fields use the separate checked
+observations below. -/
 
 /-- Round `off` up to a multiple of `al`. `al = 0` is not a alignment and is
 returned unchanged rather than dividing by zero. -/
@@ -163,20 +163,10 @@ def roundUp (off al : Nat) : Nat :=
 §6.7.2.1p18 requires increasing addresses in declaration order, so the order
 is the standard's and not a convenience.
 
-The legacy spelling fallback omits records with bit-fields. Checked
-`ASTRecordLayout` observations are admitted separately below, where the
-evaluator reads and updates the dumped bit ranges. A record absent from both
-tables has no size or member offsets, so every use refuses — the honest zero.
-No ABI packing rule is reconstructed from a type spelling. -/
-def recordHasBitfield (fields : List Decl) : Bool :=
-  fields.any fun d => match d with
-    | .field _ _ (some _) _ _ _ _ => true
-    | _ => false
-
-def recordHasUnsupported (fields : List Decl) : Bool :=
-  fields.any fun d => match d with
-    | .unsupported .. => true
-    | _ => false
+Checked `ASTRecordLayout` observations are admitted below, where the evaluator
+reads and updates the dumped bit ranges. A record without a checked observation
+has no size or member offsets, so every use refuses. No ABI packing rule is
+reconstructed from a type spelling. -/
 
 /- These parser attributes affect representation, but the identity-joined
    `RecordLayout` observation carries the frontend's exact answer. They may
@@ -189,13 +179,6 @@ def recordHasBlockingUnsupported (fields : List Decl) : Bool :=
         kind != "AlignedAttr" && kind != "PackedAttr" && kind != "ModeAttr" &&
         kind != "MaxFieldAlignmentAttr" && kind != "IndirectFieldDecl"
     | _ => false
-
-def fieldsOf (fields : List Decl) : Option (List (String × CType)) :=
-  if recordHasBitfield fields || recordHasUnsupported fields || fields.isEmpty then none
-  else some (fields.filterMap fun d => match d with
-    | .field (some fn) fty _ _ _ _ _ => some (fn, fty)
-    | .field none _ _ _ _ _ _ => none
-    | _ => none)
 
 mutual
 def stmtDeclsList : List Stmt → List Decl
@@ -234,49 +217,8 @@ def allDecls (envl : Envelope) : List Decl :=
     | .decl d => declTree d
     | .fn f => (f.body.map stmtDecls |>.getD []).flatMap declTree
 
-def recordsOf (envl : Envelope) : List (String × List (String × CType) × Bool) :=
-  let ds := allDecls envl
-  let records := ds.filterMap fun d => match d with
-    | .record _ (some nm) fields (some layout) _ _ =>
-        (fieldsOf fields).map (fun fs =>
-          ((if layout.tagKind == "union" then "union " else "struct ") ++ nm, fs,
-            layout.tagKind == "union"))
-    | .record (some rid) (some nm) fields none _ _ =>
-        (fieldsOf fields).map (fun fs =>
-          (if envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false
-           then "union " ++ nm else "struct " ++ nm,
-           fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
-    | .record none (some nm) fields none _ _ =>
-        (fieldsOf fields).map (fun fs => (nm, fs, false))
-    | _ => none
-  let anonymous := ds.filterMap fun d => match d with
-    | .var _ _ ty _ _ (some rid) _ _ _ =>
-        match ds.find? (fun q => match q with
-          | .record id none _ _ _ _ => id == some rid
-          | _ => false) with
-        | some (.record (some rid) none fields _ _ _) =>
-            (fieldsOf fields).map (fun fs =>
-              (ty, fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
-        | some (.record none none fields _ _ _) =>
-            (fieldsOf fields).map (fun fs => (ty, fs, false))
-        | _ => none
-    | .record (some rid) none fields none sp _ =>
-        match ds.find? (fun q => match q with
-          | .typedef _ _ _ _ tsp _ => tsp.line == sp.line
-          | _ => false) with
-        | some (.typedef _ nm _ _ _ _) =>
-            (fieldsOf fields).map (fun fs =>
-              (if envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false
-               then "union " ++ nm else "struct " ++ nm,
-               fs, envl.recordKinds.find? (·.1 == rid) |>.map (·.2) |>.getD false))
-        | _ => none
-    | _ => none
-  records ++ anonymous
 
-/-- Frontend layout observations keyed by Clang's declaration identity.  This
-is intentionally separate from `recordsOf`: the latter is the legacy
-spelling-based layout fallback, while this table is the only sound key for a
-future aggregate semantics. -/
+/-- Frontend layout observations are keyed by Clang declaration identity. -/
 def observedRecordLayouts (envl : Envelope) :
     List (DeclarationId × RecordLayout) :=
   let ds := allDecls envl
@@ -457,7 +399,6 @@ rules from `CType` text.  Missing observations remain a loud layout absence. -/
 def layoutFor (envl : Envelope) : Layout :=
   let ds := allDecls envl
   let tds := typedefsOf envl
-  let recs := recordsOf envl
   let observed := observedRecordFacts envl
   let structuredRecordIdFor := fun did =>
     match (envl.structuredTypeFor did).map LeanModels.Clang.QualType.unqualified with
@@ -531,12 +472,6 @@ def layoutFor (envl : Envelope) : Layout :=
         | _ => false) with
       | some (.var _ _ _ _ _ (some rid) _ _ _) => fromRecord rid
       | _ => none
-  -- Feed checked parser-native records into the structural array/typedef
-  -- fallback too.  An anonymous typedef such as `Data` has no named
-  -- RecordDecl in `recordsOf`, but its observed declaration identity still
-  -- supplies the element size for `Data[4]` (§6.7.6.2).
-  let recsWithObserved := recs ++ observed.map (fun row =>
-    (row.1, row.2.1, row.2.2.tagKind == "union"))
   let observedFor := fun t : CType =>
     -- Parser-native observations use the exact Clang type key. Legacy
     -- normalization remains confined to the fallback layout path.
@@ -676,7 +611,7 @@ def layoutFor (envl : Envelope) : Layout :=
     -- evidence remains absent here rather than triggering a spelling scan.
     envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.elementSizeBytes)
   let observedUnion := fun t : CType =>
-    (recsWithObserved.find? (fun row => row.1 == t)).map (·.2.2) |>.getD false
+    (observed.find? (fun row => row.1 == t)).map (·.2.2.tagKind == "union") |>.getD false
   let observedUnionDeclFor := fun (did : DeclarationId) =>
     match ds.find? (fun q => match q with
       | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
@@ -745,10 +680,7 @@ def layoutFor (envl : Envelope) : Layout :=
     members := fun t =>
       match observedFor t with
       | some (_, members, _) => some members
-      | none =>
-          let rt := resolve tds 8 t
-          let r := recs.find? (·.1 == rt)
-          r.map (·.2.1)
+      | none => none
     membersDecl := observedMembersDeclFor
     memberRecordDecl := memberRecordDeclFor
     -- The evaluator's own normalizer, built from THIS unit's typedefs. The
