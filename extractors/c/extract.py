@@ -553,6 +553,11 @@ class Extractor:
                 "EXTRACTOR's fields for this node. A handler that names them "
                 "is overwriting the instrument with its subject." % (k, clash))
         out = {"kind": k, "span": span}
+        if k in EXPRS and isinstance(n.get("id"), str):
+            # Keep the parser node identity on every expression. Structured
+            # QualType observations from the same Clang invocation join on
+            # this id, never on source offsets or type spellings.
+            out["expr_id"] = n["id"]
         out.update(payload)
         return out
 
@@ -1144,8 +1149,8 @@ def extract(path, source_name=None, standard="c23"):
     def attach_decl_type(value):
         if isinstance(value, dict):
             out = {key: attach_decl_type(item) for key, item in value.items()}
-            if value.get("kind") in EXPRS and value.get("id") in structured_by_expr:
-                out["structured_type"] = structured_by_expr[value["id"]]
+            if value.get("kind") in EXPRS and value.get("expr_id") in structured_by_expr:
+                out["structured_type"] = structured_by_expr[value["expr_id"]]
             if value.get("kind") in {"FunctionDecl", "VarDecl", "ParmVarDecl", "FieldDecl",
                                       "RecordDecl", "TypedefDecl", "EnumDecl", "EnumConstantDecl"}:
                 decl_id = value.get("decl_id")
