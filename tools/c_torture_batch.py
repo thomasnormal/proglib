@@ -89,7 +89,11 @@ def _canonicalize_envelope(entry: dict, manifest: Path) -> None:
     expected = manifest.parent / "env" / (name[:-2] + ".json")
     current = Path(entry["envelope"])
     source = manifest.parent / "src" / name
-    if not current.is_file() and (expected.exists() or source.is_file()):
+    # Prefer the manifest-local envelope whenever its source or envelope is
+    # present, even if the historical absolute path still exists.  A stale
+    # old-cache file must not prevent refresh from the copied manifest's
+    # approved source cache.
+    if (expected.exists() or source.is_file()) and current != expected:
         entry["envelope"] = str(expected)
 
 
@@ -244,8 +248,12 @@ def self_test() -> int:
         copied_env.parent.mkdir(parents=True)
         copied_env.write_text(json.dumps({"schema_version": "c-0.1",
                                            "language": "c"}))
+        old_env = root / "old" / "env" / "copied.json"
+        old_env.parent.mkdir(parents=True)
+        old_env.write_text(json.dumps({"schema_version": "c-0.1",
+                                       "language": "c"}))
         copied_entry = {"name": "copied.c", "status": "parsed",
-                        "sha256": "missing", "envelope": "/old/cache/env/copied.json"}
+                        "sha256": "missing", "envelope": str(old_env)}
         _canonicalize_envelope(copied_entry, copied / "manifest.json")
         if copied_entry["envelope"] != str(copied_env):
             print("c_torture_batch --self-test: stale absolute envelope path was not relocated",
