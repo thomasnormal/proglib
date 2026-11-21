@@ -93,6 +93,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("generated_array_index.sv", "generated_array_index",
             (Port("x", 8),), (Port("y", 8),),
             retain_proc_rewrites=True),
+    Fixture("cell_genvar_lfsr.sv", "cell_genvar_lfsr",
+            (Port("x", 8),), (Port("y", 8),),
+            (Point("W4", (4,)), Point("W8", (8,))),
+            retain_proc_rewrites=True),
     Fixture("generated_array_nested.sv", "generated_array_nested",
             (Port("x", 8), Port("taps", 8)), (Port("y", 8),),
             (Point("W4", (4,)), Point("W8", (8,))),
@@ -879,6 +883,8 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
     if fixture.top == "generated_array_nested" and point.args \
             and port.name in ("x", "taps"):
         return point.args[0]
+    if fixture.top == "cell_genvar_lfsr" and point.args:
+        return point.args[0]
     if fixture.top == "package_child_parameter_e" and point.args:
         return point.args[0]
     if fixture.top == "package_typed_child_parameter_e" and point.args:
@@ -995,6 +1001,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "packed_shift_register_canonical_e": ("N",),
             "generate_if_unpacked_array": ("N",),
             "generated_array_nested": ("W",),
+            "cell_genvar_lfsr": ("W",),
             "hierarchy_parameterized": ("W",),
             "inactive_generate_child_e": ("USE",),
             "inactive_generate_child_param_e": ("USE",),
