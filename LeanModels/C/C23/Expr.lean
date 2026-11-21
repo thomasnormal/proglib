@@ -370,28 +370,6 @@ def objectSizeOfStructured : LeanModels.Clang.QualType → Option Nat
   | .pointer _ => some 8
   | type => scalarSizeOfStructured type
 
-def typeKeyOfStructured : LeanModels.Clang.QualType → Option CType
-  | .qualified _ _ base => typeKeyOfStructured base
-  | .cBuiltinKind .bool => some "_Bool"
-  | .cBuiltinKind .char => some "char"
-  | .cBuiltinKind .signedChar => some "signed char"
-  | .cBuiltinKind .unsignedChar => some "unsigned char"
-  | .cBuiltinKind .short => some "short"
-  | .cBuiltinKind .unsignedShort => some "unsigned short"
-  | .cBuiltinKind .int => some "int"
-  | .cBuiltinKind .unsignedInt => some "unsigned int"
-  | .cBuiltinKind .long => some "long"
-  | .cBuiltinKind .unsignedLong => some "unsigned long"
-  | .cBuiltinKind .longLong => some "long long"
-  | .cBuiltinKind .unsignedLongLong => some "unsigned long long"
-  | .cBuiltinKind .float => some "float"
-  | .cBuiltinKind .double => some "double"
-  | .cBuiltinKind .longDouble => some "long double"
-  | .cBuiltinKind .int128 => some "__int128"
-  | .cBuiltinKind .uint128 => some "unsigned __int128"
-  | .cBuiltin name => some name
-  | _ => none
-
 /-- The integer type of an expression, or a refusal naming the spelling.
 A refusal a human cannot act on is a refusal that has not done its job,
 so the unresolved SPELLING is carried in the message. -/
@@ -748,13 +726,8 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
   match decl.bind layout.structuredTypeDecl with
   | some structured =>
       match structured.unqualified with
-      | .array element (some extent) =>
-          let resolvedElement :=
-            LeanModels.Clang.QualType.resolveTypedefs
-              (fun handle => layout.structuredType { value := handle.value })
-              32 element |>.getD element
-          some (layout.arrayElementType ty |>.orElse
-            (fun _ => typeKeyOfStructured resolvedElement) |>.getD ty, extent)
+      | .array _ (some extent) =>
+          layout.arrayElementType ty |>.map (fun element => (element, extent))
       | .array _ none | _ => none
   | none => layout.elem ty
 
