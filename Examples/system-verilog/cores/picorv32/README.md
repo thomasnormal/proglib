@@ -2261,27 +2261,31 @@ swap disabled and one Lean thread.  This confirms that one symbolic E cycle
 fits the direct proof budget.  It does not establish that a full cycle-by-cycle
 invariant proof is tractable, and no universal ADDI invariant is claimed.
 
-## 2026-11-20 clocked-stage refusal table after the clocked-stage landings
+## 2026-11-21 clocked-stage refusal table on the current tree
 
-The real RISCV_FORMAL envelope was rerun through `sv_structure` at the same
-26-parameter default vector on tree `7e2ae7b11`.  This tree includes the
-clocked-stage landings for plain edge processes, unsigned parameters, and
-conditional generates.  The pass still stops during controlled instantiation
-and emits no construct-level refusal.  The measured result is one
-normalization failure, with no clean-room construct fixture justified:
+The real RISCV_FORMAL envelope was rerun through `sv_structure` at the pinned
+26-parameter default vector on tree `77d32659b`.  The pass stopped in controlled
+instantiation before the construct/profile classifier.  The refusal table is
+therefore grouped explicitly as zero reached rows.  A construct is not assigned
+a refusal message when this pass never inspected it.
 
-| stage | count | exact result | elapsed | peak RSS |
-| --- | ---: | --- | ---: | ---: |
-| loaded-design instantiation / controlled simp | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at simp, maximum number of heartbeats (200000) has been reached` | 57.76 s | 3,203,460 KiB |
-| construct/profile refusal | 0 | no construct classifier was reached | — | — |
+| construct family | refusal count | exact refusal message | status |
+| --- | ---: | --- | --- |
+| procedural `for` in an edge process | 0 | — | not reached |
+| generate loop | 0 | — | not reached |
+| function call | 0 | — | not reached |
+| aggregate read | 0 | — | not reached |
+| select or concatenation target | 0 | — | not reached |
+| several continuous drivers / resolved net | 0 | — | not reached |
+| level or unsupported event list | 0 | — | not reached |
+| unsupported declaration shape | 0 | — | not reached |
+| normalization before profile classification | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at isDefEq, maximum number of heartbeats (200000) has been reached` | reached |
 
-The current clocked route therefore provides no measured PicoRV32 refusal to
-group by construct.  The remaining general refusal families are the ones
-listed by the current clocked-stage report: procedural `for`, generate loops,
-function calls, aggregate reads, select-target assignments, and unresolved
-constant operators.  Those clean-room rows belong to the general tactic
-development and are not attributed to this real-core run without a real
-PicoRV32 message.
+The run elapsed 60.56 seconds and reached a peak direct RSS of 817,284 KiB
+with one Lean thread.  Since no construct refusal was reached, no clean-room
+refusal fixture is attributed to PicoRV32.  The general tactic refusal families
+remain tracked by the clocked-stage report and are not evidence about this
+real-core run.
 
 ## 2026-11-20 real ADDI invariant stage boundary
 
