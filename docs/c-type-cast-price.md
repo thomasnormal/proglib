@@ -72,3 +72,12 @@ spelling helper at only one site would make zero initialization and stores use
 different widths. A coordinated migration must thread the declaration's
 resolved `QualType` through all eight sites, remove `Layout.normalizeTy`, and
 make absent observations refuse. No partial replacement is retained.
+
+The floating cast trial remains blocked at the proof head. Replacing the
+`float`/`double` destination spelling in `IntegralToFloating`, `FloatingCast`,
+and `FloatingToIntegral` with node projections leaves `MemInvariant` goals
+after the conversion helper is unfolded. The unresolved forms are
+`MemInvariant (floatCast v "float")`, `MemInvariant (floatCast v "double")`,
+and the node floating-to-integer computation. The trial was discarded without
+semantic changes. A sound implementation needs a branch lemma that keeps the
+node helper opaque through `memInvariant_core`.
