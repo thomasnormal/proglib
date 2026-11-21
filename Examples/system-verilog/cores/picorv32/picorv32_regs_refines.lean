@@ -56,6 +56,45 @@ theorem picorv32_regs_wdata_undriven {E : CoreMemDesign} (hE : regs.e = .ok E)
   apply hi
   simp [regs.mirror_def, Elab.toDesign2, Design2.inputNames]
 
+/-! A concrete quiet row of the loaded register-file leaf.  The row keeps the
+    clock and write-enable low, so the two continuous reads observe indices
+    30 and 29 without issuing a memory write. -/
+
+private theorem regs_evalSized_not_signal (env : IEnv) (n : String) (msb lsb : PExpr) :
+    evalSized env (.unary (.m0 .bnot) (.partSel (.ident n) msb lsb)) =
+      .error s!"signal '{n}' in a constant context" := by
+  rfl
+
+def picorv32_regs_quiet_view (wd rd1 rd2 : LVec) : SvState :=
+  [("clk", LVec.ofNat 1 0), ("wen", LVec.ofNat 1 0), ("waddr", LVec.ofNat 6 1),
+   ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd),
+   ("rdata1", rd1), ("rdata2", rd2)]
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 4000000 in
+theorem picorv32_regs_quiet_read_step {E : CoreMemDesign} (hE : regs.e = .ok E)
+    (wd rd1 rd2 : LVec) (mv : MemV) (hwd : wd.width = 32)
+    (hrd1 : rd1.width = 32) (hrd2 : rd2.width = 32)
+    (hmv : ∀ k, (mv "regs" k).width = 32) :
+    E.slotV (picorv32_regs_quiet_view wd rd1 rd2) mv
+        [("clk", LVec.ofNat 1 0), ("wen", LVec.ofNat 1 0), ("waddr", LVec.ofNat 6 1),
+         ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd)] =
+      .ok (picorv32_regs_quiet_view wd (memRd mv "regs" (some 30) 32)
+        (memRd mv "regs" (some 29) 32), mv) := by
+  obtain ⟨E', hE', hP, hO⟩ := (show SeqDesignI regs.e by sv_structure)
+  rw [hE] at hE'
+  cases hE'
+  sv_seq_inst [regs.e, regs.pdesign] at hE
+  sv_seq_cycle hcyc : E.slotV (picorv32_regs_quiet_view wd rd1 rd2) mv
+      [("clk", LVec.ofNat 1 0), ("wen", LVec.ofNat 1 0), ("waddr", LVec.ofNat 6 1),
+       ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd)] using hE
+      [picorv32_regs_quiet_view, hwd, hrd1, hrd2, regs_evalSized_not_signal]
+  rw [hcyc]
+  simp [picorv32_regs_quiet_view, regs_evalSized_not_signal, memRd, memIss, commitMemV,
+    isPosedge_self, seqK_index?, hmv, LVec.resizeU_of_width]
+  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv]
+
 #print axioms picorv32_regs_wdata_undriven
+#print axioms picorv32_regs_quiet_read_step
 
 end Examples.«system-verilog».cores.picorv32
