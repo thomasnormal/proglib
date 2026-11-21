@@ -344,6 +344,13 @@ def intTyOfStructured : LeanModels.Clang.QualType → Option IntTy
   | .enumeration _ => some IntTy.int_
   | _ => none
 
+/-- Integer conversion for literal nodes. The node-carried parser type is the
+only admitted source of width and signedness for this conversion family. -/
+def intTyOfNode (structured : Option LeanModels.Clang.QualType) : EvalM IntTy :=
+  match structured.bind intTyOfStructured with
+  | some t => pure t
+  | none => refuseUnsupported "integer literal lacks parser-native QualType"
+
 def floatBitsOfStructured : LeanModels.Clang.QualType → Option Nat
   | .qualified _ _ base => floatBitsOfStructured base
   | .cBuiltinKind .float => some 32
@@ -2120,8 +2127,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         (ctx.layout.exprSizeAt base ty) pointee
 
   -- ===== §6.4.4 — constants =====
-  | .intLit v ty _ .. => do
-      let t ← intTyOf (ctx.layout.normalizeTy ty)
+  | .intLit v _ _ structuredType => do
+      let t ← intTyOfNode structuredType
       match v.toInt? with
       | some n => pure (.int t n)
       | none => refuseUnsupported s!"integer literal spelling '{v}'"
@@ -2132,8 +2139,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | some true => evalExpr ctx yes
       | some false => evalExpr ctx no
       | none => refuseUnsupported "ChooseExpr condition is not a folded integer constant"
-  | .charLit v ty _ .. => do
-      let t ← intTyOf (ctx.layout.normalizeTy ty)
+  | .charLit v _ _ structuredType => do
+      let t ← intTyOfNode structuredType
       match v.toInt? with
       | some n => pure (.int t (if t == IntTy.int_ then charLiteralValue n else n))
       | none => refuseUnsupported s!"character literal spelling '{v}'"
@@ -2772,6 +2779,39 @@ theorem intTyOf' (ty : CType) : MemInvariant (intTyOf ty) := by
   · exact pure' _
   · exact refuseUnsupported' _
 
+theorem intTyOfNode' (structured : Option LeanModels.Clang.QualType) :
+    MemInvariant (intTyOfNode structured) := by
+  unfold intTyOfNode
+  match structured.bind intTyOfStructured with
+  | some _ => exact pure' _
+  | none => exact refuseUnsupported' _
+
+theorem intLiteralNode' (value : String)
+    (structured : Option LeanModels.Clang.QualType) :
+    MemInvariant (do
+      let t ← intTyOfNode structured
+      match value.toInt? with
+      | some n => pure (CVal.int t n)
+      | none => refuseUnsupported s!"integer literal spelling '{value}'") := by
+  refine bind (intTyOfNode' structured) ?_
+  intro t
+  cases h : value.toInt? with
+  | some n => exact pure' _
+  | none => exact refuseUnsupported' _
+
+theorem charLiteralNode' (value : String)
+    (structured : Option LeanModels.Clang.QualType) :
+    MemInvariant (do
+      let t ← intTyOfNode structured
+      match value.toInt? with
+      | some n => pure (CVal.int t (if t == IntTy.int_ then charLiteralValue n else n))
+      | none => refuseUnsupported s!"character literal spelling '{value}'") := by
+  refine bind (intTyOfNode' structured) ?_
+  intro t
+  cases h : value.toInt? with
+  | some n => exact pure' _
+  | none => exact refuseUnsupported' _
+
 theorem truthy' (v : CVal) : MemInvariant (truthy v) := by
   cases v <;> first | exact pure' _ | exact refuseUnsupported' _ | exact refuseUB' _
 
@@ -2988,10 +3028,10 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       intro e he hp
       have hnode := Expr.nodeIsPure_of_isPure hp
       cases e with
-      | intLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | intLit value _ _ structuredType => exact ⟨by open_eval; exact MemInvariant.intLiteralNode' value structuredType, by open_lvalue; mem_inv⟩
       | boolLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | choose _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | charLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | charLit value _ _ structuredType => exact ⟨by open_eval; exact MemInvariant.charLiteralNode' value structuredType, by open_lvalue; mem_inv⟩
       | strLit _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | floatLit _ bitsHex bitWidth ty _ _ =>
           exact ⟨by open_eval; exact MemInvariant.floatLiteralValue' bitsHex bitWidth ty,
