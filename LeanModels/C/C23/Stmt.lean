@@ -222,8 +222,7 @@ def zeroMembers : Nat → Ctx → Ptr → CType → List (String × CType) → O
         match ctx.layout.fieldOffDeclAt declaration ty nm with
         | some off =>
             if ctx.layout.fieldBitsDeclAt declaration ty nm |>.isSome then
-              liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off)
-                (.int ((intTyOf? (ctx.layout.normalizeTy mty)).getD IntTy.int_) 0))
+              refuseUnsupported "zero-initialized bit-field lacks parser-native QualType"
             else
               zeroInit fuel ctx (Mem.member p off) mty
                 (ctx.layout.memberRecordDeclAt declaration nm)
@@ -276,7 +275,7 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
             | none => refuseUnsupported s!"no size for element type '{et}'"
         | _, _, _ => refuseUnsupported "unsupported Clang array_filler initializer"
     | .initList inits field _ _ .. =>
-        let initTy := ctx.layout.normalizeTy ty
+        let initTy := ty
         -- An array whose element is a union still starts with the parser's
         -- `union ...` spelling (`union u0[4]`).  §6.7.11 applies the array
         -- walk first; treating the whole declarator as a union loses the
@@ -396,7 +395,7 @@ def initMembers : Nat → Ctx → Ptr → CType → List (String × CType) → L
               if ctx.layout.fieldBitsDeclAt declaration ty nm |>.isSome then
                 let v ← match e with
                   | .implicitValueInit _ _ .. =>
-                      pure (.int ((intTyOf? (ctx.layout.normalizeTy mty)).getD IntTy.int_) 0)
+                      refuseUnsupported "implicit bit-field initializer lacks parser-native QualType"
                   | _ => evalE ctx e
                 liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off) v)
               else
