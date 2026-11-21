@@ -400,7 +400,8 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
                 liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off) v)
               else
                 initObject fuel ctx (Mem.member p off) mty e
-                  (ctx.layout.memberRecordDeclAt declaration nm |>.bind ctx.layout.structuredTypeDecl)
+                  ((declaration.bind (fun did => ctx.layout.fieldStructuredDecl did nm)).orElse (fun _ =>
+                    ctx.layout.memberRecordDeclAt declaration nm |>.bind ctx.layout.structuredTypeDecl))
                   (ctx.layout.memberRecordDeclAt declaration nm)
           | none => refuseUnsupported s!"no offset for member '{nm}'"
           initMembers fuel ctx p ty mrest erest declaration
