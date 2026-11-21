@@ -1605,3 +1605,15 @@ The changed testbench SHA-256 is
 `3328ad80031958fb6c3241f0897f0e5506ff974f777ab7764e11b17e8cd8545d`.
 This is a 300-cycle battery, with the first 37 cycles covering the active
 program and the remainder retained to check the halted-state behavior.
+
+## 2026-11-21 PicoRV32 E-RUN output coverage
+
+The same stalled, unknown-register battery now connects and compares the
+seven previously unobserved outputs: `pcpi_valid`, `pcpi_insn`, `pcpi_rs1`,
+`pcpi_rs2`, `eoi`, `trace_valid`, and `trace_data`.  The unmodified pinned
+source produces identical rows on Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004, and canonical E matches
+all **39/39** output fields on **300/300** cycles.  The normalized row digest
+is `59d138f1727a1dd00fb3ead5124bd1a5c4fd5983865ae7eaa62b9090ab24ac7a`.
+The testbench SHA-256 is
+`1dc356fbe89e36a5cd5e66006fdc32d9b7106f49f364c44ebcaa2b0ad42952fe`.

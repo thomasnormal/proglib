@@ -15,6 +15,13 @@ module tb_picorv32_rvfi_long;
   wire [31:0] mem_addr, mem_wdata;
   wire [3:0] mem_wstrb;
   reg [31:0] mem_rdata;
+  wire pcpi_valid;
+  wire [31:0] pcpi_insn;
+  wire [31:0] pcpi_rs1;
+  wire [31:0] pcpi_rs2;
+  wire [31:0] eoi;
+  wire trace_valid;
+  wire [35:0] trace_data;
   reg [31:0] mem [0:255];
   reg [31:0] mem_index;
   integer i;
@@ -65,9 +72,9 @@ module tb_picorv32_rvfi_long;
     .mem_la_read(mem_la_read), .mem_la_write(mem_la_write),
     .mem_la_addr(mem_la_addr), .mem_la_wdata(mem_la_wdata),
     .mem_la_wstrb(mem_la_wstrb),
-    .pcpi_valid(), .pcpi_insn(), .pcpi_rs1(), .pcpi_rs2(),
+    .pcpi_valid(pcpi_valid), .pcpi_insn(pcpi_insn), .pcpi_rs1(pcpi_rs1), .pcpi_rs2(pcpi_rs2),
     .pcpi_wr(1'b0), .pcpi_rd(32'b0), .pcpi_wait(1'b0), .pcpi_ready(1'b0),
-    .irq(32'b0), .eoi(),
+    .irq(32'b0), .eoi(eoi),
     .rvfi_valid(rvfi_valid), .rvfi_order(rvfi_order), .rvfi_insn(rvfi_insn),
     .rvfi_trap(rvfi_trap), .rvfi_halt(rvfi_halt), .rvfi_intr(rvfi_intr),
     .rvfi_mode(rvfi_mode), .rvfi_ixl(rvfi_ixl),
@@ -78,7 +85,7 @@ module tb_picorv32_rvfi_long;
     .rvfi_mem_addr(rvfi_mem_addr), .rvfi_mem_rmask(rvfi_mem_rmask),
     .rvfi_mem_wmask(rvfi_mem_wmask), .rvfi_mem_rdata(rvfi_mem_rdata),
     .rvfi_mem_wdata(rvfi_mem_wdata),
-    .trace_valid(), .trace_data()
+    .trace_valid(trace_valid), .trace_data(trace_data)
   );
 
   initial begin
@@ -101,7 +108,7 @@ module tb_picorv32_rvfi_long;
       mem_ready = (cycle % 4 != 1);
       @(posedge clk);
       #1;
-      $display("CYCLE %0d resetn=%b trap=%b mem_valid=%b mem_instr=%b mem_ready=%b mem_addr=%032b mem_wdata=%032b mem_wstrb=%04b mem_rdata=%032b mem_la_read=%b mem_la_write=%b mem_la_addr=%032b mem_la_wdata=%032b mem_la_wstrb=%04b rvfi_valid=%b rvfi_order=%064b rvfi_insn=%032b rvfi_trap=%b rvfi_halt=%b rvfi_intr=%b rvfi_mode=%02b rvfi_ixl=%02b rvfi_rs1_addr=%05b rvfi_rs1_rdata=%032b rvfi_rs2_addr=%05b rvfi_rs2_rdata=%032b rvfi_rd_addr=%05b rvfi_rd_wdata=%032b rvfi_pc_rdata=%032b rvfi_pc_wdata=%032b rvfi_mem_addr=%032b rvfi_mem_rmask=%04b rvfi_mem_wmask=%04b rvfi_mem_rdata=%032b rvfi_mem_wdata=%032b", cycle, resetn, trap, mem_valid, mem_instr, mem_ready, mem_addr, mem_wdata, mem_wstrb, mem_rdata, mem_la_read, mem_la_write, mem_la_addr, mem_la_wdata, mem_la_wstrb, rvfi_valid, rvfi_order, rvfi_insn, rvfi_trap, rvfi_halt, rvfi_intr, rvfi_mode, rvfi_ixl, rvfi_rs1_addr, rvfi_rs1_rdata, rvfi_rs2_addr, rvfi_rs2_rdata, rvfi_rd_addr, rvfi_rd_wdata, rvfi_pc_rdata, rvfi_pc_wdata, rvfi_mem_addr, rvfi_mem_rmask, rvfi_mem_wmask, rvfi_mem_rdata, rvfi_mem_wdata);
+      $display("CYCLE %0d resetn=%b trap=%b mem_valid=%b mem_instr=%b mem_ready=%b mem_addr=%032b mem_wdata=%032b mem_wstrb=%04b mem_rdata=%032b mem_la_read=%b mem_la_write=%b mem_la_addr=%032b mem_la_wdata=%032b mem_la_wstrb=%04b pcpi_valid=%b pcpi_insn=%032b pcpi_rs1=%032b pcpi_rs2=%032b eoi=%032b trace_valid=%b trace_data=%036b rvfi_valid=%b rvfi_order=%064b rvfi_insn=%032b rvfi_trap=%b rvfi_halt=%b rvfi_intr=%b rvfi_mode=%02b rvfi_ixl=%02b rvfi_rs1_addr=%05b rvfi_rs1_rdata=%032b rvfi_rs2_addr=%05b rvfi_rs2_rdata=%032b rvfi_rd_addr=%05b rvfi_rd_wdata=%032b rvfi_pc_rdata=%032b rvfi_pc_wdata=%032b rvfi_mem_addr=%032b rvfi_mem_rmask=%04b rvfi_mem_wmask=%04b rvfi_mem_rdata=%032b rvfi_mem_wdata=%032b", cycle, resetn, trap, mem_valid, mem_instr, mem_ready, mem_addr, mem_wdata, mem_wstrb, mem_rdata, mem_la_read, mem_la_write, mem_la_addr, mem_la_wdata, mem_la_wstrb, pcpi_valid, pcpi_insn, pcpi_rs1, pcpi_rs2, eoi, trace_valid, trace_data, rvfi_valid, rvfi_order, rvfi_insn, rvfi_trap, rvfi_halt, rvfi_intr, rvfi_mode, rvfi_ixl, rvfi_rs1_addr, rvfi_rs1_rdata, rvfi_rs2_addr, rvfi_rs2_rdata, rvfi_rd_addr, rvfi_rd_wdata, rvfi_pc_rdata, rvfi_pc_wdata, rvfi_mem_addr, rvfi_mem_rmask, rvfi_mem_wmask, rvfi_mem_rdata, rvfi_mem_wdata);
       cycle = cycle + 1;
     end
     $display("END trap=%b", trap);
