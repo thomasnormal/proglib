@@ -123,13 +123,6 @@ obligation:
   `picorv32_reset_relation_program_state_preserves_WF` preserve the
   architectural x0 invariant from the explicit reset relation through every
   mixed program prefix.
-  `r1_rv32i.picorv32_loaded_rv32i_exact_cycle_step_refines` and
-  `r1_rv32i.picorv32_loaded_rv32i_reset_refinement` are the
-  PicoRV32-scoped all-family consumers.  They apply
-  `CoreRvfiMachine.to_rv32i_step_refines` from an
-  exact loaded-core step premise to the mixed cycle obligation. It retains the
-  decoded instruction, input, order, indexed post-state, retirement, and
-  relation continuation in one contract.
   `rvfi_core_adapter.CoreRv32iBoundary` is the family-tagged composition
   boundary for that premise.  Its
   `CoreRv32iBoundary.to_rv32i_boundary` projection converts each retained
@@ -138,14 +131,6 @@ obligation:
   `CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary` is the invariant
   adapter that consumes this projection while retaining the order and
   relation-continuation obligations.
-  `r1_rv32i.picorv32_loaded_rv32i_program_refinement_of_total` packages the
-  same all-family program refinement directly from a total canonical
-  `rvfiStep` witness, constructing the exact loaded machine while retaining
-  the reset relation, admitted schedule, and progress premises.
-  `r1_rv32i.picorv32_loaded_rv32i_program_refinement_of_family_boundary`
-  packages the same loaded all-prefix contract when the invariant supplies
-  the parser-derived family-tagged boundary union, whose projection is
-  checked by `CoreRvfiMachine.to_rv32i_step_refines_of_family_boundary`.
   `CoreRvfiMachine.ofTotal` packages a proved total canonical step and RVFI
   decode witness into the machine consumed by these R1 bridges, while
   `CoreRvfiMachine.ofTotal_exact` preserves the witness equality.
