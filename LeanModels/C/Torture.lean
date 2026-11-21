@@ -286,12 +286,7 @@ def checkedRecordLayout? (fields : List Decl) (layout : RecordLayout) :
   if recordLayoutWellFormed layout &&
       recordLayoutMatchesFields fields layout.fields then some layout else none
 
-#guard recordLayoutMatchesFields
-   [.field (some "a") "int" none none none default none,
-   .record none none [] none default none,
-   .field (some "b") "int" none none none default none]
-  [{ name := "a", offsetBits := 0, bitfield := false },
-   { name := "b", offsetBits := 32, bitfield := false }]
+#guard recordLayoutMatchesFields [.field (some "a") "int" none none none default none, .record none none [] none default none, .field (some "b") "int" none none none default none] [{ name := "a", offsetBits := 0, bitfield := false }, { name := "b", offsetBits := 32, bitfield := false }]
 #guard ("union (unnamed at x)".startsWith "union (unnamed")
 #guard ("struct (unnamed struct at x:41:17)".startsWith "struct (unnamed")
 #guard ("union (unnamed union at x:27:9)".startsWith "union (unnamed")
