@@ -243,8 +243,34 @@ public:
   // element QualType needed to preserve positional zero-initialization.
   bool shouldVisitImplicitCode() const { return true; }
 
+  bool VisitStmt(clang::Stmt *stmt) {
+    // DesignatedInitUpdateExpr is a parser-owned expression that appears in
+    // Clang's JSON semantic InitListExpr form, but is not always dispatched
+    // through VisitExpr by RecursiveASTVisitor.  Observe it at the generic
+    // statement hook so its node identity and QualType are retained.
+    if (const auto *update = llvm::dyn_cast<clang::DesignatedInitUpdateExpr>(stmt)) {
+      auto offset = sourceOffset(update, context->getSourceManager());
+      auto endOffset = sourceEndOffset(update, context->getSourceManager());
+      auto tree = typeTree(update->getType(), *context, 0);
+      if (tree) {
+        rows.push_back(llvm::json::Object{
+            {"kind", "StructuredExprType"}, {"expr_id", nodeId(update)},
+            {"offset", offset.value_or(0)}, {"end_offset", endOffset.value_or(0)},
+            {"expr_kind", update->getStmtClassName()}, {"type", std::move(*tree)}});
+      }
+    }
+    return true;
+  }
+
   bool VisitDecl(clang::Decl *decl) {
-    if (decl->isImplicit()) return true;
+    // Anonymous aggregate members are represented by implicit FieldDecl and
+    // RecordDecl nodes in Clang even though the JSON AST retains their source
+    // nodes.  Keep those parser nodes when they have a main-file location.
+    // Other implicit declarations are frontend scaffolding absent from the
+    // envelope and remain excluded.
+    if (decl->isImplicit() && !llvm::isa<clang::FieldDecl>(decl) &&
+        !llvm::isa<clang::RecordDecl>(decl))
+      return true;
     // Clang materializes parameter declarations while walking a function
     // prototype in a declarator. They have a source location but no AST
     // declaration node in the JSON dump, so emitting them would make the
@@ -336,6 +362,13 @@ public:
       // carried, without falling back to a source-offset join.
       emit(init->getSyntacticForm());
       emit(init->getSemanticForm());
+      // Array fillers and empty aggregate initializers are parser-owned
+      // children that RecursiveASTVisitor does not visit through the normal
+      // child range.  Emit those nodes explicitly so positional
+      // zero-initialization remains node-for-node in the envelope.
+      for (unsigned index = 0; index < init->getNumInits(); ++index)
+        emit(init->getInit(index));
+      emit(init->getArrayFiller());
     }
     return true;
   }
