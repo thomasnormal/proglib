@@ -337,12 +337,19 @@ public:
                                          {"reason", "unrepresented Clang QualType"}}}});
         return;
       }
-      rows.push_back(llvm::json::Object{{"kind", "StructuredExprType"},
-                                        {"expr_id", nodeId(observed)},
-                                        {"offset", *offset},
-                                        {"end_offset", *endOffset},
-                                        {"expr_kind", observed->getStmtClassName()},
-                                        {"type", std::move(*tree)}});
+      llvm::json::Object row{{"kind", "StructuredExprType"},
+                             {"expr_id", nodeId(observed)},
+                             {"offset", *offset},
+                             {"end_offset", *endOffset},
+                             {"expr_kind", observed->getStmtClassName()},
+                             {"type", std::move(*tree)}};
+      if (const auto *compound = llvm::dyn_cast<clang::CompoundAssignOperator>(observed)) {
+        if (auto lhs = typeTree(compound->getComputationLHSType(), *context, 0))
+          row["compute_lhs_type"] = std::move(*lhs);
+        if (auto result = typeTree(compound->getComputationResultType(), *context, 0))
+          row["compute_result_type"] = std::move(*result);
+      }
+      rows.push_back(std::move(row));
     };
     emit(expr);
     if (const auto *trait = llvm::dyn_cast<clang::UnaryExprOrTypeTraitExpr>(expr)) {

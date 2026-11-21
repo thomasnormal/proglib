@@ -311,6 +311,8 @@ partial def parseExpr (j : Json) : Except String Expr := do
         return .compoundAssign (← getStr j "op") (← sub "lhs") (← sub "rhs")
           (← getStr j "compute_lhs_type") (← getStr j "compute_result_type")
           (← ty) span structuredType
+          (← parseOptStructuredQualType j "structured_compute_lhs_type")
+          (← parseOptStructuredQualType j "structured_compute_result_type")
     | "UnaryOperator" =>
         return .unop (← getStr j "op") (← sub "sub") (← getBool j "postfix")
           (← ty) span structuredType

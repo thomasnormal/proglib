@@ -1135,24 +1135,37 @@ def extract(path, source_name=None, standard="c23"):
             return value
         for record in structured_types:
             if record.get("kind") in ("StructuredExprType", "StructuredExprArgType"):
+                for compute_key in ("compute_lhs_type", "compute_result_type"):
+                    if compute_key in record and not isinstance(record[compute_key], dict):
+                        die("structured compound-assignment type observation is not an object")
                 structured_expr_rows.append({"expr_id": record["expr_id"],
                                              "arg": record.get("kind") == "StructuredExprArgType",
                                              "offset": record["offset"],
                                              "end_offset": record.get("end_offset"),
                                              "expr_kind": record.get("expr_kind", ""),
-                                             "type": join_type(record["type"])})
+                                             "type": join_type(record["type"]),
+                                             "compute_lhs_type": join_type(record["compute_lhs_type"])
+                                               if "compute_lhs_type" in record else None,
+                                             "compute_result_type": join_type(record["compute_result_type"])
+                                               if "compute_result_type" in record else None})
                 continue
             structured_rows.append({"decl_id": record["decl_id"],
                                     "type": join_type(record["type"])})
 
     structured_by_decl = {row["decl_id"]: row["type"] for row in structured_rows}
     structured_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows if not row.get("arg")}
+    structured_expr_by_id = {row["expr_id"]: row for row in structured_expr_rows if not row.get("arg")}
     structured_arg_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows if row.get("arg")}
     def attach_decl_type(value):
         if isinstance(value, dict):
             out = {key: attach_decl_type(item) for key, item in value.items()}
             if value.get("kind") in EXPRS and value.get("expr_id") in structured_by_expr:
                 out["structured_type"] = structured_by_expr[value["expr_id"]]
+                row = structured_expr_by_id[value["expr_id"]]
+                if row.get("compute_lhs_type") is not None:
+                    out["structured_compute_lhs_type"] = row["compute_lhs_type"]
+                if row.get("compute_result_type") is not None:
+                    out["structured_compute_result_type"] = row["compute_result_type"]
             if value.get("kind") == "UnaryExprOrTypeTraitExpr" and value.get("expr_id") in structured_arg_by_expr:
                 out["structured_arg_type"] = structured_arg_by_expr[value["expr_id"]]
             if value.get("kind") in {"FunctionDecl", "VarDecl", "ParmVarDecl", "FieldDecl",

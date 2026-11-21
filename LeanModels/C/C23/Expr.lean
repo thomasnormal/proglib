@@ -1817,7 +1817,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
 
   -- §6.5.17.3 — compound assignment: `a op= b` is `a = a op b` with the
   -- lvalue evaluated ONCE. 24 sites (`+=` 10, `|=` 6, `^=` 3, `-=` 3, `*=` 2).
-  | .compoundAssign op l r computeLHSType computeResultType ty _ .. => do
+  | .compoundAssign op l r computeLHSType computeResultType ty _ lNodeType computeLhsNodeType computeResultNodeType => do
       if compoundAssignmentHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in compound assignment"
       match l with
@@ -1881,6 +1881,25 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | _ =>
               storeAt ctx.aliasModel p l.ty nv
           pure nv
+      | .int oldT oldN, .int _ rvN => do
+          match computeLhsNodeType.bind intTyOfStructured,
+              computeResultNodeType.bind intTyOfStructured,
+              lNodeType.bind intTyOfStructured with
+          | some lhsTy, some resultTy, some storedTy =>
+              let lhs := convert lhsTy oldN
+              let rhs := convert resultTy rvN
+              let computed ← evalArith ctx (compoundBase op)
+                lhs rhs computeResultType
+                none (some l) computeResultNodeType
+              match computed with
+              | .int _ n =>
+                  let stored := convert storedTy n
+                  storeAt ctx.aliasModel p l.ty stored lStructured
+                  pure stored
+              | _ => refuseUnsupported "integer compound assignment produced a non-integer value"
+          | _, _, _ =>
+              refuseUnsupported
+                "compound assignment lacks parser-native compute type observations"
       | _, _ =>
           refuseUnsupported
             "compound assignment lacks parser-native compute type observations"
