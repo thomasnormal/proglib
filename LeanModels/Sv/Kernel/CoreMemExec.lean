@@ -1342,6 +1342,22 @@ def coreMemReactiveReads : PProcess → List String
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body => coreMemStmtReadNames body
   | _ => []
 
+/-! A self-read in an `always_comb` body is outside canonical E's atomic
+activation profile. IEEE 1800-2023 §9.2.2.2.1 removes variables written by
+the body from its implicit sensitivity list, while startup still executes the
+body once. The value observed by a read-before-write can therefore depend on
+the simulator's startup/update ordering. Canonical E refuses this shape rather
+than iterating to a fixed point or selecting one simulator ordering. -/
+def coreMemCombSelfReadViol : List PProcess → Option String
+  | [] => none
+  | .alwaysComb body :: rest =>
+      let reads := (coreMemStmtReadBeforeWritesFrom [] body).1
+      let writes := coreMemStmtWrites body
+      match reads.find? (fun name => writes.contains name) with
+      | some name => some name
+      | none => coreMemCombSelfReadViol rest
+  | _ :: rest => coreMemCombSelfReadViol rest
+
 /-! Static block-local declarations are allocated in the same scalar store as
 their enclosing process. Automatic declarations stay in the activation-local
 environment and are therefore absent from this design-level declaration list. -/
@@ -1494,13 +1510,17 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none =>
             let allProcesses := d.processes ++ generated
-            if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
-            .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
-            else match coreMemAssignReactiveChainViol (d.processes ++ generated) with
-          | some name =>
-              .unsupported s!"Comb:dependency-order: 9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler"
-          | none =>
-            match coreMemClockResetViol d generated with
+            match coreMemCombSelfReadViol allProcesses with
+            | some name =>
+                .unsupported s!"AlwaysComb:self-read: 9.2.2.2.1: always_comb reads '{name}' before writing it; canonical E refuses the simulator-dependent startup value"
+            | none =>
+              if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
+              .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
+              else match coreMemAssignReactiveChainViol (d.processes ++ generated) with
+            | some name =>
+                .unsupported s!"Comb:dependency-order: 9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler"
+            | none =>
+              match coreMemClockResetViol d generated with
             | some (kind, msg) => .unsupported s!"{kind}: {msg}"
             | none =>
               match coreMemFirstUnsupportedOther d allForNet d.others with
@@ -3620,6 +3640,13 @@ private def auditW5Complete : PStmt :=
     .blockingAssign "t" (.ident "e")]
 
 #guard coreMemReactiveDependencyViol [.alwaysComb auditW5Complete] == none
+
+#guard coreMemCombSelfReadViol
+    [.alwaysComb (.block [
+      .blockingAssign "y" (.ident "t"),
+      .blockingAssign "t" (.ident "a")])] == some "t"
+#guard coreMemCombSelfReadViol
+    [.alwaysComb (.blockingAssign "y" (.ident "a"))] == none
 
 private def auditPreemptiveProcesses : List PProcess :=
   [.alwaysComb (.block [

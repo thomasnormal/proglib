@@ -85,7 +85,7 @@ def source_rows(case, simulator):
 
 def main():
     run(["lake", "env", "lean", str(HERE / "agree.lean")])
-    print("canonical E: 21 always_comb self-write rows MATCH")
+    print("canonical E: AlwaysComb:self-read refusal")
     if not shutil.which("iverilog") or not shutil.which("vvp"):
         raise RuntimeError("Icarus is required")
     simulators = ["iverilog"]
@@ -96,7 +96,7 @@ def main():
             actual = source_rows(case, simulator)
             if actual != case["expected"]:
                 raise RuntimeError(f"{name}/{simulator}: {actual} != {case['expected']}")
-            print(f"{name}/{simulator}: {len(actual)} rows MATCH canonical E")
+            print(f"{name}/{simulator}: {len(actual)} rows MATCH pinned simulator expectations")
 
 
 if __name__ == "__main__":

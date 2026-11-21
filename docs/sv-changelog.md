@@ -9,13 +9,15 @@ atomic executor cannot claim a single result. The `preempt_block_refuse`
 receipt records the refusal and four matching source rows from Icarus Verilog
 13.0 and Xcelium Verilog 24.03-s004.
 
-## Canonical-E self-read differential classification — 2026-11-21
+## Canonical-E self-read refusal — 2026-11-21
 
-The `rbw_cond` differential row is now marked as a canonical-E admission.
-Its source-shaped static profile remains a loud `AlwaysComb:self-read`
-refusal, while canonical E executes the retained body and matches the five
-Icarus Verilog 13.0 and Xcelium Verilog 24.03-s004 rows. The metadata keeps
-the retiring route's refusal separate from the canonical-E comparison.
+Canonical E now refuses `always_comb` bodies that read a variable before a
+later write on some path. IEEE 1800-2023 §9.2.2.2.1 excludes that variable
+from the block's implicit sensitivity list, so event-driven simulators retain
+the previous activation value while a settle/fixpoint executor exposes the new
+write. The refusal is `AlwaysComb:self-read`; the `rbw_comb`, `rbw_cond`, and
+`rbw_held` rows remain loud refusals, with simulator receipts retained in their
+source-shaped runners.
 
 ## Time-zero continuous-to-combinational quiescence — 2026-11-21
 
