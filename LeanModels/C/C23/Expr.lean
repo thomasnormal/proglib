@@ -1820,6 +1820,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .compoundAssign op l r computeLHSType computeResultType ty _ lNodeType computeLhsNodeType computeResultNodeType => do
       if compoundAssignmentHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in compound assignment"
+      if (op == "<<=" || op == ">>=") &&
+          (((computeResultNodeType.bind intTyOfStructured).map (fun t => t.signed)).getD false) then
+        -- The exact signed-shift rule depends on the runtime value and its
+        -- representability (§6.5.8p4-5). Keep this boundary loud until every
+        -- parser-generated compound path reaches that value check.
+        refuseUnsupported "signed compound shift requires an exact parser path"
       match l with
       | .member base field _ _ _ _ .. =>
           if ctx.layout.fieldBitsAtResolved base field |>.isSome then
