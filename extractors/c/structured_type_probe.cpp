@@ -197,17 +197,29 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
     return llvm::json::Object{{"kind", "typedef"},
                               {"declaration", std::move(*declaration)}};
   }
-  return std::nullopt;
+  return llvm::json::Object{
+      {"kind", "unsupported"},
+      {"reason", ("unrepresented Clang QualType class " +
+                   std::string(type->getTypeClassName()))}};
 }
 
 std::optional<Json> typeTree(clang::QualType qualified,
                              const clang::ASTContext &context,
                              unsigned depth) {
-  if (qualified.isNull() || depth > 128) return std::nullopt;
+  if (qualified.isNull())
+    return llvm::json::Object{{"kind", "unsupported"},
+                              {"reason", "null Clang QualType"}};
+  if (depth > 128)
+    return llvm::json::Object{{"kind", "unsupported"},
+                              {"reason", "Clang QualType recursion limit"}};
   const auto qualifiers = qualified.getLocalQualifiers();
-  if (qualifiers.hasRestrict() || qualifiers.hasAddressSpace()) return std::nullopt;
+  if (qualifiers.hasRestrict() || qualifiers.hasAddressSpace())
+    return llvm::json::Object{{"kind", "unsupported"},
+                              {"reason", "Clang QualType has unsupported qualifiers"}};
   auto body = unqualifiedType(qualified.getLocalUnqualifiedType(), context, depth);
-  if (!body) return std::nullopt;
+  if (!body)
+    return llvm::json::Object{{"kind", "unsupported"},
+                              {"reason", "Clang QualType projection failed"}};
   if (!qualifiers.hasConst() && !qualifiers.hasVolatile()) return body;
   return llvm::json::Object{{"kind", "qualified"},
                             {"const", qualifiers.hasConst()},
