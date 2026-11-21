@@ -4,6 +4,31 @@ import LeanModels.Sv.Kernel.CoreMemExec
 namespace Examples.«system-verilog».sem2.plain_internal_edge_e.agree
 open LeanModels.Sv LeanModels.Sv.Kernel
 
+load_design_sv2 plain from "Examples/system-verilog/sem2/plain_internal_edge_e/plain_internal_edge_e.sv.json"
+load_design_sv2 ff from "Examples/system-verilog/sem2/plain_internal_edge_e/ff_internal_edge_e.sv.json"
+
+def firstRow : SvState := [("clk", LVec.ofLogic .l0), ("d", LVec.ofLogic .l0)]
+def risingRow : SvState := [("clk", LVec.ofLogic .l1), ("d", LVec.ofLogic .l1)]
+
+/-! The second process must be discovered after the first process commits `g`.
+This is the direct in-slot check that distinguishes the source-shaped route from
+a pass that only counts retained `.edge` constructors. -/
+def detectsInternalFollowup : Res CoreMemDesign → Bool
+  | .ok E =>
+      match E.initialState with
+      | .ok s0 =>
+          match E.step s0 firstRow with
+          | .ok s1 =>
+              match E.stepOnePassTrace s1 risingRow with
+              | .ok (_, caused) => caused
+              | _ => false
+          | _ => false
+      | _ => false
+  | _ => false
+
+#guard detectsInternalFollowup plain.e
+#guard detectsInternalFollowup ff.e
+
 -- The first three entries reproduce the lost in-slot event. The remaining
 -- entries exercise both unknown clock states and capture x and z on d.
 def stimulus : List (Logic × Logic) :=
