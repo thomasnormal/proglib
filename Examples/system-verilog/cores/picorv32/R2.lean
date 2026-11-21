@@ -57,11 +57,10 @@ obligation:
 * `r1_upper.lean`, `r1_branch.lean`, and `r1_jump.lean` for upper-immediate,
   conditional-branch, and jump rows;
 * `r1_mem.lean` and `r1_mem_all.lean` for every load/store width and sign;
-* `r1_fence.lean`, `r1_system.lean`, `r1_csr.lean`, and `r1_illegal.lean` for
-  fences, system transfers, implemented Zicsr rows, and illegal outcomes;
-* `r1_muldiv.lean` is intentionally excluded because this pinned design has
-  `ENABLE_MUL = 0` and `ENABLE_DIV = 0`, so the loaded core has no RV32M
-  execution family to consume;
+* trap, CSR, fence, and RV32M classes are deliberately absent.  PicoRV32's
+  RVFI decoder rejects trap and halt rows, the core has no M-mode CSR/MRET/WFI
+  behavior, and the pinned parameters disable RV32M.  These ISA-only files
+  were removed because they cannot be consumed by a theorem about this core;
 * `LeanModels.Refine.RvfiAddiProgress` for the packaged ADDI-only invariant
   bridge `Rv32iAddiInvariant.toMixedStep` and its reset-stream refinement;
 * `r1_addi.lean` for the loaded-envelope ADDI configuration, resolved
@@ -114,41 +113,6 @@ obligation:
   instantiate that generic consumer.
   `r1_alu.picorv32_loaded_alu_program_refinement_of_total` packages one
   operation-indexed ALU instruction into the loaded reset-specialized
-  all-prefix contract from total canonical execution.
-  `r1_fence` provides the FENCE and FENCE.I consumers through the decoded
-  fence witness.  Its
-  `r1_fence.picorv32_fence_exact_cycle_step_refines` theorem consumes the
-  exact memory-preserving fence boundary while retaining the operation kind.
-  Its
-  `r1_fence.picorv32_loaded_fence_program_refinement_of_total` theorem
-  packages one retained FENCE or FENCE.I instruction into the loaded
-  reset-specialized all-prefix contract from total canonical execution.
-  `r1_system` provides the ECALL, EBREAK, MRET, and WFI consumers through the
-  decoded system witness.  Its
-  `r1_system.picorv32_system_exact_cycle_step_refines` theorem consumes the
-  exact system boundary in the mixed cycle dispatcher while retaining trap
-  and wake semantics.
-  Its
-  `r1_system.picorv32_loaded_system_program_refinement_of_total` theorem
-  packages one retained system instruction into the loaded reset-specialized
-  all-prefix contract from total canonical execution.
-  `r1_illegal` provides undecodable and illegal-CSR consumers through the
-  exact illegal boundary.  Its
-  `r1_illegal.picorv32_illegal_exact_cycle_step_refines` theorem consumes the
-  two trap shapes through `TrapInstruction` while preserving their shared
-  illegal architectural transition and their distinct parser evidence.
-  Its
-  `r1_illegal.picorv32_loaded_illegal_program_refinement_of_total` theorem
-  packages one retained illegal trap instruction into the loaded
-  reset-specialized all-prefix contract from total canonical execution.
-  `r1_csr` provides the six implemented Zicsr consumers through the decoded
-  CSR row and operation witness.  Its
-  `r1_csr.picorv32_csr_exact_cycle_step_refines` theorem consumes the exact
-  implemented-row boundary in the mixed cycle dispatcher and retains the
-  checked CSR table lookup.
-  Its
-  `r1_csr.picorv32_loaded_csr_program_refinement_of_total` theorem packages
-  one retained implemented CSR operation into the loaded reset-specialized
   all-prefix contract from total canonical execution.
   `r1_mem_all` provides the five load and three store consumers through the
   memory-threaded MemInstruction witness.  Its
@@ -237,15 +201,6 @@ obligation:
   total canonical execution.
   `r1_alu.picorv32_alu_fields_isa_step` provides the shared exact bridge for
   register, immediate, and pc-based ALU source forms.
-  `r1_csr.picorv32_csr_fields_isa_step` provides the exact implemented-row
-  bridge for Zicsr operations while retaining the row-lookup premise.
-  `r1_system.picorv32_system_fields_isa_step` provides the exact ECALL,
-  EBREAK, MRET, and WFI bridge with trap and wake semantics retained.
-  `r1_fence.picorv32_fence_fields_isa_step` provides the exact memory-
-  preserving bridge for FENCE and FENCE.I.
-  `r1_illegal.picorv32_illegal_fields_isa_step` and
-  `r1_illegal.picorv32_illegal_csr_fields_isa_step` provide the two exact
-  illegal-trap bridges while retaining decode failure versus absent CSR rows.
   `r1_addi.picorv32_addi_class_preserves_reset_wf` carries the reset
   `ArchState.WF` fact through the pinned `addi x1, x0, 5` transition.
   `CoreAddiBoundary.to_rv32i_boundary` lifts each exact ADDI witness into the
