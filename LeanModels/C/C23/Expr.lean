@@ -428,9 +428,9 @@ that threads fuel; until then `noCalls` refuses, loudly and by cause. -/
 `"<indirect>"` is a call through a pointer — measured 19, every one
 through the `movecb` callback parameter. -/
 def calleeNameOf : Expr → String
-  | .implicitCast _ s _ _ => calleeNameOf s
-  | .paren s _ _ => calleeNameOf s
-  | .declRef _ n _ _ _ => n
+  | .implicitCast _ s _ _ .. => calleeNameOf s
+  | .paren s _ _ .. => calleeNameOf s
+  | .declRef _ n _ _ _ .. => n
   | _ => "<indirect>"
 
 /-- What a call site delegates to: the callee expression and its arguments
@@ -595,10 +595,10 @@ structure Layout where
 member access facts are keyed by the declaration that owns the object; the
 spelling fallback remains only for older envelopes without that identity. -/
 def directDeclId : Expr → Option DeclarationId
-  | .declRef id _ _ _ _ => id
-  | .implicitCast _ sub _ _ => directDeclId sub
-  | .cast _ sub _ _ => directDeclId sub
-  | .paren sub _ _ => directDeclId sub
+  | .declRef id _ _ _ _ .. => id
+  | .implicitCast _ sub _ _ .. => directDeclId sub
+  | .cast _ sub _ _ .. => directDeclId sub
+  | .paren sub _ _ .. => directDeclId sub
   | _ => none
 
 /-- Resolve bit-field facts through the parser-native declaration key first. -/
@@ -740,10 +740,13 @@ def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
 
 def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
     Option LeanModels.Clang.QualType :=
-  (Expr.span base).offset.bind (fun offset =>
-    (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName base.ty).orElse
-      (fun _ => layout.structuredExprType offset)) |>.orElse (fun _ =>
-    (directDeclId base).bind layout.structuredTypeDecl)
+  match base.structuredType? with
+  | some q => some q
+  | none =>
+      ((Expr.span base).offset.bind (fun offset =>
+        (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName base.ty).orElse
+          (fun _ => layout.structuredExprType offset))).orElse (fun _ =>
+        (directDeclId base).bind layout.structuredTypeDecl)
 
 /-- Resolve an aggregate's element extent from its declaration's structured
 array type before using the legacy spelling-derived element table.  The
@@ -768,7 +771,7 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
 legacy type-keyed member table. -/
 def Layout.membersDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : CType) : Option (List (String × CType)) :=
-  decl.bind layout.membersDecl |>.orElse (fun _ => layout.members ty)
+    decl.bind layout.membersDecl |>.orElse (fun _ => layout.members ty)
 
 /-- Resolve a nested record's declaration identity from the parent object and
 field name. Missing identity remains an explicit absence. -/
@@ -883,7 +886,7 @@ structure Ctx where
     fun _ _ _ _ _ _ _ => refuseUnsupported "compound literal initializer callback unavailable"
 
 def isStdoutRef : Expr → Bool
-  | .declRef _ "stdout" _ _ _ => true
+  | .declRef _ "stdout" _ _ _ .. => true
   | _ => false
 
 /-! ## §6.5.14p3 — scalar truth
@@ -1244,21 +1247,21 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : CType) (v : CVal)
 /-- Peel the conversions clang wraps a callee in and read its name.
 `none` is an INDIRECT call — measured 19, every one through `movecb`. -/
 def calleeName : Expr → Option String
-  | .implicitCast _ s _ _ => calleeName s
-  | .cast _ s _ _ => calleeName s
-  | .paren s _ _ => calleeName s
-  | .declRef _ n "FunctionDecl" _ _ => some n
+  | .implicitCast _ s _ _ .. => calleeName s
+  | .cast _ s _ _ .. => calleeName s
+  | .paren s _ _ .. => calleeName s
+  | .declRef _ n "FunctionDecl" _ _ .. => some n
   | _ => none
 
 def calleeId : Expr → Option DeclarationId
-  | .implicitCast _ s _ _ => calleeId s
-  | .cast _ s _ _ => calleeId s
-  | .paren s _ _ => calleeId s
-  | .declRef (some id) _ "FunctionDecl" _ _ => some id
+  | .implicitCast _ s _ _ .. => calleeId s
+  | .cast _ s _ _ .. => calleeId s
+  | .paren s _ _ .. => calleeId s
+  | .declRef (some id) _ "FunctionDecl" _ _ .. => some id
   | _ => none
 
 def functionPointerBitCast : Expr → Bool
-  | .paren s _ _ => functionPointerBitCast s
+  | .paren s _ _ .. => functionPointerBitCast s
   | .cast "BitCast" .. =>
       -- A call target's recursive QualType observation is not attached to
       -- this cast node in the c-0.1 envelope.  Refuse the whole BitCast call
@@ -1301,11 +1304,11 @@ def charLiteralValue (n : Int) : Int :=
   else n
 
 def chooseCond : Expr → Option Bool
-  | .constExpr value _ _ _ =>
+  | .constExpr value _ _ _ .. =>
       match value.toInt? with
       | some n => some (n != 0)
       | none => none
-  | .paren sub _ _ => chooseCond sub
+  | .paren sub _ _ .. => chooseCond sub
   | _ => none
 
 /-- The non-short-circuit binary rules, once both operands have values. -/
@@ -1632,8 +1635,8 @@ take their operand from `DeclRefExpr` 1406, `MemberExpr` 248,
 same kinds. Anything else in lvalue position is a refusal, never a
 fallthrough. -/
 def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
-  | .paren sub _ _ => evalLValue ctx sub
-  | .strLit value decoded _ _ => do
+  | .paren sub _ _ .. => evalLValue ctx sub
+  | .strLit value decoded _ _ .. => do
       let bs ← match decoded with
         | some bytes => pure (bytes.map (fun b => CByte.conc (UInt8.ofNat b)))
         | none => match plainStringBytes value with
@@ -1645,12 +1648,12 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
       writeMem (fun m => m.storeBytes (Ptr.toObjectBound o bs.length) bs)
       pure (Ptr.toObjectBound o bs.length)
   -- §6.5.2p2: an identifier designating an object is an lvalue.
-  | .declRef (some _) _ "FunctionDecl" _ _ =>
+  | .declRef (some _) _ "FunctionDecl" _ _ .. =>
       -- A function designator has no object address.  The address-of arm
       -- recognizes this parser node and returns its declaration identity;
       -- this placeholder keeps the shared lvalue recursion well-founded.
       pure Ptr.null
-  | .declRef (some id) name _ ty _ =>
+  | .declRef (some id) name _ ty _ .. =>
       if name == "stdout" then
         match ctx.stdoutObj with
         | some o => pure (Ptr.toObject o)
@@ -1661,7 +1664,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
             | some sz => Ptr.toObjectBound o sz
             | none => Ptr.toObject o)
       | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
-  | .declRef none name _ ty _ =>
+  | .declRef none name _ ty _ .. =>
       if name == "stdout" then
         match ctx.stdoutObj with
         | some o => pure (Ptr.toObject o)
@@ -1674,15 +1677,15 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
       | none => refuseUnsupported s!"unbound name '{name}'"
   -- §6.5.3.4p4: `p->f` is DEFINED as `(*p).f`, so the two spellings are
   -- ONE rule here. 226 arrow sites, 184 dot.
-  | .member base field arrow ty _ recordId => memberAddr ctx base field arrow ty recordId
+  | .member base field arrow ty _ recordId .. => memberAddr ctx base field arrow ty recordId
   -- §6.5.3.2p2: `a[i]` is DEFINED as `*(a + i)`. The base arrives already
   -- decayed (clang inserts ArrayToPointerDecay), so it is a VALUE here.
-  | .index base idx ty _ => indexAddr ctx base idx ty
+  | .index base idx ty _ .. => indexAddr ctx base idx ty
   -- §6.5.4.2p4: the operand of unary `*` is a pointer VALUE.
-  | .unop op sub _ _ _ =>
+  | .unop op sub _ _ _ .. =>
       if op == "*" then (do let v ← evalExpr ctx sub; asPtr v)
       else refuseUnsupported s!"unary '{op}' is not an lvalue"
-  | .compoundLit init ty span => do
+  | .compoundLit init ty span .. => do
       match ctx.layout.size ty with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
@@ -1704,8 +1707,8 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
 
 /-- §6.5 — an expression in VALUE position. -/
 def evalExpr (ctx : Ctx) : Expr → EvalM CVal
-  | .paren sub _ _ => evalExpr ctx sub
-  | .compoundLit init ty span => do
+  | .paren sub _ _ .. => evalExpr ctx sub
+  | .compoundLit init ty span .. => do
       match ctx.layout.size ty with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
@@ -1723,8 +1726,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           pure (CVal.ptr (Ptr.toObject o))
 
   -- ===== §6.3 — the conversion lattice, all eight castKinds =====
-  | .implicitCast ck sub ty span
-  | .cast ck sub ty span =>
+  | .implicitCast ck sub ty span ..
+  | .cast ck sub ty span .. =>
       if ck == "LValueToRValue" then do
         if isStdoutRef sub then
           match ctx.stdoutObj with
@@ -1738,7 +1741,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | some id => pure (.funPtr id)
           | none =>
               match sub with
-              | .member base field arrow fieldTy _ _ =>
+              | .member base field arrow fieldTy _ _ .. =>
                   if ctx.layout.fieldBitsAt base field |>.isSome then
                     loadBitFieldAt ctx base.ty field fieldTy p (some base)
                   else
@@ -1794,8 +1797,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           refuseUnsupported "pointer bit-cast across incompatible effective types"
       else if ck == "FunctionToPointerDecay" then
         match sub with
-        | .declRef (some id) _ "FunctionDecl" _ _ => pure (.funPtr id)
-        | .paren (.unop "*" ptr _ _ _) _ _ => do
+        | .declRef (some id) _ "FunctionDecl" _ _ .. => pure (.funPtr id)
+        | .paren (.unop "*" ptr _ _ _ ..) _ _ .. => do
             -- §6.3.2.1p4: a function designator produced by indirection is
             -- converted without inventing an address.
             let v ← evalExpr ctx ptr
@@ -1851,7 +1854,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- The unevaluated operand is never run, so the memory it WOULD have
   -- produced never exists — there is nothing to speak about, which is
   -- precisely what the amendment forbids concluding. 181 sites in all.
-  | .binop op l r ty _ =>
+  | .binop op l r ty _ .. =>
       if op != "&&" && op != "||" && op != "," && op != "=" &&
           binaryHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in binary operands"
@@ -1884,7 +1887,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let p ← evalLValue ctx l
         let v ← evalExpr ctx r
         match l with
-        | .member base field arrow fieldTy _ _ =>
+        | .member base field arrow fieldTy _ _ .. =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
               storeBitFieldAt ctx base.ty field fieldTy p v (some base)
               -- §6.5.16.2: the assignment expression has the value after
@@ -1918,18 +1921,18 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         else evalArith ctx op lv rv ty (some l.ty) (some l)
 
   -- §6.5.16p4 — `?:`, the third short-circuit: EXACTLY ONE arm runs. 42 sites.
-  | .cond c t e _ _ => do
+  | .cond c t e _ _ .. => do
       let cv ← evalExpr ctx c
       let b ← truthy cv
       if b then evalExpr ctx t else evalExpr ctx e
 
   -- ===== §6.5.3.5 / §6.5.4 — unary =====
-  | .unop op sub post ty _ =>
+  | .unop op sub post ty _ .. =>
       if op == "&" then do
         -- §6.5.4.2p3 — address-of, 106 sites. It does NOT read the object.
         let p ← evalLValue ctx sub
         match sub with
-        | .declRef (some id) _ "FunctionDecl" _ _ => pure (.funPtr id)
+        | .declRef (some id) _ "FunctionDecl" _ _ .. => pure (.funPtr id)
         | _ => pure (.ptr p)
       else if op == "*" then do
         -- §6.5.4.2p4 — indirection reaching value position directly.
@@ -1971,7 +1974,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let p ← evalLValue ctx sub
         let subStructured := ctx.layout.structuredTypeAt sub
         let old ← match sub with
-          | .member base field arrow fieldTy _ _ =>
+          | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 loadBitFieldAt ctx base.ty field fieldTy p (some base)
               else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
@@ -1984,7 +1987,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             let nv ← evalArith ctx (if op == "++" then "+" else "-") old
               (.int IntTy.int_ 1) (ctx.layout.normalizeTy sub.ty)
             match sub with
-            | .member base field arrow fieldTy _ _ =>
+            | .member base field arrow fieldTy _ _ .. =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
                   storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
                 else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
@@ -2001,7 +2004,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                   | none => intTyOf (ctx.layout.normalizeTy sub.ty)
                 let stored := convert storedT nv
                 match sub with
-                | .member base field arrow fieldTy _ _ =>
+                | .member base field arrow fieldTy _ _ .. =>
                     if ctx.layout.fieldBitsAt base field |>.isSome then
                       storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
                     else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
@@ -2012,11 +2015,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
 
   -- §6.5.17.3 — compound assignment: `a op= b` is `a = a op b` with the
   -- lvalue evaluated ONCE. 24 sites (`+=` 10, `|=` 6, `^=` 3, `-=` 3, `*=` 2).
-  | .compoundAssign op l r computeLHSType computeResultType ty _ => do
+  | .compoundAssign op l r computeLHSType computeResultType ty _ .. => do
       if compoundAssignmentHasUnsequencedWrite l r then
         refuseUnsupported "unsequenced side effects in compound assignment"
       match l with
-      | .member base field _ _ _ _ =>
+      | .member base field _ _ _ _ .. =>
           if ctx.layout.fieldBitsAt base field |>.isSome then
             refuseUnsupported "compound assignment to a bit-field"
       | _ => pure ()
@@ -2029,7 +2032,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       -- completed; this preserves writes made by a called RHS (for example
       -- `x |= foo()` where `foo` updates `x`).
       let old ← match l with
-        | .member base field arrow fieldTy _ _ =>
+        | .member base field arrow fieldTy _ _ .. =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p (some base)
             else
@@ -2046,7 +2049,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           -- performs the provenance, bound, and element-size checks.
           let nv ← evalArith ctx (compoundBase op) old rv computeResultType
           match l with
-          | .member base field arrow fieldTy _ _ =>
+          | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
               else
@@ -2057,7 +2060,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | .float32 a, .float32 b => do
           let nv ← float32Binop (compoundBase op) a b
           match l with
-          | .member base field arrow fieldTy _ _ =>
+          | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
@@ -2068,7 +2071,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | .float64 a, .float64 b => do
           let nv ← float64Binop (compoundBase op) a b
           match l with
-          | .member base field arrow fieldTy _ _ =>
+          | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
@@ -2090,7 +2093,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let (_, nvN) ← asInt nv
           let stored := convert storageT nvN
           match l with
-          | .member base field arrow fieldTy _ _ =>
+          | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
               else
@@ -2103,13 +2106,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- Clang wraps scalar reads in `LValueToRValue`, so these are the
   -- aggregate-valued cases; evaluating the address and loading is the rule
   -- either way (§6.3.2.1p2).
-  | .member base field arrow ty span recordId => do
+  | .member base field arrow ty span recordId .. => do
       let p ← memberAddr ctx base field arrow ty recordId
       if ctx.layout.fieldBitsAt base field |>.isSome then
         loadBitFieldAt ctx base.ty field ty p (some base)
       else
         loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
-  | .index base idx ty _ => do
+  | .index base idx ty _ .. => do
       let p ← indexAddr ctx base idx ty
       let pointee := (ctx.layout.structuredTypeAt base).bind
         LeanModels.Clang.QualType.pointee
@@ -2117,24 +2120,24 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         (ctx.layout.exprSizeAt base ty) pointee
 
   -- ===== §6.4.4 — constants =====
-  | .intLit v ty _ => do
+  | .intLit v ty _ .. => do
       let t ← intTyOf (ctx.layout.normalizeTy ty)
       match v.toInt? with
       | some n => pure (.int t n)
       | none => refuseUnsupported s!"integer literal spelling '{v}'"
-  | .boolLit b _ _ =>
+  | .boolLit b _ _ .. =>
       pure (.int IntTy.bool_ (if b then 1 else 0))
-  | .choose cond yes no _ _ =>
+  | .choose cond yes no _ _ .. =>
       match chooseCond cond with
       | some true => evalExpr ctx yes
       | some false => evalExpr ctx no
       | none => refuseUnsupported "ChooseExpr condition is not a folded integer constant"
-  | .charLit v ty _ => do
+  | .charLit v ty _ .. => do
       let t ← intTyOf (ctx.layout.normalizeTy ty)
       match v.toInt? with
       | some n => pure (.int t (if t == IntTy.int_ then charLiteralValue n else n))
       | none => refuseUnsupported s!"character literal spelling '{v}'"
-  | .strLit value decoded _ _ => do
+  | .strLit value decoded _ _ .. => do
       let bs ← match decoded with
         | some bytes => pure (bytes.map (fun b => CByte.conc (UInt8.ofNat b)))
         | none => match plainStringBytes value with
@@ -2145,11 +2148,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       set m'
       writeMem (fun m => m.storeBytes (Ptr.toObjectBound o bs.length) bs)
       pure (.ptr (Ptr.toObjectBound o bs.length))
-  | .floatLit _ bitsHex bitWidth ty _ => floatLiteralValue bitsHex bitWidth ty
+  | .floatLit _ bitsHex bitWidth ty _ .. => floatLiteralValue bitsHex bitWidth ty
 
   -- A bare name in value position is an enumeration constant; every other
   -- name arrives wrapped in a conversion or a decay.
-  | .declRef (some id) name declKind ty _ =>
+  | .declRef (some id) name declKind ty _ .. =>
       if declKind == "EnumConstantDecl" then
         match (ctx.enumIds.find? (·.1 == id)).map (·.2) with
         | some n => do
@@ -2164,7 +2167,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.sizeAt (some id) ty)
               (ctx.layout.structuredTypeDecl id)
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
-  | .declRef none name declKind ty _ =>
+  | .declRef none name declKind ty _ .. =>
       if declKind == "EnumConstantDecl" then
         match (ctx.enums.find? (·.1 == name)).map (·.2) with
         | some n => do let t ← intTyOf (ctx.layout.normalizeTy ty); pure (.int t n)
@@ -2179,7 +2182,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- §6.5.3.3p4 — the arguments are evaluated HERE, in the caller's scope,
   -- and the handler receives VALUES. Still fuel-free: `evalArgs` is in this
   -- mutual block and shrinks the same `Expr` measure.
-  | .call callee args _ _ => do
+  | .call callee args _ _ .. => do
       if functionPointerBitCast callee then
         refuseUnsupported "call through an incompatible function-pointer cast"
       if hasTwoImpure ctx args then
@@ -2196,7 +2199,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | _ => refuseUnsupported "indirect call lost its callee value"
 
   -- §6.5.4.4 — `sizeof`, answered by the layout, never computed here.
-  | .typeTrait trait argTy sub ty _ =>
+  | .typeTrait trait argTy sub ty _ .. =>
       if trait != "sizeof" then refuseUnsupported s!"type trait '{trait}'"
       else
         let key := match argTy with
@@ -2210,7 +2213,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some n => do let t ← intTyOf (ctx.layout.normalizeTy ty); pure (.int t (n : Int))
         | none => refuseUnsupported s!"sizeof: no layout for operand type '{key.getD ""}'"
 
-  | .constExpr v (some sub) ty _ => do
+  | .constExpr v (some sub) ty _ .. => do
       -- Clang's folded spelling drops the sign from a negative constant
       -- (`value = "1"`, with `sub = -1`).  The approved AST keeps that
       -- operand, so evaluate it rather than treating the diagnostic value as
@@ -2223,12 +2226,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let (_, n) ← asInt sv
           let t ← intTyOf (ctx.layout.normalizeTy ty)
           pure (.int t n)
-  | .constExpr v none ty _ => do
+  | .constExpr v none ty _ .. => do
       let t ← intTyOf (ctx.layout.normalizeTy ty)
       match v.toInt? with
       | some n => pure (.int t n)
       | none => refuseUnsupported s!"constant expression '{v}'"
-  | .vaArg ap ty _ => do
+  | .vaArg ap ty _ .. => do
       -- C23 §7.16.1.1: consume the next actual argument from the abstract
       -- cursor. Compatibility is checked against the parser-resolved,
       -- default-promoted value; no ABI width or address is invented.
@@ -2409,7 +2412,7 @@ the left operand's own out-memory**, whatever the right operand is. -/
 theorem and_shortCircuits (ctx : Ctx) (l r : Expr) (ty : CType) (sp : CSpan)
     (m m' : Mem) (t : IntTy)
     (hl : EvalM.run m (evalExpr ctx l) = .ok (.ok (.int t 0), m')) :
-    EvalM.run m (evalExpr ctx (.binop "&&" l r ty sp)) = .ok (.ok (ofBool false), m') := by
+    EvalM.run m (evalExpr ctx (.binop "&&" l r ty sp none)) = .ok (.ok (ofBool false), m') := by
   simp only [EvalM.run, StateT.run] at hl ⊢
   simp [evalExpr, ExceptT.bind, ExceptT.bindCont, ExceptT.mk, bind, StateT.bind,
     Except.bind, Except.pure,
@@ -2420,7 +2423,7 @@ left operand's own out-memory, and the right operand is not evaluated. -/
 theorem or_shortCircuits (ctx : Ctx) (l r : Expr) (ty : CType) (sp : CSpan)
     (m m' : Mem) (t : IntTy) (n : Int) (hn : n ≠ 0)
     (hl : EvalM.run m (evalExpr ctx l) = .ok (.ok (.int t n), m')) :
-    EvalM.run m (evalExpr ctx (.binop "||" l r ty sp)) = .ok (.ok (ofBool true), m') := by
+    EvalM.run m (evalExpr ctx (.binop "||" l r ty sp none)) = .ok (.ok (ofBool true), m') := by
   simp only [EvalM.run, StateT.run] at hl ⊢
   simp [evalExpr, ExceptT.bind, ExceptT.bindCont, ExceptT.mk, bind, StateT.bind,
     Except.bind, Except.pure,
@@ -2431,7 +2434,7 @@ only the arm that ran. -/
 theorem cond_takesOneArm (ctx : Ctx) (c t e : Expr) (ty : CType) (sp : CSpan)
     (m m' : Mem) (it : IntTy)
     (hc : EvalM.run m (evalExpr ctx c) = .ok (.ok (.int it 0), m')) :
-    EvalM.run m (evalExpr ctx (.cond c t e ty sp)) = EvalM.run m' (evalExpr ctx e) := by
+    EvalM.run m (evalExpr ctx (.cond c t e ty sp none)) = EvalM.run m' (evalExpr ctx e) := by
   simp only [EvalM.run, StateT.run] at hc ⊢
   simp [evalExpr, ExceptT.bind, ExceptT.bindCont, ExceptT.mk, bind, StateT.bind,
     Except.bind, Except.pure,
@@ -2494,10 +2497,10 @@ clause in the block reaches memory only through `readMem`. -/
 def Expr.nodeIsPure : Expr → Bool
   -- §6.5.17.2 — the store is `=`, and only `=`. Every other binary
   -- operator, `&&`/`||`/`,` included, is a value computation.
-  | .binop op _ _ _ _ => op != "="
+  | .binop op _ _ _ _ .. => op != "="
   -- §6.5.3.5 — measured: all 63 increment sites in the corpus are postfix,
   -- and both spellings write.
-  | .unop op _ _ _ _ => op != "++" && op != "--"
+  | .unop op _ _ _ _ .. => op != "++" && op != "--"
   -- §6.5.17.3 — `a op= b` stores.
   | .compoundAssign .. => false
   | .choose .. => false
@@ -2511,13 +2514,13 @@ def Expr.nodeIsPure : Expr → Bool
   | .strLit .. => false
   -- Out of tier: unknown, therefore not pure.
   | .unsupported .. => false
-  | .implicitCast _ (.paren (.unop "*" _ _ _ _) _ _) _ _ => false
+  | .implicitCast _ (.paren (.unop "*" _ _ _ _ ..) _ _ ..) _ _ .. => false
   -- Function designator decay is semantically read-only, but its parser
   -- shape may evaluate an indirect designator. Keep the purity theorem's
   -- fragment conservative until that recursive identity path is covered.
-  | .implicitCast ck _ _ _ => ck != "FunctionToPointerDecay"
-  | .cast _ (.paren (.unop "*" _ _ _ _) _ _) _ _ => false
-  | .cast ck _ _ _ => ck != "FunctionToPointerDecay"
+  | .implicitCast ck _ _ _ .. => ck != "FunctionToPointerDecay"
+  | .cast _ (.paren (.unop "*" _ _ _ _ ..) _ _ ..) _ _ .. => false
+  | .cast ck _ _ _ .. => ck != "FunctionToPointerDecay"
   | _ => true
 
 /-- An expression whose evaluation cannot change memory — `nodeIsPure` at
@@ -2542,70 +2545,70 @@ theorem Expr.nodeIsPure_of_isPure {e : Expr} (h : Expr.isPure e = true) :
   cases e <;>
     simp_all [Expr.isPure, Expr.subexprs, Expr.nodeIsPure, List.all_cons, List.all_append]
 
-theorem Expr.isPure_paren {s : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.paren s t sp) = true) : Expr.isPure s = true := by
+theorem Expr.isPure_paren {s : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.paren s t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_implicitCast {ck : String} {s : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.implicitCast ck s t sp) = true) : Expr.isPure s = true := by
+theorem Expr.isPure_implicitCast {ck : String} {s : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.implicitCast ck s t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_cast {ck : String} {s : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.cast ck s t sp) = true) : Expr.isPure s = true := by
+theorem Expr.isPure_cast {ck : String} {s : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.cast ck s t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_member {b : Expr} {f : String} {a : Bool} {t : CType} {sp : CSpan}
+theorem Expr.isPure_member {b : Expr} {f : String} {a : Bool} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     {recordId : Option DeclarationId}
-    (h : Expr.isPure (.member b f a t sp recordId) = true) : Expr.isPure b = true := by
+    (h : Expr.isPure (.member b f a t sp recordId q) = true) : Expr.isPure b = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_unop {op : String} {s : Expr} {post : Bool} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.unop op s post t sp) = true) : Expr.isPure s = true := by
+theorem Expr.isPure_unop {op : String} {s : Expr} {post : Bool} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.unop op s post t sp q) = true) : Expr.isPure s = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, Bool.and_eq_true] at h ⊢
   exact h.2
 
-theorem Expr.isPure_index_base {b i : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.index b i t sp) = true) : Expr.isPure b = true := by
+theorem Expr.isPure_index_base {b i : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.index b i t sp q) = true) : Expr.isPure b = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1
 
-theorem Expr.isPure_index_idx {b i : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.index b i t sp) = true) : Expr.isPure i = true := by
+theorem Expr.isPure_index_idx {b i : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.index b i t sp q) = true) : Expr.isPure i = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.2
 
-theorem Expr.isPure_binop_l {op : String} {l r : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.binop op l r t sp) = true) : Expr.isPure l = true := by
+theorem Expr.isPure_binop_l {op : String} {l r : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.binop op l r t sp q) = true) : Expr.isPure l = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1
 
-theorem Expr.isPure_binop_r {op : String} {l r : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.binop op l r t sp) = true) : Expr.isPure r = true := by
+theorem Expr.isPure_binop_r {op : String} {l r : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.binop op l r t sp q) = true) : Expr.isPure r = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.2
 
-theorem Expr.isPure_cond_c {c a b : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.cond c a b t sp) = true) : Expr.isPure c = true := by
+theorem Expr.isPure_cond_c {c a b : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.cond c a b t sp q) = true) : Expr.isPure c = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1.1
 
-theorem Expr.isPure_cond_t {c a b : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.cond c a b t sp) = true) : Expr.isPure a = true := by
+theorem Expr.isPure_cond_t {c a b : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.cond c a b t sp q) = true) : Expr.isPure a = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.1.2
 
-theorem Expr.isPure_cond_e {c a b : Expr} {t : CType} {sp : CSpan}
-    (h : Expr.isPure (.cond c a b t sp) = true) : Expr.isPure b = true := by
+theorem Expr.isPure_cond_e {c a b : Expr} {t : CType} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
+    (h : Expr.isPure (.cond c a b t sp q) = true) : Expr.isPure b = true := by
   simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
     Bool.and_eq_true] at h ⊢
   exact h.2.2
@@ -2985,17 +2988,17 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       intro e he hp
       have hnode := Expr.nodeIsPure_of_isPure hp
       cases e with
-      | intLit _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | boolLit _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | choose _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | charLit _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | strLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | floatLit _ bitsHex bitWidth ty _ =>
+      | intLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | boolLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | choose _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | charLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | strLit _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | floatLit _ bitsHex bitWidth ty _ _ =>
           exact ⟨by open_eval; exact MemInvariant.floatLiteralValue' bitsHex bitWidth ty,
             by open_lvalue; mem_inv⟩
-      | declRef _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | typeTrait _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | constExpr value sub ty span =>
+      | declRef _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | typeTrait _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | constExpr value sub ty span _ =>
           cases sub with
           | none => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
           | some sub =>
@@ -3009,41 +3012,41 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
                 exact hp.2
               obtain ⟨i1, i2⟩ := ih sub hsub hpure
               exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | vaArg ap ty span =>
+      | vaArg ap ty span _ =>
           have hbad := Expr.nodeIsPure_of_isPure hp
           simp [Expr.nodeIsPure] at hbad
-      | paren s _ _ =>
+      | paren s _ _ _ =>
           obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_paren] at he; omega)
             (Expr.isPure_paren hp)
           exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | implicitCast _ s _ _ =>
+      | implicitCast _ s _ _ _ =>
           obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_implicitCast] at he; omega)
             (Expr.isPure_implicitCast hp)
           exact ⟨by open_eval; apply MemInvariant.ite' <;>
               all_goals first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ |
                 (simp [loadBitFieldAt]; mem_inv) | mem_inv,
             by open_lvalue; mem_inv⟩
-      | cast _ s _ _ =>
+      | cast _ s _ _ _ =>
           obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_cast] at he; omega)
             (Expr.isPure_cast hp)
           exact ⟨by open_eval; apply MemInvariant.ite' <;>
               all_goals first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ |
                 (simp [loadBitFieldAt]; mem_inv) | mem_inv,
             by open_lvalue; mem_inv⟩
-      | member b f a fieldTy _ recordId =>
+      | member b f a fieldTy _ recordId _ =>
           obtain ⟨i1, i2⟩ := ih b (by simp only [Expr.size_member] at he; omega)
             (Expr.isPure_member hp)
           have hma : MemInvariant (memberAddr ctx b f a fieldTy recordId) := MemInvariant.memberAddr' i1 i2
           exact ⟨by open_eval; simp [loadBitFieldAt]; mem_inv,
             by open_lvalue; mem_inv⟩
-      | index b i ty _ =>
+      | index b i ty _ _ =>
           obtain ⟨b1, _⟩ := ih b (by simp only [Expr.size_index] at he; omega)
             (Expr.isPure_index_base hp)
           obtain ⟨i1, _⟩ := ih i (by simp only [Expr.size_index] at he; omega)
             (Expr.isPure_index_idx hp)
           have hia : MemInvariant (indexAddr ctx b i ty) := MemInvariant.indexAddr' b1 i1
           exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | cond cc tt ee _ _ =>
+      | cond cc tt ee _ _ _ =>
           obtain ⟨c1, _⟩ := ih cc (by simp only [Expr.size_cond] at he; omega)
             (Expr.isPure_cond_c hp)
           obtain ⟨t1, _⟩ := ih tt (by simp only [Expr.size_cond] at he; omega)
@@ -3051,7 +3054,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
           obtain ⟨e1, _⟩ := ih ee (by simp only [Expr.size_cond] at he; omega)
             (Expr.isPure_cond_e hp)
           exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | binop op l r _ _ =>
+      | binop op l r _ _ _ =>
           obtain ⟨l1, _⟩ := ih l (by simp only [Expr.size_binop] at he; omega)
             (Expr.isPure_binop_l hp)
           obtain ⟨r1, _⟩ := ih r (by simp only [Expr.size_binop] at he; omega)
@@ -3063,7 +3066,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
           open_eval
           repeat (any_goals split)
           all_goals first | (mem_inv; done) | simp_all
-      | unop op s post _ _ =>
+      | unop op s post _ _ _ =>
           obtain ⟨s1, s2⟩ := ih s (by simp only [Expr.size_unop] at he; omega)
             (Expr.isPure_unop hp)
           simp only [Expr.nodeIsPure] at hnode
@@ -3079,13 +3082,13 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       -- a DIFFERENT reason worth keeping: a call is opaque; an assignment
       -- and an increment store; aggregate initialization writes through the
       -- layout; an out-of-tier node is unknown rather than harmless.
-      | call _ _ _ _ => simp [Expr.nodeIsPure] at hnode
-      | compoundAssign _ _ _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
-      | initList _ _ _ _ => simp [Expr.nodeIsPure] at hnode
-      | arrayInitList _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
-      | designatedUpdate _ _ _ _ => simp [Expr.nodeIsPure] at hnode
-      | implicitValueInit _ _ => simp [Expr.nodeIsPure] at hnode
-      | compoundLit _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | call _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | compoundAssign _ _ _ _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | initList _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | arrayInitList _ _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | designatedUpdate _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | implicitValueInit _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | compoundLit _ _ _ _ => simp [Expr.nodeIsPure] at hnode
       | unsupported _ _ _ => simp [Expr.nodeIsPure] at hnode
 
 /-- **RUNG A.** A pure expression's evaluation leaves memory exactly as it

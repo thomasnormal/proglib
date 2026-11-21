@@ -196,111 +196,6 @@ partial def parseTypeNode (j : Json) : Except String TypeNode := do
 
 /-! ## Expressions -/
 
-partial def parseExpr (j : Json) : Except String Expr := do
-  let kind ← getStr j "kind"
-  withCtx kind do
-    let span ← nodeSpan j
-    let ty : Except String CType := getStr j "type"
-    let sub (n : String) : Except String Expr := match getOptNode j n with
-      | none => .error s!"missing '{n}'"
-      | some v => parseExpr v
-    let optSub (n : String) : Except String (Option Expr) :=
-      match getOptNode j n with
-      | none => .ok none
-      | some v => some <$> parseExpr v
-    match kind with
-    | "IntegerLiteral" => return .intLit (← getStr j "value") (← ty) span
-    | "CharacterLiteral" =>
-        -- clang gives the code point as a NUMBER; keep the decimal spelling.
-        let v ← getField j "value"
-        return .charLit (match v with
-                         | .num n => toString n
-                         | _ => v.compress) (← ty) span
-    | "StringLiteral" =>
-        let value ← getStr j "value"
-        let decoded ← getOptNatList j "decoded_bytes"
-        let typ ← ty
-        return .strLit value decoded typ span
-    | "FloatingLiteral" =>
-        let v ← getField j "value"
-        let bitsHex ← getOptStr j "float_bits_hex"
-        let bitWidth ← getOptNat j "float_bit_width"
-        return .floatLit (match v with
-                          | .str s => s
-                          | .num n => toString n
-                          | _ => v.compress) bitsHex bitWidth (← ty) span
-    | "CXXBoolLiteralExpr" =>
-        return .boolLit (← getBool j "value") (← ty) span
-    | "ChooseExpr" =>
-        return .choose (← sub "cond") (← sub "then") (← sub "else") (← ty) span
-    | "DeclRefExpr" =>
-        let id ← getOptStr j "decl_id"
-        return .declRef (id.map DeclarationId.mk) (← getStr j "name")
-          (← getStr j "decl_kind") (← ty) span
-    | "MemberExpr" =>
-        return .member (← sub "base") (← getStr j "member")
-          (← getBool j "arrow") (← ty) span
-          ((← getOptStr j "record_decl_id").map DeclarationId.mk)
-    | "ArraySubscriptExpr" =>
-        return .index (← sub "base") (← sub "index") (← ty) span
-    | "CallExpr" =>
-        return .call (← sub "callee")
-          (← (← getArr j "args").mapM parseExpr) (← ty) span
-    | "BinaryOperator" =>
-        return .binop (← getStr j "op") (← sub "lhs") (← sub "rhs") (← ty) span
-    | "CompoundAssignOperator" =>
-        return .compoundAssign (← getStr j "op") (← sub "lhs") (← sub "rhs")
-          (← getStr j "compute_lhs_type") (← getStr j "compute_result_type")
-          (← ty) span
-    | "UnaryOperator" =>
-        return .unop (← getStr j "op") (← sub "sub") (← getBool j "postfix")
-          (← ty) span
-    | "ConditionalOperator" =>
-        return .cond (← sub "cond") (← sub "then") (← sub "else") (← ty) span
-    | "ParenExpr" => return .paren (← sub "sub") (← ty) span
-    | "ImplicitCastExpr" =>
-        return .implicitCast (← getStr j "cast") (← sub "sub") (← ty) span
-    | "CStyleCastExpr" =>
-        return .cast (← getStr j "cast") (← sub "sub") (← ty) span
-    | "InitListExpr" =>
-        let inits ← (← getArr j "inits").mapM parseExpr
-        let field ← getOptFieldName j
-        -- This field is mandatory: legacy c-0.1 envelopes silently dropped
-        -- positional fillers, so accepting an absent field can change a program.
-        match ← getField j "array_filler" with
-        | .null => return .initList inits field (← ty) span
-        | .arr filler => return .arrayInitList inits (← filler.toList.mapM parseExpr) field (← ty) span
-        | _ => throw "field 'array_filler' is not an array or null"
-    | "DesignatedInitUpdateExpr" =>
-        return .designatedUpdate (← sub "base") (← sub "update") (← ty) span
-    | "ImplicitValueInitExpr" => return .implicitValueInit (← ty) span
-    | "CompoundLiteralExpr" => return .compoundLit (← sub "init") (← ty) span
-    | "UnaryExprOrTypeTraitExpr" =>
-        return .typeTrait (← getStr j "trait") (← getOptStr j "arg_type")
-          (← optSub "sub") (← ty) span
-    | "ConstantExpr" =>
-        let value? ← getOptStr j "value"
-        match value? with
-        | some value => return .constExpr value (← optSub "sub") (← ty) span
-        | none =>
-            -- Clang omits the folded spelling for pointer constants such as
-            -- `&gs1`, but retains the parser expression that carries their
-            -- value. Preserve that child; the semantics does not consult a
-            -- fabricated diagnostic value when the child is present.
-            match ← optSub "sub" with
-            | some sub => return .constExpr "" (some sub) (← ty) span
-            | none => return .unsupported "ConstantExpr" "unfolded constant expression" span
-    | "VAArgExpr" =>
-        return .vaArg (← sub "ap") (← ty) span
-    | "Unsupported" =>
-        return .unsupported (← getStr j "c_kind") (← getStr j "text") span
-    | other =>
-        -- The extractor is supposed to have refused this already.  If one
-        -- arrives, the two halves disagree about the vocabulary, and that
-        -- is a defect rather than an unsupported program.
-        throw s!"unknown expression kind {other.quote} (the extractor should \
-have emitted an Unsupported leaf; extractor and ingester disagree)"
-
 partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.QualType := do
   let kind ← getStr j "kind"
   withCtx s!"structured type {kind}" do
@@ -340,6 +235,114 @@ def parseOptStructuredQualType (j : Json) (name : String) : Except String (Optio
   match getOptNode j name with
   | none => .ok none
   | some value => some <$> parseStructuredQualType value
+
+
+partial def parseExpr (j : Json) : Except String Expr := do
+  let kind ← getStr j "kind"
+  withCtx kind do
+    let span ← nodeSpan j
+    let ty : Except String CType := getStr j "type"
+    let structuredType ← parseOptStructuredQualType j "structured_type"
+    let sub (n : String) : Except String Expr := match getOptNode j n with
+      | none => .error s!"missing '{n}'"
+      | some v => parseExpr v
+    let optSub (n : String) : Except String (Option Expr) :=
+      match getOptNode j n with
+      | none => .ok none
+      | some v => some <$> parseExpr v
+    match kind with
+    | "IntegerLiteral" => return .intLit (← getStr j "value") (← ty) span structuredType
+    | "CharacterLiteral" =>
+        -- clang gives the code point as a NUMBER; keep the decimal spelling.
+        let v ← getField j "value"
+        return .charLit (match v with
+                         | .num n => toString n
+                         | _ => v.compress) (← ty) span structuredType
+    | "StringLiteral" =>
+        let value ← getStr j "value"
+        let decoded ← getOptNatList j "decoded_bytes"
+        let typ ← ty
+        return .strLit value decoded typ span structuredType
+    | "FloatingLiteral" =>
+        let v ← getField j "value"
+        let bitsHex ← getOptStr j "float_bits_hex"
+        let bitWidth ← getOptNat j "float_bit_width"
+        return .floatLit (match v with
+                          | .str s => s
+                          | .num n => toString n
+                          | _ => v.compress) bitsHex bitWidth (← ty) span structuredType
+    | "CXXBoolLiteralExpr" =>
+        return .boolLit (← getBool j "value") (← ty) span structuredType
+    | "ChooseExpr" =>
+        return .choose (← sub "cond") (← sub "then") (← sub "else") (← ty) span structuredType
+    | "DeclRefExpr" =>
+        let id ← getOptStr j "decl_id"
+        return .declRef (id.map DeclarationId.mk) (← getStr j "name")
+          (← getStr j "decl_kind") (← ty) span structuredType
+    | "MemberExpr" =>
+        return .member (← sub "base") (← getStr j "member")
+          (← getBool j "arrow") (← ty) span
+          ((← getOptStr j "record_decl_id").map DeclarationId.mk) structuredType
+    | "ArraySubscriptExpr" =>
+        return .index (← sub "base") (← sub "index") (← ty) span structuredType
+    | "CallExpr" =>
+        return .call (← sub "callee")
+          (← (← getArr j "args").mapM parseExpr) (← ty) span structuredType
+    | "BinaryOperator" =>
+        return .binop (← getStr j "op") (← sub "lhs") (← sub "rhs") (← ty) span structuredType
+    | "CompoundAssignOperator" =>
+        return .compoundAssign (← getStr j "op") (← sub "lhs") (← sub "rhs")
+          (← getStr j "compute_lhs_type") (← getStr j "compute_result_type")
+          (← ty) span structuredType
+    | "UnaryOperator" =>
+        return .unop (← getStr j "op") (← sub "sub") (← getBool j "postfix")
+          (← ty) span structuredType
+    | "ConditionalOperator" =>
+        return .cond (← sub "cond") (← sub "then") (← sub "else") (← ty) span structuredType
+    | "ParenExpr" => return .paren (← sub "sub") (← ty) span structuredType
+    | "ImplicitCastExpr" =>
+        return .implicitCast (← getStr j "cast") (← sub "sub") (← ty) span structuredType
+    | "CStyleCastExpr" =>
+        return .cast (← getStr j "cast") (← sub "sub") (← ty) span structuredType
+    | "InitListExpr" =>
+        let inits ← (← getArr j "inits").mapM parseExpr
+        let field ← getOptFieldName j
+        -- This field is mandatory: legacy c-0.1 envelopes silently dropped
+        -- positional fillers, so accepting an absent field can change a program.
+        match ← getField j "array_filler" with
+        | .null => return .initList inits field (← ty) span structuredType
+        | .arr filler => return .arrayInitList inits (← filler.toList.mapM parseExpr) field (← ty) span structuredType
+        | _ => throw "field 'array_filler' is not an array or null"
+    | "DesignatedInitUpdateExpr" =>
+        return .designatedUpdate (← sub "base") (← sub "update") (← ty) span structuredType
+    | "ImplicitValueInitExpr" => return .implicitValueInit (← ty) span structuredType
+    | "CompoundLiteralExpr" => return .compoundLit (← sub "init") (← ty) span structuredType
+    | "UnaryExprOrTypeTraitExpr" =>
+        return .typeTrait (← getStr j "trait") (← getOptStr j "arg_type")
+          (← optSub "sub") (← ty) span structuredType
+    | "ConstantExpr" =>
+        let value? ← getOptStr j "value"
+        match value? with
+        | some value => return .constExpr value (← optSub "sub") (← ty) span structuredType
+        | none =>
+            -- Clang omits the folded spelling for pointer constants such as
+            -- `&gs1`, but retains the parser expression that carries their
+            -- value. Preserve that child; the semantics does not consult a
+            -- fabricated diagnostic value when the child is present.
+            match ← optSub "sub" with
+            | some sub => return .constExpr "" (some sub) (← ty) span structuredType
+            | none => return .unsupported "ConstantExpr" "unfolded constant expression" span
+    | "VAArgExpr" =>
+        return .vaArg (← sub "ap") (← ty) span structuredType
+    | "Unsupported" =>
+        return .unsupported (← getStr j "c_kind") (← getStr j "text") span
+    | other =>
+        -- The extractor is supposed to have refused this already.  If one
+        -- arrives, the two halves disagree about the vocabulary, and that
+        -- is a defect rather than an unsupported program.
+        throw s!"unknown expression kind {other.quote} (the extractor should \
+have emitted an Unsupported leaf; extractor and ingester disagree)"
+
 
 
 /-! ## Declarations and statements -/
@@ -479,7 +482,8 @@ def parseTypeLayout (j : Json) : Except String TypeLayout := withCtx "type_layou
            elementSizeBytes := ← getOptNat j "element_size_bytes" }
 
 def parseStructuredExprType (j : Json) : Except String StructuredExprType := withCtx "structured_expr_type" do
-  return { offset := ← getNat j "offset"
+  return { exprId := some (DeclarationId.mk (← getStr j "expr_id"))
+           offset := ← getNat j "offset"
            endOffset := ← getOptNat j "end_offset"
            kind := (← getOptStr j "expr_kind").getD ""
            type := ← parseStructuredQualType (← getField j "type") }

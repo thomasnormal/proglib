@@ -101,8 +101,9 @@ facts keyed by declaration identity. `is_union` is Clang's own struct/union
 decision and remains available when no layout plugin is present. Consumers use
 it to keep named and anonymous union keys distinct without parsing `qualType`.
 
-`structured_types` is an optional list emitted by the pinned Clang QualType
-probe. Each row is joined to the declaration identity from the same AST dump.
+`structured_types` is a required list emitted by the pinned Clang QualType
+probe. Each row is joined to the declaration identity from the same Clang
+invocation as the AST dump.
 The recursive `type` tree carries builtin, pointer, array, qualified,
 function, record, enumeration and typedef cases. Record-like references carry
 their parser declaration identity. An unrepresented Clang type or a missing
@@ -111,12 +112,11 @@ from `qualType` text. Clang's adjusted and parenthesized declaration wrappers
 are unwrapped by the probe. Variable, dependent-sized and incomplete arrays
 carry `"extent": null`, preserving the absence of a bound as frontend data.
 
-`structured_expr_types` is an optional list from the same probe. Each row
-contains the parser-provided expression source offset, optional end offset,
-Clang expression node kind, and its recursive `QualType` tree. The source
-range and node kind disambiguate nested parser nodes that begin at the same
-byte. Missing rows remain an explicit absence and are never recovered by
-interpreting `qualType` text.
+`structured_expr_types` is an optional audit list from the same probe. Each row
+contains the Clang expression node identity, the parser-provided source range,
+Clang expression node kind, and its recursive `QualType` tree. The node
+identity is the join key. Missing rows remain an explicit absence and are
+never recovered by interpreting `qualType` text.
 
 ## 2 Spans
 
