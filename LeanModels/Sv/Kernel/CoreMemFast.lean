@@ -706,9 +706,9 @@ def CoreMemDesign.edgePassFast (E : CoreMemDesign)
       E.runImplicit st settled E.processes.toList
     else .ok settled
   let combed ← if E.hasComb then
-      E.runComb combBefore activated E.processes.toList
-    else .ok activated
-  E.settleCanonical E.env E.elems combed E.processes.toList
+      E.runCombSettleQuiesce 4096 combBefore activated E.processes.toList
+    else E.settleCanonical E.env E.elems activated E.processes.toList
+  .ok combed
 
 theorem CoreMemDesign.edgePassFast_eq_edgePass
     (E : CoreMemDesign) (st : CoreMemState) (before after : SvState)
