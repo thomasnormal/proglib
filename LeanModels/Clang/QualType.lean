@@ -76,6 +76,10 @@ inductive QualType where
   | cBuiltinKind (kind : CBuiltin)
   /-- Clang's placeholder type for a builtin varargs callee. -/
   | builtinFunction
+  /-- The parser's `restrict` qualifier, retained separately from cv
+      qualification so existing C and C++ consumers can ignore it only where
+      their operation is insensitive to aliasing qualification. -/
+  | restrictQualified (base : QualType)
   | void
   | pointer (pointee : QualType)
   | array (element : QualType) (extent : Option Nat)
@@ -96,6 +100,7 @@ mutual
     | .cBuiltin left, .cBuiltin right => left == right
     | .cBuiltinKind left, .cBuiltinKind right => left == right
     | .builtinFunction, .builtinFunction => true
+    | .restrictQualified left, .restrictQualified right => QualType.beq left right
     | .pointer left, .pointer right => QualType.beq left right
     | .array left le, .array right re =>
         QualType.beq left right && le == re
@@ -127,6 +132,7 @@ qualification node emitted by clang. -/
 def QualType.unqualified (type : QualType) : QualType :=
   match type with
   | .qualified _ _ base => base.unqualified
+  | .restrictQualified base => base.unqualified
   | _ => type
 termination_by structural type
 
@@ -153,6 +159,8 @@ def QualType.resolveTypedefs
       | .qualified isConst isVolatile base =>
           (resolveTypedefs lookup fuel base).map
             (fun base => .qualified isConst isVolatile base)
+      | .restrictQualified base =>
+          (resolveTypedefs lookup fuel base).map QualType.restrictQualified
       | .function result parameters variadic => do
           let result ← resolveTypedefs lookup fuel result
           let parameters ← parameters.mapM (resolveTypedefs lookup fuel)
@@ -167,6 +175,7 @@ def QualType.recordLike : QualType → Bool
   | .record _ => true
   | .pointer pointee => pointee.recordLike
   | .qualified _ _ base => base.recordLike
+  | .restrictQualified base => base.recordLike
   | _ => false
 
 /-- Whether the declared object itself is an aggregate. Pointer layers are
@@ -176,12 +185,14 @@ def QualType.aggregateObject : QualType → Bool
   | .record _ => true
   | .array _ _ => true
   | .qualified _ _ base => base.aggregateObject
+  | .restrictQualified base => base.aggregateObject
   | _ => false
 
 /-- Whether a parser-native type can be the base of C subscripting. -/
 def QualType.indexable : QualType → Bool
   | .pointer _ | .array _ _ => true
   | .qualified _ _ base => base.indexable
+  | .restrictQualified base => base.indexable
   | _ => false
 
 /-- Whether the declared object is an array.  Arrays remain distinct from
@@ -190,12 +201,14 @@ node. -/
 def QualType.arrayObject : QualType → Bool
   | .array _ _ => true
   | .qualified _ _ base => base.arrayObject
+  | .restrictQualified base => base.arrayObject
   | _ => false
 
 /-- Whether a parser-native type can provide pointer or array indexing. -/
 def QualType.pointerOrArray : QualType → Bool
   | .pointer _ | .array _ _ => true
   | .qualified _ _ base => base.pointerOrArray
+  | .restrictQualified base => base.pointerOrArray
   | _ => false
 
 /-- Whether the object value itself is a pointer. Arrays remain distinct because
@@ -203,6 +216,7 @@ array-to-pointer decay is a separate C conversion. -/
 def QualType.pointerObject : QualType → Bool
   | .pointer _ => true
   | .qualified _ _ base => base.pointerObject
+  | .restrictQualified base => base.pointerObject
   | _ => false
 
 /-- Peel one parser-native pointer layer.  Qualification is transparent for
@@ -210,6 +224,7 @@ the object type, while arrays remain distinct from pointers. -/
 def QualType.pointee : QualType → Option QualType
   | .pointer pointee => some pointee
   | .qualified _ _ base => base.pointee
+  | .restrictQualified base => base.pointee
   | _ => none
 
 end LeanModels.Clang

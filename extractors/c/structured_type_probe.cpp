@@ -215,18 +215,22 @@ std::optional<Json> typeTree(clang::QualType qualified,
     return llvm::json::Object{{"kind", "unsupported"},
                               {"reason", "Clang QualType recursion limit"}};
   const auto qualifiers = qualified.getLocalQualifiers();
-  if (qualifiers.hasRestrict() || qualifiers.hasAddressSpace())
+  if (qualifiers.hasAddressSpace())
     return llvm::json::Object{{"kind", "unsupported"},
                               {"reason", "Clang QualType has unsupported qualifiers"}};
   auto body = unqualifiedType(qualified.getLocalUnqualifiedType(), context, depth);
   if (!body)
     return llvm::json::Object{{"kind", "unsupported"},
                               {"reason", "Clang QualType projection failed"}};
-  if (!qualifiers.hasConst() && !qualifiers.hasVolatile()) return body;
-  return llvm::json::Object{{"kind", "qualified"},
-                            {"const", qualifiers.hasConst()},
-                            {"volatile", qualifiers.hasVolatile()},
-                            {"base", std::move(*body)}};
+  if (qualifiers.hasConst() || qualifiers.hasVolatile()) {
+    body = llvm::json::Object{{"kind", "qualified"},
+                               {"const", qualifiers.hasConst()},
+                               {"volatile", qualifiers.hasVolatile()},
+                               {"base", std::move(*body)}};
+  }
+  if (qualifiers.hasRestrict())
+    return llvm::json::Object{{"kind", "restrict"}, {"base", std::move(*body)}};
+  return body;
 }
 
 class Visitor : public clang::RecursiveASTVisitor<Visitor> {

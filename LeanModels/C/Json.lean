@@ -214,6 +214,8 @@ partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.
     | "qualified" =>
         .ok (.qualified (← getBool j "const") (← getBool j "volatile")
           (← parseStructuredQualType (← getField j "base")))
+    | "restrict" =>
+        .ok (.restrictQualified (← parseStructuredQualType (← getField j "base")))
     | "function" =>
         let params ← (← getArr j "parameters").mapM parseStructuredQualType
         .ok (.function (← parseStructuredQualType (← getField j "result"))
