@@ -52,3 +52,13 @@ the pointer cast cases. A missing node fact refuses the pointer-integer or
 compatible-pointer operation. The existing `CType` parameter remains for
 diagnostic text and layout keys, while classification no longer depends on a
 spelling fallback at these cast sites.
+
+The floating conversion trial was stopped before landing. It threaded the
+node-carried `QualType` through floating literals, integral-to-floating,
+floating casts, and floating-to-integral conversions, but the expression
+memory-invariance proof still opened the conversion branches after the node
+helper had been unfolded. The remaining goals were `MemInvariant (floatCast
+v "float")`, `MemInvariant (floatCast v "double")`, and
+`MemInvariant (floatToIntNode v structured)`. No semantic change from this
+trial is retained. The next attempt must preserve the node helper as the
+proof head or provide one general branch lemma before changing the evaluator.
