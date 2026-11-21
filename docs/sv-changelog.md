@@ -1,5 +1,14 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Path-sensitive reactive read guard — 2026-11-21
+
+The canonical-E reactive dependency guard now keeps a write definite only
+when every branch performs it. A later read after a partial `if`, `case`, or
+possibly-zero-iteration `for` therefore retains the pre-write value and is
+refused as an `always_comb` self-read under IEEE 1800-2023 §9.2.2.2.1. A
+two-arm `if` that writes the same name on both arms remains recognized as
+definite. Focused kernel guards cover both branch shapes.
+
 ## Refuse same-edge blocking read races — 2026-11-21
 
 Canonical E now refuses two edge processes that share an event source when a

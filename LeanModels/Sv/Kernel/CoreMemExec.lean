@@ -1211,6 +1211,10 @@ def coreMemEdgeBlockingReadRaceViol (d : PDesign) (generated : List PProcess) :
       "4.7/10.4.1: same-edge blocking read/write processes have schedule-dependent visibility; canonical E refuses the race")
   else none
 
+def coreMemCommonWrites : List (List String) → List String
+  | [] => []
+  | writes :: rest => writes.filter fun name => rest.all (List.contains · name)
+
 /-! A reactive body may read a signal that it assigned earlier in the same
 process.  That sequential source order is defined by IEEE 1800-2023 §9.2.2.2
 and does not create an inter-process scheduling cycle.  Keep only reads that
@@ -1218,7 +1222,6 @@ occur before the body's first write to the same name when checking the
 cross-process dependency guard. -/
 
 mutual
-
 def coreMemStmtReadBeforeWritesFrom (written : List String) : PStmt → List String × List String
   | .localDecl name _ init =>
       ((init.toList.flatMap coreMemSignalNames).filter (fun n => !written.contains n), name :: written)
@@ -1231,29 +1234,30 @@ def coreMemStmtReadBeforeWritesFrom (written : List String) : PStmt → List Str
       (reads.filter (fun n => !written.contains n), target.name :: written)
   | .ifStmt cond yes none =>
       let condReads := (coreMemSignalNames cond).filter (fun n => !written.contains n)
-      let (yesReads, yesWrites) := coreMemStmtReadBeforeWritesFrom written yes
-      (condReads ++ yesReads, yesWrites)
+      let (yesReads, _) := coreMemStmtReadBeforeWritesFrom written yes
+      (condReads ++ yesReads, written)
   | .ifStmt cond yes (some no) =>
       let condReads := (coreMemSignalNames cond).filter (fun n => !written.contains n)
       let (yesReads, yesWrites) := coreMemStmtReadBeforeWritesFrom written yes
       let (noReads, noWrites) := coreMemStmtReadBeforeWritesFrom written no
-      (condReads ++ yesReads ++ noReads, yesWrites ++ noWrites)
+      (condReads ++ yesReads ++ noReads,
+        coreMemCommonWrites [yesWrites, noWrites])
   | .block body => coreMemStmtReadBeforeWritesListFrom written body
   | .forLoop _ initE condition step body =>
       let initReads := (coreMemSignalNames initE).filter (fun n => !written.contains n)
       let condReads := (coreMemSignalNames condition).filter (fun n => !written.contains n)
       let stepReads := (coreMemSignalNames step).filter (fun n => !written.contains n)
-      let (bodyReads, bodyWrites) := coreMemStmtReadBeforeWritesFrom written body
-      (initReads ++ condReads ++ stepReads ++ bodyReads, bodyWrites)
+      let (bodyReads, _) := coreMemStmtReadBeforeWritesFrom written body
+      (initReads ++ condReads ++ stepReads ++ bodyReads, written)
   | .caseStmt subject items none _ _ =>
       let subjectReads := (coreMemSignalNames subject).filter (fun n => !written.contains n)
       let itemReads := coreMemCaseReadBeforeWritesFrom written items
-      (subjectReads ++ itemReads.1, itemReads.2)
+      (subjectReads ++ itemReads.1, written)
   | .caseStmt subject items (some defaultBody) _ _ =>
       let subjectReads := (coreMemSignalNames subject).filter (fun n => !written.contains n)
       let itemReads := coreMemCaseReadBeforeWritesFrom written items
-      let (defaultReads, defaultWrites) := coreMemStmtReadBeforeWritesFrom written defaultBody
-      (subjectReads ++ itemReads.1 ++ defaultReads, itemReads.2 ++ defaultWrites)
+      let (defaultReads, _) := coreMemStmtReadBeforeWritesFrom written defaultBody
+      (subjectReads ++ itemReads.1 ++ defaultReads, written)
   | .unsupported _ _ => ([], written)
 
 def coreMemStmtReadBeforeWritesListFrom (written : List String) : List PStmt → List String × List String
@@ -3555,6 +3559,27 @@ private def auditW3cProcesses : List PProcess :=
    .alwaysComb (.blockingAssign "y" (.ident "t2"))]
 
 #guard coreMemAssignReactiveChainViol auditW3cProcesses == none
+
+/-! A write in only one branch is not definite after the branch.  The
+reactive guard must therefore retain a later read of that name as a
+self-read, while two complete branches may establish the name before the
+read (IEEE 1800-2023 §9.2.2.2.1). -/
+private def auditW5Partial : PStmt :=
+  .block [
+    .ifStmt (.ident "c") (.blockingAssign "t" (.ident "a")) none,
+    .blockingAssign "y" (.ident "t"),
+    .blockingAssign "t" (.ident "b")]
+
+#guard coreMemReactiveDependencyViol [.alwaysComb auditW5Partial] == some "t"
+
+private def auditW5Complete : PStmt :=
+  .block [
+    .ifStmt (.ident "c") (.blockingAssign "t" (.ident "a"))
+      (some (.blockingAssign "t" (.ident "b"))),
+    .blockingAssign "y" (.ident "t"),
+    .blockingAssign "t" (.ident "e")]
+
+#guard coreMemReactiveDependencyViol [.alwaysComb auditW5Complete] == none
 
 private def auditW4Processes : List PProcess :=
   [.assignL (.arrayElem "m4" [.int 0]) (.arrayElem "m3" [.int 0]),
