@@ -401,79 +401,22 @@ it** — `"Pos"`, `"const Pos *"` — never on a parsed type. That is the
 same decision `docs/c-envelope-schema.md` §3 made for `CType` itself, and
 it is what keeps the C type parser out of the tier. -/
 structure Layout where
-  /-- `sizeof(ty)` in bytes (§6.5.4.4). -/
-  size : CType → Option Nat
-  /-- Parser-native size keyed by the declaration that owns the object. -/
   declSize : DeclarationId → Option Nat := fun _ => none
-  /-- Parser-native structured clang type keyed by declaration identity. -/
   structuredType : DeclarationId → Option LeanModels.Clang.QualType := fun _ => none
-  /-- Parser-native expression QualType keyed by the span's byte offset. -/
   structuredExprType : Nat → Option LeanModels.Clang.QualType := fun _ => none
-  /-- Parser-native expression QualType keyed by source range and AST kind.
-      The offset-only field remains for envelopes produced before range
-      disambiguation was added. -/
   structuredExprTypeAt : Nat → Option Nat → String → CType → Option LeanModels.Clang.QualType :=
     fun offset _ _ _ => structuredExprType offset
-  /-- Frontend-observed sizes for declarator-shaped types. -/
-  typeSize : CType → Option Nat := fun _ => none
-  /-- Frontend-observed byte size of a declared pointer's pointee. -/
-  pointeeSize : CType → Option Nat := fun _ => none
-  /-- Frontend-observed pointee size keyed by the declaration identity of the
-      pointer object. -/
   pointeeSizeDecl : DeclarationId → Option Nat := fun _ => none
-  /-- Frontend-observed byte stride keyed by the declaration identity of an
-      array object. -/
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
-  /-- `offsetof`, keyed on the BASE expression's spelling, so `p->f` and
-  `x.f` look up under `"const Pos *"` and `"Pos"` respectively. -/
-  fieldOff : CType → String → Option Nat
-  /-- Offset of an anonymous member selected by its parser-provided type.
-  Anonymous records can have several empty field names; declaration order
-  and the child type keep those members distinct without parsing a spelling. -/
-  fieldOffType : CType → CType → Option Nat := fun _ _ => none
-  /-- Parser-native offset for an anonymous member keyed by its base
-      declaration identity and member type. -/
   fieldOffTypeDecl : DeclarationId → CType → Option Nat := fun _ _ => none
-  /-- Frontend-observed byte extent of a member.  This is needed when the
-  member type is a function pointer, whose spelling is intentionally not
-  re-parsed by the layout fallback. -/
-  fieldSize : CType → String → Option Nat := fun _ _ => none
-  /-- Frontend-observed member extent keyed by the base declaration identity. -/
   fieldSizeDecl : DeclarationId → String → Option Nat := fun _ _ => none
-  /-- Declaration-identity lookup for block-local records whose tag spelling
-  collides with another record in the same translation unit. -/
   fieldOffDecl : DeclarationId → String → Option Nat := fun _ _ => none
-  /-- Bit-field representation facts from Clang's record-layout observation.
-  The pair is `(offset_bits, width_bits)`; `none` means an ordinary member.
-  These are frontend facts, never reconstructed from a type spelling. -/
-  fieldBits : CType → String → Option (Nat × Nat) := fun _ _ => none
-  /-- Parser-native bit-field facts keyed by the base declaration identity. -/
   fieldBitsDecl : DeclarationId → String → Option (Nat × Nat) := fun _ _ => none
-  /-- Parser-native flexible-array member marker from the record layout. -/
-  flexibleField : CType → String → Bool := fun _ _ => false
-  /-- Parser-native flexible-array facts keyed by the base declaration identity. -/
   flexibleFieldDecl : DeclarationId → String → Bool := fun _ _ => false
-  /-- An array type's element type and extent, for `T[N]`.
-
-  Needed because **aggregate initialization WRITES through the layout**
-  where reading only ever asked it for one offset: §6.7.11 has to know how
-  many elements there are to know which are unmentioned. `none` for a
-  non-array type. -/
-  elem : CType → Option (CType × Nat) := fun _ => none
-  /-- A structure's members, IN DECLARATION ORDER with their types.
-  §6.7.11p9 initializes members in order, so the order is load-bearing and
-  not a convenience. `none` for a non-structure type. -/
-  members : CType → Option (List (String × CType)) := fun _ => none
-  /-- Parser-native member order keyed by the declaration owning the object. -/
   membersDecl : DeclarationId → Option (List (String × CType)) := fun _ => none
-  /-- Parser-native child-record identity keyed by parent object and field name. -/
   memberRecordDecl : DeclarationId → String → Option DeclarationId := fun _ _ => none
-  /-- Whether a record type is a union, from Clang's parser-native record
-  layout tag.  The default keeps layouts without that observation loud. -/
-  isUnion : CType → Bool := fun _ => false
-  /-- Parser-native union classification keyed by the declaration owning the
-      aggregate object. -/
   isUnionDecl : DeclarationId → Bool := fun _ => false
+
 /-- The declaration identity carried by a direct base expression.  Clang's
 member access facts are keyed by the declaration that owns the object; the
 spelling fallback remains only for older envelopes without that identity. -/
@@ -680,18 +623,15 @@ def Layout.bitFieldStorageSizeAt (layout : Layout) (base : Option Expr)
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/
 def Layout.unknown : Layout :=
-  { size := fun _ => none, declSize := fun _ => none, fieldOff := fun _ _ => none
-    fieldOffType := fun _ _ => none, fieldOffTypeDecl := fun _ _ => none
-    typeSize := fun _ => none
-    pointeeSize := fun _ => none
+  { declSize := fun _ => none, fieldOffTypeDecl := fun _ _ => none
     pointeeSizeDecl := fun _ => none
     elementSizeDecl := fun _ => none
-    fieldSize := fun _ _ => none, fieldSizeDecl := fun _ _ => none
+    fieldSizeDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
-    fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
-    flexibleField := fun _ _ => false, flexibleFieldDecl := fun _ _ => false
-    elem := fun _ => none, members := fun _ => none, membersDecl := fun _ => none
-    memberRecordDecl := fun _ _ => none, isUnion := fun _ => false, isUnionDecl := fun _ => false }
+    fieldBitsDecl := fun _ _ => none
+    flexibleFieldDecl := fun _ _ => false
+    membersDecl := fun _ => none
+    memberRecordDecl := fun _ _ => none, isUnionDecl := fun _ => false }
 
 /-! ## The evaluation context
 
