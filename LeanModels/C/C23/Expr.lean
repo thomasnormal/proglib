@@ -1927,7 +1927,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             let p ← asPtr v
             let pointee := (ctx.layout.structuredTypeAt sub).bind
               LeanModels.Clang.QualType.pointee
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
+            loadAt ctx.aliasModel p ty
               (ctx.layout.exprSizeAt sub ty) pointee
       else if op == "!" then do
         -- §6.5.4.3p5 — `!x` is `(0 == x)`. 80 sites.
@@ -1961,8 +1961,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 loadBitFieldAt ctx base.ty field fieldTy p (some base) subStructured
-              else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
-          | _ => loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
+              else loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
+          | _ => loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
         match old with
         | .ptr _ =>
             -- C23 §6.5.3.5p2 defines pointer increment/decrement in terms
@@ -2020,10 +2020,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             if ctx.layout.fieldBitsAt base field |>.isSome then
               loadBitFieldAt ctx base.ty field fieldTy p (some base) lStructured
             else
-              loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty)
+              loadAt ctx.aliasModel p l.ty
                 (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
         | _ =>
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty)
+            loadAt ctx.aliasModel p l.ty
               (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
       match old, rv with
       | .ptr _, .int _ _ => do
@@ -2148,7 +2148,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some o =>
             let p := match ctx.layout.sizeAt (some id) ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.sizeAt (some id) ty)
+            loadAt ctx.aliasModel p ty (ctx.layout.sizeAt (some id) ty)
               (ctx.layout.structuredTypeDecl id)
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
   | .declRef none name declKind ty _ structuredType =>
@@ -2163,7 +2163,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some o =>
             let p := match ctx.layout.sizeAt none ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.sizeAt none ty)
+            loadAt ctx.aliasModel p ty (ctx.layout.sizeAt none ty)
         | none => refuseUnsupported s!"unbound name '{name}'"
 
   -- §6.5.3.3p4 — the arguments are evaluated HERE, in the caller's scope,
