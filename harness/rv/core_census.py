@@ -179,6 +179,7 @@ def self_test() -> None:
     fixtures = [
         ROOT / "Examples/system-verilog/ff_one/cv32e40p_ff_one.sv.json",
         ROOT / "Examples/system-verilog/seq_mem/range_ff/range_ff.sv.json",
+        ROOT / "Examples/system-verilog/seq_neg/overlap.sv.json",
     ]
     results = []
     for fixture in fixtures:
@@ -199,6 +200,15 @@ def self_test() -> None:
             "loader self-test did not exercise every emitted row category: "
             + repr(sorted(categories))
         )
+    refusal_result = results[2]
+    if refusal_result["counts"] != {"ADMITTED": 0, "REFUSED": 1, "NOT REACHED": 0}:
+        raise AssertionError(
+            "loader self-test refusal fixture changed: "
+            + repr(refusal_result["counts"])
+        )
+    requirement = refusal_result["rows"][0]["requirement"]
+    if "overlap" not in requirement and "written" not in requirement:
+        raise AssertionError("loader self-test refusal lost its exact diagnostic")
     print(
         "core_census --self-test ok: "
         f"{sum(result['counts']['ADMITTED'] for result in results)} admitted, "
