@@ -1625,21 +1625,18 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | .float64 f => float64ToInt f t
         | _ => refuseUnsupported "non-floating value in floating-to-integral conversion"
       else if ck == "PointerToIntegral" then
-        if pointerIntegerTypeOfNode structuredType then do
-          let v ← evalExpr ctx sub
-          let p ← asPtr v
-          -- C23 §6.3.2.3p6 leaves the representation implementation-defined.
-          -- The pinned profile preserves the exposed pointer token through a
-          -- uintptr_t object, so an unchanged cast back retains both
-          -- provenance and the subobject offset.  It is still refused when
-          -- used as an ordinary integer or changed before the cast back.
-          pure (.ptrInt p)
-        else refuseUnsupported "pointer-to-integer conversion outside uintptr_t/intptr_t"
+        -- C23 §6.3.2.3p6 leaves the representation implementation-defined.
+        -- Until F2 stores exposure and provenance explicitly, admitting a
+        -- pointer-integer value would answer round trips from an invented
+        -- address token. Refuse the representation boundary loudly.
+        refuseUnsupported "nonValueRepresentation"
       else if ck == "IntegralToPointer" then
         if pointerTypeOfNode structuredType then do
           let v ← evalExpr ctx sub
           match v with
           | .ptrInt p => pure (.ptr p)
+          | .int _ _ =>
+              refuseUnsupported "integer-to-pointer conversion outside pointer type"
           | _ =>
               refuseUnsupported "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip"
         else refuseUnsupported "integer-to-pointer conversion outside pointer type"

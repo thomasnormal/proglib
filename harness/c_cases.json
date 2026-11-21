@@ -544,7 +544,7 @@
     "expect": "refuse",
     "return_value": 0,
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type",
+    "structured_error": "nonValueRepresentation",
     "error": "no layout for declared type 'int *'"
   },
   {
@@ -553,7 +553,7 @@
     "expect": "refuse",
     "return_value": 0,
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type",
+    "structured_error": "nonValueRepresentation",
     "error": "no layout for declared type 'int *'"
   },
   {
@@ -562,7 +562,7 @@
     "expect": "refuse",
     "return_value": 0,
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type",
+    "structured_error": "nonValueRepresentation",
     "error": "no layout for declared type 'int *'"
   },
   {
@@ -1257,7 +1257,7 @@
     "expect": "refuse",
     "error": "no layout for declared type 'int[2]'",
     "structured_expect": "refuse",
-    "structured_error": "pointer-integer value requires an unchanged cast back"
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "integer-to-pointer-arbitrary-refusal",
@@ -1494,5 +1494,13 @@
     "structured_envelope_checks": [
       "structured_types"
     ]
+  },
+  {
+    "id": "pointer-integer-exposure-refusal",
+    "source": "#include <stdint.h>\nint main(void) { int x = 3; uintptr_t u = (uintptr_t)&x; int *p = (int *)(u + sizeof(int)); return *p; }",
+    "expect": "refuse",
+    "return_value": 0,
+    "structured_expect": "refuse",
+    "structured_error": "nonValueRepresentation"
   }
 ]
