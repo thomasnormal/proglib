@@ -35124,6 +35124,57 @@ def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
                 return _syntax_unsupported(sm, syntax,
                                            "UninstantiatedDefSymbol:expression")
             syntax = children[0]
+        if syntax.kind == SyntaxKind.InvocationExpression:
+            children = _syntax_children(syntax)
+            if len(children) != 2 or children[0].kind != SyntaxKind.SystemName:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            if str(children[0]).strip() != "$bits":
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            arguments = _syntax_children(children[1])
+            if len(arguments) != 1 or arguments[0].kind != SyntaxKind.OrderedArgument:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            argument = _syntax_children(arguments[0])
+            while len(argument) == 1 and argument[0].kind in (
+                    SyntaxKind.SimplePropertyExpr,
+                    SyntaxKind.SimpleSequenceExpr):
+                argument = _syntax_children(argument[0])
+            if len(argument) != 1:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            target = argument[0]
+            symbol = None
+            if target.kind == SyntaxKind.IdentifierName:
+                try:
+                    symbol = scope.lookupName(str(target).strip())
+                except Exception:
+                    symbol = None
+            elif target.kind == SyntaxKind.ScopedName:
+                target_parts = _syntax_children(target)
+                if len(target_parts) == 2 and all(
+                        part.kind == SyntaxKind.IdentifierName
+                        for part in target_parts):
+                    try:
+                        package = _SYM.comp.getPackage(
+                            str(target_parts[0]).strip())
+                        if package is not None:
+                            symbol = package.lookupName(
+                                str(target_parts[1]).strip())
+                    except Exception:
+                        symbol = None
+            width = getattr(symbol, "bitWidth", None)
+            if width is None:
+                target_type = getattr(symbol, "targetType", None)
+                width = getattr(getattr(target_type, "type", None),
+                                "bitWidth", None)
+            if width is None:
+                return _syntax_unsupported(sm, syntax,
+                                           "UninstantiatedDefSymbol:expression")
+            return {"kind": "Int", "span": _syntax_span(sm, syntax),
+                    "value": int(width), "resolved_width": 32,
+                    "bits_type_query": True}
         if syntax.kind == SyntaxKind.ParenthesizedExpression:
             children = _syntax_children(syntax)
             return (_sym_uninstantiated_port_expr(sm, children[0], scope)
@@ -35213,6 +35264,25 @@ def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
                     if package is not None:
                         symbol = package.lookupName(
                             str(target_children[1]).strip())
+                        target_type = getattr(symbol, "targetType", None)
+                        width = getattr(getattr(target_type, "type", None),
+                                        "bitWidth", None)
+            elif target.kind == SyntaxKind.IdentifierName:
+                try:
+                    symbol = scope.lookupName(str(target).strip())
+                except Exception:
+                    symbol = None
+                # IEEE 1800-2023 §6.24: an identifier cast uses the
+                # resolved parameter value as its size.  Typedef targets
+                # instead contribute their elaborated packed width.
+                if type(symbol).__name__ == "ParameterSymbol":
+                    try:
+                        width = _cv_int(symbol.value)
+                    except Exception:
+                        width = None
+                if width is None:
+                    width = getattr(symbol, "bitWidth", None)
+                    if width is None:
                         target_type = getattr(symbol, "targetType", None)
                         width = getattr(getattr(target_type, "type", None),
                                         "bitWidth", None)
