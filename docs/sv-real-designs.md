@@ -13,6 +13,6 @@ This table is generated from the pinned public-design census receipts. It measur
 | `Ibex` | lowRISC d513671d | 396 | no | `parameter PMPRstCfg default ibex_pkg::PmpCfgRst is an aggregate value outside the Nat parameter binder` |
 | `PicoRV32` | YosysHQ ef203c2b | 0 | yes | `time-zero initialState + input-driven RVFI E-RUN: 220/220 cycles agree with both pinned simulators; census 360 admitted, 0 refused, 4 not reached` |
 | `DarkRISCV` | darklife bb6b483c | 0 | yes | `186 admitted / 0 refused / 0 not reached; staged canonical-E clock probe 4/4; 1000 source-shaped rising-edge cycles complete` |
-| `FemtoRV32 Quark` | BrunoLevy/learn-fpga f5ada24a | 48 | no | `Constant:untyped-width at FETCH_INSTR; canonical-E E-RUN 0/0; both pinned simulators refuse before elaboration at use-before-declared instr` |
+| `FemtoRV32 Quark` | BrunoLevy/learn-fpga f5ada24a | 48 | no | `E memory route does not yet admit module member Shift:invalid-compilation; canonical-E E-RUN 0/0; both pinned simulators refuse before elaboration at use-before-declared instr` |
 
 The three OpenTitan rows use the F1-retention census in `docs/sv-frontier.md`; CV32E40P and the RISC-V scouting rows use `Examples/system-verilog/cores/README.md` and `docs/cv32e40p-census.json`. The table is an admission census, not a proof claim.
