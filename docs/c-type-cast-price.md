@@ -38,3 +38,9 @@ initializer, and conversion matches before the full survey could classify
 them. It was discarded without a semantic commit. The remaining work must
 thread the actual node or declaration `QualType` through those callers and
 re-measure the full corpus before landing.
+
+The literal subfamily has a complete node fact. Integer and character literal
+evaluation now reads the expression's carried `QualType` through
+`intTyOfNode`, and the memory-invariance proof covers both success and loud
+absence. Other integer consumers remain on the larger coordinated migration
+boundary.
