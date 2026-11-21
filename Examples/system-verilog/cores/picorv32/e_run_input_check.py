@@ -21,10 +21,12 @@ ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.v"
 ENVELOPE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
 TESTBENCH = ROOT / "Examples/system-verilog/cores/picorv32/rvfi_long_e_probe.v"
+TRANSCRIPT = ROOT / "Examples/system-verilog/cores/picorv32/pico_simulator_transcript.txt"
 EXPECTED_CYCLES = 300
 SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
 TESTBENCH_SHA256 = "1dc356fbe89e36a5cd5e66006fdc32d9b7106f49f364c44ebcaa2b0ad42952fe"
+TRANSCRIPT_SHA256 = "09380d29f5201a61f56e9101affb3d0e20ff6c601fae7a52bb33c65bb9875947"
 
 INPUTS = {
     "resetn", "mem_ready", "mem_rdata", "pcpi_wr", "pcpi_rd",
@@ -160,11 +162,11 @@ def expected : List (List (String × String)) := [
 ]
 #eval match picorv32_core_mem with
 | .ok d => match runRows d d.initial rows with
- | .ok ss => sigs d ss == expected
- | .unsupported _ => false
- | .timeout => false
-| .unsupported _ => false
-| .timeout => false
+ | .ok ss => if sigs d ss == expected then "ok" else "mismatch"
+ | .unsupported msg => "refusal: " ++ msg
+ | .timeout => "timeout"
+| .unsupported msg => "refusal: " ++ msg
+| .timeout => "timeout"
 end Examples.«system-verilog».cores.picorv32
 """ % (",\n  ".join(data_rows), observed,
        ",\n  ".join(expected_rows))
@@ -183,7 +185,9 @@ def canonical_e_run(rows: list[dict[str, str]]) -> None:
         output = run(["lake", "env", "lean", str(probe)], ROOT)
     finally:
         probe.unlink(missing_ok=True)
-    if not re.search(r"(?m)^true$", output):
+    if re.search(r'(?m)^"refusal: ', output):
+        raise RuntimeError("canonical-E refused the input-driven run\n" + output)
+    if not re.search(r'(?m)^"ok"$', output):
         raise RuntimeError("canonical-E output did not match simulator rows\n" + output)
 
 
@@ -209,6 +213,11 @@ def main() -> int:
                                   "-top", "tb_picorv32_rvfi_long", str(SOURCE), str(TESTBENCH)], directory))
     if icarus != xcelium:
         raise RuntimeError("simulator traces differ")
+    if sha256(TRANSCRIPT) != TRANSCRIPT_SHA256:
+        raise RuntimeError("checked-in simulator transcript hash mismatch")
+    transcript = parse_rows(TRANSCRIPT.read_text())
+    if transcript != icarus:
+        raise RuntimeError("checked-in simulator transcript differs from current rows")
     check_program(icarus)
     canonical_e_run(icarus)
     digest = hashlib.sha256("\n".join(
@@ -222,6 +231,7 @@ def main() -> int:
     print("source SHA-256: " + SOURCE_SHA256)
     print("envelope SHA-256: " + ENVELOPE_SHA256)
     print("testbench SHA-256: " + TESTBENCH_SHA256)
+    print("simulator transcript SHA-256: " + TRANSCRIPT_SHA256)
     print("normalized binary cycle-row SHA-256: " + digest)
     return 0
 
