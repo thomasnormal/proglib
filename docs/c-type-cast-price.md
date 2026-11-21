@@ -30,3 +30,11 @@ discarded before commit because changing only the first conversion path would
 leave the remaining callers on the spelling table. The family therefore needs
 one coordinated signature migration with every caller in the same rebuilt
 commit.
+
+A second trial removed the spelling table and kept only parser-native integer
+projection. It compiled the C targets after routing missing call-site facts to
+loud refusals, but that fallback would discard existing integer, bit-field,
+initializer, and conversion matches before the full survey could classify
+them. It was discarded without a semantic commit. The remaining work must
+thread the actual node or declaration `QualType` through those callers and
+re-measure the full corpus before landing.
