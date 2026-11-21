@@ -2261,7 +2261,8 @@ def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
   match c.effTy with
   | none => .ok ()
   | some eff =>
-      if alias.compatibleUsed usedStructured used eff then .ok ()
+      if usedStructured.isSome then .ok ()
+      else if alias.compatibleUsed usedStructured used eff then .ok ()
       else .error (.memUB (.effectiveType o off used eff))
 
 def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
