@@ -36,3 +36,12 @@ last valid structured-envelope receipt remains **625 MATCH / 2,214 rows**
 490 instrument changes, 2 correct UB refusals and 209 regressions.  The
 reported 213 rejected-file increase is not reproduced by the available
 receipts.  No survey delta or S1 gate result is asserted from this run.
+
+The S1 gate audit on 2026-11-21 reports zero type-string operations, zero
+legacy `CType` aliases, and no `torScalarSize`, `sizeAlign`, `recordsOf`,
+`isPtrType`, `isPtrIntType` or `cAliasCompatible` definitions in the C lane.
+The approved structured probe's determinism self-test passes with 88 records,
+but the current extractor rejects that binary because it emits the former
+stdout protocol rather than the required stderr node-id record. No Clang
+development headers are installed to rebuild the probe, so the S1 survey gate
+remains unmeasured.
