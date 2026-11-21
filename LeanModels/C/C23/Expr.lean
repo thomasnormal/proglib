@@ -301,6 +301,12 @@ def objectSizeOfStructured : LeanModels.Clang.QualType → Option Nat
   | .pointer _ => some 8
   | type => scalarSizeOfStructured type
 
+def structuredDeclarationId : LeanModels.Clang.QualType → Option DeclarationId
+  | .record declaration | .enumeration declaration | .typedefRef declaration =>
+      some { value := declaration.value }
+  | .qualified _ _ base => structuredDeclarationId base
+  | _ => none
+
 /-- Integer promotions on the pinned LP64 profile. -/
 def promoteIntTy (t : IntTy) : IntTy :=
   if t.bits < IntTy.int_.bits then IntTy.int_ else t
@@ -1980,7 +1986,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                    | none => sub.map Expr.ty
         let decl := sub.bind directDeclId
         let size? := match structuredArgType with
-          | some operand => objectSizeOfStructured operand
+          | some operand =>
+              objectSizeOfStructured operand |>.orElse (fun _ =>
+                (structuredDeclarationId operand).bind ctx.layout.declSize)
           | none =>
               match key with
               | some k => ctx.layout.sizeAt decl k
