@@ -1882,13 +1882,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             else
               storeAt ctx.aliasModel p l.ty v
                 (ctx.layout.structuredTypeAt l)
-              match intTyOf? (ctx.layout.normalizeTy l.ty), v with
+              match lStructured.bind intTyOfStructured, v with
               | some t, .int _ n => pure (convert t n)
               | _, _ => pure v
         | _ =>
             storeAt ctx.aliasModel p l.ty v
               (ctx.layout.structuredTypeAt l)
-            match intTyOf? (ctx.layout.normalizeTy l.ty), v with
+            match lStructured.bind intTyOfStructured, v with
             | some t, .int _ n => pure (convert t n)
             | _, _ => pure v
       else do
