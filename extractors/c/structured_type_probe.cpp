@@ -52,7 +52,10 @@ std::optional<int64_t> sourceOffset(const clang::Decl *decl,
 std::optional<int64_t> sourceOffset(const clang::Expr *expr,
                                     const clang::SourceManager &sources) {
   if (!expr) return std::nullopt;
-  const auto location = sources.getExpansionLoc(expr->getExprLoc());
+  auto spelling = expr->getExprLoc();
+  if (spelling.isInvalid())
+    spelling = expr->getSourceRange().getBegin();
+  const auto location = sources.getExpansionLoc(spelling);
   if (location.isInvalid() || !sources.isWrittenInMainFile(location))
     return std::nullopt;
   return static_cast<int64_t>(sources.getFileOffset(location));
@@ -61,7 +64,10 @@ std::optional<int64_t> sourceOffset(const clang::Expr *expr,
 std::optional<int64_t> sourceEndOffset(const clang::Expr *expr,
                                        const clang::SourceManager &sources) {
   if (!expr) return std::nullopt;
-  const auto location = sources.getExpansionLoc(expr->getEndLoc());
+  auto spelling = expr->getEndLoc();
+  if (spelling.isInvalid())
+    spelling = expr->getSourceRange().getEnd();
+  const auto location = sources.getExpansionLoc(spelling);
   if (location.isInvalid() || !sources.isWrittenInMainFile(location))
     return std::nullopt;
   return static_cast<int64_t>(sources.getFileOffset(location));
@@ -249,26 +255,30 @@ public:
   }
 
   bool VisitExpr(clang::Expr *expr) {
-    const auto offset = sourceOffset(expr, context->getSourceManager());
-    if (!offset) return true;
-    const auto endOffset = sourceEndOffset(expr, context->getSourceManager());
-    if (!endOffset) return true;
-    auto tree = typeTree(expr->getType(), *context, 0);
-    if (!tree) {
-      rows.push_back(llvm::json::Object{
-          {"kind", "StructuredExprType"}, {"expr_id", nodeId(expr)},
-          {"offset", *offset},
-          {"end_offset", *endOffset}, {"expr_kind", expr->getStmtClassName()},
-          {"type", llvm::json::Object{{"kind", "unsupported"},
-                                       {"reason", "unrepresented Clang QualType"}}}});
-      return true;
-    }
-    rows.push_back(llvm::json::Object{{"kind", "StructuredExprType"},
-                                      {"expr_id", nodeId(expr)},
-                                      {"offset", *offset},
-                                      {"end_offset", *endOffset},
-                                      {"expr_kind", expr->getStmtClassName()},
-                                      {"type", std::move(*tree)}});
+    auto emit = [&](const clang::Expr *observed) {
+      if (!observed) return;
+      const auto offset = sourceOffset(observed, context->getSourceManager());
+      if (!offset) return;
+      const auto endOffset = sourceEndOffset(observed, context->getSourceManager());
+      if (!endOffset) return;
+      auto tree = typeTree(observed->getType(), *context, 0);
+      if (!tree) {
+        rows.push_back(llvm::json::Object{
+            {"kind", "StructuredExprType"}, {"expr_id", nodeId(observed)},
+            {"offset", *offset}, {"end_offset", *endOffset},
+            {"expr_kind", observed->getStmtClassName()},
+            {"type", llvm::json::Object{{"kind", "unsupported"},
+                                         {"reason", "unrepresented Clang QualType"}}}});
+        return;
+      }
+      rows.push_back(llvm::json::Object{{"kind", "StructuredExprType"},
+                                        {"expr_id", nodeId(observed)},
+                                        {"offset", *offset},
+                                        {"end_offset", *endOffset},
+                                        {"expr_kind", observed->getStmtClassName()},
+                                        {"type", std::move(*tree)}});
+    };
+    emit(expr);
     return true;
   }
 };
