@@ -81,3 +81,13 @@ after the conversion helper is unfolded. The unresolved forms are
 and the node floating-to-integer computation. The trial was discarded without
 semantic changes. A sound implementation needs a branch lemma that keeps the
 node helper opaque through `memInvariant_core`.
+
+Compound assignment has the same representation boundary in a different
+form. Clang carries `computeLHSType` and `computeResultType` on the
+`CompoundAssignOperator`, while the current AST constructor carries only one
+node `QualType` for the assigned expression. The C23 rule needs all three
+types, so replacing the two compute-type lookups with the destination type
+would silently change usual arithmetic conversions. The complete migration
+requires carrying both parser-native compute observations through `Ast`,
+JSON, and every compound-assignment consumer before deleting the final
+`normalizeTy`/`intTyOf` calls. No partial replacement is retained.
