@@ -1880,13 +1880,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               -- with Clang's truncation before the surrounding comparison.
               loadBitFieldAt ctx base.ty field fieldTy p (some base) lStructured
             else
-              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
+              storeAt ctx.aliasModel p l.ty v
                 (ctx.layout.structuredTypeAt l)
               match intTyOf? (ctx.layout.normalizeTy l.ty), v with
               | some t, .int _ n => pure (convert t n)
               | _, _ => pure v
         | _ =>
-            storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
+            storeAt ctx.aliasModel p l.ty v
               (ctx.layout.structuredTypeAt l)
             match intTyOf? (ctx.layout.normalizeTy l.ty), v with
             | some t, .int _ n => pure (convert t n)
@@ -1974,8 +1974,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             | .member base field arrow fieldTy _ _ .. =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
                   storeBitFieldAt ctx base.ty field fieldTy p nv (some base) subStructured
-                else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
-            | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
+                else storeAt ctx.aliasModel p sub.ty nv
+            | _ => storeAt ctx.aliasModel p sub.ty nv
             pure (if post then old else nv)
         | _ =>
             let (storageT, n) ← asInt old
@@ -1991,8 +1991,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                 | .member base field arrow fieldTy _ _ .. =>
                     if ctx.layout.fieldBitsAt base field |>.isSome then
                       storeBitFieldAt ctx base.ty field fieldTy p stored (some base) subStructured
-                    else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
-                | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
+                    else storeAt ctx.aliasModel p sub.ty stored subStructured
+                | _ => storeAt ctx.aliasModel p sub.ty stored subStructured
                 pure (if post then old else stored)
             | .ok _ => refuseUnsupported "increment of a non-integer value"
       else refuseUnsupported s!"unary operator '{op}'"
@@ -2037,9 +2037,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p nv (some base) lStructured
               else
-                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
+                storeAt ctx.aliasModel p l.ty nv
           | _ =>
-              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
+              storeAt ctx.aliasModel p l.ty nv
           pure nv
       | .float32 a, .float32 b => do
           let nv ← float32Binop (compoundBase op) a b
@@ -2048,9 +2048,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
-                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
+                storeAt ctx.aliasModel p l.ty nv
           | _ =>
-              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
+              storeAt ctx.aliasModel p l.ty nv
           pure nv
       | .float64 a, .float64 b => do
           let nv ← float64Binop (compoundBase op) a b
@@ -2059,9 +2059,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 refuseUnsupported "floating compound assignment to a bit-field"
               else
-                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
+                storeAt ctx.aliasModel p l.ty nv
           | _ =>
-              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
+              storeAt ctx.aliasModel p l.ty nv
           pure nv
       | _, _ => do
           let lhsT ← intTyOf (ctx.layout.normalizeTy computeLHSType)
@@ -2081,9 +2081,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               if ctx.layout.fieldBitsAt base field |>.isSome then
                 storeBitFieldAt ctx base.ty field fieldTy p stored (some base) lStructured
               else
-                storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored lStructured
+                storeAt ctx.aliasModel p l.ty stored lStructured
           | _ =>
-              storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored lStructured
+              storeAt ctx.aliasModel p l.ty stored lStructured
           pure stored
 
   -- ===== lvalues reaching value position without a conversion =====
