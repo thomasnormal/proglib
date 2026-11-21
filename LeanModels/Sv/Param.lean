@@ -3479,7 +3479,15 @@ def PDesign.defaultArgs (d : PDesign) : Res (List Int) :=
   -- Carry source-shaped pure function declarations into parameter defaults;
   -- otherwise a module/package constant function is reported as a generic
   -- `CallExpression` during the loader's own differential cross-check.
-  go { int32 := true, functions := d.functions } d.params
+  let env0 : IEnv := { int32 := true, functions := d.functions }
+  match bindPackageEnums env0 d.enums with
+  | .ok envE =>
+      match bindPackageParams envE d.packageParams with
+      | .ok envP => go envP d.params
+      | .unsupported msg => .unsupported msg
+      | .timeout => .timeout
+  | .unsupported msg => .unsupported msg
+  | .timeout => .timeout
 where
   go (env : IEnv) : List PParam → Res (List Int)
     | [] => .ok []

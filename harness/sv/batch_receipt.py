@@ -151,6 +151,11 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("package_function_case.sv", "package_function_case",
             (Port("a", 5),), (Port("y", 5),),
             retain_proc_rewrites=True),
+    # Package localparam defaults are qualified constants in the module's
+    # default-point parameter environment (IEEE 1800-2023 §6.20.2).
+    Fixture("package_localparam_child_e2.sv", "package_localparam_child_e2",
+            (Port("x", 4),), (Port("y", 4),),
+            (Point("W4", (4,)),)),
     Fixture("constant_function_child.sv", "constant_function_top",
             (Port("x", 4),), (Port("y", 2),),
             (Point("N1", (1,)), Point("N4", (4,))),
@@ -985,6 +990,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "generate_typed_localparam_param_e": ("W",),
             "generated_packed_select": ("W", "N"),
             "package_child_parameter_e": ("W",),
+            "package_localparam_child_e2": ("W",),
             "package_child_parameter_generate_e": ("USE",),
             "generate_if_control": ("USE",),
             "duplicate_active_scope": ("N",),
