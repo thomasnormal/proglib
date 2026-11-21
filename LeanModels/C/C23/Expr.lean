@@ -1111,21 +1111,11 @@ def asInt (v : CVal) : EvalM (IntTy × Int) :=
     asInt (CVal.renameAddress resolve v) = asInt v := by
   cases v <;> simp [asInt, CVal.renameAddress]
 
-/-- Is this spelling a pointer type? Spelling-based, and deliberately so:
-the tier carries clang's `qualType` string rather than a type tree
-(`docs/c-envelope-schema.md` §3). Measured: 199 distinct pointer/array
-spellings on expression nodes, every one ending in `*` or `]`. -/
+/-- Parser-native pointer-object classification. -/
 def pointerTypeOfNode (structured : Option LeanModels.Clang.QualType) : Bool :=
   structured.map (fun type => type.unqualified.pointerObject) |>.getD false
 
-def isPtrType (ty : CType)
-    (structured : Option LeanModels.Clang.QualType := none) : Bool :=
-  pointerTypeOfNode structured
-
-/-! Parser-native type decisions.  The spelling fallback is retained only for
-older envelopes that have no structured observation.  When clang supplied a
-`QualType`, these predicates read its constructors and never inspect the
-display spelling. -/
+/-! Parser-native type decisions. Missing observations remain a refusal. -/
 def structuredPointerObject (structured : Option LeanModels.Clang.QualType)
     (fallback : CType) : Bool :=
   pointerTypeOfNode structured
