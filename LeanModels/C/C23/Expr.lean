@@ -1969,7 +1969,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             -- of compound assignment. Reuse the provenance-checked pointer
             -- arithmetic rule, so one-past and object bounds stay exact.
             let nv ← evalArith ctx (if op == "++" then "+" else "-") old
-              (.int IntTy.int_ 1) (ctx.layout.normalizeTy sub.ty) none (some sub) subStructured
+              (.int IntTy.int_ 1) sub.ty none (some sub) subStructured
             match sub with
             | .member base field arrow fieldTy _ _ .. =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
@@ -1985,7 +1985,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             | .ok (.int _ nv) => do
                 let storedT ← match subStructured.bind intTyOfStructured with
                   | some projected => pure projected
-                  | none => intTyOf (ctx.layout.normalizeTy sub.ty)
+                  | none => refuseUnsupported "increment lacks parser-native storage type"
                 let stored := convert storedT nv
                 match sub with
                 | .member base field arrow fieldTy _ _ .. =>
