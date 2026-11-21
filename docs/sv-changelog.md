@@ -1,5 +1,15 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Refuse same-edge blocking read races — 2026-11-21
+
+Canonical E now refuses two edge processes that share an event source when a
+blocking write in either process is read by the other. IEEE 1800-2023 §4.7
+leaves the active-region order open, and §10.4.1 makes the intermediate write
+visible, so source-order execution cannot claim one result. The
+`edge_blocking_race_refuse` receipt covers both source orders with Icarus 13.0
+and Xcelium 24.03-s004 traces and a loader refusal carrying both clause
+references.
+
 ## Correct `always_comb` self-write sensitivity — 2026-11-21
 
 Canonical E now derives an `always_comb` block's implicit sensitivity from its
