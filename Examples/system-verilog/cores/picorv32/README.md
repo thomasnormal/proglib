@@ -2183,14 +2183,21 @@ The normalized binary cycle-row SHA-256 is
 
 ## 2026-11-21 E-RUN battery transcripts
 
-The fixed PicoRV32 battery was rerun with reset, ALU, taken branch, full-word
+The fixed PicoRV32 battery exercises reset, ALU, a taken branch, full-word
 store/load, a memory stall schedule, and an uninitialized-register read.  Icarus
 Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on
-300/300 cycles.  Canonical E agrees bit-for-bit on 300/300 cycles and all 39
-observed outputs.  The checked-in simulator transcript is
-`pico_simulator_transcript.txt` with SHA-256
-`a8d08e260de3066218edfd2cb0ccb19ebc1b9316746cc0cd32f2982965ea0345`.
-The existing harness negative control corrupts an output row and rejects it.
+300/300 cycles.  The checked-in simulator transcript is regenerated from the
+current 39-output testbench and is checked by `e_run_input_check.py`.  Its
+SHA-256 is
+`09380d29f5201a61f56e9101affb3d0e20ff6c601fae7a52bb33c65bb9875947`.
+
+The canonical-E replay currently stops before the first clocked transition with
+`Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between blocking
+writes; canonical E refuses a multi-write reactive process whose intermediate
+value another process can read`.  The source-shaped clean-room reproduction is
+[`scheduler_preemptive.sv`](../../../scheduler_audit/scheduler_preemptive.sv), with
+matching Icarus and Xcelium rows in its receipt.  This is a running wall, so no
+three-way E-RUN count is claimed until canonical E admits the schedule.
 
 DarkRISCV's pinned 1000-row battery has a checked-in simulator transcript at
 `Examples/system-verilog/cores/darkriscv/dark_simulator_transcript.txt` with
