@@ -898,6 +898,17 @@ def IEnv.bindPackageAgg (env : IEnv) (pkg n : String) (v : PackageAggValue) : IE
 def IEnv.packageAgg? (env : IEnv) (pkg n : String) : Option PackageAggValue :=
   env.packageAggs.lookup (pkg, n)
 
+/-- A module parameter whose default is a parser-retained package aggregate.
+The integer parameter binder cannot carry this value.  Keep the source-shaped
+parameter unbound so hierarchy forwarding can preserve it, and let any direct
+constant or value use refuse at its own expression node until the aggregate
+value store is threaded through the module environment (IEEE 1800-2023
+§6.20.2). -/
+@[simp] def PParam.hasAggregateDefault (env : IEnv) (p : PParam) : Bool :=
+  match p.default? with
+  | some (.paramRef n (some pkg)) => (env.packageAgg? pkg n).isSome
+  | _ => false
+
 /-- Self-determined type of a retained package parameter. -/
 def IEnv.packageConstType (env : IEnv) (pkg n : String) : Option (Nat × Bool) :=
   match env.packageFVal pkg n with
@@ -2875,6 +2886,12 @@ value converted to the declared type (`canonInt` — what SV does with an
 override that does not fit). -/
 def bindParams (env : IEnv) : List PParam → List Int → Except String IEnv
   | p :: ps, v :: vs => do
+      if p.hasAggregateDefault env then
+        -- An aggregate parameter is not an integer binder.  Preserve its
+        -- absence from the integer environment so a forwarded reference
+        -- remains parser-shaped and direct use fails loudly downstream.
+        bindParams { env with stale := p.name :: env.stale } ps vs
+      else
       match ← (declConstType env p.type? p.signed?).mapError
           (fun e => s!"parameter '{p.name}' type: {e}") with
       | none =>
@@ -3187,17 +3204,18 @@ where
               match p.default? with
               | none => throw s!"parameter '{p.name}' has no default"
               | some e => do
-                  match e with
-                  | .paramRef n (some pkg) =>
-                      if (env.packageAgg? pkg n).isSome then
-                        throw s!"parameter '{p.name}' default '{pkg}::{n}' is an aggregate value outside the Nat parameter binder"
-                      else pure ()
-                  | _ => pure ()
-                  let v ← (p.evalDefault env e).mapError fun m => s!"parameter '{p.name}' default: {m}"
-                  match ← (p.defaultConstType env).mapError
-                      (fun m => s!"parameter '{p.name}' default type: {m}") with
-                  | none => pure (p, v)
-                  | some (w, s) => pure (p.retype w s, v)
+                  if p.hasAggregateDefault env then
+                    -- Aggregate defaults are source-shaped values, not Nat
+                    -- arguments.  Keep the placeholder out of the integer
+                    -- environment in `bindParams`; hierarchy forwarding
+                    -- recognizes the retained default and preserves it.
+                    pure (p, 0)
+                  else
+                    let v ← (p.evalDefault env e).mapError fun m => s!"parameter '{p.name}' default: {m}"
+                    match ← (p.defaultConstType env).mapError
+                        (fun m => s!"parameter '{p.name}' default type: {m}") with
+                    | none => pure (p, v)
+                    | some (w, s) => pure (p.retype w s, v)
         let env' ← bindParams env [p'] [v]
         let v' := match g, env'.nvals.lookup p'.name with
           | none, some (c, _, _) => c

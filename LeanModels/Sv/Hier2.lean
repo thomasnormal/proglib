@@ -350,7 +350,19 @@ def PInst.given (env : IEnv) (c : PDesign) (i : PInst) :
     match i.params.lookup p.name with
     | none => pure none
     | some e =>
-        if p.type?.isNone && !e.intTyped env then
+        if p.hasAggregateDefault env then
+          match e with
+          | .paramRef n none =>
+              if (env.vals.lookup n).isNone && (env.nvals.lookup n).isNone then
+                -- The parent retained an aggregate parameter reference.  It
+                -- is forwarded by the child's own parser-shaped default;
+                -- no integer override is fabricated for IEEE 1800-2023
+                -- §6.20.2 aggregate values.
+                pure none
+              else
+                throw s!"parameter '{p.name}' aggregate override is not an integer value"
+          | _ => throw s!"parameter '{p.name}' aggregate override is outside the source-shaped binder"
+        else if p.type?.isNone && !e.intTyped env then
           throw s!"parameter '{p.name}' has no declared type and its override is not an integer expression (it would take the override's type, IEEE 1800-2023 §6.20.2)"
         else
           match evalInt env e with
