@@ -344,7 +344,11 @@ def initObject : Nat → Ctx → Ptr → CType → Expr →
           | none => (plainStringBytes value).map (fun bs => bs ++ [CByte.conc 0])
         match ctx.layout.elemDeclAt declaration ty, bytes? with
         | some (et, n), some bytes =>
-            match intTyOf? (ctx.layout.normalizeTy et) with
+            let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
+              match q.unqualified with
+              | .array element _ => some element
+              | _ => none)
+            match elementStructured.bind intTyOfStructured with
             | some t =>
                 if t == IntTy.char_ || t == IntTy.uchar then
                   let copied := bytes.take n
