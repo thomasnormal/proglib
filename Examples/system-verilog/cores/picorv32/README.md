@@ -2117,13 +2117,11 @@ reactive dependency-order refusal.  No additional class theorem is added until
 that E boundary becomes reachable or the R2 statement names a concrete missing
 consumer.
 
-The core-specific statement now exposes three typed consumers in `R2.lean`.
-`picorv32_addi_step_bridge` and `picorv32_upper_step_bridge` route packaged
-ADDI and upper-immediate invariants into the unified RV32I cycle obligation.
-`picorv32_progress_bridge` routes the separate bounded next-retirement premise
-into the all-prefix trace result.  These wrappers consume existing generic
-theorems and do not assert that the current RTL has an admitted E invariant.
-The R1 ADDI package also proves envelope-level prerequisites for that consumer.
+The core-specific statement in `R2.lean` retains only the generic invariant
+and progress obligations.  The former typed consumer wrappers were removed
+because they repackaged assumptions rather than discharging a loaded-RTL
+premise.  The generic RVFI adapter remains available for the first real ADDI
+invariant.
 It pins the 26-parameter configuration, the defaults-resolved parameter vector,
 the RVFI declaration prefix, every decoder field, and all 21 decoder widths
 directly from the loaded envelope.  `R2.lean` also records that the loaded
@@ -2202,12 +2200,12 @@ the transcript against canonical E with its corrupted-row negative control.
 
 ## 2026-11-20 R1 ADDI premise audit
 
-The loaded-core R1 obligation is the `Rv32iAddiInvariant` consumed by
-`picorv32_addi_step_bridge` in `R2.lean`. Its valid-row premise is the exact
+The loaded-core R1 obligation is the `Rv32iAddiInvariant` consumed by the
+generic adapter. Its valid-row premise is the exact
 `RvfiObservation.addiBoundary`, and its conclusion is the memory-threaded
-`addiNext` architectural step. `r1_addi.lean` checks the pinned loaded
-configuration, RVFI field widths, and the ADDI boundary-to-ISA equations used
-by that obligation. The loaded theorem also requires two universal premises.
+`addiNext` architectural step. The former `r1_addi.lean` package was removed
+because it only repackaged these assumptions. The loaded theorem also requires
+two universal premises.
 `hstep` must produce an exact canonical post-state and RVFI observation for
 every related state and admitted input, then establish the ADDI boundary and
 relation continuation on valid rows. `horder` must establish the RVFI order
@@ -2252,22 +2250,16 @@ fully admitted at **177/0/0** but its first complete clock remains an execution
 wall after the staged **4/4** path. Quark remains **130/51/0** with E-RUN
 **0/0**.
 
-The complete R1 consumer set was compiled directly from the repository entry
-points. `r1_addi`, `r1_upper`, `r1_jump`, `r1_branch`, `r1_alu`, `r1_alu_imm`,
-`r1_fence`, `r1_system`, `r1_illegal`, `r1_csr`, `r1_mem`, `r1_mem_all`, and
-`rvfi_core_adapter` all passed `lake env lean`. The mixed bridge and every
-instruction-family wrapper therefore remain kernel-checked and available to a
-future loaded-core invariant. This audit does not promote the finite E-RUN into
-a universal RTL theorem.
+The former per-class `r1_*` consumer files were subsequently removed because
+their premises were the missing loaded-core invariant. The generic RVFI
+adapter remains available to a future loaded-core invariant. This audit does
+not promote the finite E-RUN into a universal RTL theorem.
 
 ## 2026-11-20 R1 ALU consumer recheck
 
-The loaded R1 register-register ALU package and its consumers were rechecked
-against current master.  `r1_alu.lean`, `R2.lean`, and
-`rvfi_core_adapter.lean` all compile successfully.  The package covers the
-ten RV32I register-register operations and still consumes universal canonical-E
-step and RVFI-order premises.  The finite 220-cycle receipt supplies neither
-premise, so this recheck adds no universal loaded-core theorem.
+The former loaded R1 register-register ALU package was removed after audit.
+Its premises were the universal canonical-E step and RVFI-order obligations,
+so it supplied no universal loaded-core theorem. The generic adapter remains.
 
 ## 2026-11-20 W5 one-cycle cost remeasurement
 
