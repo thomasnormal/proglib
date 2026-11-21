@@ -280,6 +280,7 @@ inductive Decl where
   | var (id : Option DeclarationId) (name : String) (ty : CType)
       (storage : Option String) (init : Option Expr)
       (recordId : Option DeclarationId) (vaList : Bool) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- A parameter. `name` is **optional**, because C's is: §6.7.6.3 lets a
   prototype declare a parameter with no identifier (`int f(int);`), and
   clang reports one with no `name`.
@@ -291,6 +292,7 @@ inductive Decl where
   (`docs/backlog/c.md` 2026-08-24-c-20). -/
   | param (id : Option DeclarationId) (name : Option String) (ty : CType)
       (vaList : Bool) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- A member declarator. `bits` is the BIT-FIELD WIDTH (§6.7.2.1p4) and
   `none` means "not a bit-field" — the two are different declarations, not
   a present/absent spelling of one. It is carried because `unsigned int b :
@@ -299,11 +301,15 @@ inductive Decl where
   correctly about whichever one it happened to build. -/
   | field (name : Option String) (ty : CType) (bits : Option Nat)
       (fieldId : Option DeclarationId) (recordId : Option DeclarationId) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   | record (id : Option DeclarationId) (name : Option String) (fields : List Decl)
       (layout : Option RecordLayout) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   | typedef (id : Option DeclarationId) (name : String) (ty : CType)
       (underlying : Option TypeNode) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   | enum (name : Option String) (constants : List Decl) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- An enumeration constant. clang's `ConstantExpr` wrapper is flattened
   by the extractor (schema §3.1). `value` is the FOLDED integer as a decimal
   string, and it is **optional**: clang does not always give one, and the
@@ -315,6 +321,7 @@ inductive Decl where
   supplied from `Program.enums`, which nothing builds from an envelope, so
   this is schema-widening (`docs/backlog/c.md` 2026-08-24-c-21). -/
   | enumConst (id : Option DeclarationId) (name : String) (value : Option String) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- §6.7.2 — an empty declaration (`;`) has no runtime effect. -/
   | empty (span : CSpan)
   | unsupported (cKind : String) (text : String) (span : CSpan)
@@ -354,6 +361,8 @@ structure FunctionDefn where
   id : Option DeclarationId := none
   name : String
   ty : CType
+  /-- Parser-native function QualType joined by the declaration identity. -/
+  structuredType : Option LeanModels.Clang.QualType := none
   storage : Option String
   params : List Decl
   /-- Clang's parser-native `variadic` bit on the function declaration. -/
@@ -597,7 +606,7 @@ tactic's failure as the fact's absence. -/
 
 /-- The expressions a block-scope declaration contains. -/
 def Decl.exprs : Decl → List Expr
-  | .var _ _ _ _ (some i) _ _ _ => i.subexprs
+  | .var _ _ _ _ (some i) _ _ _ .. => i.subexprs
   | _ => []
 
 /-- Statements nested inside a statement, including itself. -/
@@ -651,11 +660,11 @@ def fileScopeObjects (u : TranslationUnit) : List Decl :=
 /-- Folded enum constants keyed by their frontend declaration handles,
 including enums nested in parser-native record declaration fields. -/
 def enumBindingsDecl : Decl → List (DeclarationId × Int)
-  | .enum _ constants _ => constants.filterMap fun constant =>
+  | .enum _ constants _ _ => constants.filterMap fun constant =>
       match constant with
-      | .enumConst (some id) _ (some value) _ => value.toInt?.map (fun n => (id, n))
+      | .enumConst (some id) _ (some value) _ .. => value.toInt?.map (fun n => (id, n))
       | _ => none
-  | .record _ _ fields _ _ => fields.flatMap enumBindingsDecl
+  | .record _ _ fields _ _ .. => fields.flatMap enumBindingsDecl
   | _ => []
 
 def enumBindings (u : TranslationUnit) : List (DeclarationId × Int) :=

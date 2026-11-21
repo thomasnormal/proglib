@@ -301,6 +301,47 @@ partial def parseExpr (j : Json) : Except String Expr := do
         throw s!"unknown expression kind {other.quote} (the extractor should \
 have emitted an Unsupported leaf; extractor and ingester disagree)"
 
+partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.QualType := do
+  let kind ← getStr j "kind"
+  withCtx s!"structured type {kind}" do
+    match kind with
+    | "builtin" =>
+        let name ← getStr j "name"
+        if name == "void" then .ok .void
+        else match LeanModels.Clang.CBuiltin.ofName name with
+        | some kind => .ok (.cBuiltinKind kind)
+        | none => .error s!"unsupported C builtin QualType {name.quote}"
+    | "pointer" => .ok (.pointer (← parseStructuredQualType (← getField j "pointee")))
+    | "array" =>
+        .ok (.array (← parseStructuredQualType (← getField j "element"))
+          (← getOptNat j "extent"))
+    | "qualified" =>
+        .ok (.qualified (← getBool j "const") (← getBool j "volatile")
+          (← parseStructuredQualType (← getField j "base")))
+    | "function" =>
+        let params ← (← getArr j "parameters").mapM parseStructuredQualType
+        .ok (.function (← parseStructuredQualType (← getField j "result"))
+          params (← getBool j "variadic"))
+    | "record" => .ok (.record (← structuredDeclaration j))
+    | "enumeration" => .ok (.enumeration (← structuredDeclaration j))
+    | "typedef" => .ok (.typedefRef (← structuredDeclaration j))
+    | other => .error s!"unknown structured QualType kind {other.quote}"
+where
+  structuredDeclaration (j : Json) : Except String LeanModels.Clang.DeclarationHandle := do
+    let raw ← getField j "declaration"
+    let id ← getStr raw "id"
+    pure {value := id}
+
+def parseStructuredType (j : Json) : Except String StructuredType := withCtx "structured_type" do
+  return { declaration := DeclarationId.mk (← getStr j "decl_id")
+           type := ← parseStructuredQualType (← getField j "type") }
+
+def parseOptStructuredQualType (j : Json) (name : String) : Except String (Option LeanModels.Clang.QualType) :=
+  match getOptNode j name with
+  | none => .ok none
+  | some value => some <$> parseStructuredQualType value
+
+
 /-! ## Declarations and statements -/
 
 partial def parseDecl (j : Json) : Except String Decl := do
@@ -316,33 +357,38 @@ partial def parseDecl (j : Json) : Except String Decl := do
               | none => pure none
               | some v => some <$> parseExpr v)
           ((← getOptStr j "record_decl_id").map DeclarationId.mk)
-          (← getBool j "va_list") span
+          (← getBool j "va_list") span (← parseOptStructuredQualType j "structured_type")
     -- `name` is OPTIONAL (§6.7.6.3): absent and `null` are one absence.
     | "ParmVarDecl" =>
         let id ← getOptStr j "decl_id"
         return .param (id.map DeclarationId.mk) (← getOptStr j "name")
-          (← getStr j "type") (← getBool j "va_list") span
+          (← getStr j "type") (← getBool j "va_list") span (← parseOptStructuredQualType j "structured_type")
     | "FieldDecl" =>
         return .field (← getOptStr j "name") (← getStr j "type") (← getOptNat j "bits")
           ((← getOptStr j "decl_id").map DeclarationId.mk)
           ((← getOptStr j "record_decl_id").map DeclarationId.mk) span
+          (← parseOptStructuredQualType j "structured_type")
     | "RecordDecl" =>
         return .record ((← getOptStr j "decl_id").map DeclarationId.mk) (← getOptStr j "name")
           (← (← getArr j "fields").mapM parseDecl) (← getOptRecordLayout j) span
+          (← parseOptStructuredQualType j "structured_type")
     | "TypedefDecl" =>
         return .typedef ((← getOptStr j "decl_id").map DeclarationId.mk)
           (← getStr j "name") (← getStr j "type")
           (← match getOptNode j "underlying" with
               | none => pure none
               | some v => some <$> parseTypeNode v) span
+          (← parseOptStructuredQualType j "structured_type")
     | "EnumDecl" =>
         return .enum (← getOptStr j "name")
           (← (← getArr j "constants").mapM parseDecl) span
+          (← parseOptStructuredQualType j "structured_type")
     | "EnumConstantDecl" =>
         -- `value` is OPTIONAL: clang does not always fold one.
         let id ← getOptStr j "decl_id"
         return .enumConst (id.map DeclarationId.mk) (← getStr j "name")
           (← getOptStr j "value") span
+          (← parseOptStructuredQualType j "structured_type")
     | "EmptyDecl" => return .empty span
     | "Unsupported" =>
         return .unsupported (← getStr j "c_kind") (← getStr j "text") span
@@ -405,6 +451,7 @@ def parseFunctionDefn (j : Json) : Except String FunctionDefn :=
   withCtx "FunctionDecl" do
     let id ← getOptStr j "decl_id"
     return { id := id.map DeclarationId.mk, name := ← getStr j "name", ty := ← getStr j "type"
+             structuredType := ← parseOptStructuredQualType j "structured_type"
              storage := ← getOptStr j "storage"
              params := ← (← getArr j "params").mapM parseDecl
              variadic := ← getBool j "variadic"
@@ -431,41 +478,6 @@ def parseTypeLayout (j : Json) : Except String TypeLayout := withCtx "type_layou
            elementType := ← getOptStr j "element_type"
            elementSizeBytes := ← getOptNat j "element_size_bytes" }
 
-partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.QualType := do
-  let kind ← getStr j "kind"
-  withCtx s!"structured type {kind}" do
-    match kind with
-    | "builtin" =>
-        let name ← getStr j "name"
-        if name == "void" then .ok .void
-        else match LeanModels.Clang.CBuiltin.ofName name with
-        | some kind => .ok (.cBuiltinKind kind)
-        | none => .error s!"unsupported C builtin QualType {name.quote}"
-    | "pointer" => .ok (.pointer (← parseStructuredQualType (← getField j "pointee")))
-    | "array" =>
-        .ok (.array (← parseStructuredQualType (← getField j "element"))
-          (← getOptNat j "extent"))
-    | "qualified" =>
-        .ok (.qualified (← getBool j "const") (← getBool j "volatile")
-          (← parseStructuredQualType (← getField j "base")))
-    | "function" =>
-        let params ← (← getArr j "parameters").mapM parseStructuredQualType
-        .ok (.function (← parseStructuredQualType (← getField j "result"))
-          params (← getBool j "variadic"))
-    | "record" => .ok (.record (← structuredDeclaration j))
-    | "enumeration" => .ok (.enumeration (← structuredDeclaration j))
-    | "typedef" => .ok (.typedefRef (← structuredDeclaration j))
-    | other => .error s!"unknown structured QualType kind {other.quote}"
-where
-  structuredDeclaration (j : Json) : Except String LeanModels.Clang.DeclarationHandle := do
-    let raw ← getField j "declaration"
-    let id ← getStr raw "id"
-    pure {value := id}
-
-def parseStructuredType (j : Json) : Except String StructuredType := withCtx "structured_type" do
-  return { declaration := DeclarationId.mk (← getStr j "decl_id")
-           type := ← parseStructuredQualType (← getField j "type") }
-
 def parseStructuredExprType (j : Json) : Except String StructuredExprType := withCtx "structured_expr_type" do
   return { offset := ← getNat j "offset"
            endOffset := ← getOptNat j "end_offset"
@@ -477,6 +489,10 @@ def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
   unless ver == "c-0.1" do
     throw s!"unsupported schema_version {ver.quote} (this ingester reads 'c-0.1')"
   let tu ← getField j "translation_unit"
+  -- The structured-type probe is part of the approved frontend boundary.
+  -- An envelope that omits it cannot be interpreted soundly, even when no
+  -- current consumer happens to need a structured fact.
+  let structuredTypesJson ← getField j "structured_types"
   let frontendVersion ← getFrontendVersion j
   unless frontendVersion == pinnedFrontendVersion do
     throw s!"unsupported frontend.version {frontendVersion.quote} (this ingester pins {pinnedFrontendVersion.quote})"
@@ -494,11 +510,9 @@ def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
              | some a => do
                  let xs ← a.getArr?
                  xs.toList.mapM parseTypeLayout
-           structuredTypes := ← match getOptNode j "structured_types" with
-             | none => pure []
-             | some a => do
-                 let xs ← a.getArr?
-                 xs.toList.mapM parseStructuredType
+           structuredTypes := ← do
+             let xs ← structuredTypesJson.getArr?
+             xs.toList.mapM parseStructuredType
            structuredExprTypes := ← match getOptNode j "structured_expr_types" with
              | none => pure []
              | some a => do
