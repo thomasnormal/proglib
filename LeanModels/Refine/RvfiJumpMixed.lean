@@ -146,26 +146,26 @@ proof and selects either the exact JAL or JALR boundary. -/
 theorem rv32iCycleStepRefines_of_jump_memory
     {State : Type}
     (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop)
-    (hstep : ∀ (state : State) (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
+    (rel : Nat → State → RvMemoryState → Prop) (admit : Input → Prop)
+    (hstep : ∀ (start : Nat) (state : State) (memoryState : RvMemoryState) (input : Input),
+      rel start state memoryState → admit input →
       let (state', observation) := machine.step state input
       if observation.valid then
         ∃ instruction : JumpInstruction,
           input.memory = memoryState.memory ∧
           observation.jumpBoundary memoryState.arch input instruction ∧
-          rel state'
+          rel (start + 1) state'
             { arch := JumpKind.next memoryState.arch instruction.kind,
               memory := memoryState.memory }
-      else rel state' memoryState)
+      else rel start state' memoryState)
     (horder : ∀ (start : Nat) (state : State)
       (memoryState : RvMemoryState) (input : Input),
-      rel state memoryState → admit input →
+      rel start state memoryState → admit input →
       let (_, observation) := machine.step state input
       if observation.valid then observation.order = start else True) :
-    Rv32iLegacyCycleStepRefines machine rel admit := by
+    Rv32iCycleStepRefines machine rel admit := by
   intro start state memoryState input hrel hadmit
-  have hcase := hstep state memoryState input hrel hadmit
+  have hcase := hstep start state memoryState input hrel hadmit
   have horderCase := horder start state memoryState input hrel hadmit
   rcases hmachine : machine.step state input with ⟨state', observation⟩
   simp only [hmachine] at hcase horderCase ⊢
@@ -173,7 +173,7 @@ theorem rv32iCycleStepRefines_of_jump_memory
   · have hcase' : ∃ instruction : JumpInstruction,
         input.memory = memoryState.memory ∧
         observation.jumpBoundary memoryState.arch input instruction ∧
-        rel state'
+        rel (start + 1) state'
           { arch := JumpKind.next memoryState.arch instruction.kind,
             memory := memoryState.memory } := by
       simpa [hv] using hcase
@@ -205,7 +205,7 @@ theorem rv32iCycleStepRefines_of_jump_memory
       cases hvalue : observation.valid with
       | false => exact rfl
       | true => exact False.elim (hv hvalue)
-    have hrel' : rel state' memoryState := by
+    have hrel' : rel start state' memoryState := by
       simpa [hv, hv'] using hcase
     simp only [hv]
     exact hrel'

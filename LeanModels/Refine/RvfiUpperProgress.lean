@@ -21,21 +21,21 @@ RVFI observation does not assign a retirement index by itself.
 -/
 structure Rv32iUpperInvariant {State : Type}
     (machine : RvfiCycleMachine State)
-    (rel : State → RvMemoryState → Prop) (admit : Input → Prop) : Prop where
-  step : ∀ (state : State) (memoryState : RvMemoryState) (input : Input),
-    rel state memoryState → admit input →
+    (rel : Nat → State → RvMemoryState → Prop) (admit : Input → Prop) : Prop where
+  step : ∀ (start : Nat) (state : State) (memoryState : RvMemoryState) (input : Input),
+    rel start state memoryState → admit input →
     let (state', observation) := machine.step state input
     if observation.valid then
       ∃ instruction : UpperInstruction,
         input.memory = memoryState.memory ∧
         observation.upperBoundary memoryState.arch input instruction ∧
-        rel state'
+        rel (start + 1) state'
           { arch := UpperKind.next memoryState.arch instruction.kind,
             memory := memoryState.memory }
-    else rel state' memoryState
+    else rel start state' memoryState
   order : ∀ (start : Nat) (state : State)
     (memoryState : RvMemoryState) (input : Input),
-    rel state memoryState → admit input →
+    rel start state memoryState → admit input →
     let (_, observation) := machine.step state input
     if observation.valid then observation.order = start else True
 
@@ -43,9 +43,9 @@ structure Rv32iUpperInvariant {State : Type}
 per-cycle obligation. -/
 theorem Rv32iUpperInvariant.toMixedStep
     {State : Type} {machine : RvfiCycleMachine State}
-    {rel : State → RvMemoryState → Prop} {admit : Input → Prop}
+    {rel : Nat → State → RvMemoryState → Prop} {admit : Input → Prop}
     (invariant : Rv32iUpperInvariant machine rel admit) :
-    Rv32iLegacyCycleStepRefines machine rel admit := by
+    Rv32iCycleStepRefines machine rel admit := by
   exact rv32iCycleStepRefines_of_upper_memory machine rel admit
     invariant.step invariant.order
 
