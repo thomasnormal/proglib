@@ -349,6 +349,8 @@ FIXTURES: tuple[Fixture, ...] = (
     # Signed relational comparison family, including unknown operands.
     Fixture("signed_decl.sv", "signed_comparison",
             (Port("x", 8),), (Port("y", 1),)),
+    Fixture("signed_self_determined.sv", "signed_self_determined",
+            (Port("a", 4), Port("b", 4), Port("en", 1)), (Port("y", 1),)),
     Fixture("timed_event_loop.sv", "timed_event_loop",
             (Port("x", 8),), (Port("y", 4),)),
     Fixture("implicit_clock_event.sv", "implicit_event",
