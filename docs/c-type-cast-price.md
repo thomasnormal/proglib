@@ -22,3 +22,11 @@ The current checker reports these named seams and type-spelling comparisons in
 addition to the `CType` alias. The expected short-term result is a larger,
 honest finding set until each conversion family consumes the node-carried
 `QualType`.
+
+An implementation trial changed `intTyOf?` to accept only `Option QualType`.
+The capped `Expr` build exposed 27 direct callers across arithmetic, bit-field,
+initializer, pointer-difference, and value-conversion paths. The trial was
+discarded before commit because changing only the first conversion path would
+leave the remaining callers on the spelling table. The family therefore needs
+one coordinated signature migration with every caller in the same rebuilt
+commit.
