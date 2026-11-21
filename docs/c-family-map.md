@@ -210,43 +210,12 @@ The accepted F2 storage contract is [c-f2-object-memory-design.md](c-f2-object-m
 
 **F1 exit-state audit (2026-11-21).** The legacy `CType` alias and its type-string operations have been deleted. Declaration and expression nodes require same-invocation parser-native `QualType` observations. Layout decisions use declaration identity, structured expression observations and parser-provided record facts. Missing observations refuse loudly. The live checker reports 0 type-string operations and 0 legacy aliases. The full registered differential battery and the corpus survey still require a fresh approved-plugin replay, so F1 is not released until the survey reaches at least 1326/2214 with 0 DIVERGE and no unwitnessed UB refusals.
 
-F1 is not released. `LeanModels/C/Ast.lean` still defines `abbrev CType :=
-String`, and type fields, layout interfaces, and memory effective-type fields
-still use that alias. String operations on types remain in `Ast.lean`,
-`Torture.lean`, `C23/Expr.lean`, `C23/Stmt.lean`, and `C23/Memory.lean`,
-including qualification stripping, array splitting, pointer suffix tests, and
-record-tag extraction. The extractor carries parser-native record-layout
-facts, but the evaluator still has spelling-based fallback code, so the D1
-shared `QualType` representation and library-owned layout join are incomplete.
-The differential rows currently cover scalar struct padding and `_Alignas`
-through the layout-backed `record-attributes` case, forward-declared record size,
-anonymous struct and union objects, aggregate copy, designated union
-initialization, nested arrays, postfix-qualified pointers, and an array
-subobject bounds refusal. The layout-backed battery now matches signed and
-unsigned in-range bit-field assignments, a flexible-array-member size and
-scalar access, a fixed array member, and the profiled low-bit conversion for
-out-of-range signed bit-field assignments. It also covers a nested record member
-whose parser-native size and alignment facts agree with the native run. The
-survey also has refusal rows for packed and aligned records,
-flexible-array initializers, and missing layouts for arrays, vectors, complex
-types, and function pointers. There is no matching row yet
-for a general `_Alignas` layout rule. F1 exits only after
-these type operations are removed from the semantics and each layout rule is
-decided by the parser-native library with differential coverage.
+F1 code prerequisites are complete. `CType` is deleted, modeled nodes require same-invocation structured QualType observations, and layout paths use declaration identity or parser-native expression observations. The checker reports zero type-string operations and zero legacy aliases. F1 release still requires the fresh approved-plugin survey threshold and UB-witness gate.
 
-**F1 type-string gate audit (2026-11-19).** `tools/check_c_type_strings.py`
-is the repeatable gate for the five C type paths. Its self-test passes and the
-live audit reports zero string operations and one separate legacy `CType` alias
-debt. The parser-native effective-type, pointer, qualification,
-record-identity, and array-shape families are covered by focused rows. The
-remaining `CType` alias is the last type-path debt. No F2 store work starts
-until the alias migration and full survey gate reach the stated threshold of
-at least 1326/2214 with no DIVERGE.
+**F1 type-string gate audit (2026-11-21).** `tools/check_c_type_strings.py` passes its self-test and reports zero live operations and zero legacy aliases. No F2 store work starts until the full survey gate reaches at least 1326/2214 with no DIVERGE.
 
-**CType migration price (2026-11-19).** Replacing `CType := String` requires
-one schema family. Every AST type field currently receives Clang's displayed
-`qualType`, while the approved structured probe is optional and declaration
-keyed. The transition therefore needs parser-carried `QualType` observations
+**Historical CType migration price (2026-11-19).** Replacing `CType := String` requires
+one schema family. At the time of this price, AST fields received displayed `qualType` text while the approved structured probe was optional and declaration keyed. The transition therefore needs parser-carried `QualType` observations
 for every type-bearing AST node, JSON ingestion of those observations, typed
 `Expr` and `Decl` constructors, and layout/effective-type interfaces keyed by
 the resulting tree or its declaration identity. Legacy envelopes without the
@@ -255,8 +224,7 @@ coercion would keep the semantic parser alive under another name and would
 violate the parser-native boundary. The first wrapper experiment compiled the
 AST and expression layers, then stopped at three heterogeneous legacy layout
 joins in `Torture.lean`, before reaching the loader and evaluator call sites.
-This family is priced as a coordinated envelope, loader, layout, and
-semantics migration. No F2 store work starts before it is complete.
+This historical price was superseded by the landed coordinated envelope, loader and layout migration. No F2 store work starts before the survey gate is complete.
 
 **Focused differential receipt (2026-11-19).** The committed `harness/c_cases.json`
 battery without optional probes reports 27 MATCH, 94 REFUSE, and 0 DIVERGE
