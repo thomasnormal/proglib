@@ -25,10 +25,10 @@ EXTRACTOR = ROOT / "extractors" / "c" / "extract.py"
 
 def refresh_one(item: dict, source_root: Path, out_root: Path, string_plugin: str,
                 floating_plugin: str, layout_plugin: str,
-                structured_plugin: str) -> tuple[str, str | None]:
+                structured_plugin: str) -> tuple[str, str | None, str | None]:
     source = source_root / item["name"]
     if item.get("status") != "parsed" or not source.is_file():
-        return item["name"], None
+        return item["name"], None, None
     digest = hashlib.sha256(source.read_bytes()).hexdigest()
     if digest != item.get("sha256"):
         raise RuntimeError(f"source hash mismatch for {item['name']}")
@@ -45,12 +45,14 @@ def refresh_one(item: dict, source_root: Path, out_root: Path, string_plugin: st
     result = subprocess.run(command, cwd=ROOT, env=env,
                             capture_output=True, text=True)
     if result.returncode:
+        detail = (result.stderr.splitlines()[0] if result.stderr
+                  else "current frontend rejected source")
         print(f"c_refresh_envelopes: retained {item['name']}: "
-              f"current frontend rejected source ({result.stderr.splitlines()[0] if result.stderr else 'no diagnostic'})",
+              f"current frontend rejected source ({detail})",
               file=sys.stderr)
         output.unlink(missing_ok=True)
-        return item["name"], None
-    return item["name"], str(output)
+        return item["name"], None, detail
+    return item["name"], str(output), None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -86,9 +88,13 @@ def main(argv: list[str] | None = None) -> int:
                               args.string_plugin, args.floating_plugin, args.layout_plugin,
                               args.structured_plugin)
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        for i, (_, path) in pool.map(run, tasks):
+        for i, (_, path, reason) in pool.map(run, tasks):
             if path is not None:
                 data["tests"][i]["envelope"] = path
+            elif reason is not None:
+                data["tests"][i]["status"] = "rejected"
+                data["tests"][i]["envelope"] = None
+                data["tests"][i]["why"] = reason
     Path(args.manifest).with_name(Path(args.manifest).stem + "-fresh.json").write_text(
         json.dumps(data, indent=1, sort_keys=True) + "\n")
     print("c_refresh_envelopes: refreshed %d C1/C2 parsed rows" %
