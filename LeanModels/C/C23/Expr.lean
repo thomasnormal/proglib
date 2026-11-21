@@ -1972,16 +1972,19 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | _ => refuseUnsupported "indirect call lost its callee value"
 
   -- §6.5.4.4 — `sizeof`, answered by the layout, never computed here.
-  | .typeTrait trait argTy sub ty _ structuredType =>
+  | .typeTrait trait argTy sub ty _ structuredArgType structuredType =>
       if trait != "sizeof" then refuseUnsupported s!"type trait '{trait}'"
       else
         let key := match argTy with
                    | some a => some a
                    | none => sub.map Expr.ty
         let decl := sub.bind directDeclId
-        let size? := match key with
-          | some k => ctx.layout.sizeAt decl k
-          | none => decl.bind ctx.layout.declSize
+        let size? := match structuredArgType with
+          | some operand => objectSizeOfStructured operand
+          | none =>
+              match key with
+              | some k => ctx.layout.sizeAt decl k
+              | none => decl.bind ctx.layout.declSize
         match size? with
         | some n =>
             match structuredType.bind intTyOfStructured with
