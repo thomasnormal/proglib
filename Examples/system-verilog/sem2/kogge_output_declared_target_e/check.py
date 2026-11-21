@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-TMP = Path(os.environ.get("TMPDIR", "/scratch/thomas-ahle/gate/ls-sv/tmp"))
+TMP = Path(os.environ.get("TMPDIR", "/scratch/ls-sv/tmp"))
 TMP.mkdir(parents=True, exist_ok=True)
 SRC = HERE / "kogge_output_declared_target_e.sv"
 ENV = HERE / "kogge_output_declared_target_e.sv.json"

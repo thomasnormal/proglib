@@ -2401,7 +2401,22 @@ def _queue_m0_net_initializer(sm, symbol, width):
 def _storage_name(symbol):
     """Use the original package declaration even through imports/reexports."""
     if _SYM is not None:
-        return lower_proc.storage_name(symbol)     # WP-PROC L1: a hoisted block-local variable has its own name
+        name = lower_proc.storage_name(symbol)     # WP-PROC L1: a hoisted block-local variable has its own name
+        # Slang keeps declarations in named generate blocks distinct by
+        # hierarchical path. Preserve that identity in the symbolic
+        # envelope when active branches reuse a source name. This uses the
+        # parser metadata and does not inspect source text.
+        try:
+            top = getattr(_SYM.scope, "name", None)
+            path = str(getattr(symbol, "hierarchicalPath", ""))
+            prefix = (top + ".") if top else ""
+            if prefix and path.startswith(prefix):
+                relative = path[len(prefix):]
+                if "." in relative:
+                    return relative
+        except Exception:
+            pass
+        return name
     alias_name = _LEGACY_NET_ALIASES.get(id(symbol))
     if alias_name is not None:
         return alias_name
@@ -33667,7 +33682,7 @@ def convert_var_sym(sm, m):
     result = {
         "kind": "Var",
         "span": sym_span(sm, m),
-        "name": m.name,
+        "name": _storage_name(m),
         "width": dtype,
         **({"two_state": True} if not m.type.isFourState else {}),
         "init": _sym_decl_init(sm, init, dtype) if init is not None else None,
@@ -33719,7 +33734,7 @@ def _convert_unpacked_decl_sym(sm, m, direction=None, isym=None):
         result = {
             "kind": "UnpackedDecl",
             "span": sym_span(sm, m),
-            "name": m.name,
+            "name": _storage_name(symbol),
             "width": dtype,
             "unpacked": unpacked,
         }
@@ -34318,7 +34333,7 @@ def convert_net_sym(sm, m):
             result = {
                 "kind": "Net",
                 "span": sym_span(sm, m),
-                "name": m.name,
+                "name": _storage_name(m),
                 "width": dtype,
                 "init": convert_expr(sm, m.initializer) if m.initializer is not None else None,
                 "net_rewrite_retained": True,
@@ -34334,7 +34349,7 @@ def convert_net_sym(sm, m):
     result = {
         "kind": "Net",
         "span": sym_span(sm, m),
-        "name": m.name,
+        "name": _storage_name(m),
         "width": dtype,
         **({"two_state": True} if not m.type.isFourState else {}),
         "init": convert_expr(sm, init) if init is not None else None,

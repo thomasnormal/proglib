@@ -7095,3 +7095,12 @@ to scalar storage, the executor reuses its existing four-state bit-write path,
 while an unresolved name remains the loud IEEE 1800-2023 §10.3 refusal. The
 source-shaped `kogge_output_declared_target_e` receipt covers known, x, and z
 rows against Icarus Verilog 13.0 and Xcelium 24.03-s004.
+
+## Named generate-scope storage — 2026-11-21
+
+The symbolic extractor now preserves Slang's parser-native hierarchical path
+for declarations and references inside named generate scopes. Two active
+generate branches may therefore contain the same source name without being
+flattened into one storage cell. The source-shaped
+`duplicate_active_scope_e` receipt covers known, x, and z rows against Icarus
+Verilog 13.0 and Xcelium 24.03-s004.
