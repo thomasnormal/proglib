@@ -1143,25 +1143,26 @@ def pointerIntegerTypeOfNode (structured : Option LeanModels.Clang.QualType) : B
     | some it => it.bits >= 64
     | none => false
 
-def checkVaType (ctx : Ctx) (ty : CType) (v : CVal) : EvalM CVal :=
+def checkVaType (ctx : Ctx) (ty : CType) (structured : Option LeanModels.Clang.QualType)
+    (v : CVal) : EvalM CVal :=
   match v with
   | .int actual _ =>
-      match intTyOf? (ctx.layout.normalizeTy ty) with
+      match structured.bind intTyOfStructured with
       | some expected =>
           if expected == actual then pure v
           else refuseValue (.vaArgTypeMismatch ty s!"{actual.signed}:{actual.bits}")
       | none => refuseUnsupported s!"va_arg requested unsupported type '{ty}'"
-  | .ptr _ => if isPtrType ty then pure v
+  | .ptr _ => if structured.map (fun q => match q.unqualified with
+      | .pointer _ => true
+      | _ => false) |>.getD false then pure v
              else refuseValue (.vaArgTypeMismatch ty "pointer")
   | .funPtr _ => refuseValue (.vaArgTypeMismatch ty "function pointer")
-  | .float32 _ => if ty == "float" then pure v
+  | .float32 _ => if structured.bind floatBitsOfStructured == some 32 then pure v
                  else refuseValue (.vaArgTypeMismatch ty "binary32")
-  | .float64 _ => if ty == "double" then pure v
+  | .float64 _ => if structured.bind floatBitsOfStructured == some 64 then pure v
                  else refuseValue (.vaArgTypeMismatch ty "binary64")
   | .aggregate actualTy _ =>
-      let expectedTy := ctx.layout.normalizeTy ty
-      if expectedTy == actualTy then pure v
-      else refuseValue (.vaArgTypeMismatch ty actualTy)
+      refuseUnsupported "va_arg aggregate lacks parser-native compatibility"
   | .undef | .ptrInt _ =>
       refuseUnsupported s!"va_arg requested unsupported value type '{ty}'"
 
@@ -2230,14 +2231,14 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       match v.toInt? with
       | some n => pure (.int t n)
       | none => refuseUnsupported s!"constant expression '{v}'"
-  | .vaArg ap ty _ .. => do
+  | .vaArg ap ty _ structuredType => do
       -- C23 §7.16.1.1: consume the next actual argument from the abstract
       -- cursor. Compatibility is checked against the parser-resolved,
       -- default-promoted value; no ABI width or address is invented.
       let av ← evalExpr ctx ap
       let p ← asPtr av
       let v ← popVaArg p
-      checkVaType ctx ty v
+      checkVaType ctx ty structuredType v
   | .initList .. => refuseUnsupported "initializer list (inch 4)"
   | .arrayInitList .. => refuseUnsupported "initializer list in value position"
   | .designatedUpdate .. => refuseUnsupported "designated initializer update in value position"
