@@ -62,3 +62,13 @@ v "float")`, `MemInvariant (floatCast v "double")`, and
 `MemInvariant (floatToIntNode v structured)`. No semantic change from this
 trial is retained. The next attempt must preserve the node helper as the
 proof head or provide one general branch lemma before changing the evaluator.
+
+The remaining integer and normalization seam is declaration-driven rather than
+expression-driven. `C23/Stmt.lean` has eight `intTyOf?` or `normalizeTy`
+sites in zero initialization, aggregate initialization, string-array copying,
+parameter stores, and builtin overflow helpers. Those callers receive a
+declaration identity and often a structured type separately, so replacing the
+spelling helper at only one site would make zero initialization and stores use
+different widths. A coordinated migration must thread the declaration's
+resolved `QualType` through all eight sites, remove `Layout.normalizeTy`, and
+make absent observations refuse. No partial replacement is retained.
