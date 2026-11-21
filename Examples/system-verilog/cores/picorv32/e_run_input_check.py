@@ -24,7 +24,7 @@ TESTBENCH = ROOT / "Examples/system-verilog/cores/picorv32/rvfi_long_e_probe.v"
 EXPECTED_CYCLES = 300
 SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
-TESTBENCH_SHA256 = "3328ad80031958fb6c3241f0897f0e5506ff974f777ab7764e11b17e8cd8545d"
+TESTBENCH_SHA256 = "1dc356fbe89e36a5cd5e66006fdc32d9b7106f49f364c44ebcaa2b0ad42952fe"
 
 INPUTS = {
     "resetn", "mem_ready", "mem_rdata", "pcpi_wr", "pcpi_rd",
@@ -35,6 +35,8 @@ WIDTHS = {
     "mem_wdata": 32, "mem_wstrb": 4, "mem_la_read": 1,
     "mem_la_write": 1, "mem_la_addr": 32, "mem_la_wdata": 32,
     "mem_la_wstrb": 4, "rvfi_valid": 1, "rvfi_order": 64,
+    "pcpi_valid": 1, "pcpi_insn": 32, "pcpi_rs1": 32, "pcpi_rs2": 32,
+    "eoi": 32, "trace_valid": 1, "trace_data": 36,
     "rvfi_insn": 32, "rvfi_trap": 1, "rvfi_halt": 1, "rvfi_intr": 1,
     "rvfi_mode": 2, "rvfi_ixl": 2, "rvfi_rs1_addr": 5,
     "rvfi_rs1_rdata": 32, "rvfi_rs2_addr": 5, "rvfi_rs2_rdata": 32,
@@ -215,8 +217,8 @@ def main() -> int:
     ).encode()).hexdigest()
     print("Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on %d/%d cycles" %
           (len(icarus), EXPECTED_CYCLES))
-    print("canonical-E: %d/%d cycles and all 32 observed outputs match" %
-          (len(icarus), EXPECTED_CYCLES))
+    print("canonical-E: %d/%d cycles and all %d observed outputs match" %
+          (len(icarus), len(icarus), len(WIDTHS)))
     print("source SHA-256: " + SOURCE_SHA256)
     print("envelope SHA-256: " + ENVELOPE_SHA256)
     print("testbench SHA-256: " + TESTBENCH_SHA256)
