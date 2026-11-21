@@ -21,7 +21,10 @@ private def stimulus : List SvState :=
   [[("sel", LVec.ofNat 2 0), ("d", LVec.ofNat 4 12)],
    [("sel", LVec.ofNat 2 1), ("d", LVec.ofNat 4 12)],
    [("sel", LVec.ofNat 2 2), ("d", LVec.ofNat 4 12)],
-   [("sel", LVec.ofNat 2 2), ("d", LVec.ofNat 4 5)]]
+   [("sel", LVec.ofNat 2 2), ("d", LVec.ofNat 4 5)],
+   [("sel", LVec.lit "x1"), ("d", LVec.lit "x101")],
+   [("sel", LVec.lit "0z"), ("d", LVec.lit "z010")],
+   [("sel", LVec.lit "z0"), ("d", LVec.lit "101x")]]
 
 def outputs : Res (List String) := do
   let d ← PDesign.instantiateCoreMem alwaysCombCaseMemory.pdesign [4]
@@ -30,7 +33,7 @@ def outputs : Res (List String) := do
   .ok (rows.map fun s => SvState.showSignal (CoreMemState.view d s) "q")
 
 #guard match outputs with
-  | .ok ["0011", "0111", "1100", "0101"] => true
+  | .ok ["0011", "0111", "1100", "0101", "x101", "z010", "101x"] => true
   | _ => false
 
 #print axioms CoreMemDesign.step

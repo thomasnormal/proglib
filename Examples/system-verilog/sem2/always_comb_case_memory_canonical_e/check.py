@@ -46,6 +46,9 @@ def testbench():
     sel = 2'd1; #1 $display("ROW i=1 q=%b", q);
     sel = 2'd2; #1 $display("ROW i=2 q=%b", q);
     d = 4'h5; #1 $display("ROW i=3 q=%b", q);
+    sel = 2'bx1; d = 4'bx101; #1 $display("ROW i=4 q=%b", q);
+    sel = 2'b0z; d = 4'bz010; #1 $display("ROW i=5 q=%b", q);
+    sel = 2'bz0; d = 4'b101x; #1 $display("ROW i=6 q=%b", q);
     $finish;
   end
 endmodule
@@ -70,10 +73,11 @@ def main():
     expected = rows(run(["lake", "env", "lean", "--run", str(HERE / "oracle.lean")]))
     if expected != [["i=0", "q=0011"],
                     ["i=1", "q=0111"], ["i=2", "q=1100"],
-                    ["i=3", "q=0101"]]:
+                    ["i=3", "q=0101"], ["i=4", "q=x101"],
+                    ["i=5", "q=z010"], ["i=6", "q=101x"]]:
         raise RuntimeError(f"unexpected E rows: {expected}")
     print("extractor: envelope regenerates byte-identically")
-    print("E: 4 rows (time-zero case, memory reads, scalar reactivation)")
+    print("E: 7 rows (time-zero case, memory reads, scalar reactivation, x/z selectors)")
     if not shutil.which("iverilog") or not shutil.which("vvp"):
         raise RuntimeError("Icarus is required for this differential check")
     print(run(["iverilog", "-V"]).splitlines()[0])

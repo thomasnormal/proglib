@@ -157,6 +157,7 @@ Examples/system-verilog/sem2/addsub_comb/agree.lean
 Examples/system-verilog/sem2/concat_add/agree.lean
 Examples/system-verilog/sem2/enum_aggregate_default/agree.lean
 Examples/system-verilog/sem2/fa_comb_proc/agree.lean
+Examples/system-verilog/sem2/fa_comb_proc/e_refinement.lean
 Examples/system-verilog/sem2/latch_comb/agree.lean
 Examples/system-verilog/sem2/mux4_case/agree.lean
 Examples/system-verilog/sem2/onehot_dec/agree.lean
