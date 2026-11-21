@@ -1199,12 +1199,14 @@ def coreMemEdgeBlockingReadRaceAt (p : PProcess) : List PProcess → Bool
       coreMemEdgeBlockingReadRacePair p q || coreMemEdgeBlockingReadRaceAt p rest
 
 def coreMemEdgeBlockingReadRace : List PProcess → Bool
-  | [] => false
+  | [] | [_] => false
   | p :: rest => coreMemEdgeBlockingReadRaceAt p rest || coreMemEdgeBlockingReadRace rest
 
 def coreMemEdgeBlockingReadRaceViol (d : PDesign) (generated : List PProcess) :
     Option (String × String) :=
-  if coreMemEdgeBlockingReadRace (d.processes ++ generated) then
+  let edgeProcesses := (d.processes ++ generated).filter
+    (fun p => !(coreMemPProcessEdgeSources p).isEmpty)
+  if coreMemEdgeBlockingReadRace edgeProcesses then
     some ("Event:edge-blocking-race",
       "4.7/10.4.1: same-edge blocking read/write processes have schedule-dependent visibility; canonical E refuses the race")
   else none
