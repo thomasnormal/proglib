@@ -2093,7 +2093,9 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
   | some off =>
       let recordLike := (ctx.layout.structuredTypeAt base).map
         LeanModels.Clang.QualType.recordLike |>.getD false
-      let fieldSize := ctx.layout.fieldExtentAt base field fieldTy recordLike
+      let fieldSize :=
+        (ctx.layout.fieldExtentAt base field fieldTy recordLike).orElse
+          (fun _ => recordId.bind (fun rid => ctx.layout.fieldSizeDecl rid field))
       match fieldSize with
       | some sz => pure (Mem.memberRange basePtr off sz)
       | none => refuseUnsupported s!"no layout for field '{field}'"
