@@ -29,6 +29,11 @@ PATTERNS = (
     re.compile(r"\.(?:startsWith|endsWith|contains|splitOn|dropEnd|trimAscii|drop)\b"),
     re.compile(r"\b(?:intTyOf\??|isPtrType|isPtrIntType|compatiblePointerTypes|normalizeTy)\b"),
     re.compile(r"(?:\b(?:ty|fieldTy|computeLHSType|computeResultType)\s*(?:==|!=)|(?:==|!=)\s*\b(?:ty|fieldTy|computeLHSType|computeResultType))\s*\"(?:_?Bool|char|signed char|unsigned char|short|unsigned short|int|unsigned int|long|unsigned long|long long|unsigned long long|float|double|long double)\""),
+    # A type spelling is a finding even when it appears in a match arm or is
+    # passed through a helper.  The structured QualType is the only semantic
+    # source of type identity.  Keep this list limited to complete scalar and
+    # pointer spellings so ordinary diagnostic strings are not classified.
+    re.compile(r'"(?:const |volatile )?(?:_?Bool|bool|char|signed char|unsigned char|short(?: int)?|unsigned short(?: int)?|int|signed int|unsigned(?: int)?|long(?: int)?|unsigned long(?: int)?|long long(?: int)?|unsigned long long(?: int)?|float|double|long double)(?: \*)?"'),
 )
 
 ALIAS_PATTERN = re.compile(r"abbrev\s+CType\s*:=\s*String")
@@ -74,13 +79,14 @@ def self_test() -> int:
         "def typeCase (ty : CType) := ty.endsWith \"*\"\n"
         "def ptrCase (ty : CType) := intTyOf? ty\n"
         "def litCase (ty : CType) := ty == \"float\"\n"
+        "def matchCase (ty : CType) := match ty with | \"int\" => true | _ => false\n"
         "def normCase (layout : Layout) (ty : CType) := layout.normalizeTy ty\n"
         "def byteCase (bytes : List Nat) := bytes.drop 1\n"
         "def nameCase (nm : String) := nm.contains \"x\"\n")
     try:
         got = findings((sample,))
         aliases = legacy_aliases((sample,))
-        if len(got) != 4 or got[0][1] != 2 or len(aliases) != 1 or aliases[0][1] != 1:
+        if len(got) != 5 or got[0][1] != 2 or len(aliases) != 1 or aliases[0][1] != 1:
             print("check_c_type_strings --self-test: failed", file=sys.stderr)
             return 1
     finally:
