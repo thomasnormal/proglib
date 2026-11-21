@@ -198,33 +198,8 @@ def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : CType)
 storage duration. Type-directed: see the section note. -/
 def zeroInit : Nat → Ctx → Ptr → CType → Option DeclarationId → ExecM Unit
   | 0, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, ty, declaration =>
-    match intTyOf? (ctx.layout.normalizeTy ty) with
-    -- an integer member: the value zero at its own width
-    | some t => liftEval (writeMem (fun m => Mem.storeIntChecked m Mem.cAliasModel p t ty 0))
-    | none =>
-      if ctx.layout.normalizeTy ty == "float" then
-        liftEval (writeMem (fun m => Mem.storeFloat32 m p (Float32.Model.ofBits (UInt32.ofNat 0))))
-      else if ctx.layout.normalizeTy ty == "double" then
-        liftEval (writeMem (fun m => Mem.storeFloat64 m p (Float.Model.ofBits (UInt64.ofNat 0))))
-      else if structuredPointerObject (declaration.bind ctx.layout.structuredTypeDecl) ty then
-        -- §6.3.2.3p3: `= 0` on a pointer is a NULL POINTER, not zero bytes
-        liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
-      else
-        match ctx.layout.elemDeclAt declaration ty with
-        | some (et, n) =>
-            match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-            | some esz =>
-                let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
-                  match q.unqualified with
-                  | .array element _ => some element
-                  | _ => none)
-                zeroElems fuel ctx p et esz n 0 elementStructured
-            | none => refuseUnsupported s!"no size for element type '{et}'"
-        | none =>
-          match ctx.layout.membersDeclAt declaration ty with
-          | some ms => zeroMembers fuel ctx p ty ms declaration
-          | none => refuseUnsupported s!"cannot zero-initialize '{ty}'"
+  | _, _, _, ty, _ =>
+      refuseUnsupported s!"zero initialization lacks parser-native QualType for '{ty}'"
 
 /-- Zero the elements of an array, from index `i` up. -/
 def zeroElems : Nat → Ctx → Ptr → CType → Nat → Nat → Nat →
