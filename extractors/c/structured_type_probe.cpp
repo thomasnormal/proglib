@@ -234,6 +234,11 @@ public:
   llvm::json::Array rows;
   const clang::ASTContext *context = nullptr;
 
+  // Array and aggregate initialization contains parser-owned
+  // ImplicitValueInitExpr nodes.  They are part of Clang's AST and carry the
+  // element QualType needed to preserve positional zero-initialization.
+  bool shouldVisitImplicitCode() const { return true; }
+
   bool VisitDecl(clang::Decl *decl) {
     if (decl->isImplicit()) return true;
     // Clang materializes parameter declarations while walking a function
