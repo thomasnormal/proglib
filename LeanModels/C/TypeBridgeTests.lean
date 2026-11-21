@@ -184,7 +184,7 @@ private def compoundRegistryCheck : Bool :=
 #guard LeanModels.C.C23.intTyOfStructured
   (.cBuiltinKind .unsignedShort) == some LeanModels.C.C23.IntTy.ushort
 #guard LeanModels.C.C23.floatBitsOfStructured (.cBuiltinKind .double) == some 64
-#guard LeanModels.C.C23.isPtrIntType "not-a-spelling"
+#guard LeanModels.C.C23.pointerIntegerTypeOfNode
   (some (.qualified true false (.cBuiltinKind .unsignedLong)))
 #guard LeanModels.C.C23.intTyOfStructured
   (.enumeration {value := "enum-1"}) == some LeanModels.C.C23.IntTy.int_

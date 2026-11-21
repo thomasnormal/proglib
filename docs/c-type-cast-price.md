@@ -44,3 +44,11 @@ evaluation now reads the expression's carried `QualType` through
 `intTyOfNode`, and the memory-invariance proof covers both success and loud
 absence. Other integer consumers remain on the larger coordinated migration
 boundary.
+
+The pointer subfamily has a narrower sound boundary. `pointerTypeOfNode`,
+`pointerIntegerTypeOfNode`, and `compatiblePointerTypesNode` now consume the
+target or source expression's carried `QualType` in pointer loads, stores, and
+the pointer cast cases. A missing node fact refuses the pointer-integer or
+compatible-pointer operation. The existing `CType` parameter remains for
+diagnostic text and layout keys, while classification no longer depends on a
+spelling fallback at these cast sites.
