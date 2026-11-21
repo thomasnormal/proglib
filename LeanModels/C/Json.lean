@@ -332,9 +332,8 @@ partial def parseExpr (j : Json) : Except String Expr := do
     | "ImplicitValueInitExpr" => return .implicitValueInit (← ty) span structuredType
     | "CompoundLiteralExpr" => return .compoundLit (← sub "init") (← ty) span structuredType
     | "UnaryExprOrTypeTraitExpr" =>
-        match getOptNode j "arg_type" with
-        | some arg =>
-            let argType ← getStr arg "qualType"
+        match ← getOptStr j "arg_type" with
+        | some argType =>
             return .typeTrait (← getStr j "trait") (some argType)
               (none : Option Expr) (← ty) span structuredType
         | none =>
