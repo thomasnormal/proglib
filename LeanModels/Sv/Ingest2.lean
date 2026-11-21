@@ -1177,7 +1177,16 @@ def parseModule2 (j : Json) : Except String PDesign :=
       let qtext := (getOptField qj "text").bind (·.getStr?.toOption) |>.getD ""
       let qast ← match getOptField qj "ast" with
         | none => pure none
-        | some aj => some <$> parsePSvaCheck aj
+        | some aj =>
+            -- Assertions are retained as parser-shaped property metadata.
+            -- A property outside the finite SVA fragment must remain a
+            -- loud, unparsed property rather than preventing the enclosing
+            -- design envelope from loading.  The ordinary E route does not
+            -- execute assertions, so preserve its source text and leave the
+            -- structured AST absent until the SVA tier admits that shape.
+            match parsePSvaCheck aj with
+            | .ok check => pure (some check)
+            | .error _ => pure none
       let qpath ← match getOptField qj "path" with
         | none => pure []
         | some pj => (← pj.getArr?).toList.mapM (fun x =>

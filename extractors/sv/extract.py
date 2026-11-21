@@ -8603,6 +8603,13 @@ def _convert_conversion_expr(sm, e):
     lit = const_literal(sm, e)
     if lit is not None:
         return lit
+    # A width that remains symbolic at this extraction boundary cannot be
+    # represented by the scalar envelope's natural-number `Resize.width`.
+    # Keep the source-shaped conversion loud instead of emitting malformed
+    # JSON with a null width.  Parameter-point-dependent widths are handled
+    # only by the symbolic conversion path above.
+    if ow is None or tw is None:
+        return unsupported(sm, e, "ConversionExpression:width")
     try:
         resizable = e.operand.type.isIntegral and e.type.isIntegral
         signed = e.operand.type.isSigned and e.type.isSigned
@@ -27719,6 +27726,17 @@ def _sva_property_ast(statement):
     return result
 
 
+def _sva_structured_supported(node):
+    """Whether a retained SVA tree contains only loader-known node kinds."""
+    if isinstance(node, dict):
+        if node.get("kind") == "SvaUnsupported":
+            return False
+        return all(_sva_structured_supported(value) for value in node.values())
+    if isinstance(node, list):
+        return all(_sva_structured_supported(value) for value in node)
+    return True
+
+
 def _sva_property_metadata(statement):
     """Read assertion kind and clock from Slang's property statement node.
 
@@ -27770,7 +27788,7 @@ def _convert_concurrent_property(sm, m, path=()):
         structured = _sva_property_ast(m)
     except Exception:
         structured = None
-    if structured is not None:
+    if structured is not None and _sva_structured_supported(structured):
         result["ast"] = structured
     # Preserve the old module-level envelope byte-for-byte; an absent path
     # is the same as the empty lexical path in the Lean default.
@@ -32029,6 +32047,11 @@ def _sym_conversion(sm, e, ow, tw, state_squash):
         if widened is None:
             widened = _sym_signed_literal_conversion(sm, e, op, tw)
         return widened
+    # A symbolic conversion with no finite target width cannot be represented
+    # by the envelope's natural-number Resize metadata.  Refuse it before the
+    # generic conversion branches can emit a null width.
+    if ow is None or tw is None:
+        return unsupported(sm, e, "ConversionExpression:width")
     inner = _convert_expr(sm, op)
     try:
         resizable = (
@@ -32298,9 +32321,15 @@ def _sym_expr_syscall(sm, e):
             if not isinstance(resolved, int) or resolved < 0:
                 return unsupported(sm, e, "SysCall:$bits:type")
             arg = e.arguments[0]
-            return {"kind": "TypeBits", "span": node_span(sm, e),
-                    "name": str(arg.syntax).strip() if arg.syntax is not None else "<type>",
-                    "width": resolved}
+            # A DataTypeExpression is a fixed elaborated type query.  Its
+            # width is carried by the bound type itself, so do not freeze an
+            # expression value from a parameter family here.
+            # `$bits(type)` is a 32-bit signed integer constant (§20.6.2).
+            # The type itself is metadata and has no runtime value node, so
+            # retain the exact resolved width as an ordinary INT-class leaf.
+            return {"kind": "Int", "span": node_span(sm, e),
+                    "value": resolved, "resolved_width": 32,
+                    "bits_type_query": True}
         args = [_convert_expr(sm, a) for a in e.arguments]
     except Exception:
         return None
@@ -35192,6 +35221,9 @@ def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
                     width = int(str(children[0]).strip())
             except ValueError:
                 width = operand.get("width")
+            if width is None:
+                return _syntax_unsupported(sm, syntax,
+                                           "ConversionExpression:width")
             return {"kind": "Resize", "span": _syntax_span(sm, syntax),
                     "width": width, "operand": operand}
         if syntax.kind == SyntaxKind.IdentifierName:
@@ -35690,6 +35722,13 @@ def _sym_family_point_dependent():
     A default-point fold is exact only outside such a scope."""
     if _SYM is None or _SYM.scope is None or _SYM.genvars:
         return True
+    # Package parameters are bound once when the package is elaborated and
+    # have no per-module override point in the envelope.  A package-scoped
+    # type therefore has one exact width for `$bits(type)` and related
+    # constant queries, even when that width mentions an earlier package
+    # parameter.
+    if type(_SYM.scope).__name__ == "PackageSymbol":
+        return False
     try:
         return any(type(member).__name__ in ("ParameterSymbol",
                                              "TypeParameterSymbol")
