@@ -424,10 +424,6 @@ structure Layout where
   /-- Frontend-observed byte stride keyed by the declaration identity of an
       array object. -/
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
-  /-- Frontend-observed parser element type for an array type. -/
-  arrayElementType : CType → Option CType := fun _ => none
-  /-- Frontend-observed byte size of one element for an array type. -/
-  arrayElementSize : CType → Option Nat := fun _ => none
   /-- `offsetof`, keyed on the BASE expression's spelling, so `p->f` and
   `x.f` look up under `"const Pos *"` and `"Pos"` respectively. -/
   fieldOff : CType → String → Option Nat
@@ -537,9 +533,8 @@ def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field : String) (field
   else
     layout.fieldSizeAt base field
 
-def Layout.arrayElementSizeAt (layout : Layout) (arrayTy elementTy : CType) :
-    Option Nat :=
-  layout.arrayElementSize arrayTy
+def Layout.arrayElementSizeAt (_layout : Layout) (_arrayTy _elementTy : CType) :
+    Option Nat := none
 
 def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : CType) :
     Option Nat :=
@@ -622,8 +617,7 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
   match decl.bind layout.structuredTypeDecl with
   | some structured =>
       match structured.unqualified with
-      | .array _ (some extent) =>
-          layout.arrayElementType ty |>.map (fun element => (element, extent))
+      | .array _ (some _extent) => none
       | .array _ none | _ => none
   | none => none
 
@@ -692,8 +686,6 @@ def Layout.unknown : Layout :=
     pointeeSize := fun _ => none
     pointeeSizeDecl := fun _ => none
     elementSizeDecl := fun _ => none
-    arrayElementType := fun _ => none
-    arrayElementSize := fun _ => none
     fieldSize := fun _ _ => none, fieldSizeDecl := fun _ _ => none
     fieldOffDecl := fun _ _ => none
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none

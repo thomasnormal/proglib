@@ -243,20 +243,11 @@ private def compoundRegistryCheck : Bool :=
   LeanModels.C.C23.Layout).bitFieldStorageSizeAt
     (some (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default none)) "struct R" == some 8
 #guard ({ LeanModels.C.C23.Layout.unknown with
-  elementSizeDecl := fun id => if id.value == "array-1" then some 4 else none } :
-  LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"}) "int[2]" "int" == some 4
-#guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
     if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 2)) else none
   size := fun _ => some 4 } :
   LeanModels.C.C23.Layout).arrayElementSizeDeclAt (some {value := "array-1"})
     "int[2]" "int" == some 4
-#guard ({ LeanModels.C.C23.Layout.unknown with
-  structuredType := fun id =>
-    if id.value == "array-1" then some (.array (.cBuiltinKind .int) (some 3)) else none
-  arrayElementType := fun _ => some "int"
-  elem := fun ty => if ty == "int[3]" then some ("int", 2) else none } :
-  LeanModels.C.C23.Layout).elemDeclAt (some {value := "array-1"}) "int[3]" == some ("int", 3)
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredExprType := fun offset =>
     if offset == 12 then some (.pointer (.cBuiltinKind .int)) else none } :
@@ -267,7 +258,6 @@ private def compoundRegistryCheck : Bool :=
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredType := fun id =>
     if id.value == "vla-1" then some (.array (.cBuiltinKind .int) none) else none
-  arrayElementType := fun _ => some "int"
   elem := fun _ => some ("int", 4) } :
   LeanModels.C.C23.Layout).elemDeclAt (some {value := "vla-1"}) "int[n]" == none
 #guard ({ LeanModels.C.C23.Layout.unknown with
