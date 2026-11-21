@@ -174,20 +174,35 @@ def census(path: Path) -> dict[str, Any]:
 
 
 def self_test() -> None:
-    """Exercise the loader-backed path on a checked-in small envelope."""
+    """Exercise the loader-backed path on checked-in memory and process envelopes."""
 
-    fixture = ROOT / "Examples/system-verilog/ff_one/cv32e40p_ff_one.sv.json"
-    result = census(fixture)
-    if not result["rows"]:
-        raise AssertionError("loader self-test emitted no rows")
-    if result["remaining"] != result["refused"] + result["not_reached"]:
-        raise AssertionError("loader census remaining count is inconsistent")
-    if any(row["status"] == "NOT REACHED" for row in result["rows"]):
-        raise AssertionError("loader census fabricated a reachability status")
+    fixtures = [
+        ROOT / "Examples/system-verilog/ff_one/cv32e40p_ff_one.sv.json",
+        ROOT / "Examples/system-verilog/seq_mem/range_ff/range_ff.sv.json",
+    ]
+    results = []
+    for fixture in fixtures:
+        result = census(fixture)
+        results.append(result)
+        if not result["rows"]:
+            raise AssertionError("loader self-test emitted no rows")
+        if result["remaining"] != result["refused"] + result["not_reached"]:
+            raise AssertionError("loader census remaining count is inconsistent")
+        if any(row["status"] == "NOT REACHED" for row in result["rows"]):
+            raise AssertionError("loader census fabricated a reachability status")
+
+    memory_result = results[1]
+    categories = {row["category"] for row in memory_result["rows"]}
+    expected = {"memory", "declaration", "process", "continuous_assign"}
+    if not expected <= categories:
+        raise AssertionError(
+            "loader self-test did not exercise every emitted row category: "
+            + repr(sorted(categories))
+        )
     print(
         "core_census --self-test ok: "
-        f"{result['counts']['ADMITTED']} admitted, "
-        f"{result['counts']['REFUSED']} refused"
+        f"{sum(result['counts']['ADMITTED'] for result in results)} admitted, "
+        f"{sum(result['counts']['REFUSED'] for result in results)} refused"
     )
 
 
