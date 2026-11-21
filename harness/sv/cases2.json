@@ -16720,6 +16720,7 @@
     },
     {
       "name": "rbw_cond",
+      "canonical_e": true,
       "example": "sem2/rbw_cond",
       "top": "rbw_cond",
       "signals": [

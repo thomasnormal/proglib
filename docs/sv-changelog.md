@@ -1,5 +1,13 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Canonical-E self-read differential classification — 2026-11-21
+
+The `rbw_cond` differential row is now marked as a canonical-E admission.
+Its source-shaped static profile remains a loud `AlwaysComb:self-read`
+refusal, while canonical E executes the retained body and matches the five
+Icarus Verilog 13.0 and Xcelium Verilog 24.03-s004 rows. The metadata keeps
+the retiring route's refusal separate from the canonical-E comparison.
+
 ## Time-zero continuous-to-combinational quiescence — 2026-11-21
 
 Canonical E now carries the already-quiesced continuous-assignment state into
