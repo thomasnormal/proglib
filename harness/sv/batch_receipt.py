@@ -360,6 +360,10 @@ FIXTURES: tuple[Fixture, ...] = (
             (Port("clk", 1, clock=True), Port("data", 1)), (Port("q", 1),),
             points=(Point("USE0", (0,)), Point("USE1", (1,))),
             retain_proc_rewrites=True),
+    Fixture("duplicate_active_scope.sv", "duplicate_active_scope",
+            (Port("x", 2),), (Port("y", 2),),
+            points=(Point("N1", (1,)), Point("N2", (2,))),
+            retain_proc_rewrites=True),
     Fixture("timed_event_loop.sv", "timed_event_loop",
             (Port("x", 8),), (Port("y", 4),)),
     Fixture("implicit_clock_event.sv", "implicit_event",
@@ -855,6 +859,8 @@ def port_width(fixture: Fixture, point: Point, port: Port) -> int:
         return point.args[0] * 4
     if fixture.top == "arbiter_packed_loop_unsigned_e" and point.args:
         return point.args[0]
+    if fixture.top == "duplicate_active_scope" and point.args:
+        return point.args[0]
     if fixture.top == "constant_function_top" and point.args:
         if port.name == "x":
             return point.args[0]
@@ -932,6 +938,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "package_child_parameter_e": ("W",),
             "package_child_parameter_generate_e": ("USE",),
             "generate_if_control": ("USE",),
+            "duplicate_active_scope": ("N",),
             "package_typed_child_parameter_e": ("W",),
             "localparam_shift": ("E",),
             "memory_edge_loop": ("W", "N"),
