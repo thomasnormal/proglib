@@ -252,7 +252,11 @@ partial def parseExpr (j : Json) : Except String Expr := do
   withCtx kind do
     let span ← nodeSpan j
     let ty : Except String CType := getStr j "type"
-    let structuredType ← parseOptStructuredQualType j "structured_type"
+    let structuredType ←
+      if kind == "Unsupported" then
+        pure none
+      else
+        parseRequiredStructuredQualType j "structured_type"
     let sub (n : String) : Except String Expr := match getOptNode j n with
       | none => .error s!"missing '{n}'"
       | some v => parseExpr v
