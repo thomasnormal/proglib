@@ -270,9 +270,22 @@ public:
     auto emit = [&](const clang::Expr *observed) {
       if (!observed) return;
       const auto offset = sourceOffset(observed, context->getSourceManager());
-      if (!offset) return;
-      const auto endOffset = sourceEndOffset(observed, context->getSourceManager());
-      if (!endOffset) return;
+      auto endOffset = sourceEndOffset(observed, context->getSourceManager());
+      // ImplicitValueInitExpr is a parser-owned node with no source range.
+      // Its Clang identity and QualType remain valid, so retain it with a
+      // zero provenance range. The identity join never consults this field.
+      if ((!offset || !endOffset) &&
+          llvm::isa<clang::ImplicitValueInitExpr>(observed)) {
+        rows.push_back(llvm::json::Object{
+            {"kind", "StructuredExprType"}, {"expr_id", nodeId(observed)},
+            {"offset", 0}, {"end_offset", 0},
+            {"expr_kind", observed->getStmtClassName()},
+            {"type", typeTree(observed->getType(), *context, 0).value_or(
+                         llvm::json::Object{{"kind", "unsupported"},
+                                            {"reason", "QualType projection failed"}})}});
+        return;
+      }
+      if (!offset || !endOffset) return;
       auto tree = typeTree(observed->getType(), *context, 0);
       if (!tree) {
         rows.push_back(llvm::json::Object{
