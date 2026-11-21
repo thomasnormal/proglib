@@ -1,5 +1,14 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Correct `always_comb` self-write sensitivity — 2026-11-21
+
+Canonical E now derives an `always_comb` block's implicit sensitivity from its
+external reads after removing every variable written by that same body, as
+required by IEEE 1800-2023 §9.2.2.2.1. The raw `always @*` read set remains a
+separate path under §9.4.2.2. The source-shaped `rbw_comb`, `rbw_held`, and
+`rbw_selfinc` receipts cover previous-value reads with x/z inputs and match
+Icarus Verilog 13.0 and Xcelium 24.03-s004 on 21 rows.
+
 ## Parameter-default assignment patterns — 2026-11-19
 
 The ordinary receipt now exercises a typed parameter whose default is the
