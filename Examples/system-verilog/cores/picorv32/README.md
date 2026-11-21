@@ -2317,3 +2317,36 @@ at deterministic `isDefEq` timeout after 50.496 seconds, with 2,428,704 KB peak
 RSS.  No refusal table or clean-room construct fixture is claimed because the
 clocked recognizer never reached a construct.  The real ADDI invariant remains
 unproved at this normalization boundary.
+
+## 2026-11-21 clocked-stage probe of the real register-file leaf
+
+The full RISCV_FORMAL top was rerun with the clocked `sv_structure` stage at
+the pinned 26-parameter vector.  It stopped in controlled normalization before
+the construct/profile classifier with
+`Tactic simp failed with a nested error: (deterministic) timeout at isDefEq,
+maximum number of heartbeats (200000) has been reached`.  The run took 46.154
+seconds and its child-process peak RSS was 2,378,264 KiB.  The table records
+what this run actually reached.
+
+| construct family | refusal count | exact message | status |
+| --- | ---: | --- | --- |
+| procedural `for` in an edge process | 0 | — | not reached |
+| generate loop | 0 | — | not reached |
+| function call | 0 | — | not reached |
+| aggregate read | 0 | — | not reached |
+| select or concatenation target | 0 | — | not reached |
+| several continuous drivers / resolved net | 0 | — | not reached |
+| level or unsupported event list | 0 | — | not reached |
+| unsupported declaration shape | 0 | — | not reached |
+| source-shaped normalization | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at isDefEq, maximum number of heartbeats (200000) has been reached` | reached |
+
+The zeroes mean that the corresponding classifier was never reached.  No
+clean-room refusal fixture is attributed to this real-core run.  The same
+clocked pass on the unmodified `picorv32_regs` leaf reaches
+`SeqDesignI` successfully.  The leaf run took 26.792 seconds and its
+child-process peak RSS was 1,900,040 KiB.  The proof is checked in
+`picorv32_regs_structure.lean`; its envelope SHA-256 is
+`73002a668e0fef5d4f08eb84aac52f6c27eb6fb51b983cd716203f34f05a43c2`.
+
+The leaf result is a structural admission result.  It does not claim a
+behavioral step equation for the register file or for the full core.
