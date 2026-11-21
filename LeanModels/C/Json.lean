@@ -200,6 +200,7 @@ partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.
   let kind ← getStr j "kind"
   withCtx s!"structured type {kind}" do
     match kind with
+    | "builtin_function" => .ok .builtinFunction
     | "builtin" =>
         let name ← getStr j "name"
         if name == "void" then .ok .void

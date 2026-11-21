@@ -99,6 +99,8 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
   if (const auto *elaborated = llvm::dyn_cast<clang::ElaboratedType>(type))
     return typeTree(elaborated->getNamedType(), context, depth + 1);
   if (const auto *builtin = llvm::dyn_cast<clang::BuiltinType>(type)) {
+    if (builtin->getKind() == clang::BuiltinType::BuiltinFn)
+      return llvm::json::Object{{"kind", "builtin_function"}};
     std::optional<std::string> name;
     switch (builtin->getKind()) {
     case clang::BuiltinType::Void: name = "void"; break;
