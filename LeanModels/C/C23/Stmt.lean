@@ -1767,23 +1767,23 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 refuseUnsupported "__sync_add_and_fetch_8: argument is not unsigned long long"
               else
                 let m ← get
-                let ty ← match dp.obj with
+                let (ty, structured) ← match dp.obj with
                   | some o =>
                       match m.get? o with
                       | some c =>
-                          match c.effTy with
-                          | some t => pure t
-                          | none => refuseUnsupported "__sync_add_and_fetch_8: destination has no declared type"
+                          match c.effTy, m.structuredType? o with
+                          | some t, some q => pure (t, some q)
+                          | _, _ => refuseUnsupported "__sync_add_and_fetch_8: destination lacks parser-native type"
                       | none => refuseUnsupported "__sync_add_and_fetch_8: destination object is not live"
                   | none => refuseUnsupported "__sync_add_and_fetch_8: null destination"
-                let t ← liftEval (intTyOf ty)
+                let t ← liftEval (intTyOfNode structured)
                 if t != IntTy.ulong then
                   refuseUnsupported "__sync_add_and_fetch_8: destination is not unsigned long long"
                 else do
-                  let old ← liftEval (loadAt Mem.cAliasModel dp ty (prog.layout.size ty))
+                  let old ← liftEval (loadAt Mem.cAliasModel dp ty (prog.layout.size ty) structured)
                   let (_, x) ← asInt old
                   let result := t.wrap (x + y)
-                  liftEval (storeAt Mem.cAliasModel dp ty (.int t result))
+                  liftEval (storeAt Mem.cAliasModel dp ty (.int t result) structured)
                   pure (.int t result)
           | _ => refuseUnsupported "__sync_add_and_fetch_8: wrong argument count"
         let runArithOverflow (op : String) : List CVal → ExecM CVal := fun vs =>
@@ -1793,19 +1793,19 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
               let (_, y) ← asInt b
               let dp ← asPtr dst
               let m ← get
-              let ty ← match dp.obj with
+              let (ty, structured) ← match dp.obj with
                 | some o =>
                     match m.get? o with
                     | some c =>
-                        match c.effTy with
-                        | some t => pure t
-                        | none => refuseUnsupported "__builtin_mul_overflow: destination has no declared type"
+                          match c.effTy, m.structuredType? o with
+                          | some t, some q => pure (t, some q)
+                          | _, _ => refuseUnsupported "__builtin_mul_overflow: destination lacks parser-native type"
                     | none => refuseUnsupported "__builtin_mul_overflow: destination object is not live"
                 | none => refuseUnsupported "__builtin_mul_overflow: null destination"
-              let t ← liftEval (intTyOf ty)
+              let t ← liftEval (intTyOfNode structured)
               let result := if op == "add" then x + y else x * y
               let overflow := !t.inRange result
-              liftEval (storeAt Mem.cAliasModel dp ty (.int t (t.wrap result)))
+              liftEval (storeAt Mem.cAliasModel dp ty (.int t (t.wrap result)) structured)
               pure (.int IntTy.int_ (if overflow then 1 else 0))
           | _ => refuseUnsupported s!"__builtin_{op}_overflow: wrong argument count"
         let runVaStart : List CVal → ExecM CVal := fun vs =>

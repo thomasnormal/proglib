@@ -230,9 +230,8 @@ def hexNatAux : List Char → Nat → Option Nat
 def hexNat (s : String) : Option Nat :=
   if s.toList.isEmpty then none else hexNatAux s.toList 0
 
-def floatLiteralValue (bitsHex : Option String) (bitWidth : Option Nat) (ty : CType) : EvalM CVal :=
-  if ty == "long double" then refuseUnsupported "long double floating literal"
-  else match bitsHex, bitWidth with
+def floatLiteralValue (bitsHex : Option String) (bitWidth : Option Nat) : EvalM CVal :=
+  match bitsHex, bitWidth with
   | some bits, some 32 =>
       match hexNat bits with
       | some n =>
@@ -250,74 +249,6 @@ def floatLiteralValue (bitsHex : Option String) (bitWidth : Option Nat) (ty : CT
   | _, some 80 => refuseUnsupported "long double floating literal"
   | some _, some _ => refuseUnsupported "unsupported floating literal width"
   | _, _ => refuseUnsupported "floating literal lacks parser-native bits"
-
-/-! ## §6.2.5 — resolving a type spelling to an integer type
-
-**The census found a real problem here.** `CType` is clang's unparsed
-`qualType` string (`docs/c-envelope-schema.md` §3), so **type equality is
-SPELLING equality** — and the corpus contains 19 binary-operator sites
-whose operands have different spellings for the SAME type
-(`uint64_t` vs `unsigned long long`, `uint32_t` vs `unsigned int`).
-A model that compared type strings would see a conversion that is not
-there.
-
-So the evaluator never compares spellings; it RESOLVES them. The table is
-the census's own list of the integer spellings that occur, and the widths
-come from the profile (`char_bit_8`, `int_32`, `long_64`), not from a
-host. -/
-
-/-- Resolve a type spelling to a C integer type.
-
-The standard names come from §6.2.5; the exact-width names are
-`<stdint.h>`'s (§7.22), which fixes them exactly, so they resolve under
-the profile's widths rather than being guessed. `char`'s signedness is
-the profile fact `char_signed`, answering `J.3.5(5)`.
-
-`none` means "not an integer type here" — a struct, a pointer, a float,
-`void`, or a spelling outside the census. Every consumer refuses on
-`none` rather than inventing a width. -/
-def intTyOf? (ty : CType) : Option IntTy :=
-  match ty with
-  | "char" => some IntTy.char_
-  | "signed char" => some IntTy.char_
-  | "unsigned char" => some IntTy.uchar
-  | "short" | "short int" => some IntTy.short_
-  | "unsigned short" | "unsigned short int" => some IntTy.ushort
-  | "int" | "signed int" => some IntTy.int_
-  | "unsigned" | "unsigned int" => some IntTy.uint
-  | "long" | "long int" => some IntTy.long_
-  | "unsigned long" | "unsigned long int" => some IntTy.ulong
-  | "long long" | "long long int" => some IntTy.long_
-  | "unsigned long long" | "unsigned long long int" => some IntTy.ulong
-  -- <stdint.h> exact-width names: fixed by the header, resolved by the profile
-  | "int8_t" => some IntTy.char_
-  | "uint8_t" => some IntTy.uchar
-  | "int16_t" => some IntTy.short_
-  | "uint16_t" => some IntTy.ushort
-  | "int32_t" => some IntTy.int_
-  | "uint32_t" => some IntTy.uint
-  | "int64_t" => some IntTy.long_
-  | "uint64_t" => some IntTy.ulong
-  | "intptr_t" => some IntTy.long_
-  | "uintptr_t" => some IntTy.ulong
-  | "_Bool" | "bool" => some IntTy.bool_
-  -- QUALIFIED spellings, tabled rather than stripped. Measured: these four
-  -- are the ONLY qualified integer spellings on an expression node in the
-  -- corpus (`const int` 35, `const char` 30, `const unsigned char` 18,
-  -- `const uint64_t` 4) — zero `volatile`, zero `restrict`, zero `_Atomic`.
-  -- A table fails loudly on an unmeasured spelling where string surgery
-  -- would quietly accept one.
-  | "const char" => some IntTy.char_
-  | "const unsigned char" => some IntTy.uchar
-  | "const int" => some IntTy.int_
-  | "const unsigned int" => some IntTy.uint
-  | "const long" => some IntTy.long_
-  | "const unsigned long" => some IntTy.ulong
-  | "const uint64_t" => some IntTy.ulong
-  | "const uint32_t" => some IntTy.uint
-  | "__int128" => some IntTy.int128_
-  | "unsigned __int128" | "__uint128_t" => some IntTy.uint128
-  | _ => none
 
 /-! Parser-native scalar projections.  These consume the C frontend's
 structured builtin or enumeration leaf and never infer a width from a
@@ -369,14 +300,6 @@ def objectSizeOfStructured : LeanModels.Clang.QualType → Option Nat
   | .array element (some extent) => objectSizeOfStructured element |>.map (· * extent)
   | .pointer _ => some 8
   | type => scalarSizeOfStructured type
-
-/-- The integer type of an expression, or a refusal naming the spelling.
-A refusal a human cannot act on is a refusal that has not done its job,
-so the unresolved SPELLING is carried in the message. -/
-def intTyOf (ty : CType) : EvalM IntTy :=
-  match intTyOf? ty with
-  | some t => pure t
-  | none => refuseUnsupported s!"not an integer type: '{ty}'"
 
 /-- Integer promotions on the pinned LP64 profile. -/
 def promoteIntTy (t : IntTy) : IntTy :=
@@ -555,27 +478,6 @@ structure Layout where
   /-- Parser-native union classification keyed by the declaration owning the
       aggregate object. -/
   isUnionDecl : DeclarationId → Bool := fun _ => false
-  /-- **The spelling, normalized: qualifiers stripped and typedefs resolved.**
-
-  A type name in the corpus is not a type. `ull` is `unsigned long` in
-  20000402-1.c and `unsigned long long` in 20041011-1.c — THE SAME SPELLING,
-  TWO TYPES, because a typedef is per-translation-unit. That is why this is a
-  field on the layout (which is built from one unit's own typedefs) and not
-  another row in `intTyOf?`'s table: a table would have to pick one of the two
-  and be wrong about the other program. The bit-field and `array_filler`
-  findings say the same thing from the extractor's side — a per-program fact
-  must be read per program.
-
-  Stripping the qualifiers is §6.2.5p28: qualified and unqualified versions
-  of a type have the same representation and alignment, which is exactly and
-  only what a WIDTH question needs. It is not a claim that `volatile` has no
-  meaning; the tier does not model volatile access ordering, and this field
-  does not pretend otherwise.
-
-  The default is `id`, so a layout that knows nothing normalizes nothing and
-  every refusal stays exactly as loud as it was. -/
-  normalizeTy : CType → CType := id
-
 /-- The declaration identity carried by a direct base expression.  Clang's
 member access facts are keyed by the declaration that owns the object; the
 spelling fallback remains only for older envelopes without that identity. -/
@@ -803,8 +705,7 @@ def Layout.unknown : Layout :=
     fieldBits := fun _ _ => none, fieldBitsDecl := fun _ _ => none
     flexibleField := fun _ _ => false, flexibleFieldDecl := fun _ _ => false
     elem := fun _ => none, members := fun _ => none, membersDecl := fun _ => none
-    memberRecordDecl := fun _ _ => none, isUnion := fun _ => false, isUnionDecl := fun _ => false
-    normalizeTy := id }
+    memberRecordDecl := fun _ _ => none, isUnion := fun _ => false, isUnionDecl := fun _ => false }
 
 /-! ## The evaluation context
 
@@ -977,7 +878,7 @@ operation performs round-to-nearest-even; widening is exact because the same
 operation is used with the wider format.  NaN, infinities and signed zero
 retain their special value and sign. -/
 
-def floatCast (v : CVal) (ty : CType) : EvalM CVal :=
+def floatCast (v : CVal) (structured : Option LeanModels.Clang.QualType) : EvalM CVal :=
   let roundTo (spec : Float.Model.Format) (u : Float.Model.UnpackedFloat) :
       Float.Model.UnpackedFloat :=
     match u with
@@ -985,17 +886,18 @@ def floatCast (v : CVal) (ty : CType) : EvalM CVal :=
     | .notANumber => .notANumber
     | .zero s => .zero s
     | .finite s m e h => .round spec s m e
-  match v, ty with
-  | .float32 f, "double" =>
+  match v, structured.bind floatBitsOfStructured with
+  | .float32 f, some 64 =>
       pure (.float64 (Float.Model.pack (roundTo Float.Model.Format.binary64
         (Float32.Model.unpack f))))
-  | .float64 f, "float" =>
+  | .float64 f, some 32 =>
       pure (.float32 (Float32.Model.pack (roundTo Float.Model.Format.binary32
         (Float.Model.unpack f))))
   | _, _ => refuseUnsupported "floating cast has incompatible source and destination"
 
-@[simp] theorem floatCast_renameAddress (resolve : ObjId → Nat) (v : CVal) (ty : CType) :
-    floatCast (CVal.renameAddress resolve v) ty = floatCast v ty := by
+@[simp] theorem floatCast_renameAddress (resolve : ObjId → Nat) (v : CVal)
+    (structured : Option LeanModels.Clang.QualType) :
+    floatCast (CVal.renameAddress resolve v) structured = floatCast v structured := by
   cases v <;> simp [floatCast, CVal.renameAddress]
 
 /-! C23 §6.3.1.4: conversion from a floating type to an integer type
@@ -1742,11 +1644,19 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       else if ck == "BitCast" then
         -- §6.3.2.3p1 — `void*` ↔ `T*`. Provenance carried, not recomputed:
         -- 52 sites, all void-pointer conversions, ZERO type punning.
-        let isVoidOrCharPtr (t : CType) : Bool :=
-          t == "void *" || t == "const void *" ||
-          t == "char *" || t == "const char *" ||
-          t == "unsigned char *" || t == "const unsigned char *"
-        if isVoidOrCharPtr ty || isVoidOrCharPtr sub.ty ||
+        let isCharacter (q : LeanModels.Clang.QualType) : Bool :=
+          match q.unqualified with
+          | .cBuiltinKind .char | .cBuiltinKind .signedChar
+          | .cBuiltinKind .unsignedChar => true
+          | _ => false
+        let isVoidOrCharPtr (q : Option LeanModels.Clang.QualType) : Bool :=
+          q.map (fun t => match t.unqualified with
+            | .pointer pointee =>
+                match pointee.unqualified with
+                | .void => true
+                | _ => isCharacter pointee
+            | _ => false) |>.getD false
+        if isVoidOrCharPtr structuredType || isVoidOrCharPtr sub.structuredType? ||
             compatiblePointerTypesNode structuredType sub.structuredType? then
           evalExpr ctx sub
         else
@@ -1766,20 +1676,18 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         do
         let v ← evalExpr ctx sub
         let (_, n) ← asInt v
-        if ty == "float" then
-          pure (.float32 (Float32.Model.ofInt n))
-        else if ty == "double" then
-          pure (.float64 (Float.Model.ofInt n))
-        else
-          refuseUnsupported "long double integer-to-floating conversion"
+        match structuredType.bind floatBitsOfStructured with
+        | some 32 => pure (.float32 (Float32.Model.ofInt n))
+        | some 64 => pure (.float64 (Float.Model.ofInt n))
+        | _ => refuseUnsupported "integer-to-floating conversion lacks parser-native destination type"
       else if ck == "FloatingCast" then
         do
           let v ← evalExpr ctx sub
-          floatCast v ty
+          floatCast v structuredType
       else if ck == "FloatingToIntegral" then
         do
         let v ← evalExpr ctx sub
-        let t ← intTyOf (ctx.layout.normalizeTy ty)
+        let t ← intTyOfNode structuredType
         match v with
         | .float32 f => float32ToInt f t
         | .float64 f => float64ToInt f t
@@ -2036,28 +1944,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | _ =>
               storeAt ctx.aliasModel p l.ty nv
           pure nv
-      | _, _ => do
-          let lhsT ← intTyOf (ctx.layout.normalizeTy computeLHSType)
-          let resultT ← intTyOf (ctx.layout.normalizeTy computeResultType)
-          let (_, oldN) ← asInt old
-          let (_, rvN) ← asInt rv
-          let old' := convert lhsT oldN
-          let rv' := convert resultT rvN
-          let nv ← evalArith ctx (compoundBase op) old' rv' computeResultType none (some l) lStructured
-          let storageT ← match lStructured.bind intTyOfStructured with
-            | some projected => pure projected
-            | none => intTyOf (ctx.layout.normalizeTy l.ty)
-          let (_, nvN) ← asInt nv
-          let stored := convert storageT nvN
-          match l with
-          | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAt base field |>.isSome then
-                storeBitFieldAt ctx base.ty field fieldTy p stored (some base) lStructured
-              else
-                storeAt ctx.aliasModel p l.ty stored lStructured
-          | _ =>
-              storeAt ctx.aliasModel p l.ty stored lStructured
-          pure stored
+      | _, _ =>
+          refuseUnsupported
+            "compound assignment lacks parser-native compute type observations"
 
   -- ===== lvalues reaching value position without a conversion =====
   -- Clang wraps scalar reads in `LValueToRValue`, so these are the
@@ -2105,7 +1994,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       set m'
       writeMem (fun m => m.storeBytes (Ptr.toObjectBound o bs.length) bs)
       pure (.ptr (Ptr.toObjectBound o bs.length))
-  | .floatLit _ bitsHex bitWidth ty _ .. => floatLiteralValue bitsHex bitWidth ty
+  | .floatLit _ bitsHex bitWidth _ _ .. => floatLiteralValue bitsHex bitWidth
 
   -- A bare name in value position is an enumeration constant; every other
   -- name arrives wrapped in a conversion or a decay.
@@ -2732,12 +2621,6 @@ theorem evalCRes' (r : CRes CVal) : MemInvariant (evalCRes r) := by
   · exact pure' _
   · exact refuseValue' _
 
-theorem intTyOf' (ty : CType) : MemInvariant (intTyOf ty) := by
-  first | simp only [intTyOf] | rw [intTyOf.eq_def]
-  split
-  · exact pure' _
-  · exact refuseUnsupported' _
-
 theorem intTyOfNode' (structured : Option LeanModels.Clang.QualType) :
     MemInvariant (intTyOfNode structured) := by
   unfold intTyOfNode
@@ -2836,16 +2719,16 @@ theorem float64ToInt' (f : Float.Model) (t : IntTy) :
     | exact pure' _
     | exact refuseValue' _
 
-theorem floatLiteralValue' (bitsHex : Option String) (bitWidth : Option Nat) (ty : CType) :
-    MemInvariant (floatLiteralValue bitsHex bitWidth ty) := by
+theorem floatLiteralValue' (bitsHex : Option String) (bitWidth : Option Nat) :
+    MemInvariant (floatLiteralValue bitsHex bitWidth) := by
   simp only [floatLiteralValue]
   repeat (any_goals split)
   all_goals first
     | exact pure' _
     | exact refuseUnsupported' _
 
-theorem floatCast' (v : CVal) (ty : CType) :
-    MemInvariant (floatCast v ty) := by
+theorem floatCast' (v : CVal) (structured : Option LeanModels.Clang.QualType) :
+    MemInvariant (floatCast v structured) := by
   simp only [floatCast]
   repeat (any_goals split)
   all_goals first
@@ -2917,7 +2800,7 @@ macro "mem_inv" : tactic => `(tactic|
     | (with_reducible apply MemInvariant.refuseLibc')
     | (with_reducible apply MemInvariant.refuseUnsupported')
     | (with_reducible apply MemInvariant.readMem')
-    | (with_reducible apply MemInvariant.intTyOf')
+    | (with_reducible apply MemInvariant.intTyOfNode')
     | (with_reducible apply MemInvariant.truthy')
     | (with_reducible apply MemInvariant.asPtr')
     | (with_reducible apply MemInvariant.asInt')
@@ -2994,7 +2877,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       | charLit value _ _ structuredType => exact ⟨by open_eval; exact MemInvariant.charLiteralNode' value structuredType, by open_lvalue; mem_inv⟩
       | strLit _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | floatLit _ bitsHex bitWidth ty _ _ =>
-          exact ⟨by open_eval; exact MemInvariant.floatLiteralValue' bitsHex bitWidth ty,
+          exact ⟨by open_eval; exact MemInvariant.floatLiteralValue' bitsHex bitWidth,
             by open_lvalue; mem_inv⟩
       | declRef _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | typeTrait _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
