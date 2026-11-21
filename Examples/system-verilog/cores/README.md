@@ -1355,6 +1355,16 @@ E-RUN is **0 / 0**.  Icarus Verilog 13.0 and Xcelium 24.03-s004 both refuse the
 pinned source at the IEEE 1800-2023 §12.5 use-before-declared `instr` wall.
 The two-core rerun leaves the census and execution counts unchanged.
 
+The loader-backed rerun on the checked-in DarkRISCV envelope emits **186 / 0 /
+0** rows from `CoreMemDesign`.  The source SHA-256 is
+`46d57b15cc42c0458e02500a2a30371cd4e7979970c27afd9d47c40d1fa8c1a0`, and the
+envelope SHA-256 is
+`ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32`.
+`clock_wall_check.py` pins both hashes before running the four-stage setup and
+the 1000-cycle source-shaped clock replay.  The replay completes **1000 / 1000**
+cycles under the 180-second bound.  Simulator agreement and canonical-E
+execution are reported separately by `battery_check.py`.
+
 ## 2026-11-20 loader-backed Quark and SERV census
 
 The loader-backed census was extended to envelopes kept in the lane scratch
