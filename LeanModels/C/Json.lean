@@ -236,6 +236,16 @@ def parseOptStructuredQualType (j : Json) (name : String) : Except String (Optio
   | none => .ok none
   | some value => some <$> parseStructuredQualType value
 
+/-- Declaration nodes are admitted only when the approved Clang structured
+type observation is present.  A missing observation is an ingestion failure,
+so no declaration semantics can fall back to a type spelling. -/
+def parseRequiredStructuredQualType (j : Json) (name : String) :
+    Except String (Option LeanModels.Clang.QualType) :=
+  do
+    match ← parseOptStructuredQualType j name with
+    | some type => pure (some type)
+    | none => throw s!"missing parser-native structured type '{name}'"
+
 
 partial def parseExpr (j : Json) : Except String Expr := do
   let kind ← getStr j "kind"
@@ -360,38 +370,38 @@ partial def parseDecl (j : Json) : Except String Decl := do
               | none => pure none
               | some v => some <$> parseExpr v)
           ((← getOptStr j "record_decl_id").map DeclarationId.mk)
-          (← getBool j "va_list") span (← parseOptStructuredQualType j "structured_type")
+          (← getBool j "va_list") span (← parseRequiredStructuredQualType j "structured_type")
     -- `name` is OPTIONAL (§6.7.6.3): absent and `null` are one absence.
     | "ParmVarDecl" =>
         let id ← getOptStr j "decl_id"
         return .param (id.map DeclarationId.mk) (← getOptStr j "name")
-          (← getStr j "type") (← getBool j "va_list") span (← parseOptStructuredQualType j "structured_type")
+          (← getStr j "type") (← getBool j "va_list") span (← parseRequiredStructuredQualType j "structured_type")
     | "FieldDecl" =>
         return .field (← getOptStr j "name") (← getStr j "type") (← getOptNat j "bits")
           ((← getOptStr j "decl_id").map DeclarationId.mk)
           ((← getOptStr j "record_decl_id").map DeclarationId.mk) span
-          (← parseOptStructuredQualType j "structured_type")
+          (← parseRequiredStructuredQualType j "structured_type")
     | "RecordDecl" =>
         return .record ((← getOptStr j "decl_id").map DeclarationId.mk) (← getOptStr j "name")
           (← (← getArr j "fields").mapM parseDecl) (← getOptRecordLayout j) span
-          (← parseOptStructuredQualType j "structured_type")
+          (← parseRequiredStructuredQualType j "structured_type")
     | "TypedefDecl" =>
         return .typedef ((← getOptStr j "decl_id").map DeclarationId.mk)
           (← getStr j "name") (← getStr j "type")
           (← match getOptNode j "underlying" with
               | none => pure none
               | some v => some <$> parseTypeNode v) span
-          (← parseOptStructuredQualType j "structured_type")
+          (← parseRequiredStructuredQualType j "structured_type")
     | "EnumDecl" =>
         return .enum (← getOptStr j "name")
           (← (← getArr j "constants").mapM parseDecl) span
-          (← parseOptStructuredQualType j "structured_type")
+          (← parseRequiredStructuredQualType j "structured_type")
     | "EnumConstantDecl" =>
         -- `value` is OPTIONAL: clang does not always fold one.
         let id ← getOptStr j "decl_id"
         return .enumConst (id.map DeclarationId.mk) (← getStr j "name")
           (← getOptStr j "value") span
-          (← parseOptStructuredQualType j "structured_type")
+          (← parseRequiredStructuredQualType j "structured_type")
     | "EmptyDecl" => return .empty span
     | "Unsupported" =>
         return .unsupported (← getStr j "c_kind") (← getStr j "text") span
@@ -454,7 +464,7 @@ def parseFunctionDefn (j : Json) : Except String FunctionDefn :=
   withCtx "FunctionDecl" do
     let id ← getOptStr j "decl_id"
     return { id := id.map DeclarationId.mk, name := ← getStr j "name", ty := ← getStr j "type"
-             structuredType := ← parseOptStructuredQualType j "structured_type"
+             structuredType := ← parseRequiredStructuredQualType j "structured_type"
              storage := ← getOptStr j "storage"
              params := ← (← getArr j "params").mapM parseDecl
              variadic := ← getBool j "variadic"
