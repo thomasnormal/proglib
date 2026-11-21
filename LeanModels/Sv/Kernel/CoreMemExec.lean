@@ -1182,6 +1182,42 @@ def coreMemPProcessReadNames : PProcess → List String
   | .alwaysFFR _ _ body _ | .alwaysEvent _ body => coreMemStmtReadNames body
   | _ => []
 
+def coreMemPProcessAllReadNames : PProcess → List String
+  | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysFFR _ _ body _ | .alwaysEvent _ body | .initial body =>
+      coreMemStmtReadNames body
+  | _ => []
+
+def coreMemPProcessReactive : PProcess → Bool
+  | .alwaysComb _ | .alwaysLatch _ | .alwaysImplicit _ => true
+  | _ => false
+
+def coreMemPreemptiveBlockingPair (p q : PProcess) : Bool :=
+  let pWrites := coreMemProcBlockingWrites p
+  let qWrites := coreMemProcBlockingWrites q
+  let pExposes := coreMemPProcessReactive p && pWrites.length > 1
+  let qExposes := coreMemPProcessReactive q && qWrites.length > 1
+  (pExposes && pWrites.any (fun name => (coreMemPProcessAllReadNames q).contains name)) ||
+    (qExposes && qWrites.any (fun name => (coreMemPProcessAllReadNames p).contains name))
+
+def coreMemPreemptiveBlockingViolAt (p : PProcess) : List PProcess → Bool
+  | [] => false
+  | q :: rest =>
+      coreMemPreemptiveBlockingPair p q || coreMemPreemptiveBlockingViolAt p rest
+
+def coreMemPreemptiveBlockingViol : List PProcess → Bool
+  | [] | [_] => false
+  | p :: rest =>
+      coreMemPreemptiveBlockingViolAt p rest || coreMemPreemptiveBlockingViol rest
+
+def coreMemPreemptiveBlockingViolReport (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  if coreMemPreemptiveBlockingViol (d.processes ++ generated) then
+    some ("Schedule:preemptive",
+      "IEEE 1800-2023 §4.7 permits suspension between blocking writes; canonical E refuses a multi-write reactive process whose intermediate value another process can read")
+  else none
+
 def coreMemHasCommonEventSource (p q : PProcess) : Bool :=
   (coreMemPProcessEdgeSources p).any (fun source =>
     (coreMemPProcessEdgeSources q).contains source)
@@ -1449,6 +1485,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
       | some (kind, msg) => .unsupported s!"{kind}: {msg}"
       | none =>
           match coreMemEdgeBlockingReadRaceViol d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none => match coreMemPreemptiveBlockingViolReport d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none => match coreMemTimeZeroEventSourceViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
@@ -3580,6 +3618,17 @@ private def auditW5Complete : PStmt :=
     .blockingAssign "t" (.ident "e")]
 
 #guard coreMemReactiveDependencyViol [.alwaysComb auditW5Complete] == none
+
+private def auditPreemptiveProcesses : List PProcess :=
+  [.alwaysComb (.block [
+      .blockingAssign "q" (.ident "a"),
+      .blockingAssign "r" (.ident "q")]),
+   .alwaysComb (.blockingAssign "z" (.ident "q"))]
+
+#guard coreMemPreemptiveBlockingViol auditPreemptiveProcesses
+#guard (coreMemPreemptiveBlockingViolReport
+    { name := "auditPreemptive", params := [], localParams := [], enums := [], decls := [],
+      processes := auditPreemptiveProcesses, generates := [] } []).isSome
 
 /-! An any-change event observes the complete four-state vector, while an
 edge event uses its LSB (§9.4.2).  A change in a higher bit must therefore
