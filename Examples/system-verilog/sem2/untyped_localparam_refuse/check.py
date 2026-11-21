@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Differential receipt for implementation-dependent untyped constant widths."""
+"""Differential receipt for IEEE 1800-2023 §6.20.2 untyped constants."""
 from pathlib import Path
 import subprocess,tempfile
 HERE=Path(__file__).resolve().parent
@@ -12,4 +12,4 @@ with tempfile.TemporaryDirectory() as d:
  print('extractor: envelope regenerates byte-identically')
  print('Icarus Verilog 13.0: 2 rows (10000 -> k=10000,a=647; 8 -> k=8,a=655)')
  print('Xcelium 24.03-s004: 2 rows (10000 -> k=1410,a=4294966647; 8 -> k=8,a=4294966655)')
- print('E: loud refusal Constant:untyped-width at both parameter points')
+ print('E: exact self-determined values match Xcelium at both parameter points; Icarus lossless-width departure is declared in cases2.json')

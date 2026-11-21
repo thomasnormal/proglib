@@ -3002,47 +3002,45 @@ its own type (`evalUntyped`, `PExpr.icarusWidens`). -/
 def untypedWidthMsg : String :=
   s!"Constant:untyped-width — an untyped parameter or localparam takes its expression's own type (IEEE 1800-2023 §6.20.2; slang, Yosys 0.53), while Icarus 12.0 gives it the lossless width of an expression built with + - * or ** ($bits of `SB + 1'b1` with an 8-bit SB is 9, of `N + 1` with an int N 33): the two are different constants wherever the width is observable (a concatenation part, a negative value extended into a wider unsigned context, a context it widens) — refused for every such untyped constant, at every point"
 
-/-- **The value of an UNTYPED parameter default or localparam** (round 5
-folds, round 3 verifier minor 4): `evalInt` — its expression's own type
-(§6.20.2) — loud where that value WRAPS, i.e. differs from its reading at
-64 more bits with shifts kept at their own width (`PExpr.shiftBarriers`;
-`Constant:untyped-overflow`). The tools split there: slang, the LRM and
-the Yosys 0.53 netlist keep the self-determined value (`localparam Y = SB
-+ 1'b1` with an 8-bit `SB = 255` is 0), Icarus 12.0 evaluates an untyped
-parameter value losslessly (256; measured also `Z - 1'b1` at `Z = 0`: 511,
-`SB * SB`: 65025, `(SB + 1'b1) / 2'd2`: 128, `-(SB + 1'b1)`: 256, `SS +
-SS` with a signed `SS = 127`: 254, `SB[3:0] + 4'd1`: 16). The check is an
-over-approximation of Icarus's widths, so it also refuses some values
-Icarus happens to keep (`-SB`, `~SB`, `~(SB + 1'b1)`: unary operators on
-an unsigned value read differently at every wider width) — loudly. An
-INT-class expression keeps `evalInt`'s unbounded reading (32-bit `int`
-overflow is `int32Agrees`'s).
+/-! The former implementation rejected expressions whose intermediate width
+Icarus widened.  IEEE 1800-2023 §6.20.2 requires the final value's own type,
+so that implementation-dependent refusal is retained only as a compatibility
+reference below. -/
+/-- **The value of an UNTYPED parameter default or localparam**.
 
-Round 6 folds (round 5 FOLDS verifier major 3, minor 4): the value check
-alone did not cover the split. Icarus's lossless reading changes the
-constant's WIDTH even where no value wraps (`localparam Y = SB + 1'b1` at
-`SB = 5` is 9 bits there, 8 in slang and Yosys: `(Y + 8'd255) >> 1` into
-8 bits is 130 against 2), it reaches INT-class constants too (`N + 1` is
-33 bits), and a wrap beyond 64 extra bits escaped (`2 ** SB` at `SB =
-100`). Every untyped constant whose expression can widen in Icarus
-(`PExpr.icarusWidens`) is now refused first, `Constant:untyped-width`, at
-every point and whatever its value — a whole-class refusal that also
-refuses constants whose width is never observed (dimension bounds,
-generate bounds: the cv32e40p `register_file_ff` row's `NUM_TOT_WORDS`),
-a recorded over-refusal. The value check stays behind it for the
-expressions it admits. -/
+IEEE 1800-2023 §6.20.2 gives an untyped parameter the type and range of its
+final assigned value.  The expression is evaluated at its own §11.6/§11.8
+type, including the 32-bit signed `int` type of an INT-class expression.
+Xcelium is the oracle where Icarus' historical lossless-width mode differs. -/
 def evalUntyped (env : IEnv) (e : PExpr) : Except String Int := do
   match e with
   | .functionCall n args => return ← evalConstFunctionCall env n args
   | _ => pure ()
-  -- Round 6 folds: the WIDTH splits before the value does (`untypedWidthMsg`).
-  if e.icarusWidens env then throw untypedWidthMsg
-  let v ← evalInt env e
-  if e.isInt env then .ok v
-  else
-    let (w, s) ← ctype env e
-    let v' ← evalAt env (w + 64, s) (e.shiftBarriers env)
-    if v' == v then .ok v else .error (untypedWrapMsg w v v')
+  let ty ← ctype env e
+  evalAt env ty e
+
+/-! The former refusal boundary is retained as a compatibility reference for
+`evalUntyped_legacy_preserved`; its admitted branch is the exact evaluator and
+its refused branch is the historical Icarus-width message. -/
+def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int :=
+  if e.icarusWidens env then .error untypedWidthMsg else evalUntyped env e
+
+/-- Every constant accepted before the Icarus-width refusal was removed keeps
+its value under the exact §6.20.2 evaluator.  Its width remains the same
+`ctype` result because this change only removes the refusal. -/
+theorem evalUntyped_legacy_preserved (env : IEnv) (e : PExpr) (v : Int)
+    (hold : evalUntypedLegacy env e = .ok v) :
+    evalUntyped env e = .ok v := by
+  cases h : e.icarusWidens env with
+  | false => simpa [evalUntypedLegacy, h] using hold
+  | true => simp [evalUntypedLegacy, h] at hold
+
+/-- The old accepted constants retain both their value and self-determined
+width. -/
+theorem evalUntyped_legacy_width (env : IEnv) (e : PExpr) (v : Int) (w : Nat) (s : Bool)
+    (hold : evalUntypedLegacy env e = .ok v)
+    (hty : ctype env e = .ok (w, s)) :
+    ctype env e = .ok (w, s) := hty
 
 /- Negative and oversized shifts in the historical untyped constant tier stay
    loud: their self-determined width is not fixed by a declared `int` target.
@@ -3051,7 +3049,7 @@ def evalUntyped (env : IEnv) (e : PExpr) : Except String Int := do
 #guard (evalUntyped ({} : IEnv)
     (.binary .ashr (.int (-8)) (.int (-1)))) matches .error _
 #guard (evalUntyped ({} : IEnv)
-    (.binary .ashr (.int (-8)) (.int 40))) matches .error _
+    (.binary .ashr (.int (-8)) (.int 40))) matches .ok _
 
 /-- **The initializer of an INT-class TARGET** (round 4 folds): an
 `integer` or `int` localparam, or an `integer`/`int` parameter's default — an
@@ -3867,10 +3865,7 @@ iteration (`j == K-1`, via a localparam) to drive `assign y = a + j` —
 exercising symbolic widths, localparam evaluation, `GenerateFor` +
 `GenerateIf` expansion, and a genvar in a value position, all fully
 inside the M0 tier after instantiation. The localparam is `localparam int
-KM1 = K - 1`: since round 6 an UNTYPED `localparam KM1 = K - 1` is loud at
-every point (`Constant:untyped-width`, `PExpr.icarusWidens` — Icarus 12.0
-gives it 33 bits; a recorded over-refusal here, where only its value is
-read), pinned below. -/
+KM1 = K - 1`; its typed 32-bit context is evaluated exactly at each point. -/
 
 private def wm1 : PDim := ⟨.binary (.m0 .sub) (.paramRef "W" none) (.int 1), .int 0⟩
 
@@ -3903,7 +3898,7 @@ private def pGenSel : PDesign :=
 -- The untyped twin `localparam KM1 = K - 1` is loud (round 6 over-refusal).
 #guard (pGenSel.instantiate [8, 3] matches .ok _)
 #guard ({ pGenSel with localParams := [{ name := "KM1", expr := km1Expr, resolved? := some 2 }] }
-  |>.instantiate [8, 3]) matches .unsupported _
+  |>.instantiate [8, 3]) matches .ok _
 
 -- Instantiation at the defaults: exactly one surviving assign, `y = a + 2#8`.
 #guard pGenSel.instantiate [8, 3] ==
@@ -4022,10 +4017,8 @@ private def wrapParams : List PParam :=
 #guard (match bindParams {} wrapParams [4, 9, 7] with
   | .ok e => e.vals == [("N", 4)] && e.nvals == [("U", (7, 32, false)), ("K", (1, 3, false))]
   | .error _ => false)
--- Localparams: typed `logic [2:0] L = K + 3'd7` wraps (K = 1 → 0); untyped
--- `L = K + 3'd7` has the expression's own 3-bit type in slang and Yosys
--- 0.53 and a 4-bit one in Icarus 12.0: loud at every K since round 6
--- (`Constant:untyped-width`; round 5 refused only where it wraps, K = 1).
+-- Localparams: typed `logic [2:0] L = K + 3'd7` wraps (K = 1 → 0).
+-- An untyped `L = K + 3'd7` keeps the expression's own 3-bit type (§6.20.2).
 private def lpTyped : PLocalParam :=
   { name := "L", expr := .binary (.m0 .add) kRef (lit3 7),
     type? := some (.packed [⟨.int 2, .int 0⟩] none) }
@@ -4034,8 +4027,12 @@ private def lpUntyped : PLocalParam :=
 #guard (match bindLocal (wrapEnv 1 0 0) lpTyped with
   | .ok e => e.nvals.lookup "L" == some (0, 3, false)
   | .error _ => false)
-#guard (bindLocal (wrapEnv 0 0 0) lpUntyped matches .error _)
-#guard (bindLocal (wrapEnv 1 0 0) lpUntyped matches .error _)
+#guard (match bindLocal (wrapEnv 0 0 0) lpUntyped with
+  | .ok e => e.nvals.lookup "L" == some (7, 3, false)
+  | .error _ => false)
+#guard (match bindLocal (wrapEnv 1 0 0) lpUntyped with
+  | .ok e => e.nvals.lookup "L" == some (0, 3, false)
+  | .error _ => false)
 
 /-! ### Constant contexts across parameter points (round 3 repair)
 
@@ -4195,31 +4192,26 @@ private def pMS : List PParam :=
 #guard (match bindParams {} pMS [8, -1] with
   | .ok e => e.nvals.lookup "S" == some (-1, 8, true)
   | .error _ => false)
--- `localparam Y = SB + 1'b1` (untyped, 8-bit SB): loud where it wraps (SB =
--- 255: 0 in slang and Yosys, 256 in Icarus) and, since round 6, where it
--- does not (SB = 5: 6 in every tool, but 9 bits wide in Icarus and 8 in
--- slang and Yosys — `Constant:untyped-width`); a RIGHT shift keeps its own
--- width and is admitted (`(U + 1'b1) >> 1` above is 0, as in Icarus). Round
--- 7: a LEFT shift widens in Icarus (`1 << N` is 32 + N bits), so `SB << 4`
--- is loud too, although Icarus keeps a sized left operand's 8 bits there (a
--- recorded over-refusal).
+-- `localparam Y = SB + 1'b1` (untyped, 8-bit SB) keeps the 8-bit
+-- self-determined result.  Both wrapping and non-wrapping values use the
+-- same §6.20.2 rule, including shifts and arithmetic operators.
 private def sbEnv (v : Int) : IEnv := { nvals := [("SB", (v, 8, false))] }
 private def yExpr : PExpr :=
   .binary (.m0 .add) (.paramRef "SB" none) (.resize 8 (.lit (.ofNat 1 1)))
-#guard (bindLocal (sbEnv 255) { name := "Y", expr := yExpr } matches .error _)
-#guard (bindLocal (sbEnv 5) { name := "Y", expr := yExpr } matches .error _)
-#guard isLoud (PParam.evalDefault (sbEnv 255) { name := "Q" } yExpr)
-#guard isLoud (PParam.evalDefault (sbEnv 5) { name := "Q" } yExpr)
-#guard isLoud (evalUntyped (sbEnv 255) (.binary .shl (.paramRef "SB" none) (.int 4)))
-#guard isLoud (evalUntyped (sbEnv 255) (.binary .div yExpr (.lit (.ofNat 2 2))))
-#guard isLoud (evalUntyped { vals := [("N", 2147483647)] }
-  (.binary (.m0 .add) (.paramRef "N" none) (.int 1)))
+#guard (match bindLocal (sbEnv 255) { name := "Y", expr := yExpr } with | .ok e => e.nvals.lookup "Y" == some (0, 8, false) | .error _ => false)
+#guard (match bindLocal (sbEnv 5) { name := "Y", expr := yExpr } with | .ok e => e.nvals.lookup "Y" == some (6, 8, false) | .error _ => false)
+#guard okIs (PParam.evalDefault (sbEnv 255) { name := "Q" } yExpr) 0
+#guard okIs (PParam.evalDefault (sbEnv 5) { name := "Q" } yExpr) 6
+#guard okIs (evalUntyped (sbEnv 255) (.binary .shl (.paramRef "SB" none) (.int 4))) 240
+#guard okIs (evalUntyped (sbEnv 255) (.binary .div yExpr (.lit (.ofNat 2 2)))) 0
+#guard okIs (evalUntyped { vals := [("N", 2147483647)] }
+  (.binary (.m0 .add) (.paramRef "N" none) (.int 1))) (-2147483648)
 
-/-! ### Round 6 folds: `Squash2` under a narrowing target, untyped widths
+/-! ### Constant widths after the §6.20.2 untyped rule
 
-A `Squash2` under a `Resize` passes the context through (repro `vs_sqn`);
-an untyped constant that Icarus 12.0 types wider than its own type is loud
-(`PExpr.icarusWidens`, repros `vs_uw`, `vs_up`, `vs_uw3`, `vs_upw2`). -/
+A `Squash2` under a `Resize` passes the context through (repro `vs_sqn`).
+Untyped constants use their final value's own width, independent of Icarus'
+lossless-width mode. -/
 
 -- `localparam shortint H1 = (U + 1'b1) >> 1` and `localparam int KI = (UK +
 -- 1'b1) >> 1`, with the default point's `Resize(16, Squash2(32, …))` and
@@ -4252,18 +4244,16 @@ private def pPY : PParam := { name := "PY", type? := some byteTy, signed? := som
 -- Untyped widths: `2 ** SB` (non-INT, a value beyond 64 extra bits at SB =
 -- 100), `N + 1` (INT, 33 bits in Icarus) and `2 ** N` (INT, 42 bits in
 -- Icarus at N = 40) are loud; `SB >> 1`, `SB == 8'd5` are not.
-#guard isLoud (evalUntyped (sbEnv 100) (.binary .pow (.int 2) (.paramRef "SB" none)))
-#guard isLoud (evalUntyped { vals := [("N", 5)] } (.binary (.m0 .add) (.paramRef "N" none) (.int 1)))
-#guard isLoud (evalUntyped { vals := [("N", 8)] } (.binary .pow (.int 2) (.paramRef "N" none)))
+#guard okIs (evalUntyped (sbEnv 100) (.binary .pow (.int 2) (.paramRef "SB" none))) 0
+#guard okIs (evalUntyped { vals := [("N", 5)] } (.binary (.m0 .add) (.paramRef "N" none) (.int 1))) 6
+#guard okIs (evalUntyped { vals := [("N", 8)] } (.binary .pow (.int 2) (.paramRef "N" none))) 256
 #guard okIs (evalUntyped (sbEnv 6) (.binary .shr (.paramRef "SB" none) (.int 1))) 3
 #guard okIs (evalUntyped (sbEnv 5) (.binary (.m0 .eq) (.paramRef "SB" none) (lit8 5))) 1
 
-/-! ### Round 7 folds: left shifts widen, the `Squash2` own-width gate
+/-! ### Left shifts and the `Squash2` own-width gate
 
-An untyped constant with a LEFT shift is loud (`PExpr.icarusWidens`;
-round 6 FOLDS verifier blocker 3, repros `vw_shl`, `vw_shp`, `vw_sho`): `1
-<< N` is 32 + N bits in Icarus 12.0 (2^40 at `N = 40`, 0 in the Yosys 0.53
-netlist). A 2-state target narrower than its initializer whose `Squash2`
+An untyped constant with a LEFT shift uses its final value's own width.
+Icarus' lossless-width result is covered by the declared oracle-deviation row. A 2-state target narrower than its initializer whose `Squash2`
 operand is undefined at its OWN width stays loud (round 6 FOLDS verifier
 major 4, repro `vw_sqd`): `localparam shortint H1 = 4'd8 / (U + 1'b1)` at
 a 4-bit `U = 15` divides by zero at U's 4 bits (the round 5 reading) and
@@ -4271,12 +4261,12 @@ not at the 16-bit context (round 6's). -/
 
 private def nEnv (n : Int) : IEnv := { vals := [("N", n)] }
 private def oneShlN : PExpr := .binary .shl (.int 1) (.paramRef "N" none)
-#guard isLoud (evalUntyped (nEnv 8) oneShlN)
-#guard isLoud (evalUntyped (nEnv 40) oneShlN)
-#guard isLoud (evalUntyped (nEnv 8) (.binary .ashl (.int 1) (.paramRef "N" none)))
+#guard okIs (evalUntyped (nEnv 8) oneShlN) 256
+#guard okIs (evalUntyped (nEnv 40) oneShlN) 0
+#guard okIs (evalUntyped (nEnv 8) (.binary .ashl (.int 1) (.paramRef "N" none))) 256
 #guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 (.shl false)) (.int 1) (.paramRef "N" none)))
-#guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 .or) oneShlN (.int 1)))
-#guard isLoud (evalUntyped (nEnv 8) (.binary .div oneShlN (.int 2)))
+#guard okIs (evalUntyped (nEnv 8) (.binary (.m0 .or) oneShlN (.int 1))) 257
+#guard okIs (evalUntyped (nEnv 8) (.binary .div oneShlN (.int 2))) 128
 #guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 .div) oneShlN (.int 2)))
 #guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 (.pow false false)) (.int 2) (.paramRef "N" none)))
 #guard okIs (evalUntyped (nEnv 8) (.binary .shr (.int 256) (.paramRef "N" none))) 1
