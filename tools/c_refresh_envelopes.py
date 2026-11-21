@@ -32,7 +32,12 @@ def refresh_one(item: dict, source_root: Path, out_root: Path, string_plugin: st
     digest = hashlib.sha256(source.read_bytes()).hexdigest()
     if digest != item.get("sha256"):
         raise RuntimeError(f"source hash mismatch for {item['name']}")
-    output = out_root / (item["name"] + ".json")
+    name = item["name"]
+    if item.get("corpus") in ("gcc.c-torture/execute", "c-testsuite/single-exec") \
+            and name.endswith(".c"):
+        name = name[:-2]
+    output = out_root / name
+    output = output.with_name(output.name + ".json")
     output.parent.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     env["LEAN_C_STRING_BYTES_PLUGIN"] = string_plugin
