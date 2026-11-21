@@ -599,6 +599,8 @@ def layoutFor (envl : Envelope) : Layout :=
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
   let observedDeclSize := fun id : DeclarationId =>
     envl.typeLayouts.find? (fun row => row.declaration == some id) |>.map (·.sizeBytes)
+  let observedRecordSizeDecl := fun id : DeclarationId =>
+    observedRecordLayout? envl id |>.map (·.sizeBytes)
   let observedPointeeSize := fun t : String =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.bind (·.pointeeSizeBytes)
   let observedDeclPointeeSize := fun id : DeclarationId =>
@@ -645,6 +647,7 @@ def layoutFor (envl : Envelope) : Layout :=
         | _ => false
     | _ => false
   { declSize := observedDeclSize
+    recordSizeDecl := observedRecordSizeDecl
     structuredType := fun id => envl.structuredTypeFor id
     structuredExprType := observedExprType
     structuredExprTypeAt := observedExprTypeAt

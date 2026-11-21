@@ -408,6 +408,7 @@ same decision `docs/c-envelope-schema.md` §3 made for `String` itself, and
 it is what keeps the C type parser out of the tier. -/
 structure Layout where
   declSize : DeclarationId → Option Nat := fun _ => none
+  recordSizeDecl : DeclarationId → Option Nat := fun _ => none
   structuredType : DeclarationId → Option LeanModels.Clang.QualType := fun _ => none
   structuredExprType : Nat → Option LeanModels.Clang.QualType := fun _ => none
   structuredExprTypeAt : Nat → Option Nat → String → String → Option LeanModels.Clang.QualType :=
@@ -492,7 +493,10 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : String) 
     decl.bind layout.structuredType
       |>.bind (LeanModels.Clang.QualType.resolveTypedefs
         (fun declaration => layout.structuredType { value := declaration.value }) 32)
-      |>.bind objectSizeOfStructured)
+      |>.bind fun structured =>
+        match structured.unqualified with
+        | .record declaration => layout.recordSizeDecl { value := declaration.value }
+        | _ => objectSizeOfStructured structured)
 
 
 /-- Resolve the byte size needed by an expression load through the
