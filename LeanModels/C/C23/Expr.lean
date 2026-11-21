@@ -1570,10 +1570,11 @@ def bitFieldStoreBytes (bs : List CByte) (offset width value : Nat) : List CByte
 
 
 def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
-    (fieldTy : CType) (fieldPtr : Ptr) (base : Option Expr := none) : EvalM CVal := do
+    (fieldTy : CType) (fieldPtr : Ptr) (base : Option Expr := none)
+    (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal := do
   match (base.map (ctx.layout.fieldBitsAt · field)).getD (ctx.layout.fieldBits recordTy field),
       ctx.layout.bitFieldStorageSizeAt base recordTy,
-      intTyOf? (ctx.layout.normalizeTy fieldTy) with
+      structured.bind intTyOfStructured with
   | some (offsetBits, width), some recordSize, some storageTy =>
       if width > 8 then
         refuseUnsupported s!"unsupported bit-field width {width} for '{fieldTy}'"
@@ -1591,15 +1592,16 @@ def loadBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
   | none, _, _ => refuseUnsupported s!"no bit-field layout for '{field}'"
 
 def storeBitFieldAt (ctx : Ctx) (recordTy : CType) (field : String)
-    (fieldTy : CType) (fieldPtr : Ptr) (v : CVal) (base : Option Expr := none) : EvalM Unit := do
+    (fieldTy : CType) (fieldPtr : Ptr) (v : CVal) (base : Option Expr := none)
+    (structured : Option LeanModels.Clang.QualType := none) : EvalM Unit := do
   match (base.map (ctx.layout.fieldBitsAt · field)).getD (ctx.layout.fieldBits recordTy field),
       ctx.layout.bitFieldStorageSizeAt base recordTy,
-      intTyOf? (ctx.layout.normalizeTy fieldTy), v with
+      structured.bind intTyOfStructured, v with
   | some (offsetBits, width), some recordSize, some storageTy, .int _ n =>
       if width > 8 then
         refuseUnsupported s!"unsupported bit-field width {width} for '{fieldTy}'"
       else
-      let fieldTy' := (intTyOf? (ctx.layout.normalizeTy fieldTy)).getD storageTy
+      let fieldTy' := storageTy
       -- C23 §6.3.1.3p3 leaves conversion to a signed type outside its
       -- range implementation-defined (J.3.6(3)).  The pinned profile's
       -- `uint_to_int_wraps` fact records Clang's choice for this conversion.
@@ -1735,7 +1737,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               match sub with
               | .member base field arrow fieldTy _ _ .. =>
                   if ctx.layout.fieldBitsAt base field |>.isSome then
-                    loadBitFieldAt ctx base.ty field fieldTy p (some base)
+                    loadBitFieldAt ctx base.ty field fieldTy p (some base) structuredType
                   else
                     loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty)
                       (ctx.layout.size (ctx.layout.normalizeTy ty))
@@ -1878,15 +1880,16 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           refuseUnsupported "unsequenced side effects in assignment"
         let p ← evalLValue ctx l
         let v ← evalExpr ctx r
+        let lStructured := ctx.layout.structuredTypeAt l
         match l with
         | .member base field arrow fieldTy _ _ .. =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
-              storeBitFieldAt ctx base.ty field fieldTy p v (some base)
+              storeBitFieldAt ctx base.ty field fieldTy p v (some base) lStructured
               -- §6.5.16.2: the assignment expression has the value after
               -- conversion to the assigned bit-field type.  Returning the
               -- RHS here would expose 1081 for an 11-bit field and disagree
               -- with Clang's truncation before the surrounding comparison.
-              loadBitFieldAt ctx base.ty field fieldTy p (some base)
+              loadBitFieldAt ctx base.ty field fieldTy p (some base) lStructured
             else
               storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) v
                 (ctx.layout.structuredTypeAt l)
@@ -1968,7 +1971,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let old ← match sub with
           | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
-                loadBitFieldAt ctx base.ty field fieldTy p (some base)
+                loadBitFieldAt ctx base.ty field fieldTy p (some base) subStructured
               else loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
           | _ => loadAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) (ctx.layout.size (ctx.layout.normalizeTy sub.ty)) subStructured
         match old with
@@ -1981,7 +1984,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             match sub with
             | .member base field arrow fieldTy _ _ .. =>
                 if ctx.layout.fieldBitsAt base field |>.isSome then
-                  storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
+                  storeBitFieldAt ctx base.ty field fieldTy p nv (some base) subStructured
                 else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
             | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) nv
             pure (if post then old else nv)
@@ -1998,7 +2001,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                 match sub with
                 | .member base field arrow fieldTy _ _ .. =>
                     if ctx.layout.fieldBitsAt base field |>.isSome then
-                      storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
+                      storeBitFieldAt ctx base.ty field fieldTy p stored (some base) subStructured
                     else storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
                 | _ => storeAt ctx.aliasModel p (ctx.layout.normalizeTy sub.ty) stored subStructured
                 pure (if post then old else stored)
@@ -2026,7 +2029,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       let old ← match l with
         | .member base field arrow fieldTy _ _ .. =>
             if ctx.layout.fieldBitsAt base field |>.isSome then
-              loadBitFieldAt ctx base.ty field fieldTy p (some base)
+              loadBitFieldAt ctx base.ty field fieldTy p (some base) lStructured
             else
               loadAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty)
                 (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
@@ -2043,7 +2046,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match l with
           | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
-                storeBitFieldAt ctx base.ty field fieldTy p nv (some base)
+                storeBitFieldAt ctx base.ty field fieldTy p nv (some base) lStructured
               else
                 storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) nv
           | _ =>
@@ -2087,7 +2090,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match l with
           | .member base field arrow fieldTy _ _ .. =>
               if ctx.layout.fieldBitsAt base field |>.isSome then
-                storeBitFieldAt ctx base.ty field fieldTy p stored (some base)
+                storeBitFieldAt ctx base.ty field fieldTy p stored (some base) lStructured
               else
                 storeAt ctx.aliasModel p (ctx.layout.normalizeTy l.ty) stored lStructured
           | _ =>
@@ -2098,10 +2101,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- Clang wraps scalar reads in `LValueToRValue`, so these are the
   -- aggregate-valued cases; evaluating the address and loading is the rule
   -- either way (§6.3.2.1p2).
-  | .member base field arrow ty span recordId .. => do
+  | .member base field arrow ty span recordId structuredType => do
       let p ← memberAddr ctx base field arrow ty recordId
       if ctx.layout.fieldBitsAt base field |>.isSome then
-        loadBitFieldAt ctx base.ty field ty p (some base)
+        loadBitFieldAt ctx base.ty field ty p (some base) structuredType
       else
         loadAt ctx.aliasModel p (ctx.layout.normalizeTy ty) (ctx.layout.size (ctx.layout.normalizeTy ty))
   | .index base idx ty _ .. => do
