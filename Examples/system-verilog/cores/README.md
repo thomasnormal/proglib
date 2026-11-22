@@ -1570,8 +1570,8 @@ The checked-in `darkriscv/rv32ui/programs.txt` inventories 42 upstream
 compiled-and-run count at **0/42** and did not exercise a memory stall or an
 unknown-valued register.  The first compiled image moved the measured count to
 **1/42**.  The pinned `addi.S` image moved it to **2/42**, the `beq.S` image to
-**3/42**, the `and.S` image to **4/42**, and the `sub.S` image to **5/42**.
-The `jal.S` image below moves it to **6/42**.
+**3/42**, the `and.S` image to **4/42**, the `sub.S` image to **5/42**, and
+the `jal.S` image to **6/42**. The `lui.S` image below moves it to **7/42**.
 
 ## 2026-11-22 DarkRISCV rv32ui/ld_st differential
 
@@ -1682,6 +1682,24 @@ instruction acknowledgement stalls.
 printed fields for **300/300** rows. The checker validates the transcript hash
 and rejects a corrupted expected row. Transcript SHA-256 is
 `0f34c8c542551b76b357dcf6d5e3a6c51f44028979036145d897cbaef59aeb81`. This
+program has no data-memory operation, so its stall witness is instruction-side.
+The `ld_st` image supplies the data-stall witness.
+
+## 2026-11-22 DarkRISCV rv32ui/lui differential
+
+The seventh compiled RV32UI image is `darkriscv/rv32ui_lui.hex`, built from
+`riscv-tests` `isa/rv32ui/lui.S` at commit
+`3df703cd52d5f0d8224e3c50bf03c6cb70efff98`. Source hashes, the exact Clang/LLD
+commands, image hash, and transcript hash are recorded in
+`darkriscv/rv32ui_lui_provenance.txt`. The unchanged-source testbench
+`darkriscv/rv32ui_lui_tb.sv` loads the image at reset address zero and applies
+instruction acknowledgement stalls.
+
+`darkriscv/rv32ui_lui_check.py` compares 300 rising edges. Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E agree on all
+printed fields for **300/300** rows. The checker validates the transcript hash
+and rejects a corrupted expected row. Transcript SHA-256 is
+`7e1f4bfcc1c61ccebecae139100ec245d84ccd47d0a79c666c1fc3efb84d0624`. This
 program has no data-memory operation, so its stall witness is instruction-side.
 The `ld_st` image supplies the data-stall witness.
 
