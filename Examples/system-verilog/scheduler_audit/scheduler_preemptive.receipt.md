@@ -21,3 +21,8 @@ relation permits every §4.7 interleaving and leaves the canonical refusal
 unchanged. The pinned PicoRV32 envelope consumes the same parser-native pair
 predicate at all 26 defaults, with 45 non-generated processes and 14 directed
 writer/reader pairs recorded by its probe.
+
+The edge relation now has kernel-checked `EdgePhaseStep.exists_of_mem` and
+`EdgePhaseStep.queue_prefix` lemmas. They establish that any active cursor
+whose source-shaped resume succeeds can be selected, and that each step
+extends the scalar and memory NBA queues in issue order.

@@ -328,6 +328,41 @@ inductive EdgePhaseStep (E : CoreMemDesign) : EdgePhaseState → EdgePhaseState 
 
 def EdgePhaseQuiescent (s : EdgePhaseState) : Prop := s.active = []
 
+private theorem exists_split_mem {α : Type} (x : α) : ∀ {xs : List α},
+    x ∈ xs → ∃ before after, xs = before ++ x :: after
+  | [], h => by simp at h
+  | y :: ys, h => by
+      by_cases hxy : x = y
+      · subst y
+        exact ⟨[], ys, rfl⟩
+      · have htail : x ∈ ys := by simpa [hxy] using h
+        obtain ⟨before, after, hsplit⟩ := exists_split_mem x htail
+        exact ⟨y :: before, after, by simp [hsplit]⟩
+
+/-- Every active cursor is an admissible §4.7 choice when its source-shaped
+    resume succeeds.  The relation therefore does not silently impose a
+    source order between distinct active processes. -/
+theorem EdgePhaseStep.exists_of_mem
+    {E : CoreMemDesign} {s : EdgePhaseState} {cursor : EdgeCursor}
+    (hmem : cursor ∈ s.active) {result : CoreMemExecResult} {next : EdgeCursor}
+    (hresume : cursor.resume E s.state = .ok (result, next)) :
+    ∃ before after, s.active = before ++ cursor :: after ∧
+      EdgePhaseStep E s (s.after result next before after) := by
+  obtain ⟨before, after, hactive⟩ := exists_split_mem cursor hmem
+  exact ⟨before, after, hactive, .select hactive hresume⟩
+
+/-- A phase step appends issue-time NBA records to the existing queues.  This
+    prefix equation is the order-preservation fact used when a later proof
+    commits the queues after the active region is drained. -/
+theorem EdgePhaseStep.queue_prefix
+    {E : CoreMemDesign} {s t : EdgePhaseState}
+    (h : EdgePhaseStep E s t) :
+    ∃ result : CoreMemExecResult, t.scalarQ = s.scalarQ ++ result.scalarQ ∧
+      t.memoryQ = s.memoryQ ++ result.memoryQ := by
+  cases h with
+  | select hactive hresume =>
+      exact ⟨_, rfl, rfl⟩
+
 def EdgePhaseState.commit (E : CoreMemDesign) (s : EdgePhaseState) : Res CoreMemState := do
   let scalar := E.scalarEdge.commit s.state.scalar s.scalarQ
   let memory ← match s.state.memory.commitNba s.memoryQ with
