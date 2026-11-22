@@ -676,3 +676,10 @@ rows are address arithmetic, pointer round-trips and builtin-prefetch cases.
 The current PNVI-ae contract requires an exposure flag and recovery choice for
 each integer-to-pointer conversion, so these refusals remain the correct
 boundary until S2 supplies that choice.
+
+**Floating-store wall price (2026-11-22).** The dynamic ranking has 11 sole
+rows refusing `floating store without a floating layout`. These rows use
+parser-native float and double objects whose size or IEEE representation is not
+attached to the destination declaration. The binary32/binary64 literal parser
+already has exact bits, so the next self-contained slice is joining those bits
+to declaration-backed stores without guessing a layout.
