@@ -2341,12 +2341,12 @@ private def bindPackageAggregate (env : IEnv) (pkg : String) (p : PParam) : Res 
 /-- Bind the narrow package-parameter slice retained by the symbolic
 envelope. Package parameters are elaboration constants, never top-level
 override binders; their defaults are evaluated in declaration order. -/
-def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
+private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → Res IEnv
   | [] => .ok env
   | (pkg, p) :: rest =>
       if p.aggregate?.isSome then
         match bindPackageAggregate env pkg p with
-        | .ok env' => bindPackageParams env' rest
+        | .ok env' => bindPackageParamsInOrder env' rest
         | .unsupported msg => .unsupported msg
         | .timeout => .timeout
       else
@@ -2361,8 +2361,8 @@ def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
                   let w := raw.width
                   let env' := env.bindPackageFVal pkg p.name raw w false
                   match raw.toNat? with
-                  | some v => bindPackageParams (env'.bindPackageVal pkg p.name v) rest
-                  | none => bindPackageParams env' rest
+                  | some v => bindPackageParamsInOrder (env'.bindPackageVal pkg p.name v) rest
+                  | none => bindPackageParamsInOrder env' rest
           | some (.packed dims _) =>
               match packageDimsWidth env dims with
               | .ok w =>
@@ -2376,16 +2376,51 @@ def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
                       let value := if s then raw.resizeSigned w else raw.resizeU w
                       let env' := env.bindPackageFVal pkg p.name value w s
                       match value.toNat? with
-                      | none => bindPackageParams env' rest
+                      | none => bindPackageParamsInOrder env' rest
                       | some n =>
                           let v := canonInt w s n
                           if w == 32 && s then
-                            bindPackageParams (env'.bindPackageVal pkg p.name v) rest
+                            bindPackageParamsInOrder (env'.bindPackageVal pkg p.name v) rest
                           else
-                            bindPackageParams (env'.bindPackageNVal pkg p.name v w s) rest
+                            bindPackageParamsInOrder (env'.bindPackageNVal pkg p.name v w s) rest
               | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
           | some (.typeRef _ _ _) | some (.unrecoverable _) =>
               .unsupported s!"ParamRef:package: package parameter '{pkg}::{p.name}' has an unsupported type"
+
+private def packageParamReady (knownPackages : List String) (env : IEnv) (p : PParam) : Bool :=
+  match p.default? with
+  | some (.paramRef name (some pkg)) =>
+      !knownPackages.contains pkg ||
+      (env.packageFVal pkg name).isSome ||
+      (env.packageVal pkg name).isSome ||
+      (env.packageNVal pkg name).isSome
+  | _ => true
+
+/-- Bind package parameters in dependency order. Slang's compilation-unit
+order can place a package that references another package before its
+dependency. A direct unavailable package reference is deferred for one pass,
+while a cycle remains a loud refusal. -/
+private def bindPackageParamsFuel (fuel : Nat) (env : IEnv) (ps : List (String × PParam)) : Res IEnv :=
+  match fuel with
+  | 0 =>
+    .unsupported "package parameter dependency cycle or unavailable package reference"
+  | fuel + 1 =>
+    let knownPackages := ps.map (·.1)
+    let ready := ps.filter (packageParamReady knownPackages env ·.2)
+    let deferred := ps.filter (fun item => !(packageParamReady knownPackages env item.2))
+    if deferred.isEmpty then
+      bindPackageParamsInOrder env ps
+    else if ready.isEmpty then
+      .unsupported "package parameter dependency cycle or unavailable package reference"
+    else
+      match bindPackageParamsInOrder env ready with
+      | .ok env' => bindPackageParamsFuel fuel env' deferred
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
+termination_by fuel
+
+def bindPackageParams (env : IEnv) (ps : List (String × PParam)) : Res IEnv :=
+  bindPackageParamsFuel (ps.length + 1) env ps
 
 /-! ## Widths -/
 
