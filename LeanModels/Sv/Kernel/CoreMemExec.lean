@@ -2613,6 +2613,28 @@ def CoreMemDesign.evalCombExpr (E : CoreMemDesign) (env : IEnv)
   else
     E.evalExpr env elems st ctx e
 
+/-- Evaluate the controlling expression at the point the statement executes. -/
+def CoreMemDesign.combIfBranch (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (locals : SvState)
+    (cond : PExpr) (yes : PStmt) (no : Option PStmt) : Res (Option PStmt) := do
+  let cv ← if LeanModels.Sv.PExpr.hasTestPlusargs cond then
+    E.evalRuntimeExpr env elems st (some 1) cond
+  else E.evalExprLocals env elems st (some 1) locals cond
+  return if cv.condTrue then some yes else no
+
+/-- Select the case arm before executing its body (§12.5). A qualified case
+checks the match count against the same store used for arm selection. -/
+def CoreMemDesign.combCaseBranch (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (locals : SvState)
+    (subject : PExpr) (items : List (List PExpr × PStmt)) (default? : Option PStmt)
+    (mode : CaseMode) (check : CaseCheck) : Res (Option PStmt) := do
+  let sv ← E.evalExprLocals env elems st none locals subject
+  if check != .none then
+    let n ← coreMemCaseHits E env elems st sv mode items
+    unless caseClaimOk check default?.isSome n do
+      .unsupported s!"12.5.3: {caseCheckName check}"
+  coreMemSelectCase E env elems st sv mode items default?
+
 mutual
 
 def CoreMemDesign.execCombLoopValuesFuel (E : CoreMemDesign) (env : IEnv)
@@ -2698,13 +2720,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
           .ok (st', E.scalar.view st'.scalar, locals)
       | _ => .unsupported "9.2.2.2: packed or concatenated always_comb target is outside this slice"
   | fuel + 1, .ifStmt cond yes no => do
-      let cv ← if LeanModels.Sv.PExpr.hasTestPlusargs cond then
-        E.evalRuntimeExpr env elems st (some 1) cond
-      else E.evalExprLocals env elems st (some 1) locals cond
-      if cv.condTrue then E.execCombStmtFuel env elems st view locals fuel yes
-      else match no with
-        | none => .ok (st, view, locals)
-        | some stmt => E.execCombStmtFuel env elems st view locals fuel stmt
+      match ← E.combIfBranch env elems st locals cond yes no with
+      | some body => E.execCombStmtFuel env elems st view locals fuel body
+      | none => .ok (st, view, locals)
   | fuel + 1, .block body => E.execCombStmtsFuel env elems st view locals fuel body
   | fuel + 1, .forLoop iterator init condition step body =>
       match forValues2 env iterator init condition step with
@@ -2712,22 +2730,9 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
       | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
       | .ok values => E.execCombLoopValuesFuel env elems st view locals fuel values body iterator
   | fuel + 1, .caseStmt subject items default? mode check => do
-      let sv ← E.evalExprLocals env elems st none locals subject
-      match check with
-      | .none =>
-          let selected ← coreMemSelectCase E env elems st sv mode items default?
-          match selected with
-          | none => .ok (st, view, locals)
-          | some body => E.execCombStmtFuel env elems st view locals fuel body
-      | qualifier =>
-          let n ← coreMemCaseHits E env elems st sv mode items
-          if caseClaimOk qualifier default?.isSome n then
-            let selected ← coreMemSelectCase E env elems st sv mode items default?
-            match selected with
-            | none => .ok (st, view, locals)
-            | some body => E.execCombStmtFuel env elems st view locals fuel body
-          else
-            .unsupported s!"12.5.3: {caseCheckName qualifier}"
+      match ← E.combCaseBranch env elems st locals subject items default? mode check with
+      | some body => E.execCombStmtFuel env elems st view locals fuel body
+      | none => .ok (st, view, locals)
   | fuel + 1, .nbaAssign .. | fuel + 1, .nbaAssignL .. =>
       .unsupported "10.4.2: nonblocking assignment in always_comb body"
   | fuel + 1, .unsupported kind text => .unsupported s!"{kind}: {text}"

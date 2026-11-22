@@ -284,6 +284,7 @@ Examples/system-verilog/seq_cycle/gen_proof.lean
 LeanModels
 
 LeanModels.Sv.Scheduler
+LeanModels.Sv.Kernel.CoreMemResume
 Examples/system-verilog/sem2/plain_internal_edge_e/agree.lean
 Examples/system-verilog/sem2/plain_generate_edge_e/agree.lean
 Examples/system-verilog/first_theorem/dff_arst_proof.lean
