@@ -125,6 +125,16 @@
     "layout_return_value": 0
   },
   {
+    "id": "parser-offsetof-record-member",
+    "source": "struct S { char tag; int value; }; int main(void) { return __builtin_offsetof(struct S, value) == 4 ? 0 : 1; }",
+    "expect": "refuse",
+    "layout_expect": "match",
+    "layout_return_value": 0,
+    "layout_envelope_checks": [
+      "record_layout"
+    ]
+  },
+  {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
     "expect": "refuse",

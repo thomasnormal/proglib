@@ -363,6 +363,12 @@ public:
         if (auto result = typeTree(compound->getComputationResultType(), *context, 0))
           row["compute_result_type"] = std::move(*result);
       }
+      if (const auto *offset = llvm::dyn_cast<clang::OffsetOfExpr>(observed)) {
+        clang::Expr::EvalResult evaluated;
+        if (offset->EvaluateAsInt(evaluated, *context))
+          row["offset_bytes"] =
+              static_cast<int64_t>(evaluated.Val.getInt().getZExtValue());
+      }
       rows.push_back(std::move(row));
     };
     emit(expr);

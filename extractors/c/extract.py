@@ -78,7 +78,7 @@ EXPRS = {"IntegerLiteral", "CharacterLiteral", "StringLiteral", "FloatingLiteral
          "BinaryOperator", "CompoundAssignOperator", "UnaryOperator",
          "ConditionalOperator", "ParenExpr", "ImplicitCastExpr", "CStyleCastExpr",
          "InitListExpr", "DesignatedInitUpdateExpr", "ImplicitValueInitExpr", "CompoundLiteralExpr", "UnaryExprOrTypeTraitExpr",
-         "ConstantExpr", "VAArgExpr"}
+         "ConstantExpr", "VAArgExpr", "OffsetOfExpr"}
 TYPES = {"BuiltinType", "PointerType", "RecordType", "TypedefType",
          "ElaboratedType", "ParenType", "FunctionProtoType"}
 VOCAB = DECLS | STMTS | EXPRS | TYPES
@@ -395,6 +395,10 @@ def structured_type_records(records):
                     not isinstance(record.get("expr_kind"), str) or
                     not record["expr_kind"]):
                 die("structured expression type probe returned an invalid range")
+            if ("offset_bytes" in record and
+                    (type(record["offset_bytes"]) is not int or
+                     record["offset_bytes"] < 0)):
+                die("structured offset-of probe returned an invalid byte offset")
         if record["type"].get("kind") == "unsupported":
             die("structured type probe refused a QualType: %s" %
                 record["type"].get("reason", "unspecified"))
@@ -974,6 +978,9 @@ class Extractor:
             out["sub"] = self.node(c[0]) if c else None
         return out
 
+    def e_OffsetOfExpr(self, n):
+        return {"type": qual(n)}
+
     def e_ConstantExpr(self, n):
         c = kids(n)
         v = n.get("value")
@@ -1190,6 +1197,7 @@ def extract(path, source_name=None, standard="c23"):
                                                if "compute_lhs_type" in record else None,
                                              "compute_result_type": join_type(record["compute_result_type"])
                                                if "compute_result_type" in record else None,
+                                             "offset_bytes": record.get("offset_bytes"),
                                              **{key: record[key] for key in
                                                 ("operand_size_bytes", "operand_alignment_bytes")
                                                 if key in record}})
@@ -1211,6 +1219,8 @@ def extract(path, source_name=None, standard="c23"):
                     out["structured_compute_lhs_type"] = row["compute_lhs_type"]
                 if row.get("compute_result_type") is not None:
                     out["structured_compute_result_type"] = row["compute_result_type"]
+                if row.get("offset_bytes") is not None:
+                    out["offset_bytes"] = row["offset_bytes"]
             if value.get("kind") == "UnaryExprOrTypeTraitExpr" and value.get("expr_id") in structured_arg_by_expr:
                 operand = structured_arg_by_expr[value["expr_id"]]
                 out["structured_arg_type"] = operand["type"]
