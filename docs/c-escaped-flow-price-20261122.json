@@ -1,0 +1,122 @@
+{
+  "rows": [
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "break, continue or goto escaped a function body",
+      "name": "00199.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "In fred() At end In joe() c = 1234 done In henry() b = 1234 done",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "In fred() At end In joe() c = 1234 done In henry() b = 1234 done",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "In fred() At end In joe() c = 1234 done In henry() b = 1234 done",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "break, continue or goto escaped a function body",
+      "name": "00207.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "boom! boom! 11 12 0 1",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "boom! boom! 11 12 0 1",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "boom! boom! 11 12 0 1",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "break, continue or goto escaped a function body",
+      "name": "00213.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "timeout=2 timeout=1 boo yeah twice once twice SEtwice SEonce SEtwice twice2 once2 twice2 twice3 once3 twice3 caseok caseok2 g=1 check 1 g=2 check 2 g=3",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "timeout=2 timeout=1 boo yeah twice once twice SEtwice SEonce SEtwice twice2 once2 twice2 twice3 once3 twice3 caseok caseok2 g=1 check 1 g=2 check 2 g=3",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "timeout=2 timeout=1 boo yeah twice once twice SEtwice SEonce SEtwice twice2 once2 twice2 twice3 once3 twice3 caseok caseok2 g=1 check 1 g=2 check 2 g=3",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "break, continue or goto escaped a function body",
+      "name": "20040704-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-escaped-flow-price-1",
+  "total": 4
+}
