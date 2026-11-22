@@ -18,7 +18,7 @@ for liveness checks. Byte and location-state arrays have equal length.
 Layout, subobject identities, access types, size and alignment come from
 canonical Clang types and same-invocation declaration identities.
 
-The proposed types below specify the interface for S2. Each operation takes
+The types below specify the interface for S2. Each operation takes
 its request, its choices, and its input store. An inadmissible choice yields
 `none` and contributes no transition. A legal request and choice produce a
 step, which can succeed, report resource exhaustion, classify undefined
@@ -625,13 +625,17 @@ structure PlacementAgreement (E : Executions) where
   castAlignment : E.Run → E.Run → Prop
   observedRepresentation : E.Run → E.Run → Prop
 
+def outcomeSet (E : Executions) (p : E.Program) (w : E.World)
+    (input : E.Input) : Set RunOutcome :=
+  { outcome |
+    ∃ choices placements run,
+      E.realizes p w input choices placements run ∧
+      E.outcome run = outcome }
+
 def addressIndependent (E : Executions) (a : PlacementAgreement E) : Prop :=
-  ∀ p w₁ w₂ input c₁ c₂ ρ₁ ρ₂ r₁ r₂,
-    a.initialObjects w₁ w₂ → a.otherChoices c₁ c₂ →
-    E.realizes p w₁ input c₁ ρ₁ r₁ → E.realizes p w₂ input c₂ ρ₂ r₂ →
-    a.exposed r₁ r₂ → a.boundaryEquality r₁ r₂ → a.castAlignment r₁ r₂ →
-    a.observedRepresentation r₁ r₂ →
-    E.outcome r₁ = E.outcome r₂
+  ∀ p w₁ w₂ input,
+    a.initialObjects w₁ w₂ →
+    outcomeSet E p w₁ input = outcomeSet E p w₂ input
 
 def matchesTarget (source : RunOutcome) (target : Behavior) : Prop :=
   match source with
@@ -692,9 +696,10 @@ value up to the same translation. Each operation must prove
 For whole runs, initial objects agree by that correspondence and the
 inputs and other choices are coupled. Couple evaluation order, external
 results, allocation success or failure, literal sharing, and unspecified
-bytes at their semantic choice sites. Compare runs whose exposure steps
-and exposed allocations correspond and whose concrete bases agree for
-those allocations. The comparison also requires agreement at the
+bytes at their semantic choice sites. The outcomeSet equality in
+addressIndependent is proved by two simulations, one for each direction.
+Compare runs whose exposure steps and exposed allocations correspond and
+whose concrete bases agree for those allocations. The comparison also requires agreement at the
 following address-sensitive operations.
 
 1. Equality of one-past and immediately following object pointers uses
@@ -712,9 +717,9 @@ observed prefix before UB or refusal. Run correspondence is obtained by
 lifting the per-operation relation through the evaluator, including its
 infinite runs. Applying it in both directions gives equality of the
 behavior sets for corresponding admissible placement resolutions and
-coupled choices. A case in which the exception premises differ retains
-both admissible behaviors in the evaluator. Source correctness requires
-every admissible resolution.
+coupled choices. A case in which the exception premises differ remains a
+separate admissible behavior in the corresponding set. Source correctness
+requires every admissible resolution.
 
 For allocation removal, the premise is a program and world correspondence
 that differs only in the erased storage steps, with the retained
