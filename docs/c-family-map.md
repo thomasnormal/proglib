@@ -658,6 +658,15 @@ with machine rows in
 The refusal remains until parser-provided record and bit-field layout facts
 support a sound byte-span rule.
 
+**Indeterminate-lvalue wall price (2026-11-22).** The dynamic ranking has
+eight sole rows refusing `indeterminate lvalue read requires a representation
+choice`. Seven rows have clean pinned O0/O2 and UBSan/ASan runs.
+`builtin-prefetch-2.c` has the only sanitizer diagnostic. The receipt is in
+[`docs/c-indeterminate-lvalue-price-20261122.md`](c-indeterminate-lvalue-price-20261122.md),
+with machine rows in
+[`docs/c-indeterminate-lvalue-price-20261122.json`](c-indeterminate-lvalue-price-20261122.json).
+The clean rows retain the loud representation-choice refusal.
+
 **String-pointer wall price (2026-11-22).** The dynamic ranking has 19 sole
 rows refusing pointer operations involving string literals. Nine available C1
 samples exit 0 at pinned Clang `-O0` and `-O2` with clean UBSan/ASan runs.
