@@ -1258,7 +1258,7 @@ first (1837 + 405 sites), then the short-circuits whose rule is not
 /-! Refuse calls whose indeterminately sequenced arguments can both write.
 The check is conservative and happens before either argument runs. -/
 def mayWrite (ctx : Ctx) (e : Expr) : Bool :=
-  e.subexprs.any fun n => match n with
+  (e.subexprs false).any fun n => match n with
     | .call callee .. =>
         let builtinPure := match calleeName callee with
           | some nm => nm == "__builtin_fabs" || nm == "__builtin_fabsf" ||
@@ -1299,7 +1299,7 @@ def lvalueKey : Expr → Option String
   | _ => none
 
 def directWriteTargets (e : Expr) : List (Option String) :=
-  e.subexprs.flatMap fun n => match n with
+  (e.subexprs false).flatMap fun n => match n with
     | .unop op sub .. =>
         if op == "++" || op == "--" then [lvalueKey sub] else []
     | .compoundAssign _ lhs .. => [lvalueKey lhs]
@@ -1307,7 +1307,7 @@ def directWriteTargets (e : Expr) : List (Option String) :=
     | _ => []
 
 def readKeys (e : Expr) : List String :=
-  e.subexprs.flatMap fun n => match n with
+  (e.subexprs false).flatMap fun n => match n with
     | .declRef (some id) .. => ["id:" ++ id.value]
     | .declRef none name .. => ["name:" ++ name]
     | _ => []
@@ -2013,28 +2013,20 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | [value] => ctx.call callee (some value) vs
           | _ => refuseUnsupported "indirect call lost its callee value"
 
-  -- §6.5.4.4 — `sizeof`, answered by the layout, never computed here.
-  | .typeTrait trait argTy sub ty _ structuredArgType structuredType =>
-      if trait != "sizeof" then refuseUnsupported s!"type trait '{trait}'"
-      else
-        let key := match argTy with
-                   | some a => some a
-                   | none => sub.map Expr.ty
-        let decl := sub.bind directDeclId
-        let size? := match structuredArgType with
-          | some operand =>
-              objectSizeOfStructured operand |>.orElse (fun _ =>
-                (structuredDeclarationId operand).bind ctx.layout.declSize)
-          | none =>
-              match key with
-              | some k => ctx.layout.sizeAt decl k
-              | none => decl.bind ctx.layout.declSize
-        match size? with
-        | some n =>
-            match structuredType.bind intTyOfStructured with
-            | some t => pure (.int t (n : Int))
-            | none => refuseUnsupported "sizeof result lacks parser-native QualType"
-        | none => refuseUnsupported s!"sizeof: no layout for operand type '{key.getD ""}'"
+  -- N3220 §6.5.4.4p2–5: fixed-size operands and alignof operands are
+  -- unevaluated. The pinned ABI supplies the size/alignment and size_t.
+  | .typeTrait trait _ _ _ _ _ operandSize operandAlignment structuredType => do
+      let n ← match trait with
+        | "sizeof" => match operandSize with
+          | some n => pure n
+          | none => refuseUnsupported "sizeof: no static ABI size for operand"
+        | "alignof" | "__alignof" => match operandAlignment with
+          | some n => pure n
+          | none => refuseUnsupported s!"{trait}: no ABI alignment for operand"
+        | _ => refuseUnsupported s!"type trait '{trait}'"
+      match structuredType.bind intTyOfStructured with
+      | some t => pure (.int t (n : Int))
+      | none => refuseUnsupported s!"{trait} result lacks parser-native QualType"
 
   | .constExpr v (some sub) ty _ structuredType => do
       -- Clang's folded spelling drops the sign from a negative constant
@@ -2877,7 +2869,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
           exact ⟨by open_eval; exact MemInvariant.floatLiteralValue' bitsHex bitWidth,
             by open_lvalue; mem_inv⟩
       | declRef _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
-      | typeTrait _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | typeTrait _ _ _ _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | constExpr value sub ty span _ =>
           cases sub with
           | none => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩

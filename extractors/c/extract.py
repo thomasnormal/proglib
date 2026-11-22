@@ -1147,7 +1147,10 @@ def extract(path, source_name=None, standard="c23"):
                                              "compute_lhs_type": join_type(record["compute_lhs_type"])
                                                if "compute_lhs_type" in record else None,
                                              "compute_result_type": join_type(record["compute_result_type"])
-                                               if "compute_result_type" in record else None})
+                                               if "compute_result_type" in record else None,
+                                             **{key: record[key] for key in
+                                                ("operand_size_bytes", "operand_alignment_bytes")
+                                                if key in record}})
                 continue
             structured_rows.append({"decl_id": record["decl_id"],
                                     "type": join_type(record["type"])})
@@ -1155,7 +1158,7 @@ def extract(path, source_name=None, standard="c23"):
     structured_by_decl = {row["decl_id"]: row["type"] for row in structured_rows}
     structured_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows if not row.get("arg")}
     structured_expr_by_id = {row["expr_id"]: row for row in structured_expr_rows if not row.get("arg")}
-    structured_arg_by_expr = {row["expr_id"]: row["type"] for row in structured_expr_rows if row.get("arg")}
+    structured_arg_by_expr = {row["expr_id"]: row for row in structured_expr_rows if row.get("arg")}
     def attach_decl_type(value):
         if isinstance(value, dict):
             out = {key: attach_decl_type(item) for key, item in value.items()}
@@ -1167,7 +1170,11 @@ def extract(path, source_name=None, standard="c23"):
                 if row.get("compute_result_type") is not None:
                     out["structured_compute_result_type"] = row["compute_result_type"]
             if value.get("kind") == "UnaryExprOrTypeTraitExpr" and value.get("expr_id") in structured_arg_by_expr:
-                out["structured_arg_type"] = structured_arg_by_expr[value["expr_id"]]
+                operand = structured_arg_by_expr[value["expr_id"]]
+                out["structured_arg_type"] = operand["type"]
+                for key in ("operand_size_bytes", "operand_alignment_bytes"):
+                    if key in operand:
+                        out[key] = operand[key]
             if value.get("kind") in {"FunctionDecl", "VarDecl", "ParmVarDecl", "FieldDecl",
                                       "RecordDecl", "TypedefDecl", "EnumDecl", "EnumConstantDecl"}:
                 decl_id = value.get("decl_id")

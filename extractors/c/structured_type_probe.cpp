@@ -34,6 +34,19 @@ namespace {
 
 using Json = llvm::json::Value;
 
+// Traversal stops at the first variable bound, including bounds in nested
+// casts where the whole operand can still have a fixed-size type.
+class FixedSizeOperand : public clang::RecursiveASTVisitor<FixedSizeOperand> {
+public:
+  bool VisitExpr(clang::Expr *expr) {
+    return !expr->getType()->isVariablyModifiedType();
+  }
+
+  bool VisitTypeLoc(clang::TypeLoc location) {
+    return !location.getType()->isVariablyModifiedType();
+  }
+};
+
 std::string nodeId(const void *node) {
   std::ostringstream text;
   text << "0x" << std::hex << reinterpret_cast<uintptr_t>(node);
@@ -352,19 +365,57 @@ public:
       rows.push_back(std::move(row));
     };
     emit(expr);
-    if (const auto *trait = llvm::dyn_cast<clang::UnaryExprOrTypeTraitExpr>(expr)) {
-      if (trait->isArgumentType()) {
-        auto tree = typeTree(trait->getArgumentType(), *context, 0);
-        if (tree) {
-          rows.push_back(llvm::json::Object{
-              {"kind", "StructuredExprArgType"},
-              {"expr_id", nodeId(expr)},
-              {"offset", sourceOffset(expr, context->getSourceManager()).value_or(0)},
-              {"end_offset", sourceEndOffset(expr, context->getSourceManager()).value_or(0)},
-              {"expr_kind", expr->getStmtClassName()},
-              {"type", std::move(*tree)}});
+    if (auto *trait = llvm::dyn_cast<clang::UnaryExprOrTypeTraitExpr>(expr)) {
+      clang::QualType operand = trait->getTypeOfArgument();
+      llvm::json::Object row{
+          {"kind", "StructuredExprArgType"},
+          {"expr_id", nodeId(expr)},
+          {"offset", sourceOffset(expr, context->getSourceManager()).value_or(0)},
+          {"end_offset", sourceEndOffset(expr, context->getSourceManager()).value_or(0)},
+          {"expr_kind", expr->getStmtClassName()},
+          {"type", typeTree(operand, *context, 0).value_or(llvm::json::Object{
+                       {"kind", "unsupported"},
+                       {"reason", "unrepresented Clang operand QualType"}})}};
+      if (trait->getKind() == clang::UETT_SizeOf) {
+        // N3220 §6.5.4.4p2 and §6.7.7.3: sizes involving variable bounds
+        // can require expression evaluation or leave it unspecified.
+        FixedSizeOperand fixedSize;
+        if (!operand->isIncompleteType() && !operand->isFunctionType() &&
+            !operand->isSizelessType() && !operand->isVariablyModifiedType() &&
+            operand->isConstantSizeType() &&
+            (trait->isArgumentType()
+                 ? fixedSize.TraverseTypeLoc(trait->getArgumentTypeInfo()->getTypeLoc())
+                 : fixedSize.TraverseStmt(trait->getArgumentExpr())))
+          row["operand_size_bytes"] = context->getTypeSizeInChars(operand).getQuantity();
+      }
+      if (trait->getKind() == clang::UETT_AlignOf ||
+          trait->getKind() == clang::UETT_PreferredAlignOf) {
+        // Clang 21 ExprConstant.cpp, GetAlignOfType/GetAlignOfExpr:
+        // the GNU operator uses preferred alignment; an expression naming
+        // a declaration can carry a stronger alignment than its type.
+        const clang::Expr *argument = trait->isArgumentType()
+            ? nullptr : trait->getArgumentExpr()->IgnoreParens();
+        if (const auto *ref = llvm::dyn_cast_or_null<clang::DeclRefExpr>(argument))
+          row["operand_alignment_bytes"] =
+              context->getDeclAlign(ref->getDecl(), true).getQuantity();
+        else if (const auto *member = llvm::dyn_cast_or_null<clang::MemberExpr>(argument))
+          row["operand_alignment_bytes"] =
+              context->getDeclAlign(member->getMemberDecl(), true).getQuantity();
+        else if (operand->isVoidType() && trait->getKind() == clang::UETT_PreferredAlignOf)
+          row["operand_alignment_bytes"] = 1;
+        else if (!operand->isIncompleteType() && !operand->isFunctionType() &&
+                 !operand->isSizelessType()) {
+          if (operand.getQualifiers().hasUnaligned())
+            row["operand_alignment_bytes"] = 1;
+          else if (trait->getKind() == clang::UETT_PreferredAlignOf)
+            row["operand_alignment_bytes"] =
+                context->getPreferredTypeAlignInChars(operand).getQuantity();
+          else
+            row["operand_alignment_bytes"] =
+                context->getTypeAlignInChars(operand).getQuantity();
         }
       }
+      rows.push_back(std::move(row));
     }
     if (const auto *init = llvm::dyn_cast<clang::InitListExpr>(expr)) {
       // Clang's JSON dump may expose the syntactic or semantic InitListExpr
