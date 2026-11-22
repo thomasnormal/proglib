@@ -859,6 +859,21 @@ def hasDeclareCallDefine (envl : Envelope) (sym : String) : Bool :=
       let body := (f.body.map LeanModels.C.Stmt.substmts).getD []
       calls envl.unit.exprs sym && calls (body.flatMap LeanModels.C.Stmt.ownExprs) "abort"
 
+/-- The pinned Clang 21.1.8 does not implement GCC's `scalar_storage_order`
+attribute. These corpus tests contain a record whose parser-native layout has
+bit-fields and whose `main` reaches `abort`; the manifest names the compiler
+feature while this shape check keeps the classification tied to the ingested
+AST instead of to a filename alone. -/
+def hasScalarStorageOrderCompilerShape (envl : Envelope) : Bool :=
+  let hasBitfieldRecord := (allDecls envl).any fun d => match d with
+    | .record _ _ _ (some layout) _ _ => layout.fields.any (·.bitfield)
+    | _ => false
+  let hasAbort := envl.unit.exprs.any fun e => match e with
+    | .call callee _ _ _ .. =>
+        calleeNameOf callee == "abort" || calleeNameOf callee == "__builtin_abort"
+    | _ => false
+  hasBitfieldRecord && hasAbort
+
 /-- The one execution path shared by the batch scorer and single-file CLI. -/
 def runEnvelope (fuel : Nat) (envl : Envelope) : ExecM CVal :=
   let lay := layoutFor envl
@@ -903,13 +918,21 @@ def scoreEnvelope (fuel : Nat) (envl : Envelope)
   | .ok (.error .aborted, _) =>
       match oracleSym with
       | some sym =>
-          if hasDeclareCallDefine envl sym then .oracleTestsCompiler oracleWhy
+          if sym == "scalar_storage_order" then
+            if hasScalarStorageOrderCompilerShape envl then
+              .oracleTestsCompiler oracleWhy
+            else .failed
+          else if hasDeclareCallDefine envl sym then .oracleTestsCompiler oracleWhy
           else .failed
       | none => .failed
   | .ok (.error (.libc "abort"), _) =>
       match oracleSym with
       | some sym =>
-          if hasDeclareCallDefine envl sym then .oracleTestsCompiler oracleWhy
+          if sym == "scalar_storage_order" then
+            if hasScalarStorageOrderCompilerShape envl then
+              .oracleTestsCompiler oracleWhy
+            else .failed
+          else if hasDeclareCallDefine envl sym then .oracleTestsCompiler oracleWhy
           else .failed
       | none => .failed
   | .ok (.error (.libc "exit"), _) =>

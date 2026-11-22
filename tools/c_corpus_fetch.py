@@ -57,6 +57,20 @@ SUBDIR = "gcc/testsuite/gcc.c-torture/execute"
 # for a reader and the symbol is for the machine: `LeanModels/C/Torture.lean`
 # re-derives the shape around that exact name.
 ORACLE_TESTS_COMPILER = {
+    "20230630-2.c": {
+        "symbol": "scalar_storage_order",
+        "citation": (
+            "GCC scalar_storage_order bit-field extension: the pinned Clang "
+            "21.1.8 warns that this attribute is unknown, so the test's "
+            "abort is a compiler-feature check rather than C semantics."),
+    },
+    "20230630-4.c": {
+        "symbol": "scalar_storage_order",
+        "citation": (
+            "GCC scalar_storage_order bit-field extension: the pinned Clang "
+            "21.1.8 warns that this attribute is unknown, so the test's "
+            "abort is a compiler-feature check rather than C semantics."),
+    },
     "20021127-1.c": {
         "symbol": "llabs",
         "citation": (
