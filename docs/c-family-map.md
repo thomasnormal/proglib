@@ -670,10 +670,14 @@ operations can be admitted universally.
 **Non-value representation wall price (2026-11-22).** The dynamic ranking has
 17 sole rows at `nonValueRepresentation`. The sample includes integerized
 function pointers, masked object addresses, `alloca` alignment observations
-and pointer-derived layout constants. These rows observe exposed addresses or
-representations the current PNVI-ae contract deliberately leaves unresolved,
-so the named refusal is retained until the S2 memory store supplies the
-exposure choice.
+and pointer-derived layout constants. The complete replay has 14 clean rows,
+two sanitizer-witnessed UB rows, and one row without a native oracle because
+`loop-2c.c` has an unresolved `f` definition. The receipt is in
+[`docs/c-nonvalue-price-20261122.md`](c-nonvalue-price-20261122.md), with
+machine rows in [`docs/c-nonvalue-price-20261122.json`](c-nonvalue-price-20261122.json).
+The clean rows observe exposed addresses or representations the current
+PNVI-ae contract deliberately leaves unresolved, so the named refusal is
+retained until the S2 memory store supplies the exposure choice.
 
 **Long-double literal wall price (2026-11-22).** The dynamic ranking has 14
 sole rows at `long double floating literal`. These rows exercise profile-sized
