@@ -1,6 +1,7 @@
 import LeanModels.Sv.SeqCycleInstant
 import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.CombViewTactic
+import LeanModels.Sv.Loop2Frag
 
 /-!
 # The clocked stages at symbolic parameters (`LeanModels.Sv.Kernel`, plumbing for `SeqCycle`)
@@ -20,6 +21,9 @@ design is computation at the design's symbolic parameters, and these macros do i
   view (and memory view); a condition on the parameters is decided by `omega` from the context. A decision stays an
   `if` on values (an `if`, a `case` arm, an edge that may fire, a run-time index: `seqIndexRead`/`seqIndexWin`); a
   memory's next contents come out as one write equation (`memWrite`) and its reads as one read equation (`memRd`).
+  A procedural `for` loop of nonblocking element writes comes out as ONE write equation over the header's value list
+  (`memWriteL mv m (intRange a n) key data`: the list a function of the parameters, never unrolled), to be read through
+  `memWriteL_id` / `memWriteL_index` / `memWriteL_of_not_key` with the index facts `seqK_index?_ofInt32`.
 
 Each macro takes extra simp lemmas in brackets for facts of the design the default sets do not know. Nothing here is
 trusted: every step is a `simp` or `omega` proof the kernel checks.
@@ -483,7 +487,208 @@ theorem seqK_index? {w : Nat} (m : MemShape) (a : BitVec w) :
     m.index? false (LVec.ofBitVec a) = if m.inRange (a.toNat : Int) then some (a.toNat : Int) else none := by
   simp [MemShape.index?, LVec.toNat?_ofBitVec]
 
+/-! ## Procedural `for` loops: the header's value list and the loop's write equation
+
+The route evaluates a loop header to its value list (`forValues2`); for `for (i = a; i < P; i++)` and `<=` against a
+parameter (a step `i++` or `i = i + 1`) the library has the list in closed form at a symbolic bound
+(`Loop2.forValues2_slt`, `_sle` and their `_nval` forms below: `intRange a n`). The passes rewrite the header by it and keep the loop as the fold over that list (`execLoopV`), in
+closed form when every iteration is evaluated (`execLoopV_ok`: the concatenation of the iterations' updates over the
+list); the commit of a loop of element writes is `memWriteL`. Nothing is unrolled: `intRange a n` at a symbolic `n`
+has no cons cell to unfold. -/
+
+/-- An index a loop computes (a 32-bit integer, `LVec.ofInt 32 i`) reads as itself when it is in `[0, 2^32)`. -/
+theorem seqK_toNat?_ofInt32 {i : Int} (h0 : 0 ≤ i) (h1 : i < 4294967296) :
+    (LVec.ofInt 32 i).toNat? = some i.toNat := by
+  have h : (2 : Int) ^ 32 = 4294967296 := by decide
+  have h' : (2 : Nat) ^ 32 = 4294967296 := by decide
+  have he : i.emod ((2 : Int) ^ 32) = i := by
+    rw [h]
+    exact Int.emod_eq_of_lt h0 h1
+  rw [LVec.ofInt, he, LVec.toNat?_ofNat, h']
+  congr 1
+  apply Nat.mod_eq_of_lt
+  omega
+
+/-- **The index decision at a loop's index**: an integer index `i` in `[0, 2^32)` resolves to the label `i` when it is
+in the declared range, and to the no-op otherwise (§11.5.1). -/
+theorem seqK_index?_ofInt32 (m : MemShape) {i : Int} (h0 : 0 ≤ i) (h1 : i < 4294967296) :
+    m.index? false (LVec.ofInt 32 i) = if m.inRange i then some i else none := by
+  simp [MemShape.index?, seqK_toNat?_ofInt32 h0 h1, Int.toNat_of_nonneg h0]
+
+/-- The trip count of a loop whose header's value list is known. -/
+theorem seqE_loopTrips_ok {env : IEnv} {it : String} {init cond step : PExpr} {values : List Int}
+    (h : forValues2 env it init cond step = .ok values) : loopTrips env it init cond step = values.length := by
+  simp [loopTrips, h]
+
+/-- An element of a written memory has the element width when the old elements and the written value have it. -/
+theorem seqE_memWrite_width {mv : MemV} {n : String} {k? : Option Int} {x : LVec} {w : Nat}
+    (hmv : ∀ k, (mv n k).width = w) (hx : x.width = w) (k : Int) : (memWrite mv n k? x n k).width = w := by
+  unfold memWrite
+  split
+  · exact hx
+  · exact hmv k
+
+/-- An element of a memory a loop wrote has the element width when the old elements and every written value have it. -/
+theorem seqE_memWriteL_width {mv : MemV} {n : String} {vals : List Int} {key : Int → Option Int} {x : Int → LVec}
+    {w : Nat} (hmv : ∀ k, (mv n k).width = w) (hx : ∀ i, (x i).width = w) (k : Int) :
+    (memWriteL mv n vals key x n k).width = w :=
+  memWriteL_width vals mv hmv (fun i _ => hx i) k
+
+/-- A read of a memory a loop wrote, converted to the element width, is the read. -/
+theorem seqE_resizeU_memRd_memWriteL {mv : MemV} {n : String} {vals : List Int} {key : Int → Option Int}
+    {x : Int → LVec} {w : Nat} (h : ∀ k, (memWriteL mv n vals key x n k).width = w) (k? : Option Int) :
+    (memRd (memWriteL mv n vals key x) n k? w).resizeU w = memRd (memWriteL mv n vals key x) n k? w :=
+  LVec.resizeU_of_width (seqE_memRd_width h k?)
+
+/-- A loop whose iterations issue nothing issues nothing. -/
+theorem seqE_flatMap_nil {α β : Type} (l : List α) : (l.flatMap fun _ => ([] : List β)) = [] := by
+  induction l with
+  | nil => rfl
+  | cons a l ih => simp [List.flatMap_cons, ih]
+
 end LeanModels.Sv.Kernel
+
+namespace LeanModels.Sv.Loop2
+
+/-! ### The ascending unit-step headers against a typed parameter
+
+`forValues2_slt`/`_sle` read the bound from `IEnv.vals`. The clocked route binds a typed `int` parameter in
+`IEnv.nvals` (its value with its width and signedness), where it is INT-class as well: the same closed form holds. -/
+
+/-- **`for (it = s; it < e; step)` and `it <= e` against an INT-class bound `e`**, for a step of `+1` (`it++`,
+`it = it + 1`): the bound evaluates to `B` whatever the iterator's value; the trips are `s, s+1, …` (`c.bound B - s`
+of them, none when negative). `forValues2_up` is the instance `e = P`, a parameter bound in `IEnv.vals`, step
+`it++`. -/
+theorem forValues2_up_of {env : IEnv} {it : String} {rhs step : PExpr} {c : Cmp} {B : Int} (hc : c = .lt ∨ c = .le)
+    (hstep : procStepDelta2 env it step = .ok 1)
+    (hri : ∀ v, rhs.isInt (env.bindVal it v) = true) (hrv : ∀ v, evalInt (env.bindVal it v) rhs = .ok B)
+    (hb : evalInt env rhs = .ok B) (s : Int) :
+    forValues2 env it (.int s) (.binary c.op (.genvarRef it) rhs) step =
+      .ok (intRange s (c.bound B - s).toNat) := by
+  have hf : forFuel2 env it (.int s) (.binary c.op (.genvarRef it) rhs) step =
+      .ok ((c.bound B - s).toNat + 2) := by
+    rcases hc with rfl | rfl
+    · by_cases hsb : s < B
+      · have h1 : ¬ (B - s < 0) := by omega
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, hb, hstep, Gen2.except_ok_bind, hsb, h1]
+        rfl
+      · have h1 : (B - s).toNat = 0 := by omega
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, hb, hstep, Gen2.except_ok_bind, hsb, h1]
+        rfl
+    · by_cases hsb : s ≤ B
+      · have h1 : ¬ (B - s + 1 < 0) := by omega
+        have h2 : B + 1 - s = B - s + 1 := by omega
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, hb, hstep, Gen2.except_ok_bind, hsb, h1, h2]
+        rfl
+      · have h1 : (B + 1 - s).toNat = 0 := by omega
+        simp [forFuel2, procLoopIterator, Cmp.op, Cmp.bound, hb, hstep, Gen2.except_ok_bind, hsb, h1]
+        rfl
+  rw [forValues2, hf]
+  simp only [forValuesFuel2, evalInt_int, hstep]
+  rw [← TripSchema.toList_arith_one]
+  have hg := guard_canon c hri hrv
+  apply forValuesFuel2_go_arith _ s _ (by omega)
+  · intro k hk
+    obtain ⟨r, hr, hiff⟩ := hg (s + k * 1)
+    exact ⟨r, hr, hiff.mpr (by
+      rw [Cmp.holds_iff]; rcases hc with rfl | rfl <;> simp [Cmp.sign, Cmp.bound] at * <;> omega)⟩
+  · obtain ⟨r, hr, hiff⟩ := hg (s + ((c.bound B - s).toNat : Nat) * 1)
+    rw [hr]
+    by_cases h0 : r = 0
+    · rw [h0]
+    · exact absurd (hiff.mp h0) (by
+        rw [Cmp.holds_iff]; rcases hc with rfl | rfl <;> simp [Cmp.sign, Cmp.bound] <;> omega)
+
+/-- `it = it + 1` steps by `1`. -/
+theorem procStepDelta2_add_one (env : IEnv) (it : String) :
+    procStepDelta2 env it (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok 1 :=
+  procStepDelta2_add (evalInt_int 1) (by decide)
+
+/-- `for (it = s; it < P; it = it + 1)` and `it <= P` against a parameter bound in `IEnv.vals` (`forValues2_up` with
+the step written as an assignment). -/
+theorem forValues2_up_add {env : IEnv} {it p : String} {c : Cmp} (hc : c = .lt ∨ c = .le)
+    (h : (env.vals.lookup p).isSome = true) (hne : p ≠ it) (s : Int) :
+    forValues2 env it (.int s) (.binary c.op (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok (intRange s (c.bound (envVal env p) - s).toNat) := by
+  obtain ⟨B, hB⟩ := Option.isSome_iff_exists.mp h
+  have hl : ∀ u, (env.bindVal it u).vals.lookup p = some B := fun u => by
+    rw [vals_lookup_bindVal_ne u hne, hB]
+  rw [envVal_of_lookup hB]
+  exact forValues2_up_of hc (procStepDelta2_add_one env it) (fun u => isInt_paramRef_of (hl u))
+    (fun u => evalInt_paramRef_of (hl u)) (evalInt_paramRef_of hB) s
+
+theorem forValues2_slt_add {env : IEnv} {it p : String} (h : (env.vals.lookup p).isSome = true) (hne : p ≠ it)
+    (s : Int) :
+    forValues2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok (intRange s (envVal env p - s).toNat) :=
+  forValues2_up_add (c := .lt) (.inl rfl) h hne s
+
+theorem forValues2_sle_add {env : IEnv} {it p : String} (h : (env.vals.lookup p).isSome = true) (hne : p ≠ it)
+    (s : Int) :
+    forValues2 env it (.int s) (.binary .sle (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok (intRange s (envVal env p + 1 - s).toNat) :=
+  forValues2_up_add (c := .le) (.inr rfl) h hne s
+
+/-- The value of a typed parameter (`IEnv.nvals`), 0 when unbound. -/
+def nvalOf (env : IEnv) (p : String) : Int :=
+  match env.nvals.lookup p with
+  | some (v, _, _) => v
+  | none => 0
+
+/-- A typed `int` parameter: bound in `IEnv.nvals` at 32 bits signed and not in `IEnv.vals` (INT-class, read from
+`nvals`). -/
+def nvalInt (env : IEnv) (p : String) : Bool :=
+  (env.vals.lookup p).isNone &&
+    match env.nvals.lookup p with
+    | some (_, 32, true) => true
+    | _ => false
+
+/-- A typed `int` parameter as a loop bound, for a step of `+1`. -/
+theorem forValues2_up_nval {env : IEnv} {it p : String} {step : PExpr} {c : Cmp} (hc : c = .lt ∨ c = .le)
+    (hstep : procStepDelta2 env it step = .ok 1) (h : nvalInt env p = true) (hne : p ≠ it) (s : Int) :
+    forValues2 env it (.int s) (.binary c.op (.genvarRef it) (.paramRef p none)) step =
+      .ok (intRange s (c.bound (nvalOf env p) - s).toNat) := by
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at h
+  obtain ⟨hv, hn⟩ := h
+  have hlv : ∀ u, (env.bindVal it u).vals.lookup p = none := fun u => by rw [vals_lookup_bindVal_ne u hne, hv]
+  have hnv : ∀ u, (env.bindVal it u).nvals = env.nvals := fun _ => rfl
+  cases hl : env.nvals.lookup p with
+  | none => rw [hl] at hn; simp at hn
+  | some t =>
+      obtain ⟨B, w, sg⟩ := t
+      have hval : nvalOf env p = B := by simp [nvalOf, hl]
+      rw [hval]
+      refine forValues2_up_of hc hstep (fun u => ?_) (fun u => ?_) ?_ s
+      · simp only [PExpr.isInt, hlv u, hnv u, Option.isSome_none, Bool.false_or]
+        exact hn
+      · simp only [evalInt, hlv u, hnv u, hl]
+      · simp only [evalInt, hv, hl]
+
+/-- `for (it = s; it < P; it++)` against a typed `int` parameter `P`. -/
+theorem forValues2_slt_nval {env : IEnv} {it p : String} (h : nvalInt env p = true) (hne : p ≠ it) (s : Int) :
+    forValues2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none)) (.unary .inc (.genvarRef it)) =
+      .ok (intRange s (nvalOf env p - s).toNat) :=
+  forValues2_up_nval (c := .lt) (.inl rfl) (procStepDelta2_inc env it) h hne s
+
+/-- `for (it = s; it <= P; it++)` against a typed `int` parameter `P`. -/
+theorem forValues2_sle_nval {env : IEnv} {it p : String} (h : nvalInt env p = true) (hne : p ≠ it) (s : Int) :
+    forValues2 env it (.int s) (.binary .sle (.genvarRef it) (.paramRef p none)) (.unary .inc (.genvarRef it)) =
+      .ok (intRange s (nvalOf env p + 1 - s).toNat) :=
+  forValues2_up_nval (c := .le) (.inr rfl) (procStepDelta2_inc env it) h hne s
+
+/-- `for (it = s; it < P; it = it + 1)` against a typed `int` parameter `P`. -/
+theorem forValues2_slt_nval_add {env : IEnv} {it p : String} (h : nvalInt env p = true) (hne : p ≠ it) (s : Int) :
+    forValues2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok (intRange s (nvalOf env p - s).toNat) :=
+  forValues2_up_nval (c := .lt) (.inl rfl) (procStepDelta2_add_one env it) h hne s
+
+/-- `for (it = s; it <= P; it = it + 1)` against a typed `int` parameter `P`. -/
+theorem forValues2_sle_nval_add {env : IEnv} {it p : String} (h : nvalInt env p = true) (hne : p ≠ it) (s : Int) :
+    forValues2 env it (.int s) (.binary .sle (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok (intRange s (nvalOf env p + 1 - s).toNat) :=
+  forValues2_up_nval (c := .le) (.inr rfl) (procStepDelta2_add_one env it) h hne s
+
+end LeanModels.Sv.Loop2
 
 open LeanModels.Sv LeanModels.Sv.Kernel in
 /-- The instantiation pass: the route's `do` block evaluated through its definitions' equation lemmas. -/
@@ -639,9 +844,11 @@ macro "sv_seq_prof_four" : tactic => `(tactic| simp [LeanModels.Sv.Kernel.AllFou
 /-- No resolved net (`resolvedNets = []`). -/
 macro "sv_seq_prof_resolved" : tactic => `(tactic| simp [LeanModels.Sv.Kernel.coreMemResolvedNetNames])
 
-/-- Every process in the single-clock profile (`procsOkFrom`). -/
+/-- Every process in the single-clock profile (`procsOkFrom`); a loop's trip count (the header's value list in closed
+form, `Loop2.forValues2_slt`/`_sle`) is bounded by the route's statement fuel by `omega` from the hypotheses in
+context. -/
 macro "sv_seq_prof_procs" : tactic =>
-  `(tactic| simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
+  `(tactic| (simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
       LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.Kernel.coreMemEventEdge?, LeanModels.Sv.Kernel.CoreMemEvent.clockEdge?,
       LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
       LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
@@ -650,11 +857,18 @@ macro "sv_seq_prof_procs" : tactic =>
       LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
       LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
       LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
-      LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])
+      LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf,
+      LeanModels.Sv.PStmt.loopBodyB, LeanModels.Sv.PStmt.optLoopBodyB, LeanModels.Sv.PStmt.listLoopBodyB,
+      LeanModels.Sv.PStmt.itemsLoopBodyB, LeanModels.Sv.Kernel.loopTrips, LeanModels.Sv.Loop2.forValues2_slt,
+      LeanModels.Sv.Loop2.forValues2_sle,
+      LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
+      LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
+      LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt, LeanModels.Sv.Loop2.envVal, LeanModels.Sv.intRange_length, List.lookup]
+    <;> omega))
 
 /-- Every process in the instant profile (`procsOkIFrom`). -/
 macro "sv_seq_prof_procsI" : tactic =>
-  `(tactic| simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkIFrom,
+  `(tactic| (simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkIFrom,
       LeanModels.Sv.Kernel.CoreMemDesign.procOkIB, LeanModels.Sv.Kernel.coreMemEventEdge?, LeanModels.Sv.Kernel.CoreMemEvent.clockEdge?,
       LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
       LeanModels.Sv.PLhs.hasCall, LeanModels.Sv.PLhs.hasCallList,
@@ -663,7 +877,14 @@ macro "sv_seq_prof_procsI" : tactic =>
       LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead, LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
       LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
       LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList, LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
-      LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])
+      LeanModels.Sv.Kernel.Elab.resolve, LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf,
+      LeanModels.Sv.PStmt.loopBodyB, LeanModels.Sv.PStmt.optLoopBodyB, LeanModels.Sv.PStmt.listLoopBodyB,
+      LeanModels.Sv.PStmt.itemsLoopBodyB, LeanModels.Sv.Kernel.loopTrips, LeanModels.Sv.Loop2.forValues2_slt,
+      LeanModels.Sv.Loop2.forValues2_sle,
+      LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
+      LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
+      LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt, LeanModels.Sv.Loop2.envVal, LeanModels.Sv.intRange_length, List.lookup]
+    <;> omega))
 
 /-- **`sv_seq_profile`**: the clocked profile of a normal form, decided by `simp` (any number of processes). -/
 macro "sv_seq_profile" : tactic =>
@@ -721,15 +942,18 @@ macro "sv_seq_obligations" : tactic =>
       LeanModels.Sv.dimCount, List.lookup, LeanModels.Sv.ctxOpWidth2, LeanModels.Sv.rigidMax2,
       LeanModels.Sv.selfWidth2, LeanModels.Sv.fitExpr2, LeanModels.Sv.rigidExpr,
       LeanModels.Sv.PExpr.ctxPropagates, LeanModels.Sv.PExpr.constLeaf, LeanModels.Sv.PExpr.negGenvarWidened,
-      LeanModels.Sv.PExpr.signedCast])
+      LeanModels.Sv.PExpr.signedCast, LeanModels.Sv.Kernel.seqE_except_ok_bind,
+      LeanModels.Sv.Kernel.seqE_except_pure])
 
 /-- **`sv_seq_ports`**: the ports of a normal form. -/
 macro "sv_seq_ports" : tactic =>
   `(tactic| simp [LeanModels.Sv.Kernel.CoreMemDesign.inputPorts, LeanModels.Sv.Kernel.CoreMemDesign.outputPorts])
 
-/-- The evaluation pass of a cycle: the view functions and the route's evaluator unfolded. -/
-macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
-  `(conv| simp (config := {maxSteps := 4000000, decide := true}) [-LeanModels.Sv.Res.bind_eq_ok,
+/-- The evaluation pass of a cycle at a side-condition search depth: the view functions and the route's evaluator
+unfolded. -/
+macro "sv_seq_eval_pass_at " d:num " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
+  `(conv| simp (config := {maxSteps := 4000000, decide := true, maxDischargeDepth := $d})
+      [-LeanModels.Sv.Res.bind_eq_ok,
       LeanModels.Sv.Kernel.CoreMemDesign.cycleV, LeanModels.Sv.Kernel.CoreMemDesign.slotV,
       LeanModels.Sv.Kernel.CoreMemDesign.settleV, LeanModels.Sv.Kernel.CoreMemDesign.settleRaw,
       LeanModels.Sv.Kernel.CoreMemDesign.matV, LeanModels.Sv.Kernel.CoreMemDesign.edgesV,
@@ -781,7 +1005,36 @@ macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
       LeanModels.Sv.Kernel.MemShape.convert, LeanModels.Sv.Kernel.seqE_memRd_width,
       -LeanModels.Sv.evalPure2_index, LeanModels.Sv.Kernel.seqE_evalPure2_index,
       LeanModels.Sv.Kernel.seqE_resolveLhs2_index, LeanModels.Sv.evalExpr2_eq_evalPure2, LeanModels.Sv.Expr2.size,
-      LeanModels.Sv.instIndex2, $ls,*])
+      LeanModels.Sv.instIndex2,
+      LeanModels.Sv.PStmt.loopBodyB, LeanModels.Sv.PStmt.optLoopBodyB, LeanModels.Sv.PStmt.listLoopBodyB,
+      LeanModels.Sv.PStmt.itemsLoopBodyB, LeanModels.Sv.Loop2.forValues2_slt, LeanModels.Sv.Loop2.forValues2_sle,
+      LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
+      LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
+      LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt,
+      LeanModels.Sv.Loop2.envVal, LeanModels.Sv.IEnv.bindVal, LeanModels.Sv.Kernel.execLoopV_ok,
+      LeanModels.Sv.Kernel.seqE_flatMap_nil,
+      LeanModels.Sv.Kernel.commitMemV_flatMap_memIss, LeanModels.Sv.Kernel.commitMemV_flatMap_memIss_append,
+      $ls,*])
+
+/-- The evaluation pass of a cycle: the view functions and the route's evaluator unfolded. -/
+macro "sv_seq_eval_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
+  `(conv| sv_seq_eval_pass_at 2 [$ls,*])
+
+open Lean Elab Tactic Conv in
+/-- Succeeds when the term under `conv` holds a loop's write equation (`memWriteL`): the pass below runs only then, so
+a cycle without a loop costs what it did. -/
+elab "sv_seq_has_loop" : conv => do
+  let lhs ← instantiateMVars (← getLhs)
+  unless (lhs.find? (·.isConstOf ``LeanModels.Sv.Kernel.memWriteL)).isSome do
+    throwError "sv_seq_cycle: no loop write equation in the cycle"
+
+/-- The pass after a loop's write equation: a read of a memory a loop wrote (`memRd (memWriteL …)`) is of the element
+width, from the width facts given; that needs a deeper side-condition search than the evaluation pass's (the widths of
+the written memory, of the memory before it, of each written value). -/
+macro "sv_seq_eval_loop" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
+  `(conv| (sv_seq_has_loop
+           sv_seq_eval_pass_at 6 [$ls,*, LeanModels.Sv.Kernel.seqE_resizeU_memRd_memWriteL,
+             LeanModels.Sv.Kernel.seqE_memWriteL_width, LeanModels.Sv.Kernel.seqE_memWrite_width, implies_true]))
 
 /-- The arithmetic pass of a cycle: conditions and bounds on the parameters, by `omega`. -/
 macro "sv_seq_eval_arith" : conv =>
@@ -806,4 +1059,5 @@ macro "sv_seq_cycle " h:ident " : " t:term " using " hE:ident " [" ls:Lean.Parse
       try sv_seq_eval_arith
       try sv_seq_eval_pass [$ls,*]
       try sv_seq_eval_arith
-      try sv_seq_eval_pass [$ls,*]))
+      try sv_seq_eval_pass [$ls,*]
+      try sv_seq_eval_loop [$ls,*]))

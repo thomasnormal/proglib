@@ -11,7 +11,7 @@ name gets a further elaborator, tried first, that recognizes ONLY its clocked go
 
 | name | clocked goal | what runs |
 |---|---|---|
-| `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the single-clock profile, the obligations |
+| `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the single-clock profile (a procedural `for` loop's trip count bounded by the route's statement fuel from the hypotheses in context), the obligations |
 | `sv_structure` | `SeqDesignI (X.e P…)` | the same for any number of events (any clocks, either edge): the instant profile and obligations |
 | `sv_interface` | `SeqPorts (X.e P…) ins outs` | the instantiation, the ports |
 | `sv_equations` | `E.cycleV clk v d = rhs` or `E.cycleMV clk σ d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed (with the context's width facts `x.width = n`), then `rhs` checked against them |
@@ -103,8 +103,6 @@ def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) (resolved : List St
         if edge.isConstOf ``ClockEdge.negedge then
           return s!"{at_} ({kind}) is sensitive to the falling edge of `{clk}`: outside the single-clock profile `posedge {clk}`; over instants `\{negedge {clk}}` is an instant of its own (`SeqDesignI`, `SeqRunsI`)"
       let body ← whnf (← mkProjection f `body)
-      if (body.find? (·.isConstOf ``PStmt.forLoop)).isSome then
-        return s!"{at_} ({kind}) has a procedural `for` loop: the memories slice (next), refused"
       if (body.find? (·.isConstOf ``PExpr.functionCall)).isSome then
         return s!"{at_} ({kind}) calls a function: outside the clocked profile (U5)"
       if (body.find? (·.isConstOf ``PExpr.aggregateMember)).isSome then
@@ -113,6 +111,33 @@ def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) (resolved : List St
         match unsupportedStmtKind? body with
         | some k => return s!"{at_} ({kind}) holds a statement ingestion kept unconverted ({k}), refused"
         | none => return s!"{at_} ({kind}) holds a statement ingestion kept unconverted"
+      -- a procedural `for` loop: its body outside the loop fragment, or its trip count not bounded
+      if let some loop := body.find? (·.isAppOfArity ``PStmt.forLoop 5) then
+        let lb ← whnf (loop.getArg! 4)
+        let inBody (c : Name) : Bool := (lb.find? (·.isConstOf c)).isSome
+        if inBody ``PStmt.blockingAssign || inBody ``PStmt.blockingAssignL then
+          return s!"{at_} ({kind}) has a procedural `for` loop with a blocking assignment in its body (an iteration would read what an earlier iteration wrote): the clocked stages read a loop of nonblocking assignments only, refused"
+        if inBody ``PStmt.forLoop then
+          return s!"{at_} ({kind}) has a procedural `for` loop nested in a `for` loop: the clocked stages read one loop level, refused"
+        if inBody ``PStmt.localDecl || inBody ``PStmt.automaticDecl then
+          return s!"{at_} ({kind}) has a procedural `for` loop with a declaration in its body: the clocked stages read a loop of nonblocking assignments only, refused"
+        -- the header the stage evaluates: `for (i = a; i < P; i++)` or `i <= P` (or the step `i = i + 1`), `a` a
+        -- literal, `P` a parameter
+        let init ← whnf (loop.getArg! 1)
+        let cond ← whnf (loop.getArg! 2)
+        let step ← whnf (loop.getArg! 3)
+        let canonical : Bool :=
+          init.isAppOfArity ``PExpr.int 1 && cond.isAppOfArity ``PExpr.binary 3 &&
+            ((cond.getArg! 0).isConstOf ``SymBinOp.slt || (cond.getArg! 0).isConstOf ``SymBinOp.sle) &&
+            (cond.getArg! 1).isAppOfArity ``PExpr.genvarRef 1 && (cond.getArg! 2).isAppOfArity ``PExpr.paramRef 2 &&
+            ((step.isAppOfArity ``PExpr.unary 2 && (step.getArg! 0).isConstOf ``SymUnaryOp.inc) ||
+              -- `i = i + 1`
+              (step.isAppOfArity ``PExpr.binary 3 && (step.getArg! 2).isAppOfArity ``PExpr.int 1 &&
+                (((step.getArg! 2).getArg! 0).find? (fun x => x.rawNatLit? == some 1)).isSome &&
+                ((step.getArg! 0).find? (·.isConstOf ``BinOp.add)).isSome))
+        unless canonical do
+          return s!"{at_} ({kind}) has a procedural `for` loop whose header the clocked stages do not evaluate: they read `for (i = a; i < P; i++)` and `i <= P` (a literal start `a`, a parameter bound `P`, a unit step `i++` or `i = i + 1`) as the route's value list in closed form; any other header (another step, a bound that is not a parameter, a descending loop) is refused"
+        return s!"{at_} ({kind}) has a procedural `for` loop whose trip count is not bounded by the route's statement fuel from the hypotheses in context: the route runs a loop one fuel unit per iteration out of 4096 and answers `timeout` beyond, so state the bound as a hypothesis on the parameters (for `for (i = a; i < N; i++)`: `N ≤ 4000`), refused"
       return s!"{at_} ({kind}): its body is outside the edge-body fragment the clocked stages mirror"
     return s!"{at_} ({kind}): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.event 2 then
@@ -183,7 +208,7 @@ def runProfile (g : MVarId) : TacticM Unit := do
       | some clk => mkApp4 (mkConst ``CoreMemDesign.procOkB) E (toExpr clk) (toExpr i) p
       | none => mkApp3 (mkConst ``CoreMemDesign.procOkIB) E (toExpr i) p
     let gp ← mkFreshExprMVar (← mkEq t (toExpr true))
-    unless ← closes gp.mvarId! (← `(tactic| simp (config := {decide := true}) [
+    unless ← closes gp.mvarId! (← `(tactic| (simp (config := {decide := true}) [
         LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.Kernel.CoreMemDesign.procOkIB,
         LeanModels.Sv.Kernel.coreMemEventEdge?, LeanModels.Sv.Kernel.CoreMemEvent.clockEdge?,
         LeanModels.Sv.PStmt.edgeOkB, LeanModels.Sv.PStmt.optEdgeOkB,
@@ -195,7 +220,14 @@ def runProfile (g : MVarId) : TacticM Unit := do
         LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
         LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList,
         LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?, LeanModels.Sv.Kernel.Elab.resolve,
-        LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf])) do
+        LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf,
+        LeanModels.Sv.PStmt.loopBodyB, LeanModels.Sv.PStmt.optLoopBodyB, LeanModels.Sv.PStmt.listLoopBodyB,
+        LeanModels.Sv.PStmt.itemsLoopBodyB, LeanModels.Sv.Kernel.loopTrips, LeanModels.Sv.Loop2.forValues2_slt,
+        LeanModels.Sv.Loop2.forValues2_sle,
+        LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
+        LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
+        LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt, LeanModels.Sv.Loop2.envVal, LeanModels.Sv.intRange_length, List.lookup]
+        <;> omega))) do
       throwError "sv_structure: {← whyProc clk? i p resolved}"
     i := i + 1
   let gr ← mkFreshExprMVar (← mkEq (mkApp (mkConst ``CoreMemDesign.resolvedNets) E)
