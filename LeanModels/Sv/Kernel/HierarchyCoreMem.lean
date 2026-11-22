@@ -70,14 +70,14 @@ elaboration substitution, not a semantic lowering: process and declaration
 constructors remain the same nodes. -/
 
 mutual
-private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
+private def hParamExpr (vals : List (String × PExpr)) : PExpr → PExpr
   | .paramRef n none =>
       match vals.lookup n with
-      | some v => .int v
+      | some v => v
       | none => .paramRef n none
   | .genvarRef n =>
       match vals.lookup n with
-      | some v => .int v
+      | some v => v
       | none => .genvarRef n
   | .unary op a => .unary op (hParamExpr vals a)
   | .binary op a b => .binary op (hParamExpr vals a) (hParamExpr vals b)
@@ -100,35 +100,35 @@ private def hParamExpr (vals : List (String × Int)) : PExpr → PExpr
   | .packageAggElem pkg n index => .packageAggElem pkg n (hParamExpr vals index)
   | e => e
 
-private def hParamPath (vals : List (String × Int)) : List (Option String × Option PExpr) →
+private def hParamPath (vals : List (String × PExpr)) : List (Option String × Option PExpr) →
     List (Option String × Option PExpr)
   | [] => []
   | (field, ix) :: rest => (field, hParamOpt vals ix) :: hParamPath vals rest
 
-private def hParamOpt (vals : List (String × Int)) : Option PExpr → Option PExpr
+private def hParamOpt (vals : List (String × PExpr)) : Option PExpr → Option PExpr
   | none => none
   | some e => some (hParamExpr vals e)
 end
 
 private def aggregateIndexParamProbe : PExpr :=
-  hParamExpr [("P", 3)] (.aggregateMember "state"
+  hParamExpr [("P", .int 3)] (.aggregateMember "state"
     [(some "value", none), (none, some (.paramRef "P" none))])
 
 #guard aggregateIndexParamProbe ==
   .aggregateMember "state"
     [(some "value", none), (none, some (.int 3))]
 
-private def hParamDim (vals : List (String × Int)) (d : PDim) : PDim :=
+private def hParamDim (vals : List (String × PExpr)) (d : PDim) : PDim :=
   { msb := hParamExpr vals d.msb, lsb := hParamExpr vals d.lsb }
 
-private def hParamType (vals : List (String × Int)) : PType → PType
+private def hParamType (vals : List (String × PExpr)) : PType → PType
   | .packed dims resolved => .packed (dims.map (hParamDim vals)) resolved
   | ty => ty
 
-private def hParamDecl (vals : List (String × Int)) (d : PDecl) : PDecl :=
+private def hParamDecl (vals : List (String × PExpr)) (d : PDecl) : PDecl :=
   { d with type := hParamType vals d.type, unpackedDims := d.unpackedDims.map (hParamDim vals), init := d.init.map (hParamExpr vals) }
 
-private def hParamLhs (vals : List (String × Int)) : PLhs → PLhs
+private def hParamLhs (vals : List (String × PExpr)) : PLhs → PLhs
   | .bitSel n i => .bitSel n (hParamExpr vals i)
   | .partSel n a b => .partSel n (hParamExpr vals a) (hParamExpr vals b)
   | .concat xs => .concat (xs.map (hParamLhs vals))
@@ -139,7 +139,7 @@ private def hParamLhs (vals : List (String × Int)) : PLhs → PLhs
       .aggregateMember n (path.map fun (field, ix) => (field, ix.map (hParamExpr vals)))
   | l => l
 
-private partial def hParamStmt (vals : List (String × Int)) : PStmt → PStmt
+private partial def hParamStmt (vals : List (String × PExpr)) : PStmt → PStmt
   | .localDecl n w init => .localDecl n w (init.map (hParamExpr vals))
   | .automaticDecl n w init => .automaticDecl n w (init.map (hParamExpr vals))
   | .blockingAssign n e => .blockingAssign n (hParamExpr vals e)
@@ -156,7 +156,7 @@ private partial def hParamStmt (vals : List (String × Int)) : PStmt → PStmt
         (d.map (hParamStmt vals)) m c
   | s@(.unsupported ..) => s
 
-private def hParamProcess (vals : List (String × Int)) : PProcess → PProcess
+private def hParamProcess (vals : List (String × PExpr)) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF c (hParamStmt vals b)
   | .alwaysFFNegedge c b => .alwaysFFNegedge c (hParamStmt vals b)
   | .alwaysPlain c b => .alwaysPlain c (hParamStmt vals b)
@@ -170,16 +170,16 @@ private def hParamProcess (vals : List (String × Int)) : PProcess → PProcess
   | .initial b => .initial (hParamStmt vals b)
   | p@(.unsupported ..) => p
 
-private def hParamConn (vals : List (String × Int)) : PConn → PConn
+private def hParamConn (vals : List (String × PExpr)) : PConn → PConn
   | .input p a net => .input p (a.map (hParamExpr vals)) net
   | .output p a => .output p (a.map (hParamLhs vals))
   | .inout p a => .inout p (a.map (hParamExpr vals))
   | c@(.unsupported ..) => c
 
-private def hParamInst (vals : List (String × Int)) (i : PInst) : PInst :=
+private def hParamInst (vals : List (String × PExpr)) (i : PInst) : PInst :=
   { i with params := i.params.map (fun (n, e) => (n, hParamExpr vals e)), conns := i.conns.map (hParamConn vals) }
 
-private partial def hParamGen (vals : List (String × Int)) : GenItem → GenItem
+private partial def hParamGen (vals : List (String × PExpr)) : GenItem → GenItem
   | .process p => .process (hParamProcess vals p)
   | .decl d => .decl (hParamDecl vals d)
   | .localParam p => .localParam { p with expr := hParamExpr vals p.expr }
@@ -191,18 +191,27 @@ private partial def hParamGen (vals : List (String × Int)) : GenItem → GenIte
   | .unsupported k t => .unsupported k t
   | .inst i => .inst (hParamInst vals i)
 
-private def hParamFunction (vals : List (String × Int)) (f : PFunction) : PFunction :=
+private def hParamFunction (vals : List (String × PExpr)) (f : PFunction) : PFunction :=
   { f with formals := f.formals.map (hParamDecl vals), returnType := hParamType vals f.returnType, body := hParamExpr vals f.body }
 
-private def hParamEnum (vals : List (String × Int)) (e : PEnumType) : PEnumType :=
+private def hParamEnum (vals : List (String × PExpr)) (e : PEnumType) : PEnumType :=
   { e with base := hParamType vals e.base }
 
-private def hParamDesign (vals : List (String × Int)) (d : PDesign) : PDesign :=
+private def hParamDesign (vals : List (String × PExpr)) (d : PDesign) : PDesign :=
   { d with params := [], localParams := [], enums := d.enums.map (hParamEnum vals), decls := d.decls.map (hParamDecl vals), functions := d.functions.map (hParamFunction vals), processes := d.processes.map (hParamProcess vals), generates := d.generates.map (hParamGen vals) }
 
-private def hParamVals (env : IEnv) : List (String × Int) :=
-  env.vals ++ env.nvals.filterMap fun (n, (v, _, _)) =>
-    if env.stale.contains n then none else some (n, v)
+/-- The width and signedness of a parameter survive elaboration into a
+child process or port connection (§§6.20.2, 11.6). A stale binding was
+typed differently by Slang and must still refuse a value-position read. -/
+private def hParamVals (env : IEnv) : List (String × PExpr) :=
+  env.vals.map (fun (n, v) => (n, .int v)) ++ env.nvals.map fun (n, (v, w, signed)) =>
+    let value : PExpr :=
+      if env.stale.contains n then .unsupported "ParamRef:override-type" (staleMsg2 n)
+      else if signed && w == 32 then .int v
+      else
+        let bits := PExpr.lit (LVec.ofInt w v)
+        if signed then .cast true bits else bits
+    (n, value)
 
 private def hLhs (pfx : String) : PLhs → PLhs
   | .ident n => .ident (pfx ++ n)
@@ -273,12 +282,17 @@ private partial def generatedInstances (env : IEnv) (fuel : Nat) :
   | [] => .ok []
   | .inst i :: rest => do
       let tail ← generatedInstances env fuel rest
-      .ok ((hParamInst (hParamVals env) i, env) :: tail)
-  | .process _ :: rest | .decl _ :: rest | .localParam _ :: rest =>
-      generatedInstances env fuel rest
+      .ok ((i, env) :: tail)
+  | .process _ :: rest | .decl _ :: rest => generatedInstances env fuel rest
+  | .localParam p :: rest => do
+      let env' ← bindLocals env [p]
+      generatedInstances env' fuel rest
   | .unsupported k t :: _ => .unsupported s!"{k}: {t}"
   | .genIf cond yes no :: rest => do
-      let chosen := if (evalInt env cond).toOption.getD 0 != 0 then yes else no
+      let value ← match evalGenGuard env cond with
+        | .ok v => pure v
+        | .error e => .unsupported s!"generate if: {e}"
+      let chosen := if value != 0 then yes else no
       let here ← generatedInstances env fuel chosen
       let tail ← generatedInstances env fuel rest
       .ok (here ++ tail)
@@ -345,7 +359,7 @@ end
 
 private structure HChild where
   child : PDesign
-  args : List Int
+  instances : List (PInst × IEnv)
   inst : PInst
   pfx : String
   parentPfx : String
@@ -382,7 +396,11 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) (parentPfx : 
               | some (kind, text) =>
                   .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
               | none =>
-                  .ok { child := child'', args := cargs, inst := i,
+                  -- Bind nested actuals in the original child scope. Hoisted
+                  -- literals no longer carry their declaration or range.
+                  let instances ← generatedInstances cenv (PDesign.surfaceFuel cargs) child'.generates
+                  let inst := { i with conns := i.conns.map (hParamConn (hParamVals env)) }
+                  .ok { child := child'', instances, inst,
                         pfx := parentPfx ++ pfx, parentPfx, generated }
           | .error e => .unsupported e
 
@@ -409,12 +427,7 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
     match fuel with
     | 0 => .unsupported "23.3: hierarchy expansion fuel exhausted"
     | fuel + 1 =>
-    let cenv ← match parent.child.paramEnvH { int32 := true, functions := parent.child.functions } parent.args with
-      | .ok e => .ok e
-      | .timeout => .timeout
-      | .unsupported e => .unsupported e
-    let insts ← generatedInstances cenv (PDesign.surfaceFuel parent.args) parent.child.generates
-    let here ← insts.mapM fun (i, ie) => childFor ie lib i parent.pfx
+    let here ← parent.instances.mapM fun (i, ie) => childFor ie lib i parent.pfx
     let tails ← here.mapM (nested fuel)
     .ok (here ++ tails.flatten)
   let tails ← direct.mapM (nested (PDesign.surfaceFuel args))
