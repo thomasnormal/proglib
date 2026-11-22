@@ -4,12 +4,19 @@ This is the F1 route decision for the shared C and C++ clang type layer. The
 approved input remains clang's AST. No route parses a `qualType` string in
 Lean or in the extractor.
 
-The current full survey has **358 sole `type-layout` rows**. The focused
-layout battery has already shown that declaration identity joins are sound
+The 2026-11-22 full survey has **344 sole `type-layout` rows** and 1,004
+rows where the wall is present. The focused layout battery has already shown
+that declaration identity joins are sound
 for scalar, nested, anonymous, union, array-member, flexible-array and
 bit-field layouts when the frontend observations are present. The remaining
 wall is the absence of one structured type value passed from clang to the
 envelope and then to the layout and memory libraries.
+
+The same replay recorded 1,237 MATCH rows out of 2,214 manifest rows. The
+layout wall is a measured front-end and envelope boundary. Its first
+implementation price remains the recursive plugin projection below, with a
+byte-identical double-run check and explicit leaves for unsupported Clang type
+kinds.
 
 ## Candidate routes
 
