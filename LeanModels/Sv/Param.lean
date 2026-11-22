@@ -2384,6 +2384,23 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
                           else
                             bindPackageParamsInOrder (env'.bindPackageNVal pkg p.name v w s) rest
               | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
+          | some (.typeRef _ _ (some w)) =>
+              let s := p.signed?.getD (w == 32)
+              let value : Except String LVec := match packageConstVec env e with
+                | .error err => .error err
+                | .ok raw => .ok (if s then raw.resizeSigned w else raw.resizeU w)
+              match value with
+              | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
+              | .ok value =>
+                  let env' := env.bindPackageFVal pkg p.name value w s
+                  match value.toNat? with
+                  | none => bindPackageParamsInOrder env' rest
+                  | some n =>
+                      let v := canonInt w s n
+                      if w == 32 && s then
+                        bindPackageParamsInOrder (env'.bindPackageVal pkg p.name v) rest
+                      else
+                        bindPackageParamsInOrder (env'.bindPackageNVal pkg p.name v w s) rest
           | some (.typeRef _ _ _) | some (.unrecoverable _) =>
               .unsupported s!"ParamRef:package: package parameter '{pkg}::{p.name}' has an unsupported type"
 
