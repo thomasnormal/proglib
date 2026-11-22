@@ -878,3 +878,12 @@ with machine rows in
 [`docs/c-OffsetOfExpr-price-20261122.json`](c-OffsetOfExpr-price-20261122.json).
 The refusal remains the parser-native offset-of and declaration-layout
 boundary.
+
+**Nested case-label wall price (2026-11-22).** The dynamic ranking has three
+sole rows refusing `case label nested in a control statement`. Two rows have
+clean pinned O0/O2 and UBSan/ASan runs. `medce-1.c` has no native oracle result
+in the pinned standalone profile. The receipt is in
+[`docs/c-case-nested-price-20261122.md`](c-case-nested-price-20261122.md), with
+machine rows in
+[`docs/c-case-nested-price-20261122.json`](c-case-nested-price-20261122.json).
+The refusal remains the parser-native case-label/control-flow boundary.
