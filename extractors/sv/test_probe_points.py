@@ -39,7 +39,8 @@ def decl(module, name):
 
 
 class ProbePoints(unittest.TestCase):
-    def run_extract(self, source, top, spec, name="fixture"):
+    def run_extract(self, source, top, spec, name="fixture", *,
+                    retain_loops=True, retain_proc_rewrites=False):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         directory = tmp.name
@@ -47,8 +48,13 @@ class ProbePoints(unittest.TestCase):
         src.write_text(source)
         plain = Path(directory) / (name + "_plain.sv.json")
         out = Path(directory) / (name + ".sv.json")
-        extract.process_symbolic(top, [str(src)], [], str(plain))
-        extract.main(["--top", top, str(src), "-o", str(out), "--probe-points", spec])
+        extract.process_symbolic(top, [str(src)], [], str(plain), retain_loops=retain_loops,
+                                 retain_proc_rewrites=retain_proc_rewrites)
+        flags = ["--retain-loops" if retain_loops else "--no-retain-loops"]
+        if retain_proc_rewrites:
+            flags.append("--retain-proc-rewrites")
+        self.assertEqual(extract.main(["--top", top, str(src), "-o", str(out),
+                                       "--probe-points", spec, *flags]), 0)
         side = Path(directory) / (name + ".sv.probes.json")
         return plain.read_bytes(), out.read_bytes(), json.loads(side.read_text())
 
@@ -133,6 +139,29 @@ class ProbePoints(unittest.TestCase):
                          [("child", [{"name": "W", "value": 5}]), ("child", [])])
         self.assertEqual(params(insts[0]["design"]), {"W": 5})
         self.assertEqual(params(insts[1]["design"]), {"W": 2})
+
+    def test_child_probe_keeps_the_requested_process_and_loop_shapes(self):
+        source = """
+            module child #(parameter W=2) (input [W-1:0] a, b,
+                                           output reg [W-1:0] y, z);
+              always @* y = a ^ b;
+              always_comb for (int i=0; i<2; i++) z[i] = a[i];
+            endmodule
+            module top #(parameter W=2) (input [W-1:0] a, b, output [W-1:0] y, z);
+              child #(.W(W)) u(a, b, y, z);
+            endmodule
+        """
+        for loops, retained in [(False, True), (True, False), (True, True), (False, False)]:
+            with self.subTest(loops=loops, retained=retained):
+                _, _, side = self.run_extract(source, "top", "W=2;W=4", retain_loops=loops,
+                                              retain_proc_rewrites=retained)
+                for point in side["points"]:
+                    child, = point["instances"]
+                    self.assertEqual(point["frontend_errors"], 0)
+                    self.assertEqual(params(child["design"]), {"W": point["overrides"][0]["value"]})
+                    star, loop = child["design"]["processes"]
+                    self.assertEqual(star["kind"], "AlwaysEvent" if retained else "AlwaysComb")
+                    self.assertEqual(loop["body"]["kind"], "For" if loops else "Block")
 
     def test_unrelated_top_neither_receives_the_point_nor_counts(self):
         # Round 3 CX repair (verifier repro `multi_top`): slang applies
