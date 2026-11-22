@@ -413,6 +413,7 @@ structure Layout where
   zeroNullPointer : Bool := false
   declSize : DeclarationId → Option Nat := fun _ => none
   recordSizeDecl : DeclarationId → Option Nat := fun _ => none
+  recordAlignmentDecl : DeclarationId → Option Nat := fun _ => none
   structuredType : DeclarationId → Option LeanModels.Clang.QualType := fun _ => none
   structuredExprType : Nat → Option LeanModels.Clang.QualType := fun _ => none
   structuredExprTypeAt : Nat → Option Nat → String → String → Option LeanModels.Clang.QualType :=
@@ -426,6 +427,7 @@ structure Layout where
   fieldOffDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldBitsDecl : DeclarationId → String → Option (Nat × Nat) := fun _ _ => none
   flexibleFieldDecl : DeclarationId → String → Bool := fun _ _ => false
+  terminalFieldDecl : DeclarationId → String → Bool := fun _ _ => false
   membersDecl : DeclarationId → Option (List (String × String)) := fun _ => none
   memberRecordDecl : DeclarationId → String → Option DeclarationId := fun _ _ => none
   isUnionDecl : DeclarationId → Bool := fun _ => false
@@ -1468,6 +1470,50 @@ def storeBitField (fieldTy : String) (fieldPtr : Ptr) (offsetBits width : Nat)
   | _, _ => refuseUnsupported s!"unsupported bit-field store '{fieldTy}'"
 
 
+/-- Record identities and byte offsets along a terminal projection from
+the complete object to the immediate owner. A struct contributes its last
+member and a union can contribute any member. -/
+private def Layout.trailingRecordPath (layout : Layout) (owner : DeclarationId) :
+    Expr → Option (List (DeclarationId × Nat))
+  | .paren base .. => layout.trailingRecordPath owner base
+  | .member base field arrow _ _ (some parent) _ => do
+      if !layout.terminalFieldDecl parent field then none else do
+        let off ← layout.fieldOffDecl parent field
+        let path ← if arrow then some [(parent, 0)] else layout.trailingRecordPath parent base
+        let (_, parentOff) ← path.getLast?
+        pure (path ++ [(owner, parentOff + off)])
+  | .declRef .. | .unop "*" .. => some [(owner, 0)]
+  | _ => none
+
+/-- C23 §6.7.3.2p20 and GCC's Arrays of Length Zero. The longest array
+must fit the complete allocation or an observed declared root object.
+Every enclosing record's padding and alignment constrain the available
+bytes. GNU zero- and one-element arrays extend into additional storage.
+Their ordinary declared size is still used by `sizeof`. -/
+private def Layout.trailingArrayExtent (layout : Layout) (m : Mem) (p : Ptr)
+    (path : List (DeclarationId × Nat)) (fieldOffset stride : Nat)
+    (count : Option Nat) : Option Nat := do
+  let (root, _) ← path.head?
+  let (owner, ownerOffset) ← path.getLast?
+  let id ← p.obj
+  let object ← m.get? id
+  let wholeObject := match (m.structuredType? id).map LeanModels.Clang.QualType.unqualified with
+    | some (.record record) => record.value == root.value
+    | none => object.dur == .allocated &&
+        (path.length > 1 || p.bound == some (object.size : Int))
+    | _ => false
+  if !wholeObject || !object.live || p.off != (ownerOffset : Int) || stride == 0 then none
+  else do
+    let limit ← path.foldlM (fun limit (record, start) => do
+      let alignment ← layout.recordAlignmentDecl record
+      let size ← layout.recordSizeDecl record
+      if alignment == 0 || start + size > limit then none
+      else some (start + ((limit - start) / alignment) * alignment)) object.size
+    let size ← layout.recordSizeDecl owner
+    let start := ownerOffset + fieldOffset
+    if start > limit || (count.isSome && ownerOffset + size >= limit) then none
+    else some (((limit - start) / stride) * stride)
+
 mutual
 
 /-- §6.3.2.1p1 — an expression in LVALUE position, yielding the address
@@ -2130,7 +2176,29 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
           let fieldSize :=
             (ctx.layout.fieldExtentAt base field fieldTy recordLike).orElse
               (fun _ => recordId.bind (fun rid => ctx.layout.fieldSizeDecl rid field))
-          match fieldSize with
+          let structured := declaration.bind (fun did => ctx.layout.fieldStructuredDecl did field)
+            |>.bind (LeanModels.Clang.QualType.resolveTypedefs
+              (fun handle => ctx.layout.structuredType { value := handle.value }) 32)
+          let extent ← match structured.map LeanModels.Clang.QualType.unqualified with
+            | some type@(.array _ count) =>
+                match ctx.layout.structuredStride type with
+                | none =>
+                    -- Opaque fixed-size fields, such as the native va_list,
+                    -- retain their observed storage slot for address-taking.
+                    pure (count.bind fun _ => fieldSize)
+                | some stride => do
+                    let fixed := count.map (· * stride)
+                    let tailPath := do
+                      let owner ← declaration
+                      if count.getD 0 > 1 || !ctx.layout.terminalFieldDecl owner field then none
+                      else if arrow then some [(owner, 0)]
+                      else ctx.layout.trailingRecordPath owner base
+                    let m ← get
+                    pure ((tailPath.bind fun path =>
+                      ctx.layout.trailingArrayExtent m basePtr path off stride count).orElse
+                        (fun _ => fixed))
+            | _ => pure fieldSize
+          match extent with
           | some sz => pure (Mem.memberRange basePtr off sz)
           | none => refuseUnsupported s!"no layout for field '{field}'"
       | none => refuseUnsupported s!"no layout for field '{field}'"

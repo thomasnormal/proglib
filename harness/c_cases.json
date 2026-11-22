@@ -637,6 +637,18 @@
     ]
   },
   {
+    "id": "allocated-flexible-array-member-subscript",
+    "source": "#include <stdlib.h>\nstruct S { long head; int tail[]; }; int main(void) { struct S *s = malloc(sizeof(*s) + 2 * sizeof(int)); if (!s) return 2; s->tail[0] = 3; s->tail[1] = 7; int bad = s->tail[0] + s->tail[1] != 10; free(s); return bad; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "gnu-trailing-array-member-keeps-declared-sizeof",
+    "source": "#include <stdlib.h>\nstruct S { long head; int tail[1]; }; int main(void) { struct S *s = malloc(sizeof(*s) + 2 * sizeof(int)); if (!s) return 2; s->tail[2] = 9; int bad = sizeof(s->tail) != sizeof(int) || s->tail[2] != 9; free(s); return bad; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
     "id": "record-array-member-layout",
     "source": "struct A { int xs[3]; char tag; }; int main(void) { struct A a = { {1, 2, 3}, 4 }; return sizeof(struct A) == 16 && a.xs[2] == 3 && a.tag == 4 ? 0 : 1; }",
     "expect": "refuse",

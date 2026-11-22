@@ -558,6 +558,15 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => false
         | _ => false
     | _ => false
+  let observedTerminalDeclFor := fun (did : DeclarationId) (name : String) =>
+    match observedParentRecordFor did with
+    | some (.record _ _ fields (some layout) ..) =>
+        match checkedRecordLayout? fields layout with
+        | some checked =>
+            if checked.tagKind == "union" then checked.fields.any (·.name == name)
+            else checked.fields.getLast?.any (·.name == name)
+        | none => false
+    | _ => false
   let observedFieldOffType := fun (t : String) (memberTy : String) =>
     match observedPointeeFor t with
     | some (_, members, layout) =>
@@ -635,6 +644,7 @@ def layoutFor (envl : Envelope) : Layout :=
   { zeroNullPointer := envl.zeroNullPointer
     declSize := observedDeclSize
     recordSizeDecl := observedRecordSizeDecl
+    recordAlignmentDecl := fun id => (observedRecordLayout? envl id).map (·.alignmentBytes)
     structuredType := fun id => envl.structuredTypeFor id
     structuredExprType := observedExprType
     structuredExprTypeAt := observedExprTypeAt
@@ -645,6 +655,7 @@ def layoutFor (envl : Envelope) : Layout :=
     fieldDecl := observedFieldDeclFor
     fieldBitsDecl := observedFieldBitsDeclFor
     flexibleFieldDecl := observedFlexibleDeclFor
+    terminalFieldDecl := observedTerminalDeclFor
     fieldOffTypeDecl := observedFieldOffTypeDeclFor
     fieldOffDecl := declFieldOff
     isUnionDecl := observedUnionDeclFor
