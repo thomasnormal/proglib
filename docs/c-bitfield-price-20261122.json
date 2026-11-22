@@ -1,0 +1,673 @@
+{
+  "rows": [
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "20000113-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "20190901-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "921016-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "bitfld-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "bitfld-10.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "bitfld-8.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "bitfld-9.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c23-run",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "gcc/testsuite/gcc.dg/c23-tag-alias-7.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr108498-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr110165-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr110166-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr111613.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr31169.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr40493.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr60017.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr66556.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr70127.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr70566.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr78170.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr86659-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr86659-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr88739.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "partly initialized bit-field byte",
+      "name": "pr98366.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-bitfield-price-1",
+  "total": 23
+}
