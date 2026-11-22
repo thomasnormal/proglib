@@ -1401,6 +1401,16 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                     let rendered := printfHexDigits false n.toNat
                     let tail ← format rest as
                     pure (rendered ++ tail)
+                | .conc 37 :: .conc 88 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let rendered := printfHexDigits true n.toNat
+                    let tail ← format rest as
+                    pure (rendered ++ tail)
+                | .conc 37 :: .conc 48 :: .conc 52 :: .conc 120 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let rendered := padHex false 4 n.toNat
+                    let tail ← format rest as
+                    pure (rendered ++ tail)
                 | .conc 37 :: .conc 48 :: .conc 52 :: .conc 88 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let rendered := padHex true 4 n.toNat

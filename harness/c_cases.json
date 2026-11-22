@@ -142,6 +142,13 @@
     "expected_stdout": "4F60 "
   },
   {
+    "id": "printf-hex-width-both-cases",
+    "source": "#include <stdio.h>\nint main(void) { printf(\"%X %04x\", 0xab, 0xab); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "AB 00ab"
+  },
+  {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
     "expect": "refuse",
