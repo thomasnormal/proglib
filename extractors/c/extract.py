@@ -1152,8 +1152,11 @@ def extract(path, source_name=None, standard="c23"):
         exact = [decl_id for span, decl_id in candidates
                  if isinstance(token_length, int) and span + 1 == token_length]
         if exact:
-            record["decl_id"] = exact[0]
-        elif offset in var_decl_ids_by_offset:
+            if len(exact) == 1:
+                record["decl_id"] = exact[0]
+        elif len(candidates) == 1:
+            record["decl_id"] = candidates[0][1]
+        elif offset in var_decl_ids_by_offset and not candidates:
             record["decl_id"] = var_decl_ids_by_offset[offset]
 
     # Join structured QualType observations by the parser node IDs from the
