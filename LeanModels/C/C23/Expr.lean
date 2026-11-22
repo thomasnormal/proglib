@@ -504,12 +504,23 @@ declaration identity carried by that expression before consulting the
 legacy type-keyed layout table. -/
 def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : String) :
     Option Nat :=
-  ((directDeclId expression).bind layout.structuredType |>.orElse
-    (fun _ => (Expr.span expression).offset.bind (fun offset =>
-      (layout.structuredExprTypeAt offset (Expr.span expression).endOffset
-        expression.kindName ty).orElse (fun _ => layout.structuredExprType offset))))
-    |>.bind objectSizeOfStructured |>.orElse
-    (fun _ => layout.sizeAt (directDeclId expression) ty)
+  let indexedElementSize := match expression with
+    | .index base _ _ _ _ =>
+        base.structuredType?.bind fun q =>
+          match q.unqualified with
+          | .array element _ | .pointer element =>
+              match element.unqualified with
+              | .record handle => layout.recordSizeDecl { value := handle.value }
+              | _ => scalarSizeOfStructured element
+          | _ => none
+    | _ => none
+  indexedElementSize.orElse (fun _ =>
+    ((directDeclId expression).bind layout.structuredType |>.orElse
+      (fun _ => (Expr.span expression).offset.bind (fun offset =>
+        (layout.structuredExprTypeAt offset (Expr.span expression).endOffset
+          expression.kindName ty).orElse (fun _ => layout.structuredExprType offset))))
+      |>.bind objectSizeOfStructured |>.orElse
+      (fun _ => layout.sizeAt (directDeclId expression) ty))
 
 /-- Resolve an indexed element stride from parser-native array or pointee
 observations before falling back to the expression's declaration size. -/
@@ -530,7 +541,10 @@ def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : String) :
                 32 element |>.getD element
           | _ => structured
         match structured.unqualified with
-        | .array _ _ | .pointer _ => scalarSizeOfStructured resolvedElement
+        | .array _ _ | .pointer _ =>
+            match resolvedElement.unqualified with
+            | .record handle => layout.recordSizeDecl { value := handle.value }
+            | _ => scalarSizeOfStructured resolvedElement
         | _ => none))
     |>.orElse (fun _ => layout.exprSizeAt base ty)
 
@@ -1926,10 +1940,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         loadAt ctx.aliasModel p ty (ctx.layout.exprSizeAt (.member base field arrow ty span recordId structuredType) ty)
   | .index base idx ty _ .. => do
       let p ← indexAddr ctx base idx ty
-      let pointee := (ctx.layout.structuredTypeAt base).bind
-        LeanModels.Clang.QualType.pointee
+      let elementStructured := (ctx.layout.structuredTypeAt base).bind fun q =>
+        match q.unqualified with
+        | .array element _ | .pointer element => some element
+        | _ => none
       loadAt ctx.aliasModel p ty
-        (ctx.layout.exprSizeAt base ty) pointee
+        (ctx.layout.elementSizeAt base ty) elementStructured
 
   -- ===== §6.4.4 — constants =====
   | .intLit v _ _ structuredType => do
