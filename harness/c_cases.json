@@ -400,6 +400,13 @@
     "return_value": 0
   },
   {
+    "id": "pointer-signed-unsigned-object-alias",
+    "source": "int main(void) { unsigned long value = 1; return *(long *)&value == 1 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "pointer-adjacent-boundary",
     "source": "int main(void) { int a[1] = {0}; int b[1] = {0}; return (&a[1] == &b[0]) ? 1 : 0; }",
     "expect": "refuse",
