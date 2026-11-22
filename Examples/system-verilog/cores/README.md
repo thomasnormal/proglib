@@ -1571,8 +1571,8 @@ compiled-and-run count at **0/42** and did not exercise a memory stall or an
 unknown-valued register.  The first compiled image moved the measured count to
 **1/42**.  The pinned `addi.S` image moved it to **2/42**, the `beq.S` image to
 **3/42**, the `and.S` image to **4/42**, the `sub.S` image to **5/42**, the
-`jal.S` image to **6/42**, and the `lui.S` image to **7/42**. The `or.S` image
-below moves it to **8/42**.
+`jal.S` image to **6/42**, the `lui.S` image to **7/42**, and the `or.S` image
+to **8/42**. The `xor.S` image below moves it to **9/42**.
 
 ## 2026-11-22 DarkRISCV rv32ui/ld_st differential
 
@@ -1719,6 +1719,24 @@ instruction acknowledgement stalls.
 printed fields for **300/300** rows. The checker validates the transcript hash
 and rejects a corrupted expected row. Transcript SHA-256 is
 `9cdc8c30bacdf1d8d2909e6a845565e3cc65e7c05412a9d4050e6ea7a2b3a2a7`. This
+program has no data-memory operation, so its stall witness is instruction-side.
+The `ld_st` image supplies the data-stall witness.
+
+## 2026-11-22 DarkRISCV rv32ui/xor differential
+
+The ninth compiled RV32UI image is `darkriscv/rv32ui_xor.hex`, built from
+`riscv-tests` `isa/rv32ui/xor.S` at commit
+`3df703cd52d5f0d8224e3c50bf03c6cb70efff98`. Source hashes, the exact Clang/LLD
+commands, image hash, and transcript hash are recorded in
+`darkriscv/rv32ui_xor_provenance.txt`. The unchanged-source testbench
+`darkriscv/rv32ui_xor_tb.sv` loads the image at reset address zero and applies
+instruction acknowledgement stalls.
+
+`darkriscv/rv32ui_xor_check.py` compares 300 rising edges. Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E agree on all
+printed fields for **300/300** rows. The checker validates the transcript hash
+and rejects a corrupted expected row. Transcript SHA-256 is
+`b01d457a366446f24f627e63d9d3ed606707cb0b729b8e0c8d695ac9a2df31b8`. This
 program has no data-memory operation, so its stall witness is instruction-side.
 The `ld_st` image supplies the data-stall witness.
 
