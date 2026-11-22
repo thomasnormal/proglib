@@ -1520,6 +1520,33 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
   | (msgs, _) =>
       throwErrorAt path
         "load_design_sv2: '{pathStr}' REFUSED — our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
+  -- Parse the optional probe sidecar before checking library defaults.  A
+  -- child may be invalid at its standalone defaults while every point the
+  -- parent actually reaches is valid.  The coverage check below is the
+  -- only route that may admit that case; a standalone child has no sidecar
+  -- and keeps the ordinary default differential refusal.
+  let sidePath := probeSidecarPath pathStr
+  let probes? ← if ← System.FilePath.pathExists ⟨sidePath⟩ then
+    let prText ←
+      match ← (IO.FS.readFile ⟨sidePath⟩).toBaseIO with
+      | .ok c => pure c
+      | .error e => throwErrorAt path "load_design_sv2: cannot read probe sidecar '{sidePath}': {toString e}"
+    match parseProbes2String prText with
+    | .error e =>
+        throwErrorAt path "load_design_sv2: '{pathStr}' REFUSED — its probe sidecar '{sidePath}' is not valid: {e}"
+    | .ok pr => pure (some pr)
+  else pure none
+  match probes? with
+  | some pr =>
+      if pr.top != envl.top then
+        throwErrorAt path
+          "load_design_sv2: '{pathStr}' REFUSED — probe sidecar top '{pr.top}' does not match envelope top '{envl.top}'"
+      match pr.reachableCoverage pd envl.lib with
+      | some (point, msg) =>
+          throwErrorAt path
+            "load_design_sv2: '{pathStr}' REFUSED — probe sidecar instance coverage at {point}: {msg}"
+      | none => pure ()
+  | none => pure ()
   -- A hierarchical envelope (F3): every library module passes the same
   -- differential gate against ITS defaults (the extractor elaborated each
   -- definition alone at its own defaults).
@@ -1528,8 +1555,12 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
     match c.crossCheck with
     | [] => pure ()
     | msgs =>
-        throwErrorAt path
-          "load_design_sv2: '{pathStr}' REFUSED — module '{c.name}' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
+        let covered := match probes? with
+          | some pr => pr.points.any (fun p => p.instances.any (fun i => i.module == c.name))
+          | none => false
+        if covered then pure () else
+          throwErrorAt path
+            "load_design_sv2: '{pathStr}' REFUSED — module '{c.name}' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
   -- The defaults point with exact 32-bit `int` constants (`int32Agrees`).
   match pd.atPoint [] with
   | .ok (pdD, argsD) =>
@@ -1589,20 +1620,17 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
   -- envelope has a probe sidecar (`extract.py --probe-points`), every
   -- point's re-extraction must instantiate to exactly the design the
   -- envelope gives there — a default-point fold differs, and refuses here.
-  let sidePath := probeSidecarPath pathStr
-  if ← System.FilePath.pathExists ⟨sidePath⟩ then
-    let prText ←
-      match ← (IO.FS.readFile ⟨sidePath⟩).toBaseIO with
-      | .ok c => pure c
-      | .error e => throwErrorAt path "load_design_sv2: cannot read probe sidecar '{sidePath}': {toString e}"
-    match parseProbes2String prText with
-    | .error e =>
-        throwErrorAt path "load_design_sv2: '{pathStr}' REFUSED — its probe sidecar '{sidePath}' is not valid: {e}"
-    | .ok pr =>
+  if let some pr := probes? then
         match (envl.probeReport pr).find? (fun (_, v) => !v.ok) with
         | some (l, v) =>
-            throwErrorAt path
-              "load_design_sv2: '{pathStr}' REFUSED — multi-point cross-check (probe sidecar '{sidePath}') at {l}: {v.render}\n({v.meaning} — `Probe2.lean`)"
+            match v with
+            | .memoryOnly _ =>
+                unless pr.memoryPointAgrees pd envl.lib do
+                  throwErrorAt path
+                    "load_design_sv2: '{pathStr}' REFUSED — multi-point memory validation (probe sidecar '{sidePath}') at {l}: canonical E did not build the reachable point"
+            | _ =>
+                throwErrorAt path
+                  "load_design_sv2: '{pathStr}' REFUSED — multi-point cross-check (probe sidecar '{sidePath}') at {l}: {v.render}\n({v.meaning} — `Probe2.lean`)"
         | none => pure ()
         -- The legacy-select range guard at every probed point (round 3
         -- folds): the svGolf checker always probes the task's probe,

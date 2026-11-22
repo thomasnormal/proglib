@@ -1,7 +1,7 @@
 module serv_child_ram #(parameter width=0, parameter depth=8/width)
-  (input wire clk, wen, input wire [1:0] addr,
-   input wire [width-1:0] data, output wire [width-1:0] value);
-  reg [width-1:0] memory [0:depth-1];
+  (input logic clk, wen, input logic [1:0] addr,
+   input logic [width-1:0] data, output logic [width-1:0] value);
+  logic [width-1:0] memory [0:depth-1];
   always @(posedge clk) if (wen) memory[addr] <= data;
   assign value = memory[addr];
 endmodule

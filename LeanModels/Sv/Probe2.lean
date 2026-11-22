@@ -1,4 +1,5 @@
 import LeanModels.Sv.Hier2
+import LeanModels.Sv.Kernel.HierarchyCoreMem
 
 /-!
 # The multi-point cross-check (`PDesign.pointVerdict`, round 3 CX)
@@ -585,6 +586,9 @@ inductive ProbeVerdict where
   | frontendRejects (n : Nat)
   /-- One side does not instantiate (or the entry could not be probed). -/
   | refused (msg : String)
+  /-- Both scalar instantiations hit the same unpacked-memory boundary.  The
+  canonical memory route must validate the point before this is admitted. -/
+  | memoryOnly (msg : String)
 deriving Repr, BEq, Inhabited
 
 /-- Passing = `.agree`. -/
@@ -607,6 +611,7 @@ def ProbeVerdict.render : ProbeVerdict → String
   | .metaDiffer ms => s!"resolved metadata at the point disagrees: {String.intercalate " | " ms}"
   | .frontendRejects n => s!"slang reports {n} error(s) elaborating the top alone at the point (the two designs compare equal)"
   | .refused m => s!"refused: {m}"
+  | .memoryOnly m => s!"memory-only: {m}"
 
 /-- What a non-passing verdict MEANS, for refusal messages: only `.differ`
 is a default-point fold; the other verdicts never compared two different
@@ -625,6 +630,8 @@ def ProbeVerdict.meaning : ProbeVerdict → String
       "the two designs are equal, but slang rejects the top (alone, its own hierarchy) at this point"
   | .refused _ =>
       "one side does not instantiate at the point, or the entry was not probed: nothing was compared"
+  | .memoryOnly _ =>
+      "the scalar route refuses the same unpacked-memory declaration on both sides; canonical E must validate the point"
 
 /-- Check that slang observed the requested parameter point. Instantiating both
 trees with the same overrides can otherwise make a stale snapshot agree even
@@ -656,8 +663,18 @@ def PDesign.pointVerdict (dflt pt : PDesign) (lib : List PDesign)
     .differ s!"parameter list: envelope {dflt.params.map (·.name)} ≠ point {pt.params.map (·.name)}"
   else
     match dflt.instAtOverrides lib ov, pt.instAtOverrides lib ov with
+    | .error e, .error e' =>
+        if e.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" &&
+            e'.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" then
+          .memoryOnly e
+        else
+          .refused s!"envelope at the point: {e}"
+    | .ok _, .error e =>
+        if e.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" then
+          .memoryOnly e
+        else
+          .refused s!"point extraction: {e}"
     | .error e, _ => .refused s!"envelope at the point: {e}"
-    | _, .error e => .refused s!"point extraction: {e}"
     | .ok a, .ok b =>
         match a.compare b with
         | .differ m => .differ m
@@ -709,6 +726,137 @@ def renderOverrides (ov : List (String × Int)) : String :=
   if ov.isEmpty then "(defaults)" else
   String.intercalate "," (ov.map fun (n, v) => s!"{n}={v}")
 
+/-! ## Reachable instance coverage
+
+The sidecar must describe the instances that the symbolic hierarchy actually
+reaches at each probed top point.  A child definition is extracted alone at
+its own defaults, so its defaults may be invalid even when every instance
+point supplied by the parent is valid.  This check keeps that distinction
+explicit.  The expected list is collected from the parser-shaped hierarchy
+walk, with the same parameter and generate rules as `instantiateH`; repeated
+generated instances at one parameter point share one source-shaped probe.
+-/
+
+private def sameInstancePoint (a b : String × List (String × Int)) : Bool :=
+  a.1 == b.1 && a.2 == b.2
+
+private def removeInstancePoint (x : String × List (String × Int)) :
+    List (String × List (String × Int)) → Option (List (String × List (String × Int)))
+  | [] => none
+  | y :: ys =>
+      if sameInstancePoint x y then some ys
+      else removeInstancePoint x ys
+
+private def sameInstancePoints :
+    List (String × List (String × Int)) → List (String × List (String × Int)) → Bool
+  | [], [] => true
+  | [], _ :: _ | _ :: _, [] => false
+  | x :: xs, ys =>
+      match removeInstancePoint x ys with
+      | none => false
+      | some ys' => sameInstancePoints xs ys'
+
+private def uniqueInstancePoints :
+    List (String × List (String × Int)) → List (String × List (String × Int))
+  | [] => []
+  | x :: xs =>
+      let rest := uniqueInstancePoints xs
+      if rest.any (sameInstancePoint x) then rest else x :: rest
+
+private def explicitInstanceOverrides (c : PDesign) (i : PInst)
+    (values : List (Option Int)) : List (String × Int) :=
+  (c.params.zip values).filterMap fun (p, value) =>
+    if i.params.any (·.1 == p.name) then value.map (p.name, ·) else none
+
+mutual
+private partial def reachableInstanceIters (depth : Nat) (lib : List PDesign)
+    (envI : IEnv) (env : IEnv) (elems : List (String × Nat)) (fuel : Nat)
+    (g : String) (body : List GenItem) (values : List Int) :
+    Res (List (String × List (String × Int))) :=
+  match values with
+  | [] => .ok []
+  | v :: rest => do
+      let a ← reachableInstanceItems depth lib envI (env.bindVal g v) elems fuel body
+      let b ← reachableInstanceIters depth lib envI env elems fuel g body rest
+      pure (a ++ b)
+
+private partial def reachableInstanceItems (depth : Nat) (lib : List PDesign)
+    (envI : IEnv) (env : IEnv) (elems : List (String × Nat)) (fuel : Nat)
+    (items : List GenItem) : Res (List (String × List (String × Int))) := do
+  match items with
+  | [] => pure []
+  | item :: rest =>
+      let here ← match item with
+        | .inst i =>
+            let some c := lib.find? (·.name == i.module)
+              | Res.unsupported s!"instance '{i.name}': module '{i.module}' is not in the envelope's module library"
+            let values ← match i.given env c with
+              | .ok values => pure values
+              | .error msg => Res.unsupported s!"instance '{i.name}' of '{c.name}': {msg}"
+            let (c', cargs) ← match c.atPoint values with
+              | .ok point => pure point
+              | .error msg => Res.unsupported s!"instance '{i.name}' of '{c.name}': {msg}"
+            let nested ← if depth == 0 then
+              Res.unsupported s!"module '{c.name}': instance hierarchy deeper than its module library"
+            else do
+              let cenv ← match c'.paramEnvH envI cargs with
+                | .ok e => pure e
+                | .timeout => Res.timeout
+                | .unsupported msg => Res.unsupported msg
+              let cdecls ← buildDecls cenv c'.decls
+              let celems ← buildElems cenv c'.decls
+              let cenvP := { cenv with widths := cdecls.map fun dc => (dc.name, dc.width) }
+              reachableInstanceItems depth.pred lib envI cenvP celems fuel c'.generates
+            pure ((c.name, explicitInstanceOverrides c i values) :: nested)
+        | .genIf cond thenB elseB =>
+            match evalInt env cond with
+            | .ok v => reachableInstanceItems depth lib envI env elems fuel (if v != 0 then thenB else elseB)
+            | .error msg => Res.unsupported s!"generate if: {msg}"
+        | .genFor _ g initE bound step _ body =>
+            match evalInt env initE, stepDelta g step with
+            | .ok i0, .ok delta =>
+                let values ← genvarSeq env g bound delta fuel i0
+                reachableInstanceIters depth lib envI env elems fuel g body values
+            | .error msg, _ | _, .error msg => Res.unsupported s!"generate for: {msg}"
+        | .decl _ | .localParam _ | .process _ | .unsupported .. => pure []
+      let tail ← reachableInstanceItems depth lib envI env elems fuel rest
+      pure (here ++ tail)
+end
+
+private def reachableInstancePoints (d : PDesign) (lib : List PDesign)
+    (args : List Int) : Res (List (String × List (String × Int))) := do
+  let env ← match d.paramEnvH { int32 := true } args with
+    | .ok e => pure e
+    | .timeout => Res.timeout
+    | .unsupported msg => Res.unsupported msg
+  let decls ← buildDecls env d.decls
+  let elems ← buildElems env d.decls
+  let envP := { env with widths := decls.map fun dc => (dc.name, dc.width) }
+  reachableInstanceItems (lib.length + 1) lib { int32 := true }
+    envP elems (PDesign.surfaceFuel args) d.generates
+
+private def reachableCoverageMessage (p : ProbePoint2) (top : PDesign)
+    (lib : List PDesign) : Option String :=
+  match top.atPoint (top.params.map fun prm => p.overrides.lookup prm.name) with
+  | .error msg => some s!"top point {renderOverrides p.overrides}: {msg}"
+  | .ok (point, args) =>
+      match reachableInstancePoints point lib args with
+      | .timeout => some s!"top point {renderOverrides p.overrides}: reachable-instance walk timed out"
+      | .unsupported msg => some s!"top point {renderOverrides p.overrides}: reachable-instance walk refused: {msg}"
+      | .ok expected =>
+          let observed := p.instances.map fun i =>
+            (i.module, i.overrides.getD [])
+          if sameInstancePoints (uniqueInstancePoints expected) (uniqueInstancePoints observed) then none
+          else some s!"top point {renderOverrides p.overrides}: reachable instances expected {expected} but sidecar records {observed}"
+
+/-- Every probed point carries exactly the direct and nested instance points
+that the source-shaped hierarchy reaches.  `none` means the sidecar is
+complete. -/
+def Probes2.reachableCoverage (pr : Probes2) (top : PDesign) (lib : List PDesign) :
+    Option (String × String) :=
+  pr.points.findSome? fun p =>
+    (reachableCoverageMessage p top lib).map (renderOverrides p.overrides, ·)
+
 /-- Every verdict of one point: the top first (label `top`), then one per
 probed instance (label `<definition>#(<overrides>)`). -/
 def ProbePoint2.verdicts (p : ProbePoint2) (top : PDesign) (lib : List PDesign) :
@@ -721,6 +869,31 @@ def ProbePoint2.verdicts (p : ProbePoint2) (top : PDesign) (lib : List PDesign) 
       | _, none, _ => (label, .refused "an override is not an integer, or gives an untyped parameter another type than an integer override would (unprobed)")
       | _, _, none => (label, .refused "slang cannot elaborate the definition alone there (unprobed)")
       | some c, some ov, some cp => (label, c.pointVerdict cp lib ov)
+
+private def hasMemoryOnly (vs : List (String × ProbeVerdict)) : Bool :=
+  vs.any fun (_, v) => match v with
+    | .memoryOnly _ => true
+    | _ => false
+
+/-- A scalar probe entry marked `memoryOnly` is admitted only when the same
+top point builds successfully through canonical E's source-shaped memory
+route.  This is the narrow bridge for a child whose standalone default is
+invalid. -/
+def Probes2.memoryPointAgrees (pr : Probes2) (top : PDesign) (lib : List PDesign) : Bool :=
+  pr.points.all fun p =>
+    let vs := p.verdicts top lib
+    if !hasMemoryOnly vs then true
+    else
+      p.instances.all fun i =>
+        match i.design, i.overrides with
+        | some point, some ov =>
+            match point.atPoint (point.params.map fun prm => ov.lookup prm.name) with
+            | .error _ => false
+            | .ok (point', args) =>
+                match Kernel.PDesign.instantiateE2 point' args with
+                | .ok _ => true
+                | .timeout | .unsupported _ => false
+        | _, _ => false
 
 /-- Every verdict of a sidecar against its envelope (`top`, `lib`), labelled
 `<point> <entry>`. A sidecar for another top or other sources is one

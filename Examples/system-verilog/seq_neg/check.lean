@@ -36,15 +36,17 @@ load_design_sv2 asyncReset from "Examples/system-verilog/seq_neg/async_reset.sv.
 load_design_sv2 tempCycle from "Examples/system-verilog/seq_neg/temp_cycle.sv.json"
 
 /-! A hierarchy can contain a child whose own default is invalid while an
-instance supplies a valid typed width. The loader keeps the standalone
-default differential refusal, even though the probe sidecar records valid
-W=2 and W=4 child observations. This is the SERV register-file wall. -/
+instance supplies a valid typed width. The sidecar proves the reachable W=2
+and W=4 points, while a standalone envelope for the child keeps the default
+differential refusal. -/
+load_design_sv2 servChildDefault from "Examples/system-verilog/seq_neg/serv_child_default.sv.json"
+
 /--
-error: load_design_sv2: 'Examples/system-verilog/seq_neg/serv_child_default.sv.json' REFUSED — module 'serv_child_ram' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):
+error: load_design_sv2: 'Examples/system-verilog/seq_neg/serv_child_ram.sv.json' REFUSED — our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):
   defaults: parameter 'depth' default: division by zero in a constant context (reads x)
 -/
 #guard_msgs in
-load_design_sv2 servChildDefault from "Examples/system-verilog/seq_neg/serv_child_default.sv.json"
+load_design_sv2 servChildRamStandalone from "Examples/system-verilog/seq_neg/serv_child_ram.sv.json"
 
 /-- Some `always_ff` body is not NBA-only. -/
 def someBlocking (d : Design2) : Bool :=
