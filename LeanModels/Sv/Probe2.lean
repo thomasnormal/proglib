@@ -47,7 +47,9 @@ default-point fold).
 top-level generate counts); `PDesign.crossCheck` of the point module
 replays the Lean elaboration at `P` against it — the load gate's
 Lean-vs-slang differential, extended from the defaults to every probe
-point. A frontend error count `> 0` at `P` (slang rejects the top there:
+point. The bound parameter values at the requested overrides are also checked
+against those recorded by slang, including parameters unused by the design.
+A frontend error count `> 0` at `P` (slang rejects the top there:
 the extractor elaborates the `--top` module ALONE at a probe point, so an
 unrelated top-level module of the same sources neither receives `P` nor
 counts — round 3 CX repair) is reported too: a family member no tool
@@ -624,6 +626,27 @@ def ProbeVerdict.meaning : ProbeVerdict → String
   | .refused _ =>
       "one side does not instantiate at the point, or the entry was not probed: nothing was compared"
 
+/-- Check that slang observed the requested parameter point. Instantiating both
+trees with the same overrides can otherwise make a stale snapshot agree even
+when its resolved parameter values identify a different point. Compare the
+values after the parameter type conversion (§6.20.2). -/
+private def probeParameterMessages (dflt pt : PDesign) (ov : List (String × Int)) :
+    List String :=
+  match dflt.atPoint (dflt.params.map fun p => ov.lookup p.name) with
+  | .error e => [e]
+  | .ok (d, args) =>
+    match d.paramEnvH { int32 := true, functions := d.functions } args with
+    | .unsupported msg => [msg]
+    | .timeout => ["parameter environment timed out"]
+    | .ok env => pt.params.filterMap fun p =>
+      match guardLookup env p.name, p.resolved? with
+      | some v, some r =>
+          if v == r then none
+          else some s!"parameter '{p.name}': requested point binds {v}, slang observed {r}"
+      | _, _ =>
+          if (ov.lookup p.name).isSome then some s!"parameter '{p.name}': missing bound or observed value"
+          else none
+
 /-- **The point check of one module.** `dflt` is the envelope's module,
 `pt` the same module extracted at the override point `ov`, `lib` the
 envelope's module library (both sides flatten through it). -/
@@ -642,7 +665,7 @@ def PDesign.pointVerdict (dflt pt : PDesign) (lib : List PDesign)
         | .equal =>
             if frontendErrors != 0 then .frontendRejects frontendErrors
             else
-              match pt.crossCheck with
+              match pt.crossCheck ++ probeParameterMessages dflt pt ov with
               | [] => .agree
               | msgs => .metaDiffer msgs
 
@@ -745,6 +768,21 @@ private def pProbe (w0 : Int) (ydim : PDim) : PDesign :=
   | .differ _ => true
   | _ => false
 #guard (pProbe 4 ⟨.int 3, .int 0⟩).pointAgrees (pProbe 4 wm1P) [] [("W", 4)]
+-- A width-4 observation relabelled as width 8 previously passed because the
+-- two symbolic port ranges were both instantiated at 8.
+#guard match (pProbe 4 wm1P).pointVerdict (pProbe 4 wm1P) [] [("W", 8)] with
+  | .metaDiffer ["parameter 'W': requested point binds 8, slang observed 4"] => true
+  | _ => false
+-- A two-bit parameter given 5 binds 1. The untouched circuit also checks
+-- that a parameter can identify the wrong point when no output uses it.
+private def unusedTwoBitParam (v : Int) : PDesign :=
+  { name := "unused_param"
+    params := [{ name := "P", default? := some (.int v), resolved? := some v,
+                 type? := some (.packed [⟨.int 1, .int 0⟩] (some 2)) }]
+    decls := [], processes := [], enums := [], generates := [], localParams := [] }
+
+#guard (unusedTwoBitParam 0).pointAgrees (unusedTwoBitParam 1) [] [("P", 5)]
+#guard !(unusedTwoBitParam 0).pointAgrees (unusedTwoBitParam 1) [] [("P", 6)]
 -- A refusal on either side is never agreement.
 #guard match (pProbe 4 wm1P).pointVerdict (pProbe 8 wm1P) [] [("Q", 8)] with
   | .refused _ => true
