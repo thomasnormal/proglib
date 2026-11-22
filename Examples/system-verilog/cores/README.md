@@ -1569,7 +1569,9 @@ The checked-in `darkriscv/rv32ui/programs.txt` inventories 42 upstream
 `riscv-tests` RV32UI programs.  The original all-NOP witness left the
 compiled-and-run count at **0/42** and did not exercise a memory stall or an
 unknown-valued register.  The first compiled image moved the measured count to
-**1/42**.  The pinned `addi.S` image moved it to **2/42**, and the `beq.S` image moved it to **3/42**. The `and.S` image below moves it to **4/42**.
+**1/42**.  The pinned `addi.S` image moved it to **2/42**, the `beq.S` image to
+**3/42**, and the `and.S` image to **4/42**. The `sub.S` image below moves it
+to **5/42**.
 
 ## 2026-11-22 DarkRISCV rv32ui/ld_st differential
 
@@ -1644,6 +1646,24 @@ instruction acknowledgement stalls.
 printed fields for **300/300** rows. The checker validates the transcript hash
 and rejects a corrupted expected row. Transcript SHA-256 is
 `2564dc3a6f6ccc64e25c9f8c18d3dd97ff006e8687644834dbba9c873b57a58`. This
+program has no data-memory operation, so its stall witness is instruction-side.
+The `ld_st` image supplies the data-stall witness.
+
+## 2026-11-22 DarkRISCV rv32ui/sub differential
+
+The fifth compiled RV32UI image is `darkriscv/rv32ui_sub.hex`, built from
+`riscv-tests` `isa/rv32ui/sub.S` at commit
+`3df703cd52d5f0d8224e3c50bf03c6cb70efff98`. Source hashes, the exact Clang/LLD
+commands, image hash, and transcript hash are recorded in
+`darkriscv/rv32ui_sub_provenance.txt`. The unchanged-source testbench
+`darkriscv/rv32ui_sub_tb.sv` loads the image at reset address zero and applies
+instruction acknowledgement stalls.
+
+`darkriscv/rv32ui_sub_check.py` compares 300 rising edges. Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E agree on all
+printed fields for **300/300** rows. The checker validates the transcript hash
+and rejects a corrupted expected row. Transcript SHA-256 is
+`7dca820f84aa169d1bebfdf9ddefcf72ab09dae1fed3bfc1cb3d76877a429276`. This
 program has no data-memory operation, so its stall witness is instruction-side.
 The `ld_st` image supplies the data-stall witness.
 

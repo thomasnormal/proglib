@@ -1,0 +1,31 @@
+riscv-tests commit: 3df703cd52d5f0d8224e3c50bf03c6cb70efff98
+program: isa/rv32ui/sub.S
+included source: isa/rv64ui/sub.S
+env/p/riscv_test.h
+isa/macros/scalar/test_macros.h
+env/encoding.h
+
+source SHA-256
+  isa/rv32ui/sub.S ce9d39cef8ba77b41e21fbd396705973d777cff089c18f0dc9411ab57e766d0e
+  isa/rv64ui/sub.S 261a9625eec0be3070831c2cfcfb9c58b0a966b7156d806a066d2ff8094f79f8
+  env/p/riscv_test.h 894ff1753c08fbab504921b14a38ed8cf88156bcb8bf61f75a390e02b9b21563
+  isa/macros/scalar/test_macros.h b09abb7eec47539dde829096ca973a33b2d293d38f0902133ad2aaa6fab892dc
+  env/encoding.h 8a8480aaf6cce6df02b483e0cbdf8e375866c5ed86986075e9111fe9149a38c2
+
+image build
+  clang 21.1.8 (conda-forge clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)
+  target riscv32, -march=rv32i, -mabi=ilp32
+  compile: clang --target=riscv32 -march=rv32i -mabi=ilp32 -c -I isa/macros/scalar -I env/p isa/rv32ui/sub.S
+  link: ld.lld -m elf32lriscv -Ttext=0 --image-base=0
+  image: .text section, little-endian 32-bit words
+  image SHA-256 ded0b96f54b714c92eb2ace9fdcac596a00d889f8e5b62227b18d49ad90b4aa6
+
+testbench
+  rv32ui_sub_tb.sv SHA-256 a370997e21e8b44f593542e4ef28e3b64131b682a9c962a0168ae719b7e1a251
+  simulator transcript SHA-256 7dca820f84aa169d1bebfdf9ddefcf72ab09dae1fed3bfc1cb3d76877a429276
+
+The image is loaded at reset address zero by rv32ui_sub_tb.sv. The testbench
+uses the unchanged DarkRISCV source and lowers instruction acknowledgement on
+deterministic falling-edge slots. The image itself has no data-memory operation,
+so this row exercises instruction stalls only. The load/store image covers the
+data-stall case separately.
