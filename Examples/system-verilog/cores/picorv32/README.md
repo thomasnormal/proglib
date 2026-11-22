@@ -2181,27 +2181,59 @@ binary testbench SHA-256
 The normalized binary cycle-row SHA-256 is
 `ebd3e54471927fc1387e502ba0ef7f33026de7eb890bd75cbff89627d09cf5ef`.
 
-## 2026-11-21 E-RUN battery transcripts
+## PicoRV32 input-driven differential
 
-The fixed PicoRV32 battery exercises reset, ALU, a taken branch, full-word
-store/load, a memory stall schedule, and an uninitialized-register read.  Icarus
-Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on
-300/300 cycles.  The checked-in simulator transcript is regenerated from the
-current 39-output testbench and is checked by `e_run_input_check.py`.  Its
-SHA-256 is
-`09380d29f5201a61f56e9101affb3d0e20ff6c601fae7a52bb33c65bb9875947`.
+The checker reads the output inventory from the pinned `RISCV_FORMAL` envelope.
+Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004
+agree bit for bit on all 47 output ports at each sample. The original program
+exercises ALU, branch, word load/store, memory waits and an uninitialized
+register read. A second program executes `rdcycle`, `rdcycleh`, `rdinstret`
+and `rdinstreth`, exposing both halves of both RVFI read masks. The original
+program has four reset and 300 post-reset samples. The counter program has
+four reset and 23 post-reset samples and ends at the trapping retirement.
+Changing one read-mask bit in the transcript fails at cycle 7.
+[Checker](e_run_input_check.py) · [Simulator transcript](pico_simulator_transcript.txt)
 
-At the 26 pinned defaults, the loaded family returns the following refusal
-during instantiation, before the replay obtains a design or applies reset.
-The loader-backed census reports one design-level refusal and zero emitted members.
+All 42 unmodified assembly files in the pinned upstream `isa/rv32ui`
+directory fit in the 16 KiB test RAM. With the stock `env/p` startup,
+`addi.S` traps at PC `0xd0` on `csrr a0,mhartid`, before its tests.
+The battery uses the unmodified `tests/riscv_test.h` shipped with this
+PicoRV32 revision. Its entry point runs at reset address zero. It prints
+the result by writing to `0x10000000` and returns to a harness `ebreak`.
+The checker compares the acknowledged console writes with the stores
+reported at retirement. [PicoRV32 environment](rv32ui/riscv_test.h) · [Upstream RV32UI](https://github.com/riscv-software-src/riscv-tests/tree/3df703cd52d5f0d8224e3c50bf03c6cb70efff98/isa/rv32ui)
 
-`Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between blocking
-writes; canonical E refuses a multi-write reactive process whose intermediate
-value another process can read`.  The source-shaped clean-room reproduction is
-[`scheduler_preemptive.sv`](../../scheduler_audit/scheduler_preemptive.sv), with
-matching Icarus and Xcelium rows in its receipt. The three-way count is 0/300.
-The checker accepts this specific diagnostic only at instantiation. A timeout,
-a different loader refusal, or any refusal while stepping fails the check.
+| Pinned simulator outcome | Images |
+| --- | ---: |
+| Reached the upstream pass sequence, printed `OK`, trapped at the return address | 40 |
+| Trapped on `fence.i` at PC `0x90` in `fence_i.S` | 1 |
+| Trapped on a misaligned halfword load at PC `0x40` in `ma_data.S` | 1 |
+
+The two simulators agree on **57,659 samples** across those images, including
+168 reset edges. Both take the upstream failure path on a separate corrupted
+`lb.S` image after 251 samples. A low `mem_ready` introduces a wait every
+fourth cycle. The transcript preserves four-state signals and the RAM response
+sampled before each rising edge, as well as the outputs after the NBA updates.
+[RV32UI checker](rv32ui_check.py) · [Simulator transcript and tool versions](rv32ui/simulator_rows.txt.gz)
+
+At all 26 defaults the loaded family returns `Schedule:preemptive` before
+reset. Canonical E therefore compares **0/42 RV32UI images** and **0/331
+samples** in the two fixed programs. Replay uses the loaded core's own
+initial state and step. The RV32UI command exits 2 on this exact load
+refusal. A different load result, a step failure, or a differing signal
+fails separately. [Replay](../../../../harness/rv/picorv32_input_replay.lean) · [Scheduler fixture](../../scheduler_audit/scheduler_preemptive.sv)
+
+Run these from the repository root. The RV32UI command without a checkout
+uses only the saved transcript and Lean. Supplying a clean `riscv-tests`
+checkout at `3df703cd52d5f0d8224e3c50bf03c6cb70efff98` rebuilds the
+images with Clang and LLD 21.1.8, runs both simulators, compares against
+the saved transcript and replays every row.
+
+```sh
+python3 Examples/system-verilog/cores/picorv32/e_run_input_check.py
+python3 Examples/system-verilog/cores/picorv32/rv32ui_check.py
+python3 Examples/system-verilog/cores/picorv32/rv32ui_check.py "$RISCV_TESTS"
+```
 
 DarkRISCV's pinned 1000-row battery has a checked-in simulator transcript at
 `Examples/system-verilog/cores/darkriscv/dark_simulator_transcript.txt` with

@@ -1814,32 +1814,15 @@ input-driven stream then agrees on **1000/1000** rows, with normalized digest
 canonical-E battery accepts the same stream.  The original disagreement is
 retained as the exact diagnostic that closed the wrong-answer report.
 
-## 2026-11-20 PicoRV32 stalled and unknown-register E-RUN battery
+## PicoRV32 input-driven differential
 
-The input-driven PicoRV32 battery now drives `mem_ready` low on every fourth
-cycle and executes an additional `add x7, x31, x0` before `ebreak`, leaving the
-never-written register value as x.  Icarus Verilog 13.0
-(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 agree on **300/300** rows,
-and canonical E agrees on **300/300** rows across all 32 checked outputs.  The
-negative control remains in the checker and rejects a corrupted expected row.
-The normalized row digest is
-`8344cd1b478096d20b786add6bd31ed619cad716582bffe0763ded361a907a2e`.
-The changed testbench SHA-256 is
-`3328ad80031958fb6c3241f0897f0e5506ff974f777ab7764e11b17e8cd8545d`.
-This is a 300-cycle battery, with the first 37 cycles covering the active
-program and the remainder retained to check the halted-state behavior.
-
-## 2026-11-21 PicoRV32 E-RUN output coverage
-
-The same stalled, unknown-register battery now connects and compares the
-seven previously unobserved outputs: `pcpi_valid`, `pcpi_insn`, `pcpi_rs1`,
-`pcpi_rs2`, `eoi`, `trace_valid`, and `trace_data`.  The unmodified pinned
-source produces identical rows on Icarus Verilog 13.0
-(`s20250103-64-gdad78d525`) and Xcelium 24.03-s004, and canonical E matches
-all **39/39** output fields on **300/300** cycles.  The normalized row digest
-is `59d138f1727a1dd00fb3ead5124bd1a5c4fd5983865ae7eaa62b9090ab24ac7a`.
-The testbench SHA-256 is
-`1dc356fbe89e36a5cd5e66006fdc32d9b7106f49f364c44ebcaa2b0ad42952fe`.
+At upstream defaults, Icarus and Xcelium agree on all 47 output ports across
+331 reset, stalled-memory, unknown-register and counter-read samples.
+On the pinned 42 RV32UI images they agree across 57,659 samples. Forty
+images print `OK` and reach the return trap. A corrupted load-test image
+prints `ERROR`. The canonical E loader refuses the preemptive schedule
+before reset, so three-way RV32UI coverage is 0/42.
+[Harness, transcripts and replay commands](picorv32/README.md#picorv32-input-driven-differential)
 
 ## 2026-11-21 PicoRV32 wrapper deletion audit
 
