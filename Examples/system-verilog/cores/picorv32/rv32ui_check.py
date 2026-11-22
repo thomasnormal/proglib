@@ -57,6 +57,9 @@ def build(src: Path, name: str, work: Path) -> tuple[str, int]:
         data[tdat] ^= 1
     (work / "image.hex").write_text("".join(f"{int.from_bytes(data[i:i+4], 'little'):08x}\n"
                                            for i in range(0, len(data), 4)))
+    # The reference must consume the same bytes given to $readmemh, including
+    # the corrupted lb image. Keep a copy while assembling the next test.
+    (work / (name + ".bin")).write_bytes(data)
     return hashlib.sha256(data).hexdigest(), labels["mytest_ret"]
 
 
@@ -125,7 +128,7 @@ def check(src: Path | None, record_to: Path | None, work: Path) -> bool:
         core.run(["clang", "--target=riscv32", "-march=rv32i", "-mabi=ilp32", "-c", "exit.S", "-o", "exit.o"], work)
 
     ids = [f"riscv-tests {SUITE}", f"PicoRV32 {PICO}"]
-    files, counts = [], []
+    files, counts, reference_files = [], [], []
     passes = 0
     packed = work / "verified.gz"
     with ExitStack() as stack:
@@ -163,6 +166,20 @@ def check(src: Path | None, record_to: Path | None, work: Path) -> bool:
             passes += int(path == "upstream pass path")
             file = work / (name + ".rows")
             file.write_text("\n".join(lines) + "\n")
+            if src is not None:
+                # mytest_ret is the linked ebreak after the program. Protect
+                # the image from the reset vector through that instruction.
+                rvfi = work / (name + ".rvfi")
+                with rvfi.open("w") as out:
+                    print(ret_pc + 4, file=out)
+                    for cycle, row in enumerate(rows, -core.RESET_CYCLES):
+                        if row["rvfi_valid"] not in ("0", "1"):
+                            raise ValueError(f"{name} cycle {cycle}: unknown rvfi_valid")
+                        if row["rvfi_valid"] == "1":
+                            print(cycle, *(f"{k}={v}" for k, v in row.items()
+                                           if k.startswith("rvfi_") and not k.startswith("rvfi_csr_")),
+                                  file=out)
+                reference_files.append(rvfi)
             files.append(file)
             counts.append(len(lines))
             if writer is not None:
@@ -173,6 +190,10 @@ def check(src: Path | None, record_to: Path | None, work: Path) -> bool:
             raise ValueError("unexpected trailing transcript")
     print(f"{passes}/{len(progs)} images reached RVTEST_PASS; {sum(counts[:-1])} regular samples, "
           f"{counts[-1]} corrupted-image samples")
+    if reference_files:
+        core.run(["lake", "build", "Examples.«system-verilog».cores.picorv32.R2"], core.ROOT)
+        replay = core.ROOT / "harness/rv/picorv32_addi_replay.lean"
+        print(core.run(["lake", "env", "lean", "--run", replay, *reference_files], core.ROOT).strip())
     agrees = core.replay(files, counts, output_count)
     if record_to is not None:
         with tempfile.NamedTemporaryFile(dir=record_to.parent, delete=False) as out:

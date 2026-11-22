@@ -1,108 +1,12 @@
 # PicoRV32 R2 integration status
 
-## 2026-11-20 R1 conditional-branch consumer recheck
-
-The loaded-core branch family compiles for all six RV32I conditions.  The
-checked theorem surface includes the exact `branchFields` to ISA-step bridge,
-six loaded `Rv32iBoundary` consumers, the condition-indexed exact-cycle
-dispatcher, and the loaded all-prefix refinement package.  The declarations
-retain universal canonical-E step, decode, order, relation, and progress
-premises.  This recheck proves no finite trace and supplies no missing RTL
-invariant.
-
-## 2026-11-20 R1 upper-immediate consumer recheck
-
-The loaded-core upper-immediate family compiles for LUI and AUIPC.  The
-checked theorem surface includes both exact field-to-ISA bridges, both loaded
-`Rv32iBoundary` consumers, the shared upper-immediate cycle dispatcher, and
-the loaded all-prefix refinement package.  The universal canonical-E step,
-decode, relation, order, and progress premises remain explicit, and no RTL
-invariant or finite trace is claimed.
-
-## 2026-11-20 R1 jump consumer recheck
-
-The loaded-core jump family compiles for JAL and JALR.  The checked theorem
-surface includes both exact target-field-to-ISA bridges, both loaded
-`Rv32iBoundary` consumers, the shared jump cycle dispatcher, and the loaded
-all-prefix refinement package.  The target and link-register semantics remain
-explicit, together with the universal canonical-E step, decode, relation,
-order, and progress premises.  No RTL invariant or finite trace is claimed.
-
-## 2026-11-20 R1 memory consumer recheck
-
-The loaded-core memory family compiles for signed and unsigned byte and
-halfword loads, word loads, and byte, halfword, and word stores.  The checked
-theorem surface includes the shared memory-fields-to-ISA bridge, the exact
-memory-threaded cycle dispatcher, and the loaded all-prefix refinement
-package.  Width, signedness, and post-memory state remain explicit, together
-with universal canonical-E step, decode, relation, order, and progress
-premises.  No RTL invariant or finite trace is claimed.
-
-## 2026-11-20 R1 fence consumer recheck
-
-The loaded-core fence family compiles for FENCE and FENCE.I.  The checked
-theorem surface includes the exact memory-preserving fields-to-ISA bridge, two
-loaded `Rv32iBoundary` consumers, the shared fence cycle dispatcher, and the
-loaded all-prefix refinement package.  The universal canonical-E step,
-decode, relation, order, and progress premises remain explicit.  No RTL
-invariant or finite trace is claimed.
-
-## 2026-11-20 R1 system-transfer consumer recheck
-
-The loaded-core system family compiles for ECALL, EBREAK, MRET, and WFI.  The
-checked theorem surface includes the exact system-fields-to-ISA bridge, four
-loaded `Rv32iBoundary` consumers, the shared trap and wake cycle dispatcher,
-and the loaded all-prefix refinement package.  Trap, return, and wake
-semantics remain explicit with universal canonical-E step, decode, relation,
-order, and progress premises.  No RTL invariant or finite trace is claimed.
-
-## 2026-11-20 R1 CSR consumer recheck
-
-The loaded-core implemented CSR family compiles for CSRRW, CSRRS, CSRRC,
-CSRRWI, CSRRSI, and CSRRCI.  The checked theorem surface includes the exact
-CSR-fields-to-ISA bridge, six loaded `Rv32iBoundary` consumers, the shared
-CSR cycle dispatcher, and the loaded all-prefix refinement package.  The
-checked CSR table lookup and universal canonical-E step, decode, relation,
-order, and progress premises remain explicit.  No RTL invariant or finite
-trace is claimed.
-
-## 2026-11-20 R1 illegal-boundary consumer recheck
-
-The loaded-core illegal family compiles for undecodable instructions and
-illegal CSR rows.  The checked theorem surface includes separate exact
-decode-failure and absent-CSR fields-to-ISA bridges, both loaded
-`Rv32iBoundary` consumers, the shared trap cycle dispatcher, and the loaded
-all-prefix refinement package.  The distinct parser evidence and common trap
-transition remain explicit with universal canonical-E step, relation, order,
-and progress premises.  No RTL invariant or finite trace is claimed.
-
-## 2026-11-20 R1 immediate-ALU consumer recheck
-
-The loaded-core remaining immediate-ALU family compiles for SLTI, SLTIU,
-XORI, ORI, ANDI, SLLI, SRLI, SRAI, and a negative ADDI encoding.  The checked
-class consumers retain the exact immediate decoder, shared ALU step and
-commit semantics, and the canonical ISA definitions.  No RTL invariant or
-finite trace is claimed.
-
-## 2026-11-20 R1 all-family dispatcher recheck
-
-The loaded-core RV32I dispatcher package compiles over the family-tagged
-ALU, branch, jump, memory, fence, system, CSR, and illegal boundaries.  The
-checked package retains the exact loaded-cycle step, reset relation,
-well-formedness preservation, initial-relation refinement, total-step
-refinement, and family-boundary refinement.  Universal execution, relation,
-order, and progress premises remain explicit.  No RTL invariant or finite
-trace is claimed.
-
-## 2026-11-20 R1 loaded ADDI boundary recheck
-
-The concrete loaded ADDI package compiles its resolved-parameter and RVFI
-shape facts, exact ADDI step and commit, loaded-cycle and total-step bridges,
-reset-specialized invariant and program refinements, typed ADDI prefixes, and
-the first-row reset-relation boundary.  The fields-to-ISA bridge and
-well-formedness preservation remain explicit.  The package still requires
-universal loaded-step and order premises, so no RTL invariant or finite trace
-is claimed.
+The ADDI refinement obligation quantifies over programs and free input pins
+at the twenty-six pinned parameters. After four reset clocks, every admitted
+ISA instruction must reach its first valid retirement within a uniform bound.
+An ADDI retirement must agree with the ISA on its source, destination, value,
+instruction, order and PCs. The post-edge comparison covers initialized
+physical register cells and the external byte memory. Canonical E currently
+refuses the top with `Schedule:preemptive` before reset. The whole-core ADDI obligation remains open. [Obligation](R2.lean) · [Loaded design](input_drive_core.lean)
 
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
@@ -123,14 +27,11 @@ python3 extractors/sv/extract.py --top picorv32 -D RISCV_FORMAL \
 ```
 
 The source SHA-256 is
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`.
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`.
 The checked-in envelope is 3,442,095 bytes with SHA-256
 `17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236`.
-It has one `picorv32` module and 26 named parameters.  The R2 statement
-records every pinned parameter value explicitly.  The current canonical-E
-memory route admits this loaded family and powers the input-driven E-RUN
-below.  The older ordinary scalar route's `cpuregs` refusal remains in
-the historical re-probe entries.
+It has one `picorv32` module and 26 named parameters.  The loaded design names every pinned parameter value explicitly. The canonical-E
+result and input-driven comparison are reported below.
 
 Set `PINNED_PICORV32` to the read-only checkout at that commit.  The original
 symbolic envelope was generated from the single upstream `picorv32.v` source
@@ -1585,7 +1486,7 @@ current wall, and they belong to the E scheduler/memory work rather than a
 
 The pinned source was re-extracted with the approved extractor after the
 public E changes.  The source SHA-256 remains
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`; the fresh
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`; the fresh
 envelope has SHA-256
 `45533947d14682922a58bec67f98f812896daafa18cf5a437043a425d46e269d` and is
 2,991,600 bytes.
@@ -1615,7 +1516,7 @@ symbolic ADDI invariant is claimed.
 
 The pinned source was re-extracted with the approved extractor on public master
 `6b9d53dc479e4f067313ddbbee3d39849381f11b`.  The source SHA-256 remains
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`; the fresh
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`; the fresh
 2,991,600-byte envelope has SHA-256
 `4120c9760499f8861411464cb70923770a2ec6d240a5ce49c7f64a4cfdf31c25`.
 
@@ -1643,7 +1544,7 @@ ADDI invariant remains parked behind the E scheduler boundary.
 
 The pinned source was re-extracted with the approved extractor on public master
 `3a30a91b99adbb2f3433811e43225da672e1650a`.  The source SHA-256 remains
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`; the fresh
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`; the fresh
 envelope has SHA-256
 `7af9b70dd05e2b4a1fc73d6776e2a84de7a0a497630fb64c6004fcd2a853a5fb` and is
 2,991,612 bytes.  The approved source is unchanged at YosysHQ commit
@@ -1678,7 +1579,7 @@ guard-bypassed `ok states=80` result remains **UNVALIDATED**.
 The pinned source was re-extracted with the approved extractor after the
 public-master update.  The source remains YosysHQ commit
 `ef203c2b0a3fb793280f5114941416c425c5b461`, SHA-256
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`.
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`.
 
 To regenerate the envelope from the unchanged pinned source, set
 `PINNED_PICORV32` to the read-only YosysHQ checkout and run:
@@ -1733,7 +1634,7 @@ still the approved input; the three reports were re-evaluated with
 Public master was `1b9516c9dda5fb2a4cc5313bd1db8274b9ef3de2` when the pinned
 YosysHQ source was re-extracted.  The source remains commit
 `ef203c2b0a3fb793280f5114941416c425c5b461`, with SHA-256
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`.  The
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`.  The
 approved envelope is 3,178,052 bytes with SHA-256
 `5ded55e501fb2738cb974ad7c808db6176989436a80bf4b1a78987cac97293b5`.
 
@@ -1751,7 +1652,7 @@ admission wall.  The first retained unsupported process is still the earlier
 Public master was `838e74503848344c6846ff956ec6e21cdb9f9ef7` when the pinned
 YosysHQ source was re-extracted.  The source remains commit
 `ef203c2b0a3fb793280f5114941416c425c5b461`, with SHA-256
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`.  To
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`.  To
 regenerate the envelope from the unchanged source, set `PINNED_PICORV32` to
 the read-only YosysHQ checkout and run:
 
@@ -1810,7 +1711,7 @@ retained-event guard, but it is not an E meaning.  The old guard-bypassed
 
 The pinned source is unchanged at YosysHQ commit
 `ef203c2b0a3fb793280f5114941416c425c5b461` (source SHA-256
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`).  To
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`).  To
 regenerate the approved envelope from that read-only checkout, run:
 
 ```text
@@ -1902,7 +1803,7 @@ theorem.
 
 The pinned source remains YosysHQ commit
 `ef203c2b0a3fb793280f5114941416c425c5b461`, with source SHA-256
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`.  To
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`.  To
 regenerate the approved envelope from the unchanged checkout, set
 `PINNED_PICORV32` to that read-only source tree and run:
 
@@ -1942,7 +1843,7 @@ or symbolic ADDI invariant is claimed.  The old guard-bypassed run2/MemCycle
 
 The pinned source is unchanged at YosysHQ commit
 `ef203c2b0a3fb793280f5114941416c425c5b461` (source SHA-256
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`).  To
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`).  To
 regenerate the approved envelope from the read-only source checkout, set
 `PINNED_PICORV32` to that checkout and run:
 
@@ -2008,7 +1909,7 @@ reports the `cpuregs` unpacked-memory wall.
 
 The pinned source remains YosysHQ commit
 `ef203c2b0a3fb793280f5114941416c425c5b461`, with source SHA-256
-`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062`.  On
+`0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622`.  On
 public master `070c7ab63`, re-extracting that unchanged source with the
 approved command gives an envelope of SHA-256
 `b3c29c36ef9734737cad9cce0fa7f81e6c9493eb23ac8f834db8fde2fdd86352`.
@@ -2105,37 +2006,6 @@ with `+flag` (`y=0,1`).  The receipt reports Icarus Verilog 13.0 and Xcelium
 24.03-s004 separately.  It does not lower the system function or infer a
 value for canonical E.
 
-## 2026-11-18 R1 boundary inventory and routing
-
-The checked-in R1 package now covers the complete RV32I boundary used by the
-R2 statement: immediate and register ALU operations, upper-immediate forms,
-all branches and jumps, all byte/halfword/word memory directions and
-signednesses, fences, machine system transfers, implemented Zicsr forms, and
-illegal decode/CSR traps.  The remaining R2 work is the loaded-core invariant,
-which cannot be discharged while canonical E stops before cycle 0 at the
-reactive dependency-order refusal.  No additional class theorem is added until
-that E boundary becomes reachable or the R2 statement names a concrete missing
-consumer.
-
-The core-specific statement in `R2.lean` retains only the generic invariant
-and progress obligations.  The former typed consumer wrappers were removed
-because they repackaged assumptions rather than discharging a loaded-RTL
-premise.  The generic RVFI adapter remains available for the first real ADDI
-invariant.
-It pins the 26-parameter configuration, the defaults-resolved parameter vector,
-the RVFI declaration prefix, every decoder field, and all 21 decoder widths
-directly from the loaded envelope.  `R2.lean` also records that the loaded
-source has exactly one one-rank unpacked declaration, `cpuregs`, matching the
-first scalar-E declaration wall.  The direct instantiation reports
-`decl 'cpuregs': unpacked array storage outside E (UnpackedDecl:memory)` before
-any cycle executes.  The loaded theorem `picorv32_loaded_cpuregs_cell_shape`
-pins its 32-bit cell width and one unpacked dimension, while
-`picorv32_loaded_regfile_size` pins the resolved register-file size at 32.
-The measured first ADDI row is checked separately by
-[`rvfi_addi_boundary.lean`](rvfi_addi_boundary.lean), whose raw
-`addiBoundary` witness supplies the exact ISA-step and memory-machine commit
-equations consumed by the eventual loaded-core invariant.
-
 ## 2026-11-18 W5 kernel-cost measurement
 
 The 3,442,095-byte `picorv32_r2.sv.json` envelope was elaborated through the
@@ -2227,7 +2097,13 @@ Run these from the repository root. The RV32UI command without a checkout
 uses only the saved transcript and Lean. Supplying a clean `riscv-tests`
 checkout at `3df703cd52d5f0d8224e3c50bf03c6cb70efff98` rebuilds the
 images with Clang and LLD 21.1.8, runs both simulators, compares against
-the saved transcript and replays every row.
+the saved transcript and replays every row. The live command also executes the
+hand-written Lean ISA from the linked bytes of all 42 images and the corrupted
+`lb.S` image. The ISA selects the next PC and reads its own memory. Its 7,030
+ADDI comparisons include 1,348 unchanged nonzero destinations, 267 first
+writes to uninitialized registers and 864 writes to x0. One of those x0 writes
+discards a nonzero sum. The checker changes sampled destination and data bits
+on these boundary cases and requires rejection. [ISA replay](../../../../harness/rv/picorv32_addi_replay.lean)
 
 ```sh
 python3 Examples/system-verilog/cores/picorv32/e_run_input_check.py
@@ -2240,22 +2116,6 @@ DarkRISCV's pinned 1000-row battery has a checked-in simulator transcript at
 SHA-256 `9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
 Both pinned simulators agree on all 1000 rows, and `battery_check.py` compares
 the transcript against canonical E with its corrupted-row negative control.
-
-## 2026-11-20 R1 ADDI premise audit
-
-The loaded-core R1 obligation is the `Rv32iAddiInvariant` consumed by the
-generic adapter. Its valid-row premise is the exact
-`RvfiObservation.addiBoundary`, and its conclusion is the memory-threaded
-`addiNext` architectural step. The former `r1_addi.lean` package was removed
-because it only repackaged these assumptions. The loaded theorem also requires
-two universal premises.
-`hstep` must produce an exact canonical post-state and RVFI observation for
-every related state and admitted input, then establish the ADDI boundary and
-relation continuation on valid rows. `horder` must establish the RVFI order
-for every valid row. No theorem in the repository supplies either premise for
-the loaded RTL. The 220-cycle E-RUN receipt exercises this loaded
-configuration through canonical E, but it is an executable differential
-receipt and cannot discharge universal premises.
 
 ## 2026-11-19 symbolic-cycle cost boundary
 
@@ -2283,26 +2143,6 @@ loaded-E path is semantically suitable for the invariant. The source-shaped
 executor is currently too slow for a full cycle-by-cycle kernel proof. A
 future acceleration must carry a refinement theorem back to this exact path.
 No universal ADDI invariant is claimed by this measurement.
-
-## 2026-11-19 R1 consumer audit after the E measurements
-
-The stall-rule rerank keeps the next theorem work on PicoRV32. Its census is
-still **360 admitted / 0 refused / 4 not reached**, and the input-driven
-canonical-E receipt is **220/220** against both pinned simulators. DarkRISCV is
-fully admitted at **177/0/0** but its first complete clock remains an execution
-wall after the staged **4/4** path. Quark remains **130/51/0** with E-RUN
-**0/0**.
-
-The former per-class `r1_*` consumer files were subsequently removed because
-their premises were the missing loaded-core invariant. The generic RVFI
-adapter remains available to a future loaded-core invariant. This audit does
-not promote the finite E-RUN into a universal RTL theorem.
-
-## 2026-11-20 R1 ALU consumer recheck
-
-The former loaded R1 register-register ALU package was removed after audit.
-Its premises were the universal canonical-E step and RVFI-order obligations,
-so it supplied no universal loaded-core theorem. The generic adapter remains.
 
 ## 2026-11-20 W5 one-cycle cost remeasurement
 
