@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The retained edge-phase scheduler now proves that every active cursor is a
+  selectable IEEE 1800-2023 §4.7 interleaving, and exposes the scalar and
+  memory NBA queues as prefixes extended in issue order. The
+  `Schedule:preemptive` admission refusal is unchanged.
+
 - Hierarchical canonical-E port aliases from top-level input ports no longer
   trigger the time-zero event-source refusal. Internal continuous drivers remain
   guarded, and the recursive child-instance receipt now matches both pinned
