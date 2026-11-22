@@ -1573,7 +1573,9 @@ unknown-valued register.  The first compiled image moved the measured count to
 **3/42**, the `and.S` image to **4/42**, the `sub.S` image to **5/42**, the
 `jal.S` image to **6/42**, the `lui.S` image to **7/42**, the `or.S` image to
 **8/42**, and the `xor.S` image to **9/42**. The `xori.S` image below moves it
-to **10/42**.
+to **10/42**. The later full-corpus memory test covers all 42 images through
+an executing `ecall` or return to the reset vector. It records the pass label
+and the actual exit arguments separately. [Full results and reproduction](darkriscv/rv32ui/README.md)
 
 ## 2026-11-22 DarkRISCV rv32ui/ld_st differential
 
