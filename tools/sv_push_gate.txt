@@ -286,6 +286,7 @@ LeanModels
 LeanModels.Sv.Scheduler
 LeanModels.Sv.Kernel.CoreMemResume
 Examples/system-verilog/sem2/plain_internal_edge_e/agree.lean
+Examples/system-verilog/sem2/memory_edge_blocking_canonical_e/agree.lean
 Examples/system-verilog/sem2/plain_generate_edge_e/agree.lean
 Examples/system-verilog/first_theorem/dff_arst_proof.lean
 Examples/system-verilog/first_theorem/half_add_proof.lean
@@ -299,3 +300,4 @@ Examples/system-verilog/sem2/preempt_block_refuse/agree.lean
 Examples/system-verilog/sem2/edge_blocking_race_refuse/agree.lean
 Examples/system-verilog/sem2/kogge_output_declared_target_e/agree.lean
 Examples/system-verilog/sem2/duplicate_active_scope_e/agree.lean
+Examples/system-verilog/cores/picorv32/walls/probe.lean

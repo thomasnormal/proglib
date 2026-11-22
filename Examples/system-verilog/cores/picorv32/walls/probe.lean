@@ -1,5 +1,6 @@
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemExec
+import LeanModels.Sv.Kernel.CoreMemResume
 import LeanModels.Sv.Kernel.HierarchyCoreMem
 
 /-!
@@ -42,16 +43,27 @@ RISCV_FORMAL point. -/
     | _ => false
   | _ => false
 
-/-! The loaded PicoRV32 canonical-E design now admits the full parameter point.
-The input-driven receipt exercises its exact canonical step route. -/
+/-! The loaded PicoRV32 canonical-E design reaches the source-shaped
+preemptive scheduling boundary before reset. The parser-native phase relation
+keeps these choices explicit while the canonical executor remains refused. -/
 set_option maxRecDepth 100000 in
 load_design_sv2 picorv32_step_wall
   from "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
 def resetHeldLowEntry (d : CoreMemDesign) : SvState :=
   d.scalar.decls.toList.filterMap fun dc =>
     if dc.isInput then some (dc.name, LVec.ofNat dc.width 0) else none
+def pairCountAt (p : PProcess) : List PProcess → Nat
+  | [] => 0
+  | q :: rest => (if coreMemPreemptiveBlockingPair p q then 1 else 0) + pairCountAt p rest
+
+def pairCount : List PProcess → Nat
+  | [] => 0
+  | p :: rest => pairCountAt p rest + pairCount rest
+
+#guard picorv32_step_wall.pdesign.processes.length == 45
+#guard pairCount picorv32_step_wall.pdesign.processes == 14
 #guard match picorv32_step_wall.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 4294967295 with
-  | .ok _ => true
+  | .unsupported msg => msg.startsWith "Schedule:preemptive"
   | _ => false
 
 set_option maxRecDepth 100000 in

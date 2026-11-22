@@ -205,6 +205,45 @@ theorem CombCursor.resume_correct (E : CoreMemDesign) (st : CoreMemState)
 
 #print axioms CombCursor.resume_correct
 
+/-! A comb activation has the same source-shaped scheduling boundary as an
+edge activation, without an NBA queue. The shared view is carried in the
+state so a later cursor observes an earlier blocking write. -/
+
+structure CombPhaseState where
+  state : CoreMemState
+  view : SvState
+  active : List CombCursor := []
+
+def CombPhaseState.start (state : CoreMemState) (view : SvState)
+    (cursors : List CombCursor) : CombPhaseState :=
+  { state, view, active := cursors }
+
+def CombPhaseState.after (s : CombPhaseState) (next : CoreMemState)
+    (nextView : SvState) (cursor : CombCursor)
+    (before after : List CombCursor) : CombPhaseState :=
+  { state := next
+    view := nextView
+    active := before ++ (if cursor.work.isEmpty then [] else [cursor]) ++ after }
+
+inductive CombPhaseStep (E : CoreMemDesign) : CombPhaseState → CombPhaseState → Prop where
+  | select {s : CombPhaseState} {before after : List CombCursor}
+      {cursor next : CombCursor} {state : CoreMemState} {view : SvState}
+      (hactive : s.active = before ++ cursor :: after)
+      (hresume : cursor.resume E s.state s.view = .ok (state, view, next)) :
+      CombPhaseStep E s (s.after state view next before after)
+
+def CombPhaseQuiescent (s : CombPhaseState) : Prop := s.active = []
+
+theorem CombPhaseStep.active_source_order
+    {E : CoreMemDesign} {s t : CombPhaseState}
+    (h : CombPhaseStep E s t) :
+    t.active.length ≤ s.active.length := by
+  cases h with
+  | select hactive hresume =>
+      rw [hactive]
+      simp [CombPhaseState.after]
+      split <;> simp_all <;> omega
+
 end LeanModels.Sv.Kernel
 
 /-! ## Clocked source-shaped activations
@@ -252,5 +291,58 @@ def EdgeCursor.resume (E : CoreMemDesign) (cursor : EdgeCursor)
   | head :: tail =>
       let (result, exposed) ← head.openNode E st cursor.locals
       .ok (result, { work := exposed ++ tail, locals := result.locals })
+
+/-! ## Source-shaped active-region interleavings
+
+The retained edge cursor is also the unit used by the event scheduler.  A
+step chooses one cursor, executes exactly one parser node, and puts the
+exposed continuation back into the active set.  Blocking writes are already
+in `CoreMemExecResult.state`; scalar and memory NBAs are appended in issue
+order and are committed only after the active set is drained.  This relation
+therefore keeps the §4.7 choice explicit without selecting a source order or
+lowering a `PStmt` into another AST.
+-/
+
+structure EdgePhaseState where
+  state : CoreMemState
+  active : List EdgeCursor := []
+  scalarQ : NbaQueue2 := []
+  memoryQ : MemNbaQueue := []
+
+def EdgePhaseState.start (state : CoreMemState) (cursors : List EdgeCursor) : EdgePhaseState :=
+  { state, active := cursors }
+
+def EdgePhaseState.after (s : EdgePhaseState) (result : CoreMemExecResult)
+    (cursor : EdgeCursor) (before : List EdgeCursor) (after : List EdgeCursor) : EdgePhaseState :=
+  { state := result.state
+    active := before ++ (if cursor.work.isEmpty then [] else [cursor]) ++ after
+    scalarQ := s.scalarQ ++ result.scalarQ
+    memoryQ := s.memoryQ ++ result.memoryQ }
+
+inductive EdgePhaseStep (E : CoreMemDesign) : EdgePhaseState → EdgePhaseState → Prop where
+  | select {s : EdgePhaseState} {before after : List EdgeCursor}
+      {cursor next : EdgeCursor} {result : CoreMemExecResult}
+      (hactive : s.active = before ++ cursor :: after)
+      (hresume : cursor.resume E s.state = .ok (result, next)) :
+      EdgePhaseStep E s (s.after result next before after)
+
+def EdgePhaseQuiescent (s : EdgePhaseState) : Prop := s.active = []
+
+def EdgePhaseState.commit (E : CoreMemDesign) (s : EdgePhaseState) : Res CoreMemState := do
+  let scalar := E.scalarEdge.commit s.state.scalar s.scalarQ
+  let memory ← match s.state.memory.commitNba s.memoryQ with
+    | some memory => .ok memory
+    | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
+  .ok (E.normalizeScalar { s.state with scalar, memory } scalar)
+
+theorem EdgePhaseStep.active_source_order
+    {E : CoreMemDesign} {s t : EdgePhaseState}
+    (h : EdgePhaseStep E s t) :
+    t.active.length ≤ s.active.length := by
+  cases h with
+  | select hactive hresume =>
+      rw [hactive]
+      simp [EdgePhaseState.after]
+      split <;> simp_all <;> omega
 
 end LeanModels.Sv.Kernel
