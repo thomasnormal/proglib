@@ -631,3 +631,11 @@ sanitizer runs, but their sources exercise strict-aliasing punning, enum/object
 pointer compatibility, or subobject pointer bounds. Native cleanliness does
 not establish defined C behavior for these cases. The current loud refusal is
 therefore retained pending the effective-type and pointer-provenance family.
+
+**Partly initialized bit-field wall price (2026-11-22).** The dynamic ranking
+has 23 sole rows at `partly initialized bit-field byte`. The eight registered
+audit rows (`20000113-1.c`, `bf-sign-2.c`, `bitfld-8.c`, `bitfld-9.c`,
+`pr108498-2.c`, `pr110166-1.c`, `pr70566.c`, `pr86844.c`) have clean pinned
+Clang `-O0`/`-O2` and UBSan/ASan runs. The remaining 15 rows need the same
+native qualification before a bit-field byte rule can replace the loud
+read-modify-write refusal.
