@@ -650,10 +650,14 @@ read-modify-write byte operation.
 **String-pointer wall price (2026-11-22).** The dynamic ranking has 19 sole
 rows refusing pointer operations involving string literals. Nine available C1
 samples exit 0 at pinned Clang `-O0` and `-O2` with clean UBSan/ASan runs.
+The complete 19-row replay has clean O0/O2 and sanitizer exits for every row.
+The receipt is in
+[`docs/c-string-pointer-price-20261122.md`](c-string-pointer-price-20261122.md)
+with machine rows in
+[`docs/c-string-pointer-price-20261122.json`](c-string-pointer-price-20261122.json).
 String-literal storage and pointer provenance are therefore the next
 self-contained evaluator boundary after the current layout and evidence
-prices. Native cleanliness alone does not establish the model's pointer-byte
-or lifetime rule.
+prices. Native cleanliness supplies no UB witness.
 
 **String-literal pointer boundary (2026-11-22).** The smallest priced row,
 `20000910-2.c`, uses two string literals as `char *` values passed through
