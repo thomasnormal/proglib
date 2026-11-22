@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1275/2114 MATCH (passed 1275, failed 2, oracle 0)
+- verdicts: 1209/2114 MATCH (passed 1209, failed 2, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `c68917867c69eef570eaad12cd19a0e6941954fbf37960dfa431654a9e6cebb4`
-- measured commit: `9a80aafde`
-- measured at: `2026-11-22T14:50:00Z`
+- measured commit: `802833f111b7cf77a3df89829fa787943caf36ef`
+- measured at: `2026-11-22T17:00:02Z`
 
 ## Verdict counts
 
@@ -17,31 +17,31 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1275 |
+| `passed` | 1209 |
 | `refused-libc` | 26 |
-| `refused-ub` | 57 |
-| `refused-unsupported` | 409 |
-| `timeout` | 11 |
+| `refused-ub` | 53 |
+| `refused-unsupported` | 406 |
+| `timeout` | 84 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
 | `c-testsuite/single-exec` | `not-parsed` | 3 |
-| `c-testsuite/single-exec` | `passed` | 185 |
+| `c-testsuite/single-exec` | `passed` | 183 |
 | `c-testsuite/single-exec` | `refused-libc` | 1 |
 | `c-testsuite/single-exec` | `refused-ub` | 4 |
 | `c-testsuite/single-exec` | `refused-unsupported` | 26 |
-| `c-testsuite/single-exec` | `timeout` | 1 |
+| `c-testsuite/single-exec` | `timeout` | 3 |
 | `gcc.c-torture/execute` | `failed` | 2 |
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 1081 |
+| `gcc.c-torture/execute` | `passed` | 1017 |
 | `gcc.c-torture/execute` | `refused-libc` | 24 |
-| `gcc.c-torture/execute` | `refused-ub` | 52 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 264 |
-| `gcc.c-torture/execute` | `timeout` | 10 |
+| `gcc.c-torture/execute` | `refused-ub` | 48 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 261 |
+| `gcc.c-torture/execute` | `timeout` | 81 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 9 |
 | `gcc.c23-run` | `refused-libc` | 1 |
@@ -274,7 +274,8 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
 | `frontend` | 432 | 432 | 00162.c, 00209.c, 00210.c, 20000112-1.c, 20000227-1.c |
-| `undefined-behavior` | 57 | 57 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
+| `timeout` | 84 | 84 | 00040.c, 00041.c, 00128.c, 20000412-2.c, 20000605-1.c |
+| `undefined-behavior` | 53 | 53 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 39 | 39 | builtins/20010124-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c, builtins/lib/bzero.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 25 | 25 | 00103.c, 00170.c, 00217.c, 20060412-1.c, 20080222-1.c |
 | `unsupported:partly initialized bit-field byte` | 23 | 23 | 20000113-1.c, 20190901-1.c, 921016-1.c, bitfld-1.c, bitfld-10.c |
@@ -282,7 +283,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:nonValueRepresentation` | 17 | 17 | 20011121-1.c, 20050215-1.c, 941014-1.c, 941014-2.c, 980526-2.c |
 | `unsupported:long double floating literal` | 14 | 14 | 20030914-1.c, 20040208-1.c, 20080502-1.c, 960405-1.c, gcc/testsuite/gcc.dg/c23-float-1.c |
 | `unsupported:integer-to-pointer conversion outside pointer type` | 12 | 12 | 00214.c, 20000622-1.c, 20010329-1.c, 20021010-2.c, 20041112-1.c |
-| `timeout` | 11 | 11 | 00040.c, 20011008-3.c, 960521-1.c, memcpy-1.c, minmaxcmp-1.c |
 | `unsupported:no layout for bit-field record 'struct S'` | 11 | 11 | 20230630-1.c, 20230630-2.c, 20230630-3.c, 20230630-4.c, pr52979-1.c |
 | `unsupported:indeterminate lvalue read requires a representation choice` | 8 | 8 | 20071120-1.c, 20090113-1.c, 20090527-1.c, 20100430-1.c, builtin-prefetch-2.c |
 | `unsupported:AddrLabelExpr` | 7 | 7 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920501-4.c, 920501-5.c |
@@ -297,8 +297,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:ExprWithCleanups` | 3 | 3 | 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
 | `unsupported:OffsetOfExpr` | 3 | 3 | gcc/testsuite/gcc.dg/c23-empty-init-5.c, pr30778.c, pr44468.c |
 | `unsupported:case label nested in a control statement` | 3 | 3 | 00051.c, 00143.c, medce-1.c |
-| `unsupported:character-pointer subscript with long index requires an exact parser path` | 3 | 3 | 960321-1.c, pr86528.c, pr88693.c |
-| `unsupported:floating value used as an integer` | 3 | 3 | 20000731-1.c, 20011217-1.c, pr92904.c |
 | `unsupported:integer-to-floating conversion lacks parser-native destination type` | 3 | 3 | 930622-2.c, 960215-1.c, regstack-1.c |
 | `unsupported:no layout for bit-field record 'struct s'` | 3 | 3 | 20081117-1.c, bitfld-3.c, bitfld-4.c |
 | `libc-call: __builtin_classify_type` | 2 | 2 | 20040709-1.c, 20040709-2.c |
@@ -312,11 +310,12 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:byte copy spans a subobject boundary` | 2 | 2 | 20050826-1.c, strlen-7.c |
 | `unsupported:call to '__builtin_inff' in a context with no program — call it through 'callByName'` | 2 | 2 | gcc/testsuite/gcc.dg/c23-float-3.c, ieee/copysign2.c |
 | `unsupported:call to '__builtin_nanf' in a context with no program — call it through 'callByName'` | 2 | 2 | gcc/testsuite/gcc.dg/c23-float-4.c, gcc/testsuite/gcc.dg/c23-float-5.c |
+| `unsupported:character-pointer subscript with long index requires an exact parser path` | 2 | 2 | 960321-1.c, pr86528.c |
 | `unsupported:extern object 'abs_called' has no definition in the translation unit` | 2 | 2 | builtins/abs-1-lib.c, builtins/uabs-1-lib.c |
 | `unsupported:extern object 'x' has no definition in the translation unit` | 2 | 2 | 00094.c, 00110.c |
+| `unsupported:floating value used as an integer` | 2 | 2 | 20000731-1.c, 20011217-1.c |
 | `unsupported:goto skips a block declaration` | 2 | 2 | 00129.c, gcc/testsuite/gcc.dg/c23-labels-1.c |
 | `unsupported:no layout for bit-field record 'struct tmp'` | 2 | 2 | 991118-1.c, bf64-1.c |
-| `unsupported:no size for pointee of 'void *'` | 2 | 2 | pr21173.c, pr48571-1.c |
 | `unsupported:non-object declaration in a block` | 2 | 2 | 00078.c, struct-cpy-1.c |
 | `unsupported:operator '-' on pointers without array provenance` | 2 | 2 | 980701-1.c, pr36321.c |
 | `unsupported:sprintf` | 2 | 2 | 920501-8.c, struct-ret-1.c |
@@ -375,6 +374,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no size for element type 'int[len]'` | 1 | 1 | 20221006-1.c |
 | `unsupported:no size for element type 'va_list'` | 1 | 1 | stdarg-2.c |
 | `unsupported:no size for pointee of 'char *'` | 1 | 1 | pr98853-1.c |
+| `unsupported:no size for pointee of 'void *'` | 1 | 1 | pr21173.c |
 | `unsupported:non-null string initializer element exceeds the array extent` | 1 | 1 | pr86714.c |
 | `unsupported:not an lvalue: PredefinedExpr` | 1 | 1 | 20001011-1.c |
 | `unsupported:operator '-' on pointers from different arrays` | 1 | 1 | 950710-1.c |
