@@ -1547,6 +1547,7 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
                   match env.packageNVal p n with
                   | some (_, w, _) => .ok (convertConst 32 ty.1 ty.2 (w : Int))
                   | none => .error s!"$bits/$size of undeclared parameter '{p}::{n}'"
+      | .bits, .int v => .ok (convertConst 32 ty.1 ty.2 v)
       | .size, .ident n => do
           let v ← dimQuery env "$size" n false
           .ok (convertConst 32 ty.1 ty.2 v)
@@ -3307,9 +3308,10 @@ def bindLocal (env : IEnv) (lp : PLocalParam) : Except String IEnv := do
       let v ← evalUntyped env lp.expr
       if lp.expr.isInt env then .ok (env.bindVal lp.name v)
       else
-        let (w, s) ← ctype env lp.expr
+        let (w, inferredSigned) ← ctype env lp.expr
+        let s := lp.signed?.getD inferredSigned
         -- Its type is its expression's, so it is stale where that reads one.
-        let env' := env.bindNVal lp.name v w s
+        let env' := env.bindNVal lp.name (canonInt w s v) w s
         .ok (if !env.stale.isEmpty && lp.expr.mentionsAny env.stale then
           { env' with stale := lp.name :: env.stale } else env')
   | some ty =>
@@ -4127,6 +4129,12 @@ private def lpUntyped : PLocalParam :=
   | .error _ => false)
 #guard (match bindLocal (wrapEnv 1 0 0) lpUntyped with
   | .ok e => e.nvals.lookup "L" == some (0, 3, false)
+  | .error _ => false)
+
+private def lpSignedKeyword : PLocalParam :=
+  { name := "LS", expr := .lit (LVec.ofNat 4 8), signed? := some true }
+#guard (match bindLocal {} lpSignedKeyword with
+  | .ok e => e.nvals.lookup "LS" == some (-8, 4, true)
   | .error _ => false)
 
 /-! ### Constant contexts across parameter points (round 3 repair)
