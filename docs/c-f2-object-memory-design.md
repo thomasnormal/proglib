@@ -36,6 +36,7 @@ structure Provenance (Tag : Type) where
 inductive Byte (Tag : Type) where
   | uninit
   | byte (value : UInt8) (provenance : Option (Provenance Tag))
+      (fragment : Option Nat)
 
 structure Ptr (Tag : Type) where
   provenance : Option (Provenance Tag)
@@ -51,6 +52,52 @@ structure LanguageTypes where
   RetagRequest : Type
   ObjectLifetimeRequest : Type
   Fault : Type
+
+namespace CInstance
+
+inductive Tag where
+  | object (allocation : AllocId)
+  | function (symbol : Nat)
+
+inductive CanonType where
+  | void | integer (signed : Bool) (bits : Nat) | floating (bits : Nat)
+  | pointer (pointee : CanonType) | aggregate (declaration : Nat)
+
+inductive AllocationState where
+  | reserved | live | ended
+
+inductive EffectiveTypeState where
+  | untyped | typed (type : CanonType) | padding | indeterminate
+
+structure LocationState where
+  effectiveType : EffectiveTypeState
+  initialized : Bool
+
+inductive HookChoice where
+  | default
+  | placement (site : Nat)
+  | unspecified (site : Nat)
+
+inductive Fault where
+  | outOfBounds | lifetimeEnded | alignment | invalidRepresentation
+  | effectiveType | indeterminateRead | ambiguousRecovery
+
+inductive Value where
+  | integer (value : Int)
+  | bytes (value : Array (Byte Tag))
+
+def types : LanguageTypes :=
+  { Tag := Tag
+    CanonType := CanonType
+    Value := Value
+    AllocationState := AllocationState
+    LocationState := LocationState
+    HookChoice := HookChoice
+    RetagRequest := Unit
+    ObjectLifetimeRequest := Unit
+    Fault := Fault }
+
+end CInstance
 
 inductive StorageKind where
   | staticStorage | threadLocal | automatic | heap | literal | function | vtable
@@ -92,8 +139,8 @@ structure ABI (T : LanguageTypes) where
   typeLayout : T.CanonType → Option (Nat × Nat)
   encodeAddress : T.CanonType → Nat → Option (Array UInt8)
   decodeAddress : T.CanonType → Array UInt8 → Option Nat
-  encodeValue : T.CanonType → T.Value → Option (Array (Option UInt8))
-  decodeValue : T.CanonType → Array UInt8 → Option T.Value
+  encodeValue : T.CanonType → T.Value → Option (Array (Byte T.Tag))
+  decodeValue : T.CanonType → Array (Byte T.Tag) → Option T.Value
   pointerToInteger : T.CanonType → Nat → Option Int
   integerToAddress : T.CanonType → T.CanonType → Int → Option Nat
 
@@ -166,6 +213,9 @@ structure ReallocChoices (T : LanguageTypes) where
 inductive BoundaryChoice where
   | ordinary | adjacent | separate
 
+inductive EqualityChoice where
+  | equal | unequal
+
 inductive OrderingTest where
   | lt | le | gt | ge
 
@@ -205,6 +255,7 @@ structure Language where
   types : LanguageTypes
   hooks : Hooks types
   recovery : RecoveryPolicy
+  pointerEquality : Ptr types.Tag → Ptr types.Tag → EqualityChoice → Bool
 
 inductive AllocationResult (Tag : Type) where
   | address (pointer : Ptr Tag)
@@ -281,7 +332,12 @@ layout evidence described below.
 
 `typeLayout` returns byte size and byte alignment for an admitted complete
 canonical type. The ABI also supplies scalar and pointer representations.
-Absent bytes in `encodeValue` mark positions whose values the transition chooses. The
+`encodeValue` and `decodeValue` use `Byte`, including its optional provenance
+and pointer-fragment index. A pointer-containing aggregate therefore carries
+the allocation tag through every member's encoded bytes. The fragment index
+identifies the byte's position in that pointer representation and is preserved
+by aggregate copies and `decodeValue`. It is not reconstructed from a value's
+numeric address. Absent bytes in an encoded value mark positions whose values the transition chooses. The
 profile defines which bit patterns trap and which layout or conversion
 cases require a named refusal. An
 allocation's `base` is absent for source objects without an address, such as
@@ -471,22 +527,21 @@ extensions that would need a different enclosing layout are named
 refusals until that layout is established. [GCC zero-length arrays]
 
 Equality follows C17 §6.5.9p6. Two null pointers compare equal.
-Pointers to the same object or function compare equal; the rule includes
-an object and its initial subobject and pointers one past the same array.
-At a comparison of one-past and other-array-start pointers, `adjacent`
-is admissible exactly when the selected placements make the arrays
-immediately follow one another. `separate` is admissible for nonadjacent
-placements. At other comparisons the choice is `ordinary`. The evaluator
-quantifies over every admissible placement and boundary choice. For the
-ISO adjacent case, the standard fixes equality once adjacency holds.
-N2364 §3.3 also proposes an optional unequal result across provenances.
-The GNU17 contract uses the ISO result at a fixed adjacent placement.
-For two non-null empty-provenance pointers, compare their numeric
-addresses. A non-null empty-provenance pointer compares equal to a
-provenanced pointer at the same address if that allocation is live
-and exposed. This retains the supported `uintptr_t` comparison
-round trip at an isolated one-past address. A one-past comparison
-is independent of provenance recovery.
+Pointers to the same object or function compare equal, including an object
+and its initial subobject and pointers one past the same array. At a
+comparison of one-past and another array's start, `adjacent` is admissible
+exactly when the selected placements make the arrays immediately follow one
+another. `separate` is admissible for nonadjacent placements.
+
+When two live pointers have equal addresses but different provenance, or one
+has empty provenance, the result is a language choice between true and false.
+The choice is supplied by `Language.pointerEquality` and quantified under
+rule 4. It is never inferred from the exposed flag. This includes equality
+across every pair of provenances, including one-past values. The GNU17
+instance may choose false at adjacent placements, matching the permitted GCC
+and Clang result, while another admissible language choice may choose true.
+An isolated one-past integer-to-pointer recovery remains a loud refusal when
+the resulting value is used. [N2364 §3.3]
 Ordered comparisons use §6.5.8p5. Admit the same array and its one-past
 case, struct member declaration order, equal addresses for members of
 the same union, and UB for unrelated objects. [N2364], [GCC PR 61502]
@@ -591,6 +646,7 @@ inductive RunOutcome where
   | defined (behavior : Behavior)
   | ub (observed : List Observation) (fault : String)
   | unsupported (observed : List Observation) (name : String)
+  | exhausted (observed : List Observation) (kind : String)
 
 structure MemoryStepAgreement (T : LanguageTypes) (Request Choice Result : Type) where
   stores : AllocId → Store T → Store T → Prop
@@ -632,16 +688,48 @@ def outcomeSet (E : Executions) (p : E.Program) (w : E.World)
       E.realizes p w input choices placements run ∧
       E.outcome run = outcome }
 
-def addressIndependent (E : Executions) (a : PlacementAgreement E) : Prop :=
-  ∀ p w₁ w₂ input,
-    a.initialObjects w₁ w₂ →
-    outcomeSet E p w₁ input = outcomeSet E p w₂ input
+def worldAgrees (E : Executions) (a : PlacementAgreement E)
+    (w₁ w₂ : E.World) : Prop := a.initialObjects w₁ w₂
+
+def choicesAgree (E : Executions) (a : PlacementAgreement E)
+    (c₁ c₂ : E.OtherChoices) : Prop := a.otherChoices c₁ c₂
 
 def matchesTarget (source : RunOutcome) (target : Behavior) : Prop :=
   match source with
   | .defined behavior => behavior = target
   | .ub observed _ => ∀ i event, observed[i]? = some event → target.events i = some event
   | .unsupported _ _ => False
+  | .exhausted observed _ =>
+      ∀ i event, observed[i]? = some event → target.events i = some event
+
+An exhausted source run constrains a target only through its observed prefix.
+The target may itself exhaust after any prefix that satisfies this relation.
+This is the rule used when a removed allocation changes only whether a later
+allocation can be placed. The source prefix remains a valid target behavior
+up to the exhaustion point, and no suffix after that point is compared.
+
+def runsAgree (E : Executions) (a : PlacementAgreement E)
+    (r₁ r₂ : E.Run) : Prop :=
+  a.exposed r₁ r₂ ∧ a.boundaryEquality r₁ r₂ ∧
+    a.castAlignment r₁ r₂ ∧ a.observedRepresentation r₁ r₂
+
+def runAddressIndependent (E : Executions) (a : PlacementAgreement E) : Prop :=
+  ∀ p w₁ w₂ input choices₁ choices₂ placements₁ placements₂ r₁,
+    worldAgrees E a w₁ w₂ → choicesAgree E a choices₁ choices₂ →
+    E.realizes p w₁ input choices₁ placements₁ r₁ →
+    ∃ r₂, E.realizes p w₂ input choices₂ placements₂ r₂ ∧
+      runsAgree E a r₁ r₂ ∧
+      matchesTarget (E.outcome r₁) (match E.outcome r₂ with
+        | .defined behavior => behavior
+        | .ub observed _ => { events := fun i => observed[i]?, ending := .diverges }
+        | .unsupported observed _ => { events := fun i => observed[i]?, ending := .diverges }
+        | .exhausted observed _ => { events := fun i => observed[i]?, ending := .automaticExhaustion })
+
+def addressIndependent (E : Executions) (a : PlacementAgreement E) : Prop :=
+  runAddressIndependent E a →
+    ∀ p w₁ w₂ input,
+      worldAgrees E a w₁ w₂ →
+      outcomeSet E p w₁ input = outcomeSet E p w₂ input
 
 def allocationRemoval (E : Executions)
     (erasable : E.Program → E.Program → E.World → E.World → Prop) : Prop :=
@@ -650,6 +738,15 @@ def allocationRemoval (E : Executions)
     E.realizes trimmed w₂ input c₂ ρ₂ r₂ → E.outcome r₂ = .defined behavior →
     ∃ c₁ ρ₁ r₁, E.realizes source w₁ input c₁ ρ₁ r₁ ∧
       E.outcome r₁ = .defined behavior
+
+The removal proof also has an exhaustion branch. If the source run reaches
+finite-address exhaustion, `matchesTarget` compares only its completed
+observable prefix. If the trimmed target run reaches exhaustion after a
+source prefix, that target ending is permitted by the same prefix relation.
+When a removed `malloc` has a null test folded to true, the source simulation
+chooses its always-admissible null result and continues through `free(NULL)`.
+The removal premise fails when allocation success, capacity, `errno`, or a
+later use can distinguish that result.
 
 abbrev FlatMemory (XLEN : Nat) := BitVec XLEN → UInt8
 
@@ -696,14 +793,21 @@ value up to the same translation. Each operation must prove
 For whole runs, initial objects agree by that correspondence and the
 inputs and other choices are coupled. Couple evaluation order, external
 results, allocation success or failure, literal sharing, and unspecified
-bytes at their semantic choice sites. The outcomeSet equality in
-addressIndependent is proved by two simulations, one for each direction.
-Compare runs whose exposure steps and exposed allocations correspond and
-whose concrete bases agree for those allocations. The comparison also requires agreement at the
-following address-sensitive operations.
+bytes at their semantic choice sites. The primary theorem is the per-run
+`runAddressIndependent` relation. It is proved by two simulations, one for
+each direction, and carries the complete store relation, the exposure
+relation, and the ending or exhaustion prefix. The equality of `outcomeSet`
+in `addressIndependent` is a corollary obtained by existentially forgetting
+the coupled choices and placements.
 
-1. Equality of one-past and immediately following object pointers uses
-   the same boundary result.
+Compare runs whose exposure steps and exposed allocations correspond and
+whose concrete bases agree for those allocations. The comparison also
+requires agreement at the following address-sensitive operations.
+
+1. Equality of pointers with equal addresses across any provenances, including
+   empty provenance and every one-past/adjacent pair, uses the same
+   `Language.pointerEquality` choice. The relation does not inspect exposure
+   to choose the result.
 2. Pointer casts preserve the outcome of the target alignment test.
 3. Non-pointer observations of pointer representations use the same
    concrete bytes. This covers integer and character reads and any I/O or volatile
@@ -712,13 +816,14 @@ following address-sensitive operations.
    whether the boundary serializes its representation as output.
 
 These conditions are on the named operations and their operands. The
-proof derives trace equality from them, including the ending and any
-observed prefix before UB or refusal. Run correspondence is obtained by
-lifting the per-operation relation through the evaluator, including its
-infinite runs. Applying it in both directions gives equality of the
-behavior sets for corresponding admissible placement resolutions and
-coupled choices. A case in which the exception premises differ remains a
-separate admissible behavior in the corresponding set. Source correctness
+proof derives trace equality from them, including the ending, exhaustion,
+and any observed prefix before UB or refusal. Run correspondence is obtained
+by lifting the per-operation relation through the evaluator, including its
+infinite runs. The simulations require the same exhaustion premise for the
+paired finite-address stores. A source run that exhausts constrains its
+target only through the prefix in `matchesTarget`, and a target may exhaust
+after a source prefix. A case in which the exception premises differ remains
+a separate admissible behavior in the corresponding set. Source correctness
 requires every admissible resolution.
 
 For allocation removal, the premise is a program and world correspondence
@@ -802,9 +907,10 @@ Pass the recorded placements, allocation outcomes, literal sharing and
 observable choice data into the model. A replayed choice must pass the
 ordinary admissibility checks. Compare the model result and observation
 data against the native run, using the recorded address for any
-address-bearing output. For UB rows, record the sanitizer diagnostic
-against the same pinned compiler and source. A clean native sanitizer
-run provides no UB qualification. The row must be repaired, declined by
+address-bearing output. For UB rows, record either the sanitizer diagnostic
+or the cited C clause and source operand against the same pinned compiler and
+source. A clean native sanitizer run does not by itself qualify a row as
+defined. The row must be repaired, declined by
 a named rule, or counted as a divergence. A single native replay
 validates a particular resolution. The source correctness theorem
 covers every admissible one. S2 must contain the replay runs before
@@ -846,7 +952,7 @@ runner from that relation.
   `sizeAlign`, `recordsOf`, `isPtrType`, `isPtrIntType` and
   `cAliasCompatible`. The checker counts any restored `CType` alias.
   The regenerated frozen survey must show ≥1,326 MATCH out of 2,214,
-  zero DIVERGE and zero unwitnessed UB verdicts.
+  zero DIVERGE and zero UB verdicts lacking sanitizer or cited-clause operand evidence.
 - **S2, shared store.** Begin after S1 passes, in a new language-parametric
   module. Every exported operation needs a well-formedness preservation
   theorem with a checked axiom list limited to `propext`,
@@ -863,7 +969,8 @@ runner from that relation.
 - **S3, exposure and refinement.** Instantiate the C exposure and
   effective-type rules and prove evaluator-level `address_independent`
   with the same axiom gate. The 24 effective-type and 27 pointer/integer
-  refusal rows each finish with MATCH, a witnessed UB verdict, or a
+  refusal rows each finish with MATCH, a UB verdict with sanitizer or
+  cited-clause operand evidence, or a
   named permanent refusal. Begin the proof surface after S3.
 
 [N2362]: https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2362.pdf
