@@ -632,7 +632,8 @@ def layoutFor (envl : Envelope) : Layout :=
     | some (.record _ _ fields (some layout) ..) =>
         (checkedRecordLayout? fields layout).map (·.tagKind == "union") |>.getD false
     | _ => false
-  { declSize := observedDeclSize
+  { zeroNullPointer := envl.zeroNullPointer
+    declSize := observedDeclSize
     recordSizeDecl := observedRecordSizeDecl
     structuredType := fun id => envl.structuredTypeFor id
     structuredExprType := observedExprType

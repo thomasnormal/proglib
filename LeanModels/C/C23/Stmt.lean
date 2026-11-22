@@ -163,12 +163,9 @@ objects with static storage duration, i.e. to zero.
 The interpreter implements this rule and tests partial initializers against
 the native compiler.
 
-**Zero-initialization is TYPE-DIRECTED, not a memset.** §6.7.11p10 says
-the unmentioned members are initialized *as if by `= 0`*, and for a
-pointer member that is a NULL POINTER, not all-bits-zero. Writing zero
-bytes over a pointer member would make it read back as an integer and
-`loadPtr` would refuse it — a wrong answer that looks like a right one.
-So the recursion below dispatches on the member's type. -/
+§6.7.11p10–11 directs zero-initialization by type. An unmentioned
+pointer member receives a null pointer value, regardless of the target's
+byte representation for null. -/
 
 private def bitFieldInitValue (ctx : Ctx) : Option Expr → ExecM CVal
   | none | some (.implicitValueInit ..) => pure (.int IntTy.int_ 0)
@@ -1879,7 +1876,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
                 if t != IntTy.ulong then
                   refuseUnsupported "__sync_add_and_fetch_8: destination is not unsigned long long"
                 else do
-                  let old ← liftEval (loadAt Mem.cAliasModel dp ty none structured)
+                  let old ← liftEval (loadAt Mem.cAliasModel dp ty none structured
+                    prog.layout.zeroNullPointer)
                   let (_, x) ← asInt old
                   let result := t.wrap (x + y)
                   liftEval (storeAt Mem.cAliasModel dp ty (.int t result) structured)

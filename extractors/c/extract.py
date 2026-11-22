@@ -139,12 +139,10 @@ def frontend_version():
 
 
 def clang_json(path):
-    plugin = os.environ.get(STRUCTURED_TYPE_PLUGIN_ENV)
-    command = [clang_executable()] + AST_FLAGS
-    if plugin:
-        command += ["-Xclang", "-load", "-Xclang", plugin,
-                    "-Xclang", "-add-plugin", "-Xclang",
-                    "lean-c-structured-types"]
+    plugin = os.environ[STRUCTURED_TYPE_PLUGIN_ENV]
+    command = [clang_executable()] + AST_FLAGS + [
+        "-Xclang", "-load", "-Xclang", plugin,
+        "-Xclang", "-add-plugin", "-Xclang", "lean-c-structured-types"]
     out = subprocess.run(command + [path],
                          capture_output=True, text=True)
     if out.returncode != 0:
@@ -157,18 +155,20 @@ def clang_json(path):
         tree = json.loads(out.stdout)
     except json.JSONDecodeError as error:
         die("clang produced invalid JSON for %s: %s" % (path, error))
-    structured = None
-    if plugin:
-        marker = "LEAN_C_STRUCTURED_TYPES="
-        records = [line[len(marker):] for line in out.stderr.splitlines()
-                   if line.startswith(marker)]
-        if len(records) != 1:
-            die("structured type plugin did not return exactly one node-id record")
-        try:
-            structured = json.loads(records[0])
-        except json.JSONDecodeError as error:
-            die("structured type plugin returned invalid JSON: %s" % error)
-    return tree, structured
+    diagnostics = out.stderr.splitlines()
+    marker = "LEAN_C_STRUCTURED_TYPES="
+    records = [line[len(marker):] for line in diagnostics if line.startswith(marker)]
+    if len(records) != 1:
+        die("structured type plugin did not return exactly one node-id record")
+    try:
+        structured = json.loads(records[0])
+    except json.JSONDecodeError as error:
+        die("structured type plugin returned invalid JSON: %s" % error)
+    marker = "LEAN_C_ZERO_NULL_POINTER="
+    null_pointer = [line[len(marker):] for line in diagnostics if line.startswith(marker)]
+    if null_pointer not in (["true"], ["false"]):
+        die("structured type plugin did not report the target null-pointer representation")
+    return tree, structured, null_pointer == ["true"]
 
 
 def string_byte_records(path):
@@ -1018,7 +1018,7 @@ def extract(path, source_name=None, standard="c23"):
     AST_FLAGS = PROFILE_FLAGS + ["-fsyntax-only", "-Xclang", "-ast-dump=json"]
     check_profile()
     src = open(path, "rb").read()
-    raw_tu, raw_structured_types = clang_json(path)
+    raw_tu, raw_structured_types, zero_null_pointer = clang_json(path)
     joined = canonicalize_ids({"ast": raw_tu, "structured": raw_structured_types})
     tu = joined["ast"]
     member_record_ids = {}
@@ -1214,6 +1214,7 @@ def extract(path, source_name=None, standard="c23"):
         "frontend": {"name": "clang-ast-json", "version": frontend_version()},
         "profile_id": PROFILE_ID + ("-c17" if standard == "c17" else ""),
         "profile_flags": PROFILE_FLAGS,
+        "zero_null_pointer": zero_null_pointer,
         "source_file": rel,
         "source_sha256": hashlib.sha256(src).hexdigest(),
         "translation_unit": {"kind": "TranslationUnit", "decls": top},

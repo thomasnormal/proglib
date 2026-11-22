@@ -424,6 +424,9 @@ structure Envelope where
   sourceSha256 : String
   unit : TranslationUnit
   externals : List External
+  /-- Clang's target represents a default-address-space null pointer in
+      eight zero bytes. -/
+  zeroNullPointer : Bool := false
   typeLayouts : List TypeLayout := []
   structuredTypes : List StructuredType := []
   structuredExprTypes : List StructuredExprType := []

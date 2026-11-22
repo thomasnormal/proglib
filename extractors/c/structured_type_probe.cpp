@@ -8,6 +8,7 @@
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/Type.h"
+#include "clang/Basic/TargetInfo.h"
 #include "clang/Basic/Version.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendPluginRegistry.h"
@@ -444,6 +445,13 @@ public:
     visitor.TraverseDecl(context.getTranslationUnitDecl());
     llvm::errs() << "LEAN_C_STRUCTURED_TYPES="
                  << llvm::json::Value(std::move(visitor.rows)) << "\n";
+    const auto &target = context.getTargetInfo();
+    const auto addressSpace = clang::LangAS::Default;
+    const bool zeroNullPointer = target.getCharWidth() == 8 &&
+        target.getPointerWidth(addressSpace) == 64 &&
+        target.getNullPointerValue(addressSpace) == 0;
+    llvm::errs() << "LEAN_C_ZERO_NULL_POINTER="
+                 << (zeroNullPointer ? "true" : "false") << "\n";
   }
 };
 

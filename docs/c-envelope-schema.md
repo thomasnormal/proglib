@@ -76,6 +76,12 @@ profile, a set of facts every host must satisfy, not a machine
 `profile_flags` produce the same envelope, and that is a checked property
 (`harness/c_profile_probe.py --check`).
 
+`zero_null_pointer` records whether Clang's target represents a
+default-address-space null pointer as eight zero bytes. The structured type
+probe reads the byte width, pointer width, and null value from the same
+Clang invocation as the AST dump. An older envelope without this observation
+provides no evidence for decoding zero-filled pointer storage.
+
 **Cache key**: `<stem>-<sha256(source)[:16]>-<sha256(extract.py)[:8]>-<profile_id>`
 — the existing `extractor_digest()` discipline plus the profile, because
 a C envelope is a function of (source, extractor, PROFILE).

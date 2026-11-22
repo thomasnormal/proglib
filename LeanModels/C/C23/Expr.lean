@@ -410,6 +410,7 @@ it** — `"Pos"`, `"const Pos *"` — never on a parsed type. That is the
 same decision `docs/c-envelope-schema.md` §3 made for `String` itself, and
 it is what keeps the C type parser out of the tier. -/
 structure Layout where
+  zeroNullPointer : Bool := false
   declSize : DeclarationId → Option Nat := fun _ => none
   recordSizeDecl : DeclarationId → Option Nat := fun _ => none
   structuredType : DeclarationId → Option LeanModels.Clang.QualType := fun _ => none
@@ -1022,7 +1023,8 @@ def loadCharacterAt (p : Ptr) (t : IntTy) : EvalM CVal := do
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
 implicit of the whole corpus.** -/
 def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
-    (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
+    (structured : Option LeanModels.Clang.QualType := none)
+    (zeroNullPointer : Bool := false) : EvalM CVal :=
   if structured.bind floatBitsOfStructured == some 32 then
     readMem (fun m => Mem.loadFloat32 m p)
   else if structured.bind floatBitsOfStructured == some 64 then
@@ -1032,8 +1034,10 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     | some t => loadCharacterAt p t
     | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
   else if structuredPointerObject structured ty then do
-    let q ← readMem (fun m => Mem.loadPtr m p)
-    pure (.ptr q)
+    let q ← readMem (fun m => m.loadPtr p zeroNullPointer)
+    match q with
+    | some q => pure (.ptr q)
+    | none => refuseUnsupported "pointer representation lacks provenance or target ABI evidence"
   else do
     match structured.bind intTyOfStructured with
     | some t =>
@@ -1049,6 +1053,10 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
             let bs ← readMem (fun m => Mem.loadBytes m p n)
             pure (.aggregate ty bs)
         | none => refuseUnsupported s!"aggregate load without a layout '{ty}'"
+
+abbrev Ctx.loadAt (ctx : Ctx) (p : Ptr) (ty : String) (size : Option Nat)
+    (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
+  LeanModels.C.C23.loadAt ctx.aliasModel p ty size structured ctx.layout.zeroNullPointer
 
 /-- Store a value at an address, at the lvalue's type. -/
 def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (v : CVal)
@@ -1582,7 +1590,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               | some (offsetBits, width) =>
                   loadBitFieldAt sub.ty p offsetBits width (ctx.layout.structuredTypeAt sub)
               | none =>
-                  loadAt ctx.aliasModel p ty
+                  ctx.loadAt p ty
                     (ctx.layout.exprSizeAt sub ty)
                     (ctx.layout.structuredTypeAt sub)
       else if ck == "ArrayToPointerDecay" then do
@@ -1768,7 +1776,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             let p ← asPtr v
             let pointee := (ctx.layout.structuredTypeAt sub).bind
               LeanModels.Clang.QualType.pointee
-            loadAt ctx.aliasModel p ty
+            ctx.loadAt p ty
               (ctx.layout.exprSizeAt sub ty) pointee
       else if op == "!" then do
         -- §6.5.4.3p5 — `!x` is `(0 == x)`. 80 sites.
@@ -1801,7 +1809,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let bits := ctx.layout.bitFieldOf sub
         let old ← match bits with
           | some (offsetBits, width) => loadBitFieldAt sub.ty p offsetBits width subStructured
-          | none => loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
+          | none => ctx.loadAt p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
         match old with
         | .ptr _ =>
             -- C23 §6.5.3.5p2 defines pointer increment/decrement in terms
@@ -1864,7 +1872,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some (offsetBits, width) =>
             loadBitFieldAt l.ty p offsetBits width lStructured
         | none =>
-            loadAt ctx.aliasModel p l.ty
+            ctx.loadAt p l.ty
               (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
       match old, rv with
       | .ptr _, .int _ _ => do
@@ -1919,7 +1927,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       match ctx.layout.fieldBitsAtResolved base field with
       | some (offsetBits, width) => loadBitFieldAt ty p offsetBits width structuredType
       | none =>
-          loadAt ctx.aliasModel p ty
+          ctx.loadAt p ty
             (ctx.layout.exprSizeAt (.member base field arrow ty span recordId structuredType) ty)
             structuredType
   | .index base idx ty _ .. => do
@@ -1928,7 +1936,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         match q.unqualified with
         | .array element _ | .pointer element => some element
         | _ => none
-      loadAt ctx.aliasModel p ty
+      ctx.loadAt p ty
         (ctx.layout.elementSizeAt base ty) elementStructured
 
   -- ===== §6.4.4 — constants =====
@@ -1976,7 +1984,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some o =>
             let p := match ctx.layout.sizeAt (some id) ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt ctx.aliasModel p ty (ctx.layout.sizeAt (some id) ty)
+            ctx.loadAt p ty (ctx.layout.sizeAt (some id) ty)
               (ctx.layout.structuredTypeDecl id)
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
   | .declRef none name declKind ty _ structuredType =>
@@ -1991,7 +1999,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some o =>
             let p := match ctx.layout.sizeAt none ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
-            loadAt ctx.aliasModel p ty (ctx.layout.sizeAt none ty)
+            ctx.loadAt p ty (ctx.layout.sizeAt none ty)
         | none => refuseUnsupported s!"unbound name '{name}'"
 
   -- §6.5.3.3p4 — the arguments are evaluated HERE, in the caller's scope,
@@ -2652,14 +2660,18 @@ theorem loadCharacterAt' (p : Ptr) (t : IntTy) : MemInvariant (loadCharacterAt p
         | exact bif' (readMem' _) (refuseUnsupported' _)
 
 theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
-    (structured : Option LeanModels.Clang.QualType := none) :
-    MemInvariant (loadAt alias p ty size structured) := by
+    (structured : Option LeanModels.Clang.QualType := none)
+    (zeroNullPointer : Bool := false) :
+    MemInvariant (loadAt alias p ty size structured zeroNullPointer) := by
   unfold loadAt
   repeat
     first
     | exact readMem' _
     | exact loadCharacterAt' _ _
     | exact bind (readMem' _) fun _ => pure' _
+    | exact bind (readMem' _) fun
+        | some _ => pure' _
+        | none => refuseUnsupported' _
     | exact refuseUnsupported' _
     | split
 
