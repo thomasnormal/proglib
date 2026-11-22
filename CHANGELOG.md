@@ -7,6 +7,10 @@
   memory NBA queues as prefixes extended in issue order. The
   `Schedule:preemptive` admission refusal is unchanged.
 
+- The retained combinational phase now has the matching kernel-checked
+  selectable-cursor theorem, so its active-region relation also exposes every
+  successful source-shaped resume as an explicit §4.7 choice.
+
 - Hierarchical canonical-E port aliases from top-level input ports no longer
   trigger the time-zero event-source refusal. Internal continuous drivers remain
   guarded, and the recursive child-instance receipt now matches both pinned
