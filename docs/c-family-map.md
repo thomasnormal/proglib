@@ -622,7 +622,9 @@ is GCC's `builtins/lib` companion corpus, where these source files are linked
 into separate driver tests and are not complete translation units. The current
 single-envelope survey cannot claim their linked behavior. A valid next step
 requires a manifest-level companion closure and one parser envelope for the
-linked translation unit, not an evaluator default for the missing object.
+linked translation unit, not an evaluator default for the missing object. The
+measured split and complete row list are in
+[`docs/c-external-object-price-20261123.md`](c-external-object-price-20261123.md).
 
 **Pointer-bit-cast wall price (2026-11-22).** The dynamic ranking has 25 sole
 rows at `pointer bit-cast across incompatible effective types`. The six
