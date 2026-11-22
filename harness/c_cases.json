@@ -1591,5 +1591,59 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "va-arg-signed-to-corresponding-unsigned",
+    "source": "#include <stdarg.h>\ntypedef unsigned long Result;\nstatic Result read(int fixed, ...) { va_list args; va_start(args, fixed); Result value = va_arg(args, Result); va_end(args); return value; }\nint main(void) { return read(0, 4294967297L) == 4294967297UL ? 0 : 13; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "va-arg-copied-cursor-keeps-promoted-type",
+    "source": "#include <stdarg.h>\nstatic long long read(int fixed, ...) { va_list a, b; va_start(a, fixed); va_copy(b, a); long long value = va_arg(b, long long); va_end(b); va_end(a); return value; }\nint main(void) { return read(0, 9223372036854775807ULL) == 9223372036854775807LL ? 0 : 13; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "va-arg-default-integer-promotion",
+    "source": "#include <stdarg.h>\nstatic unsigned int read(int fixed, ...) { va_list args; va_start(args, fixed); unsigned int value = va_arg(args, unsigned int); va_end(args); return value; }\nint main(void) { signed char value = 27; return read(0, value) == 27U ? 0 : 13; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "va-arg-void-character-pointer-exception",
+    "source": "#include <stdarg.h>\nstatic int read(int fixed, ...) { va_list args; va_start(args, fixed); char *value = va_arg(args, char *); va_end(args); return *value; }\nint main(void) { char value = 42; return read(0, (void *)&value) == 42 ? 0 : 13; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "va-arg-distinct-equal-width-integers-refuse",
+    "source": "#include <stdarg.h>\nstatic long long read(int fixed, ...) { va_list args; va_start(args, fixed); long long value = va_arg(args, long long); va_end(args); return value; }\nint main(void) { return read(0, 17L) == 17LL ? 0 : 13; }",
+    "expect": "refuse",
+    "error": "va_arg incompatible argument type"
+  },
+  {
+    "id": "va-arg-counterpart-requires-representable-value",
+    "source": "#include <stdarg.h>\nstatic unsigned int read(int fixed, ...) { va_list args; va_start(args, fixed); unsigned int value = va_arg(args, unsigned int); va_end(args); return value; }\nint main(void) { return read(0, -1) == 0U ? 13 : 0; }",
+    "expect": "refuse",
+    "error": "va_arg value is outside the corresponding integer type"
+  },
+  {
+    "id": "va-arg-qualified-compatible-pointer",
+    "source": "#include <stdarg.h>\nstatic int read(int fixed, ...) { va_list args; va_start(args, fixed); const int *value = va_arg(args, const int *); va_end(args); return *value; }\nint main(void) { int value = 42; return read(0, &value) == 42 ? 0 : 13; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "va-arg-function-pointer",
+    "source": "#include <stdarg.h>\ntypedef int (*Callback)(void);\nstatic int answer(void) { return 42; }\nstatic int read(int fixed, ...) { va_list args; va_start(args, fixed); Callback callback = va_arg(args, Callback); va_end(args); return callback(); }\nint main(void) { return read(0, answer) == 42 ? 0 : 13; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]

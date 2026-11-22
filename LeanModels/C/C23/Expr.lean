@@ -185,7 +185,7 @@ def writeMem (f : Mem → MRes Mem) : EvalM Unit := do
   | .ok m => set m
   | .error e => throw e
 
-def popVaArg (p : Ptr) : EvalM CVal := do
+def popVaArg (p : Ptr) : EvalM CallArgument := do
   match Mem.vaArg (← get) p with
   | .ok (v, m) => set m; pure v
   | .error e => throw e
@@ -374,7 +374,7 @@ indeterminately sequenced (`J.1(16)`); `evalArgs` fixes left-to-right as
 the CANONICAL order for extracting witnesses, and Thomas's `∀ order`
 ruling becomes a theorem about `evalArgs` — a thing that can be stated —
 rather than a property of an opaque handler, which could not be. -/
-abbrev CallHandler := Expr → Option CVal → List CVal → EvalM CVal
+abbrev CallHandler := Expr → Option CVal → List CallArgument → EvalM CVal
 
 /-- The handler for a context with **no program behind it**: a bare `Ctx`
 knows names, enums and layout, and nothing about function definitions, so
@@ -967,28 +967,54 @@ def pointerIntegerTypeOfNode (structured : Option LeanModels.Clang.QualType) : B
     | some it => it.bits >= 64
     | none => false
 
-def checkVaType (ctx : Ctx) (ty : String) (structured : Option LeanModels.Clang.QualType)
-    (v : CVal) : EvalM CVal :=
-  match v with
-  | .int actual _ =>
-      match structured.bind intTyOfStructured with
-      | some expected =>
-          if expected == actual then pure v
-          else refuseValue (.vaArgTypeMismatch ty s!"{actual.signed}:{actual.bits}")
-      | none => refuseUnsupported s!"va_arg requested unsupported type '{ty}'"
-  | .ptr _ => if structured.map (fun q => match q.unqualified with
-      | .pointer _ => true
-      | _ => false) |>.getD false then pure v
-             else refuseValue (.vaArgTypeMismatch ty "pointer")
-  | .funPtr _ => refuseValue (.vaArgTypeMismatch ty "function pointer")
-  | .float32 _ => if structured.bind floatBitsOfStructured == some 32 then pure v
-                 else refuseValue (.vaArgTypeMismatch ty "binary32")
-  | .float64 _ => if structured.bind floatBitsOfStructured == some 64 then pure v
-                 else refuseValue (.vaArgTypeMismatch ty "binary64")
-  | .aggregate actualTy _ =>
-      refuseUnsupported "va_arg aggregate lacks parser-native compatibility"
-  | .undef | .ptrInt _ =>
-      refuseUnsupported s!"va_arg requested unsupported value type '{ty}'"
+private def signedCounterpart : LeanModels.Clang.CBuiltin → Option LeanModels.Clang.CBuiltin
+  | .unsignedChar => some .signedChar
+  | .unsignedShort => some .short
+  | .unsignedInt => some .int
+  | .unsignedLong => some .long
+  | .unsignedLongLong => some .longLong
+  | .uint128 => some .int128
+  | _ => none
+
+private def canonicalCallType (layout : Layout) (type : Option LeanModels.Clang.QualType) :
+    Option LeanModels.Clang.QualType :=
+  type.bind (LeanModels.Clang.QualType.resolveTypedefs
+    (fun handle => layout.structuredType { value := handle.value }) 32)
+
+/-- N3220 §7.16.1.1p2 compares the requested type with the type of the
+next argument after default argument promotions. Equal representation
+widths do not establish type compatibility. -/
+def checkVaType (layout : Layout) (requested : Option LeanModels.Clang.QualType)
+    (argument : CallArgument) : EvalM CVal := do
+  let some expected := canonicalCallType layout requested
+    | refuseUnsupported "va_arg requested type lacks canonical QualType"
+  let some actual := canonicalCallType layout argument.promotedType
+    | refuseUnsupported "va_arg argument lacks canonical promoted QualType"
+  let expected := expected.unqualified
+  let actual := actual.unqualified
+  match argument.value with
+  | .undef | .ptrInt _ => refuseUnsupported "va_arg argument representation is unavailable"
+  | _ =>
+    if expected == actual then
+      return argument.value
+    match expected, actual, argument.value with
+    | .cBuiltinKind e, .cBuiltinKind a, .int _ n =>
+      if signedCounterpart e == some a || signedCounterpart a == some e then
+        match intTyOfStructured expected, intTyOfStructured actual with
+        | some target, some source =>
+          if target.inRange n && source.inRange n then
+            pure (.int target n)
+          else refuseUnsupported "va_arg value is outside the corresponding integer type"
+        | _, _ => refuseUnsupported "va_arg integer representation is unavailable"
+      else refuseUnsupported "va_arg incompatible argument type"
+    | .pointer e, .pointer a, _ =>
+      let e := e.unqualified
+      let a := a.unqualified
+      if e == a || (e == .void && Mem.isCharacterType a) ||
+          (a == .void && Mem.isCharacterType e) then
+        pure argument.value
+      else refuseUnsupported "va_arg incompatible pointer argument type"
+    | _, _, _ => refuseUnsupported "va_arg incompatible argument type"
 
 /-- C23 §6.3.2.3p7 / §6.5.15p6: pointers to compatible integer types
 may carry the same object provenance. The legacy envelope has no structured
@@ -2059,12 +2085,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       match calleeName callee with
       | some _ =>
           let vs ← evalArgs ctx args
-          ctx.call callee none vs
+          ctx.call callee none (args.zipWith (fun e v => ⟨v, e.structuredType?⟩) vs)
       | none =>
           let target ← evalArgs ctx [callee]
           let vs ← evalArgs ctx args
           match target with
-          | [value] => ctx.call callee (some value) vs
+          | [value] =>
+              ctx.call callee (some value) (args.zipWith (fun e v => ⟨v, e.structuredType?⟩) vs)
           | _ => refuseUnsupported "indirect call lost its callee value"
 
   -- N3220 §6.5.4.4p2–5: fixed-size operands and alignof operands are
@@ -2110,7 +2137,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       let av ← evalExpr ctx ap
       let p ← asPtr av
       let v ← popVaArg p
-      checkVaType ctx ty structuredType v
+      checkVaType ctx.layout structuredType v
   | .initList .. => refuseUnsupported "initializer list (inch 4)"
   | .arrayInitList .. => refuseUnsupported "initializer list in value position"
   | .designatedUpdate .. => refuseUnsupported "designated initializer update in value position"
