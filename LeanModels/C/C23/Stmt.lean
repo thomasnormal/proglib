@@ -225,7 +225,8 @@ def zeroMembers : Nat → Ctx → Ptr → String → List (String × String) →
               refuseUnsupported "zero-initialized bit-field lacks parser-native QualType"
             else
               zeroInit fuel ctx (Mem.member p off) mty
-                (ctx.layout.memberRecordDeclAt declaration nm)
+                ((ctx.layout.fieldDeclAt declaration nm).orElse
+                  (fun _ => ctx.layout.memberRecordDeclAt declaration nm))
         | none => refuseUnsupported s!"no offset for member '{nm}'"
       zeroMembers fuel ctx p ty rest declaration
 
@@ -422,7 +423,8 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
                 initObject fuel ctx (Mem.member p off) mty e
                   ((recordId.bind (fun did => ctx.layout.fieldStructuredDecl did nm)).orElse (fun _ =>
                     ctx.layout.memberRecordDeclAt declaration nm |>.bind ctx.layout.structuredTypeDecl))
-                  (ctx.layout.memberRecordDeclAt declaration nm)
+                  ((ctx.layout.fieldDeclAt declaration nm).orElse
+                    (fun _ => ctx.layout.memberRecordDeclAt declaration nm))
           | none => refuseUnsupported s!"no offset for member '{nm}'"
           initMembers fuel ctx p ty mrest erest declaration
 

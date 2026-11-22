@@ -496,6 +496,26 @@ def layoutFor (envl : Envelope) : Layout :=
         | some (.record _ _ _ (some layout) ..) => recordFieldSize layout f
         | _ => none
     | _ => none
+  let observedFieldDeclFor := fun (did : DeclarationId) (f : String) =>
+    let fromRecord := fun (rid : DeclarationId) =>
+      match ds.find? (fun q => match q with
+        | .record (some rrid) _ _ (some _) _ _ => rrid == rid
+        | _ => false) with
+      | some (.record _ _ fields _ ..) =>
+          fields.find? (fun q : Decl => match q with
+            | .field name _ _ _ _ _ _ => name.getD "" == f
+            | _ => false) |>.bind (fun q => match q with
+              | .field _ _ _ (some fieldId) _ _ _ => some fieldId
+              | _ => none)
+      | _ => none
+    match fromRecord did with
+    | some fieldId => some fieldId
+    | none =>
+        match ds.find? (fun q : Decl => match q with
+          | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did
+          | _ => false) with
+        | some (.var _ _ _ _ _ (some rid) _ _ _) => fromRecord rid
+        | _ => none
   let observedFieldStructuredDeclFor := fun (did : DeclarationId) (f : String) =>
     match ds.find? (fun q => match q with
       | .record (some rrid) _ _ (some _) _ _ => rrid == did
@@ -655,6 +675,7 @@ def layoutFor (envl : Envelope) : Layout :=
     elementSizeDecl := observedDeclElementSize
     fieldSizeDecl := observedFieldSizeDeclFor
     fieldStructuredDecl := observedFieldStructuredDeclFor
+    fieldDecl := observedFieldDeclFor
     fieldBitsDecl := observedFieldBitsDeclFor
     flexibleFieldDecl := observedFlexibleDeclFor
     fieldOffTypeDecl := observedFieldOffTypeDeclFor
