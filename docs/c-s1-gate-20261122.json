@@ -1,0 +1,1482 @@
+{
+  "blockers": [
+    "survey MATCH 1209 is below 1326",
+    "unwitnessed UB verdicts remain",
+    "62 regression rows remain in the loss audit"
+  ],
+  "checker": {
+    "command": "python3 tools/check_c_type_strings.py",
+    "legacy_CType_aliases": 0,
+    "structured_helpers": [
+      "intTyOfStructured",
+      "floatBitsOfStructured",
+      "scalarSizeOfStructured",
+      "objectSizeOfStructured",
+      "structuredDeclarationId",
+      "structuredType?",
+      "cAliasCompatibleStructured"
+    ],
+    "type_string_operations": 0
+  },
+  "loss_against_1326": {
+    "classification_counts": {
+      "correct refusal": 6,
+      "instrument change": 90,
+      "regression": 62
+    },
+    "old_receipt": "3cf3da8cc",
+    "rows": [
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "c-testsuite/single-exec",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "00041.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "c-testsuite/single-exec",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for field ''",
+        "name": "00046.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "c-testsuite/single-exec",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for field ''",
+        "name": "00050.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "c-testsuite/single-exec",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "00112.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "c-testsuite/single-exec",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "00128.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "c-testsuite/single-exec",
+        "current_verdict": "not-parsed",
+        "current_wall": "frontend",
+        "name": "00162.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "current parser-native refusal family, with clean native qualification and no admitted value",
+        "classification": "correct refusal",
+        "corpus": "c-testsuite/single-exec",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer bit-cast across incompatible effective types",
+        "name": "00217.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "20000113-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20000412-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20000605-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+        "name": "20000622-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "20000910-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "not-parsed",
+        "current_wall": "frontend",
+        "name": "20001024-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "20010915-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "20011126-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20020108-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "20021204-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20030916-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "20030928-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 's1'",
+        "name": "20031201-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct a'",
+        "name": "20031211-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/20040307-1.c",
+        "name": "20040307-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20040313-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/20040331-1.c",
+        "name": "20040331-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "not-ingested",
+        "current_wall": "ingestion",
+        "name": "20040629-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+        "name": "20041112-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+        "name": "20050125-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:nonValueRepresentation",
+        "name": "20050215-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "20050218-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20050224-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20060905-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20071030-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation on an array subobject",
+        "name": "20080424-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct s'",
+        "name": "20081117-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "20081218-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "20100827-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "20190901-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "current parser-native refusal family, with clean native qualification and no admitted value",
+        "classification": "correct refusal",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "20230630-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "current parser-native refusal family, with clean native qualification and no admitted value",
+        "classification": "correct refusal",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "20230630-3.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "930429-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "951204-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+        "name": "960116-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:character-pointer subscript with long index requires an exact parser path",
+        "name": "960321-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "961017-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "961017-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "961125-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer bit-cast across incompatible effective types",
+        "name": "980223.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "980602-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct c'",
+        "name": "990326-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "990513-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "991201-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "991227-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for field ''",
+        "name": "anon-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "ashldi-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "ashrdi-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/bf-sign-1.c",
+        "name": "bf-sign-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct tmp'",
+        "name": "bf64-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "current parser-native refusal family, with clean native qualification and no admitted value",
+        "classification": "correct refusal",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "bitfld-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "current parser-native refusal family, with clean native qualification and no admitted value",
+        "classification": "correct refusal",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "bitfld-10.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct s'",
+        "name": "bitfld-4.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "bitfld-8.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "bitfld-9.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/bitfld-signed1-1.c",
+        "name": "bitfld-signed1-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "builtin-bitops-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "divcmp-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "divcmp-3.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "doloop-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "doloop-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "fprintf-chk-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "ieee/20001122-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "ieee/compare-fp-4.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "loop-11.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "loop-ivopts-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "lshrdi-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "memcpy-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "memcpy-bi.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "memset-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "multi-ix.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "nestfunc-4.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/pr103417.c",
+        "name": "pr103417.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr108498-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr110165-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr110166-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr110252-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr111613.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "pr116799.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr123978.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr19005.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:indeterminate lvalue read requires a representation choice",
+        "name": "pr19687.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:nonValueRepresentation",
+        "name": "pr22098-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:nonValueRepresentation",
+        "name": "pr22098-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:nonValueRepresentation",
+        "name": "pr22098-3.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr27260.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr31169.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "pr34415.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:nonValueRepresentation",
+        "name": "pr36339.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr37573.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+        "name": "pr39233.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr40493.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr42512.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr43784.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr45034.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr47337.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/pr49768.c",
+        "name": "pr49768.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr49886.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "pr52979-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "pr52979-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "pr53084.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "pr58984.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr60017.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr61725.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "pr65215-3.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr65401.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr65418-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr66556.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr68506.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr68532.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr70127.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr70566.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S[21]'",
+        "name": "pr70602.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr71083.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S[2]'",
+        "name": "pr71700.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr78170.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr78675.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "pr79737-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr82387.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr85529-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+        "name": "pr86231.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:character-pointer subscript with long index requires an exact parser path",
+        "name": "pr86528.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr86659-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr86659-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:non-null string initializer element exceeds the array extent",
+        "name": "pr86714.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr87290.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr88693.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr88739.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "pr89195.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer bit-cast across incompatible effective types",
+        "name": "pr90025.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr94734.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr95731.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:nonValueRepresentation",
+        "name": "pr97421-3.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct S'",
+        "name": "pr97764.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:partly initialized bit-field byte",
+        "name": "pr98366.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "pr98736.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no size for pointee of 'char *'",
+        "name": "pr98853-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "printf-chk-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "not-parsed",
+        "current_wall": "frontend",
+        "name": "restrict-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "split-path-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "ssad-run.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "strcpy-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "string-opt-17.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "strlen-3.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "correct refusal",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation on an array subobject",
+        "name": "strlen-4.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "fresh native O0/O2 agree and no C UB witness was found",
+        "classification": "regression",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/struct-ini-2.c",
+        "name": "struct-ini-2.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/struct-ini-3.c",
+        "name": "struct-ini-3.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "switch-1.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "new bounded-controller timeout outside the 2026-11-22 comparison receipt",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "timeout",
+        "current_wall": "timeout",
+        "name": "usad-run.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "va-arg-10.c",
+        "old_verdict": "passed"
+      },
+      {
+        "basis": "reused from the 2026-11-20 per-row audit",
+        "classification": "instrument change",
+        "corpus": "gcc.c-torture/execute",
+        "current_verdict": "refused-unsupported",
+        "current_wall": "unsupported:pointer operation involving a string literal",
+        "name": "va-arg-9.c",
+        "old_verdict": "passed"
+      }
+    ]
+  },
+  "schema": "c-s1-gate-20261122",
+  "status": "S1 NOT READY",
+  "survey": {
+    "counts": {
+      "failed": 2,
+      "no-entry-point": 100,
+      "not-ingested": 1,
+      "not-parsed": 432,
+      "oracle-tests-compiler": 1,
+      "passed": 1209,
+      "refused-libc": 26,
+      "refused-ub": 53,
+      "refused-unsupported": 406,
+      "timeout": 84
+    },
+    "diverge": 0,
+    "match": 1209,
+    "receipt": "docs/c-survey.json",
+    "total": 2114
+  },
+  "ub_gate": {
+    "evidence_counts": {
+      "clean-no-ub-witness": 26,
+      "oracle-no-result": 5,
+      "sanitizer-witness": 22
+    },
+    "refused_ub_rows": 53,
+    "unwitnessed_rows": 31
+  }
+}
