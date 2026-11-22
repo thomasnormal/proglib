@@ -2296,3 +2296,29 @@ classifier.  It took 52.294 seconds and reached a peak child-process RSS of
 No construct-specific refusal was reached, so no clean-room fixture is
 attributed to this real-core run.  The table reports the tactic gaps exactly
 as observed and does not use `#reduce`.
+
+## 2026-11-22 `sv_structure` measurement on the current branch
+
+The real RISCV_FORMAL envelope was rerun at the pinned 26-parameter default
+vector with the clocked `sv_structure` stage.  The pass exited 1 after 59.505
+seconds and reached a peak process-tree RSS of 810,636 KiB.  The only message
+reached was the controlled simplification timeout below.  The recognizer did
+not inspect any construct or profile classifier, so the zeroes in the table
+mean not reached and do not assign a refusal to that construct.
+
+| construct family | refusal count | exact refusal message | status |
+| --- | ---: | --- | --- |
+| source-shaped normalization inside clocked instantiation | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at simp, maximum number of heartbeats (200000) has been reached` | reached |
+| plain or edge event lists | 0 | — | not reached |
+| procedural `for` | 0 | — | not reached |
+| generate `for` / `if` | 0 | — | not reached |
+| parameter type and width cases | 0 | — | not reached |
+| function call | 0 | — | not reached |
+| aggregate read | 0 | — | not reached |
+| select or concatenation target | 0 | — | not reached |
+| several continuous drivers / resolved net | 0 | — | not reached |
+| unsupported declaration or process member | 0 | — | not reached |
+
+No clean-room fixture is attributed to this run because no construct-specific
+classifier was reached.  This measurement used the clocked stages and did
+not use `#reduce`.
