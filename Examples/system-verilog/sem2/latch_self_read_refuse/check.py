@@ -27,7 +27,7 @@ endmodule
 
 
 def run_case(source, top, expected, simulator):
-    with tempfile.TemporaryDirectory(prefix="sv-latch-self-read-", dir="/scratch/thomas-ahle/gate/ls-sv") as td:
+    with tempfile.TemporaryDirectory(prefix="sv-latch-self-read-") as td:
         td = Path(td)
         tb = td / "tb.sv"
         tb.write_text(TB.replace("DUT", top))
