@@ -8,6 +8,16 @@ instruction, order and PCs. The post-edge comparison covers initialized
 physical register cells and the external byte memory. Canonical E currently
 refuses the top with `Schedule:preemptive` before reset. The whole-core ADDI obligation remains open. [Obligation](R2.lean) · [Loaded design](input_drive_core.lean)
 
+The generated ALU writer and its `always @*` reader can interleave at a
+blocking assignment (§4.7). At cycle 12 of a five-instruction branch program,
+the operands change from 0 and 5 to 5 and 5. Icarus 13.0 and Xcelium
+24.03-s004 both sampled `alu_eq=1` and `alu_out_0=1`. Replaying the same two
+Slang process bodies from those sampled inputs also produces `alu_out_0=0`
+when the reader samples the old equality before the writer finishes. Cycle 28
+of the default program gives `1` and `x`. The replay explores every ready
+statement choice until both processes return to their event controls. Whole-core
+reachability of the alternate retirement remains open. [Run the replay](preemption_check.py)
+
 PicoRV32 is the first R2 candidate selected by the admission census.  The
 source is YosysHQ's `picorv32` repository at commit
 [`ef203c2b0a3fb793280f5114941416c425c5b461`](https://github.com/YosysHQ/picorv32/commit/ef203c2b0a3fb793280f5114941416c425c5b461),
