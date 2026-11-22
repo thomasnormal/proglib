@@ -1832,3 +1832,22 @@ premises. The generic RVFI adapter and ISA-side boundary infrastructure remain
 for the first invariant that discharges those premises on the loaded design.
 The older dated receipts above describe their historical state and are not
 current theorem claims.
+
+## 2026-11-22 current loader census
+
+The current census runs `load_design_sv2` in a generated Lean probe and takes
+rows only from the resulting `CoreMemDesign`.  The deleted Python admission
+classifier is not used.  Its self-test passes with 109 admitted and 1 refused
+row across memory, declaration, process, continuous-assignment, and refusal
+fixtures.
+
+| core | envelope SHA-256 | loader census | refusal |
+| --- | --- | --- | --- |
+| PicoRV32 RISCV_FORMAL | `17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236` | 0 admitted / 1 refused / 0 not reached | `Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between blocking writes; canonical E refuses a multi-write reactive process whose intermediate value another process can read` |
+| DarkRISCV | `ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32` | 186 admitted / 0 refused / 0 not reached | — |
+| SERV | `16fda64594ee48e3e8bc3c14dd2072ef1e17b87f9261cea80cd4fdda4e9980ef` | 0 admitted / 1 refused / 0 not reached | `module 'serv_rf_ram': parameter 'depth' default: division by zero in a constant context (reads x)` |
+| FemtoRV32 Quark | `c713348d83761d2a9856c986eedde195782a72d9dbfaa6c29c8286598f0afc95` | 0 admitted / 1 refused / 0 not reached | `E memory route does not yet admit module member 'Shift:invalid-compilation' (frontend rejected source containing a shift)` |
+
+The earlier dated census sections remain historical telemetry.  These rows are
+the current loader results and preserve every refusal instead of assigning
+admission or reachability from envelope syntax.
