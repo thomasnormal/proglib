@@ -1,5 +1,5 @@
 import LeanModels.Sv.Ingest2
-import LeanModels.Sv.Kernel.CoreMemExec
+import LeanModels.Sv.Kernel.CoreMemResume
 
 namespace Examples.«system-verilog».sem2.memory_edge_loop_e
 

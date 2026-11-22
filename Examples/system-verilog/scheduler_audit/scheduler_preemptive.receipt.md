@@ -30,3 +30,7 @@ extends the scalar and memory NBA queues in issue order.
 The matching combinational relation has `CombPhaseStep.exists_of_mem`, so a
 successful retained combinational resume is likewise an explicit active-region
 choice.
+
+The edge cursor also retains counted procedural loops as `EdgeWork.edgeLoop`.
+Its kernel-checked loop equation exposes one iterator value and the remaining
+values separately, so loop iterations remain suspendable active-region work.
