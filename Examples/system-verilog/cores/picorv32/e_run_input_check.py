@@ -1,254 +1,217 @@
 #!/usr/bin/env python3
-"""Compare the loaded PicoRV32 against both simulators for 300 input cycles.
-
-The testbench prints every observed output in bit form, retaining mixed
-four-state values that hexadecimal formatting would hide.  The Lean side
-replays the same reset and memory-input rows through the exact canonical-E
-executor and compares every printed output field at every cycle.
-"""
+"""Compare every PicoRV32 output after each rising edge, including reset."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 from pathlib import Path
-import re
 import subprocess
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[4]
-SOURCE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.v"
-ENVELOPE = ROOT / "Examples/system-verilog/cores/picorv32/picorv32_r2.sv.json"
-TESTBENCH = ROOT / "Examples/system-verilog/cores/picorv32/rvfi_long_e_probe.v"
-TRANSCRIPT = ROOT / "Examples/system-verilog/cores/picorv32/pico_simulator_transcript.txt"
-EXPECTED_CYCLES = 300
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
+SOURCE = HERE / "picorv32_r2.v"
+ENVELOPE = HERE / "picorv32_r2.sv.json"
+TESTBENCH = HERE / "rvfi_long_e_probe.v"
+TRANSCRIPT = HERE / "pico_simulator_transcript.txt"
+REPLAY = ROOT / "harness/rv/picorv32_input_replay.lean"
 SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb0622"
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
-TESTBENCH_SHA256 = "1dc356fbe89e36a5cd5e66006fdc32d9b7106f49f364c44ebcaa2b0ad42952fe"
-TRANSCRIPT_SHA256 = "09380d29f5201a61f56e9101affb3d0e20ff6c601fae7a52bb33c65bb9875947"
+TESTBENCH_SHA256 = "9c9ab2cd5f91849bcc19b8cb81ab828da1082ce55d14b3716b24ea012a83e87a"
+TRANSCRIPT_SHA256 = "7eaef1b04e2fa561b6de06cca91a96d3148a1ab9858cf10a3f07dcf259c31721"
 EXPECTED_LOAD_REFUSAL = (
     "Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between "
     "blocking writes; canonical E refuses a multi-write reactive process "
     "whose intermediate value another process can read"
 )
-
-INPUTS = {
-    "resetn", "mem_ready", "mem_rdata", "pcpi_wr", "pcpi_rd",
-    "pcpi_wait", "pcpi_ready", "irq",
-}
-WIDTHS = {
-    "trap": 1, "mem_valid": 1, "mem_instr": 1, "mem_addr": 32,
-    "mem_wdata": 32, "mem_wstrb": 4, "mem_la_read": 1,
-    "mem_la_write": 1, "mem_la_addr": 32, "mem_la_wdata": 32,
-    "mem_la_wstrb": 4, "rvfi_valid": 1, "rvfi_order": 64,
-    "pcpi_valid": 1, "pcpi_insn": 32, "pcpi_rs1": 32, "pcpi_rs2": 32,
-    "eoi": 32, "trace_valid": 1, "trace_data": 36,
-    "rvfi_insn": 32, "rvfi_trap": 1, "rvfi_halt": 1, "rvfi_intr": 1,
-    "rvfi_mode": 2, "rvfi_ixl": 2, "rvfi_rs1_addr": 5,
-    "rvfi_rs1_rdata": 32, "rvfi_rs2_addr": 5, "rvfi_rs2_rdata": 32,
-    "rvfi_rd_addr": 5, "rvfi_rd_wdata": 32, "rvfi_pc_rdata": 32,
-    "rvfi_pc_wdata": 32, "rvfi_mem_addr": 32, "rvfi_mem_rmask": 4,
-    "rvfi_mem_wmask": 4, "rvfi_mem_rdata": 32, "rvfi_mem_wdata": 32,
-}
+RESET_CYCLES = 4
+CASE_CYCLES = {"program": 300, "counters": 23}
+ICARUS_PIN = "s20250103-64-gdad78d525"
+XCELIUM_PIN = "24.03-s004"
 
 
-def run(command: list[str], cwd: Path, timeout: int = 900) -> str:
-    result = subprocess.run(
-        command, cwd=cwd, text=True, stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT, check=False, timeout=timeout,
-    )
+def run(command: list[str | Path], cwd: Path, timeout: int | None = 900) -> str:
+    result = subprocess.run(command, cwd=cwd, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, timeout=timeout)
     if result.returncode:
-        raise RuntimeError(
-            "command failed (%d): %s\n%s"
-            % (result.returncode, " ".join(command), result.stdout)
-        )
+        raise RuntimeError(f"{command[0]} exited {result.returncode}\n{result.stdout[-4000:]}")
     return result.stdout
 
 
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def port_widths() -> tuple[dict[str, int], dict[str, int]]:
+    envelope = json.loads(ENVELOPE.read_text())
+    top = next(m for m in envelope["design"]["modules"] if m["name"] == "picorv32")
+    inputs = {p["name"]: p["width"]["resolved"] for p in top["ports"] if p["dir"] == "in"}
+    outputs = {p["name"]: p["width"]["resolved"] for p in top["ports"] if p["dir"] == "out"}
+    return inputs, outputs
 
 
-def parse_rows(output: str) -> list[dict[str, str]]:
-    rows = [
-        dict(re.findall(r"(\w+)=([^ ]+)", line))
-        for line in output.splitlines() if line.startswith("CYCLE ")
-    ]
-    if len(rows) != EXPECTED_CYCLES:
-        raise RuntimeError("expected %d cycle rows, got %d" %
-                           (EXPECTED_CYCLES, len(rows)))
-    for row in rows:
-        if set(row) != set(WIDTHS) | {"resetn", "mem_ready", "mem_rdata"}:
-            raise RuntimeError("cycle row fields changed: %s" % sorted(row))
+def parse_rows(lines: list[str], schema: dict[str, int], active: int) -> list[dict[str, str]]:
+    if len(lines) != RESET_CYCLES + active:
+        raise ValueError(f"expected {RESET_CYCLES} reset and {active} active samples, got {len(lines)}")
+    rows = []
+    for cycle, line in enumerate(lines, -RESET_CYCLES):
+        tag, index, *fields = line.split()
+        if (tag, index) != ("CYCLE", str(cycle)):
+            raise ValueError(f"cycle {cycle}: bad row number {index}")
+        row = dict(field.split("=", 1) for field in fields)
+        if row.keys() != schema.keys() or len(row) != len(fields):
+            raise ValueError(f"cycle {cycle}: missing, extra or duplicate trace field")
+        for name, width in schema.items():
+            if len(row[name]) != width or set(row[name]) - set("01xz"):
+                raise ValueError(f"cycle {cycle}: bad {width}-bit value for {name}: {row[name]}")
+        if row["resetn"] != str(int(cycle >= 0)):
+            raise ValueError(f"cycle {cycle}: unexpected reset value")
+        rows.append(row)
     return rows
+
+
+def compare(label: str, expected: list[dict[str, str]], actual: list[dict[str, str]]) -> None:
+    for cycle, (left, right) in enumerate(zip(expected, actual, strict=True), -RESET_CYCLES):
+        for name, value in left.items():
+            if value != right[name]:
+                raise ValueError(f"{label} cycle {cycle}: {name} expected={value} actual={right[name]}")
 
 
 def check_program(rows: list[dict[str, str]]) -> None:
     retired = [row for row in rows if row["rvfi_valid"] == "1"]
-    words = [format(int(row["rvfi_insn"], 2), "08x") for row in retired[:9]]
-    expected = [
-        "00500093", "00700113", "002081b3", "10302023",
-        "10002203", "00418463", "02a00313", "000f83b3", "00100073",
-    ]
-    if words != expected:
-        raise RuntimeError("unexpected retired program prefix: %s" % words)
-    if "06300293" in words:
-        raise RuntimeError("branch fall-through instruction retired")
-    if retired[3]["rvfi_mem_wmask"] != "1111":
-        raise RuntimeError("store row has no full-word write mask")
-    if retired[4]["rvfi_mem_rmask"] != "1111":
-        raise RuntimeError("load row has no full-word read mask")
-    if "x" not in retired[7]["rvfi_rd_wdata"].lower():
-        raise RuntimeError("uninitialized-register row did not retain x")
+    words = [f'{int(row["rvfi_insn"], 2):08x}' for row in retired]
+    expected = ["00500093", "00700113", "002081b3", "10302023", "10002203",
+                "00418463", "02a00313", "000f83b3", "00100073"]
+    if words != expected or retired[-1]["rvfi_trap"] != "1":
+        raise ValueError(f"unexpected retirements: {words}")
+    if retired[3]["rvfi_mem_wmask"] != "1111" or retired[4]["rvfi_mem_rmask"] != "1111":
+        raise ValueError("expected full-word store and load")
+    if "x" not in retired[7]["rvfi_rd_wdata"]:
+        raise ValueError("uninitialized register read lost its x bits")
 
 
-def lean_literal(value: str) -> str:
-    return json.dumps(value.lower())
-
-
-def make_lean_probe(rows: list[dict[str, str]]) -> str:
-    def input_row(resetn: int, mem_ready: int, mem_rdata: int) -> str:
-        return (
-            "[(\"resetn\", LVec.ofNat 1 %d), "
-            "(\"mem_ready\", LVec.ofNat 1 %d), "
-            "(\"mem_rdata\", LVec.ofNat 32 %d), "
-            "(\"pcpi_wr\", LVec.ofNat 1 0), "
-            "(\"pcpi_rd\", LVec.ofNat 32 0), "
-            "(\"pcpi_wait\", LVec.ofNat 1 0), "
-            "(\"pcpi_ready\", LVec.ofNat 1 0), "
-            "(\"irq\", LVec.ofNat 32 0)]" % (resetn, mem_ready, mem_rdata)
-        )
-
-    data_rows = [input_row(0, 1, 0) for _ in range(4)]
+def check_counters(rows: list[dict[str, str]]) -> None:
+    # csrrs rd, csr, x0. Use the instruction to select the RVFI half and
+    # counter. Only the two low-word reads have a nonzero value on this run.
+    reads = {0xc0002473: ("mcycle", 0), 0xc80024f3: ("mcycle", 32),
+             0xc0202573: ("minstret", 0), 0xc82025f3: ("minstret", 32)}
+    retired = []
     for index, row in enumerate(rows):
-        previous = rows[index - 1]["mem_rdata"] if index else "0" * 32
-        if set(previous) - {"0", "1"}:
-            raise RuntimeError("memory input contains unknown bits at cycle %d" % index)
-        data_rows.append(input_row(1, int(row["mem_ready"], 2), int(previous, 2)))
-
-    output_names = [name for name in rows[0] if name in WIDTHS]
-    expected_rows = []
-    for row in rows:
-        fields = []
-        for name in output_names:
-            value = row[name].lower()
-            if len(value) != WIDTHS[name]:
-                raise RuntimeError("field width changed for %s" % name)
-            fields.append("(%s, %s)" % (json.dumps(name), lean_literal(value)))
-        expected_rows.append("[" + ", ".join(fields) + "]")
-
-    observed = ", ".join(
-        "(%s, SvState.showSignal v %s)" % (json.dumps(name), json.dumps(name))
-        for name in output_names
-    )
-    return """import Examples.«system-verilog».cores.picorv32.input_drive_core
-open LeanModels.Sv LeanModels.Sv.Kernel
-namespace Examples.«system-verilog».cores.picorv32
-set_option maxRecDepth 100000
-set_option maxHeartbeats 6000000
-def lowEntry (clk : String) (data : SvState) : SvState := (clk, ⟨#[.l0]⟩) :: data
-def highEntry (clk : String) : SvState := [(clk, ⟨#[.l1]⟩)]
-def rows : List SvState := [
-  %s
-]
-def runRows (d : CoreMemDesign) (s : CoreMemState) : List SvState → Res (List CoreMemState)
- | [] => .ok []
- | row :: rest => do
-   let s' ← d.fastStepCanonical s (lowEntry "clk" row)
-   let s'' ← d.fastStepCanonical s' (highEntry "clk")
-   let tail ← runRows d s'' rest
-   .ok (s'' :: tail)
-def sigs (d : CoreMemDesign) (ss : List CoreMemState) : List (List (String × String)) :=
- ss.drop 4 |>.map fun s => let v := d.scalar.view s.scalar
-   [%s]
-def expected : List (List (String × String)) := [
-  %s
-]
-#eval match picorv32_core_mem with
-| .ok d => match runRows d d.initial rows with
- | .ok ss => if sigs d ss == expected then "ok" else "mismatch"
- | .unsupported msg => "step refusal: " ++ msg
- | .timeout => "step timeout"
-| .unsupported msg => "load refusal: " ++ msg
-| .timeout => "load timeout"
-end Examples.«system-verilog».cores.picorv32
-""" % (",\n  ".join(data_rows), observed,
-       ",\n  ".join(expected_rows))
+        active = None
+        if row["rvfi_valid"] == "1":
+            word = int(row["rvfi_insn"], 2)
+            retired.append(word)
+            active = reads.get(word)
+        for counter in ("mcycle", "minstret"):
+            mask = data = 0
+            if active and active[0] == counter:
+                half = active[1]
+                rd = int(row["rvfi_rd_wdata"], 2)
+                if (half == 0) != (rd != 0):
+                    raise ValueError(f"{counter}: unexpected counter half value {rd}")
+                mask, data = 0xffffffff << half, rd << half
+            for field, value in (("rmask", mask), ("rdata", data), ("wmask", 0), ("wdata", 0)):
+                name = f"rvfi_csr_{counter}_{field}"
+                if row[name] != f"{value:064b}":
+                    raise ValueError(f"cycle {index-RESET_CYCLES}: wrong {name}")
+    if retired != [*reads, 0x00100073] or rows[-1]["rvfi_trap"] != "1":
+        raise ValueError(f"counter test ended without its four reads and ebreak: {retired}")
 
 
-def canonical_e_run(rows: list[dict[str, str]]) -> str:
+def case_lines(transcript: list[str], case: str) -> list[str]:
+    return transcript[transcript.index("BEGIN " + case) + 1:transcript.index("END " + case)]
+
+
+def check_pins() -> None:
+    for path, digest in ((SOURCE, SOURCE_SHA256), (ENVELOPE, ENVELOPE_SHA256),
+                         (TESTBENCH, TESTBENCH_SHA256), (TRANSCRIPT, TRANSCRIPT_SHA256)):
+        if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            raise ValueError(f"pinned hash mismatch for {path.name}")
+
+
+def trace_schema() -> tuple[dict[str, int], int]:
+    inputs, outputs = port_widths()
+    # clk is sampled at the rising edge. The trace retains the response
+    # before that edge and the new response after the NBA updates.
+    schema = {k: v for k, v in inputs.items() if k != "clk"} | outputs
+    schema["sampled_rdata"] = inputs["mem_rdata"]
+    return schema, len(outputs)
+
+
+def compile_bench(work: Path) -> list[str]:
+    versions = [run(["iverilog", "-V"], work).splitlines()[0],
+                run(["xrun", "-version"], work).splitlines()[0]]
+    if ICARUS_PIN not in versions[0] or XCELIUM_PIN not in versions[1]:
+        raise ValueError(f"unexpected simulator versions: {versions}")
+    print(*versions, sep="\n", flush=True)
+    top = "tb_picorv32_rvfi_long"
+    run(["iverilog", "-g2012", "-DRISCV_FORMAL", "-s", top, "-o", "bench", SOURCE, TESTBENCH], work)
+    run(["xrun", "-elaborate", "-sv", "-q", "-define", "RISCV_FORMAL", "-top", top, SOURCE, TESTBENCH], work)
+    return versions
+
+
+def simulate(work: Path, args: list[str]) -> list[str]:
+    records = []
+    for command in (["vvp", "bench", *args], ["xrun", "-R", "-q", *args]):
+        records.append([line for line in run(command, work).splitlines()
+                        if line.startswith(("CYCLE ", "CONSOLE ", "END trap="))])
+    for index, (a, b) in enumerate(zip(*records, strict=True)):
+        if a != b:
+            raise ValueError(f"simulators differ at record {index}\nIcarus {a}\nXcelium {b}")
+    return records[0]
+
+
+def replay(files: list[Path], counts: list[int], output_count: int) -> bool:
     run(["lake", "build", "Examples.«system-verilog».cores.picorv32.input_drive_core"], ROOT)
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".lean", prefix="picorv32-e-run-",
-        dir=ROOT / ".lake", delete=False,
-    ) as handle:
-        handle.write(make_lean_probe(rows))
-        probe = Path(handle.name)
-    try:
-        output = run(["lake", "env", "lean", str(probe)], ROOT)
-    finally:
-        probe.unlink(missing_ok=True)
-    return replay_result(output)
+    result = run(["lake", "env", "lean", "--run", REPLAY, *files], ROOT, timeout=None).strip()
+    if result == "load refusal: " + EXPECTED_LOAD_REFUSAL:
+        print(f"canonical E: 0/{sum(counts)} samples; {result}")
+        return False
+    if result.splitlines() != [f"{n} samples, {output_count} outputs agree" for n in counts]:
+        raise RuntimeError(f"unexpected canonical-E result\n{result}")
+    print(f"canonical E: {sum(counts)}/{sum(counts)} samples, {output_count} outputs agree")
+    return True
 
 
-def replay_result(output: str) -> str:
-    result = output.strip()
-    if result == '"ok"':
-        return ""
-    if result == json.dumps("load refusal: " + EXPECTED_LOAD_REFUSAL, ensure_ascii=False):
-        return EXPECTED_LOAD_REFUSAL
-    raise RuntimeError("unexpected canonical-E result\n" + output)
-
-
-def main() -> int:
-    for path, digest in ((SOURCE, SOURCE_SHA256),
-                         (ENVELOPE, ENVELOPE_SHA256),
-                         (TESTBENCH, TESTBENCH_SHA256)):
-        if sha256(path) != digest:
-            raise RuntimeError("pinned hash mismatch: " + str(path))
-    iverilog = run(["iverilog", "-V"], ROOT)
-    if "Icarus Verilog version 13.0" not in iverilog:
-        raise RuntimeError("unexpected Icarus version")
-    xrun = run(["xrun", "-version"], ROOT)
-    if "24.03-s004" not in xrun:
-        raise RuntimeError("unexpected Xcelium version")
-    with tempfile.TemporaryDirectory(prefix="picorv32-e-run-", dir=ROOT / ".lake") as work:
-        directory = Path(work)
-        ivvp = directory / "ivvp"
-        run(["iverilog", "-g2012", "-DRISCV_FORMAL", "-s",
-             "tb_picorv32_rvfi_long", "-o", str(ivvp), str(SOURCE), str(TESTBENCH)], directory)
-        icarus = parse_rows(run(["vvp", str(ivvp)], directory))
-        xcelium = parse_rows(run(["xrun", "-sv", "-q", "-define", "RISCV_FORMAL",
-                                  "-top", "tb_picorv32_rvfi_long", str(SOURCE), str(TESTBENCH)], directory))
-    if icarus != xcelium:
-        raise RuntimeError("simulator traces differ")
-    if sha256(TRANSCRIPT) != TRANSCRIPT_SHA256:
-        raise RuntimeError("checked-in simulator transcript hash mismatch")
-    transcript = parse_rows(TRANSCRIPT.read_text())
-    if transcript != icarus:
-        raise RuntimeError("checked-in simulator transcript differs from current rows")
-    check_program(icarus)
-    load_refusal = canonical_e_run(icarus)
-    digest = hashlib.sha256("\n".join(
-        " ".join("%s=%s" % pair for pair in sorted(row.items()))
-        for row in icarus
-    ).encode()).hexdigest()
-    print("Icarus Verilog 13.0 (s20250103-64-gdad78d525) and Xcelium 24.03-s004 agree on %d/%d cycles" %
-          (len(icarus), EXPECTED_CYCLES))
-    print("source SHA-256: " + SOURCE_SHA256)
-    print("envelope SHA-256: " + ENVELOPE_SHA256)
-    print("testbench SHA-256: " + TESTBENCH_SHA256)
-    print("simulator transcript SHA-256: " + TRANSCRIPT_SHA256)
-    print("normalized binary cycle-row SHA-256: " + digest)
-    if load_refusal:
-        print("canonical-E: 0/%d cycles; design instantiation refused before reset: %s" %
-              (len(icarus), load_refusal))
-    else:
-        print("canonical-E: %d/%d cycles and all %d observed outputs match" %
-              (len(icarus), len(icarus), len(WIDTHS)))
-    return 0
+def main() -> None:
+    check_pins()
+    schema, output_count = trace_schema()
+    transcript = TRANSCRIPT.read_text().splitlines()
+    with tempfile.TemporaryDirectory(prefix="picorv32-input-") as tmp:
+        work = Path(tmp)
+        if compile_bench(work) != transcript[:2]:
+            raise ValueError("simulator versions differ from the transcript")
+        files = []
+        counts = []
+        for case, active in CASE_CYCLES.items():
+            records = simulate(work, ["+counters"] if case == "counters" else [])
+            lines = [line for line in records if line.startswith("CYCLE ")]
+            live = parse_rows(lines, schema, active)
+            saved = case_lines(transcript, case)
+            reference = parse_rows(saved, schema, active)
+            compare(case + " transcript", reference, live)
+            if case == "program":
+                check_program(live)
+            else:
+                check_counters(live)
+                # Corrupt one observed read-mask bit in the pinned transcript.
+                name = "rvfi_csr_mcycle_rmask"
+                index = next(i for i, row in enumerate(reference) if "1" in row[name])
+                corrupt = reference.copy()
+                corrupt[index] = reference[index] | {name: reference[index][name][:-1] + "0"}
+                try:
+                    compare("negative control", corrupt, live)
+                except ValueError as exc:
+                    if not str(exc).startswith(f"negative control cycle {index-RESET_CYCLES}: {name} "):
+                        raise
+                    print(exc)
+                else:
+                    raise AssertionError("corrupted RVFI read mask passed")
+            file = work / (case + ".rows")
+            file.write_text("\n".join(saved) + "\n")
+            files.append(file)
+            counts.append(len(live))
+            print(f"{case}: {RESET_CYCLES} reset + {active} post-reset samples, {output_count} simulator outputs agree")
+        replay(files, counts, output_count)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
