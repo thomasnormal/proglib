@@ -52,7 +52,8 @@ def first_difference(left: list[str], right: list[str]) -> str:
     return "no difference"
 
 
-def run_receipt() -> tuple[list[str], list[str]]:
+def run_receipt(testbench: Path | None = None, top: str | None = None,
+                cycles: int = EXPECTED_ROWS) -> tuple[list[str], list[str]]:
     root_text = os.environ.get("DARKRISCV_ROOT")
     root = (Path(root_text).resolve() if root_text else Path(__file__).with_name("rtl").parent)
     source = root / "rtl" / "darkriscv.v"
@@ -69,9 +70,9 @@ def run_receipt() -> tuple[list[str], list[str]]:
 
     repo = Path(__file__).resolve().parents[4]
     testbench_text = os.environ.get("DARKRISCV_TESTBENCH")
-    testbench = (Path(testbench_text).resolve() if testbench_text
+    testbench = testbench or (Path(testbench_text).resolve() if testbench_text
                  else repo / "Examples/system-verilog/cores/darkriscv/nop_tb.sv")
-    top = os.environ.get("DARKRISCV_TOP", "darkriscv_nop_tb")
+    top = top or os.environ.get("DARKRISCV_TOP", "darkriscv_nop_tb")
     with tempfile.TemporaryDirectory(
         prefix="darkriscv-receipt-",
         dir=os.environ.get("TMPDIR"),
@@ -95,14 +96,14 @@ def run_receipt() -> tuple[list[str], list[str]]:
             top, str(testbench), str(source),
         ], sim_work))
 
-    if len(icarus_rows) != EXPECTED_ROWS or len(xcelium_rows) != EXPECTED_ROWS:
+    if len(icarus_rows) != cycles or len(xcelium_rows) != cycles:
         raise SystemExit(
-            f"expected {EXPECTED_ROWS} rows, got Icarus={len(icarus_rows)} "
+            f"expected {cycles} rows, got Icarus={len(icarus_rows)} "
             f"Xcelium={len(xcelium_rows)}"
         )
     if icarus_rows != xcelium_rows:
         raise SystemExit(
-            "the pinned simulators disagree on the 1000-cycle witness: "
+            f"the pinned simulators disagree on the {cycles}-cycle witness: "
             + first_difference(icarus_rows, xcelium_rows)
         )
     return icarus_rows, xcelium_rows

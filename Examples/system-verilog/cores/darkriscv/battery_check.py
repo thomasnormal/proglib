@@ -37,13 +37,17 @@ FIELDS = (
 )
 
 
-def parse_rows(lines: list[str]) -> list[dict[str, str]]:
+def parse_rows(lines: list[str], cycles: int | None = None, *,
+               observe_x2: bool = False) -> list[dict[str, str]]:
     rows = [dict(re.findall(r"(\w+)=([^ ]+)", line)) for line in lines]
-    if len(rows) != EXPECTED_CYCLES:
-        raise RuntimeError(f"expected {EXPECTED_CYCLES} simulator rows, got {len(rows)}")
+    cycles = EXPECTED_CYCLES if cycles is None else cycles
+    if len(rows) != cycles:
+        raise RuntimeError(f"expected {cycles} simulator rows, got {len(rows)}")
     for row in rows:
         row.setdefault("instr_ack", "1")
     required = {name for name, _, _ in FIELDS} | {"cycle", "instr_ack"}
+    if observe_x2:
+        required.update(("x2", "esimack"))
     for row in rows:
         if set(row) != required:
             raise RuntimeError(f"simulator row fields changed: {sorted(row)}")
@@ -58,12 +62,14 @@ def bits(raw: str, width: int) -> str:
     return format(int(raw, 16), f"0{width}b")
 
 
-def expected_rows(lines: list[str]) -> list[list[tuple[str, str]]]:
+def expected_rows(lines: list[str], cycles: int | None = None, *,
+                  observe_x2: bool = False) -> list[list[tuple[str, str]]]:
     fields = FIELDS + (("instr_ack", "IDACK", 1),)
     return [
         [(lean_name, bits(row[sim_name], width)) for sim_name, lean_name, width in fields]
         + [("CLK", "1")]
-        for row in parse_rows(lines)
+        + ([("ESIMACK", bits(row["esimack"], 1)), ("REGS[2]", bits(row["x2"], 32))] if observe_x2 else [])
+        for row in parse_rows(lines, cycles, observe_x2=observe_x2)
     ]
 
 
@@ -83,11 +89,22 @@ def lean_rows(rows: list[list[tuple[str, str]]]) -> str:
 def make_probe(rows: list[list[tuple[str, str]]], corrupted: list[list[tuple[str, str]]]) -> str:
     expected = lean_rows(rows)
     wrong = lean_rows(corrupted)
-    stimuli = [(dict(row)["IDATA"], dict(row)["DDACK"], dict(row).get("IDACK", "1")) for row in rows]
-    if any(set(idata) - {"0", "1"} or set(ddack) - {"0", "1"} or set(idack) - {"0", "1"}
-           for idata, ddack, idack in stimuli):
-        raise RuntimeError("program input contains unknown instruction data")
-    stimulus = ",\n".join(f"  ({int(idata, 2)}, {int(ddack, 2)}, {int(idack, 2)})" for idata, ddack, idack in stimuli)
+    stimuli = []
+    for fields in rows:
+        row = dict(fields)
+        idata, ddack, idack = (int(row[name], 2) for name in ("IDATA", "DDACK", "IDACK"))
+        data = row["DATAI"]
+        if len(data) != 32 or set(data) - set("01xz"):
+            raise ValueError(f"invalid 32-bit DATAI: {data}")
+        stimuli.append(f'  ({idata}, {ddack}, {idack}, LVec.lit "{data}")')
+    stimulus = ",\n".join(stimuli)
+    sim_control = ""
+    sim_output = ""
+    register_sample = ""
+    if "REGS[2]" in dict(rows[0]):
+        sim_control = ', ("ESIMREQ", bits 1 0)'
+        sim_output = ', "ESIMACK"'
+        register_sample = ' ++ [("REGS[2]", ((s.memory.read "REGS" 2).map LVec.toBinString).getD "<absent>")]'
     return f'''import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemFast
 open LeanModels.Sv LeanModels.Sv.Kernel
@@ -95,30 +112,30 @@ set_option maxRecDepth 100000
 set_option maxHeartbeats 6000000
 load_design_sv2 dark from "{ENVELOPE}"
 def bits (w n : Nat) := LVec.ofNat w n
-def row (res : Nat) (clk : Nat) (idata ddack idack : Nat) : SvState := [
-  ("CLK", bits 1 clk), ("RES", bits 1 res), ("IRQ", bits 32 0),
+def row (res : Nat) (clk : Nat) (idata ddack idack : Nat) (data : LVec) : SvState := [
+  ("CLK", bits 1 clk), ("RES", bits 1 res), ("IRQ", bits 1 0){sim_control},
   ("IDATA", bits 32 idata), ("IDACK", bits 1 idack), ("IBERR", bits 1 0),
-  ("DATAI", bits 32 0), ("DDACK", bits 1 ddack), ("DBERR", bits 1 0)]
+  ("DATAI", data), ("DDACK", bits 1 ddack), ("DBERR", bits 1 0)]
 def cycle (d : CoreMemDesign) (s : CoreMemState) (res idata ddack idack : Nat) : Res CoreMemState := do
-  let low ← d.fastStepCanonical s (row res 0 idata ddack idack)
-  d.fastStepCanonical low (row res 1 idata ddack idack)
+  let low ← d.fastStepCanonical s (row res 0 idata ddack idack (bits 32 0))
+  d.fastStepCanonical low (row res 1 idata ddack idack (bits 32 0))
 def resetN (d : CoreMemDesign) : Nat → CoreMemState → Res CoreMemState
   | 0, s => .ok s
   | n + 1, s => do
       let s' ← cycle d s 1 19 1 1
       resetN d n s'
-def runRows (d : CoreMemDesign) : CoreMemState → List (Nat × Nat × Nat) → Res (List CoreMemState)
+def runRows (d : CoreMemDesign) : CoreMemState → List (Nat × Nat × Nat × LVec) → Res (List CoreMemState)
   | s, [] => .ok []
-  | s, (idata, ddack, idack) :: rest => do
-      let low ← d.fastStepCanonical s (row 0 0 idata ddack idack)
-      let s' ← d.fastStepCanonical low (row 0 1 idata ddack idack)
+  | s, (idata, ddack, idack, data) :: rest => do
+      let low ← d.fastStepCanonical s (row 0 0 idata ddack idack data)
+      let s' ← d.fastStepCanonical low (row 0 1 idata ddack idack data)
       let tail ← runRows d s' rest
       .ok (s' :: tail)
 def names : List String := ["RES", "IDREQ", "IADDR", "IDATA",
   "DDREQ", "DADDR", "DLEN", "DBE", "DRW", "DRD", "DWR", "DATAO", "DATAI",
-  "DDACK", "DEBUG", "IDACK", "CLK"]
+  "DDACK", "DEBUG", "IDACK", "CLK"{sim_output}]
 def sigs (d : CoreMemDesign) (states : List CoreMemState) : List (List (String × String)) :=
-  states.map fun s => names.map fun name => (name, SvState.showSignal (d.scalar.view s.scalar) name)
+  states.map fun s => (names.map fun name => (name, SvState.showSignal (d.scalar.view s.scalar) name)){register_sample}
 def firstFieldMismatch : List (String × String) → List (String × String) → Option (String × String × String)
   | [], _ => none
   | _, [] => none
@@ -134,7 +151,7 @@ def firstMismatch : Nat → List (List (String × String)) → List (List (Strin
         | none => some (n, "<row>", "<different>", "<different>")
 def expected : List (List (String × String)) := {expected}
 def corrupted : List (List (String × String)) := {wrong}
-#eval match PDesign.instantiateCoreMem dark.pdesign [0] with
+#eval match dark.e 0 with
 | .ok d => match d.initialState with
   | .ok initial => match resetN d 4 initial with
     | .ok resetState => match runRows d resetState [
@@ -154,12 +171,14 @@ def corrupted : List (List (String × String)) := {wrong}
 '''
 
 
-def run_lean(rows: list[list[tuple[str, str]]]) -> tuple[bool, bool, str]:
-    corrupted = [[*row] for row in rows]
-    corrupted[0] = [
-        (name, "1" * len(value) if name == "IADDR" else value)
-        for name, value in corrupted[0]
-    ]
+def run_lean(rows: list[list[tuple[str, str]]],
+             corrupted: list[list[tuple[str, str]]] | None = None) -> tuple[bool, bool, str]:
+    if corrupted is None:
+        corrupted = [*rows]
+        corrupted[0] = [
+            (name, "1" * len(value) if name == "IADDR" else value)
+            for name, value in rows[0]
+        ]
     probe = ROOT / ".lake" / f"darkriscv-battery-{os.getpid()}.lean"
     probe.write_text(make_probe(rows, corrupted))
     try:

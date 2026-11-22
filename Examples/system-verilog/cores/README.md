@@ -1592,9 +1592,15 @@ hash and rejects a corrupted expected row through its negative control.
 Transcript SHA-256 is
 `3400eeedcb8f2121397d603ea8b3be72b8633b79fe1a540c8eb7ea9c0381adaa`.
 
-This image does not leave an x-valued register.  The x-register requirement
-remains open because DarkRISCV initializes its register file to zero and the
-PicoRV32 x-register run currently stops at the canonical-E scheduling wall.
+The separate `darkriscv/x_register_check.py` exercises a load from a partially
+initialized external word. Icarus Verilog 13.0 (`s20250103-64-gdad78d525`),
+Xcelium 24.03-s004 and canonical E agree on the 32 rising edges in
+`darkriscv/x_register_transcript.txt`. Register x2 starts at zero, takes
+24 unknown upper bits and a low byte of 0xa5 at cycle 6, and retains that
+value through cycle 31. At cycle 9 the core drives the word on DATAO for
+a store to address 4. All output ports and x2 are compared bit for bit.
+Changing one unknown bit of the expected x2 to zero fails the Lean comparison.
+This hand-written load/store program is counted separately from RV32UI.
 
 
 ## 2026-11-22 DarkRISCV rv32ui/addi differential
