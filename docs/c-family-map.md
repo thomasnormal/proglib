@@ -639,3 +639,11 @@ audit rows (`20000113-1.c`, `bf-sign-2.c`, `bitfld-8.c`, `bitfld-9.c`,
 Clang `-O0`/`-O2` and UBSan/ASan runs. The remaining 15 rows need the same
 native qualification before a bit-field byte rule can replace the loud
 read-modify-write refusal.
+
+**String-pointer wall price (2026-11-22).** The dynamic ranking has 19 sole
+rows refusing pointer operations involving string literals. Nine available C1
+samples exit 0 at pinned Clang `-O0` and `-O2` with clean UBSan/ASan runs.
+String-literal storage and pointer provenance are therefore the next
+self-contained evaluator boundary after the current layout and evidence
+prices. Native cleanliness alone does not establish the model's pointer-byte
+or lifetime rule.
