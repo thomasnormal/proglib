@@ -418,6 +418,7 @@ structure Layout where
   fieldOffTypeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldSizeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldStructuredDecl : DeclarationId → String → Option LeanModels.Clang.QualType := fun _ _ => none
+  fieldDecl : DeclarationId → String → Option DeclarationId := fun _ _ => none
   fieldOffDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldBitsDecl : DeclarationId → String → Option (Nat × Nat) := fun _ _ => none
   flexibleFieldDecl : DeclarationId → String → Bool := fun _ _ => false
@@ -471,7 +472,11 @@ def Layout.fieldOffDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty : String) (field : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffDecl did field)
 
-/-- Resolve an anonymous-member offset through parser-native base declaration identity. -/
+/-- Resolve a member's own parser declaration identity. -/
+def Layout.fieldDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (field : String) : Option DeclarationId :=
+  decl.bind (fun did => layout.fieldDecl did field)
+
 def Layout.fieldOffTypeDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty fieldTy : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffTypeDecl did fieldTy)
