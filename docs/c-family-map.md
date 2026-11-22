@@ -608,3 +608,11 @@ changes before the F1 threshold is assessed.
 `pr70566.c` and `pr86844.c`. The current model either matches or stops at the
 named partly-initialized-bit-field wall on these unchanged sources. No
 sanitizer witness supports classifying that wall as undefined behavior.
+
+**Abort-wall price (2026-11-22).** The first 20 `libc-call: __builtin_abort`
+sole rows all exit 0 under pinned Clang `-O0` and `-O2`; 19 sanitizer runs are
+clean and one reports a sanitizer diagnostic. This wall is an evaluator
+wrong-answer cluster, not an oracle-test membership shortcut. The first sample
+`20080719-1.c` exercises static aggregate arrays, a function return pointer and
+switch selection, so its next price is static aggregate/pointer layout before
+widening abort handling.
