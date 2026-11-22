@@ -3,6 +3,13 @@
   "fuel": 2000,
   "cases": [
     {
+      "name": "resolved_four_state_enum",
+      "example": "sem2/resolved_enum",
+      "top": "resolved_enum",
+      "signals": ["x", "z", "mixed", "known"],
+      "stimulus": [{}]
+    },
+    {
       "name": "reset_event_iff_refuse",
       "example": "sem2/reset_event_iff",
       "top": "reset_event_iff",

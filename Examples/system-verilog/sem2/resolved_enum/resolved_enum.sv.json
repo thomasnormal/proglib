@@ -1,0 +1,396 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "resolved_enum",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/resolved_enum/resolved_enum.sv",
+      "sha256": "326867f84ba008dfdb1f6db05733951638f6452256d75be8662436bec33535f3"
+    }
+  ],
+  "packages": [
+    "states"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 7,
+          "col": 1,
+          "end_line": 12,
+          "end_col": 10
+        },
+        "name": "resolved_enum",
+        "imports": [],
+        "params": [],
+        "types": [
+          {
+            "kind": "EnumType",
+            "span": {
+              "line": 3,
+              "col": 11,
+              "end_line": 4,
+              "end_col": 64
+            },
+            "name": "state_t",
+            "from_package": "states",
+            "base_width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "members": [
+              {
+                "name": "X_VALUE",
+                "value": "x010"
+              },
+              {
+                "name": "Z_VALUE",
+                "value": "z101"
+              },
+              {
+                "name": "MIXED",
+                "value": "xz01"
+              },
+              {
+                "name": "KNOWN",
+                "value": 3
+              }
+            ]
+          }
+        ],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 40,
+              "end_line": 7,
+              "end_col": 41
+            },
+            "name": "x",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 35,
+                      "end_line": 7,
+                      "end_col": 36
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 37,
+                      "end_line": 7,
+                      "end_col": 38
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "net_as_variable": true
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 43,
+              "end_line": 7,
+              "end_col": 44
+            },
+            "name": "z",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 35,
+                      "end_line": 7,
+                      "end_col": 36
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 37,
+                      "end_line": 7,
+                      "end_col": 38
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "net_as_variable": true
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 46,
+              "end_line": 7,
+              "end_col": 51
+            },
+            "name": "mixed",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 35,
+                      "end_line": 7,
+                      "end_col": 36
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 37,
+                      "end_line": 7,
+                      "end_col": 38
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "net_as_variable": true
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 53,
+              "end_line": 7,
+              "end_col": 58
+            },
+            "name": "known",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 35,
+                      "end_line": 7,
+                      "end_col": 36
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 37,
+                      "end_line": 7,
+                      "end_col": 38
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "net_as_variable": true
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 8,
+              "col": 10,
+              "end_line": 8,
+              "end_col": 29
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 8,
+                "col": 10,
+                "end_line": 8,
+                "end_col": 11
+              },
+              "width": 4,
+              "name": "x"
+            },
+            "value": {
+              "kind": "EnumRef",
+              "span": {
+                "line": 8,
+                "col": 14,
+                "end_line": 8,
+                "end_col": 29
+              },
+              "type": "state_t",
+              "member": "X_VALUE",
+              "from_package": "states"
+            },
+            "continuous_net_target": true
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 9,
+              "col": 10,
+              "end_line": 9,
+              "end_col": 29
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 9,
+                "col": 10,
+                "end_line": 9,
+                "end_col": 11
+              },
+              "width": 4,
+              "name": "z"
+            },
+            "value": {
+              "kind": "EnumRef",
+              "span": {
+                "line": 9,
+                "col": 14,
+                "end_line": 9,
+                "end_col": 29
+              },
+              "type": "state_t",
+              "member": "Z_VALUE",
+              "from_package": "states"
+            },
+            "continuous_net_target": true
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 10,
+              "col": 10,
+              "end_line": 10,
+              "end_col": 31
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 10,
+                "col": 10,
+                "end_line": 10,
+                "end_col": 15
+              },
+              "width": 4,
+              "name": "mixed"
+            },
+            "value": {
+              "kind": "EnumRef",
+              "span": {
+                "line": 10,
+                "col": 18,
+                "end_line": 10,
+                "end_col": 31
+              },
+              "type": "state_t",
+              "member": "MIXED",
+              "from_package": "states"
+            },
+            "continuous_net_target": true
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 11,
+              "col": 10,
+              "end_line": 11,
+              "end_col": 31
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 11,
+                "col": 10,
+                "end_line": 11,
+                "end_col": 15
+              },
+              "width": 4,
+              "name": "known"
+            },
+            "value": {
+              "kind": "EnumRef",
+              "span": {
+                "line": 11,
+                "col": 18,
+                "end_line": 11,
+                "end_col": 31
+              },
+              "type": "state_t",
+              "member": "KNOWN",
+              "from_package": "states"
+            },
+            "continuous_net_target": true
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
