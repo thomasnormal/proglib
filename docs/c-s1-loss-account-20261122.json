@@ -1,0 +1,1124 @@
+{
+  "schema": "c-s1-loss-account-20261122-v2",
+  "old_receipt": "3cf3da8cc",
+  "current_receipt": "f25b23fcd",
+  "current_log": "/scratch/thomas-ahle/gate/ls-cpp/full-survey/20261122T-serial-deterministic-full-current-f25b23fcd.log",
+  "headline": {
+    "raw": "1275/2214",
+    "active": "1275/2114"
+  },
+  "classification_counts": {
+    "correct refusal": 3,
+    "instrument change": 8,
+    "regained": 67,
+    "regression": 80
+  },
+  "rows": [
+    {
+      "name": "00041.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "00046.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "00050.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "00112.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "00128.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "00162.c",
+      "old_verdict": "passed",
+      "current_verdict": "not-parsed",
+      "current_detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
+      "classification": "regression"
+    },
+    {
+      "name": "00217.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer bit-cast across incompatible effective types",
+      "classification": "correct refusal"
+    },
+    {
+      "name": "20000113-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "20000412-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "20000605-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "20000622-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "integer-to-pointer conversion outside pointer type",
+      "classification": "regression"
+    },
+    {
+      "name": "20000910-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "20001024-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "not-parsed",
+      "current_detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
+      "classification": "regression"
+    },
+    {
+      "name": "20010915-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "20011126-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "20020108-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "20021204-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "20030916-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "20030928-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "20031201-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 's1'",
+      "classification": "regression"
+    },
+    {
+      "name": "20031211-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct a'",
+      "classification": "regression"
+    },
+    {
+      "name": "20040307-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/20040307-1.c:7:3)'",
+      "classification": "regression"
+    },
+    {
+      "name": "20040313-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "20040331-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/20040331-1.c:9:3)'",
+      "classification": "regression"
+    },
+    {
+      "name": "20040629-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "not-ingested",
+      "current_detail": "envelope: FunctionDecl: CompoundStmt: CompoundAssignOperator: CompoundAssignOperator: missing parser-native structured type 'structured_type'",
+      "classification": "regression"
+    },
+    {
+      "name": "20041112-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "integer-to-pointer conversion outside pointer type",
+      "classification": "regression"
+    },
+    {
+      "name": "20050125-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "integer-to-pointer conversion outside pointer type",
+      "classification": "regression"
+    },
+    {
+      "name": "20050215-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "nonValueRepresentation",
+      "classification": "regression"
+    },
+    {
+      "name": "20050218-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "instrument change"
+    },
+    {
+      "name": "20050224-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "20060905-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "20071030-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "20080424-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation on an array subobject",
+      "classification": "instrument change"
+    },
+    {
+      "name": "20081117-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct s'",
+      "classification": "regression"
+    },
+    {
+      "name": "20081218-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "20100827-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "20190901-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "20230630-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "20230630-3.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "930429-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "951204-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "960116-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "integer-to-pointer conversion outside pointer type",
+      "classification": "regression"
+    },
+    {
+      "name": "960321-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "character-pointer subscript with long index requires an exact parser path",
+      "classification": "regression"
+    },
+    {
+      "name": "961017-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "961017-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "961125-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "980223.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer bit-cast across incompatible effective types",
+      "classification": "regression"
+    },
+    {
+      "name": "980602-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "990326-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct c'",
+      "classification": "regression"
+    },
+    {
+      "name": "990513-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "991201-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "991227-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "anon-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "ashldi-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "ashrdi-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "bf-sign-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/bf-sign-1.c:7:3)'",
+      "classification": "regression"
+    },
+    {
+      "name": "bf64-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct tmp'",
+      "classification": "regression"
+    },
+    {
+      "name": "bitfld-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "bitfld-10.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "bitfld-4.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct s'",
+      "classification": "regression"
+    },
+    {
+      "name": "bitfld-8.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "bitfld-9.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "bitfld-signed1-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/bitfld-signed1-1.c:5:1)'",
+      "classification": "regression"
+    },
+    {
+      "name": "builtin-bitops-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "divcmp-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "divcmp-3.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "doloop-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "doloop-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "fprintf-chk-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "ieee/20001122-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "ieee/compare-fp-4.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "loop-11.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "loop-ivopts-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "lshrdi-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "memcpy-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "memcpy-bi.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "memset-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "multi-ix.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "nestfunc-4.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "pr103417.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/pr103417.c:4:1)'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr108498-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr110165-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr110166-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr110252-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr111613.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr116799.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "pr123978.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr19005.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr19687.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "indeterminate lvalue read requires a representation choice",
+      "classification": "correct refusal"
+    },
+    {
+      "name": "pr22098-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "nonValueRepresentation",
+      "classification": "regression"
+    },
+    {
+      "name": "pr22098-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "nonValueRepresentation",
+      "classification": "regression"
+    },
+    {
+      "name": "pr22098-3.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "nonValueRepresentation",
+      "classification": "regression"
+    },
+    {
+      "name": "pr27260.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr31169.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr34415.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "pr36339.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "nonValueRepresentation",
+      "classification": "regression"
+    },
+    {
+      "name": "pr37573.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr39233.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "integer-to-pointer conversion outside pointer type",
+      "classification": "regression"
+    },
+    {
+      "name": "pr40493.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr42512.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr43784.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr45034.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr47337.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "goto-controlled pointer increment lacks an exact parser path",
+      "classification": "instrument change"
+    },
+    {
+      "name": "pr49768.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/pr49768.c:8:10)'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr49886.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr52979-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr52979-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr53084.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "pr58984.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr60017.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr61725.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr65215-3.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr65401.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr65418-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr66556.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr68506.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr68532.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr70127.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr70566.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr70602.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S[21]'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr71083.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr71700.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S[2]'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr78170.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr78675.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr79737-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr82387.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr85529-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr86231.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "integer-to-pointer conversion outside pointer type",
+      "classification": "regression"
+    },
+    {
+      "name": "pr86528.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "character-pointer subscript with long index requires an exact parser path",
+      "classification": "instrument change"
+    },
+    {
+      "name": "pr86659-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr86659-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr86714.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "non-null string initializer element exceeds the array extent",
+      "classification": "regression"
+    },
+    {
+      "name": "pr87290.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr88693.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "character-pointer subscript with long index requires an exact parser path",
+      "classification": "regression"
+    },
+    {
+      "name": "pr88739.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr89195.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr90025.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer bit-cast across incompatible effective types",
+      "classification": "instrument change"
+    },
+    {
+      "name": "pr94734.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr95731.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr97421-3.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "nonValueRepresentation",
+      "classification": "instrument change"
+    },
+    {
+      "name": "pr97764.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct S'",
+      "classification": "regression"
+    },
+    {
+      "name": "pr98366.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "partly initialized bit-field byte",
+      "classification": "regression"
+    },
+    {
+      "name": "pr98736.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "pr98853-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no size for pointee of 'char *'",
+      "classification": "regression"
+    },
+    {
+      "name": "printf-chk-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "restrict-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "not-parsed",
+      "current_detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
+      "classification": "regression"
+    },
+    {
+      "name": "split-path-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "ssad-run.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "strcpy-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+      "classification": "regained"
+    },
+    {
+      "name": "string-opt-17.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "regression"
+    },
+    {
+      "name": "strlen-3.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "strlen-4.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation on an array subobject",
+      "classification": "correct refusal"
+    },
+    {
+      "name": "struct-ini-2.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/struct-ini-2.c:4:1)'",
+      "classification": "regression"
+    },
+    {
+      "name": "struct-ini-3.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "no layout for bit-field record 'struct (unnamed struct at src/struct-ini-3.c:4:1)'",
+      "classification": "regression"
+    },
+    {
+      "name": "switch-1.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "usad-run.c",
+      "old_verdict": "passed",
+      "current_verdict": "passed",
+      "current_detail": "",
+      "classification": "regained"
+    },
+    {
+      "name": "va-arg-10.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "instrument change"
+    },
+    {
+      "name": "va-arg-9.c",
+      "old_verdict": "passed",
+      "current_verdict": "refused-unsupported",
+      "current_detail": "pointer operation involving a string literal",
+      "classification": "instrument change"
+    }
+  ]
+}
