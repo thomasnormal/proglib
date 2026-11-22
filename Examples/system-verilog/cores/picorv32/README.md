@@ -2379,3 +2379,27 @@ branch.  The memory stays unchanged, `rdata1` reads the prior `regs[30]`, and
 `rdata2` reads the prior `regs[29]`, for arbitrary 4-state memory contents.
 This theorem is `picorv32_regs_unknown_wen_step` and has the same three-axiom
 footprint.
+
+## 2026-11-22 clocked-stage refusal table on current master
+
+After rebasing onto public master `f00843a19`, the real RISCV_FORMAL envelope
+was rerun through `sv_structure` at the pinned 26-parameter default vector.
+The pass stopped in controlled normalization before the construct/profile
+classifier.  It took 52.294 seconds and reached a peak child-process RSS of
+2,414,224 KiB, with `maxRecDepth 10000` and `maxHeartbeats 200000`.
+
+| construct family | refusal count | exact refusal message | status |
+| --- | ---: | --- | --- |
+| procedural `for` in an edge process | 0 | — | not reached |
+| generate loop | 0 | — | not reached |
+| function call | 0 | — | not reached |
+| aggregate read | 0 | — | not reached |
+| select or concatenation target | 0 | — | not reached |
+| several continuous drivers / resolved net | 0 | — | not reached |
+| level or unsupported event list | 0 | — | not reached |
+| unsupported declaration shape | 0 | — | not reached |
+| source-shaped normalization | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at isDefEq, maximum number of heartbeats (200000) has been reached` | reached |
+
+No construct-specific refusal was reached, so no clean-room fixture is
+attributed to this real-core run.  The table reports the tactic gaps exactly
+as observed and does not use `#reduce`.
