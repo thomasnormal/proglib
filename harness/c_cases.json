@@ -1694,5 +1694,40 @@
     "expect": "refuse",
     "error": "indetAutomatic",
     "sanitize": true
+  },
+  {
+    "id": "canonical-nested-record-array-initializers",
+    "source": "typedef struct { int x; unsigned short tail[3]; } R; static R a[3] = { [2] = { .x = 4, .tail = { [2] = 7 } }, [0] = { .x = 1 } }; int main(void) { return a[0].x != 1 || a[0].tail[1] != 0 || a[1].x != 0 || a[2].tail[0] != 0 || a[2].tail[2] != 7; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "canonical-empty-nested-initializer",
+    "source": "struct Inner { char c; int *p; }; struct Outer { int x; struct Inner child[2]; }; int main(void) { struct Outer v = {}; return v.x != 0 || v.child[1].c != 0 || v.child[0].p != 0 || v.child[1].p != 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "canonical-empty-scalar-initializer",
+    "source": "int main(void) { int a = {}; int b = {13}; int *p = {}; return a != 0 || b != 13 || p != 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "canonical-empty-record-padding",
+    "source": "struct S { char c; unsigned int n; }; int main(void) { struct S s = {}; unsigned char *p = (unsigned char *)&s; return s.c != 0 || s.n != 0 || (sizeof s > 5 && p[1] != 0); }",
+    "expect": "refuse",
+    "error": "indeterminate lvalue read requires a representation choice",
+    "sanitize": true
+  },
+  {
+    "id": "canonical-initializer-order-dependence",
+    "source": "int value; int bump(void) { return ++value; } int main(void) { int a[2][1] = {{bump()}, {value}}; return a[0][0] + a[1][0]; }",
+    "expect": "refuse",
+    "error": "initializer evaluations have an unspecified order",
+    "sanitize": true
   }
 ]
