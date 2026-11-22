@@ -149,6 +149,20 @@
     "expected_stdout": "AB 00ab"
   },
   {
+    "id": "printf-float-fixed-six",
+    "source": "#include <stdio.h>\nint main(void) { printf(\"%f %f\", 12.34f, -56.78f); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "12.340000 -56.779999"
+  },
+  {
+    "id": "printf-double-fixed-six",
+    "source": "#include <stdio.h>\nint main(void) { printf(\"%f, %f\\n\", 12.34, 56.78); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "12.340000, 56.780000\n"
+  },
+  {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
     "expect": "refuse",

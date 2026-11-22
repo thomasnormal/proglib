@@ -1272,6 +1272,22 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
               modify (fun mem => mem.emitStdout (chars ++ [CByte.conc 10]))
               pure (.int IntTy.int_ 0)
           | _ => refuseUnsupported "puts: wrong argument count"
+        let formatFixed6 (q : LeanModels.SoftFloat.Q) : String :=
+          let negative := q.num < 0
+          let magnitude := q.num.natAbs * 1000000
+          let whole := magnitude / q.den
+          let remainder := magnitude % q.den
+          let rounded := whole +
+            if 2 * remainder > q.den ||
+                (2 * remainder == q.den && whole % 2 == 1) then 1 else 0
+          let integerPart := toString (rounded / 1000000)
+          let fraction := toString (rounded % 1000000)
+          let fraction := String.ofList (List.replicate (6 - fraction.length) '0') ++ fraction
+          (if negative then "-" else "") ++ integerPart ++ "." ++ fraction
+        let formatFloatFixed6 : CVal → Option String
+          | .float32 f => (LeanModels.SoftFloat.valQ f.unpack).map formatFixed6
+          | .float64 f => (LeanModels.SoftFloat.valQ f.unpack).map formatFixed6
+          | _ => none
         let runSprintf : List CVal → ExecM CVal := fun vs =>
           match vs with
           | dst :: fmt :: args => do
@@ -1323,6 +1339,12 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                 | .conc 37 :: .conc 48 :: .conc 50 :: .conc 100 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let rendered := if n >= 0 && n < 10 then "0" ++ toString n else toString n
+                    let tail ← formatSprintf rest as
+                    pure (rendered.toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 102 :: rest, a :: as => do
+                    let rendered ← match formatFloatFixed6 a with
+                      | some text => pure text
+                      | none => refuseUnsupported "sprintf: non-finite or non-floating argument"
                     let tail ← formatSprintf rest as
                     pure (rendered.toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
                 | .conc 37 :: .conc 35 :: .conc 104 :: .conc 104 :: .conc 111 :: rest, a :: as => do
@@ -1396,6 +1418,12 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                     let (_, n) ← asInt a
                     let tail ← format rest as
                     pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 102 :: rest, a :: as => do
+                    let rendered ← match formatFloatFixed6 a with
+                      | some text => pure text
+                      | none => refuseUnsupported "printf: non-finite or non-floating argument"
+                    let tail ← format rest as
+                    pure (rendered.toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
                 | .conc 37 :: .conc 120 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let rendered := printfHexDigits false n.toNat
