@@ -869,3 +869,12 @@ UBSan/ASan runs. The receipt is in
 with machine rows in
 [`docs/c-expr-cleanups-price-20261122.json`](c-expr-cleanups-price-20261122.json).
 The refusal remains the cleanup-expression lifetime boundary.
+
+**OffsetOfExpr wall price (2026-11-22).** The dynamic ranking has three sole
+rows refusing `OffsetOfExpr`. All three have clean pinned O0/O2 and UBSan/ASan
+runs. The receipt is in
+[`docs/c-OffsetOfExpr-price-20261122.md`](c-OffsetOfExpr-price-20261122.md),
+with machine rows in
+[`docs/c-OffsetOfExpr-price-20261122.json`](c-OffsetOfExpr-price-20261122.json).
+The refusal remains the parser-native offset-of and declaration-layout
+boundary.
