@@ -683,3 +683,10 @@ parser-native float and double objects whose size or IEEE representation is not
 attached to the destination declaration. The binary32/binary64 literal parser
 already has exact bits, so the next self-contained slice is joining those bits
 to declaration-backed stores without guessing a layout.
+
+**Floating-store sample boundary (2026-11-22).** `20000605-1.c` carries
+parser-native `float` QualTypes on the `RenderInfo.scaley` field and local
+`step`/`error` declarations, plus a record layout and binary32 type facts.
+The evaluator still reaches `floating store without a floating layout`, so the
+remaining gap is the expression-to-declaration join at a field or local store,
+not missing Clang bits or ABI size.
