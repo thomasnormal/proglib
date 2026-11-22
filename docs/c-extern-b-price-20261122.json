@@ -1,0 +1,122 @@
+{
+  "rows": [
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "extern object 'b' has no definition in the translation unit",
+      "name": "alias-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "extern object 'b' has no definition in the translation unit",
+      "name": "alias-3.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "extern object 'b' has no definition in the translation unit",
+      "name": "alias-4.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c23-run",
+      "evidence": "clean-no-ub-witness",
+      "model": "extern object 'b' has no definition in the translation unit",
+      "name": "gcc/testsuite/gcc.dg/c23-bool-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-extern-b-price-1",
+  "total": 4
+}
