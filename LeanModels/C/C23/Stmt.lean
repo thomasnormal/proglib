@@ -513,7 +513,12 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
     | rest, [] => zeroMembers fuel ctx p ty rest declaration
     | (nm, mty) :: mrest, e :: erest =>
         let bits := ctx.layout.fieldBitsDeclAt declaration ty nm
-        if ctx.layout.flexibleFieldDeclAt declaration ty nm then
+        let fieldIsFlexible := declaration.bind (fun owner =>
+          (ctx.layout.fieldStructuredDecl owner nm).map fun fieldType =>
+            match fieldType.unqualified with
+            | .array _ none => true
+            | _ => false) |>.getD false
+        if ctx.layout.flexibleFieldDeclAt declaration ty nm || fieldIsFlexible then
           match e with
           | .implicitValueInit _ _ .. => initMembers fuel ctx p ty mrest erest declaration
           | _ => refuseUnsupported s!"explicit initializer for flexible array member '{nm}'"
