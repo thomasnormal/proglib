@@ -853,3 +853,11 @@ UBSan/ASan runs. The receipt is in
 [`docs/c-printf-price-20261122.md`](c-printf-price-20261122.md), with machine
 rows in [`docs/c-printf-price-20261122.json`](c-printf-price-20261122.json).
 The refusal remains the exact unsupported-format boundary.
+
+**setjmp wall price (2026-11-22).** The dynamic ranking has three sole rows
+refusing `libc-call: __builtin_setjmp`. Two rows have clean pinned O0/O2 and
+UBSan/ASan runs. `pr64242.c` exits 0 at O0 and aborts at O2 and under
+sanitizer without a diagnostic. The receipt is in
+[`docs/c-setjmp-price-20261122.md`](c-setjmp-price-20261122.md), with machine
+rows in [`docs/c-setjmp-price-20261122.json`](c-setjmp-price-20261122.json).
+The profile disagreement remains separate from UB.

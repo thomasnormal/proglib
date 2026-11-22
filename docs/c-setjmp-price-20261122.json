@@ -1,0 +1,93 @@
+{
+  "rows": [
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "__builtin_setjmp",
+      "name": "built-in-setjmp.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "nonzero-without-sanitizer-diagnostic",
+      "model": "__builtin_setjmp",
+      "name": "pr64242.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "__builtin_setjmp",
+      "name": "pr84521.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-setjmp-price-1",
+  "total": 3
+}
