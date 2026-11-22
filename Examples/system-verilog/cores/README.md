@@ -734,11 +734,21 @@ The pinned SERV source is `olofk/serv` commit
 `f200eb2ed7b69ac1c6b8eddd47654522aeee5ce8`.  The checked-in
 `serv/check.py` compiles the complete 17-file `serv.core` source set with
 `RISCV_FORMAL` and instantiates `serv_rf_top` with `DEBUG=1`, which is the
-configuration that drives SERV's RVFI outputs.  Its fixed instruction image
-and ready memory interfaces produce 220 rows from each approved simulator.
+configuration that drives SERV's RVFI outputs.  The historical 220-cycle
+mode asserts both acknowledgements even outside requests. It retires a NOP
+first and reports next PC `0x01800000`, so its agreement cannot validate the
+intended instruction program.
 Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on every row.  The normalized
 row SHA-256 is
 `bbe7e48c24f4748f96beaf097df899183a5c15c0e7f51cad68d4057a034320ad`.
+
+The same checker also runs a registered Wishbone responder on both simulators.
+The responder acknowledges requests after a clock and stores a full word at
+byte address 64. The checker compares four-state bus and RVFI fields every
+cycle and checks the seven retirements in order. Two ADDI instructions and one ADD
+produce 17, a store and load transfer that word, a taken branch skips address
+24, and the terminal jump retires at address 28. These 389 cycles are
+simulator comparisons. The canonical E run is still open.
 
 The checked-in `serv/e_check.py` runs `load_design_sv2` against the pinned
 envelope `ea713d68c00b6bc3cc4e892de56bf1ccc74d1ba2dcc9dc30abb9a317c64c7a64`.
