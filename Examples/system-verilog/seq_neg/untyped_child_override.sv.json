@@ -1,0 +1,252 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "untyped_child_override_top",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/seq_neg/untyped_child_override.sv",
+      "sha256": "c968e40f9d905a28f89f4504d105a199da8607a38129df4704a26db339e99454"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 5,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "untyped_child_override_top",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 55,
+              "end_line": 5,
+              "end_col": 56
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 50,
+                      "end_line": 5,
+                      "end_col": 51
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 52,
+                      "end_line": 5,
+                      "end_col": 53
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 6,
+              "col": 44,
+              "end_line": 6,
+              "end_col": 48
+            },
+            "name": "u",
+            "module": "untyped_child_override_leaf",
+            "path": [],
+            "params": [
+              {
+                "name": "P",
+                "expr": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 6,
+                    "col": 36,
+                    "end_line": 6,
+                    "end_col": 41
+                  },
+                  "width": 8,
+                  "bits": "11111111"
+                }
+              }
+            ],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 6,
+                  "col": 46,
+                  "end_line": 6,
+                  "end_col": 47
+                },
+                "port": "y",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 6,
+                    "col": 46,
+                    "end_line": 6,
+                    "end_col": 47
+                  },
+                  "width": 8,
+                  "name": "y"
+                }
+              }
+            ]
+          }
+        ],
+        "others": []
+      },
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 3,
+          "end_col": 10
+        },
+        "name": "untyped_child_override_leaf",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 1,
+              "col": 48,
+              "end_line": 1,
+              "end_col": 53
+            },
+            "name": "P",
+            "type": null,
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 1,
+                "col": 52,
+                "end_line": 1,
+                "end_col": 53
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "resolved": 0
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 75,
+              "end_line": 1,
+              "end_col": 76
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 70,
+                      "end_line": 1,
+                      "end_col": 71
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 72,
+                      "end_line": 1,
+                      "end_col": 73
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 2,
+              "col": 10,
+              "end_line": 2,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 2,
+                "col": 10,
+                "end_line": 2,
+                "end_col": 11
+              },
+              "width": 8,
+              "name": "y"
+            },
+            "value": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 2,
+                "col": 14,
+                "end_line": 2,
+                "end_col": 15
+              },
+              "name": "P"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

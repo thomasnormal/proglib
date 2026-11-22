@@ -63,6 +63,15 @@ load_design_sv2 hierarchyLocalParam from
       | CoreMemProc.assign (.ident n) _ => n == "c.g.u.y"
       | _ => false
   | _ => false
+/-! An untyped child parameter overridden by a sized literal takes the
+override's non-integer type under IEEE 1800-2023 §6.20.2.  The loader keeps
+the design literal, while the canonical hierarchy route refuses `PInst.given`.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 both print `ff`. -/
+load_design_sv2 untypedChildOverride from
+  "Examples/system-verilog/seq_neg/untyped_child_override.sv.json"
+#guard match untypedChildOverride.e with
+  | .unsupported msg => msg == "parameter 'P' has no declared type and its override is not an integer expression (it would take the override's type, IEEE 1800-2023 §6.20.2)"
+  | _ => false
 
 /-! A hierarchy can contain a child whose own default is invalid while an
 instance supplies a valid typed width. The loader keeps the standalone
