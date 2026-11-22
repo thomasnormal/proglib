@@ -1018,6 +1018,19 @@ def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
   | .ok q => .ok (.ptrInt q)
   | .error _ => Mem.loadIntChecked m alias p t ty structured
 
+/-- C23 §6.5.1p7 permits reading pointer representations through a character
+lvalue. The current store lacks a placement oracle for non-null addresses
+and a byte representation for function pointers. -/
+def loadCharacterAt (p : Ptr) (t : IntTy) : EvalM CVal := do
+  let (_, object, offset) ← readMem (fun m => m.resolve p 1)
+  match object.bytes[offset]? with
+  | some (.funByte _) =>
+      refuseUnsupported "function pointer byte representation is unavailable"
+  | some (.ptrByte pointer _) | some (.ptrIntByte pointer _) =>
+      if pointer.isNull then readMem (fun m => m.loadCharacter p t)
+      else refuseUnsupported "pointer byte read requires an address placement oracle"
+  | _ => readMem (fun m => m.loadCharacter p t)
+
 /-- Load whatever an lvalue of this type holds — an integer or a pointer.
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
 implicit of the whole corpus.** -/
@@ -1029,7 +1042,7 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     readMem (fun m => Mem.loadFloat64 m p)
   else if structured.bind intTyOfStructured |>.map (fun t => t.bits == 8) |>.getD false then
     match structured.bind intTyOfStructured with
-    | some t => readMem (fun m => Mem.loadCharacter m p t)
+    | some t => loadCharacterAt p t
     | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
   else if structuredPointerObject structured ty then do
     let q ← readMem (fun m => Mem.loadPtr m p)
@@ -1564,7 +1577,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         else
         -- §6.3.2.1p2 — 1837 sites, the load-bearing implicit of the corpus.
           let p ← evalLValue ctx sub
-          let functionValue ← readMem (fun m => Mem.loadFunction m p)
+          let functionValue ←
+            match (ctx.layout.structuredTypeAt sub).bind LeanModels.Clang.QualType.pointee with
+            | some (.function ..) => readMem (fun m => Mem.loadFunction m p)
+            | _ => pure none
           match functionValue with
           | some id => pure (.funPtr id)
           | none =>
@@ -2680,6 +2696,19 @@ theorem asPtr' (v : CVal) : MemInvariant (asPtr v) := by
 theorem asInt' (v : CVal) : MemInvariant (asInt v) := by
   cases v <;> first | exact pure' _ | exact refuseUnsupported' _ | exact refuseUB' _
 
+theorem loadCharacterAt' (p : Ptr) (t : IntTy) : MemInvariant (loadCharacterAt p t) := by
+  unfold loadCharacterAt
+  apply bind (readMem' _)
+  rintro ⟨_, object, offset⟩
+  cases observed : object.bytes[offset]? with
+  | none => simpa only [observed] using (readMem' (fun m => m.loadCharacter p t))
+  | some byte =>
+      cases byte <;> simp only [observed]
+      all_goals first
+        | exact refuseUnsupported' _
+        | exact readMem' _
+        | exact bif' (readMem' _) (refuseUnsupported' _)
+
 theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none) :
     MemInvariant (loadAt alias p ty size structured) := by
@@ -2687,6 +2716,7 @@ theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option 
   repeat
     first
     | exact readMem' _
+    | exact loadCharacterAt' _ _
     | exact bind (readMem' _) fun _ => pure' _
     | exact refuseUnsupported' _
     | split
@@ -2922,17 +2952,19 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       | implicitCast _ s _ _ _ =>
           obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_implicitCast] at he; omega)
             (Expr.isPure_implicitCast hp)
-          exact ⟨by open_eval; apply MemInvariant.ite' <;>
-              all_goals first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ |
-                (simp [loadBitFieldAt]; mem_inv) | mem_inv,
-            by open_lvalue; mem_inv⟩
+          refine ⟨?_, by open_lvalue; mem_inv⟩
+          open_eval
+          apply MemInvariant.ite' <;>
+            first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ | mem_inv
+          all_goals (simp [loadBitFieldAt]; mem_inv)
       | cast _ s _ _ _ =>
           obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_cast] at he; omega)
             (Expr.isPure_cast hp)
-          exact ⟨by open_eval; apply MemInvariant.ite' <;>
-              all_goals first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ |
-                (simp [loadBitFieldAt]; mem_inv) | mem_inv,
-            by open_lvalue; mem_inv⟩
+          refine ⟨?_, by open_lvalue; mem_inv⟩
+          open_eval
+          apply MemInvariant.ite' <;>
+            first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ | mem_inv
+          all_goals (simp [loadBitFieldAt]; mem_inv)
       | member b f a fieldTy _ recordId _ =>
           obtain ⟨i1, i2⟩ := ih b (by simp only [Expr.size_member] at he; omega)
             (Expr.isPure_member hp)
