@@ -627,12 +627,16 @@ measured split and complete row list are in
 [`docs/c-external-object-price-20261123.md`](c-external-object-price-20261123.md).
 
 **Pointer-bit-cast wall price (2026-11-22).** The dynamic ranking has 25 sole
-rows at `pointer bit-cast across incompatible effective types`. The six
-available C1 samples all exit 0 at pinned Clang `-O0` and `-O2` with clean
-sanitizer runs, but their sources exercise strict-aliasing punning, enum/object
-pointer compatibility, or subobject pointer bounds. Native cleanliness does
-not establish defined C behavior for these cases. The current loud refusal is
-therefore retained pending the effective-type and pointer-provenance family.
+rows at `pointer bit-cast across incompatible effective types`. The complete
+25-row replay has 24 O0/O2-agreeing rows with clean sanitizer runs. `pr60003.c`
+is native NONDET because O0 exits 0 while O2 aborts in its setjmp/longjmp path.
+No sanitizer UB witness was found. The row table is in
+[`docs/c-pointer-bitcast-price-20261122.md`](c-pointer-bitcast-price-20261122.md)
+and the machine receipt is in
+[`docs/c-pointer-bitcast-price-20261122.json`](c-pointer-bitcast-price-20261122.json).
+Native cleanliness does not establish defined C behavior for these cases. The
+current loud refusal is therefore retained pending the effective-type and
+pointer-provenance family.
 
 **Partly initialized bit-field wall price (2026-11-22).** The dynamic ranking
 has 23 sole rows at `partly initialized bit-field byte`. The eight registered
