@@ -207,11 +207,24 @@ private def hParamVals (env : IEnv) : List (String × PExpr) :=
   env.vals.map (fun (n, v) => (n, .int v)) ++ env.nvals.map fun (n, (v, w, signed)) =>
     let value : PExpr :=
       if env.stale.contains n then .unsupported "ParamRef:override-type" (staleMsg2 n)
+      else if signed && w != 32 then
+        .unsupported "ParamRef:signed-width"
+          s!"signed parameter '{n}' has width {w}, which the hierarchy substitution cannot preserve in a wider context"
       else if signed && w == 32 then .int v
       else
         let bits := PExpr.lit (LVec.ofInt w v)
         if signed then .cast true bits else bits
     (n, value)
+
+theorem hParamVals_int_binding (n : String) (v : Int) :
+    (hParamVals { vals := [(n, v)] }).lookup n = some (.int v) := by
+  simp [hParamVals]
+
+theorem hParamVals_signed_narrow_refusal :
+    (hParamVals { nvals := [("P", (-8, 4, true))] }).lookup "P" =
+      some (.unsupported "ParamRef:signed-width"
+        "signed parameter 'P' has width 4, which the hierarchy substitution cannot preserve in a wider context") := by
+  rfl
 
 private def hLhs (pfx : String) : PLhs → PLhs
   | .ident n => .ident (pfx ++ n)
