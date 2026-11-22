@@ -135,6 +135,13 @@
     ]
   },
   {
+    "id": "printf-width-uppercase-hex",
+    "source": "#include <stdio.h>\nint main(void) { printf(\"%04X \", 0x4f60); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "4F60 "
+  },
+  {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
     "expect": "refuse",
