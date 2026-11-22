@@ -235,10 +235,7 @@ private def compoundRegistryCheck : Bool :=
   membersDecl := fun id => if id.value == "record-1" then some [("x", "int")] else none } :
   LeanModels.C.C23.Layout).membersDeclAt (some {value := "record-1"})
     "struct R" == some [("x", "int")]
-#guard ({ LeanModels.C.C23.Layout.unknown with
-  declSize := fun id => if id.value == "record-1" then some 8 else none } :
-  LeanModels.C.C23.Layout).bitFieldStorageSizeAt
-    (some (.declRef (some {value := "record-1"}) "r" "VarDecl" "struct R" default none)) "struct R" == some 8
+#guard LeanModels.C.C23.bitFieldByteCount 12 52 == 7
 #guard ({ LeanModels.C.C23.Layout.unknown with
   structuredExprType := fun offset =>
     if offset == 12 then some (.pointer (.cBuiltinKind .int)) else none } :

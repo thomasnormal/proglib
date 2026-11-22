@@ -170,6 +170,61 @@ bytes over a pointer member would make it read back as an integer and
 `loadPtr` would refuse it — a wrong answer that looks like a right one.
 So the recursion below dispatches on the member's type. -/
 
+private def bitFieldInitValue (ctx : Ctx) : Option Expr → ExecM CVal
+  | none | some (.implicitValueInit ..) => pure (.int IntTy.int_ 0)
+  | some e => evalE ctx e
+
+private def initBitField (ctx : Ctx) (p : Ptr) (declaration : Option DeclarationId)
+    (name ty : String) (offsetBits width : Nat) (initializer : Option Expr) : ExecM Unit := do
+  let structured := declaration.bind (fun did => ctx.layout.fieldStructuredDecl did name)
+  let value ← bitFieldInitValue ctx initializer
+  let _ ← liftEval (storeBitField ty (Mem.member p (offsetBits / 8)) offsetBits width structured value)
+  pure ()
+
+/-- C23 §6.7.11p20 orders initialization, while p24 leaves initializer
+expression evaluation order open. These expressions cannot observe the
+object under initialization or perform side effects. Compose only their
+known bits, then commit shared bytes together. -/
+private def bitFieldInitBits (ctx : Ctx) (ty : String) (declaration : Option DeclarationId) :
+    List (String × String) → List Expr → ExecM (Nat × Nat)
+  | [], [] => pure (0, 0)
+  | [], _ :: _ => refuseUnsupported "more initializers than structure members"
+  | (name, fieldTy) :: rest, initializers => do
+      if name.isEmpty then
+        bitFieldInitBits ctx ty declaration rest initializers
+      else
+        let some (offset, width) := ctx.layout.fieldBitsDeclAt declaration ty name
+          | refuseUnsupported s!"no bit-field layout for '{name}'"
+        let structured := declaration.bind (fun did => ctx.layout.fieldStructuredDecl did name)
+        let some t := bitFieldIntTy structured width
+          | refuseUnsupported (bitFieldTypeError structured fieldTy width)
+        let value ← bitFieldInitValue ctx initializers.head?
+        let (_, n) ← liftEval (asInt value)
+        let (laterMask, laterBits) ← bitFieldInitBits ctx ty declaration rest initializers.tail
+        let factor := 2 ^ offset
+        let mask := (2 ^ width - 1) * factor
+        if mask &&& laterMask != 0 then
+          refuseUnsupported "overlapping bit-field layout in structure initializer"
+        let bits := bitFieldResidue t width n * factor
+        pure (mask ||| laterMask, bits ||| laterBits)
+
+private def independentBitFieldInitializer : Expr → Bool
+  | .implicitValueInit .. => true
+  | e => Expr.isPure e && (readKeys e).isEmpty
+
+private def initBitFieldRecord (ctx : Ctx) (p : Ptr) (ty : String)
+    (declaration : Option DeclarationId) (members : List (String × String))
+    (initializers : List Expr) : ExecM Unit := do
+  let some size := ctx.layout.sizeAt declaration ty
+    | refuseUnsupported s!"no layout for bit-field record '{ty}'"
+  let (mask, bits) ← bitFieldInitBits ctx ty declaration members initializers
+  if mask ≥ 256 ^ size then
+    refuseUnsupported "bit-field extent exceeds its record layout"
+  let old ← liftEval (readMem (fun m => m.loadBytes p size))
+  match mergeBitFieldBytes old mask bits with
+  | some bytes => liftEval (writeMem (fun m => m.storeBytes p bytes))
+  | none => refuseUnsupported "partly initialized bit-field byte"
+
 mutual
 
 /-- Declaration-backed zero initialization uses clang's recursive type
@@ -216,18 +271,18 @@ def zeroMembers : Nat → Ctx → Ptr → String → List (String × String) →
   | 0, _, _, _, _, _ => exhausted
   | _, _, _, _, [], _ => pure ()
   | fuel + 1, ctx, p, ty, (nm, mty) :: rest, declaration => do
-      if ctx.layout.flexibleFieldDeclAt declaration ty nm then
-        pure ()
-      else
-        match ctx.layout.fieldOffDeclAt declaration ty nm with
-        | some off =>
-            if ctx.layout.fieldBitsDeclAt declaration ty nm |>.isSome then
-              refuseUnsupported "zero-initialized bit-field lacks parser-native QualType"
-            else
+      unless ctx.layout.flexibleFieldDeclAt declaration ty nm do
+        match ctx.layout.fieldBitsDeclAt declaration ty nm with
+        | some (offsetBits, width) =>
+            unless nm.isEmpty do
+              initBitField ctx p declaration nm mty offsetBits width none
+        | none =>
+            match ctx.layout.fieldOffDeclAt declaration ty nm with
+            | some off =>
               zeroInit fuel ctx (Mem.member p off) mty
                 ((ctx.layout.fieldDeclAt declaration nm).orElse
                   (fun _ => ctx.layout.memberRecordDeclAt declaration nm))
-        | none => refuseUnsupported s!"no offset for member '{nm}'"
+            | none => refuseUnsupported s!"no offset for member '{nm}'"
       zeroMembers fuel ctx p ty rest declaration
 
 end
@@ -286,11 +341,17 @@ def initObject : Nat → Ctx → Ptr → String → Expr →
           | some _, [] => zeroInit fuel ctx p initTy declaration
           | some ms, e :: _ =>
               let target := field.getD ((ms.head?.map (·.1)).getD "")
-              match ctx.layout.fieldOffDeclAt declaration initTy target with
-              | some off => initObject fuel ctx (Mem.member p off) (ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy) e
-                (ctx.layout.memberRecordDeclAt declaration target |>.bind ctx.layout.structuredTypeDecl)
-                (ctx.layout.memberRecordDeclAt declaration target)
-              | none => refuseUnsupported s!"no offset for union member '{target}'"
+              let mty := ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy
+              match ctx.layout.fieldBitsDeclAt declaration initTy target with
+              | some (offsetBits, width) =>
+                  initBitField ctx p declaration target mty offsetBits width (some e)
+              | none =>
+                  match ctx.layout.fieldOffDeclAt declaration initTy target with
+                  | some off => initObject fuel ctx (Mem.member p off) mty e
+                      (declaration.bind (fun did => ctx.layout.fieldStructuredDecl did target))
+                      ((ctx.layout.fieldDeclAt declaration target).orElse
+                        (fun _ => ctx.layout.memberRecordDeclAt declaration target))
+                  | none => refuseUnsupported s!"no offset for union member '{target}'"
           | _, _ => refuseUnsupported "union initializer has no member"
         else
         match ctx.layout.elemDeclAt declaration ty with
@@ -307,7 +368,12 @@ def initObject : Nat → Ctx → Ptr → String → Expr →
         | none =>
           match ctx.layout.membersDeclAt declaration ty with
           -- a STRUCTURE: members in declaration order, then p10 on the rest
-          | some ms => initMembers fuel ctx p ty ms inits declaration
+          | some ms =>
+              if !ms.isEmpty &&
+                  ms.all (fun (name, _) => (ctx.layout.fieldBitsDeclAt declaration ty name).isSome) &&
+                  inits.all independentBitFieldInitializer then
+                initBitFieldRecord ctx p ty declaration ms inits
+              else initMembers fuel ctx p ty ms inits declaration
           | none => refuseUnsupported s!"cannot initialize aggregate '{ty}'"
     -- §6.7.11p14 — a character array initialized by a string literal gets
     -- the literal's parser-native bytes, including its terminating null.
@@ -397,25 +463,23 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
     -- the list ran out: §6.7.11p10 zeroes every member it did not reach
     | rest, [] => zeroMembers fuel ctx p ty rest declaration
     | (nm, mty) :: mrest, e :: erest =>
+        let bits := ctx.layout.fieldBitsDeclAt declaration ty nm
         if ctx.layout.flexibleFieldDeclAt declaration ty nm then
           match e with
           | .implicitValueInit _ _ .. => initMembers fuel ctx p ty mrest erest declaration
           | _ => refuseUnsupported s!"explicit initializer for flexible array member '{nm}'"
-        else if nm.isEmpty && (ctx.layout.fieldBitsDeclAt declaration ty nm).isSome then
+        else if nm.isEmpty && bits.isSome then
           -- §6.7.11p9: an unnamed bit-field has no member and consumes no
           -- initializer.  The parser-native layout still carries its
           -- storage range, but the initializer sequence skips it.
           initMembers fuel ctx p ty mrest es declaration
         else do
-          match ctx.layout.fieldOffDeclAt declaration ty nm with
-          | some off =>
-              if ctx.layout.fieldBitsDeclAt declaration ty nm |>.isSome then
-                let v ← match e with
-                  | .implicitValueInit _ _ .. =>
-                      refuseUnsupported "implicit bit-field initializer lacks parser-native QualType"
-                  | _ => evalE ctx e
-                liftEval (storeBitFieldAt ctx ty nm mty (Mem.member p off) v)
-              else
+          match bits with
+          | some (offsetBits, width) =>
+              initBitField ctx p declaration nm mty offsetBits width (some e)
+          | none =>
+              match ctx.layout.fieldOffDeclAt declaration ty nm with
+              | some off =>
                 let recordId := declaration.bind (fun did => ctx.layout.structuredTypeDecl did) |>.bind (fun q =>
                   match q.unqualified with
                   | .record handle => some { value := handle.value }
@@ -425,7 +489,7 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
                     ctx.layout.memberRecordDeclAt declaration nm |>.bind ctx.layout.structuredTypeDecl))
                   ((ctx.layout.fieldDeclAt declaration nm).orElse
                     (fun _ => ctx.layout.memberRecordDeclAt declaration nm))
-          | none => refuseUnsupported s!"no offset for member '{nm}'"
+              | none => refuseUnsupported s!"no offset for member '{nm}'"
           initMembers fuel ctx p ty mrest erest declaration
 
 end

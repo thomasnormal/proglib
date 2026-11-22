@@ -396,7 +396,10 @@ def layoutFor (envl : Envelope) : Layout :=
   let tds := typedefsOf envl
   let observed := observedRecordFacts envl
   let structuredRecordIdFor := fun did =>
-    match (envl.structuredTypeFor did).map LeanModels.Clang.QualType.unqualified with
+    let type := (envl.structuredTypeFor did).bind
+      (LeanModels.Clang.QualType.resolveTypedefs
+        (fun handle => envl.structuredTypeFor { value := handle.value }) 32)
+    match type.map LeanModels.Clang.QualType.unqualified with
     | some (.record handle) => some { value := handle.value }
     | _ => none
   let declFieldOff := fun did f =>
@@ -424,6 +427,10 @@ def layoutFor (envl : Envelope) : Layout :=
         | _ => false) with
       | some (.var _ _ _ _ _ (some rid) _ _ _) => some rid
       | _ => structuredRecordIdFor did
+  let observedParentRecordFor := fun did =>
+    (parentRecordIdFor did).bind (fun rid => ds.find? (fun q => match q with
+      | .record (some rrid) _ _ (some _) _ _ => rrid == rid
+      | _ => false))
   let memberRecordDeclFor := fun (did : DeclarationId) (fieldName : String) =>
     match parentRecordIdFor did with
     | some parentId =>
@@ -517,9 +524,7 @@ def layoutFor (envl : Envelope) : Layout :=
         | some (.var _ _ _ _ _ (some rid) _ _ _) => fromRecord rid
         | _ => none
   let observedFieldStructuredDeclFor := fun (did : DeclarationId) (f : String) =>
-    match ds.find? (fun q => match q with
-      | .record (some rrid) _ _ (some _) _ _ => rrid == did
-      | _ => false) with
+    match observedParentRecordFor did with
     | some (.record _ _ fields _ ..) =>
         fields.find? (fun q => match q with
           | .field name _ _ _ _ _ _ => name.getD "" == f
@@ -528,39 +533,13 @@ def layoutFor (envl : Envelope) : Layout :=
             | _ => none)
     | _ => none
   let observedFieldBitsDeclFor := fun (did : DeclarationId) (f : String) =>
-    match ds.find? (fun q => match q with
-      | .record (some rrid) _ _ (some _) _ _ => rrid == did
-      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
-          ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
-            | _ => false)
-      | _ => false) with
-    | some (.record (some rrid) _ _ _ ..) =>
-        match observedRecordLayout? envl rrid with
-        | some layout =>
-            layout.fields.find? (fun field => field.name == f)
-              |>.filter (·.bitfield)
-              |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width)))
-        | none => none
-    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
-        match ds.find? (fun q => match q with
-          | .record (some rrid) _ _ (some _) _ _ => rrid == rid
-          | _ => false) with
-        | some (.record (some rrid) _ _ _ ..) =>
-            match observedRecordLayout? envl rrid with
-            | some layout =>
-                layout.fields.find? (fun field => field.name == f)
-                  |>.filter (·.bitfield)
-                  |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width)))
-            | none => none
-        | _ => none
+    match observedParentRecordFor did with
+    | some (.record _ _ fields (some layout) ..) =>
+        (checkedRecordLayout? fields layout).bind fun checked =>
+          checked.fields.find? (fun field => field.name == f)
+            |>.filter (·.bitfield)
+            |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width)))
     | _ => none
-  let observedFieldBitsFor := fun (t : String) (f : String) =>
-    (observedRecordFacts envl).find? (fun row => row.1 == t)
-      |>.bind (fun row =>
-        row.2.2.fields.find? (fun field => field.name == f)
-          |>.filter (·.bitfield)
-          |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width))))
   let observedFlexibleDeclFor := fun (did : DeclarationId) (f : String) =>
     match ds.find? (fun q => match q with
       | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
@@ -649,22 +628,9 @@ def layoutFor (envl : Envelope) : Layout :=
   let observedUnion := fun t : String =>
     (observed.find? (fun row => row.1 == t)).map (·.2.2.tagKind == "union") |>.getD false
   let observedUnionDeclFor := fun (did : DeclarationId) =>
-    match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
-          ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
-            | _ => false)
-      | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
-        match ds.find? (fun q => match q with
-          | .record (some rrid) _ .. => rrid == rid
-          | _ => false) with
-        | some (.record (some rrid) _ fields (some _) ..) =>
-            match observedRecordLayout? envl rrid with
-            | some layout =>
-                (checkedRecordLayout? fields layout).map (·.tagKind == "union") |>.getD false
-            | none => false
-        | _ => false
+    match observedParentRecordFor did with
+    | some (.record _ _ fields (some layout) ..) =>
+        (checkedRecordLayout? fields layout).map (·.tagKind == "union") |>.getD false
     | _ => false
   { declSize := observedDeclSize
     recordSizeDecl := observedRecordSizeDecl
