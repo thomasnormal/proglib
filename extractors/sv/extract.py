@@ -11226,8 +11226,15 @@ def _convert_packed_pattern(sm, expression):
         # nodes intentionally leave `width` open for the constant tier.  A
         # packed assignment pattern supplies the field context (§10.9), so
         # retain that exact width for correspondence and concatenation.
-        if (part is not None and part.get("kind") != "Unsupported"
-                and width_of(part) is None):
+        if (part is not None and part.get("kind") == "Fill"):
+            bit = part.get("bit")
+            if bit in ("0", "1", "x", "z"):
+                part = {"kind": "Literal", "span": part.get("span"),
+                        "width": int(expected_width),
+                        "bits": bit * int(expected_width),
+                        "assignment_pattern_fill": True}
+        elif (part is not None and part.get("kind") != "Unsupported"
+              and width_of(part) is None):
             part = dict(part)
             part["width"] = int(expected_width)
         parts.append(part)
@@ -36940,17 +36947,19 @@ def _sym_package_params(sm):
                             node.pop("default", None)
                     ptype = node.get("type")
                     initial = node.get("default") or node.get("expr")
-                    if (isinstance(initial, dict)
-                            and initial.get("kind") == "Unsupported"):
-                        fill = _sym_package_default_fill(
-                            sm, getattr(member, "initializer", None),
-                            getattr(t, "bitWidth", 0))
-                        if fill is not None:
-                            node = dict(node)
-                            if node.get("kind") == "LocalParam":
-                                node["expr"] = fill
-                            else:
-                                node["default"] = fill
+                    fill = _sym_package_default_fill(
+                        sm, getattr(member, "initializer", None),
+                        getattr(t, "bitWidth", 0))
+                    if fill is not None:
+                        node = dict(node)
+                        if node.get("kind") == "LocalParam":
+                            node["expr"] = fill
+                        else:
+                            node["default"] = fill
+                    elif (isinstance(initial, dict)
+                          and initial.get("kind") == "Unsupported"):
+                        node = dict(node)
+                        node["default"] = initial
                     if ptype is None and type(t).__name__ == "TypeAliasType":
                         width = getattr(t, "bitWidth", None)
                         if isinstance(width, int) and 1 <= width <= 256:
