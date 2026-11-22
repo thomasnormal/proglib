@@ -269,6 +269,16 @@ every lemma below would need a well-formedness side condition saying it
 does not. `List.length` is that invariant, discharged by construction. -/
 def CObj.size (c : CObj) : Nat := c.bytes.length
 
+/-- An evaluated call argument and its parser-provided type after promotion. -/
+structure CallArgument where
+  value : CVal
+  promotedType : Option QualType
+deriving Repr, Inhabited, BEq
+
+def CallArgument.renameAddress (resolve : ObjId → Nat) (argument : CallArgument) :
+    CallArgument :=
+  { argument with value := argument.value.renameAddress resolve }
+
 /-- The object store. Objects are only ever appended, never removed, so
 an `ObjId` is stable for the whole execution and provenance never
 dangles into a reused slot. -/
@@ -283,7 +293,7 @@ structure Mem where
   stdout : List CByte := []
   /-- Abstract `va_list` cursors. Keys are the parser-allocated object ids;
   the representation deliberately contains no ABI addresses or widths. -/
-  vaCursors : List (ObjId × List CVal) := []
+  vaCursors : List (ObjId × List CallArgument) := []
   /-- Block-scoped compound literals are one parser node's automatic object
   per enclosing block entry (§6.5.2.5p5).  The identity table lets repeated
   loop execution reuse that object instead of fabricating a fresh address. -/
@@ -339,7 +349,7 @@ def renameAddresses (resolve : ObjId → Nat) (m : Mem) : Mem :=
   { m with
     objs := m.objs.map (CObj.renameAddress resolve)
     stdout := m.stdout.map (CByte.renameAddress resolve)
-    vaCursors := m.vaCursors.map (fun (o, vs) => (o, vs.map (CVal.renameAddress resolve)))
+    vaCursors := m.vaCursors.map (fun (o, vs) => (o, vs.map (CallArgument.renameAddress resolve)))
     placements := m.placements.map (fun (o, _) => (o, resolve o)) }
 
 @[simp] theorem renameAddresses_objs (resolve : ObjId → Nat) (m : Mem) :
@@ -354,7 +364,7 @@ def renameAddresses (resolve : ObjId → Nat) (m : Mem) : Mem :=
 
 @[simp] theorem renameAddresses_vaCursors (resolve : ObjId → Nat) (m : Mem) :
     (m.renameAddresses resolve).vaCursors =
-      m.vaCursors.map (fun (o, vs) => (o, vs.map (CVal.renameAddress resolve))) := by
+      m.vaCursors.map (fun (o, vs) => (o, vs.map (CallArgument.renameAddress resolve))) := by
   rfl
 
 @[simp] theorem renameAddresses_placements (resolve : ObjId → Nat) (m : Mem) :
@@ -383,6 +393,7 @@ theorem renameAddresses_idem (resolve : ObjId → Nat) (m : Mem) :
   cases m with
   | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
       simp [renameAddresses, CObj.renameAddress, List.map_map,
+        CallArgument.renameAddress, Function.comp_def,
         CVal.renameAddress_idem, CByte.renameAddress_idem]
 
 theorem renameAddresses_comp
@@ -392,6 +403,7 @@ theorem renameAddresses_comp
   cases m with
   | mk objs structuredTypes stdout vaCursors compoundObjects placements =>
       simp [renameAddresses, CObj.renameAddress, List.map_map,
+        CallArgument.renameAddress, Function.comp_def,
         CVal.renameAddress_comp, CByte.renameAddress_comp]
 
 def empty : Mem := { objs := [] }
@@ -536,13 +548,13 @@ theorem emitStdout_structuredTypesUnique
     (m.emitStdout bytes).placements = m.placements := by
   rfl
 
-private def vaSet (xs : List (ObjId × List CVal)) (o : ObjId) (vs : List CVal) :
-    List (ObjId × List CVal) :=
+private def vaSet (xs : List (ObjId × List CallArgument)) (o : ObjId) (vs : List CallArgument) :
+    List (ObjId × List CallArgument) :=
   match xs with
   | [] => [(o, vs)]
   | (q, old) :: rest => if q == o then (o, vs) :: rest else (q, old) :: vaSet rest o vs
 
-private def vaGet (xs : List (ObjId × List CVal)) (o : ObjId) : Option (List CVal) :=
+private def vaGet (xs : List (ObjId × List CallArgument)) (o : ObjId) : Option (List CallArgument) :=
   match xs with
   | [] => none
   | (q, vs) :: rest => if q == o then some vs else vaGet rest o
@@ -555,14 +567,14 @@ def vaValues (m : Mem) (p : Ptr) : MRes (List CVal) :=
   | none => .error (.memUB (.nullDeref p.off))
   | some o =>
       match vaGet m.vaCursors o with
-      | some vs => .ok vs
+      | some vs => .ok (vs.map CallArgument.value)
       | none => .error (.memUB (.nonValueRepresentation o 0))
 
 @[simp] theorem vaValues_address_irrel (m : Mem) (p : Ptr) (address : Nat) :
     vaValues m {p with address := address} = vaValues m p := by
   simp [vaValues]
 
-private def vaDrop (xs : List (ObjId × List CVal)) (o : ObjId) : List (ObjId × List CVal) :=
+private def vaDrop (xs : List (ObjId × List CallArgument)) (o : ObjId) : List (ObjId × List CallArgument) :=
   match xs with
   | [] => []
   | (q, vs) :: rest => if q == o then rest else (q, vs) :: vaDrop rest o
@@ -608,7 +620,7 @@ private theorem placementSet_other (xs : List (ObjId × Nat)) (o q : ObjId)
       · simp [placementSet, ho, hxq]
       · simp [placementSet, ho, hxq, ih]
 
-def vaStart (m : Mem) (p : Ptr) (args : List CVal) : MRes Mem :=
+def vaStart (m : Mem) (p : Ptr) (args : List CallArgument) : MRes Mem :=
   match p.obj with
   | none => .error (.memUB (.nullDeref p.off))
   | some o => .ok { m with vaCursors := vaSet m.vaCursors o args }
@@ -626,7 +638,7 @@ def vaEnd (m : Mem) (p : Ptr) : MRes Mem :=
   | none => .error (.memUB (.nullDeref p.off))
   | some o => .ok { m with vaCursors := vaDrop m.vaCursors o }
 
-def vaArg (m : Mem) (p : Ptr) : MRes (CVal × Mem) :=
+def vaArg (m : Mem) (p : Ptr) : MRes (CallArgument × Mem) :=
   match p.obj with
   | none => .error (.memUB (.nullDeref p.off))
   | some o =>
@@ -636,17 +648,17 @@ def vaArg (m : Mem) (p : Ptr) : MRes (CVal × Mem) :=
       | some (v :: vs) => .ok (v, { m with vaCursors := vaSet m.vaCursors o vs })
 
 theorem vaStart_renameAddresses
-    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (args : List CVal) :
+    (rename : ObjId → Nat) (m : Mem) (p : Ptr) (args : List CallArgument) :
     (m.renameAddresses rename).vaStart (Ptr.renameAddress rename p)
-        (args.map (CVal.renameAddress rename)) =
+        (args.map (CallArgument.renameAddress rename)) =
       (m.vaStart p args).map (Mem.renameAddresses rename) := by
   cases hp : p.obj with
   | none => simp [vaStart, hp, Ptr.renameAddress, Except.map]
   | some o =>
-      have hset : ∀ xs : List (ObjId × List CVal),
-          vaSet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o
-              (args.map (CVal.renameAddress rename)) =
-            (vaSet xs o args).map (fun x => (x.1, x.2.map (CVal.renameAddress rename))) := by
+      have hset : ∀ xs : List (ObjId × List CallArgument),
+          vaSet (xs.map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename)))) o
+              (args.map (CallArgument.renameAddress rename)) =
+            (vaSet xs o args).map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename))) := by
         intro xs
         induction xs with
         | nil => simp [vaSet]
@@ -666,9 +678,9 @@ theorem vaEnd_renameAddresses
   cases hp : p.obj with
   | none => simp [vaEnd, hp, Ptr.renameAddress, Except.map]
   | some o =>
-      have hdrop : ∀ xs : List (ObjId × List CVal),
-          vaDrop (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o =
-            (vaDrop xs o).map (fun x => (x.1, x.2.map (CVal.renameAddress rename))) := by
+      have hdrop : ∀ xs : List (ObjId × List CallArgument),
+          vaDrop (xs.map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename)))) o =
+            (vaDrop xs o).map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename))) := by
         intro xs
         induction xs with
         | nil => rfl
@@ -686,9 +698,9 @@ theorem vaCopy_renameAddresses
     (m.renameAddresses rename).vaCopy (Ptr.renameAddress rename dst)
         (Ptr.renameAddress rename src) =
       (m.vaCopy dst src).map (Mem.renameAddresses rename) := by
-  have hget : ∀ (xs : List (ObjId × List CVal)) (o : ObjId),
-      vaGet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o =
-        (vaGet xs o).map (List.map (CVal.renameAddress rename)) := by
+  have hget : ∀ (xs : List (ObjId × List CallArgument)) (o : ObjId),
+      vaGet (xs.map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename)))) o =
+        (vaGet xs o).map (List.map (CallArgument.renameAddress rename)) := by
     intro xs o
     induction xs with
     | nil => rfl
@@ -697,10 +709,10 @@ theorem vaCopy_renameAddresses
         | mk q vs =>
             by_cases hq : q == o <;>
               simp [vaGet, hq, ih, List.map_map, Function.comp_def]
-  have hset : ∀ (xs : List (ObjId × List CVal)) (o : ObjId) (vs : List CVal),
-      vaSet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o
-          (vs.map (CVal.renameAddress rename)) =
-        (vaSet xs o vs).map (fun x => (x.1, x.2.map (CVal.renameAddress rename))) := by
+  have hset : ∀ (xs : List (ObjId × List CallArgument)) (o : ObjId) (vs : List CallArgument),
+      vaSet (xs.map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename)))) o
+          (vs.map (CallArgument.renameAddress rename)) =
+        (vaSet xs o vs).map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename))) := by
     intro xs o vs
     induction xs with
     | nil => simp [vaSet]
@@ -728,10 +740,10 @@ theorem vaArg_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (p : Ptr) :
     (m.renameAddresses rename).vaArg (Ptr.renameAddress rename p) =
       (m.vaArg p).map (fun r =>
-        (CVal.renameAddress rename r.1, Mem.renameAddresses rename r.2)) := by
-  have hget : ∀ (xs : List (ObjId × List CVal)) (o : ObjId),
-      vaGet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o =
-        (vaGet xs o).map (List.map (CVal.renameAddress rename)) := by
+        (CallArgument.renameAddress rename r.1, Mem.renameAddresses rename r.2)) := by
+  have hget : ∀ (xs : List (ObjId × List CallArgument)) (o : ObjId),
+      vaGet (xs.map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename)))) o =
+        (vaGet xs o).map (List.map (CallArgument.renameAddress rename)) := by
     intro xs o
     induction xs with
     | nil => rfl
@@ -740,10 +752,10 @@ theorem vaArg_renameAddresses
         | mk q vs =>
             by_cases hq : q == o <;>
               simp [vaGet, hq, ih, List.map_map, Function.comp_def]
-  have hset : ∀ (xs : List (ObjId × List CVal)) (o : ObjId) (vs : List CVal),
-      vaSet (xs.map (fun x => (x.1, x.2.map (CVal.renameAddress rename)))) o
-          (vs.map (CVal.renameAddress rename)) =
-        (vaSet xs o vs).map (fun x => (x.1, x.2.map (CVal.renameAddress rename))) := by
+  have hset : ∀ (xs : List (ObjId × List CallArgument)) (o : ObjId) (vs : List CallArgument),
+      vaSet (xs.map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename)))) o
+          (vs.map (CallArgument.renameAddress rename)) =
+        (vaSet xs o vs).map (fun x => (x.1, x.2.map (CallArgument.renameAddress rename))) := by
     intro xs o vs
     induction xs with
     | nil => simp [vaSet]
@@ -767,7 +779,7 @@ theorem vaArg_renameAddresses
               rw [hset]
               rfl
 
-@[simp] theorem vaStart_address_irrel (m : Mem) (p : Ptr) (args : List CVal)
+@[simp] theorem vaStart_address_irrel (m : Mem) (p : Ptr) (args : List CallArgument)
     (address : Nat) : vaStart m {p with address := address} args = vaStart m p args := by
   simp [vaStart]
 
@@ -784,7 +796,7 @@ theorem vaArg_renameAddresses
     vaArg m {p with address := address} = vaArg m p := by
   simp [vaArg]
 
-theorem vaStart_placements {m m' : Mem} {p : Ptr} {args : List CVal}
+theorem vaStart_placements {m m' : Mem} {p : Ptr} {args : List CallArgument}
     (h : vaStart m p args = .ok m') : m'.placements = m.placements := by
   cases hp : p.obj with
   | none => simp [vaStart, hp] at h
@@ -817,7 +829,7 @@ theorem vaEnd_placements {m m' : Mem} {p : Ptr}
     cases h
     rfl
 
-theorem vaArg_placements {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
+theorem vaArg_placements {m : Mem} {p : Ptr} {v : CallArgument} {m' : Mem}
     (h : vaArg m p = .ok (v, m')) : m'.placements = m.placements := by
   cases hp : p.obj with
   | none => simp [vaArg, hp] at h
@@ -833,7 +845,7 @@ theorem vaArg_placements {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
           simpa using (congrArg (fun r : Mem => r.placements) h.2).symm
         exact hm
 
-theorem vaStart_structuredTypesUnique {m m' : Mem} {p : Ptr} {args : List CVal}
+theorem vaStart_structuredTypesUnique {m m' : Mem} {p : Ptr} {args : List CallArgument}
     (h : structuredTypesUnique m)
     (hr : vaStart m p args = .ok m') : structuredTypesUnique m' := by
   cases hp : p.obj with
@@ -843,7 +855,7 @@ theorem vaStart_structuredTypesUnique {m m' : Mem} {p : Ptr} {args : List CVal}
     cases hr
     simpa [structuredTypesUnique, structuredTypeKeys] using h
 
-theorem vaStart_structuredType_lookup {m m' : Mem} {p : Ptr} {args : List CVal}
+theorem vaStart_structuredType_lookup {m m' : Mem} {p : Ptr} {args : List CallArgument}
     (q : ObjId) (hr : vaStart m p args = .ok m') :
     m'.structuredType? q = m.structuredType? q := by
   cases hp : p.obj with
@@ -905,7 +917,7 @@ theorem vaEnd_structuredType_lookup {m m' : Mem} {p : Ptr}
     cases hr
     rfl
 
-theorem vaArg_structuredTypesUnique {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
+theorem vaArg_structuredTypesUnique {m : Mem} {p : Ptr} {v : CallArgument} {m' : Mem}
     (h : structuredTypesUnique m)
     (hr : vaArg m p = .ok (v, m')) : structuredTypesUnique m' := by
   cases hp : p.obj with
@@ -922,7 +934,7 @@ theorem vaArg_structuredTypesUnique {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
         rw [hm]
         simpa [structuredTypesUnique, structuredTypeKeys] using h
 
-theorem vaArg_structuredType_lookup {m : Mem} {p : Ptr} {v : CVal} {m' : Mem}
+theorem vaArg_structuredType_lookup {m : Mem} {p : Ptr} {v : CallArgument} {m' : Mem}
     (q : ObjId) (hr : vaArg m p = .ok (v, m')) :
     m'.structuredType? q = m.structuredType? q := by
   cases hp : p.obj with
@@ -1087,7 +1099,7 @@ theorem ptrIntByte_beq_rename_of_canonical
                     LeanModels.C.C23.instBEqCByte.beq,
                     LeanModels.C.C23.instBEqPtr.beq]
 
-theorem vaStart_placement_lookup {m m' : Mem} {p : Ptr} {args : List CVal} (q : ObjId)
+theorem vaStart_placement_lookup {m m' : Mem} {p : Ptr} {args : List CallArgument} (q : ObjId)
     (h : vaStart m p args = .ok m') : m'.placement? q = m.placement? q := by
   have hp : m'.placements = m.placements := vaStart_placements h
   unfold placement?
@@ -1105,7 +1117,7 @@ theorem vaEnd_placement_lookup {m m' : Mem} {p : Ptr} (q : ObjId)
   unfold placement?
   simp only [hp]
 
-theorem vaArg_placement_lookup {m : Mem} {p : Ptr} {v : CVal} {m' : Mem} (q : ObjId)
+theorem vaArg_placement_lookup {m : Mem} {p : Ptr} {v : CallArgument} {m' : Mem} (q : ObjId)
     (h : vaArg m p = .ok (v, m')) : m'.placement? q = m.placement? q := by
   have hp : m'.placements = m.placements := vaArg_placements h
   unfold placement?
@@ -4409,7 +4421,7 @@ structure AddressIndependent (m : Mem) : Prop where
     m.storeFloat32 {p with address := address} f = m.storeFloat32 p f
   storeFloat64 : ∀ (p : Ptr) (f : Float.Model) (address : Nat),
     m.storeFloat64 {p with address := address} f = m.storeFloat64 p f
-  vaStart : ∀ (p : Ptr) (args : List CVal) (address : Nat),
+  vaStart : ∀ (p : Ptr) (args : List CallArgument) (address : Nat),
     m.vaStart {p with address := address} args = m.vaStart p args
   vaCopy : ∀ (dst src : Ptr) (addressDst addressSrc : Nat),
     m.vaCopy {dst with address := addressDst} {src with address := addressSrc} =

@@ -1061,13 +1061,13 @@ A `void` function answers `.undef`, not a fabricated zero — the value of
 a `void` call may not be used (§6.5.3.3p3), and `.undef` is the value
 every consumer already refuses. Returning `0` would have been a number
 somebody could read. -/
-def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → ExecM CVal
+def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument → ExecM CVal
   | 0, _, _, _ => exhausted
   | fuel + 1, prog, f, args =>
     match f.body with
     | none => refuseUnsupported s!"'{f.name}' is a prototype, not a definition"
     | some body => do
-        let fixedArgs := args.take f.params.length
+        let fixedArgs := (args.take f.params.length).map CallArgument.value
         let extraArgs := args.drop f.params.length
         if args.length < f.params.length then
           refuseUnsupported "fewer arguments than parameters"
@@ -2015,21 +2015,21 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
           else throw (.libc nm)
         -- The callee's own call handler: one fuel less, so recursion
         -- terminates on the fuel and on nothing else.
-        let handler : CallHandler := fun callee indirect vs =>
+        let handler : CallHandler := fun callee indirect arguments =>
           match indirect with
           | some (.funPtr declaration) =>
               match prog.findId? declaration with
-              | some g => callFn fuel prog g vs
+              | some g => callFn fuel prog g arguments
               | none => refuseUnsupported s!"indirect function pointer declaration '{declaration.value}' is not defined"
           | some _ => refuseUnsupported "indirect call through a non-function value"
           | none => match calleeId callee with
           | some declaration =>
             -- H5: a translation-unit definition wins over the registry.
             match prog.findId? declaration with
-            | some g => callFn fuel prog g vs
+            | some g => callFn fuel prog g arguments
             | none =>
               match calleeName callee with
-              | some nm => runExternal nm vs
+              | some nm => runExternal nm (arguments.map CallArgument.value)
               | none => throw (.libc declaration.value)
           | none => match calleeName callee with
           | none =>
@@ -2037,8 +2037,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
             -- Do not redo clang's resolved declaration identity by its name.
             refuseUnsupported "indirect call through a non-FunctionDecl reference"
           | some nm => match prog.find? nm with
-            | none => runExternal nm vs
-            | some g => callFn fuel prog g vs
+            | none => runExternal nm (arguments.map CallArgument.value)
+            | some g => callFn fuel prog g arguments
         -- §6.2.1p4: the frame starts with the file-scope objects in scope,
         -- and the parameters are bound ON TOP of them, so a parameter that
         -- shadows a global wins by being consed later.
@@ -2085,7 +2085,7 @@ def callByName (fuel : Nat) (prog : Program) (name : String) (args : List CVal) 
         if name == "main" && args.isEmpty && f.params.length == 2 then
           [.int IntTy.int_ 1, .ptr Ptr.null]
         else args
-      callFn fuel prog f startupArgs
+      callFn fuel prog f (startupArgs.map fun value => ⟨value, none⟩)
   | none => refuseUnsupported s!"no definition for '{name}'"
 
 /-! ## `fuelMono` — still an obligation, and now with a known technique
