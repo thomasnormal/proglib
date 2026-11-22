@@ -2002,15 +2002,15 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           -- operator, with the lvalue evaluated once.  `evalArith` already
           -- performs the provenance, bound, and element-size checks.
           let nv ← evalArith ctx (compoundBase op) old rv computeResultType none (some l) lStructured
-          storeAt ctx.aliasModel p l.ty nv
+          storeAt ctx.aliasModel p l.ty nv lStructured
           pure nv
       | .float32 a, .float32 b => do
           let nv ← float32Binop (compoundBase op) a b
-          storeAt ctx.aliasModel p l.ty nv
+          storeAt ctx.aliasModel p l.ty nv lStructured
           pure nv
       | .float64 a, .float64 b => do
           let nv ← float64Binop (compoundBase op) a b
-          storeAt ctx.aliasModel p l.ty nv
+          storeAt ctx.aliasModel p l.ty nv lStructured
           pure nv
       | .int oldT oldN, .int _ rvN => do
           match computeLhsNodeType.bind intTyOfStructured,
