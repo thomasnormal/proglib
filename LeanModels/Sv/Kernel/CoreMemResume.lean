@@ -206,3 +206,51 @@ theorem CombCursor.resume_correct (E : CoreMemDesign) (st : CoreMemState)
 #print axioms CombCursor.resume_correct
 
 end LeanModels.Sv.Kernel
+
+/-! ## Clocked source-shaped activations
+
+An edge process may be selected between any two blocking statements (§4.7).
+The cursor keeps the parser-native `PStmt`, its bound environment, automatic
+locals, and issue-time NBA/memory queues together. The caller commits those
+queues after the Active region is drained (§10.4.2).
+-/
+
+namespace LeanModels.Sv.Kernel
+
+inductive EdgeWork where
+  | edgeStmt (env : IEnv) (body : PStmt)
+  | edgeBlock (env : IEnv) (stmts : List PStmt)
+
+structure EdgeCursor where
+  work : List EdgeWork
+  locals : SvState := []
+
+def EdgeCursor.start (env : IEnv) (body : PStmt) : EdgeCursor :=
+  { work := [.edgeStmt env body] }
+
+def EdgeWork.openNode (E : CoreMemDesign) (st : CoreMemState)
+    (locals : SvState) : EdgeWork → Res (CoreMemExecResult × List EdgeWork)
+  | EdgeWork.edgeBlock _ [] => .ok ({ state := st, scalarQ := [], memoryQ := [], locals }, [])
+  | EdgeWork.edgeBlock env (stmt :: rest) =>
+      .ok ({ state := st, scalarQ := [], memoryQ := [], locals },
+        [EdgeWork.edgeStmt env stmt, EdgeWork.edgeBlock env rest])
+  | EdgeWork.edgeStmt env (.block body) =>
+      .ok ({ state := st, scalarQ := [], memoryQ := [], locals }, [EdgeWork.edgeBlock env body])
+  | EdgeWork.edgeStmt env (.ifStmt cond yes no) => do
+      let cv ← E.evalExprLocals env E.elems st none locals cond
+      let branch := if cv.condTrue then some yes else no
+      .ok ({ state := st, scalarQ := [], memoryQ := [], locals }, branch.toList.map (EdgeWork.edgeStmt env))
+  | EdgeWork.edgeStmt env stmt =>
+      do
+        let result ← E.execStmtFuel env E.elems st locals 1 stmt
+        .ok (result, [])
+
+def EdgeCursor.resume (E : CoreMemDesign) (cursor : EdgeCursor)
+    (st : CoreMemState) : Res (CoreMemExecResult × EdgeCursor) := do
+  match cursor.work with
+  | [] => .unsupported "10.4.2: edge process has no pending source statement"
+  | head :: tail =>
+      let (result, exposed) ← head.openNode E st cursor.locals
+      .ok (result, { work := exposed ++ tail, locals := result.locals })
+
+end LeanModels.Sv.Kernel
