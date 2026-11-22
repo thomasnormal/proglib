@@ -1,0 +1,1719 @@
+{
+  "completed": 57,
+  "rows": [
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 1 (-4) 4 8",
+      "name": "00032.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "7389893870227ba0cac6a3a8aa19cadf41e9c0837f7dea8327c00b7d3dfdff2a"
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 1 0",
+      "name": "00141.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "ff7d260922e7fd9d66476dd2f0c885bd1fcaf58585af66c40efe36872861427e"
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 1 0",
+      "name": "00144.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "77ae2def3a481b73b52b6e06bcda040238ad6a64dd381d31c7d7b4857e846db4"
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftNegativeOperand (-1)",
+      "name": "00200.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0 test(s) failed",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0 test(s) failed",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "00200.c:49:3: runtime error: left shift of negative value -1 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 00200.c:49:3",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "481edb6fc66664e6f39582d71e5994dc057219e351c9fb3f8777e357df250e6e"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 1 (-4) 4 12",
+      "name": "20000910-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "f65453c1b825db283b34bde7d68f829e1e403b573e4f09931596171da3b35c48"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 4660 28 { signed := true, bits := 32 }",
+      "name": "20020508-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "20020508-2.c:45:7: runtime error: left shift of 4660 by 28 places cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 20020508-2.c:45:7",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "224c441c3fea86b47cb2fc5d17806732c94f5f74b95401685d91cbbdb5962a96"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftNegativeOperand (-3532)",
+      "name": "20020508-3.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "20020508-3.c:39:7: runtime error: left shift of negative value -3532 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 20020508-3.c:39:7",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "d0a0ddd4748fddaace1df6f1a64be28bfdef60dc2b31f0d91a197c41a6addb69"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 2 0",
+      "name": "20030404-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "e7b64218b07db3936f48e44117a1ca441b3f25e043fbf15a291b5041e4abdabe"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.floatingToIntegralOutOfRange { signed := true, bits := 32 }",
+      "name": "20031003-1.c",
+      "phases": {
+        "o0": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 80,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "20031003-1.c:11:10: runtime error: 2.14748e+09 is outside the range of representable values of type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 20031003-1.c:11:10",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "209f4e7a226a95031de13f682ae3cda1cab134fe247dac1974cdf54cfe871614"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+      "name": "20040409-1w.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "20040409-1w.c:14:12: runtime error: signed integer overflow: 0 - -2147483648 cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 20040409-1w.c:14:12",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "deb80b58d50037dc39ad38c7eeb0e82efc60c3724c3e25f70d920477d020cbe6"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+      "name": "20040409-2w.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "20040409-2w.c:19:13: runtime error: signed integer overflow: 0 - -2147483648 cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 20040409-2w.c:19:13",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "091e52e01455c3330b3b81d4b4c247e3f25bbf9333fa3282249466f63f359ce5"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+      "name": "20040409-3w.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "20040409-3w.c:14:14: runtime error: signed integer overflow: 0 - -2147483648 cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 20040409-3w.c:14:14",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "f9e7d5b4833c6dae714796204cb1899bdcb0781cf5560e22e8c3ea0e1d609293"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 3 0 4 0",
+      "name": "20040811-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "55a955c3a85bad3a49f0d9146976faf011784debea817d2b3a584c02fa00a0e0"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "oracle-no-result",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 1311768466852950544 32 { signed := true, bits := 64 }",
+      "name": "20060110-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "20060110-1.c:9:37: warning: signed shift result (0x123456787654321000000000) requires 94 bits to represent, but 'long long' only has 64 bits [-Wshift-overflow] 9 | long long b = (0x1234567876543210LL << 32) >> 32; | ~~~~~~~~~~~~~~~~~~~~ ^ ~~ 20060110-1.c:9:11: error: cannot compile this static initializer yet 9 | long long b = (0x1234567876543210LL << 32) >> 32; | ^ 1 warning and 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "20060110-1.c:9:37: warning: signed shift result (0x123456787654321000000000) requires 94 bits to represent, but 'long long' only has 64 bits [-Wshift-overflow] 9 | long long b = (0x1234567876543210LL << 32) >> 32; | ~~~~~~~~~~~~~~~~~~~~ ^ ~~ 20060110-1.c:9:11: error: cannot compile this static initializer yet 9 | long long b = (0x1234567876543210LL << 32) >> 32; | ^ 1 warning and 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "20060110-1.c:9:37: warning: signed shift result (0x123456787654321000000000) requires 94 bits to represent, but 'long long' only has 64 bits [-Wshift-overflow] 9 | long long b = (0x1234567876543210LL << 32) >> 32; | ~~~~~~~~~~~~~~~~~~~~ ^ ~~ 20060110-1.c:9:11: error: cannot compile this static initializer yet 9 | long long b = (0x1234567876543210LL << 32) >> 32; | ^ 1 warning and 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "687048101d37239c3d9f50e3706bcd23d9bf00554b582713dfbe1acd453b6b66"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "oracle-no-result",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 3853319862790607633 32 { signed := true, bits := 64 }",
+      "name": "20060110-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "20060110-2.c:11:62: warning: signed shift result (0x3579BDFFDB97531100000000) requires 95 bits to represent, but 'long long' only has 64 bits [-Wshift-overflow] 11 | long long c = ((0x1234567876543210LL + 0x2345678765432101LL) << 32) >> 32; | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~ 20060110-2.c:11:11: error: cannot compile this static initializer yet 11 | long long c = ((0x1234567876543210LL + 0x2345678765432101LL) << 32) >> 32; | ^ 1 warning and 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "20060110-2.c:11:62: warning: signed shift result (0x3579BDFFDB97531100000000) requires 95 bits to represent, but 'long long' only has 64 bits [-Wshift-overflow] 11 | long long c = ((0x1234567876543210LL + 0x2345678765432101LL) << 32) >> 32; | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~ 20060110-2.c:11:11: error: cannot compile this static initializer yet 11 | long long c = ((0x1234567876543210LL + 0x2345678765432101LL) << 32) >> 32; | ^ 1 warning and 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "20060110-2.c:11:62: warning: signed shift result (0x3579BDFFDB97531100000000) requires 95 bits to represent, but 'long long' only has 64 bits [-Wshift-overflow] 11 | long long c = ((0x1234567876543210LL + 0x2345678765432101LL) << 32) >> 32; | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~ 20060110-2.c:11:11: error: cannot compile this static initializer yet 11 | long long c = ((0x1234567876543210LL + 0x2345678765432101LL) << 32) >> 32; | ^ 1 warning and 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "2a42becec9cbed154d91f8484ee59f652a9af11dd62dd0d257d322ae207b3235"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 12626110 8 { signed := true, bits := 32 }",
+      "name": "20121108-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "c0a8bea0 c0a8bea0 WORKS.",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "c0a8bea0 c0a8bea0 WORKS.",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "20121108-1.c:31:22: runtime error: left shift of 12626110 by 8 places cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 20121108-1.c:31:22",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "5f5958f038cc3cdd6f07d711409b5f540eaeb840bdf46497aaaf9707b2726066"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 7 0",
+      "name": "20171008-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "9ead3cbf5a1c234f638b8175a6cedf392b3d547763079f41d440cf3f0f63c849"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 9 0",
+      "name": "920726-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "af90ff5eeb8799ed0e0d255bd276fbcac8bf6d890785a7fe998b82758e59d393"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 3 0 8 0",
+      "name": "920929-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "ab6c996a100bccb41ec6329b0b45ce646a44af2c640b91ad36891490803541a2"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"+\" { signed := true, bits := 32 } 2147483648",
+      "name": "930529-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 124,
+          "status": "controller-timeout",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "930529-1.c:31:70: runtime error: signed integer overflow: 2147483647 + 1 cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 930529-1.c:31:70",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "77047a2cb413c71bb8245fa16912d0b20c3a535450008893d09d4f8f1ccdf87c"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"+\" { signed := true, bits := 64 } (-18446744073709551616)",
+      "name": "950704-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "950704-1.c:13:9: runtime error: signed integer overflow: -9223372036854775808 + -9223372036854775808 cannot be represented in type 'long long' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 950704-1.c:13:9",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "c86c2094da89c5586c9b969f5a9908b34f9b61800aa81ebb3174c7208a8af61d"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftNegativeOperand (-1)",
+      "name": "960317-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "960317-1.c:7:17: runtime error: left shift of negative value -1 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior 960317-1.c:7:17",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "a875d2fc3a8ba77ac02bed900140bc20ef431a88affc47929e7462f96b0cec66"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 1 7 1 6",
+      "name": "990524-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "eae9e2f7911318038833aad9b1636e1f9ffedec73493854547859606dd8d9538"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+      "name": "arith-rand-ll.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "arith-rand-ll.c:86:33: runtime error: negation of -2147483648 cannot be represented in type 'int'; cast to an unsigned type to negate this value to itself SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior arith-rand-ll.c:86:33",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "8e4da7b080eee46dd5d37a9b588ee64a439ef009a8fa3458573475278bbd9cf0"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+      "name": "arith-rand.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "arith-rand.c:86:33: runtime error: negation of -2147483648 cannot be represented in type 'int'; cast to an unsigned type to negate this value to itself SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior arith-rand.c:86:33",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "2a7bade42fd22c970f880cb2fe78665cb71755c8557d224dd1fa97f176bc6764"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 137 24 { signed := true, bits := 32 }",
+      "name": "bswap-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "bswap-2.c:55:39: runtime error: left shift of 137 by 24 places cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior bswap-2.c:55:39",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "89b664eba9f6220422b3395c3d96099c591b0f3fdcbf154da9e992fcf8c3e22c"
+    },
+    {
+      "corpus": "gcc.c23-run",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.nullDeref 0",
+      "name": "gcc/testsuite/gcc.dg/c23-complit-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "5436229e43d30946dd8726064504c3beb201ee9fe8aacb26d33a47f166b69480"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/20041213-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "<path> <path> in function `main': ieee/20041213-1.c:20:(.text+0x45): undefined reference to `sqrt' clang: error: linker command failed with exit code 1 (use -v to see invocation)",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "625aa7e6b26a3f201c47803734a8bd6a5dadfe65b8a7d21e00f586f6f43e6fd9"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/fp-cmp-5.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "3287dadc1c6a407b00841baa398829495ee9863d5890a5ab25ea234e70752920"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "oracle-no-result",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/fp-cmp-6.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/fp-cmp-6.c:8:14: error: cannot compile this static initializer yet 8 | const double dnan = 1.0/0.0 - 1.0/0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/fp-cmp-6.c:8:14: error: cannot compile this static initializer yet 8 | const double dnan = 1.0/0.0 - 1.0/0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/fp-cmp-6.c:8:14: error: cannot compile this static initializer yet 8 | const double dnan = 1.0/0.0 - 1.0/0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "bb2db5d54e40b3fa35470bace930e27eb3b3fe65b1a7b3d95f6ea5c20c42597d"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/fp-cmp-8.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "ff577c6ffef173008f543040c4da071a51d9002644d38a080d05c1ea126c4e87"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "oracle-no-result",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/fp-cmp-9.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/fp-cmp-9.c:7:14: error: cannot compile this static initializer yet 7 | const double dnan = 1.0/0.0 - 1.0/0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/fp-cmp-9.c:7:14: error: cannot compile this static initializer yet 7 | const double dnan = 1.0/0.0 - 1.0/0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/fp-cmp-9.c:7:14: error: cannot compile this static initializer yet 7 | const double dnan = 1.0/0.0 - 1.0/0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "3a58c9a824af0093e78a986f226c21c4510c754d673a69683412b2bf8a6e8953"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/hugeval.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "cc39c196f7ed4ba25775b5de74fd939d082402f82b20d3136cfb3c70cbe31677"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "oracle-no-result",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/mzero2.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/mzero2.c:12:15: error: cannot compile this static initializer yet 12 | static double nan = 0.0 / 0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/mzero2.c:12:15: error: cannot compile this static initializer yet 12 | static double nan = 0.0 / 0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "ieee/mzero2.c:12:15: error: cannot compile this static initializer yet 12 | static double nan = 0.0 / 0.0; | ^ 1 error generated.",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "b1bacef006256f3ef92cf8c10b2e8aa55376c81ac399c1b06fcc6ca3034ca8d9"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/pr29302-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "7069de071d9de88d7c22d40e174214db8cca9425500936ae8078616257539c97"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.UB.divideByZero \"/\"",
+      "name": "ieee/pr84235.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "d98635f47584257120157627bd02ef5564e00aa96b875fd29b20b71a3adedd75"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 1 (-8) 8 40",
+      "name": "loop-15.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "7d38b0054a3eeef54468196c6be3f3a50d0353ee42b2fcba44d694577bf13f12"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+      "name": "pr22493-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr22493-1.c:10:7: runtime error: negation of -2147483648 cannot be represented in type 'int'; cast to an unsigned type to negate this value to itself SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr22493-1.c:10:7",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "a700a5b05dbd0bc620fe81e9f4058445e6a525f093c4fffc6be864b806b318e8"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+      "name": "pr23047.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": -6,
+          "status": "run",
+          "stderr": "timeout: the monitored command dumped core",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr23047.c:7:19: runtime error: negation of -2147483648 cannot be represented in type 'int'; cast to an unsigned type to negate this value to itself SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr23047.c:7:19",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "09035eb8b8900f680028e20a882edda9801955f139dae67f545040402f8ea070"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 4 340 4 320",
+      "name": "pr28982a.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "7fa896d2f4c4deb42265759ddc905bfaf7f9f1f64d9083caba86e357624a76ac"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 3 0",
+      "name": "pr34099-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "0b9bd2b827120851036c38456dd663765cb9a2726ae7b5d06a75d01ff7c7ae99"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 3 0",
+      "name": "pr34099.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "4cd7555520db6a74711c86d2e46cd3a5223910ee1ab6a38ab6ea6119a58cce76"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.MemFault.nullDeref 0",
+      "name": "pr34176.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr34176.c:61:24: runtime error: applying non-zero offset 8 to null pointer SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr34176.c:61:24",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "9acd2bb99915c1e65a65c9feb9316947049a1e56d8a1fdd18f6e81de0bd904a0"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftNegativeOperand (-3532)",
+      "name": "pr40386.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr40386.c:37:7: runtime error: left shift of negative value -3532 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr40386.c:37:7",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "5b0bb92754653d62db2126f017ce5bde6808543e064cf73b76bc209c0b392165"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 3 0 4 0",
+      "name": "pr43220.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "e50c382fe365be74d8911fccf52172676bf987256c54e9ba21cf49850e4c44d5"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 2 0",
+      "name": "pr43629.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "ab6cdfc7375f4c9d3aadd87b94fd682e842d1c83d91edf84e7c9b288ba7cfce7"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 1 31 { signed := true, bits := 32 }",
+      "name": "pr56051.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr56051.c:18:45: runtime error: left shift of 1 by 31 places cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr56051.c:18:45",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "7db69b238cda8b22f06442c54c2c0cf9e98503981bf775b8c6e283136ff12d2a"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.signedOverflow \"*\" { signed := true, bits := 32 } 4294639616",
+      "name": "pr57124.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr57124.c:16:11: runtime error: signed integer overflow: 65531 * 65536 cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr57124.c:16:11",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "c457d6dbc7d1de3099fe50bdf3f146b2565df4de6feefb351544494682023c97"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftNegativeOperand (-1)",
+      "name": "pr63302.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr63302.c:16:36: runtime error: left shift of negative value -1 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr63302.c:16:36",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "eb8cf4285b292457a770b7170dc8470beaec2c813262d9de0fa19f843736049a"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 128 24 { signed := true, bits := 32 }",
+      "name": "pr7284-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr7284-1.c:14:13: runtime error: left shift of 128 by 24 places cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr7284-1.c:14:13",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "18078455df62588b4c9332c64c3d44b779ef495136df8d921a76ab2e1c19d42a"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftNegativeOperand (-268435456)",
+      "name": "pr79121.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr79121.c:28:26: runtime error: left shift of negative value -268435456 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr79121.c:28:26",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "0f77d3d56626e392635dbf2a28f80590d56a6da151e2f83610d9fe518b8db805"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.indetAutomatic 5 0",
+      "name": "pr79286.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0 1 2 3",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 48,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0 1 2 3",
+          "timeout": false
+        }
+      },
+      "sha256": "c3792c3d9231d95841fc2efadec802bae368700bf12756a3464ea6b0a369df65"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 1 31 { signed := true, bits := 32 }",
+      "name": "pr99079.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "pr99079.c:6:28: runtime error: left shift of 1 by 31 places cannot be represented in type 'int' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior pr99079.c:6:28",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "72cd2091e68c02cee35a137f250896ecfe14d59e4780ceded26c16d9fa2e2911"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 2 14 1 13",
+      "name": "ptr-arith-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "d7125e5a3d11cef291bad1cec7eca7dbc05b2e28750e0c59525b849b647b599c"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.relationalAcrossObjects",
+      "name": "return-addr.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0x7fff4fa5ff61 0x7fff4fa5ff61 0x7fff4fa5ff61 0x7fff4fa5ff61",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0x7fff2bca643d 0x7fff2bca643d 0x7fff2bca643d 0x7fff2bca643d",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0x7bdfc830011f 0x7bdfc830011f 0x7bdfc830011f 0x7bdfc830011f",
+          "timeout": false
+        }
+      },
+      "sha256": "c8df956259082f63135debd4f9cf98bcb8158edec7dfafef387985a57a7aad9d"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "LeanModels.C.C23.UB.shiftOverflow 568513516876543756 5 { signed := true, bits := 64 }",
+      "name": "shiftdi-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "shiftdi-2.c:18:12: runtime error: left shift of 568513516876543756 by 5 places cannot be represented in type 'long long' SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior shiftdi-2.c:18:12",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "210a1059e5c915545f0f9da2df78b5ef202493300b6af461019d1ff6e9f67156"
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "LeanModels.C.C23.MemFault.outOfBounds 3 0 4 0",
+      "name": "vla-dealloc-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      },
+      "sha256": "9efc981809576c0b9284ebbe5425aa3eb958bbcf432a411733f730a0b38d767c"
+    }
+  ],
+  "schema": "c-ub-audit-1",
+  "status": "complete",
+  "survey_digest": "6e121627469bd0254619c4fa493fd2f485871d07810869d0ef3840f2e48d1076",
+  "total": 57
+}

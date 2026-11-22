@@ -710,3 +710,12 @@ qualification run reaches `930529-1.c`, whose pinned `-O2` executable exceeds
 the audit wall. The row must be recorded as a per-file timeout. The audit
 controller must never wait indefinitely or treat a partial audit as evidence
 for the remaining refused-UB rows.
+
+**UB qualification receipt (2026-11-23).** The resumable controller completed
+all 57 current refused-UB rows with a one-second execution wall. The receipt is
+in [`docs/c-ub-qualification-20261123.json`](c-ub-qualification-20261123.json)
+with its rendered table in
+[`docs/c-ub-qualification-20261123.md`](c-ub-qualification-20261123.md).
+Twenty-five rows have sanitizer diagnostics, 27 have clean sanitizer runs and
+therefore no UB witness, and five have no native oracle result because Clang
+could not link them. The `930529-1.c` O2 execution is recorded as a timeout.
