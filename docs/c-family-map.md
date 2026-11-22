@@ -704,3 +704,9 @@ larger loop, the final post-increment forms an offset beyond the one-past
 bound after the last dereference. The model's `outOfBounds` refusal therefore
 follows C23 §6.5.6p8 even though Clang O0/O2 and UBSan/ASan exit 0. Native
 cleanliness does not witness defined pointer formation here.
+
+**UB audit controller boundary (2026-11-23).** The current all-row native
+qualification run reaches `930529-1.c`, whose pinned `-O2` executable exceeds
+the audit wall. The row must be recorded as a per-file timeout. The audit
+controller must never wait indefinitely or treat a partial audit as evidence
+for the remaining refused-UB rows.
