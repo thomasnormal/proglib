@@ -182,6 +182,7 @@ def self_test() -> None:
         ROOT / "Examples/system-verilog/seq_mem/range_ff/range_ff.sv.json",
         ROOT / "Examples/system-verilog/seq_neg/overlap.sv.json",
         ROOT / "Examples/system-verilog/sem2/preempt_block_refuse/preempt_block_refuse.sv.json",
+        ROOT / "Examples/system-verilog/seq_neg/untyped_child_override.sv.json",
     ]
     results = []
     for fixture in fixtures:
@@ -222,6 +223,18 @@ def self_test() -> None:
         raise AssertionError(
             "loader self-test lost the exact Schedule:preemptive diagnostic: "
             + repr(preemptive_requirement)
+        )
+    untyped_result = results[4]
+    if untyped_result["counts"] != {"ADMITTED": 0, "REFUSED": 1, "NOT REACHED": 0}:
+        raise AssertionError(
+            "loader self-test untyped-child fixture changed: "
+            + repr(untyped_result["counts"])
+        )
+    untyped_requirement = untyped_result["rows"][0]["requirement"]
+    if "has no declared type" not in untyped_requirement or "6.20.2" not in untyped_requirement:
+        raise AssertionError(
+            "loader self-test lost the exact untyped-child diagnostic: "
+            + repr(untyped_requirement)
         )
     print(
         "core_census --self-test ok: "
