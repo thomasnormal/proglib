@@ -2417,10 +2417,16 @@ private def bindPackageParamsFuel (fuel : Nat) (env : IEnv) (ps : List (String �
       | .ok env' => bindPackageParamsFuel fuel env' deferred
       | .timeout => .timeout
       | .unsupported msg => .unsupported msg
-termination_by fuel
+termination_by structural fuel
 
-def bindPackageParams (env : IEnv) (ps : List (String × PParam)) : Res IEnv :=
-  bindPackageParamsFuel (ps.length + 1) env ps
+/-- A module without package parameters needs no dependency pass. The clocked
+instantiation tactic uses this equation when it unfolds the public binder. -/
+def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
+  | [] => .ok env
+  | ps@(_ :: _) => bindPackageParamsFuel (ps.length + 1) env ps
+
+-- The symbolic parameter stage reduces this case with an open environment.
+example (env : IEnv) : bindPackageParams env [] = .ok env := by rfl
 
 /-! ## Widths -/
 
