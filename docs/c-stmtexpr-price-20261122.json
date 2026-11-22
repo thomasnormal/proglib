@@ -1,0 +1,180 @@
+{
+  "rows": [
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "out of tier: StmtExpr",
+      "name": "20000703-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "out of tier: StmtExpr",
+      "name": "20000917-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "out of tier: StmtExpr",
+      "name": "20020206-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "out of tier: StmtExpr",
+      "name": "20020320-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "out of tier: StmtExpr",
+      "name": "930406-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "out of tier: StmtExpr",
+      "name": "950906-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-stmtexpr-price-1",
+  "total": 6
+}
