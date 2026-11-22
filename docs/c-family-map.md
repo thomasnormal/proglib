@@ -595,3 +595,9 @@ the object-to-address map.
 The function-pointer store accessor now has its explicit named
 `storeFunction_address_irrel` proof, completing the contract's representation
 store cases.
+
+**Structured member focus receipt (2026-11-22).** The approved-plugin focus now
+contains 42 MATCH rows and 3 named REFUSE rows across record, typedef, array,
+flexible-member and parameter boundaries. No DIVERGE remains in this focus.
+The full C1-C3 survey still needs a replay after the extractor and evaluator
+changes before the F1 threshold is assessed.
