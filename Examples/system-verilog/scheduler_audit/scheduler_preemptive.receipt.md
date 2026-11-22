@@ -26,3 +26,7 @@ The edge relation now has kernel-checked `EdgePhaseStep.exists_of_mem` and
 `EdgePhaseStep.queue_prefix` lemmas. They establish that any active cursor
 whose source-shaped resume succeeds can be selected, and that each step
 extends the scalar and memory NBA queues in issue order.
+
+The matching combinational relation has `CombPhaseStep.exists_of_mem`, so a
+successful retained combinational resume is likewise an explicit active-region
+choice.

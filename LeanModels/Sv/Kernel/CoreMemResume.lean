@@ -234,6 +234,30 @@ inductive CombPhaseStep (E : CoreMemDesign) : CombPhaseState → CombPhaseState 
 
 def CombPhaseQuiescent (s : CombPhaseState) : Prop := s.active = []
 
+private theorem comb_exists_split_mem {α : Type} (x : α) : ∀ {xs : List α},
+    x ∈ xs → ∃ before after, xs = before ++ x :: after
+  | [], h => by simp at h
+  | y :: ys, h => by
+      by_cases hxy : x = y
+      · subst y
+        exact ⟨[], ys, rfl⟩
+      · have htail : x ∈ ys := by simpa [hxy] using h
+        obtain ⟨before, after, hsplit⟩ := comb_exists_split_mem x htail
+        exact ⟨y :: before, after, by simp [hsplit]⟩
+
+/-- Every active combinational cursor is an admissible §4.7 choice when its
+    source-shaped resume succeeds.  No process order is imposed by the
+    relation. -/
+theorem CombPhaseStep.exists_of_mem
+    {E : CoreMemDesign} {s : CombPhaseState} {cursor : CombCursor}
+    (hmem : cursor ∈ s.active) {state : CoreMemState} {view : SvState}
+    {next : CombCursor}
+    (hresume : cursor.resume E s.state s.view = .ok (state, view, next)) :
+    ∃ before after, s.active = before ++ cursor :: after ∧
+      CombPhaseStep E s (s.after state view next before after) := by
+  obtain ⟨before, after, hactive⟩ := comb_exists_split_mem cursor hmem
+  exact ⟨before, after, hactive, .select hactive hresume⟩
+
 theorem CombPhaseStep.active_source_order
     {E : CoreMemDesign} {s t : CombPhaseState}
     (h : CombPhaseStep E s t) :
