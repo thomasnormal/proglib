@@ -222,64 +222,175 @@ private def initBitFieldRecord (ctx : Ctx) (p : Ptr) (ty : String)
   | some bytes => liftEval (writeMem (fun m => m.storeBytes p bytes))
   | none => refuseUnsupported "partly initialized bit-field byte"
 
+private def initializationType (layout : Layout)
+    (structured : Option LeanModels.Clang.QualType) (declaration : Option LeanModels.C.DeclarationId) :
+    Option LeanModels.Clang.QualType :=
+  (structured.orElse (fun _ => declaration.bind layout.structuredType)).bind
+    (LeanModels.Clang.QualType.resolveTypedefs
+      (fun handle => layout.structuredType { value := handle.value }) 32)
+
+private def initializationSize (layout : Layout) (type : LeanModels.Clang.QualType) :
+    Option Nat :=
+  objectSizeOfStructured type (fun handle => layout.recordSizeDecl { value := handle.value })
+
+private def initializationStride (layout : Layout) (declaration : Option LeanModels.C.DeclarationId)
+    (elementType : LeanModels.Clang.QualType) : Option Nat :=
+  (declaration.bind layout.elementSizeDecl).orElse (fun _ => initializationSize layout elementType)
+
+private def initializerHasEffects (ctx : Ctx) (expression : Expr) : Bool :=
+  mayWrite ctx expression || !(directWriteTargets expression).isEmpty ||
+    (expression.subexprs false).any fun
+      | .vaArg .. => true
+      | .implicitCast "LValueToRValue" source .. | .cast "LValueToRValue" source .. =>
+          match source.structuredType? with
+          | some (.qualified _ isVolatile _) => isVolatile
+          | _ => false
+      | _ => false
+
+/-- N3220 §6.7.11p24 leaves the order of initializer expression evaluation
+open. The admitted lists either have no effects, or have one effectful
+initializer and no other access to stored values. -/
+private def checkInitializerOrder (ctx : Ctx) (declaration : Option LeanModels.C.DeclarationId)
+    (initializers : List Expr) : ExecM Unit := do
+  let effectful := initializerHasEffects ctx
+  if initializers.any effectful &&
+      initializers.countP (fun expression => effectful expression || !(readKeys expression).isEmpty) > 1 then
+    refuseUnsupported "initializer evaluations have an unspecified order"
+  if let some objectId := declaration then
+    let mentionsObject := fun (expression : Expr) =>
+      (expression.subexprs false).any fun
+        | .declRef (some id) .. => id == objectId
+        | _ => false
+    let usesObject := fun (expression : Expr) =>
+      (expression.subexprs false).any fun
+        | .implicitCast "LValueToRValue" sub .. | .cast "LValueToRValue" sub .. =>
+            mentionsObject sub
+        | .call _ args .. => args.any mentionsObject
+        | .binop "=" lhs .. | .compoundAssign _ lhs .. => mentionsObject lhs
+        | .unop "++" sub .. | .unop "--" sub .. | .unop "*" sub .. => mentionsObject sub
+        | _ => false
+    if initializers.any usesObject then
+      refuseUnsupported "initializer may access the object under initialization"
+
+/-- Resolve a member of the canonical record. Its FieldDecl supplies any
+member-specific layout, and the type carried by that field preserves the
+shape of a nested array or record. -/
+private def initializerField (layout : Layout) (owner : LeanModels.C.DeclarationId)
+    (name : String) : Option (Nat × LeanModels.Clang.QualType × Option LeanModels.C.DeclarationId) := do
+  let offset ← layout.fieldOffDecl owner name
+  let field := layout.fieldDecl owner name
+  let type ← initializationType layout (layout.fieldStructuredDecl owner name) field
+  return (offset, type, field)
+
+/-- N3220 §6.7.11p11 gives a default-initialized structure zero
+padding. Leave complete named member ranges untouched for the recursive
+initializer. In particular, a member which is a union retains its own
+inactive bytes. Named bit-fields and the padding in their storage bytes
+all start at zero. -/
+private def zeroStructurePadding (ctx : Ctx) (p : Ptr) (owner : LeanModels.C.DeclarationId)
+    (size : Nat) (members : List (String × String)) : ExecM Unit := do
+  let zeroRange := fun start count =>
+    if count == 0 then pure ()
+    else liftEval (writeMem (fun m => m.storeBytes (Mem.member p start)
+      (List.replicate count (CByte.conc 0))))
+  let occupied ← members.foldlM (init := 0) fun cursor (name, _) => do
+    if (ctx.layout.fieldBitsDecl owner name).isSome || ctx.layout.flexibleFieldDecl owner name then
+      pure cursor
+    else
+      let some (offset, type, _) := initializerField ctx.layout owner name
+        | refuseUnsupported s!"default initialization lacks layout for member '{name}'"
+      let some width := (ctx.layout.fieldSizeDecl owner name).orElse (fun _ =>
+          initializationSize ctx.layout type)
+        | refuseUnsupported s!"default initialization lacks extent for member '{name}'"
+      if offset < cursor || offset + width > size then
+        refuseUnsupported "default structure initialization has overlapping or out-of-range members"
+      zeroRange cursor (offset - cursor)
+      pure (offset + width)
+  zeroRange occupied (size - occupied)
+
 mutual
 
-/-- Declaration-backed zero initialization uses clang's recursive type
-observation when one is available.  Older envelopes still use the existing
-spelling fallback through `zeroInit`; the parser-native branch is selected
-before that fallback and therefore does not inspect the display type. -/
-def zeroInitStructured (fuel : Nat) (ctx : Ctx) (p : Ptr) (ty : String)
-    (structured : Option LeanModels.Clang.QualType) (declaration : Option DeclarationId) : ExecM Unit :=
-  if structuredPointerObject structured ty then
-    liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
-  else match structured.bind intTyOfStructured with
-    | some t =>
-        liftEval (writeMem (fun m =>
-          Mem.storeIntChecked m Mem.cAliasModel p t ty 0 structured))
-    | none =>
-        match structured.bind floatBitsOfStructured with
-        | some 32 =>
-            liftEval (writeMem (fun m =>
-              Mem.storeFloat32 m p (Float32.Model.ofBits (UInt32.ofNat 0))))
-        | some 64 =>
-            liftEval (writeMem (fun m =>
-              Mem.storeFloat64 m p (Float.Model.ofBits (UInt64.ofNat 0))))
-        | _ => zeroInit fuel ctx p ty declaration
+/-- N3220 §6.7.11p11, p22. Default initialization is recursive in the
+canonical type. The numeric zero, null pointer, and padding rules each
+use the layout of the subobject they initialize. -/
+def zeroInitStructured : Nat → Ctx → Ptr → String →
+    Option LeanModels.Clang.QualType → Option LeanModels.C.DeclarationId → ExecM Unit
+  | 0, _, _, _, _, _ => exhausted
+  | fuel + 1, ctx, p, ty, structured, declaration => do
+      let some type := initializationType ctx.layout structured declaration
+        | refuseUnsupported s!"zero initialization lacks parser-native QualType for '{ty}'"
+      match type.unqualified with
+      | .pointer _ => liftEval (writeMem (fun m => Mem.storePtr m p Ptr.null))
+      | .array element (some extent) =>
+          let some stride := initializationStride ctx.layout declaration element
+            | refuseUnsupported s!"zero initialization lacks array element layout for '{ty}'"
+          zeroElems fuel ctx p ty stride extent 0 (some element)
+      | .record handle =>
+          let owner : LeanModels.C.DeclarationId := { value := handle.value }
+          let some members := ctx.layout.membersDecl owner
+            | refuseUnsupported s!"zero initialization lacks record layout for '{ty}'"
+          let some size := ctx.layout.recordSizeDecl owner
+            | refuseUnsupported s!"zero initialization lacks record extent for '{ty}'"
+          if members.any (·.1.isEmpty) then
+            refuseUnsupported "default initialization with an unnamed member"
+          else if ctx.layout.isUnionDecl owner then
+            let some (name, memberTy) := members.head?
+              | refuseUnsupported "default union initialization has no named member"
+            -- A single byte range above every member is padding. Bytes of
+            -- inactive members below that limit remain indeterminate.
+            let memberExtent ← members.foldlM (init := 0) fun extent (member, _) => do
+              let some width := ctx.layout.fieldSizeDecl owner member
+                | refuseUnsupported "default union initialization lacks member extent"
+              if ctx.layout.fieldOffDecl owner member != some 0 ||
+                  (ctx.layout.fieldBitsDecl owner member).isSome || width > size then
+                refuseUnsupported "default union initialization lacks byte-aligned member layout"
+              pure (max extent width)
+            let padding := List.replicate (size - memberExtent) (CByte.conc 0)
+            unless padding.isEmpty do
+              liftEval (writeMem (fun m => m.storeBytes (Mem.member p memberExtent) padding))
+            zeroMembers fuel ctx p ty [(name, memberTy)] (some owner)
+          else
+            zeroStructurePadding ctx p owner size members
+            zeroMembers fuel ctx p ty members (some owner)
+      | _ =>
+          match intTyOfStructured type with
+          | some t =>
+              liftEval (writeMem (fun m =>
+                Mem.storeIntChecked m Mem.cAliasModel p t ty 0 (some type)))
+          | none =>
+              match floatBitsOfStructured type with
+              | some 32 => liftEval (writeMem (fun m =>
+                  Mem.storeFloat32 m p (Float32.Model.ofBits (UInt32.ofNat 0))))
+              | some 64 => liftEval (writeMem (fun m =>
+                  Mem.storeFloat64 m p (Float.Model.ofBits (UInt64.ofNat 0))))
+              | _ => refuseUnsupported s!"no default value for parser-native type '{ty}'"
 
-/-- §6.7.11p10 — initialize an object to zero, as if it had static
-storage duration. Type-directed: see the section note. -/
-def zeroInit : Nat → Ctx → Ptr → String → Option DeclarationId → ExecM Unit
-  | 0, _, _, _, _ => exhausted
-  | _, _, _, ty, _ =>
-      refuseUnsupported s!"zero initialization lacks parser-native QualType for '{ty}'"
-
-/-- Zero the elements of an array, from index `i` up. -/
+/-- Default-initialize the remaining array elements. -/
 def zeroElems : Nat → Ctx → Ptr → String → Nat → Nat → Nat →
     Option LeanModels.Clang.QualType → ExecM Unit
   | 0, _, _, _, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, et, esz, n, i, structured =>
-    if i ≥ n then pure ()
-    else do
-      zeroInitStructured fuel ctx (Mem.member p (i * esz)) et structured none
-      zeroElems fuel ctx p et esz n (i + 1) structured
+  | fuel + 1, ctx, p, ty, stride, extent, index, structured =>
+      if index ≥ extent then pure ()
+      else do
+        zeroInitStructured fuel ctx (Mem.memberRange p (index * stride) stride) ty structured none
+        zeroElems fuel ctx p ty stride extent (index + 1) structured
 
-/-- Zero the members of a structure, in declaration order. -/
-def zeroMembers : Nat → Ctx → Ptr → String → List (String × String) → Option DeclarationId → ExecM Unit
+/-- Default-initialize the remaining record members in declaration order. -/
+def zeroMembers : Nat → Ctx → Ptr → String → List (String × String) →
+    Option LeanModels.C.DeclarationId → ExecM Unit
   | 0, _, _, _, _, _ => exhausted
   | _, _, _, _, [], _ => pure ()
-  | fuel + 1, ctx, p, ty, (nm, mty) :: rest, declaration => do
-      unless ctx.layout.flexibleFieldDeclAt declaration ty nm do
-        match ctx.layout.fieldBitsDeclAt declaration ty nm with
+  | fuel + 1, ctx, p, ty, (name, memberTy) :: rest, declaration => do
+      unless ctx.layout.flexibleFieldDeclAt declaration ty name do
+        match ctx.layout.fieldBitsDeclAt declaration ty name with
         | some (offsetBits, width) =>
-            unless nm.isEmpty do
-              initBitField ctx p declaration nm mty offsetBits width none
+            unless name.isEmpty do
+              initBitField ctx p declaration name memberTy offsetBits width none
         | none =>
-            match ctx.layout.fieldOffDeclAt declaration ty nm with
-            | some off =>
-              zeroInit fuel ctx (Mem.member p off) mty
-                ((ctx.layout.fieldDeclAt declaration nm).orElse
-                  (fun _ => ctx.layout.memberRecordDeclAt declaration nm))
-            | none => refuseUnsupported s!"no offset for member '{nm}'"
+            let some (offset, type, field) := declaration.bind (fun owner =>
+                initializerField ctx.layout owner name)
+              | refuseUnsupported s!"default initialization lacks layout for member '{name}'"
+            zeroInitStructured fuel ctx (Mem.member p offset) memberTy (some type) field
       zeroMembers fuel ctx p ty rest declaration
 
 end
@@ -288,167 +399,108 @@ end
 
 mutual
 
-/-- §6.7.11 — initialize the object at `p`, of type `ty`, from `e`.
-
-A scalar initializer is an assignment (§6.7.11p11). A brace-enclosed list
-initializes an aggregate member by member (p9), **in declaration order**,
-and every member the list does not reach is zeroed (p10). -/
+/-- N3220 §6.7.11. Clang's initializer nodes already identify the current
+subobject, including omitted and designated elements. Each recursive call
+uses the canonical type of that subobject and the same layout as ordinary
+member and array access. -/
 def initObject : Nat → Ctx → Ptr → String → Expr →
-    Option LeanModels.Clang.QualType → Option DeclarationId → ExecM Unit
+    Option LeanModels.Clang.QualType → Option LeanModels.C.DeclarationId → ExecM Unit
   | 0, _, _, _, _, _, _ => exhausted
   | fuel + 1, ctx, p, ty, e, structured, declaration =>
+    let structured := initializationType ctx.layout structured declaration
     match e with
-    | .implicitValueInit _ _ .. => zeroInitStructured fuel ctx p ty structured declaration
-    -- Clang wraps nested aggregate initializers in ConstantExpr nodes even
-    -- when their value is the parser's InitListExpr. Preserve §6.7.11's
-    -- aggregate walk instead of sending that wrapper to evalExpr, where the
-    -- value-position InitListExpr is intentionally loud.
-    | .constExpr _ (some (.initList _ _ _ _ ..)) _ _ .. =>
-        initObject fuel ctx p ty
-          (match e with | .constExpr _ (some sub) _ _ .. => sub | _ => e) structured declaration
-    | .constExpr _ (some (.arrayInitList _ _ _ _ _ ..)) _ _ .. =>
-        initObject fuel ctx p ty
-          (match e with | .constExpr _ (some sub) _ _ .. => sub | _ => e) structured declaration
+    | .implicitValueInit .. => zeroInitStructured fuel ctx p ty structured declaration
+    | .constExpr _ (some sub@(.initList ..)) _ _ ..
+    | .constExpr _ (some sub@(.arrayInitList ..)) _ _ .. =>
+        initObject fuel ctx p ty sub structured declaration
     | .designatedUpdate base update _ _ .. => do
+        checkInitializerOrder ctx declaration [base, update]
         initObject fuel ctx p ty base structured declaration
         initObject fuel ctx p ty update structured declaration
-    | .arrayInitList inits filler field _ _ .. =>
-        -- Clang's array_filler is [default filler, positional entries...].
-        -- Only its implicit-zero default is in tier; retain and refuse other
-        -- shapes rather than guessing their repeated initialization semantics.
-        match inits, filler, ctx.layout.elemDeclAt declaration ty with
-        | [], .implicitValueInit _ _ _ :: entries, some (et, n) =>
-            match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-            | some esz =>
-                let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
-                  match q.unqualified with
-                  | .array element _ => some element
-                  | _ => none)
-                initElems fuel ctx p et esz n 0 entries elementStructured
-            | none => refuseUnsupported s!"no size for element type '{et}'"
+    | .arrayInitList inits filler _ _ _ nodeType =>
+        let type := structured.orElse (fun _ => initializationType ctx.layout nodeType none)
+        -- The first entry is Clang's default filler. Further entries
+        -- preserve their position, including ImplicitValueInitExpr holes.
+        match inits, filler, type.map LeanModels.Clang.QualType.unqualified with
+        | [], .implicitValueInit .. :: entries, some (.array element (some extent)) => do
+            checkInitializerOrder ctx declaration entries
+            let some stride := initializationStride ctx.layout declaration element
+              | refuseUnsupported s!"no array element layout for '{ty}'"
+            initElems fuel ctx p ty stride extent 0 entries (some element)
         | _, _, _ => refuseUnsupported "unsupported Clang array_filler initializer"
-    | .initList inits field _ _ .. =>
-        let initTy := ty
-        -- An array whose element is a union still starts with the parser's
-        -- `union ...` spelling (`union u0[4]`).  §6.7.11 applies the array
-        -- walk first; treating the whole declarator as a union loses the
-        -- element initializers and reports a fabricated missing member.
-        if (ctx.layout.elemDeclAt declaration initTy).isNone && ctx.layout.isUnionDeclAt declaration initTy then
-          match ctx.layout.membersDeclAt declaration initTy, inits with
-          | some _, [] => zeroInit fuel ctx p initTy declaration
-          | some ms, e :: _ =>
-              let target := field.getD ((ms.head?.map (·.1)).getD "")
-              let mty := ms.find? (·.1 == target) |>.map (·.2) |>.getD initTy
-              match ctx.layout.fieldBitsDeclAt declaration initTy target with
-              | some (offsetBits, width) =>
-                  initBitField ctx p declaration target mty offsetBits width (some e)
-              | none =>
-                  match ctx.layout.fieldOffDeclAt declaration initTy target with
-                  | some off => initObject fuel ctx (Mem.member p off) mty e
-                      (declaration.bind (fun did => ctx.layout.fieldStructuredDecl did target))
-                      ((ctx.layout.fieldDeclAt declaration target).orElse
-                        (fun _ => ctx.layout.memberRecordDeclAt declaration target))
-                  | none => refuseUnsupported s!"no offset for union member '{target}'"
-          | _, _ => refuseUnsupported "union initializer has no member"
+    | .initList inits field _ _ nodeType => do
+        let type := structured.orElse (fun _ => initializationType ctx.layout nodeType none)
+        checkInitializerOrder ctx declaration inits
+        if inits.isEmpty then zeroInitStructured fuel ctx p ty type declaration
         else
-        match ctx.layout.elemDeclAt declaration ty with
-        -- an ARRAY: elements at i * sizeof(elem), then §6.7.11p10 on the tail
-        | some (et, n) =>
-            match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-            | some esz =>
-                let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
-                  match q.unqualified with
-                  | .array element _ => some element
-                  | _ => none)
-                initElems fuel ctx p et esz n 0 inits elementStructured
-            | none => refuseUnsupported s!"no size for element type '{et}'"
-        | none =>
-          match ctx.layout.membersDeclAt declaration ty with
-          -- a STRUCTURE: members in declaration order, then p10 on the rest
-          | some ms =>
-              if !ms.isEmpty &&
-                  ms.all (fun (name, _) => (ctx.layout.fieldBitsDeclAt declaration ty name).isSome) &&
+          match type.map LeanModels.Clang.QualType.unqualified with
+          | some (.array element (some extent)) =>
+              let some stride := initializationStride ctx.layout declaration element
+                | refuseUnsupported s!"no array element layout for '{ty}'"
+              initElems fuel ctx p ty stride extent 0 inits (some element)
+          | some (.array ..) => refuseUnsupported s!"initializer lacks array extent for '{ty}'"
+          | some (.record handle) =>
+              let owner : LeanModels.C.DeclarationId := { value := handle.value }
+              let some members := ctx.layout.membersDecl owner
+                | refuseUnsupported s!"initializer lacks record layout for '{ty}'"
+              if ctx.layout.isUnionDecl owner then
+                match inits, field.orElse (fun _ => (members.find? (fun member => !member.1.isEmpty)).map (·.1)) with
+                | [value], some name =>
+                    let some (_, fieldTy) := members.find? (·.1 == name)
+                      | refuseUnsupported s!"unknown union initializer member '{name}'"
+                    match ctx.layout.fieldBitsDecl owner name with
+                    | some (offsetBits, width) =>
+                        initBitField ctx p owner name fieldTy offsetBits width (some value)
+                    | none =>
+                        let some (offset, memberType, fieldId) := initializerField ctx.layout owner name
+                          | refuseUnsupported s!"initializer lacks layout for union member '{name}'"
+                        initObject fuel ctx (Mem.member p offset) fieldTy value (some memberType) fieldId
+                | _, _ => refuseUnsupported "union initializer has no single selected member"
+              else if !members.isEmpty &&
+                  members.all (fun (name, _) => (ctx.layout.fieldBitsDecl owner name).isSome) &&
                   inits.all independentBitFieldInitializer then
-                initBitFieldRecord ctx p ty declaration ms inits
-              else initMembers fuel ctx p ty ms inits declaration
-          | none => refuseUnsupported s!"cannot initialize aggregate '{ty}'"
-    -- §6.7.11p14 — a character array initialized by a string literal gets
-    -- the literal's parser-native bytes, including its terminating null.
-    -- This copies into the destination array; it does not store the
-    -- literal pointer's tagged representation bytes.
-    | .strLit value decoded _ _ .. =>
-        let bytes? := match decoded with
-          | some bs => some (bs.map (fun b => CByte.conc (UInt8.ofNat b)))
-          | none => (plainStringBytes value).map (fun bs => bs ++ [CByte.conc 0])
-        let structuredCharArray := structured.bind fun q =>
-          match q.unqualified with
-          | .array element (some n) =>
-              match intTyOfStructured element with
-              | some t => if t.bits == 8 then some n else none
-              | none => none
-          | _ => none
-        match ctx.layout.elemDeclAt declaration ty, bytes? with
-        | some (et, n), some bytes =>
-            let elementStructured := declaration.bind ctx.layout.structuredTypeDecl |>.bind (fun q =>
-              match q.unqualified with
-              | .array element _ => some element
-              | _ => none)
-            match elementStructured.bind intTyOfStructured with
-            | some t =>
-                if t == IntTy.char_ || t == IntTy.uchar then
-                  let copied := bytes.take n
-                  let padded := copied ++ List.replicate (n - copied.length) (CByte.conc 0)
-                  liftEval (writeMem (fun m => m.storeBytes p padded))
-                else
-                  match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-                  | some esz =>
-                      if esz > 0 && bytes.length % esz == 0 then
-                        let copied := bytes.take (n * esz)
-                        let padded := copied ++ List.replicate (n * esz - copied.length) (CByte.conc 0)
-                        liftEval (writeMem (fun m => m.storeBytes p padded))
-                      else refuseUnsupported "wide string literal has incomplete element bytes"
-                  | none => refuseUnsupported "wide string literal lacks element layout"
-            | none =>
-                match ctx.layout.arrayElementSizeDeclAt declaration ty et with
-                | some esz =>
-                    if esz > 0 && bytes.length % esz == 0 then
-                      let copied := bytes.take (n * esz)
-                      let padded := copied ++ List.replicate (n * esz - copied.length) (CByte.conc 0)
-                      liftEval (writeMem (fun m => m.storeBytes p padded))
-                    else refuseUnsupported "wide string literal has incomplete element bytes"
-                | none => refuseUnsupported "wide string literal lacks element layout"
-        | _, some bytes =>
-            match structuredCharArray with
-            | some n =>
-                let copied := bytes.take n
-                let padded := copied ++ List.replicate (n - copied.length) (CByte.conc 0)
-                liftEval (writeMem (fun m => m.storeBytes p padded))
-            | none => do
-                let v ← evalE ctx (.strLit value decoded ty default none)
-                liftEval (storeAt Mem.cAliasModel p ty v structured)
-        | _, none => do
-            let v ← evalE ctx (.strLit value decoded ty default none)
-            liftEval (storeAt Mem.cAliasModel p ty v structured)
-    -- §6.7.11p11 — a scalar initializer is a single expression.
+                initBitFieldRecord ctx p ty owner members inits
+              else initMembers fuel ctx p ty members inits owner
+          | some _ =>
+              match inits with
+              | [value] => initObject fuel ctx p ty value type declaration
+              | _ => refuseUnsupported "more than one initializer for a scalar"
+          | none => refuseUnsupported s!"initializer lacks parser-native QualType for '{ty}'"
+    | .strLit _ decoded _ _ .. => do
+        match structured.map LeanModels.Clang.QualType.unqualified with
+        | some (.array element (some extent)) =>
+            let some stride := initializationStride ctx.layout declaration element
+              | refuseUnsupported "string initializer lacks element layout"
+            let some bytes := decoded
+              | refuseUnsupported "string initializer lacks Clang literal bytes"
+            if stride == 0 || bytes.length % stride != 0 then
+              refuseUnsupported "string initializer has incomplete element bytes"
+            let width := extent * stride
+            if bytes.length > width + stride || (bytes.drop width).any (· != 0) then
+              refuseUnsupported "non-null string initializer element exceeds the array extent"
+            let copied := (bytes.take width).map (fun byte => CByte.conc (UInt8.ofNat byte))
+            let padded := copied ++ List.replicate (width - copied.length) (CByte.conc 0)
+            liftEval (writeMem (fun m => m.storeBytes p padded))
+        | _ =>
+            let value ← evalE ctx e
+            liftEval (storeAt Mem.cAliasModel p ty value structured)
     | _ => do
-        let v ← evalE ctx e
-        liftEval (storeAt Mem.cAliasModel p ty v structured)
+        let value ← evalE ctx e
+        liftEval (storeAt Mem.cAliasModel p ty value structured)
 
-/-- Array elements, then zero-fill (§6.7.11p10). -/
+/-- Initialize positional array entries and then default-initialize the tail. -/
 def initElems : Nat → Ctx → Ptr → String → Nat → Nat → Nat → List Expr →
     Option LeanModels.Clang.QualType → ExecM Unit
   | 0, _, _, _, _, _, _, _, _ => exhausted
-  | fuel + 1, ctx, p, et, esz, n, i, es, structured =>
-    match es with
-    -- the list ran out: every remaining element is zeroed
-    | [] => zeroElems fuel ctx p et esz n i structured
-    | e :: rest =>
-        if i ≥ n then
-          -- §6.7.11p2 is a CONSTRAINT: more initializers than elements.
-          refuseUnsupported "more initializers than array elements"
-        else do
-          initObject fuel ctx (Mem.member p (i * esz)) et e structured none
-          initElems fuel ctx p et esz n (i + 1) rest structured
+  | fuel + 1, ctx, p, ty, stride, extent, index, entries, structured =>
+      match entries with
+      | [] => zeroElems fuel ctx p ty stride extent index structured
+      | value :: rest =>
+          if index ≥ extent then
+            refuseUnsupported "more initializers than array elements"
+          else do
+            initObject fuel ctx (Mem.memberRange p (index * stride) stride) ty value structured none
+            initElems fuel ctx p ty stride extent (index + 1) rest structured
 
 /-- Structure members in declaration order, then zero-fill. -/
 def initMembers : Nat → Ctx → Ptr → String → List (String × String) → List Expr → Option DeclarationId → ExecM Unit
@@ -475,18 +527,10 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
           | some (offsetBits, width) =>
               initBitField ctx p declaration nm mty offsetBits width (some e)
           | none =>
-              match ctx.layout.fieldOffDeclAt declaration ty nm with
-              | some off =>
-                let recordId := declaration.bind (fun did => ctx.layout.structuredTypeDecl did) |>.bind (fun q =>
-                  match q.unqualified with
-                  | .record handle => some { value := handle.value }
-                  | _ => none)
-                initObject fuel ctx (Mem.member p off) mty e
-                  ((recordId.bind (fun did => ctx.layout.fieldStructuredDecl did nm)).orElse (fun _ =>
-                    ctx.layout.memberRecordDeclAt declaration nm |>.bind ctx.layout.structuredTypeDecl))
-                  ((ctx.layout.fieldDeclAt declaration nm).orElse
-                    (fun _ => ctx.layout.memberRecordDeclAt declaration nm))
-              | none => refuseUnsupported s!"no offset for member '{nm}'"
+              let some (offset, type, field) := declaration.bind (fun owner =>
+                  initializerField ctx.layout owner nm)
+                | refuseUnsupported s!"initializer lacks layout for member '{nm}'"
+              initObject fuel ctx (Mem.member p offset) mty e (some type) field
           initMembers fuel ctx p ty mrest erest declaration
 
 end
@@ -2154,7 +2198,7 @@ hand-rolled monotonicity order is precisely the duplication
 
 *What makes it more than a transcription here.* This mutual block is TEN
 functions, not four — `execStmt`, `execBlock`, `execLoop`, `declare`,
-`initObject`, `initElems`, `initMembers`, `zeroInit`, `zeroElems`,
+`initObject`, `initElems`, `initMembers`, `zeroInitStructured`, `zeroElems`,
 `zeroMembers` — so the conjunction has ten conjuncts. And where SV's
 functions return a result directly, these return a MONADIC value, so
 monotonicity is pointwise in the memory: `∀ m, run m (f fuel …) ⊑ run m

@@ -455,25 +455,13 @@ def layoutFor (envl : Envelope) : Layout :=
         | _ => false) with
       | some (.record (some rrid) _ fields ..) =>
           match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
-          | some _ => some (fields.filterMap fun field => match field with
+          | some _ => some (fields.filterMap fun (field : Decl) => match field with
               | .field name mty _ _ _ _ _ => some (name.getD "", mty)
               | _ => none)
           | none => none
       | _ => none
-    match (envl.structuredTypeFor did).bind
-      (LeanModels.Clang.QualType.resolveTypedefs
-        (fun handle => envl.structuredTypeFor {value := handle.value}) 32) with
-    | some (.record handle) => fromRecord {value := handle.value}
-    | _ =>
-      match ds.find? (fun q => match q with
-        | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
-            ds.any (fun r => match r with
-              | .record (some rrid) _ fields (some layout) _ _ .. =>
-                  rrid == rid && (checkedRecordLayout? fields layout).isSome
-              | _ => false)
-        | _ => false) with
-      | some (.var _ _ _ _ _ (some rid) _ _ _) => fromRecord rid
-      | _ => none
+    (fromRecord did).orElse (fun _ => (structuredRecordIdFor did).bind fromRecord)
+      |>.orElse (fun _ => (parentRecordIdFor did).bind fromRecord)
   let observedFor := fun t : String =>
     -- Parser-native observations use the exact Clang type key. Legacy
     -- normalization remains confined to the fallback layout path.
