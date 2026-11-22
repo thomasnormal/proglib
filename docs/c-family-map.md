@@ -655,3 +655,11 @@ objects for each literal. Pointer equality and arithmetic still refuse because
 literal pooling and object identity are implementation choices. C's permitted
 same-address and distinct-address resolutions must be represented before these
 operations can be admitted universally.
+
+**Non-value representation wall price (2026-11-22).** The dynamic ranking has
+17 sole rows at `nonValueRepresentation`. The sample includes integerized
+function pointers, masked object addresses, `alloca` alignment observations
+and pointer-derived layout constants. These rows observe exposed addresses or
+representations the current PNVI-ae contract deliberately leaves unresolved,
+so the named refusal is retained until the S2 memory store supplies the
+exposure choice.
