@@ -663,3 +663,9 @@ and pointer-derived layout constants. These rows observe exposed addresses or
 representations the current PNVI-ae contract deliberately leaves unresolved,
 so the named refusal is retained until the S2 memory store supplies the
 exposure choice.
+
+**Long-double literal wall price (2026-11-22).** The dynamic ranking has 14
+sole rows at `long double floating literal`. These rows exercise profile-sized
+`long double` constants and builtins, while the approved IEEE parser currently
+models binary32 and binary64 only. The loud refusal is therefore an exact
+profile boundary, not a native mismatch or sanitizer-qualified UB result.
