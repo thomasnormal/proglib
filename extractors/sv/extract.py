@@ -32578,7 +32578,7 @@ def _syntax_packed_dims(sm, type_syntax, scope=None):
     return dims if dims else None
 
 
-def _syntax_unpacked_dims(sm, declarator):
+def _syntax_unpacked_dims(sm, declarator, scope=None):
     """Recover source-shaped unpacked dimensions from a declarator.
 
     Unlike packed dimensions these children live on ``DeclaratorSyntax``.
@@ -32614,7 +32614,7 @@ def _syntax_unpacked_dims(sm, declarator):
                             "value": 0, "resolved_width": None},
                     "lsb": {"kind": "Binary", "span": None,
                             "width": None, "op": "-",
-                            "left": _syntax_expr(sm, labels[0]),
+                            "left": _syntax_expr(sm, labels[0], scope),
                             "right": {"kind": "Int", "span": None,
                                       "value": 1, "resolved_width": None}},
                 })
@@ -32625,8 +32625,8 @@ def _syntax_unpacked_dims(sm, declarator):
         if len(lr) != 2:
             return None
         with _SymPos():
-            dimensions.append({"msb": _syntax_expr(sm, lr[0]),
-                               "lsb": _syntax_expr(sm, lr[1])})
+            dimensions.append({"msb": _syntax_expr(sm, lr[0], scope),
+                               "lsb": _syntax_expr(sm, lr[1], scope)})
     return dimensions if dimensions else None
 
 
@@ -32754,7 +32754,8 @@ def _decl_type_syntax(sym):
         return None
 
 
-def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0):
+def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0,
+                         scope=None):
     """Project Slang's canonical aggregate tree into envelope metadata."""
     if depth > 32:
         return None
@@ -32774,7 +32775,9 @@ def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0):
         if cname == "UnpackedUnionType":
             return None
         if cname == "FixedSizeUnpackedArrayType":
-            dims = _syntax_unpacked_dims(sm, declarator)
+            dims = _syntax_unpacked_dims(
+                sm, declarator,
+                scope=scope or getattr(t, "parentScope", None) or _SYM.scope)
             current = ct
             numeric = []
             while type(current).__name__ == "FixedSizeUnpackedArrayType":
@@ -32785,7 +32788,8 @@ def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0):
                 current = current.elementType.canonicalType
             if dims is None or len(dims) != len(numeric):
                 dims = numeric
-            elem = _aggregate_shape_sym(sm, current, type_syntax, None, depth + 1)
+            elem = _aggregate_shape_sym(sm, current, type_syntax, None,
+                                        depth + 1, scope)
             if elem is None:
                 return None
             for dim in reversed(dims):
@@ -32814,7 +32818,8 @@ def _aggregate_decl_metadata_sym(sm, m, direction=None, isym=None):
             return None
         symbol = isym or m
         shape = _aggregate_shape_sym(sm, m.type, _decl_type_syntax(symbol),
-                                     getattr(m, "syntax", None))
+                                     getattr(m, "syntax", None),
+                                     scope=getattr(m, "parentScope", None))
         if shape is None:
             return None
         def contains_struct(node):
@@ -36810,7 +36815,9 @@ def _sym_package_params(sm):
                     t = getattr(member, "type", None)
                     node = convert_param_sym(sm, member)
                     aggregate_shape = _aggregate_shape_sym(
-                        sm, t, _decl_type_syntax(member), getattr(member, "syntax", None))
+                        sm, t, _decl_type_syntax(member),
+                        getattr(member, "syntax", None),
+                        scope=getattr(member, "parentScope", None))
                     if (aggregate_shape is not None and
                             aggregate_shape.get("kind") in ("array", "struct")):
                         node = dict(node)
