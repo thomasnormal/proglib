@@ -295,9 +295,12 @@ def scalarSizeOfStructured (type : LeanModels.Clang.QualType) : Option Nat :=
   (intTyOfStructured type).map IntTy.storageBytes
     |>.orElse (fun _ => (floatBitsOfStructured type).map (· / 8))
 
-def objectSizeOfStructured : LeanModels.Clang.QualType → Option Nat
-  | .qualified _ _ base => objectSizeOfStructured base
-  | .array element (some extent) => objectSizeOfStructured element |>.map (· * extent)
+def objectSizeOfStructured (type : LeanModels.Clang.QualType)
+    (recordSize : LeanModels.Clang.DeclarationHandle → Option Nat := fun _ => none) : Option Nat :=
+  match type with
+  | .qualified _ _ base | .restrictQualified base => objectSizeOfStructured base recordSize
+  | .array element (some extent) => objectSizeOfStructured element recordSize |>.map (· * extent)
+  | .record handle => recordSize handle
   | .pointer _ => some 8
   | type => scalarSizeOfStructured type
 
@@ -524,34 +527,33 @@ def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : String) :
       (fun _ => (Expr.span expression).offset.bind (fun offset =>
         (layout.structuredExprTypeAt offset (Expr.span expression).endOffset
           expression.kindName ty).orElse (fun _ => layout.structuredExprType offset))))
-      |>.bind objectSizeOfStructured |>.orElse
+      |>.bind (fun type => objectSizeOfStructured type) |>.orElse
       (fun _ => layout.sizeAt (directDeclId expression) ty))
 
-/-- Resolve an indexed element stride from parser-native array or pointee
-observations before falling back to the expression's declaration size. -/
+/-- C23 §6.5.3.2p2 and §6.5.7p8 use the operand's element type. A cast can
+change that type while preserving the underlying object declaration. -/
+def Layout.structuredStride (layout : Layout) (type : LeanModels.Clang.QualType) :
+    Option Nat := do
+  let resolved ← type.resolveTypedefs
+    (fun handle => layout.structuredType { value := handle.value }) 32
+  let element ← match resolved.unqualified with
+    | .array element _ | .pointer element => some element
+    | _ => none
+  objectSizeOfStructured element (fun handle => layout.recordSizeDecl { value := handle.value })
+
+/-- Resolve the stride at the subscript's base expression. -/
 def Layout.elementSizeAt (layout : Layout) (base : Expr) (ty : String) :
     Option Nat :=
-  (directDeclId base).bind (fun did =>
-      (layout.elementSizeDecl did).orElse (fun _ => layout.pointeeSizeDecl did))
-    |>.orElse (fun _ =>
-      ((directDeclId base).bind layout.structuredType |>.orElse
-        (fun _ => (Expr.span base).offset.bind (fun offset =>
-          (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName ty).orElse
-            (fun _ => layout.structuredExprType offset)))).bind (fun structured =>
-        let resolvedElement :=
-          match structured.unqualified with
-          | .array element _ | .pointer element =>
-              LeanModels.Clang.QualType.resolveTypedefs
-                (fun handle => layout.structuredType { value := handle.value })
-                32 element |>.getD element
-          | _ => structured
-        match structured.unqualified with
-        | .array _ _ | .pointer _ =>
-            match resolvedElement.unqualified with
-            | .record handle => layout.recordSizeDecl { value := handle.value }
-            | _ => scalarSizeOfStructured resolvedElement
-        | _ => none))
-    |>.orElse (fun _ => layout.exprSizeAt base ty)
+  match base.structuredType? with
+  | some type => layout.structuredStride type
+  | none =>
+      (directDeclId base).bind (fun did =>
+          (layout.elementSizeDecl did).orElse (fun _ => layout.pointeeSizeDecl did))
+        |>.orElse (fun _ =>
+          ((directDeclId base).bind layout.structuredType |>.orElse
+            (fun _ => (Expr.span base).offset.bind (fun offset =>
+              (layout.structuredExprTypeAt offset (Expr.span base).endOffset base.kindName ty).orElse
+                (fun _ => layout.structuredExprType offset)))).bind layout.structuredStride)
 
 def Layout.arrayElementSizeDeclAt (layout : Layout) (decl : Option DeclarationId)
     (arrayTy elementTy : String) : Option Nat :=
@@ -634,17 +636,10 @@ def Layout.storageTypeAt (layout : Layout) (decl : Option DeclarationId)
   | some structured => if structured.aggregateObject then none else some ty
   | none => none
 
-/-- Resolve a pointer stride from the declaration identity that owns the
-pointer expression, then from the parser-native type-layout table.  There is
-no spelling peel fallback here. -/
+/-- Resolve a pointer stride at the pointer operand. -/
 def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : String) :
     Option Nat :=
-  base.bind (fun expression =>
-    (directDeclId expression).bind layout.pointeeSizeDecl)
-    |>.orElse (fun _ =>
-      base.bind (layout.structuredTypeAt ·)
-        |>.bind LeanModels.Clang.QualType.pointee
-        |>.bind scalarSizeOfStructured)
+  base.bind fun expression => layout.elementSizeAt expression ty
 
 /-! A bit-field's storage unit is the record object for a direct base and the
 parser-observed pointee for an arrow base.  Missing observations stay a loud
