@@ -1036,8 +1036,26 @@ standard character/void exceptions are admitted here. Incompatible legacy
 spellings refuse instead of being peeled by a local type parser. -/
 def compatiblePointerTypesNode
     (a b : Option LeanModels.Clang.QualType) : Bool :=
+  let compatibleBuiltin := fun left right =>
+    left == right ||
+      match left, right with
+      | .unsignedChar, .signedChar | .signedChar, .unsignedChar
+      | .unsignedShort, .short | .short, .unsignedShort
+      | .unsignedInt, .int | .int, .unsignedInt
+      | .unsignedLong, .long | .long, .unsignedLong
+      | .unsignedLongLong, .longLong | .longLong, .unsignedLongLong
+      | .uint128, .int128 | .int128, .uint128 => true
+      | _, _ => false
+  let compatiblePointee := fun left right =>
+    match left.unqualified, right.unqualified with
+    | .cBuiltinKind left, .cBuiltinKind right => compatibleBuiltin left right
+    | .builtin left, .builtin right =>
+        left == right ||
+          LeanModels.Cpp.CppIntType.unsignedCounterpart left == some right ||
+          LeanModels.Cpp.CppIntType.signedCounterpart left == some right
+    | _, _ => left.unqualified == right.unqualified
   match a, b with
-  | some left, some right => left.unqualified == right.unqualified
+  | some (.pointer left), some (.pointer right) => compatiblePointee left right
   | _, _ => false
 
 def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
