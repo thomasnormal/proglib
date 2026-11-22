@@ -116,13 +116,9 @@ inductive MemFault where
   formed pointer leaves the object. Structural here: the offset is
   checked against the size, so no sanitizer is needed to see it. -/
   | outOfBounds (o : ObjId) (off : Int) (want : Nat) (size : Nat)
-  /-- **`J.2(11)`**, §6.2.4: the value of an object with AUTOMATIC
-  storage duration is used while its representation is indeterminate. -/
+  /-- §6.3.2.1p2: an lvalue reads an uninitialized automatic object
+  that could have been declared with register storage class. -/
   | indetAutomatic (o : ObjId) (off : Nat)
-  /-- **`J.2(185)`**, §7.24.3.6p2: the value of a `malloc`ed object is
-  used before it is written. A DISTINCT entry from `J.2(11)` — the
-  annex separates them and so does this model. -/
-  | indetAllocated (o : ObjId) (off : Nat)
   /-- **`J.2(12)`**, §6.2.6.1p5: a non-value representation is read by an
   lvalue expression that does not have character type — here, a torn
   pointer, or a pointer representation read as an integer. -/
@@ -164,7 +160,6 @@ def j2 : MemFault → Option String
   | .deadObject _ _ => some "J.2(9)"
   | .outOfBounds .. => some "J.2(46)"
   | .indetAutomatic .. => some "J.2(11)"
-  | .indetAllocated .. => some "J.2(185)"
   | .nonValueRepresentation .. => some "J.2(12)"
   | .freeUnmatched _ => some "J.2(184)"
   | .reallocZero _ => none                      -- §7.24.3.7p3; the annex has none
@@ -177,8 +172,7 @@ def clause : MemFault → String
   | .deadObject _ .allocated => "7.24.3"
   | .deadObject _ _ => "6.2.4p2"
   | .outOfBounds .. => "6.5.7p9"
-  | .indetAutomatic .. => "6.2.4"
-  | .indetAllocated .. => "7.24.3.6p2"
+  | .indetAutomatic .. => "6.3.2.1p2"
   | .nonValueRepresentation .. => "6.2.6.1p5"
   | .freeUnmatched _ => "7.24.3.3"
   | .reallocZero _ => "7.24.3.7p3"
@@ -201,6 +195,9 @@ obligation. -/
 inductive Refusal where
   | valueUB (u : UB)
   | memUB (f : MemFault)
+  /-- A typed read reached indeterminate bytes. The evaluator uses the
+  lvalue to distinguish register UB from an unmodeled representation. -/
+  | indeterminateRead (o : ObjId) (off : Nat)
   | libc (name : String)
   /-- `abort()` is a terminal program outcome, not a library refusal.  It
   stays in the inner channel so expression evaluation can short-circuit, and
@@ -218,6 +215,9 @@ against `Except Refusal` today needs no adapter tomorrow
 These operations take and return `Mem` explicitly rather than living in a
 state monad, which is what makes the lift a lift rather than a rewrite. -/
 abbrev MRes (α : Type) := Except Refusal α
+
+def indeterminateReadMessage : String :=
+  "indeterminate lvalue read requires a representation choice"
 
 theorem mres_map_error_bind {α β : Type} (g : α → β) (e : Refusal)
     (k : β → MRes α) :
@@ -2066,14 +2066,13 @@ def characterByte : CByte → Option UInt8
 
 def loadCharacter (m : Mem) (p : Ptr) (t : IntTy) : MRes CVal := do
   let (o, c, off) ← m.resolve p 1
-  match (c.bytes.drop off).head?.bind characterByte with
-  | some b => pure (.int t (t.wrap b.toNat))
-  | none =>
-      if (c.bytes.drop off).any (· == CByte.indet) then
-        .error (.memUB (match c.dur with
-          | .allocated => .indetAllocated o off
-          | _ => .indetAutomatic o off))
-      else .error (.memUB (.nonValueRepresentation o off))
+  match c.bytes[off]? with
+  | some .indet => .error (.indeterminateRead o off)
+  | some b =>
+      match characterByte b with
+      | some x => pure (.int t (t.wrap x.toNat))
+      | none => .error (.memUB (.nonValueRepresentation o off))
+  | none => .error (.memUB (.nonValueRepresentation o off))
 
 theorem loadCharacter_renameAddresses_of_conc
     (rename : ObjId → Nat) (m : Mem) (p : Ptr) (t : IntTy)
@@ -2091,10 +2090,9 @@ theorem loadCharacter_renameAddresses_of_conc
     simp only [CObj.renameAddress]
     simpa [List.map_take, List.map_drop] using congrArg
       (List.map (CByte.renameAddress rename)) hbytes
-  have hhead :
-      (List.drop off (CObj.renameAddress rename c).bytes).head? = some (CByte.conc b) := by
+  have hhead : (CObj.renameAddress rename c).bytes[off]? = some (CByte.conc b) := by
     have hh := congrArg List.head? hmapped
-    simpa [List.head?_take] using hh
+    simpa [List.head?_take, List.head?_drop] using hh
   rw [hhead]
   rfl
 
@@ -2184,17 +2182,40 @@ theorem decodeFloat64_renameAddresses (rename : ObjId → Nat) (bs : List CByte)
     cases b <;> rfl
   simp [decodeFloat64, hany, hbytes]
 
+theorem CByte.renameAddress_beq_indet
+    (rename : ObjId → Nat) (b : CByte) :
+    (CByte.renameAddress rename b == CByte.indet) = (b == CByte.indet) := by
+  cases b <;> rfl
+
+theorem List.any_renameAddress_indet
+    (rename : ObjId → Nat) (bs : List CByte) :
+    (bs.map (CByte.renameAddress rename)).any (· == CByte.indet) =
+      bs.any (· == CByte.indet) := by
+  induction bs with
+  | nil => rfl
+  | cons b bs ih =>
+      simp only [List.map, List.any]
+      have hb := CByte.renameAddress_beq_indet rename b
+      rw [show (CByte.renameAddress rename b == CByte.indet) =
+          (b == CByte.indet) by exact hb, ih]
+
 def loadFloat32 (m : Mem) (p : Ptr) : MRes CVal := do
   let bs ← m.loadBytes p 4
   match decodeFloat32 bs with
   | some f => pure (.float32 f)
-  | none => .error (.memUB (.nonValueRepresentation (Option.getD p.obj 0) p.off.toNat))
+  | none =>
+      let o := p.obj.getD 0
+      if bs.any (· == CByte.indet) then .error (.indeterminateRead o p.off.toNat)
+      else .error (.memUB (.nonValueRepresentation o p.off.toNat))
 
 def loadFloat64 (m : Mem) (p : Ptr) : MRes CVal := do
   let bs ← m.loadBytes p 8
   match decodeFloat64 bs with
   | some f => pure (.float64 f)
-  | none => .error (.memUB (.nonValueRepresentation (Option.getD p.obj 0) p.off.toNat))
+  | none =>
+      let o := p.obj.getD 0
+      if bs.any (· == CByte.indet) then .error (.indeterminateRead o p.off.toNat)
+      else .error (.memUB (.nonValueRepresentation o p.off.toNat))
 
 theorem loadFloat32_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (p : Ptr) :
@@ -2209,7 +2230,10 @@ theorem loadFloat32_renameAddresses
       dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
         Except.pure, Except.map]
       cases hdec : decodeFloat32 bs with
-      | none => rw [decodeFloat32_renameAddresses, hdec]; rfl
+      | none =>
+          rw [decodeFloat32_renameAddresses, hdec, List.any_renameAddress_indet]
+          simp only [Ptr.renameAddress_obj, Ptr.renameAddress_off]
+          split <;> simp_all
       | some f => rw [decodeFloat32_renameAddresses, hdec]; rfl
 
 theorem loadFloat64_renameAddresses
@@ -2225,7 +2249,10 @@ theorem loadFloat64_renameAddresses
       dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
         Except.pure, Except.map]
       cases hdec : decodeFloat64 bs with
-      | none => rw [decodeFloat64_renameAddresses, hdec]; rfl
+      | none =>
+          rw [decodeFloat64_renameAddresses, hdec, List.any_renameAddress_indet]
+          simp only [Ptr.renameAddress_obj, Ptr.renameAddress_off]
+          split <;> simp_all
       | some f => rw [decodeFloat64_renameAddresses, hdec]; rfl
 
 def storeFloat32 (m : Mem) (p : Ptr) (f : Float32.Model) : MRes Mem :=
@@ -2235,14 +2262,6 @@ def storeFloat64 (m : Mem) (p : Ptr) (f : Float.Model) : MRes Mem :=
   m.storeBytes p (encodeFloat64 f)
 
 /-! ### The typed accessors -/
-
-/-- Which indeterminate-read fault a duration raises. `J.2(11)` names
-AUTOMATIC storage; `J.2(185)` is `malloc`'s own entry. Keeping them apart
-is the annex's own distinction, not a refinement of it. -/
-def indetFault (dur : Duration) (o : ObjId) (off : Nat) : MemFault :=
-  match dur with
-  | .allocated => .indetAllocated o off
-  | _ => .indetAutomatic o off
 
 /-- The character-type exception in C23 §6.5.1p7. Effective-type checks
 consume parser-native `QualType` observations. Missing observations remain a
@@ -2305,7 +2324,7 @@ def loadIntResolved (t : IntTy) (o : ObjId) (c : CObj) (off : Nat) : MRes CVal :
   | some v => .ok (.int t v)
   | none =>
       if bs.any (· == CByte.indet) then
-        .error (.memUB (indetFault c.dur o off))
+        .error (.indeterminateRead o off)
       else
         .error (.memUB (.nonValueRepresentation o off))
 
@@ -2509,14 +2528,12 @@ def storeFunction (m : Mem) (p : Ptr) (id : DeclarationId) : MRes Mem :=
   m.storeBytes p (List.replicate 8 (CByte.funByte id))
 
 def loadFunction (m : Mem) (p : Ptr) : MRes (Option DeclarationId) := do
-  let (_, c, off) ← m.resolve p 1
+  let (_, c, off) ← m.resolve p 8
   match (c.bytes.drop off).head? with
   | some (.funByte id) =>
       let bytes := (c.bytes.drop off).take 8
-      if bytes == List.replicate 8 (CByte.funByte id) then
-        pure (some id)
-      else
-        .error (.memUB (.nonValueRepresentation (Option.getD p.obj 0) off))
+      if bytes == List.replicate 8 (CByte.funByte id) then pure (some id)
+      else pure none
   | _ => pure none
 
 theorem loadFunction_renameAddresses
@@ -2547,7 +2564,7 @@ theorem loadFunction_renameAddresses
             rw [hx', hi']
   simp only [loadFunction]
   rw [resolve_renameAddresses]
-  cases h : m.resolve p 1 with
+  cases h : m.resolve p 8 with
   | error e =>
       dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
         Except.pure, Except.map]
@@ -2600,29 +2617,12 @@ theorem loadFunction_renameAddresses
                               [CByte.funByte id, CByte.funByte id, CByte.funByte id,
                                CByte.funByte id, CByte.funByte id, CByte.funByte id,
                                CByte.funByte id, CByte.funByte id] = true
-                      · simp [ho, Ptr.renameAddress_obj]
-                      · simp [ho, Ptr.renameAddress_obj]
+                      · simp [ho]
+                      · simp [ho]
                   | conc b => rw [hhead, hh]; rfl
                   | ptrByte q k => rw [hhead, hh]; rfl
                   | ptrIntByte q k => rw [hhead, hh]; rfl
                   | indet => rw [hhead, hh]; rfl
-
-theorem CByte.renameAddress_beq_indet
-    (rename : ObjId → Nat) (b : CByte) :
-    (CByte.renameAddress rename b == CByte.indet) = (b == CByte.indet) := by
-  cases b <;> rfl
-
-theorem List.any_renameAddress_indet
-    (rename : ObjId → Nat) (bs : List CByte) :
-    (bs.map (CByte.renameAddress rename)).any (· == CByte.indet) =
-      bs.any (· == CByte.indet) := by
-  induction bs with
-  | nil => rfl
-  | cons b bs ih =>
-      simp only [List.map, List.any]
-      have hb := CByte.renameAddress_beq_indet rename b
-      rw [show (CByte.renameAddress rename b == CByte.indet) =
-          (b == CByte.indet) by exact hb, ih]
 
 private def knownZeroPointerByte : CByte → Bool
   | .conc b => b == 0
@@ -2638,7 +2638,7 @@ def loadPtr (m : Mem) (p : Ptr) (zeroNullPointer : Bool := false) : MRes (Option
   let expected (q : Ptr) := (List.range 8).map (CByte.ptrByte q)
   let decodeUntagged : MRes (Option Ptr) :=
     if bs.any (· == CByte.indet) then
-      .error (.memUB (indetFault c.dur o off))
+      .error (.indeterminateRead o off)
     else if zeroNullPointer && bs.all knownZeroPointerByte then
       .ok (some Ptr.null)
     else .ok none
@@ -2655,7 +2655,7 @@ theorem loadPtr_renameAddresses_of_indet
       some (CByte.ptrByte q 0))
     (hany : bs.any (· == CByte.indet) = true) :
     (m.renameAddresses rename).loadPtr (Ptr.renameAddress rename p) =
-      .error (.memUB (indetFault c.dur o off)) := by
+      .error (.indeterminateRead o off) := by
   simp only [loadPtr, resolve_renameAddresses, hr]
   dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
     Except.pure, Except.map]
@@ -2876,7 +2876,7 @@ def loadPtrInt (m : Mem) (p : Ptr) : MRes Ptr := do
       else .error (.memUB (.nonValueRepresentation o off))
   | _ =>
       if bs.any (· == CByte.indet) then
-        .error (.memUB (indetFault c.dur o off))
+        .error (.indeterminateRead o off)
       else .error (.memUB (.nonValueRepresentation o off))
 
 theorem loadPtrInt_renameAddresses_of_exact
@@ -2924,7 +2924,7 @@ theorem loadPtrInt_renameAddresses_of_indet
       some (CByte.ptrIntByte q 0))
     (hany : bs.any (· == CByte.indet) = true) :
     (m.renameAddresses rename).loadPtrInt (Ptr.renameAddress rename p) =
-      .error (.memUB (indetFault c.dur o off)) := by
+      .error (.indeterminateRead o off) := by
   simp only [loadPtrInt, resolve_renameAddresses, hr]
   dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
     Except.pure, Except.map]
@@ -5691,6 +5691,7 @@ namespace Refusal
 retires: it is the product.** -/
 def cause : Refusal → Cause
   | .valueUB _ | .memUB _ => .undefined ()
+  | .indeterminateRead .. => .unsupported ()
   | .libc _ => .environment ()
   | .aborted => .environment ()
 
@@ -5706,8 +5707,7 @@ def j2 : Refusal → Option String
       | .shiftCountTooLarge .. | .shiftCountNegative _ => some "J.2(48)"
       | .shiftNegativeOperand _ | .shiftOverflow .. => some "J.2(49)"
       | .vaArgTypeMismatch .. => none
-  | .libc _ => none
-  | .aborted => none
+  | .indeterminateRead .. | .libc _ | .aborted => none
 
 end Refusal
 
