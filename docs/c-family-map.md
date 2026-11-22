@@ -861,3 +861,11 @@ sanitizer without a diagnostic. The receipt is in
 [`docs/c-setjmp-price-20261122.md`](c-setjmp-price-20261122.md), with machine
 rows in [`docs/c-setjmp-price-20261122.json`](c-setjmp-price-20261122.json).
 The profile disagreement remains separate from UB.
+
+**ExprWithCleanups wall price (2026-11-22).** The dynamic ranking has three
+sole rows refusing `ExprWithCleanups`. All three have clean pinned O0/O2 and
+UBSan/ASan runs. The receipt is in
+[`docs/c-expr-cleanups-price-20261122.md`](c-expr-cleanups-price-20261122.md),
+with machine rows in
+[`docs/c-expr-cleanups-price-20261122.json`](c-expr-cleanups-price-20261122.json).
+The refusal remains the cleanup-expression lifetime boundary.
