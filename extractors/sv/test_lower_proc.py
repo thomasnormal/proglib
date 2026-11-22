@@ -728,6 +728,35 @@ class StarBlocks(Base):
         self.assertEqual(process["event_kind"], "ImplicitEventControl")
         self.assertNotIn("always_star_lowered", process)
 
+    def test_retained_always_requires_an_event_control(self):
+        for statement, expected in [
+                ("#2 y = a;", "TimedStatement:DelayControl"),
+                ("y = a;", "ProceduralBlockSymbol:NoEventControl"),
+                ("@(posedge a);", "TimedStatement:SignalEventControl")]:
+            with self.subTest(statement=statement):
+                module = self.module(
+                    "module t(input logic a, output logic y); always "
+                    + statement + " endmodule", retain_proc_rewrites=True)
+                process, = module["processes"]
+                self.assertEqual((process["kind"], process["sv_kind"]),
+                                 ("Unsupported", expected))
+
+    def test_invalid_child_memory_process_at_its_standalone_defaults(self):
+        design = self.extract("""
+            module ram #(parameter W=0, parameter D=8/W)
+              (input clk, input [W-1:0] data);
+              reg [W-1:0] mem [0:D-1];
+              always @(posedge clk) mem[0] <= data;
+            endmodule
+            module t(input clk, input [1:0] data);
+              ram #(.W(2)) u(clk, data);
+            endmodule
+            """, retain_proc_rewrites=True)
+        ram = next(m for m in design["modules"] if m["name"] == "ram")
+        process, = ram["processes"]
+        self.assertEqual((process["kind"], process["sv_kind"]),
+                         ("Unsupported", "InvalidStatement"))
+
     def test_blocks_with_if_else_and_case(self):
         self.admitted("always @* begin if (s[0]) y = a; else y = b; case (s) 2'd0: z = a; 2'd1: z = b; default: z = 4'd0; endcase end")
 

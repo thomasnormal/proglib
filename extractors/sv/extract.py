@@ -27865,28 +27865,21 @@ def convert_procedural_block(sm, m, module_level=False):
                 return retained
     if _SYM is not None and pk == ProceduralBlockKind.Always:
         if _RETAIN_PROC_REWRITES:
-            # Preserve the event-controlled process until the retained
-            # scheduler vocabulary is available.  The normal path below
-            # applies WP-PROC E1 and admits the always_comb-equivalent shape.
+            # Only §9.4.2.2's implicit control has no explicit event list.
+            # A bad child elaboration can leave just InvalidStatement here,
+            # even when other parameter points have a valid clocked body.
             timing = getattr(body, "timing", None)
-            timed_body = getattr(body, "stmt", body)
-            # Keep Slang's event-control nodes in the envelope.  The
-            # canonical loader must never recover this information from the
-            # source spelling or from the diagnostic text.
-            if timing is not None:
-                if hasattr(timing, "events"):
-                    retained = _event_list_process(sm, m, body, timing, "always")
-                    if retained is not None:
-                        return retained
-                if type(timing).__name__ == "SignalEventControl":
-                    retained = _single_event_process(sm, m, body, timing)
-                    if retained is not None:
-                        return retained
+            if timing is None:
+                if getattr(body, "bad", False):
+                    return unsupported(sm, m, "InvalidStatement")
+                return unsupported(sm, m, "ProceduralBlockSymbol:NoEventControl")
+            if type(timing).__name__ != "ImplicitEventControl":
+                return unsupported(sm, m, "TimedStatement:" + type(timing).__name__)
             return {
                 "kind": "AlwaysEvent",
                 "span": span,
-                "event_kind": type(timing).__name__ if timing is not None else None,
-                "body": convert_stmt(sm, timed_body),
+                "event_kind": "ImplicitEventControl",
+                "body": convert_stmt(sm, body.stmt),
                 "text": source_text(m),
                 "symbolic_event_retained": True,
             }
