@@ -147,6 +147,11 @@ def validationRefuses (declarations : List DeclarationEvidenceRow) (raw : Raw) :
   (.array [typeRow "0x4" "0x4" (recordType "0x5")])
 #guard validationRefuses [declarationRow "0x4" "0x4"]
   (.array [typeRow "0x4" "0x4" (recordType "0x5")])
+#guard CppTypeEvidence.referencesKnown .builtinFunction []
+#guard !CppTypeEvidence.referencesKnown (.restrictQualified (.pointer (.record (handle "0x5")))) []
+#guard CppTypeEvidence.referencesKnown (.restrictQualified (.pointer (.record (handle "0x5"))))
+  [declarationRow "0x5" "0x5"]
+
 def validatedProbeIsOk : Bool :=
   match parseValidatedTypeEvidence (typedProbe [declarationRow "0x1" "0x1"] [oneRow]) with
   | .ok rows => rows.length == 1
