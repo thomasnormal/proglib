@@ -647,6 +647,17 @@ machine rows in [`docs/c-bitfield-price-20261122.json`](c-bitfield-price-2026112
 The next rule must use the parser-provided bit-field storage span for the
 read-modify-write byte operation.
 
+**Bit-field record-layout wall price (2026-11-22).** The dynamic ranking has
+11 sole rows refusing `no layout for bit-field record 'struct S'`. Nine rows
+have clean pinned O0/O2 and UBSan/ASan runs. `20230630-2.c` and
+`20230630-4.c` abort identically at all three native profiles without a
+sanitizer diagnostic and remain compiler-only checks. The receipt is in
+[`docs/c-bitfield-record-price-20261122.md`](c-bitfield-record-price-20261122.md),
+with machine rows in
+[`docs/c-bitfield-record-price-20261122.json`](c-bitfield-record-price-20261122.json).
+The refusal remains until parser-provided record and bit-field layout facts
+support a sound byte-span rule.
+
 **String-pointer wall price (2026-11-22).** The dynamic ranking has 19 sole
 rows refusing pointer operations involving string literals. Nine available C1
 samples exit 0 at pinned Clang `-O0` and `-O2` with clean UBSan/ASan runs.
