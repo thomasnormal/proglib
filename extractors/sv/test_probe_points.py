@@ -76,6 +76,23 @@ class ProbePoints(unittest.TestCase):
         _, _, side = self.run_extract(self.ADDER, "top", "W=3,N=8")
         self.assertEqual(side["probe_points"], "N=8,W=3")
 
+    def test_unknown_default_and_override_preserve_four_state_values(self):
+        source = """
+            module child #(parameter W=0, parameter DEPTH=32/W) ();
+            endmodule
+            module top #(parameter W=2) ();
+              child #(.W(W)) configured();
+              child #(.W(32'sbx)) unknown_width();
+            endmodule
+        """
+        plain, _, side = self.run_extract(source, "top", "W=4")
+        child = json.loads(plain)["design"]["modules"][1]
+        self.assertEqual(params(child), {"W": 0, "DEPTH": "x" * 32})
+        configured, unknown = side["points"][0]["instances"]
+        self.assertEqual(params(configured["design"]), {"W": 4, "DEPTH": 8})
+        self.assertIsNone(unknown["overrides"])
+        self.assertIsNone(unknown["design"])
+
     def test_bad_points_are_refused(self):
         for spec in ("N", "N=x", "N=1,N=2", ";", "1N=2"):
             with self.subTest(spec=spec):

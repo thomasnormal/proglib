@@ -31509,6 +31509,10 @@ def _cv_int(cv):
         sv = cv.value
         if type(sv).__name__ != "SVInt":
             return None
+        # pyslang's int(SVInt) returns zero for a value containing x/z,
+        # even when some of its bits are known (IEEE 1800-2023 §6.3.1).
+        if sv.hasUnknown:
+            return svint_bits(sv)
         value = _svint_to_int(sv)
         return value if value is not None else svint_bits(sv)
     except Exception:
@@ -35285,6 +35289,9 @@ def _sym_uninstantiated_port_expr(sm, syntax, scope=None):
                         width = _cv_int(symbol.value)
                     except Exception:
                         width = None
+                    if not isinstance(width, int) or width <= 0:
+                        return _syntax_unsupported(sm, syntax,
+                                                   "ConversionExpression:width")
                 if width is None:
                     width = getattr(symbol, "bitWidth", None)
                     if width is None:
