@@ -699,6 +699,15 @@ with machine rows in
 The refusal remains the exact parser-native source/destination representation
 conversion boundary.
 
+**Floating-to-integer wall price (2026-11-22).** The dynamic ranking has three
+sole rows refusing `floating value used as an integer`. All three have clean
+pinned O0/O2 and UBSan/ASan runs. The receipt is in
+[`docs/c-floating-integer-price-20261122.md`](c-floating-integer-price-20261122.md),
+with machine rows in
+[`docs/c-floating-integer-price-20261122.json`](c-floating-integer-price-20261122.json).
+The refusal remains the exact parser-native floating-to-integer conversion and
+range boundary.
+
 **Integer-to-pointer wall price (2026-11-22).** The dynamic ranking has 12
 sole rows refusing `integer-to-pointer conversion outside pointer type`. The
 rows are address arithmetic, pointer round-trips and builtin-prefetch cases.
