@@ -1368,9 +1368,17 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
               let pattern ← match takePrintfString (source.bytes.drop off) with
                 | some bytes => pure bytes
                 | none => refuseUnsupported "printf: non-concrete or unterminated format"
-              let hexDigits (n : Nat) : List CByte :=
-                if n == 0 then [CByte.conc 48]
-                else (Nat.toDigits 16 n).map (fun d => CByte.conc (UInt8.ofNat d.toNat))
+              let printfHexDigit (upper : Bool) (d : Nat) : CByte :=
+                if d < 10 then CByte.conc (UInt8.ofNat (48 + d))
+                else CByte.conc (UInt8.ofNat ((if upper then 55 else 87) + d))
+              let rec printfHexDigits (upper : Bool) (n : Nat) : List CByte :=
+                if n < 16 then [printfHexDigit upper n]
+                else printfHexDigits upper (n / 16) ++ [printfHexDigit upper (n % 16)]
+                termination_by n
+                decreasing_by exact Nat.div_lt_self (by omega) (by omega)
+              let padHex (upper : Bool) (width n : Nat) : List CByte :=
+                let digits := printfHexDigits upper n
+                List.replicate (width - digits.length) (CByte.conc 48) ++ digits
               let rec format : List CByte → List CVal → ExecM (List CByte)
                 | [], _ => pure []
                 | .conc 37 :: .conc 37 :: rest, as => do
@@ -1390,7 +1398,12 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                     pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
                 | .conc 37 :: .conc 120 :: rest, a :: as => do
                     let (_, n) ← asInt a
-                    let rendered := hexDigits n.toNat
+                    let rendered := printfHexDigits false n.toNat
+                    let tail ← format rest as
+                    pure (rendered ++ tail)
+                | .conc 37 :: .conc 48 :: .conc 52 :: .conc 88 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let rendered := padHex true 4 n.toNat
                     let tail ← format rest as
                     pure (rendered ++ tail)
                 | .conc 37 :: .conc 108 :: .conc 100 :: rest, a :: as => do
@@ -1408,7 +1421,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                 | .conc 37 :: .conc 108 :: .conc 120 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let tail ← format rest as
-                    pure (hexDigits n.toNat ++ tail)
+                    pure (printfHexDigits false n.toNat ++ tail)
                 | .conc 37 :: .conc 108 :: .conc 108 :: .conc 100 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let tail ← format rest as
@@ -1424,7 +1437,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                 | .conc 37 :: .conc 108 :: .conc 108 :: .conc 120 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let tail ← format rest as
-                    pure (hexDigits n.toNat ++ tail)
+                    pure (printfHexDigits false n.toNat ++ tail)
                 | .conc 37 :: .conc 99 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let tail ← format rest as
