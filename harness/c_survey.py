@@ -46,10 +46,35 @@ def callee_name(node):
 
 def portable_detail(detail):
     """Drop machine-specific cache prefixes from frontend diagnostics."""
-    for marker in ("/src/", "/tests/single-exec/", "/gcc/testsuite/"):
-        pos = detail.rfind(marker)
-        if pos >= 0:
-            return detail[pos + 1:]
+    # Keep repository-relative paths and discard machine prefixes. Diagnostics
+    # may contain several paths in one line, so normalize each whitespace token
+    # instead of returning at the first marker.
+    markers = (
+        "/src/", "/tests/single-exec/", "/gcc/testsuite/",
+        "/extractors/", "/LeanModels/", "/harness/", "/tools/"
+    )
+    words = detail.split()
+    changed = False
+    for index, word in enumerate(words):
+        for marker in markers:
+            pos = word.find(marker)
+            if pos >= 0:
+                prefix = word[:pos]
+                quote = '"' if prefix.endswith('"') else ''
+                words[index] = quote + word[pos + 1:]
+                changed = True
+                break
+        else:
+            for absolute in ("/scratch/", "/var/tmp/"):
+                pos = word.find(absolute)
+                if pos >= 0:
+                    prefix = word[:pos]
+                    suffix = '"' if word.endswith('"') else ''
+                    words[index] = prefix + "<path>" + suffix
+                    changed = True
+                    break
+    if changed:
+        return " ".join(words)
     return detail
 
 
