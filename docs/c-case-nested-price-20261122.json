@@ -1,0 +1,93 @@
+{
+  "rows": [
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "case label nested in a control statement",
+      "name": "00051.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "case label nested in a control statement",
+      "name": "00143.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "oracle-no-result",
+      "model": "case label nested in a control statement",
+      "name": "medce-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "<path> <path> in function `foo': <path> undefined reference to `link_error' clang: error: linker command failed with exit code 1 (use -v to see invocation)",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "<path> <path> in function `foo': <path> undefined reference to `link_error' clang: error: linker command failed with exit code 1 (use -v to see invocation)",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-case-nested-price-1",
+  "total": 3
+}
