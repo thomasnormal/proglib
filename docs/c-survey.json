@@ -13,10 +13,10 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 1,
-   "passed": 1073,
+   "passed": 1081,
    "refused-libc": 24,
-   "refused-ub": 51,
-   "refused-unsupported": 273,
+   "refused-ub": 52,
+   "refused-unsupported": 264,
    "timeout": 10
   },
   "gcc.c23-run": {
@@ -34,10 +34,10 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 1,
-  "passed": 1267,
+  "passed": 1275,
   "refused-libc": 26,
-  "refused-ub": 56,
-  "refused-unsupported": 418,
+  "refused-ub": 57,
+  "refused-unsupported": 409,
   "timeout": 11
  },
  "dynamic_wall_ranking": [
@@ -497,6 +497,7 @@
     "20040811-1.c",
     "20060110-1.c",
     "20060110-2.c",
+    "20121108-1.c",
     "20171008-1.c",
     "920726-1.c",
     "920929-1.c",
@@ -539,8 +540,8 @@
     "shiftdi-2.c",
     "vla-dealloc-1.c"
    ],
-   "present": 56,
-   "sole": 56,
+   "present": 57,
+   "sole": 57,
    "wall": "undefined-behavior"
   },
   {
@@ -776,22 +777,6 @@
    "present": 11,
    "sole": 11,
    "wall": "unsupported:no layout for bit-field record 'struct S'"
-  },
-  {
-   "files": [
-    "20121108-1.c",
-    "921202-2.c",
-    "960311-1.c",
-    "960311-2.c",
-    "loop-4.c",
-    "loop-4b.c",
-    "pr61375.c",
-    "pr78477.c",
-    "pr91635.c"
-   ],
-   "present": 9,
-   "sole": 9,
-   "wall": "unsupported:signed compound shift requires an exact parser path"
   },
   {
    "files": [
@@ -1695,8 +1680,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "c68917867c69eef570eaad12cd19a0e6941954fbf37960dfa431654a9e6cebb4",
- "measured_at_utc": "2026-11-22T14:30:00Z",
- "measured_commit": "2baafb62f",
+ "measured_at_utc": "2026-11-22T14:50:00Z",
+ "measured_commit": "9a80aafde",
  "pin": "C1-C3",
  "rows": [
   {
@@ -9372,8 +9357,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "LeanModels.C.C23.UB.shiftOverflow 12626110 8 { signed := true, bits := 32 }",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "20121108-1.c",
    "sha256": "5f5958f038cc3cdd6f07d711409b5f540eaeb840bdf46497aaaf9707b2726066",
@@ -9383,7 +9368,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10509,13 +10494,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921202-2.c",
    "sha256": "4d4cef20c60174f035cffe0c1e0ad245d8af241f2c856f99a17497a02e1c22bf",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11784,23 +11769,23 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "960311-1.c",
    "sha256": "21fcafc37fe262dcda49667ae8ef960f12674891a3dfa07dca1267f8a26e25e2",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "960311-2.c",
    "sha256": "d1e80c97d668b29cc55b0650260cb9cc04ca2845e5dbdd5a8d81d98356c98b22",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18061,23 +18046,23 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "loop-4.c",
    "sha256": "199c081bfbe49d0b4b7bbb2c2e6a404974f28d575c8a50201ceed71f0b421fc1",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "loop-4b.c",
    "sha256": "72a5f595e3ca39a1dbdf065edca341c6492aa7d8ec88b31575ec116e85413412",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23489,15 +23474,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr61375.c",
    "sha256": "0aa2ed3fb7c3a9401cffb623b1fd8d555d5d3e5118f2551cd8f77d14092f7437",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24677,15 +24662,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr78477.c",
    "sha256": "e01d402f9a249e31f196ab73a22273de6ae6b1d71c6745b5a1236042f1749edb",
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25744,8 +25729,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "signed compound shift requires an exact parser path",
-   "dynamic_wall": "unsupported:signed compound shift requires an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr91635.c",
    "sha256": "d0694a2c845a3590b25d9f22fccd8455e09482d4531e403bca5c78a946193921",
@@ -25753,7 +25738,7 @@
     "libc-call: __builtin_abort",
     "libc-call: __builtin_add_overflow"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
