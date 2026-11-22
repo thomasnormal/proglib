@@ -163,6 +163,24 @@
     "expected_stdout": "12.340000, 56.780000\n"
   },
   {
+    "id": "gnu17-floating-division-infinity",
+    "source": "int main(void) { double x = 1.0 / 0.0; return x > 0.0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "floating_envelope_checks": [
+      "floating_bits"
+    ]
+  },
+  {
+    "id": "gnu17-floating-zero-over-zero",
+    "source": "int main(void) { double x = 0.0 / 0.0; return x == x ? 1 : 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "floating_envelope_checks": [
+      "floating_bits"
+    ]
+  },
+  {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
     "expect": "refuse",
