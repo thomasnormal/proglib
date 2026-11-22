@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Hierarchical canonical-E port aliases from top-level input ports no longer
+  trigger the time-zero event-source refusal. Internal continuous drivers remain
+  guarded, and the recursive child-instance receipt now matches both pinned
+  simulators on four rows.
+
 - Added parser-native active-region phase relations for retained combinational and
   edge activations, preserving source continuations, blocking visibility, and
   issue-time scalar and memory NBA queues. PicoRV32 scheduling receipts now

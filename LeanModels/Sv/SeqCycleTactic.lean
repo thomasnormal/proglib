@@ -537,7 +537,6 @@ macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ide
       LeanModels.Sv.Kernel.coreMemProcBlockingWrites, LeanModels.Sv.Kernel.coreMemStmtBlockingWrites,
       LeanModels.Sv.Kernel.coreMemStmtBlockingWritesList, LeanModels.Sv.Kernel.coreMemCaseBlockingWrites,
       LeanModels.Sv.Kernel.coreMemTimeZeroEventSourceViol, LeanModels.Sv.Kernel.coreMemFirstTimeZeroEventSource,
-      LeanModels.Sv.Kernel.coreMemSourceWrittenAtTimeZero, LeanModels.Sv.Kernel.coreMemTimeZeroProcWrites,
       LeanModels.Sv.Kernel.coreMemPAssignMemoryTopoB, LeanModels.Sv.Kernel.coreMemHasEdgeProc,
       LeanModels.Sv.Kernel.coreMemPAssignTarget,
       LeanModels.Sv.Kernel.coreMemPAssignValue, LeanModels.Sv.Kernel.coreMemPAssignUsesMemory,

@@ -585,11 +585,32 @@ def coreMemTimeZeroSourceWrites : PProcess → List String
   | .assignL (.ident target) _ => [target]
   | p => coreMemTimeZeroProcWrites p
 
+/-! A child input port connected directly to a top-level input is an alias,
+not an independent time-zero driver.  Hierarchy elaboration represents the
+§23.3.3 connection as a source-shaped continuous assignment, so the generic
+time-zero guard must recognize this parser-native boundary.  A connection
+from an internal signal remains a driver and is still checked. -/
+def coreMemPortAliasAtTimeZero (d : PDesign) : PProcess → Bool
+  | .assign target (.ident source) =>
+      target.contains "." && coreMemInputPortB d source
+  | .assignL (.ident target) (.ident source) =>
+      target.contains "." && coreMemInputPortB d source
+  | _ => false
+
+def coreMemTimeZeroSourceWritesFor (d : PDesign) (p : PProcess) : List String :=
+  if coreMemPortAliasAtTimeZero d p then [] else coreMemTimeZeroSourceWrites p
+
 def coreMemSourceWrittenAtTimeZero (name : String) : List PProcess → Bool
   | [] => false
   | p :: rest =>
       (coreMemTimeZeroSourceWrites p).contains name ||
         coreMemSourceWrittenAtTimeZero name rest
+
+def coreMemSourceWrittenAtTimeZeroFor (d : PDesign) (name : String) : List PProcess → Bool
+  | [] => false
+  | p :: rest =>
+      (coreMemTimeZeroSourceWritesFor d p).contains name ||
+        coreMemSourceWrittenAtTimeZeroFor d name rest
 
 def coreMemFirstTimeZeroEventSource (sources : List String) (processes : List PProcess) :
     Option String :=
@@ -599,17 +620,25 @@ def coreMemFirstTimeZeroEventSource (sources : List String) (processes : List PP
       if coreMemSourceWrittenAtTimeZero source processes then some source
       else coreMemFirstTimeZeroEventSource rest processes
 
+def coreMemFirstTimeZeroEventSourceFor (d : PDesign) (sources : List String)
+    (processes : List PProcess) : Option String :=
+  match sources with
+  | [] => none
+  | source :: rest =>
+      if coreMemSourceWrittenAtTimeZeroFor d source processes then some source
+      else coreMemFirstTimeZeroEventSourceFor d rest processes
+
 def coreMemTimeZeroEventSourceViol (d : PDesign) (generated : List PProcess) :
     Option (String × String) :=
   let processes := d.processes ++ generated
   match coreMemFirstRepeatedEventSource (coreMemEventSources processes) processes with
   | some source =>
-      if coreMemSourceWrittenAtTimeZero source processes then
+      if coreMemSourceWrittenAtTimeZeroFor d source processes then
         some ("Event:time-zero",
           s!"4.7/9.4.2: event source '{source}' is driven by an initial/always_comb/always_latch or continuous-assign activation at time zero; canonical E refuses the unresolved scheduling race")
       else none
   | none =>
-      match coreMemFirstTimeZeroEventSource (coreMemEventSources processes) processes with
+      match coreMemFirstTimeZeroEventSourceFor d (coreMemEventSources processes) processes with
       | none => none
       | some source =>
           some ("Event:time-zero",
