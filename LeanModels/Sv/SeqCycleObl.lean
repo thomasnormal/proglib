@@ -127,7 +127,7 @@ end
 
 mutual
 
-/-- The signals an edge body writes, blocking or nonblocking (base names). -/
+/-- The signals an edge body writes, blocking or nonblocking (base names); a `for` loop writes what its body writes. -/
 def _root_.LeanModels.Sv.PStmt.writes : PStmt → List String
   | .nbaAssign t _ => [t]
   | .blockingAssign t _ => [t]
@@ -136,6 +136,7 @@ def _root_.LeanModels.Sv.PStmt.writes : PStmt → List String
   | .ifStmt _ y n => PStmt.writes y ++ PStmt.optWrites n
   | .block body => PStmt.listWrites body
   | .caseStmt _ items d _ _ => PStmt.itemsWrites items ++ PStmt.optWrites d
+  | .forLoop _ _ _ _ body => PStmt.writes body
   | _ => []
 termination_by structural s => s
 
@@ -168,6 +169,7 @@ def _root_.LeanModels.Sv.PStmt.hasBlocking : PStmt → Bool
   | .ifStmt _ y n => PStmt.hasBlocking y || PStmt.optHasBlocking n
   | .block body => PStmt.listHasBlocking body
   | .caseStmt _ items d _ _ => PStmt.itemsHasBlocking items || PStmt.optHasBlocking d
+  | .forLoop _ _ _ _ body => PStmt.hasBlocking body
   | _ => false
 termination_by structural s => s
 
@@ -200,6 +202,8 @@ def _root_.LeanModels.Sv.PStmt.readNames : PStmt → List String
   | .ifStmt c y n => PExpr.sigNames c ++ PStmt.readNames y ++ PStmt.optReadNames n
   | .block body => PStmt.listReadNames body
   | .caseStmt s items d _ _ => PExpr.sigNames s ++ PStmt.itemsReadNames items ++ PStmt.optReadNames d
+  | .forLoop _ init condition step body =>
+      PExpr.sigNames init ++ PExpr.sigNames condition ++ PExpr.sigNames step ++ PStmt.readNames body
   | _ => []
 termination_by structural s => s
 
@@ -254,6 +258,8 @@ def _root_.LeanModels.Sv.PStmt.unconverted : PStmt → List String
   | .ifStmt c y n => PExpr.unconverted c ++ PStmt.unconverted y ++ PStmt.optUnconverted n
   | .block body => PStmt.listUnconverted body
   | .caseStmt s items d _ _ => PExpr.unconverted s ++ PStmt.itemsUnconverted items ++ PStmt.optUnconverted d
+  | .forLoop _ init condition step body =>
+      PExpr.unconverted init ++ PExpr.unconverted condition ++ PExpr.unconverted step ++ PStmt.unconverted body
   | _ => []
 termination_by structural s => s
 
@@ -1152,7 +1158,7 @@ mutual
 /-- An `nbaWhole` body leaves the view alone, issues updates of the signals it writes, and no memory record. -/
 theorem CoreMemDesign.execV_nbaWhole {E : CoreMemDesign} (v : SvState) (mv : MemV) :
     ∀ (b : PStmt) (v' : SvState) (q : NbaQueue2) (mq : MemQV), b.nbaWhole = true →
-      E.execV v mv b = .ok (v', q, mq) → v' = v ∧ (∀ u ∈ q, u.1 ∈ b.writes) ∧ mq = []
+      E.execV E.env v mv b = .ok (v', q, mq) → v' = v ∧ (∀ u ∈ q, u.1 ∈ b.writes) ∧ mq = []
   | .nbaAssign t e, v', q, mq, _, h => by
       simp only [CoreMemDesign.execV] at h
       split at h
@@ -1195,7 +1201,7 @@ theorem CoreMemDesign.execV_nbaWhole {E : CoreMemDesign} (v : SvState) (mv : Mem
       exact ⟨h1, fun u hu => by simp only [PStmt.writes]; exact h2 u hu, h3⟩
   | .caseStmt subject items d mode check, v', q, mq, hb, h => by
       simp only [PStmt.nbaWhole, Bool.and_eq_true] at hb
-      have hdflt : ∀ r, E.execOptV v mv d = .ok r → r.1 = v ∧ (∀ u ∈ r.2.1, u.1 ∈ PStmt.optWrites d) ∧ r.2.2 = [] := by
+      have hdflt : ∀ r, E.execOptV E.env v mv d = .ok r → r.1 = v ∧ (∀ u ∈ r.2.1, u.1 ∈ PStmt.optWrites d) ∧ r.2.2 = [] := by
         intro r hr
         cases d with
         | none =>
@@ -1206,7 +1212,7 @@ theorem CoreMemDesign.execV_nbaWhole {E : CoreMemDesign} (v : SvState) (mv : Mem
             simp only [CoreMemDesign.execOptV] at hr
             simp only [PStmt.optNbaWhole] at hb
             exact CoreMemDesign.execV_nbaWhole v mv s r.1 r.2.1 r.2.2 hb.2 hr
-      have hitems : ∀ sv res, E.execItemsV v mv sv mode items (E.execOptV v mv d) = .ok res →
+      have hitems : ∀ sv res, E.execItemsV E.env v mv sv mode items (E.execOptV E.env v mv d) = .ok res →
           res.1 = v ∧ (∀ u ∈ res.2.1, u.1 ∈ (PStmt.caseStmt subject items d mode check).writes) ∧ res.2.2 = [] := by
         intro sv res hres
         obtain ⟨h1, h2, h3⟩ := CoreMemDesign.execItemsV_nbaWhole v mv sv mode items _ res hb.1 hdflt hres
@@ -1229,7 +1235,7 @@ theorem CoreMemDesign.execV_nbaWhole {E : CoreMemDesign} (v : SvState) (mv : Mem
 /-- The list form of `execV_nbaWhole`. -/
 theorem CoreMemDesign.execListV_nbaWhole {E : CoreMemDesign} (v : SvState) (mv : MemV) :
     ∀ (bs : List PStmt) (v' : SvState) (q : NbaQueue2) (mq : MemQV), PStmt.listNbaWhole bs = true →
-      E.execListV v mv bs = .ok (v', q, mq) → v' = v ∧ (∀ u ∈ q, u.1 ∈ PStmt.listWrites bs) ∧ mq = []
+      E.execListV E.env v mv bs = .ok (v', q, mq) → v' = v ∧ (∀ u ∈ q, u.1 ∈ PStmt.listWrites bs) ∧ mq = []
   | [], v', q, mq, _, h => by
       simp only [CoreMemDesign.execListV, Res.ok.injEq, Prod.mk.injEq] at h
       obtain ⟨rfl, rfl, rfl⟩ := h
@@ -1256,7 +1262,7 @@ theorem CoreMemDesign.execItemsV_nbaWhole {E : CoreMemDesign} (v : SvState) (mv 
     ∀ (items : List (List PExpr × PStmt)) (dflt : Res ExecV) (res : ExecV) {D : List String},
       PStmt.itemsNbaWhole items = true →
       (∀ r, dflt = .ok r → r.1 = v ∧ (∀ u ∈ r.2.1, u.1 ∈ D) ∧ r.2.2 = []) →
-      E.execItemsV v mv sv mode items dflt = .ok res →
+      E.execItemsV E.env v mv sv mode items dflt = .ok res →
       res.1 = v ∧ (∀ u ∈ res.2.1, u.1 ∈ PStmt.itemsWrites items ++ D) ∧ res.2.2 = []
   | [], dflt, res, D, _, hd, h => by
       simp only [CoreMemDesign.execItemsV] at h
@@ -1305,13 +1311,13 @@ theorem commitNba2_swap {st : SvState} (hnd : (st.map Prod.fst).Nodup) {q₁ q�
 does not fire). -/
 def CoreMemDesign.procQ (E : CoreMemDesign) (before after v : SvState) (mv : MemV) : CoreMemProc → Res NbaQueue2
   | .edge p => if p.fires before after then do
-      let r ← E.execV v mv p.body
+      let r ← E.execV E.env v mv p.body
       .ok r.2.1
     else .ok []
   | .event evs body =>
       match coreMemEventEdge? evs body with
       | some p => if p.fires before after then do
-          let r ← E.execV v mv p.body
+          let r ← E.execV E.env v mv p.body
           .ok r.2.1
         else .ok []
       | none => .ok []
@@ -1320,7 +1326,7 @@ def CoreMemDesign.procQ (E : CoreMemDesign) (before after v : SvState) (mv : Mem
 theorem CoreMemDesign.procQ_of_edge? {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {p : CoreMemProc}
     {f : CoreMemEdge} (h : p.edge? = some f) :
     E.procQ before after v mv p = if f.fires before after then do
-        let r ← E.execV v mv f.body
+        let r ← E.execV E.env v mv f.body
         .ok r.2.1
       else .ok [] := by
   cases p with
@@ -1832,21 +1838,39 @@ theorem CoreMemDesign.scalarLhs2_ok {E : CoreMemDesign} {env : IEnv} {elems : Li
   | error e => rw [hi] at h; simp at h
 
 /-- The nonblocking updates of a compiled select or concatenation target name the target's base names. -/
-theorem CoreMemDesign.nbaWindows_in {E : CoreMemDesign} {t : PLhs} {l : Lhs2} {w : Nat}
-    (hl : E.scalarLhs2 E.env E.elems t = .ok (l, w)) {v : SvState} {ws : List (String × Nat × Nat)}
+theorem CoreMemDesign.nbaWindows_in {E : CoreMemDesign} {env : IEnv} {t : PLhs} {l : Lhs2} {w : Nat}
+    (hl : E.scalarLhs2 env E.elems t = .ok (l, w)) {v : SvState} {ws : List (String × Nat × Nat)}
     (hws : resolveConcatLhs2 4096 v l = .ok ws) (x : LVec) : ∀ u ∈ scalarNbaWindows x ws, u.1 ∈ PLhs.baseNames t := by
   intro u hu
   obtain ⟨u', hu', he⟩ := List.mem_map.mp (seq_scalarNbaWindows_names x ws u hu)
   rw [← he]
   exact seq_resolveConcatLhs2_in (seq_instLhs2_in t (CoreMemDesign.scalarLhs2_ok hl)) hws u' hu'
 
+/-- The frame of the loop fold, from the frame of its body's runs. -/
+theorem CoreMemDesign.execLoopV_frame {E : CoreMemDesign} {S : List String} {v : SvState} {step : Int → Res ExecV}
+    (hstep : ∀ i r, step i = .ok r → E.FrameV S v r) :
+    ∀ (values : List Int) (r : ExecV), execLoopV v step values = .ok r → E.FrameV S v r
+  | [], r, h => by
+      simp only [execLoopV, Res.ok.injEq] at h
+      subst h
+      exact ⟨fun _ _ => rfl, by simp⟩
+  | i :: rest, r, h => by
+      simp only [execLoopV, Res.bind_eq_ok, Res.ok.injEq] at h
+      obtain ⟨a, h1, b, h2, rfl⟩ := h
+      have ha := hstep i a h1
+      have hb := CoreMemDesign.execLoopV_frame hstep rest b h2
+      refine ⟨fun _ _ => rfl, fun u hu => ?_⟩
+      rcases List.mem_append.mp hu with hu | hu
+      · exact ha.2 u hu
+      · exact hb.2 u hu
+
 mutual
 
 /-- **The frame of an edge body**: the view changes, on the materialized view, only at the names the body writes, and
 the nonblocking updates name them. -/
 theorem CoreMemDesign.execV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toList.map Decl.name).Nodup)
-    (h4 : AllFour E.scalar) (v : SvState) (mv : MemV) :
-    ∀ (b : PStmt) (r : ExecV), E.execV v mv b = .ok r → E.FrameV b.writes v r
+    (h4 : AllFour E.scalar) (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (b : PStmt) (r : ExecV), E.execV env v mv b = .ok r → E.FrameV b.writes v r
   | .nbaAssign t e, r, h => by
       simp only [CoreMemDesign.execV] at h
       split at h
@@ -1912,7 +1936,7 @@ theorem CoreMemDesign.execV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toL
       simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
       obtain ⟨cv, -, h⟩ := h
       split at h
-      · exact (CoreMemDesign.execV_frame hnd h4 v mv y r h).mono fun x hx => by
+      · exact (CoreMemDesign.execV_frame hnd h4 env v mv y r h).mono fun x hx => by
           simp only [PStmt.writes, List.mem_append]; exact Or.inl hx
       · cases n with
         | none =>
@@ -1921,13 +1945,13 @@ theorem CoreMemDesign.execV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toL
             exact ⟨fun _ _ => rfl, by simp⟩
         | some s =>
             simp only [CoreMemDesign.execOptV] at h
-            exact (CoreMemDesign.execV_frame hnd h4 v mv s r h).mono fun x hx => by
+            exact (CoreMemDesign.execV_frame hnd h4 env v mv s r h).mono fun x hx => by
               simp only [PStmt.writes, PStmt.optWrites, List.mem_append]; exact Or.inr hx
   | .block body, r, h => by
       simp only [CoreMemDesign.execV] at h
-      exact (CoreMemDesign.execListV_frame hnd h4 v mv body r h).mono fun x hx => by simpa [PStmt.writes] using hx
+      exact (CoreMemDesign.execListV_frame hnd h4 env v mv body r h).mono fun x hx => by simpa [PStmt.writes] using hx
   | .caseStmt subject items d mode check, r, h => by
-      have hdflt : ∀ r', E.execOptV v mv d = .ok r' → E.FrameV (PStmt.optWrites d) v r' := by
+      have hdflt : ∀ r', E.execOptV env v mv d = .ok r' → E.FrameV (PStmt.optWrites d) v r' := by
         intro r' hr
         cases d with
         | none =>
@@ -1936,11 +1960,11 @@ theorem CoreMemDesign.execV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toL
             exact ⟨fun _ _ => rfl, by simp⟩
         | some s =>
             simp only [CoreMemDesign.execOptV] at hr
-            exact (CoreMemDesign.execV_frame hnd h4 v mv s r' hr).mono fun x hx => by simpa [PStmt.optWrites] using hx
-      have hitems : ∀ sv res, E.execItemsV v mv sv mode items (E.execOptV v mv d) = .ok res →
+            exact (CoreMemDesign.execV_frame hnd h4 env v mv s r' hr).mono fun x hx => by simpa [PStmt.optWrites] using hx
+      have hitems : ∀ sv res, E.execItemsV env v mv sv mode items (E.execOptV env v mv d) = .ok res →
           E.FrameV (PStmt.caseStmt subject items d mode check).writes v res := by
         intro sv res hres
-        exact (CoreMemDesign.execItemsV_frame hnd h4 v mv sv mode items _ res hdflt hres).mono fun x hx => by
+        exact (CoreMemDesign.execItemsV_frame hnd h4 env v mv sv mode items _ res hdflt hres).mono fun x hx => by
           simpa [PStmt.writes] using hx
       simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
       obtain ⟨sv, -, h⟩ := h
@@ -1952,13 +1976,25 @@ theorem CoreMemDesign.execV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toL
         split at h
         · exact hitems sv r h
         · simp at h
-  | .forLoop .., r, h => by simp [CoreMemDesign.execV] at h
+  | .forLoop it init cond step body, r, h => by
+      simp only [CoreMemDesign.execV] at h
+      by_cases hlb : PStmt.loopBodyB body = true
+      · simp only [hlb, ↓reduceIte] at h
+        cases hvals : forValues2 env it init cond step with
+        | timeout => simp [hvals] at h
+        | unsupported e => simp [hvals] at h
+        | ok values =>
+            simp only [hvals] at h
+            exact (CoreMemDesign.execLoopV_frame
+              (fun i r' hr => CoreMemDesign.execV_frame hnd h4 (env.bindVal it i) v mv body r' hr) values r h).mono
+              fun x hx => by simp only [PStmt.writes]; exact hx
+      · simp [hlb] at h
   | .unsupported .., r, h => by simp [CoreMemDesign.execV] at h
 
 /-- The list form of `execV_frame`. -/
 theorem CoreMemDesign.execListV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toList.map Decl.name).Nodup)
-    (h4 : AllFour E.scalar) (v : SvState) (mv : MemV) :
-    ∀ (bs : List PStmt) (r : ExecV), E.execListV v mv bs = .ok r → E.FrameV (PStmt.listWrites bs) v r
+    (h4 : AllFour E.scalar) (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (bs : List PStmt) (r : ExecV), E.execListV env v mv bs = .ok r → E.FrameV (PStmt.listWrites bs) v r
   | [], r, h => by
       simp only [CoreMemDesign.execListV, Res.ok.injEq] at h
       subst h
@@ -1966,8 +2002,8 @@ theorem CoreMemDesign.execListV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls
   | s :: ss, r, h => by
       simp only [CoreMemDesign.execListV, Res.bind_eq_ok, Res.ok.injEq] at h
       obtain ⟨a, h1, b, h2, rfl⟩ := h
-      have ha := CoreMemDesign.execV_frame hnd h4 v mv s a h1
-      have hb := CoreMemDesign.execListV_frame hnd h4 a.1 mv ss b h2
+      have ha := CoreMemDesign.execV_frame hnd h4 env v mv s a h1
+      have hb := CoreMemDesign.execListV_frame hnd h4 env a.1 mv ss b h2
       refine ⟨fun x hx => ?_, fun u hu => ?_⟩
       · simp only [PStmt.listWrites, List.mem_append, not_or] at hx
         show SvState.lookup (E.matV b.1) x = _
@@ -1979,10 +2015,10 @@ theorem CoreMemDesign.execListV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls
 
 /-- The arms of a `case`: the frame of the arm that runs, or of the default. -/
 theorem CoreMemDesign.execItemsV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toList.map Decl.name).Nodup)
-    (h4 : AllFour E.scalar) (v : SvState) (mv : MemV) (sv : LVec) (mode : CaseMode) :
+    (h4 : AllFour E.scalar) (env : IEnv) (v : SvState) (mv : MemV) (sv : LVec) (mode : CaseMode) :
     ∀ (items : List (List PExpr × PStmt)) (dflt : Res ExecV) (res : ExecV)
       {D : List String}, (∀ r, dflt = .ok r → E.FrameV D v r) →
-      E.execItemsV v mv sv mode items dflt = .ok res → E.FrameV (PStmt.itemsWrites items ++ D) v res
+      E.execItemsV env v mv sv mode items dflt = .ok res → E.FrameV (PStmt.itemsWrites items ++ D) v res
   | [], dflt, res, D, hd, h => by
       simp only [CoreMemDesign.execItemsV] at h
       exact (hd res h).mono fun x hx => by simp [PStmt.itemsWrites, hx]
@@ -1990,9 +2026,9 @@ theorem CoreMemDesign.execItemsV_frame {E : CoreMemDesign} (hnd : (E.scalar.decl
       simp only [CoreMemDesign.execItemsV, Res.bind_eq_ok] at h
       obtain ⟨vals, -, h⟩ := h
       split at h
-      · exact (CoreMemDesign.execV_frame hnd h4 v mv b res h).mono fun x hx => by
+      · exact (CoreMemDesign.execV_frame hnd h4 env v mv b res h).mono fun x hx => by
           simp only [PStmt.itemsWrites, List.mem_append]; exact Or.inl (Or.inl hx)
-      · exact (CoreMemDesign.execItemsV_frame hnd h4 v mv sv mode rest dflt res hd h).mono fun x hx => by
+      · exact (CoreMemDesign.execItemsV_frame hnd h4 env v mv sv mode rest dflt res hd h).mono fun x hx => by
           simp only [PStmt.itemsWrites, List.mem_append] at hx ⊢
           rcases hx with h' | h'
           · exact Or.inl (Or.inr h')
@@ -2022,7 +2058,7 @@ theorem CoreMemDesign.edgesV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.to
           split at h
           · simp only [Res.bind_eq_ok, Res.ok.injEq] at h
             obtain ⟨a, h1, b, h2, rfl⟩ := h
-            have ha := CoreMemDesign.execV_frame hnd h4 v mv f.body a h1
+            have ha := CoreMemDesign.execV_frame hnd h4 E.env v mv f.body a h1
             have hb := CoreMemDesign.edgesV_frame hnd h4 rest a.1 mv b h2
             have hfa : ∀ x ∈ f.body.writes, x ∈ (p :: rest).flatMap CoreMemProc.targets :=
               fun x hx => by

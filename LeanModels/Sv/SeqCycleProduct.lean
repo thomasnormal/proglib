@@ -75,7 +75,7 @@ end
 theorem CoreMemDesign.caseHitsV_congr {E : CoreMemDesign} {v v' : SvState} {mv : MemV} (sv : LVec)
     (mode : CaseMode) : ∀ (items : List (List PExpr × PStmt)),
       (∀ x ∈ E.itemsStmtReadsV items, SvState.lookup v x = SvState.lookup v' x) →
-      E.caseHitsV v mv sv mode items = E.caseHitsV v' mv sv mode items
+      E.caseHitsV E.env v mv sv mode items = E.caseHitsV E.env v' mv sv mode items
   | [], _ => rfl
   | (ps, b) :: rest, h => by
       simp only [CoreMemDesign.itemsStmtReadsV, List.mem_append] at h
@@ -89,7 +89,7 @@ mutual
 agree there it issues the same updates. -/
 theorem CoreMemDesign.execV_congr {E : CoreMemDesign} {v v' : SvState} {mv : MemV} :
     ∀ (b : PStmt), b.nbaWhole = true → (∀ x ∈ E.stmtReadsV b, SvState.lookup v x = SvState.lookup v' x) →
-      ∀ (q : NbaQueue2) (mq : MemQV), E.execV v mv b = .ok (v, q, mq) → E.execV v' mv b = .ok (v', q, mq)
+      ∀ (q : NbaQueue2) (mq : MemQV), E.execV E.env v mv b = .ok (v, q, mq) → E.execV E.env v' mv b = .ok (v', q, mq)
   | .nbaAssign t e, _, h, q, mq, hx => by
       simp only [CoreMemDesign.execV] at hx ⊢
       cases hw : E.scalarTarget t with
@@ -143,7 +143,7 @@ theorem CoreMemDesign.execV_congr {E : CoreMemDesign} {v v' : SvState} {mv : Mem
   | .caseStmt subject items d mode check, hb, h, q, mq, hx => by
       simp only [PStmt.nbaWhole, Bool.and_eq_true] at hb
       simp only [CoreMemDesign.stmtReadsV, List.mem_append] at h
-      have hdflt : ∀ q' mq', E.execOptV v mv d = .ok (v, q', mq') → E.execOptV v' mv d = .ok (v', q', mq') := by
+      have hdflt : ∀ q' mq', E.execOptV E.env v mv d = .ok (v, q', mq') → E.execOptV E.env v' mv d = .ok (v', q', mq') := by
         intro q' mq' hd
         cases d with
         | none =>
@@ -180,7 +180,7 @@ theorem CoreMemDesign.execV_congr {E : CoreMemDesign} {v v' : SvState} {mv : Mem
 theorem CoreMemDesign.execListV_congr {E : CoreMemDesign} {v v' : SvState} {mv : MemV} :
     ∀ (bs : List PStmt), PStmt.listNbaWhole bs = true →
       (∀ x ∈ E.listStmtReadsV bs, SvState.lookup v x = SvState.lookup v' x) →
-      ∀ (q : NbaQueue2) (mq : MemQV), E.execListV v mv bs = .ok (v, q, mq) → E.execListV v' mv bs = .ok (v', q, mq)
+      ∀ (q : NbaQueue2) (mq : MemQV), E.execListV E.env v mv bs = .ok (v, q, mq) → E.execListV E.env v' mv bs = .ok (v', q, mq)
   | [], _, _, q, mq, hx => by
       simp only [CoreMemDesign.execListV, Res.ok.injEq, Prod.mk.injEq] at hx ⊢
       simpa using hx
@@ -205,8 +205,8 @@ theorem CoreMemDesign.execItemsV_congr {E : CoreMemDesign} {v v' : SvState} {mv 
     ∀ (items : List (List PExpr × PStmt)) (dflt dflt' : Res ExecV), PStmt.itemsNbaWhole items = true →
       (∀ x ∈ E.itemsStmtReadsV items, SvState.lookup v x = SvState.lookup v' x) →
       (∀ q mq, dflt = .ok (v, q, mq) → dflt' = .ok (v', q, mq)) →
-      ∀ (q : NbaQueue2) (mq : MemQV), E.execItemsV v mv sv mode items dflt = .ok (v, q, mq) →
-        E.execItemsV v' mv sv mode items dflt' = .ok (v', q, mq)
+      ∀ (q : NbaQueue2) (mq : MemQV), E.execItemsV E.env v mv sv mode items dflt = .ok (v, q, mq) →
+        E.execItemsV E.env v' mv sv mode items dflt' = .ok (v', q, mq)
   | [], dflt, dflt', _, _, hd, q, mq, hx => by
       simp only [CoreMemDesign.execItemsV] at hx ⊢
       exact hd q mq hx

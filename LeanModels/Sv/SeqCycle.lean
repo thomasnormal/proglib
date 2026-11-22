@@ -32,7 +32,13 @@ deciding x/z exactly as the route does (`MemShape.index?`: an x/z or out-of-rang
   memory view; equal to it (`evalExprLocals_eq_evalV`) on a state whose memory is coherent (`MemCoherent`).
 * `CoreMemDesign.execV`: the route's edge-body executor (`execStmtFuel`) on views: blocking and nonblocking writes to
   whole signals, selects and concatenations, nonblocking writes to memory elements, `if`, `case` (every mode, plain and
-  qualified), blocks; `execStmtFuel_V`: the route's executor lands on its view and issues exactly its updates.
+  qualified), blocks, and a procedural `for` loop of nonblocking writes: the fold of its body over the header's value
+  list (`execLoopV` over the route's `forValues2`, the body under `env.bindVal iterator i`; the list is a function of
+  the parameters and is never unrolled); `execStmtFuel_V`: the route's executor lands on its view and issues exactly
+  its updates, at every fuel from the body's need on (`PStmt.need`: for a loop, `2 + trips + need body`, so the
+  profile's bound `need ≤ 4096` bounds the trip count; beyond it the route itself answers `timeout`).
+* `memWriteL`: the write equation of a loop of element writes, over the header's value list; `memWriteL_at`,
+  `memWriteL_index`, `memWriteL_id`, `memWriteL_of_not_key`: its cells in closed form.
 * `CoreMemDesign.edgesV`: the route's edge pass on views, each process firing by `CoreMemEdge.fires` (the clock's rise or
   the asynchronous reset's fall, x/z rows included); `runEdges_V`.
 * `CoreMemDesign.commitNba_V`: the route's commit of memory records is `commitMemV` on the memory view.
@@ -151,6 +157,111 @@ theorem memRd_memWrite (mv : MemV) (n n' : String) (k? k2? : Option Int) (x : LV
   cases k2? with
   | none => simp [memRd]
   | some k => simp [memRd, memWrite]
+
+/-! ### The write equation of a loop
+
+A procedural `for` loop of nonblocking element writes `m[a(i)] <= e(i)` issues one record per value of its header's
+value list. Its commit is ONE equation, `memWriteL`, over that list (a function of the parameters: never unrolled):
+the cell a value's key resolves to holds that value's data (`memWriteL_at`, when no other value of the list resolves to
+the cell: an injective index), every other cell and every other memory is unchanged (`memWriteL_of_not_key`); for the
+identity index `m[i] <= e(i)` that is `fun k => if k is a value of the list then e(k) else the old cell`
+(`memWriteL_id`). Index and data are read before the loop's commit (§10.4.2: sampled at issue). -/
+
+/-- **The write equation of a loop**: the memory `n` after the element writes a loop issues, in order: for each value
+`i` of the list a write at the resolved label `key i` (none: no write, §11.5.1) of `x i`; a later write to the same
+cell wins. The list is the loop header's value list. -/
+def memWriteL (mv : MemV) (n : String) (vals : List Int) (key : Int → Option Int) (x : Int → LVec) : MemV :=
+  commitMemV mv (vals.flatMap fun i => memIss n (key i) (x i))
+
+/-- The commit of a loop's issued element writes is its write equation. -/
+theorem commitMemV_flatMap_memIss (mv : MemV) (n : String) (vals : List Int) (key : Int → Option Int)
+    (x : Int → LVec) : commitMemV mv (vals.flatMap fun i => memIss n (key i) (x i)) = memWriteL mv n vals key x := rfl
+
+/-- The commit of a loop's issued element writes followed by further records. -/
+theorem commitMemV_flatMap_memIss_append (mv : MemV) (n : String) (vals : List Int) (key : Int → Option Int)
+    (x : Int → LVec) (q : MemQV) :
+    commitMemV mv ((vals.flatMap fun i => memIss n (key i) (x i)) ++ q) =
+      commitMemV (memWriteL mv n vals key x) q := by
+  rw [commitMemV_append]
+  rfl
+
+@[simp] theorem memWriteL_nil (mv : MemV) (n : String) (key : Int → Option Int) (x : Int → LVec) :
+    memWriteL mv n [] key x = mv := by
+  simp [memWriteL]
+
+/-- The write equation of a loop, one value at a time (a lemma about the list, not an unrolling of a design). -/
+theorem memWriteL_cons (mv : MemV) (n : String) (i : Int) (vals : List Int) (key : Int → Option Int)
+    (x : Int → LVec) :
+    memWriteL mv n (i :: vals) key x = memWriteL (memWrite mv n (key i) (x i)) n vals key x := by
+  unfold memWriteL
+  rw [List.flatMap_cons, commitMemV_memIss]
+
+/-- **A cell no value of the loop resolves to is unchanged** (another memory, or a label outside the loop's keys). -/
+theorem memWriteL_of_not_key {n n' : String} {k : Int} {key : Int → Option Int} {x : Int → LVec} :
+    ∀ (vals : List Int) (mv : MemV), (n' = n → ∀ i ∈ vals, key i ≠ some k) → memWriteL mv n vals key x n' k = mv n' k
+  | [], mv, _ => by simp
+  | i :: vals, mv, h => by
+      rw [memWriteL_cons, memWriteL_of_not_key vals _ (fun hn j hj => h hn j (List.mem_cons_of_mem _ hj))]
+      unfold memWrite
+      rw [if_neg]
+      rintro ⟨hn, hk⟩
+      exact h hn i (by simp) hk
+
+/-- **The cell a value of the loop resolves to holds that value's data**, when no other value of the list resolves to
+the same cell (an injective index). -/
+theorem memWriteL_at {n : String} {key : Int → Option Int} {x : Int → LVec} {k i : Int} :
+    ∀ (vals : List Int) (mv : MemV), i ∈ vals → key i = some k → (∀ j ∈ vals, key j = some k → j = i) →
+      memWriteL mv n vals key x n k = x i
+  | [], _, hi, _, _ => by simp at hi
+  | j :: vals, mv, hi, hk, hu => by
+      rw [memWriteL_cons]
+      by_cases hmem : i ∈ vals
+      · exact memWriteL_at vals _ hmem hk (fun j' hj' h' => hu j' (List.mem_cons_of_mem _ hj') h')
+      · have hji : j = i := by
+          rcases List.mem_cons.mp hi with h | h
+          · exact h.symm
+          · exact absurd h hmem
+        rw [memWriteL_of_not_key vals _ (fun _ j' hj' h' => hmem (by
+          rw [← hu j' (List.mem_cons_of_mem _ hj') h']; exact hj'))]
+        simp [memWrite, hji, hk]
+
+/-- **The loop `m[f(i)] <= e(i)` with an injective index**: the cell `f i` of a value `i` of the list holds `e(i)`. -/
+theorem memWriteL_index {n : String} {key : Int → Option Int} {x : Int → LVec} {vals : List Int} {f : Int → Int}
+    (hkey : ∀ i ∈ vals, key i = some (f i)) (hinj : ∀ i ∈ vals, ∀ j ∈ vals, f i = f j → i = j) (mv : MemV)
+    {i : Int} (hi : i ∈ vals) : memWriteL mv n vals key x n (f i) = x i :=
+  memWriteL_at vals mv hi (hkey i hi) fun j hj h' => hinj j hj i hi (by
+    rw [hkey j hj] at h'
+    exact Option.some.inj h')
+
+/-- **The loop `m[i] <= e(i)`** (every value of the list resolves to its own label): the memory `n` holds `e(k)` at
+each value `k` of the list and its old contents elsewhere; every other memory is unchanged. -/
+theorem memWriteL_id {n : String} {key : Int → Option Int} {x : Int → LVec} {vals : List Int}
+    (hkey : ∀ i ∈ vals, key i = some i) (mv : MemV) (n' : String) (k : Int) :
+    memWriteL mv n vals key x n' k = if n' = n ∧ k ∈ vals then x k else mv n' k := by
+  by_cases h : n' = n ∧ k ∈ vals
+  · obtain ⟨rfl, hk⟩ := h
+    rw [if_pos ⟨rfl, hk⟩]
+    exact memWriteL_at vals mv hk (hkey k hk) fun j hj h' => by
+      rw [hkey j hj] at h'
+      exact Option.some.inj h'
+  · rw [if_neg h]
+    exact memWriteL_of_not_key vals mv fun hn i hi h' => h ⟨hn, by
+      rw [hkey i hi] at h'
+      rw [← Option.some.inj h']
+      exact hi⟩
+
+/-- The elements of a memory a loop writes keep their width when every written value has it. -/
+theorem memWriteL_width {n : String} {key : Int → Option Int} {x : Int → LVec} {w : Nat} :
+    ∀ (vals : List Int) (mv : MemV), (∀ k, (mv n k).width = w) → (∀ i ∈ vals, (x i).width = w) →
+      ∀ k, (memWriteL mv n vals key x n k).width = w
+  | [], mv, hmv, _, k => by simpa using hmv k
+  | i :: vals, mv, hmv, hx, k => by
+      rw [memWriteL_cons]
+      refine memWriteL_width vals _ (fun k' => ?_) (fun j hj => hx j (List.mem_cons_of_mem _ hj)) k
+      unfold memWrite
+      split
+      · exact hx i (by simp)
+      · exact hmv k'
 
 /-- A resolved label is in the declared range. -/
 theorem MemShape.index?_inRange {m : MemShape} {s : Bool} {idx : LVec} {k : Int} (h : m.index? s idx = some k) :
@@ -468,14 +579,14 @@ end
 #print axioms CoreMemDesign.evalExprLocals_eq_evalV
 
 theorem CoreMemDesign.evalExpr_eq {E : CoreMemDesign} {st : CoreMemState} (hmc : E.MemCoherent st.memory)
-    (ctx : Option Nat) (e : PExpr) (h : LeanModels.Sv.PExpr.hasFunctionCall e = false) :
-    E.evalExpr E.env E.elems st ctx e = E.evalV E.env E.elems (E.scalar.view st.scalar) (E.memOf st.memory) ctx e :=
-  CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems ctx e h
+    (env : IEnv) (ctx : Option Nat) (e : PExpr) (h : LeanModels.Sv.PExpr.hasFunctionCall e = false) :
+    E.evalExpr env E.elems st ctx e = E.evalV env E.elems (E.scalar.view st.scalar) (E.memOf st.memory) ctx e :=
+  CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems ctx e h
 
 theorem CoreMemDesign.evalIndex_eq {E : CoreMemDesign} {st : CoreMemState} (hmc : E.MemCoherent st.memory)
-    (e : PExpr) (h : LeanModels.Sv.PExpr.hasFunctionCall e = false) :
-    E.evalIndex E.env E.elems st e = E.evalIdxV E.env E.elems (E.scalar.view st.scalar) (E.memOf st.memory) e :=
-  CoreMemDesign.evalIdx_eq hmc E.env E.elems e h
+    (env : IEnv) (e : PExpr) (h : LeanModels.Sv.PExpr.hasFunctionCall e = false) :
+    E.evalIndex env E.elems st e = E.evalIdxV env E.elems (E.scalar.view st.scalar) (E.memOf st.memory) e :=
+  CoreMemDesign.evalIdx_eq hmc env E.elems e h
 
 /-! ## Edge bodies: the route's executor on views
 
@@ -483,8 +594,11 @@ theorem CoreMemDesign.evalIndex_eq {E : CoreMemDesign} {st : CoreMemState} (hmc 
 same refusal messages. A blocking write changes the view (`setV`: `setScalarState`'s conversion to the declaration's
 type; a select or concatenation target through the route's own window resolver), a nonblocking write issues queue
 entries (the whole signal, `scalarNbaWindows` of the resolved windows, or a memory element's record, `issueV`), `case`
-selects by the §12.5 matcher (`caseHit` per mode) with the route's qualified-case claim check. A blocking write to a
-memory element and a `for` loop are refused by name (the memories slice's next steps). -/
+selects by the §12.5 matcher (`caseHit` per mode) with the route's qualified-case claim check. A procedural `for` loop
+of nonblocking writes is the route's own: the header's value list (`forValues2`, a function of the parameters) and
+the body folded over it under the iterator's binding (`execLoopV`, the route's `execLoopValuesFuel`); the list is never
+unrolled. The environment is an argument because a loop body runs under `env.bindVal iterator i`. A blocking write to
+a memory element, and a loop whose body has a blocking assignment or a further loop, are refused by name. -/
 
 mutual
 
@@ -508,9 +622,46 @@ end
 
 mutual
 
+/-- **The body of a procedural `for` loop the clocked views mirror**: nonblocking writes (whole signals, selects,
+concatenations, memory elements) under `if`, `case` and blocks. No blocking assignment (an iteration would read what an
+earlier one wrote), no declaration, no nested loop. Such a body leaves the view as it was (`execV_loopBody`), so every
+iteration reads the same view and the loop is its issued updates, in order. -/
+def _root_.LeanModels.Sv.PStmt.loopBodyB : PStmt → Bool
+  | .nbaAssign .. => true
+  | .nbaAssignL .. => true
+  | .ifStmt _ y n => PStmt.loopBodyB y && PStmt.optLoopBodyB n
+  | .block body => PStmt.listLoopBodyB body
+  | .caseStmt _ items d _ _ => PStmt.itemsLoopBodyB items && PStmt.optLoopBodyB d
+  | _ => false
+termination_by structural s => s
+
+/-- `loopBodyB` of an optional statement. -/
+def _root_.LeanModels.Sv.PStmt.optLoopBodyB : Option PStmt → Bool
+  | none => true
+  | some s => PStmt.loopBodyB s
+termination_by structural o => o
+
+/-- `loopBodyB` of every statement of a list. -/
+def _root_.LeanModels.Sv.PStmt.listLoopBodyB : List PStmt → Bool
+  | [] => true
+  | s :: ss => PStmt.loopBodyB s && PStmt.listLoopBodyB ss
+termination_by structural xs => xs
+
+/-- `loopBodyB` of the arms of a `case`. -/
+def _root_.LeanModels.Sv.PStmt.itemsLoopBodyB : List (List PExpr × PStmt) → Bool
+  | [] => true
+  | (_, b) :: rest => PStmt.loopBodyB b && PStmt.itemsLoopBodyB rest
+termination_by structural xs => xs
+
+end
+
+mutual
+
 /-- An edge body the view-level executor mirrors: blocking and nonblocking writes (whole signals, selects,
 concatenations, memory elements), `if`, `case` (every mode, plain and qualified), blocks, every expression (targets'
-indices included) function-free. A procedural `for` loop and a statement ingestion kept unconverted are outside. -/
+indices included) function-free, and a procedural `for` loop whose body is a loop body of the profile (`loopBodyB`:
+nonblocking writes only, no nested loop; the header is the route's `forValues2`, evaluated on the parameters alone). A
+loop with a blocking assignment or a further loop in its body and a statement ingestion kept unconverted are outside. -/
 def _root_.LeanModels.Sv.PStmt.edgeOkB : PStmt → Bool
   | .nbaAssign _ e => !LeanModels.Sv.PExpr.hasFunctionCall e
   | .blockingAssign _ e => !LeanModels.Sv.PExpr.hasFunctionCall e
@@ -522,7 +673,7 @@ def _root_.LeanModels.Sv.PStmt.edgeOkB : PStmt → Bool
       !LeanModels.Sv.PExpr.hasFunctionCall s && PStmt.itemsEdgeOkB items && PStmt.optEdgeOkB d
   | .localDecl .. => false
   | .automaticDecl .. => false
-  | .forLoop .. => false
+  | .forLoop _ _ _ _ body => PStmt.edgeOkB body && PStmt.loopBodyB body
   | .unsupported .. => false
 termination_by structural s => s
 
@@ -547,35 +698,93 @@ termination_by structural xs => xs
 
 end
 
+/-- **The trip count of a procedural `for` header** at an environment: the length of the route's value list
+(`forValues2`), 0 when the route refuses the header (the loop then refuses, whatever the fuel). -/
+def loopTrips (env : IEnv) (iterator : String) (init condition step : PExpr) : Nat :=
+  match forValues2 env iterator init condition step with
+  | .ok values => values.length
+  | _ => 0
+
 mutual
 
-/-- The fuel the route's statement executor (`execStmtFuel`) needs for a body: one per nesting level and per list
-element. -/
-def _root_.LeanModels.Sv.PStmt.need : PStmt → Nat
-  | .ifStmt _ y n => 1 + max (PStmt.need y) (PStmt.optNeed n)
-  | .block body => 1 + PStmt.listNeed body
-  | .caseStmt _ items d _ _ => 1 + max (PStmt.itemsNeed items) (PStmt.optNeed d)
+/-- The fuel the route's statement executor (`execStmtFuel`) needs for a body at an environment: one per nesting level
+and per list element, and for a procedural `for` loop one per trip (`execLoopValuesFuel` spends one unit of the
+statement fuel per iteration): `2 + trips + need body`. So the profile's bound `need ≤ 4096` bounds a loop's trip
+count; above it the route itself answers `timeout`. -/
+def _root_.LeanModels.Sv.PStmt.need (env : IEnv) : PStmt → Nat
+  | .ifStmt _ y n => 1 + max (PStmt.need env y) (PStmt.optNeed env n)
+  | .block body => 1 + PStmt.listNeed env body
+  | .caseStmt _ items d _ _ => 1 + max (PStmt.itemsNeed env items) (PStmt.optNeed env d)
+  | .forLoop iterator init condition step body =>
+      2 + loopTrips env iterator init condition step + PStmt.need env body
   | .automaticDecl .. => 1
   | _ => 1
 termination_by structural s => s
 
 /-- `need` of an optional statement. -/
-def _root_.LeanModels.Sv.PStmt.optNeed : Option PStmt → Nat
+def _root_.LeanModels.Sv.PStmt.optNeed (env : IEnv) : Option PStmt → Nat
   | none => 0
-  | some s => PStmt.need s
+  | some s => PStmt.need env s
 termination_by structural o => o
 
 /-- The fuel `execStmtsFuel` needs for a list. -/
-def _root_.LeanModels.Sv.PStmt.listNeed : List PStmt → Nat
+def _root_.LeanModels.Sv.PStmt.listNeed (env : IEnv) : List PStmt → Nat
   | [] => 1
-  | s :: ss => 1 + max (PStmt.need s) (PStmt.listNeed ss)
+  | s :: ss => 1 + max (PStmt.need env s) (PStmt.listNeed env ss)
 termination_by structural xs => xs
 
 /-- The largest `need` of the arms of a `case`. -/
-def _root_.LeanModels.Sv.PStmt.itemsNeed : List (List PExpr × PStmt) → Nat
+def _root_.LeanModels.Sv.PStmt.itemsNeed (env : IEnv) : List (List PExpr × PStmt) → Nat
   | [] => 0
-  | (_, b) :: rest => max (PStmt.need b) (PStmt.itemsNeed rest)
+  | (_, b) :: rest => max (PStmt.need env b) (PStmt.itemsNeed env rest)
 termination_by structural xs => xs
+
+end
+
+mutual
+
+/-- The fuel need of a loop body of the profile does not read the environment. -/
+theorem _root_.LeanModels.Sv.PStmt.need_env (env env' : IEnv) :
+    ∀ (s : PStmt), PStmt.loopBodyB s = true → PStmt.need env s = PStmt.need env' s
+  | .ifStmt _ y n, h => by
+      simp only [PStmt.loopBodyB, Bool.and_eq_true] at h
+      simp only [PStmt.need, PStmt.need_env env env' y h.1, PStmt.optNeed_env env env' n h.2]
+  | .block body, h => by
+      simp only [PStmt.loopBodyB] at h
+      simp only [PStmt.need, PStmt.listNeed_env env env' body h]
+  | .caseStmt _ items d _ _, h => by
+      simp only [PStmt.loopBodyB, Bool.and_eq_true] at h
+      simp only [PStmt.need, PStmt.itemsNeed_env env env' items h.1, PStmt.optNeed_env env env' d h.2]
+  | .nbaAssign .., _ => by simp only [PStmt.need]
+  | .nbaAssignL .., _ => by simp only [PStmt.need]
+  | .forLoop .., h => by simp [PStmt.loopBodyB] at h
+  | .localDecl .., h => by simp [PStmt.loopBodyB] at h
+  | .automaticDecl .., h => by simp [PStmt.loopBodyB] at h
+  | .blockingAssign .., h => by simp [PStmt.loopBodyB] at h
+  | .blockingAssignL .., h => by simp [PStmt.loopBodyB] at h
+  | .unsupported .., h => by simp [PStmt.loopBodyB] at h
+
+theorem _root_.LeanModels.Sv.PStmt.optNeed_env (env env' : IEnv) :
+    ∀ (o : Option PStmt), PStmt.optLoopBodyB o = true → PStmt.optNeed env o = PStmt.optNeed env' o
+  | none, _ => by simp only [PStmt.optNeed]
+  | some s, h => by
+      simp only [PStmt.optLoopBodyB] at h
+      simp only [PStmt.optNeed, PStmt.need_env env env' s h]
+
+theorem _root_.LeanModels.Sv.PStmt.listNeed_env (env env' : IEnv) :
+    ∀ (ss : List PStmt), PStmt.listLoopBodyB ss = true → PStmt.listNeed env ss = PStmt.listNeed env' ss
+  | [], _ => by simp only [PStmt.listNeed]
+  | s :: ss, h => by
+      simp only [PStmt.listLoopBodyB, Bool.and_eq_true] at h
+      simp only [PStmt.listNeed, PStmt.need_env env env' s h.1, PStmt.listNeed_env env env' ss h.2]
+
+theorem _root_.LeanModels.Sv.PStmt.itemsNeed_env (env env' : IEnv) :
+    ∀ (items : List (List PExpr × PStmt)), PStmt.itemsLoopBodyB items = true →
+      PStmt.itemsNeed env items = PStmt.itemsNeed env' items
+  | [], _ => by simp only [PStmt.itemsNeed]
+  | (_, b) :: rest, h => by
+      simp only [PStmt.itemsLoopBodyB, Bool.and_eq_true] at h
+      simp only [PStmt.itemsNeed, PStmt.need_env env env' b h.1, PStmt.itemsNeed_env env env' rest h.2]
 
 end
 
@@ -616,29 +825,63 @@ def CoreMemDesign.writeLhsV (E : CoreMemDesign) (v : SvState) (lhs : Lhs2) (valu
           | some _ => .ok (E.setV v name (((SvState.lookup v name).getD ⟨#[]⟩).insertAt lo (value.resizeU width)))
 
 /-- `coreMemCaseHits` on a view: how many arms have a pattern that hits the subject. -/
-def CoreMemDesign.caseHitsV (E : CoreMemDesign) (v : SvState) (mv : MemV) (subject : LVec) (mode : CaseMode) :
+def CoreMemDesign.caseHitsV (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV) (subject : LVec) (mode : CaseMode) :
     List (List PExpr × PStmt) → Res Nat
   | [] => .ok 0
   | (patterns, _) :: rest => do
-      let values ← E.evalListV E.env E.elems v mv patterns
-      let n ← E.caseHitsV v mv subject mode rest
+      let values ← E.evalListV env E.elems v mv patterns
+      let n ← E.caseHitsV env v mv subject mode rest
       .ok (if values.any (fun value => caseHit mode subject value) then n + 1 else n)
 
 /-- The result of an edge body on views: the view after its blocking writes, the scalar nonblocking updates and the
 memory records it issues, each in issue order. -/
 abbrev ExecV := SvState × NbaQueue2 × MemQV
 
+/-- **The route's loop fold on views** (`execLoopValuesFuel`), for a loop body of the profile (`loopBodyB`: it leaves
+the view as it was): the body's run `step i` at each value of the header's value list, in order, each on the same view
+`v`; the issued updates and memory records concatenated in issue order. The list is the header's (`forValues2`: a
+function of the parameters), never unrolled; `step i` is the body under the iterator's binding `env.bindVal it i`. -/
+def execLoopV (v : SvState) (step : Int → Res ExecV) : List Int → Res ExecV
+  | [] => .ok (v, [], [])
+  | i :: rest => do
+      let a ← step i
+      let b ← execLoopV v step rest
+      .ok (v, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
+
+/-- The loop fold leaves the view as it was. -/
+theorem execLoopV_fst {v : SvState} {step : Int → Res ExecV} :
+    ∀ {values : List Int} {r : ExecV}, execLoopV v step values = .ok r → r.1 = v
+  | [], r, h => by
+      simp only [execLoopV, Res.ok.injEq] at h
+      subst h
+      rfl
+  | i :: rest, r, h => by
+      simp only [execLoopV, Res.bind_eq_ok, Res.ok.injEq] at h
+      obtain ⟨a, -, b, -, rfl⟩ := h
+      rfl
+
+/-- **The loop fold in closed form**: when every iteration issues `q i` and `m i`, the loop issues their
+concatenation over the value list (`List.flatMap`: the list stays the header's, a function of the parameters). -/
+theorem execLoopV_ok (v : SvState) (w : Int → SvState) (q : Int → NbaQueue2) (m : Int → MemQV) :
+    ∀ (values : List Int), execLoopV v (fun i => .ok (w i, q i, m i)) values =
+      .ok (v, values.flatMap q, values.flatMap m)
+  | [] => rfl
+  | i :: rest => by
+      simp only [execLoopV, execLoopV_ok v w q m rest, Res.ok_bind, List.flatMap_cons]
+
 mutual
 
 /-- **The route's edge-body executor on views** (`execStmtFuel`): the view after the body's blocking writes, and the
 nonblocking updates and memory records it issues, in issue order. The memory view is read, never written: a blocking
-write to a memory element is refused by name. -/
-def CoreMemDesign.execV (E : CoreMemDesign) (v : SvState) (mv : MemV) : PStmt → Res ExecV
+write to a memory element is refused by name. A procedural `for` loop whose body is a loop body of the profile
+(`loopBodyB`) is the fold of its body over the header's value list (`execLoopV` over `forValues2`), the body under
+`env.bindVal iterator i`; any other loop is refused by name. -/
+def CoreMemDesign.execV (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV) : PStmt → Res ExecV
   | .nbaAssign t e =>
       match E.scalarTarget t with
       | none => .unsupported s!"11.5.1: scalar NBA target '{t}' is undeclared"
       | some w => do
-          let x ← E.evalV E.env E.elems v mv (some w) e
+          let x ← E.evalV env E.elems v mv (some w) e
           .ok (v, [(t, 0, x)], [])
   | .nbaAssignL lhs e =>
       match lhs with
@@ -646,32 +889,32 @@ def CoreMemDesign.execV (E : CoreMemDesign) (v : SvState) (mv : MemV) : PStmt �
           match E.scalarTarget t with
           | none => .unsupported s!"11.5.1: scalar NBA target '{t}' is undeclared"
           | some w => do
-              let x ← E.evalV E.env E.elems v mv (some w) e
+              let x ← E.evalV env E.elems v mv (some w) e
               .ok (v, [(t, 0, x)], [])
       | .arrayElem name indices =>
           match E.memDecl? name with
           | none => do
-              let lw ← E.scalarLhs2 E.env E.elems (.arrayElem name indices)
-              let x ← E.evalV E.env E.elems v mv (some lw.2) e
+              let lw ← E.scalarLhs2 env E.elems (.arrayElem name indices)
+              let x ← E.evalV env E.elems v mv (some lw.2) e
               let windows ← resolveConcatLhs2 4096 v lw.1
               .ok (v, scalarNbaWindows x windows, [])
           | some md =>
               match indices with
               | [index] => do
-                  let x ← E.evalV E.env E.elems v mv (some md.shape.elemWidth) e
-                  let iv ← E.evalIdxV E.env E.elems v mv index
+                  let x ← E.evalV env E.elems v mv (some md.shape.elemWidth) e
+                  let iv ← E.evalIdxV env E.elems v mv index
                   .ok (v, [], md.issueV index.signedCast iv x)
               | _ => .unsupported s!"11.5.1: memory target '{name}' is not one-rank"
       | target => do
-          let lw ← E.scalarLhs2 E.env E.elems target
-          let x ← E.evalV E.env E.elems v mv (some lw.2) e
+          let lw ← E.scalarLhs2 env E.elems target
+          let x ← E.evalV env E.elems v mv (some lw.2) e
           let windows ← resolveConcatLhs2 4096 v lw.1
           .ok (v, scalarNbaWindows x windows, [])
   | .blockingAssign n e =>
       match E.scalarTarget n with
       | none => .unsupported s!"9.2.2.1: scalar edge target '{n}' is undeclared"
       | some w => do
-          let x ← E.evalV E.env E.elems v mv (some w) e
+          let x ← E.evalV env E.elems v mv (some w) e
           .ok (E.setV v n x, [], [])
   | .blockingAssignL lhs e =>
       match lhs with
@@ -679,68 +922,74 @@ def CoreMemDesign.execV (E : CoreMemDesign) (v : SvState) (mv : MemV) : PStmt �
           match E.scalarTarget n with
           | none => .unsupported s!"9.2.2.1: scalar edge target '{n}' is undeclared"
           | some w => do
-              let x ← E.evalV E.env E.elems v mv (some w) e
+              let x ← E.evalV env E.elems v mv (some w) e
               .ok (E.setV v n x, [], [])
       | .arrayElem name indices =>
           match E.memDecl? name with
           | none => do
-              let lw ← E.scalarLhs2 E.env E.elems (.arrayElem name indices)
-              let x ← E.evalV E.env E.elems v mv (some lw.2) e
+              let lw ← E.scalarLhs2 env E.elems (.arrayElem name indices)
+              let x ← E.evalV env E.elems v mv (some lw.2) e
               let v' ← E.writeLhsV v lw.1 x
               .ok (v', [], [])
           | some _ =>
               .unsupported s!"9.2.2.1: a blocking write to the memory '{name}' in an edge body is outside the clocked profile (the memories slice, next)"
       | target => do
-          let lw ← E.scalarLhs2 E.env E.elems target
-          let x ← E.evalV E.env E.elems v mv (some lw.2) e
+          let lw ← E.scalarLhs2 env E.elems target
+          let x ← E.evalV env E.elems v mv (some lw.2) e
           let v' ← E.writeLhsV v lw.1 x
           .ok (v', [], [])
   | .ifStmt c y n => do
-      let cv ← E.evalV E.env E.elems v mv (some 1) c
-      if cv.condTrue then E.execV v mv y else E.execOptV v mv n
-  | .block body => E.execListV v mv body
+      let cv ← E.evalV env E.elems v mv (some 1) c
+      if cv.condTrue then E.execV env v mv y else E.execOptV env v mv n
+  | .block body => E.execListV env v mv body
   | .caseStmt subject items d mode check => do
-      let sv ← E.evalV E.env E.elems v mv none subject
+      let sv ← E.evalV env E.elems v mv none subject
       match check with
-      | .none => E.execItemsV v mv sv mode items (E.execOptV v mv d)
+      | .none => E.execItemsV env v mv sv mode items (E.execOptV env v mv d)
       | qualifier => do
-          let n ← E.caseHitsV v mv sv mode items
-          if caseClaimOk qualifier d.isSome n then E.execItemsV v mv sv mode items (E.execOptV v mv d)
+          let n ← E.caseHitsV env v mv sv mode items
+          if caseClaimOk qualifier d.isSome n then E.execItemsV env v mv sv mode items (E.execOptV env v mv d)
           else .unsupported s!"12.5.3: {caseCheckName qualifier}"
   | .localDecl .. =>
       .unsupported "9.4.2: a procedural local declaration in an edge body is outside the clocked profile"
   | .automaticDecl .. =>
       .unsupported "9.4.2: an automatic procedural declaration in an edge body is outside the clocked profile"
-  | .forLoop .. =>
-      .unsupported "9.4.2: a procedural `for` loop in an edge body is outside the clocked profile (the memories slice)"
+  | .forLoop iterator init condition step body =>
+      if PStmt.loopBodyB body then
+        match forValues2 env iterator init condition step with
+        | .timeout => .timeout
+        | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
+        | .ok values => execLoopV v (fun i => E.execV (env.bindVal iterator i) v mv body) values
+      else
+        .unsupported "9.4.2: a procedural `for` loop whose body has a blocking assignment, a declaration or a nested loop is outside the clocked profile"
   | .unsupported kind text => .unsupported s!"{kind}: {text}"
 termination_by structural s => s
 
 /-- `execV` of an optional statement (none changes nothing). -/
-def CoreMemDesign.execOptV (E : CoreMemDesign) (v : SvState) (mv : MemV) : Option PStmt → Res ExecV
+def CoreMemDesign.execOptV (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV) : Option PStmt → Res ExecV
   | none => .ok (v, [], [])
-  | some s => E.execV v mv s
+  | some s => E.execV env v mv s
 termination_by structural o => o
 
 /-- `execV` of a statement list: the view threaded, the queues concatenated in order. -/
-def CoreMemDesign.execListV (E : CoreMemDesign) (v : SvState) (mv : MemV) : List PStmt → Res ExecV
+def CoreMemDesign.execListV (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV) : List PStmt → Res ExecV
   | [] => .ok (v, [], [])
   | s :: ss => do
-      let a ← E.execV v mv s
-      let b ← E.execListV a.1 mv ss
+      let a ← E.execV env v mv s
+      let b ← E.execListV env a.1 mv ss
       .ok (b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
 termination_by structural xs => xs
 
 /-- The arms of a `case`: the first item one of whose patterns hits the subject (§12.5, `caseHit` per mode) runs;
 when no item hits, `dflt` (the caller passes the default's run: a value, so a pure function may take it whether or not
 it is selected). -/
-def CoreMemDesign.execItemsV (E : CoreMemDesign) (v : SvState) (mv : MemV) (sv : LVec) (mode : CaseMode) :
+def CoreMemDesign.execItemsV (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV) (sv : LVec) (mode : CaseMode) :
     List (List PExpr × PStmt) → Res ExecV → Res ExecV
   | [], dflt => dflt
   | (patterns, body) :: rest, dflt => do
-      let values ← E.evalListV E.env E.elems v mv patterns
-      if values.any (fun value => caseHit mode sv value) then E.execV v mv body
-      else E.execItemsV v mv sv mode rest dflt
+      let values ← E.evalListV env E.elems v mv patterns
+      if values.any (fun value => caseHit mode sv value) then E.execV env v mv body
+      else E.execItemsV env v mv sv mode rest dflt
 termination_by structural xs => xs
 
 end
@@ -975,10 +1224,10 @@ def CoreMemDesign.ProcOkI (E : CoreMemDesign) (i : Nat) : CoreMemProc → Prop
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
       (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
-  | .edge f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .edge f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+      | some f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
       | none => False
   | _ => False
 
@@ -988,10 +1237,10 @@ def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemP
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
       (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
-  | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+      | some f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
       | none => False
   | _ => False
 
@@ -1033,10 +1282,10 @@ def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMem
       (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
-  | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need ≤ 4096)
+  | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need ≤ 4096)
+      | some f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
       | none => false
   | _ => false
 
@@ -1131,10 +1380,10 @@ def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
       (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
-  | .edge f => f.body.edgeOkB && decide (f.body.need ≤ 4096)
+  | .edge f => f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.body.edgeOkB && decide (f.body.need ≤ 4096)
+      | some f => f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
       | none => false
   | _ => false
 
@@ -1630,7 +1879,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
                 refine hstep x hs ?_
                 simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, Bool.and_false,
                   Bool.true_or, ↓reduceIte]
-                rw [CoreMemDesign.evalExpr_eq hmc (some dc.width) value hfc, hv]
+                rw [CoreMemDesign.evalExpr_eq hmc E.env (some dc.width) value hfc, hv]
                 exact hx
               · rw [Bool.not_eq_true] at hmr
                 obtain ⟨c, hc'⟩ := hcomp hmr
@@ -1753,26 +2002,26 @@ theorem CoreMemDesign.writeLhs_V {E : CoreMemDesign} (hnd : (E.scalar.decls.toLi
               E.setScalarState_memory _ _ _⟩
 
 /-- The route's pattern-list evaluator is `evalListV` on the view (coherent memory, function-free patterns). -/
-theorem CoreMemDesign.evalMemExprList_eq {E : CoreMemDesign} {st : CoreMemState} (hmc : E.MemCoherent st.memory) :
+theorem CoreMemDesign.evalMemExprList_eq {E : CoreMemDesign} {st : CoreMemState} (hmc : E.MemCoherent st.memory) (env : IEnv) :
     ∀ (ps : List PExpr), LeanModels.Sv.PExpr.hasFunctionCallList ps = false →
-      evalMemExprList E E.env E.elems st ps = E.evalListV E.env E.elems (E.scalar.view st.scalar) (E.memOf st.memory) ps
+      evalMemExprList E env E.elems st ps = E.evalListV env E.elems (E.scalar.view st.scalar) (E.memOf st.memory) ps
   | [], _ => by simp [evalMemExprList, CoreMemDesign.evalListV]
   | p :: ps, h => by
       simp only [LeanModels.Sv.PExpr.hasFunctionCallList, Bool.or_eq_false_iff] at h
-      simp only [evalMemExprList, CoreMemDesign.evalListV, CoreMemDesign.evalExpr_eq hmc none p h.1,
-        CoreMemDesign.evalMemExprList_eq hmc ps h.2]
+      simp only [evalMemExprList, CoreMemDesign.evalListV, CoreMemDesign.evalExpr_eq hmc env none p h.1,
+        CoreMemDesign.evalMemExprList_eq hmc env ps h.2]
 
 /-- The route's qualified-case hit count is `caseHitsV` on the view. -/
 theorem CoreMemDesign.caseHits_eq {E : CoreMemDesign} {st : CoreMemState} (hmc : E.MemCoherent st.memory)
-    (sv : LVec) (mode : CaseMode) :
+    (env : IEnv) (sv : LVec) (mode : CaseMode) :
     ∀ (items : List (List PExpr × PStmt)), PStmt.itemsEdgeOkB items = true →
-      coreMemCaseHits E E.env E.elems st sv mode items =
-        E.caseHitsV (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items
+      coreMemCaseHits E env E.elems st sv mode items =
+        E.caseHitsV env (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items
   | [], _ => by simp [coreMemCaseHits, CoreMemDesign.caseHitsV]
   | (ps, b) :: rest, h => by
       simp only [PStmt.itemsEdgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at h
-      simp only [coreMemCaseHits, CoreMemDesign.caseHitsV, CoreMemDesign.evalMemExprList_eq hmc ps h.1.1,
-        CoreMemDesign.caseHits_eq hmc sv mode rest h.2]
+      simp only [coreMemCaseHits, CoreMemDesign.caseHitsV, CoreMemDesign.evalMemExprList_eq hmc env ps h.1.1,
+        CoreMemDesign.caseHits_eq hmc env sv mode rest h.2]
 
 /-! ## Memory records -/
 
@@ -1807,17 +2056,178 @@ theorem CoreMemDesign.execStmtFuel_nil_map (E : CoreMemDesign) : ([] : MemQV).ma
 
 mutual
 
+/-- **A loop body of the profile leaves the view as it was**: it issues nonblocking updates only. -/
+theorem CoreMemDesign.execV_loopBody {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (b : PStmt) (r : ExecV), b.loopBodyB = true → E.execV env v mv b = .ok r → r.1 = v
+  | .nbaAssign t e, r, _, h => by
+      simp only [CoreMemDesign.execV] at h
+      split at h
+      · simp at h
+      · simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+        obtain ⟨x, -, rfl⟩ := h
+        rfl
+  | .nbaAssignL lhs e, r, _, h => by
+      cases lhs with
+      | ident t =>
+          simp only [CoreMemDesign.execV] at h
+          split at h
+          · simp at h
+          · simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+            obtain ⟨x, -, rfl⟩ := h
+            rfl
+      | arrayElem name indices =>
+          simp only [CoreMemDesign.execV] at h
+          split at h
+          · simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+            obtain ⟨lw, -, x, -, ws, -, rfl⟩ := h
+            rfl
+          · split at h
+            · simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+              obtain ⟨x, -, iv, -, rfl⟩ := h
+              rfl
+            · simp at h
+      | _ =>
+          simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq] at h
+          obtain ⟨lw, -, x, -, ws, -, rfl⟩ := h
+          rfl
+  | .ifStmt c y n, r, hb, h => by
+      simp only [PStmt.loopBodyB, Bool.and_eq_true] at hb
+      simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+      obtain ⟨cv, -, h⟩ := h
+      split at h
+      · exact CoreMemDesign.execV_loopBody env v mv y r hb.1 h
+      · cases n with
+        | none =>
+            simp only [CoreMemDesign.execOptV, Res.ok.injEq] at h
+            subst h
+            rfl
+        | some s =>
+            simp only [CoreMemDesign.execOptV] at h
+            exact CoreMemDesign.execV_loopBody env v mv s r (by simpa [PStmt.optLoopBodyB] using hb.2) h
+  | .block body, r, hb, h => by
+      simp only [PStmt.loopBodyB] at hb
+      simp only [CoreMemDesign.execV] at h
+      exact CoreMemDesign.execListV_loopBody env v mv body r hb h
+  | .caseStmt subject items d mode check, r, hb, h => by
+      simp only [PStmt.loopBodyB, Bool.and_eq_true] at hb
+      have hdflt : ∀ r', E.execOptV env v mv d = .ok r' → r'.1 = v := by
+        intro r' hr
+        cases d with
+        | none =>
+            simp only [CoreMemDesign.execOptV, Res.ok.injEq] at hr
+            subst hr
+            rfl
+        | some s =>
+            simp only [CoreMemDesign.execOptV] at hr
+            exact CoreMemDesign.execV_loopBody env v mv s r' (by simpa [PStmt.optLoopBodyB] using hb.2) hr
+      have hitems : ∀ sv res, E.execItemsV env v mv sv mode items (E.execOptV env v mv d) = .ok res → res.1 = v :=
+        fun sv res hres => CoreMemDesign.execItemsV_loopBody env v mv sv mode items _ res hb.1 hdflt hres
+      simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+      obtain ⟨sv, -, h⟩ := h
+      cases check
+      case none => exact hitems sv r h
+      all_goals
+        simp only [Res.bind_eq_ok] at h
+        obtain ⟨n, -, h⟩ := h
+        split at h
+        · exact hitems sv r h
+        · simp at h
+  | .blockingAssign .., _, hb, _ => by simp [PStmt.loopBodyB] at hb
+  | .blockingAssignL .., _, hb, _ => by simp [PStmt.loopBodyB] at hb
+  | .localDecl .., _, hb, _ => by simp [PStmt.loopBodyB] at hb
+  | .automaticDecl .., _, hb, _ => by simp [PStmt.loopBodyB] at hb
+  | .forLoop .., _, hb, _ => by simp [PStmt.loopBodyB] at hb
+  | .unsupported .., _, hb, _ => by simp [PStmt.loopBodyB] at hb
+
+/-- The list form of `execV_loopBody`. -/
+theorem CoreMemDesign.execListV_loopBody {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (bs : List PStmt) (r : ExecV), PStmt.listLoopBodyB bs = true → E.execListV env v mv bs = .ok r → r.1 = v
+  | [], r, _, h => by
+      simp only [CoreMemDesign.execListV, Res.ok.injEq] at h
+      subst h
+      rfl
+  | s :: ss, r, hb, h => by
+      simp only [PStmt.listLoopBodyB, Bool.and_eq_true] at hb
+      simp only [CoreMemDesign.execListV, Res.bind_eq_ok, Res.ok.injEq] at h
+      obtain ⟨a, h1, b, h2, rfl⟩ := h
+      have ha := CoreMemDesign.execV_loopBody env v mv s a hb.1 h1
+      have hb' := CoreMemDesign.execListV_loopBody env a.1 mv ss b hb.2 h2
+      show b.1 = v
+      rw [hb', ha]
+
+/-- The arms of a `case`, `execV_loopBody`'s form. -/
+theorem CoreMemDesign.execItemsV_loopBody {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV) (sv : LVec)
+    (mode : CaseMode) :
+    ∀ (items : List (List PExpr × PStmt)) (dflt : Res ExecV) (res : ExecV), PStmt.itemsLoopBodyB items = true →
+      (∀ r, dflt = .ok r → r.1 = v) → E.execItemsV env v mv sv mode items dflt = .ok res → res.1 = v
+  | [], dflt, res, _, hd, h => by
+      simp only [CoreMemDesign.execItemsV] at h
+      exact hd res h
+  | (ps, b) :: rest, dflt, res, hb, hd, h => by
+      simp only [PStmt.itemsLoopBodyB, Bool.and_eq_true] at hb
+      simp only [CoreMemDesign.execItemsV, Res.bind_eq_ok] at h
+      obtain ⟨vals, -, h⟩ := h
+      split at h
+      · exact CoreMemDesign.execV_loopBody env v mv b res hb.1 h
+      · exact CoreMemDesign.execItemsV_loopBody env v mv sv mode rest dflt res hb.2 hd h
+
+end
+
+/-- **The loop fold's refinement**, from the body's: when every run of the body under the iterator's binding leaves
+the view as it was and is refined by the route's executor at every fuel from `nb` on, the fold over a value list
+(`execLoopV`) is refined by the route's `execLoopValuesFuel` at every fuel from `length values + 1 + nb` on (one unit
+per iteration): the route threads its state, whose view and memory no iteration changes; the queues append. Induction
+over the value list; the list itself is arbitrary (never unrolled). -/
+theorem CoreMemDesign.execLoopValuesFuel_V {E : CoreMemDesign} (env : IEnv) (it : String) (body : PStmt) (nb : Nat)
+    (hview : ∀ (i : Int) (v : SvState) (mv : MemV) (r : ExecV), E.execV (env.bindVal it i) v mv body = .ok r → r.1 = v)
+    (hbody : ∀ (i : Int) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.Coherent st → E.MemCoherent st.memory → nb ≤ fuel →
+      E.execV (env.bindVal it i) (E.scalar.view st.scalar) (E.memOf st.memory) body = .ok (v', q, mq) →
+      ∃ st', E.execStmtFuel (env.bindVal it i) E.elems st [] fuel body = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
+        E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r) :
+    ∀ (values : List Int) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.Coherent st → E.MemCoherent st.memory → values.length + 1 + nb ≤ fuel →
+      execLoopV (E.scalar.view st.scalar)
+        (fun i => E.execV (env.bindVal it i) (E.scalar.view st.scalar) (E.memOf st.memory) body) values =
+          .ok (v', q, mq) →
+      ∃ st', E.execLoopValuesFuel env E.elems st [] fuel values body it = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
+        E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r
+  | [], fuel, st, v', q, mq, hc, _, hf, hv => by
+      obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by omega⟩
+      simp only [execLoopV, Res.ok.injEq, Prod.mk.injEq] at hv
+      obtain ⟨rfl, rfl, rfl⟩ := hv
+      exact ⟨st, by simp [CoreMemDesign.execLoopValuesFuel], rfl, hc, rfl, by simp⟩
+  | i :: rest, fuel, st, v', q, mq, hc, hmc, hf, hv => by
+      obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by omega⟩
+      simp only [List.length_cons] at hf
+      simp only [execLoopV, Res.bind_eq_ok, Res.ok.injEq] at hv
+      obtain ⟨⟨v1, a, ma⟩, h1, ⟨v2, b, mb⟩, h2, hq⟩ := hv
+      simp only [Prod.mk.injEq] at hq
+      obtain ⟨rfl, rfl, rfl⟩ := hq
+      have e1 : v1 = E.scalar.view st.scalar := hview i _ _ _ h1
+      have e2 : v2 = E.scalar.view st.scalar := execLoopV_fst h2
+      obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ := hbody i f st v1 a ma hc hmc (by omega) h1
+      obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.execLoopValuesFuel_V env it body nb hview hbody rest f
+        st1 v2 b mb hc1 (by rw [hm1]; exact hmc) (by omega) (by rw [hv1, e1, hm1]; exact h2)
+      refine ⟨st2, by simp [CoreMemDesign.execLoopValuesFuel, hs1, hs2, CoreMemExec.append], by rw [hv2, e2], hc2,
+        by rw [hm2, hm1], fun r hr => ?_⟩
+      rcases List.mem_append.mp hr with hr | hr
+      · exact hr1 r hr
+      · exact hr2 r hr
+
+mutual
+
 /-- **THE EDGE-BODY REFINEMENT**: from a coherent state with a coherent memory, when the view-level executor gives
 `(v', q, mq)` the route's edge-body executor (at every fuel from the body's need on) leaves a coherent state whose view
 is `v'` and whose memory is unchanged, and issues exactly `q` and the route's records of `mq` (each well formed). -/
 theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
     (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar) :
-    ∀ (b : PStmt) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st →
-      E.MemCoherent st.memory → b.edgeOkB = true → b.need ≤ fuel →
-      E.execV (E.scalar.view st.scalar) (E.memOf st.memory) b = .ok (v', q, mq) →
-      ∃ st', E.execStmtFuel E.env E.elems st [] fuel b = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
+    ∀ (b : PStmt) (env : IEnv) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st →
+      E.MemCoherent st.memory → b.edgeOkB = true → b.need env ≤ fuel →
+      E.execV env (E.scalar.view st.scalar) (E.memOf st.memory) b = .ok (v', q, mq) →
+      ∃ st', E.execStmtFuel env E.elems st [] fuel b = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
         E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r
-  | .nbaAssign t e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+  | .nbaAssign t e, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.not_eq_true'] at hb
       simp only [CoreMemDesign.execV] at hv
@@ -1827,9 +2237,9 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           simp only [hw, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨x, hx, rfl, rfl, rfl⟩ := hv
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hw, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hw, CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx,
             CoreMemDesign.issueTarget, CoreMemExec.fromQueue]
-  | .nbaAssignL lhs e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+  | .nbaAssignL lhs e, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
       obtain ⟨hb, hbt⟩ := hb
@@ -1842,7 +2252,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
               simp only [hw, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
               obtain ⟨x, hx, rfl, rfl, rfl⟩ := hv
               refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hw, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
+              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hw, CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx,
                 CoreMemDesign.issueTarget, CoreMemExec.fromQueue]
       | arrayElem name indices =>
           cases hmd : E.memDecl? name with
@@ -1851,7 +2261,7 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
               obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
               dsimp only at hx hws
               refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hmd, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
+              simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hmd, hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx,
                 CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
           | some md =>
               cases indices with
@@ -1866,13 +2276,13 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
                       obtain ⟨hmem, -⟩ := CoreMemDesign.memDecl?_some hmd
                       obtain ⟨blk, hblk, -, hs, -⟩ := hmc.blocks md hmem
                       obtain ⟨hrec, hmap⟩ := CoreMemDesign.issueV_spec hmd index.signedCast iv x
-                      have hidx : E.evalIndex E.env E.elems st index = .ok iv := by
-                        rw [CoreMemDesign.evalIndex_eq hmc index hbt]; exact hiv
+                      have hidx : E.evalIndex env E.elems st index = .ok iv := by
+                        rw [CoreMemDesign.evalIndex_eq hmc env index hbt]; exact hiv
                       refine ⟨st, ?_, rfl, hc, rfl, hrec⟩
-                      have hex : E.evalExpr E.env E.elems st (some md.shape.elemWidth) e = .ok x := by
-                        rw [CoreMemDesign.evalExpr_eq hmc _ e hb]; exact hx
+                      have hex : E.evalExpr env E.elems st (some md.shape.elemWidth) e = .ok x := by
+                        rw [CoreMemDesign.evalExpr_eq hmc env _ e hb]; exact hx
                       simp only [CoreMemDesign.execStmtFuel, hmd, Res.bind_eq_ok,
-                        CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems
+                        CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems
                           (some md.shape.elemWidth) e hb, hx, CoreMemExec.withLocals,
                         CoreMemDesign.issueTarget, hidx, MemState.issueNba, hblk, hs]
                       cases hshape : md.shape.index? index.signedCast iv with
@@ -1893,32 +2303,32 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | partSel name a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | concat parts =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | arrayPart name indices mode a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, ws, hws, rfl, rfl, rfl⟩ := hv
           dsimp only at hx hws
           refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
-          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx,
+          simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx,
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | aggregateMember _ _ =>
           simp [PLhs.hasCall] at hbt
-  | .blockingAssign n e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+  | .blockingAssign n e, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.not_eq_true'] at hb
       simp only [CoreMemDesign.execV] at hv
@@ -1934,9 +2344,9 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           refine ⟨_, ?_, h1, h2, E.setScalarState_memory _ _ _, by simp⟩
           simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingIdentLocal,
             CoreMemDesign.execBlockingTarget, hw,
-            CoreMemDesign.evalExpr_eq hmc (some w) e hb,
-            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx]
-  | .blockingAssignL lhs e, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+            CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx]
+  | .blockingAssignL lhs e, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
       obtain ⟨hb, hbt⟩ := hb
@@ -1955,8 +2365,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
               refine ⟨_, ?_, h1, h2, E.setScalarState_memory _ _ _, by simp⟩
               simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingIdentLocal,
                 CoreMemDesign.execBlockingTarget, hw,
-                CoreMemDesign.evalExpr_eq hmc (some w) e hb,
-                CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx]
+                CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
+                CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx]
       | arrayElem name indices =>
           cases hmd : E.memDecl? name with
           | some md => simp [CoreMemDesign.execV, hmd] at hv
@@ -1967,8 +2377,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
               obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
               refine ⟨st', ?_, hv'', hc', hm', by simp⟩
               simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, hmd,
-                CoreMemDesign.execScalarTarget, hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
-                CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
+                CoreMemDesign.execScalarTarget, hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
+                CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx, hs']
       | bitSel name idx =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
@@ -1976,8 +2386,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
           simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
-            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
+            hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx, hs']
       | partSel name a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
@@ -1985,8 +2395,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
           simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
-            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
+            hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx, hs']
       | concat parts =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
@@ -1994,8 +2404,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
           simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
-            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
+            hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx, hs']
       | arrayPart name indices mode a b =>
           simp only [CoreMemDesign.execV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
           obtain ⟨⟨l, w⟩, hl, x, hx, w', hw', rfl, rfl, rfl⟩ := hv
@@ -2003,27 +2413,27 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
           obtain ⟨st', hs', hv'', hc', hm'⟩ := CoreMemDesign.writeLhs_V hnd h4 hc l x hw'
           refine ⟨st', ?_, hv'', hc', hm', by simp⟩
           simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, CoreMemDesign.execBlockingTarget, CoreMemDesign.execScalarTarget,
-            hl, CoreMemDesign.evalExpr_eq hmc (some w) e hb,
-            CoreMemDesign.evalExpr_eq hmc (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some w) e hb, hx, hs']
+            hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
+            CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx, hs']
       | aggregateMember _ _ =>
           simp [PLhs.hasCall] at hbt
-  | .ifStmt c y n, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+  | .ifStmt c y n, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
       obtain ⟨⟨hcf, hy⟩, hn⟩ := hb
       simp only [PStmt.need] at hf
-      have hfy : y.need ≤ f := by omega
-      have hfn : PStmt.optNeed n ≤ f := by omega
+      have hfy : y.need env ≤ f := by omega
+      have hfn : PStmt.optNeed env n ≤ f := by omega
       simp only [CoreMemDesign.execV, Res.bind_eq_ok] at hv
       obtain ⟨cv, hcv, hv⟩ := hv
-      have hcv' : E.evalExpr E.env E.elems st (some 1) c = .ok cv := by
-        rw [CoreMemDesign.evalExpr_eq hmc (some 1) c hcf]; exact hcv
+      have hcv' : E.evalExpr env E.elems st (some 1) c = .ok cv := by
+        rw [CoreMemDesign.evalExpr_eq hmc env (some 1) c hcf]; exact hcv
       by_cases hct : cv.condTrue = true
       · simp only [hct, ↓reduceIte] at hv
-        obtain ⟨st', hs, hv', hc', hm', hr⟩ := CoreMemDesign.execStmtFuel_V hnd h4 y f st v' q mq hc hmc hy hfy hv
+        obtain ⟨st', hs, hv', hc', hm', hr⟩ := CoreMemDesign.execStmtFuel_V hnd h4 y env f st v' q mq hc hmc hy hfy hv
         refine ⟨st', ?_, hv', hc', hm', hr⟩
         simp only [CoreMemDesign.execStmtFuel]
-        rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some 1) c hcf]
+        rw [CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some 1) c hcf]
         simp [hcv, hct, hs]
       · simp only [hct, Bool.false_eq_true, ↓reduceIte] at hv
         cases n with
@@ -2032,54 +2442,54 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
             obtain ⟨rfl, rfl, rfl⟩ := hv
             refine ⟨st, ?_, rfl, hc, rfl, by simp⟩
             simp only [CoreMemDesign.execStmtFuel]
-            rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some 1) c hcf]
+            rw [CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some 1) c hcf]
             simp [hcv, hct]
         | some s =>
             simp only [PStmt.optEdgeOkB] at hn
             simp only [PStmt.optNeed] at hfn
             simp only [CoreMemDesign.execOptV] at hv
-            obtain ⟨st', hs, hv', hc', hm', hr⟩ := CoreMemDesign.execStmtFuel_V hnd h4 s f st v' q mq hc hmc hn hfn hv
+            obtain ⟨st', hs, hv', hc', hm', hr⟩ := CoreMemDesign.execStmtFuel_V hnd h4 s env f st v' q mq hc hmc hn hfn hv
             refine ⟨st', ?_, hv', hc', hm', hr⟩
             simp only [CoreMemDesign.execStmtFuel]
-            rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems (some 1) c hcf]
+            rw [CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some 1) c hcf]
             simp [hcv, hct, hs]
-  | .block body, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+  | .block body, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB] at hb
       simp only [PStmt.need] at hf
       simp only [CoreMemDesign.execV] at hv
       obtain ⟨st', hs, hv', hc', hm', hr⟩ :=
-        CoreMemDesign.execStmtsFuel_V hnd h4 body f st v' q mq hc hmc hb (by omega) hv
+        CoreMemDesign.execStmtsFuel_V hnd h4 body env f st v' q mq hc hmc hb (by omega) hv
       exact ⟨st', by simp only [CoreMemDesign.execStmtFuel]; exact hs, hv', hc', hm', hr⟩
-  | .caseStmt subject items d mode check, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+  | .caseStmt subject items d mode check, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
       obtain ⟨⟨hs, hi⟩, hd⟩ := hb
       simp only [PStmt.need] at hf
-      have hfi : PStmt.itemsNeed items ≤ f := by omega
-      have hfd : PStmt.optNeed d ≤ f := by omega
-      have hdef : ∀ s, d = some s → E.execV (E.scalar.view st.scalar) (E.memOf st.memory) s = .ok (v', q, mq) →
-          ∃ st', E.execStmtFuel E.env E.elems st [] f s = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
+      have hfi : PStmt.itemsNeed env items ≤ f := by omega
+      have hfd : PStmt.optNeed env d ≤ f := by omega
+      have hdef : ∀ s, d = some s → E.execV env (E.scalar.view st.scalar) (E.memOf st.memory) s = .ok (v', q, mq) →
+          ∃ st', E.execStmtFuel env E.elems st [] f s = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
             E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r := by
         intro s hds hx
         subst hds
         simp only [PStmt.optEdgeOkB] at hd
         simp only [PStmt.optNeed] at hfd
-        exact CoreMemDesign.execStmtFuel_V hnd h4 s f st v' q mq hc hmc hd hfd hx
+        exact CoreMemDesign.execStmtFuel_V hnd h4 s env f st v' q mq hc hmc hd hfd hx
       simp only [CoreMemDesign.execV, Res.bind_eq_ok] at hv
       obtain ⟨sv, hsv, hv⟩ := hv
-      have hsv' : E.evalExpr E.env E.elems st none subject = .ok sv := by
-        rw [CoreMemDesign.evalExpr_eq hmc none subject hs]; exact hsv
-      have hsvLoc : E.evalExprLocals E.env E.elems st none [] subject = .ok sv := by
-        rw [CoreMemDesign.evalExprLocals_eq_evalV hmc E.env E.elems none subject hs]; exact hsv
-      have hrun : E.execItemsV (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items
-          (E.execOptV (E.scalar.view st.scalar) (E.memOf st.memory) d) = .ok (v', q, mq) →
-          ∃ sel st', coreMemSelectCase E E.env E.elems st sv mode items d = .ok sel ∧
+      have hsv' : E.evalExpr env E.elems st none subject = .ok sv := by
+        rw [CoreMemDesign.evalExpr_eq hmc env none subject hs]; exact hsv
+      have hsvLoc : E.evalExprLocals env E.elems st none [] subject = .ok sv := by
+        rw [CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems none subject hs]; exact hsv
+      have hrun : E.execItemsV env (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items
+          (E.execOptV env (E.scalar.view st.scalar) (E.memOf st.memory) d) = .ok (v', q, mq) →
+          ∃ sel st', coreMemSelectCase E env E.elems st sv mode items d = .ok sel ∧
             ((sel = none ∧ st' = st ∧ q = [] ∧ mq = []) ∨
-              ∃ body, sel = some body ∧ E.execStmtFuel E.env E.elems st [] f body = .ok ⟨st', q, mq.map E.memRec, []⟩) ∧
+              ∃ body, sel = some body ∧ E.execStmtFuel env E.elems st [] f body = .ok ⟨st', q, mq.map E.memRec, []⟩) ∧
             E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r := by
         intro hr
-        rcases CoreMemDesign.execItems_V hnd h4 sv mode items f st _ _ hc hmc hi hfi hr with
+        rcases CoreMemDesign.execItems_V hnd h4 sv mode items env f st _ _ hc hmc hi hfi hr with
           ⟨body, st', hsel, hs, hv1, hc1, hm1, hr1⟩ | ⟨hsel, hdf⟩
         · exact ⟨some body, st', hsel d, Or.inr ⟨body, rfl, hs⟩, hv1, hc1, hm1, hr1⟩
         · cases d with
@@ -2101,8 +2511,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
       all_goals
           simp only [Res.bind_eq_ok] at hv
           obtain ⟨n, hn, hv⟩ := hv
-          have hn' : coreMemCaseHits E E.env E.elems st sv mode items = .ok n := by
-            rw [CoreMemDesign.caseHits_eq hmc sv mode items hi]; exact hn
+          have hn' : coreMemCaseHits E env E.elems st sv mode items = .ok n := by
+            rw [CoreMemDesign.caseHits_eq hmc env sv mode items hi]; exact hn
           split at hv
           · rename_i hok
             obtain ⟨sel, st', hsel, hcase, h2, h3, h4', h5⟩ := hrun hv
@@ -2111,23 +2521,42 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
             · simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hsv', hsvLoc, hn', hok, hsel]
             · simp [CoreMemDesign.execStmtFuel, CoreMemExec.withLocals, hsv', hsvLoc, hn', hok, hsel, hs]
           · simp at hv
-  | .forLoop .., _, _, _, _, _, _, _, hb, _, _ => by simp [PStmt.edgeOkB] at hb
-  | .unsupported .., _, _, _, _, _, _, _, hb, _, _ => by simp [PStmt.edgeOkB] at hb
+  | .forLoop it init cond step body, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+      obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
+      simp only [PStmt.edgeOkB, Bool.and_eq_true] at hb
+      obtain ⟨hbe, hlf⟩ := hb
+      simp only [PStmt.need] at hf
+      simp only [CoreMemDesign.execV, hlf, ↓reduceIte] at hv
+      cases hvals : forValues2 env it init cond step with
+      | timeout => simp [hvals] at hv
+      | unsupported e => simp [hvals] at hv
+      | ok values =>
+          simp only [hvals] at hv
+          have htr : loopTrips env it init cond step = values.length := by simp [loopTrips, hvals]
+          rw [htr] at hf
+          obtain ⟨st', hs, hrest⟩ := CoreMemDesign.execLoopValuesFuel_V env it body (PStmt.need env body)
+            (fun i v1 mv1 r1 h1 => CoreMemDesign.execV_loopBody (env.bindVal it i) v1 mv1 body r1 hlf h1)
+            (fun i fuel' st1 v1 q1 mq1 hc1 hmc1 hf1 h1 =>
+              CoreMemDesign.execStmtFuel_V hnd h4 body (env.bindVal it i) fuel' st1 v1 q1 mq1 hc1 hmc1 hbe
+                (by rw [PStmt.need_env (env.bindVal it i) env body hlf]; exact hf1) h1)
+            values f st v' q mq hc hmc (by omega) hv
+          exact ⟨st', by simp only [CoreMemDesign.execStmtFuel, hvals]; exact hs, hrest⟩
+  | .unsupported .., _, _, _, _, _, _, _, _, hb, _, _ => by simp [PStmt.edgeOkB] at hb
 
 /-- The list form of `execStmtFuel_V`: the route's `execStmtsFuel` threads the state as `execListV` threads the view. -/
 theorem CoreMemDesign.execStmtsFuel_V {E : CoreMemDesign}
     (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar) :
-    ∀ (bs : List PStmt) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st →
-      E.MemCoherent st.memory → PStmt.listEdgeOkB bs = true → PStmt.listNeed bs ≤ fuel →
-      E.execListV (E.scalar.view st.scalar) (E.memOf st.memory) bs = .ok (v', q, mq) →
-      ∃ st', E.execStmtsFuel E.env E.elems st [] fuel bs = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
+    ∀ (bs : List PStmt) (env : IEnv) (fuel : Nat) (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st →
+      E.MemCoherent st.memory → PStmt.listEdgeOkB bs = true → PStmt.listNeed env bs ≤ fuel →
+      E.execListV env (E.scalar.view st.scalar) (E.memOf st.memory) bs = .ok (v', q, mq) →
+      ∃ st', E.execStmtsFuel env E.elems st [] fuel bs = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
         E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ mq, E.RecOk r
-  | [], fuel, st, v', q, mq, hc, _, _, hf, hv => by
+  | [], env, fuel, st, v', q, mq, hc, _, _, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.listNeed] at hf; omega⟩
       simp only [CoreMemDesign.execListV, Res.ok.injEq, Prod.mk.injEq] at hv
       obtain ⟨rfl, rfl, rfl⟩ := hv
       exact ⟨st, rfl, rfl, hc, rfl, by simp⟩
-  | s :: ss, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
+  | s :: ss, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.listNeed] at hf; omega⟩
       simp only [PStmt.listEdgeOkB, Bool.and_eq_true] at hb
       simp only [PStmt.listNeed] at hf
@@ -2135,8 +2564,8 @@ theorem CoreMemDesign.execStmtsFuel_V {E : CoreMemDesign}
       obtain ⟨⟨v1, a, ma⟩, h1, ⟨v2, b, mb⟩, h2, hq⟩ := hv
       simp only [Prod.mk.injEq] at hq
       obtain ⟨rfl, rfl, rfl⟩ := hq
-      obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ := CoreMemDesign.execStmtFuel_V hnd h4 s f st v1 a ma hc hmc hb.1 (by omega) h1
-      obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.execStmtsFuel_V hnd h4 ss f st1 v2 b mb hc1
+      obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ := CoreMemDesign.execStmtFuel_V hnd h4 s env f st v1 a ma hc hmc hb.1 (by omega) h1
+      obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.execStmtsFuel_V hnd h4 ss env f st1 v2 b mb hc1
         (by rw [hm1]; exact hmc) hb.2 (by omega) (by rw [hv1, hm1]; exact h2)
       refine ⟨st2, by simp [CoreMemDesign.execStmtsFuel, hs1, hs2, CoreMemExec.append], hv2, hc2, by rw [hm2, hm1],
         fun r hr => ?_⟩
@@ -2149,33 +2578,33 @@ run lands on the same view and queues; when it finds none, the route's selection
 is the default's. -/
 theorem CoreMemDesign.execItems_V {E : CoreMemDesign}
     (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar) (sv : LVec) (mode : CaseMode) :
-    ∀ (items : List (List PExpr × PStmt)) (fuel : Nat) (st : CoreMemState) (dflt : Res ExecV) (res : ExecV),
-      E.Coherent st → E.MemCoherent st.memory → PStmt.itemsEdgeOkB items = true → PStmt.itemsNeed items ≤ fuel →
-      E.execItemsV (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items dflt = .ok res →
-      (∃ body st', (∀ d, coreMemSelectCase E E.env E.elems st sv mode items d = .ok (some body)) ∧
-          E.execStmtFuel E.env E.elems st [] fuel body = .ok ⟨st', res.2.1, res.2.2.map E.memRec, []⟩ ∧
+    ∀ (items : List (List PExpr × PStmt)) (env : IEnv) (fuel : Nat) (st : CoreMemState) (dflt : Res ExecV) (res : ExecV),
+      E.Coherent st → E.MemCoherent st.memory → PStmt.itemsEdgeOkB items = true → PStmt.itemsNeed env items ≤ fuel →
+      E.execItemsV env (E.scalar.view st.scalar) (E.memOf st.memory) sv mode items dflt = .ok res →
+      (∃ body st', (∀ d, coreMemSelectCase E env E.elems st sv mode items d = .ok (some body)) ∧
+          E.execStmtFuel env E.elems st [] fuel body = .ok ⟨st', res.2.1, res.2.2.map E.memRec, []⟩ ∧
           E.scalar.view st'.scalar = res.1 ∧ E.Coherent st' ∧ st'.memory = st.memory ∧ ∀ r ∈ res.2.2, E.RecOk r) ∨
-        ((∀ d, coreMemSelectCase E E.env E.elems st sv mode items d = .ok d) ∧ dflt = .ok res)
-  | [], fuel, st, dflt, res, hc, _, _, _, hv => by
+        ((∀ d, coreMemSelectCase E env E.elems st sv mode items d = .ok d) ∧ dflt = .ok res)
+  | [], env, fuel, st, dflt, res, hc, _, _, _, hv => by
       simp only [CoreMemDesign.execItemsV] at hv
       exact Or.inr ⟨fun d => rfl, hv⟩
-  | (ps, b) :: rest, fuel, st, dflt, res, hc, hmc, hb, hf, hv => by
+  | (ps, b) :: rest, env, fuel, st, dflt, res, hc, hmc, hb, hf, hv => by
       simp only [PStmt.itemsEdgeOkB, Bool.and_eq_true, Bool.not_eq_true'] at hb
       simp only [PStmt.itemsNeed] at hf
       simp only [CoreMemDesign.execItemsV, Res.bind_eq_ok] at hv
       obtain ⟨vals, hvals, hv⟩ := hv
-      have hpe : evalMemExprList E E.env E.elems st ps = .ok vals := by
-        rw [CoreMemDesign.evalMemExprList_eq hmc ps hb.1.1]; exact hvals
+      have hpe : evalMemExprList E env E.elems st ps = .ok vals := by
+        rw [CoreMemDesign.evalMemExprList_eq hmc env ps hb.1.1]; exact hvals
       by_cases hhit : vals.any (fun value => caseHit mode sv value) = true
       · simp only [hhit, ↓reduceIte] at hv
         obtain ⟨v', q, mq⟩ := res
         obtain ⟨st', hs, hv', hc', hm', hr'⟩ :=
-          CoreMemDesign.execStmtFuel_V hnd h4 b fuel st v' q mq hc hmc hb.1.2 (by omega) hv
+          CoreMemDesign.execStmtFuel_V hnd h4 b env fuel st v' q mq hc hmc hb.1.2 (by omega) hv
         exact Or.inl ⟨b, st', fun d => by simp only [coreMemSelectCase, hpe, Res.ok_bind, hhit, ↓reduceIte], hs,
           hv', hc', hm', hr'⟩
       · rw [Bool.not_eq_true] at hhit
         simp only [hhit, Bool.false_eq_true, ↓reduceIte] at hv
-        rcases CoreMemDesign.execItems_V hnd h4 sv mode rest fuel st dflt res hc hmc hb.2 (by omega) hv with
+        rcases CoreMemDesign.execItems_V hnd h4 sv mode rest env fuel st dflt res hc hmc hb.2 (by omega) hv with
           ⟨body, st', hsel, hs, hv', hc', hm', hr'⟩ | ⟨hsel, hdf⟩
         · exact Or.inl ⟨body, st', fun d => by
             simp only [coreMemSelectCase, hpe, Res.ok_bind, hhit, Bool.false_eq_true, ↓reduceIte, hsel d],
@@ -2383,7 +2812,7 @@ def CoreMemDesign.edgesV (E : CoreMemDesign) (before after : SvState) (v : SvSta
   | [] => .ok (v, [], [])
   | .edge p :: rest =>
       if p.fires before after then do
-        let a ← E.execV v mv p.body
+        let a ← E.execV E.env v mv p.body
         let b ← E.edgesV before after a.1 mv rest
         .ok (b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
       else E.edgesV before after v mv rest
@@ -2391,7 +2820,7 @@ def CoreMemDesign.edgesV (E : CoreMemDesign) (before after : SvState) (v : SvSta
       match coreMemEventEdge? evs body with
       | some p =>
           if p.fires before after then do
-            let a ← E.execV v mv p.body
+            let a ← E.execV E.env v mv p.body
             let b ← E.edgesV before after a.1 mv rest
             .ok (b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
           else E.edgesV before after v mv rest
@@ -2416,7 +2845,7 @@ theorem CoreMemDesign.edgesV_cons_some {E : CoreMemDesign} {before after v : SvS
     {f : CoreMemEdge} (h : p.edge? = some f) (rest : List CoreMemProc) :
     E.edgesV before after v mv (p :: rest) =
       if f.fires before after then do
-        let a ← E.execV v mv f.body
+        let a ← E.execV E.env v mv f.body
         let b ← E.edgesV before after a.1 mv rest
         .ok (b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
       else E.edgesV before after v mv rest := by
@@ -2442,17 +2871,17 @@ theorem CoreMemDesign.edgesV_cons_none {E : CoreMemDesign} {before after v : SvS
   | _ => simp only [CoreMemDesign.edgesV]
 
 /-- The shape of a process of the clocked profile, without its index (any clock, either edge). -/
-def CoreMemDesign.ProcShapeI : CoreMemProc → Prop
+def CoreMemDesign.ProcShapeI (E : CoreMemDesign) : CoreMemProc → Prop
   | .assign _ _ => True
-  | .edge f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+  | .edge f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.body.edgeOkB = true ∧ f.body.need ≤ 4096
+      | some f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
       | none => False
   | _ => False
 
 theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
-    (h : E.ProcOkI i p) : CoreMemDesign.ProcShapeI p := by
+    (h : E.ProcOkI i p) : E.ProcShapeI p := by
   cases p with
   | assign t v => trivial
   | edge f => exact h
@@ -2465,7 +2894,7 @@ theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | unsupported _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
 
 theorem CoreMemDesign.SeqProfileI.shapes {E : CoreMemDesign} (hP : E.SeqProfileI) :
-    ∀ p ∈ E.processes.toList, CoreMemDesign.ProcShapeI p := by
+    ∀ p ∈ E.processes.toList, E.ProcShapeI p := by
   intro p hp
   obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hp
   rw [Array.getElem?_toList] at hi
@@ -2491,7 +2920,7 @@ exactly `q` and the route's records of `mq`. -/
 theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
     (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
     (before after : SvState) :
-    ∀ (procs : List CoreMemProc), (∀ p ∈ procs, CoreMemDesign.ProcShapeI p) →
+    ∀ (procs : List CoreMemProc), (∀ p ∈ procs, E.ProcShapeI p) →
     ∀ (st : CoreMemState) (v' : SvState) (q : NbaQueue2) (mq : MemQV), E.Coherent st → E.MemCoherent st.memory →
       E.edgesV before after (E.scalar.view st.scalar) (E.memOf st.memory) procs = .ok (v', q, mq) →
       ∃ st', E.runEdges E.env E.elems st before after procs = .ok ⟨st', q, mq.map E.memRec, []⟩ ∧
@@ -2501,7 +2930,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       obtain ⟨rfl, rfl, rfl⟩ := hv
       exact ⟨st, rfl, rfl, hc, rfl, by simp⟩
   | p :: rest, h, st, v', q, mq, hc, hmc, hv => by
-      have hrest : ∀ q ∈ rest, CoreMemDesign.ProcShapeI q := fun q hq => h q (by simp [hq])
+      have hrest : ∀ q ∈ rest, E.ProcShapeI q := fun q hq => h q (by simp [hq])
       have hp := h p (by simp)
       cases p with
       | edge f =>
@@ -2513,7 +2942,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
             simp only [Prod.mk.injEq] at hq
             obtain ⟨rfl, rfl, rfl⟩ := hq
             obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
-              CoreMemDesign.execStmtFuel_V hnd h4 f.body 4096 st v1 a ma hc hmc hb hn h1
+              CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env 4096 st v1 a ma hc hmc hb hn h1
             obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
               v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
             refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],
@@ -2549,7 +2978,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
                 simp only [Prod.mk.injEq] at hq
                 obtain ⟨rfl, rfl, rfl⟩ := hq
                 obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
-                  CoreMemDesign.execStmtFuel_V hnd h4 f.body 4096 st v1 a ma hc hmc hb hn h1
+                  CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env 4096 st v1 a ma hc hmc hb hn h1
                 obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
                   v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
                 refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],
