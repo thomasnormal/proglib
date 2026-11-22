@@ -124,6 +124,33 @@ def die(msg):
     sys.exit("extract.py: " + msg)
 
 
+def ast_decl_begin_offset(node):
+    """Return the main-file begin offset from Clang's AST location record.
+
+    Macro-expanded declarations carry the source identity under
+    ``expansionLoc`` while ordinary declarations use the direct ``offset``.
+    The approved AST supplies both forms, so the join keeps the parser's
+    declaration identity without interpreting a type spelling.
+    """
+    if not isinstance(node, dict):
+        return None
+    begin = (node.get("range") or {}).get("begin") or {}
+    for location in (begin, begin.get("expansionLoc"), begin.get("spellingLoc")):
+        if isinstance(location, dict) and isinstance(location.get("offset"), int):
+            return location["offset"]
+    return None
+
+
+def ast_decl_end_offset(node):
+    if not isinstance(node, dict):
+        return None
+    end = (node.get("range") or {}).get("end") or {}
+    for location in (end, end.get("expansionLoc"), end.get("spellingLoc")):
+        if isinstance(location, dict) and isinstance(location.get("offset"), int):
+            return location["offset"]
+    return None
+
+
 def clang_executable():
     return os.environ.get(CLANG_ENV, "clang")
 
@@ -642,7 +669,7 @@ class Extractor:
                 member["record_decl_id"] = record_id
         out = {"decl_id": record_id, "name": n.get("name"), "fields": members}
         if self.record_layouts is not None:
-            offset = ((n.get("range") or {}).get("begin") or {}).get("offset")
+            offset = ast_decl_begin_offset(n)
             if offset is not None:
                 matches = self.record_layouts.get(offset, [])
                 if matches:
@@ -1099,14 +1126,19 @@ def extract(path, source_name=None, standard="c23"):
     # offset; this join is over parser nodes, never over a type spelling.
     decl_ids_by_offset = {}
     var_decl_ids_by_offset = {}
+    var_decl_ranges_by_offset = {}
     def collect_decl_offsets(node):
         if isinstance(node, dict):
             if node.get("id") and node.get("kind", "").endswith("Decl"):
-                begin = (node.get("range") or {}).get("begin") or {}
-                if begin.get("offset") is not None:
-                    decl_ids_by_offset.setdefault(begin["offset"], node["id"])
+                offset = ast_decl_begin_offset(node)
+                if offset is not None:
+                    decl_ids_by_offset.setdefault(offset, node["id"])
                     if node.get("kind") == "VarDecl":
-                        var_decl_ids_by_offset.setdefault(begin["offset"], node["id"])
+                        var_decl_ids_by_offset.setdefault(offset, node["id"])
+                        end = ast_decl_end_offset(node)
+                        if end is not None:
+                            var_decl_ranges_by_offset.setdefault(offset, []).append(
+                                (end - offset, node["id"]))
             for child in kids(node):
                 collect_decl_offsets(child)
         elif isinstance(node, list):
@@ -1114,8 +1146,15 @@ def extract(path, source_name=None, standard="c23"):
                 collect_decl_offsets(child)
     collect_decl_offsets(tu)
     for record in ex.type_layouts:
-        if record.get("offset") in var_decl_ids_by_offset:
-            record["decl_id"] = var_decl_ids_by_offset[record["offset"]]
+        offset = record.get("offset")
+        candidates = var_decl_ranges_by_offset.get(offset, [])
+        token_length = record.get("token_length")
+        exact = [decl_id for span, decl_id in candidates
+                 if isinstance(token_length, int) and span + 1 == token_length]
+        if exact:
+            record["decl_id"] = exact[0]
+        elif offset in var_decl_ids_by_offset:
+            record["decl_id"] = var_decl_ids_by_offset[offset]
 
     # Join structured QualType observations by the parser node IDs from the
     # same Clang invocation.  Offsets remain provenance for diagnostics only.
@@ -1333,6 +1372,13 @@ def selftest():
     check("distinct structured declarations are accepted",
           duplicate_structured_decl([{"decl_id": "id-1"}, {"decl_id": "id-2"}]),
           None)
+
+    # 9. Macro-expanded declarations use expansionLoc for the owning AST
+    # node. The type-layout join must retain that parser-provided identity.
+    check("macro declaration uses expansion offset",
+          ast_decl_begin_offset({"range": {"begin": {
+              "spellingLoc": {"offset": 301},
+              "expansionLoc": {"offset": 383}}}}), 383)
 
     print("extract --selftest:", "ok" if ok else "FAILED")
     return 0 if ok else 1
