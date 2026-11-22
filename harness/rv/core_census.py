@@ -181,6 +181,7 @@ def self_test() -> None:
         ROOT / "Examples/system-verilog/ff_one/cv32e40p_ff_one.sv.json",
         ROOT / "Examples/system-verilog/seq_mem/range_ff/range_ff.sv.json",
         ROOT / "Examples/system-verilog/seq_neg/overlap.sv.json",
+        ROOT / "Examples/system-verilog/sem2/preempt_block_refuse/preempt_block_refuse.sv.json",
     ]
     results = []
     for fixture in fixtures:
@@ -210,6 +211,18 @@ def self_test() -> None:
     requirement = refusal_result["rows"][0]["requirement"]
     if "overlap" not in requirement and "written" not in requirement:
         raise AssertionError("loader self-test refusal lost its exact diagnostic")
+    preemptive_result = results[3]
+    if preemptive_result["counts"] != {"ADMITTED": 0, "REFUSED": 1, "NOT REACHED": 0}:
+        raise AssertionError(
+            "loader self-test preemptive fixture changed: "
+            + repr(preemptive_result["counts"])
+        )
+    preemptive_requirement = preemptive_result["rows"][0]["requirement"]
+    if not preemptive_requirement.startswith("Schedule:preemptive:"):
+        raise AssertionError(
+            "loader self-test lost the exact Schedule:preemptive diagnostic: "
+            + repr(preemptive_requirement)
+        )
     print(
         "core_census --self-test ok: "
         f"{sum(result['counts']['ADMITTED'] for result in results)} admitted, "
