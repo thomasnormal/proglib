@@ -697,3 +697,10 @@ facts include `float *[20]`, `float[20]`, `int[20]` and `float[80]` layouts.
 The model reaches a pointer-loop out-of-bounds refusal while the pinned native
 and sanitizer runs exit 0. The next fix must preserve pointer post-increment
 bounds through the loop without weakening the object-bound rule.
+
+**Pointer-loop bound finding (2026-11-23).** In `pr28982a.c`, object 4 is the
+parser-backed `float[80]` allocation with size 320. For an `inc == 17` or
+larger loop, the final post-increment forms an offset beyond the one-past
+bound after the last dereference. The model's `outOfBounds` refusal therefore
+follows C23 §6.5.6p8 even though Clang O0/O2 and UBSan/ASan exit 0. Native
+cleanliness does not witness defined pointer formation here.
