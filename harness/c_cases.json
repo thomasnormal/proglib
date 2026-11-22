@@ -639,6 +639,8 @@
     "error": "no layout for declared type",
     "layout_expect": "match",
     "layout_return_value": 0,
+    "structured_expect": "match",
+    "structured_return_value": 0,
     "layout_envelope_checks": [
       "record_layout"
     ]
