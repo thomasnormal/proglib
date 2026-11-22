@@ -1,0 +1,122 @@
+{
+  "rows": [
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "printf: unsupported format",
+      "name": "00174.c",
+      "phases": {
+        "o0": {
+          "returncode": 1,
+          "status": "compile-failed",
+          "stderr": "<path> <path> in function `main': <path> undefined reference to `sin' clang: error: linker command failed with exit code 1 (use -v to see invocation)",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "69.120003 69.120000 -44.440000 700.665200 0.217330 1 1 0 0 0 1 0 1 1 1 0 0 0 0 0 1 1 1 69.120003 -44.439999 700.665222 0.217330 12.340000 -12.340000 2.000000 0.909297",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "69.120003 69.120000 -44.440000 700.665200 0.217330 1 1 0 0 0 1 0 1 1 1 0 0 0 0 0 1 1 1 69.120003 -44.439999 700.665222 0.217330 12.340000 -12.340000 2.000000 0.909297",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "printf: unsupported format",
+      "name": "00175.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "char: a char: b char: c int: 97 int: 98 int: 99 float: 97.000000 float: 98.000000 float: 99.000000 97 97 97 97 97.000000 97.000000",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "char: a char: b char: c int: 97 int: 98 int: 99 float: 97.000000 float: 98.000000 float: 99.000000 97 97 97 97 97.000000 97.000000",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "char: a char: b char: c int: 97 int: 98 int: 99 float: 97.000000 float: 98.000000 float: 99.000000 97 97 97 97 97.000000 97.000000",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "printf: unsupported format",
+      "name": "00195.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "12.340000, 56.780000",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "12.340000, 56.780000",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "12.340000, 56.780000",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "printf: unsupported format",
+      "name": "00220.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0068 0065 006C 006C 006F 0024 0024 4F60 597D 00A2 00A2 4E16 754C 20AC 20AC 0077 006F 0072 006C 0064",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0068 0065 006C 006C 006F 0024 0024 4F60 597D 00A2 00A2 4E16 754C 20AC 20AC 0077 006F 0072 006C 0064",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "0068 0065 006C 006C 006F 0024 0024 4F60 597D 00A2 00A2 4E16 754C 20AC 20AC 0077 006F 0072 006C 0064",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-printf-price-1",
+  "total": 4
+}
