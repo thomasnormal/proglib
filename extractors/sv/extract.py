@@ -11218,7 +11218,19 @@ def _convert_packed_pattern(sm, expression):
         return unsupported(sm, expression, "AssignmentPattern:correspondence")
     if not _case_source_expression_ok(expression, packed_members=True):
         return unsupported(sm, expression, "AssignmentPattern:effects")
-    parts = [convert_expr(sm, element) for element in elements]
+    parts = []
+    for element, expected_width in zip(elements, expected):
+        part = convert_expr(sm, element)
+        # Source-shaped fills and package parameter references carry their
+        # parser-resolved type width on the Slang node, while their envelope
+        # nodes intentionally leave `width` open for the constant tier.  A
+        # packed assignment pattern supplies the field context (§10.9), so
+        # retain that exact width for correspondence and concatenation.
+        if (part is not None and part.get("kind") != "Unsupported"
+                and width_of(part) is None):
+            part = dict(part)
+            part["width"] = int(expected_width)
+        parts.append(part)
     if (not _case_expression_ok(parts)
             or [width_of(part) for part in parts] != expected):
         return unsupported(sm, expression, "AssignmentPattern:element")
