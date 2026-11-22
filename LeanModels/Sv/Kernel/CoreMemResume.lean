@@ -283,6 +283,9 @@ namespace LeanModels.Sv.Kernel
 inductive EdgeWork where
   | edgeStmt (env : IEnv) (body : PStmt)
   | edgeBlock (env : IEnv) (stmts : List PStmt)
+  /-- A parser-native procedural loop retains its iterator values so each
+      iteration can be selected independently in the active region. -/
+  | edgeLoop (env : IEnv) (iterator : String) (body : PStmt) (values : List Int)
 
 structure EdgeCursor where
   work : List EdgeWork
@@ -300,12 +303,24 @@ def EdgeWork.openNode (E : CoreMemDesign) (st : CoreMemState)
   | EdgeWork.edgeStmt env (.block body) =>
       .ok ({ state := st, scalarQ := [], memoryQ := [], locals }, [EdgeWork.edgeBlock env body])
   | EdgeWork.edgeStmt env (.ifStmt cond yes no) => do
-      let cv ← E.evalExprLocals env E.elems st none locals cond
+      let cv ← E.evalExprLocals env E.elems st (some 1) locals cond
       let branch := if cv.condTrue then some yes else no
       .ok ({ state := st, scalarQ := [], memoryQ := [], locals }, branch.toList.map (EdgeWork.edgeStmt env))
+  | EdgeWork.edgeStmt env (.forLoop name init cond step body) =>
+      match forValues2 env name init cond step with
+      | .ok values =>
+          .ok ({ state := st, scalarQ := [], memoryQ := [], locals },
+            [.edgeLoop env name body values])
+      | .unsupported msg => .unsupported s!"ForLoopStatement: {msg}"
+      | .timeout => .timeout
+  | EdgeWork.edgeLoop _ _ _ [] =>
+      .ok ({ state := st, scalarQ := [], memoryQ := [], locals }, [])
+  | EdgeWork.edgeLoop env name body (value :: rest) =>
+      .ok ({ state := st, scalarQ := [], memoryQ := [], locals },
+        [.edgeStmt (env.bindVal name value) body, .edgeLoop env name body rest])
   | EdgeWork.edgeStmt env stmt =>
       do
-        let result ← E.execStmtFuel env E.elems st locals 1 stmt
+        let result ← E.execStmtFuel env E.elems st locals 4096 stmt
         .ok (result, [])
 
 def EdgeCursor.resume (E : CoreMemDesign) (cursor : EdgeCursor)
@@ -315,6 +330,18 @@ def EdgeCursor.resume (E : CoreMemDesign) (cursor : EdgeCursor)
   | head :: tail =>
       let (result, exposed) ← head.openNode E st cursor.locals
       .ok (result, { work := exposed ++ tail, locals := result.locals })
+
+/-- A counted procedural-loop activation exposes one iteration and retains the
+    remaining iterator values.  This source-shaped equation is the scheduler
+    boundary that permits a §4.7 choice between loop iterations. -/
+theorem EdgeWork.openNode_loop_cons (E : CoreMemDesign) (st : CoreMemState)
+    (locals : SvState) (env : IEnv) (name : String) (body : PStmt)
+    (value : Int) (rest : List Int) :
+    EdgeWork.openNode E st locals (.edgeLoop env name body (value :: rest)) =
+      .ok ({ state := st, scalarQ := [], memoryQ := [], locals },
+        [.edgeStmt (env.bindVal name value) body,
+          .edgeLoop env name body rest]) := by
+  rfl
 
 /-! ## Source-shaped active-region interleavings
 

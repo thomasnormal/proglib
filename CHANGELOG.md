@@ -11,6 +11,11 @@
   selectable-cursor theorem, so its active-region relation also exposes every
   successful source-shaped resume as an explicit §4.7 choice.
 
+- Retained edge activations now keep counted procedural-loop iterations as
+  source-shaped `EdgeWork` continuations. The kernel-checked loop equation
+  exposes one iteration and the remaining iterator values separately, so the
+  active-region relation can suspend between iterations.
+
 - Hierarchical canonical-E port aliases from top-level input ports no longer
   trigger the time-zero event-source refusal. Internal continuous drivers remain
   guarded, and the recursive child-instance receipt now matches both pinned
