@@ -21501,6 +21501,37 @@ def select_target(sm, lhs):
     return t, _target_shape_ok(t)
 
 
+def _sym_aggregate_root_target(sm, lhs):
+    """Retain a whole unpacked aggregate output target as its parser-shaped root.
+
+    A named output connection to a struct or fixed unpacked array is an
+    aggregate value boundary under IEEE 1800-2023 §23.2.2.  The scalar target
+    converter intentionally rejects that value, while the canonical E
+    aggregate store can carry its members source-shaped.  Preserve the root
+    symbol here so hierarchy elaboration can distribute the connection over
+    the aggregate's leaf paths without recovering names from source text.
+    """
+    try:
+        if type(lhs).__name__ != "NamedValueExpression":
+            return None
+        sym = getattr(lhs, "symbol", None)
+        if sym is None or str(getattr(sym, "kind", "")).split(".")[-1] \
+                not in ("Variable", "Net", "Port"):
+            return None
+        canonical = lhs.type.canonicalType
+        if type(canonical).__name__ not in (
+                "UnpackedStructType", "UnpackedUnionType",
+                "FixedSizeUnpackedArrayType"):
+            return None
+        width = getattr(lhs.type, "bitWidth", None)
+        if width is None:
+            return None
+        return {"kind": "AggregateMember", "span": node_span(sm, lhs),
+                "base": _storage_name(sym), "path": [], "width": int(width)}
+    except Exception:
+        return None
+
+
 def _sym_runtime_unpacked_lhs(lhs):
     """Whether a dynamic write is outside the source-shaped memory route.
 
@@ -36213,7 +36244,9 @@ def _sym_port_conn(sm, m, pc):
     else:
         target, ok = select_target(sm, left)
         if not ok:
-            return unsupported(sm, m, "PortConnection:target", pname)
+            target = _sym_aggregate_root_target(sm, left)
+            if target is None:
+                return unsupported(sm, m, "PortConnection:target", pname)
     node["target"] = target
     return node
 
