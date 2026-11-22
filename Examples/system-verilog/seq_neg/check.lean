@@ -22,6 +22,7 @@ The sixth item, a schedule that omits a process, is a theorem: `omitted_process`
 namespace Examples.systemVerilog.seq_neg.check
 
 open LeanModels.Sv
+open LeanModels.Sv.Kernel
 
 load_design_sv2 blockingSelf from "Examples/system-verilog/seq_neg/blocking_self.sv.json"
 -- 2. overlapping windows: the loader refuses the design (the one-driver rule).
@@ -51,6 +52,17 @@ load_design_sv2 generatedLocalParam from
 #guard match generatedLocalParam.e 8, generatedLocalParam.e 3 with
   | .ok hi, .ok lo => hi.processes.size == 1 && lo.processes.size == 1
   | _, _ => false
+/-! A hierarchy generate-localparam reaches a nested child instance.  The
+source-shaped memory route retains `c.g.u.y` after binding `CW = W + 1`.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 both print `000` for `W=2`. -/
+load_design_sv2 hierarchyLocalParam from
+  "Examples/system-verilog/seq_neg/gen_localparam_child.sv.json"
+#guard match hierarchyLocalParam.e 2 with
+  | .ok d => d.processes.toList.any fun p =>
+      match p with
+      | CoreMemProc.assign (.ident n) _ => n == "c.g.u.y"
+      | _ => false
+  | _ => false
 
 /-! A hierarchy can contain a child whose own default is invalid while an
 instance supplies a valid typed width. The loader keeps the standalone
