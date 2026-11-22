@@ -600,6 +600,15 @@ def coreMemPortAliasAtTimeZero (d : PDesign) : PProcess → Bool
 def coreMemTimeZeroSourceWritesFor (d : PDesign) (p : PProcess) : List String :=
   if coreMemPortAliasAtTimeZero d p then [] else coreMemTimeZeroSourceWrites p
 
+/-- Whether the process list contains any syntactic time-zero driver.  This
+short-circuit keeps the event-source admission guard structural for edge-only
+ designs, whose edge bodies are not time-zero activations. -/
+def coreMemHasTimeZeroWriter : List PProcess → Bool
+  | [] => false
+  | .assign _ _ :: _ | .assignL _ _ :: _
+  | .alwaysComb _ :: _ | .alwaysLatch _ :: _ | .initial _ :: _ => true
+  | _ :: rest => coreMemHasTimeZeroWriter rest
+
 def coreMemSourceWrittenAtTimeZero (name : String) : List PProcess → Bool
   | [] => false
   | p :: rest =>
@@ -631,6 +640,7 @@ def coreMemFirstTimeZeroEventSourceFor (d : PDesign) (sources : List String)
 def coreMemTimeZeroEventSourceViol (d : PDesign) (generated : List PProcess) :
     Option (String × String) :=
   let processes := d.processes ++ generated
+  if !coreMemHasTimeZeroWriter processes then none else
   match coreMemFirstRepeatedEventSource (coreMemEventSources processes) processes with
   | some source =>
       if coreMemSourceWrittenAtTimeZeroFor d source processes then
@@ -3702,6 +3712,11 @@ private def auditW5Complete : PStmt :=
       .blockingAssign "t" (.ident "a")])] == some "t"
 #guard coreMemCombSelfReadViol
     [.alwaysComb (.blockingAssign "y" (.ident "a"))] == none
+
+#guard !coreMemHasTimeZeroWriter
+    [.alwaysFFR "clk" "rst_n" (.blockingAssign "q" (.ident "d")) false]
+#guard coreMemHasTimeZeroWriter
+    [.assign "clk" (.ident "d")]
 
 private def auditPreemptiveProcesses : List PProcess :=
   [.alwaysComb (.block [

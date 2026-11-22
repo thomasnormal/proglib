@@ -1,0 +1,224 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "clocked_reset_guard_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/clocked_reset_guard_e/clocked_reset_guard_e.sv",
+      "sha256": "a0235de39379979cc4a49d774fc34bdc8ba48949c41ddc7d697c74933853f701"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "clocked_reset_guard_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 42,
+              "end_line": 2,
+              "end_col": 45
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 59,
+              "end_line": 2,
+              "end_col": 64
+            },
+            "name": "rst_n",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 78,
+              "end_line": 2,
+              "end_col": 79
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 94,
+              "end_line": 2,
+              "end_col": 95
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 3,
+              "col": 1,
+              "end_line": 6,
+              "end_col": 4
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "areset_n": "rst_n",
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 4,
+                "col": 3,
+                "end_line": 5,
+                "end_col": 15
+              },
+              "stmts": [
+                {
+                  "kind": "If",
+                  "span": {
+                    "line": 4,
+                    "col": 3,
+                    "end_line": 5,
+                    "end_col": 15
+                  },
+                  "cond": {
+                    "kind": "Unary",
+                    "span": {
+                      "line": 4,
+                      "col": 7,
+                      "end_line": 4,
+                      "end_col": 13
+                    },
+                    "width": 1,
+                    "op": "!",
+                    "operand": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 4,
+                        "col": 8,
+                        "end_line": 4,
+                        "end_col": 13
+                      },
+                      "width": 1,
+                      "name": "rst_n"
+                    }
+                  },
+                  "then": {
+                    "kind": "NonblockingAssign",
+                    "span": {
+                      "line": 4,
+                      "col": 15,
+                      "end_line": 4,
+                      "end_col": 25
+                    },
+                    "target": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 4,
+                        "col": 15,
+                        "end_line": 4,
+                        "end_col": 16
+                      },
+                      "width": 1,
+                      "name": "q"
+                    },
+                    "value": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 4,
+                        "col": 20,
+                        "end_line": 4,
+                        "end_col": 24
+                      },
+                      "width": 1,
+                      "bits": "0"
+                    }
+                  },
+                  "else": {
+                    "kind": "NonblockingAssign",
+                    "span": {
+                      "line": 5,
+                      "col": 8,
+                      "end_line": 5,
+                      "end_col": 15
+                    },
+                    "target": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 5,
+                        "col": 8,
+                        "end_line": 5,
+                        "end_col": 9
+                      },
+                      "width": 1,
+                      "name": "q"
+                    },
+                    "value": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 5,
+                        "col": 13,
+                        "end_line": 5,
+                        "end_col": 14
+                      },
+                      "width": 1,
+                      "name": "d"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
