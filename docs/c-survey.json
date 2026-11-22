@@ -2,10 +2,10 @@
  "by_corpus": {
   "c-testsuite/single-exec": {
    "not-parsed": 3,
-   "passed": 183,
+   "passed": 185,
    "refused-libc": 1,
    "refused-ub": 4,
-   "refused-unsupported": 28,
+   "refused-unsupported": 26,
    "timeout": 1
   },
   "gcc.c-torture/execute": {
@@ -13,11 +13,11 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 1,
-   "passed": 1045,
+   "passed": 1063,
    "refused-libc": 24,
-   "refused-ub": 49,
-   "refused-unsupported": 304,
-   "timeout": 9
+   "refused-ub": 50,
+   "refused-unsupported": 284,
+   "timeout": 10
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -34,11 +34,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 1,
-  "passed": 1237,
+  "passed": 1257,
   "refused-libc": 26,
-  "refused-ub": 54,
-  "refused-unsupported": 451,
-  "timeout": 10
+  "refused-ub": 55,
+  "refused-unsupported": 429,
+  "timeout": 11
  },
  "dynamic_wall_ranking": [
   {
@@ -506,6 +506,7 @@
     "990524-1.c",
     "arith-rand-ll.c",
     "arith-rand.c",
+    "bswap-2.c",
     "gcc/testsuite/gcc.dg/c23-complit-1.c",
     "ieee/20041213-1.c",
     "ieee/fp-cmp-5.c",
@@ -537,8 +538,8 @@
     "shiftdi-2.c",
     "vla-dealloc-1.c"
    ],
-   "present": 54,
-   "sole": 54,
+   "present": 55,
+   "sole": 55,
    "wall": "undefined-behavior"
   },
   {
@@ -741,6 +742,24 @@
   },
   {
    "files": [
+    "00040.c",
+    "20011008-3.c",
+    "960521-1.c",
+    "memcpy-1.c",
+    "minmaxcmp-1.c",
+    "pr107881-1.c",
+    "pr28982b.c",
+    "pr91137.c",
+    "strcmp-1.c",
+    "strncmp-1.c",
+    "subcmp-1.c"
+   ],
+   "present": 11,
+   "sole": 11,
+   "wall": "timeout"
+  },
+  {
+   "files": [
     "20000605-1.c",
     "20021120-1.c",
     "20071030-1.c",
@@ -774,23 +793,6 @@
    "present": 11,
    "sole": 11,
    "wall": "unsupported:no layout for bit-field record 'struct S'"
-  },
-  {
-   "files": [
-    "00040.c",
-    "960521-1.c",
-    "memcpy-1.c",
-    "minmaxcmp-1.c",
-    "pr107881-1.c",
-    "pr28982b.c",
-    "pr91137.c",
-    "strcmp-1.c",
-    "strncmp-1.c",
-    "subcmp-1.c"
-   ],
-   "present": 10,
-   "sole": 10,
-   "wall": "timeout"
   },
   {
    "files": [
@@ -836,20 +838,6 @@
    "present": 7,
    "sole": 7,
    "wall": "unsupported:AddrLabelExpr"
-  },
-  {
-   "files": [
-    "00149.c",
-    "20071202-1.c",
-    "pr114207.c",
-    "pr22141-1.c",
-    "pr22141-2.c",
-    "pr57130.c",
-    "pr82524.c"
-   ],
-   "present": 7,
-   "sole": 7,
-   "wall": "unsupported:no layout for compound literal type 'struct S'"
   },
   {
    "files": [
@@ -1013,16 +1001,6 @@
   },
   {
    "files": [
-    "20000722-1.c",
-    "20010123-1.c",
-    "20020215-1.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:no layout for compound literal type 'struct s'"
-  },
-  {
-   "files": [
     "20040709-1.c",
     "20040709-2.c"
    ],
@@ -1146,15 +1124,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:goto skips a block declaration"
-  },
-  {
-   "files": [
-    "20030109-1.c",
-    "20050613-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:no default value for parser-native type 'int[]'"
   },
   {
    "files": [
@@ -1388,6 +1357,38 @@
   },
   {
    "files": [
+    "20010924-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:explicit initializer for flexible array member 'a3p'"
+  },
+  {
+   "files": [
+    "pr33382.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:explicit initializer for flexible array member 'j'"
+  },
+  {
+   "files": [
+    "00216.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:explicit initializer for flexible array member 's'"
+  },
+  {
+   "files": [
+    "20030109-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:explicit initializer for flexible array member 'z'"
+  },
+  {
+   "files": [
     "pr31072.c"
    ],
    "present": 1,
@@ -1449,22 +1450,6 @@
    "present": 1,
    "sole": 1,
    "wall": "unsupported:indirect function pointer declaration 'id227' is not defined"
-  },
-  {
-   "files": [
-    "20010924-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:initializer lacks array extent for 'char[]'"
-  },
-  {
-   "files": [
-    "pr33382.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:initializer lacks array extent for 'int[]'"
   },
   {
    "files": [
@@ -1588,115 +1573,11 @@
   },
   {
    "files": [
-    "20020206-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'A'"
-  },
-  {
-   "files": [
-    "20071029-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'T'"
-  },
-  {
-   "files": [
-    "20010518-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'a_struct'"
-  },
-  {
-   "files": [
-    "00216.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'empty_s'"
-  },
-  {
-   "files": [
-    "20030224-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'jint16_t'"
-  },
-  {
-   "files": [
-    "zero-struct-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'spinlock_t'"
-  },
-  {
-   "files": [
-    "20050929-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'struct B'"
-  },
-  {
-   "files": [
-    "00150.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'struct S2'"
-  },
-  {
-   "files": [
-    "pr44164.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'struct Y'"
-  },
-  {
-   "files": [
-    "bswap-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for compound literal type 'struct ok'"
-  },
-  {
-   "files": [
-    "20011008-3.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'DB_LSN[1235]'"
-  },
-  {
-   "files": [
     "ieee/copysign1.c"
    ],
    "present": 1,
    "sole": 1,
    "wall": "unsupported:no layout for declared type 'const struct Df[8]'"
-  },
-  {
-   "files": [
-    "20030613-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct CS'"
-  },
-  {
-   "files": [
-    "gcc/testsuite/gcc.dg/c23-tag-5.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'struct product_iSfd_'"
   },
   {
    "files": [
@@ -1796,6 +1677,14 @@
   },
   {
    "files": [
+    "gcc/testsuite/gcc.dg/c23-tag-5.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:union initializer has no single selected member"
+  },
+  {
+   "files": [
     "pr91597.c"
    ],
    "present": 1,
@@ -1823,8 +1712,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "c68917867c69eef570eaad12cd19a0e6941954fbf37960dfa431654a9e6cebb4",
- "measured_at_utc": "2026-11-22T11:30:00Z",
- "measured_commit": "949be152c",
+ "measured_at_utc": "2026-11-22T13:20:00Z",
+ "measured_commit": "42d7204e3",
  "pin": "C1-C3",
  "rows": [
   {
@@ -3450,27 +3339,27 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "no layout for compound literal type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00149.c",
    "sha256": "05eaed6d6147343b96cc9701f6cdb806896bda54005597f9a35fb184676c648e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "no layout for compound literal type 'struct S2'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S2'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00150.c",
    "sha256": "43965a3537ff957841cbec8350e3378cbc4690e7358d504845e82e341bb179bb",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4397,8 +4286,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "no layout for compound literal type 'empty_s'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'empty_s'",
+   "detail": "explicit initializer for flexible array member 's'",
+   "dynamic_wall": "unsupported:explicit initializer for flexible array member 's'",
    "manifest_status": "parsed",
    "name": "00216.c",
    "sha256": "023f99bc5046f940b3cb9d6f3070c3a9d7c1dfe295cdd74d3b155ed774df28c0",
@@ -5010,8 +4899,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct s'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct s'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000722-1.c",
    "sha256": "632e98370bcb56a1dd68ef5d8dd62893c17917389e24e908a3ca6d17c03f917e",
@@ -5019,7 +4908,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5537,8 +5426,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct s'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct s'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20010123-1.c",
    "sha256": "72d732b93922b32a9256bec9906b92c97f3a1292d9c924586131382db014a694",
@@ -5546,7 +5435,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5685,8 +5574,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'a_struct'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'a_struct'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20010518-2.c",
    "sha256": "9159aa769ff820397c20c84bc03d2ea12e976ebc8a3c6b6f89facb9149b8d84c",
@@ -5694,7 +5583,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5820,8 +5709,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "initializer lacks array extent for 'char[]'",
-   "dynamic_wall": "unsupported:initializer lacks array extent for 'char[]'",
+   "detail": "explicit initializer for flexible array member 'a3p'",
+   "dynamic_wall": "unsupported:explicit initializer for flexible array member 'a3p'",
    "manifest_status": "parsed",
    "name": "20010924-1.c",
    "sha256": "bddf45bccaf5fa25f7ab73927963762348c6e0117343ca1dc230571652a01489",
@@ -5846,15 +5735,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'DB_LSN[1235]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'DB_LSN[1235]'",
+   "detail": "per-file wall timeout (30s)",
+   "dynamic_wall": "timeout",
    "manifest_status": "parsed",
    "name": "20011008-3.c",
    "sha256": "9d02813ffe75d0e68f1ceda255e57a77991269745f1e39c940111be2200b85c5",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "timeout"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6115,15 +6004,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'A'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'A'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20020206-2.c",
    "sha256": "70087caf2820a83bc7b56dbc08461540cc94cd1e67b10153fd74e0c5e5de505f",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6139,15 +6028,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct s'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct s'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20020215-1.c",
    "sha256": "10d25a1a4f5ee4df4028681ecd54f1240bf78a8bbb873c74487e547d8281cf42",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6820,8 +6709,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no default value for parser-native type 'int[]'",
-   "dynamic_wall": "unsupported:no default value for parser-native type 'int[]'",
+   "detail": "explicit initializer for flexible array member 'z'",
+   "dynamic_wall": "unsupported:explicit initializer for flexible array member 'z'",
    "manifest_status": "parsed",
    "name": "20030109-1.c",
    "sha256": "9840fbaf77ea2b8da4c9d7cddbcf165b48016d42febd1daa4ee776c35eee3915",
@@ -6954,8 +6843,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'jint16_t'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'jint16_t'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030224-2.c",
    "sha256": "db10e5fd721f70b5497e52114ca00dcda96b47aa107efd95f5d43e0c02adbb6e",
@@ -6963,7 +6852,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7090,15 +6979,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'struct CS'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct CS'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030613-1.c",
    "sha256": "f56e737e0db6fa7a90e2905850977654f861bcadf7b3579760e28344ce64fe5e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8299,15 +8188,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no default value for parser-native type 'int[]'",
-   "dynamic_wall": "unsupported:no default value for parser-native type 'int[]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050613-1.c",
    "sha256": "17e24a238b9f01dca36ccf6af323260aee1d948b25f0ce69ecd6eff3d02b1919",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8351,15 +8240,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct B'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct B'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050929-1.c",
    "sha256": "7f3bb1dae22731ecb25b35dab9b67b1c7a10647d01fb09d53fa33a4a828f8a0c",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8753,15 +8642,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'T'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'T'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20071029-1.c",
    "sha256": "6df42c05c4f4dfb53a0d5601f798a9924743f08eb5c4083e1d56a3be01a75ab7",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8806,15 +8695,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20071202-1.c",
    "sha256": "23510bd0e124b4fc8ea9022ab9a636efb913359327030ea5002a6fa013b0e67c",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13587,8 +13476,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct ok'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct ok'",
+   "detail": "LeanModels.C.C23.UB.shiftOverflow 137 24 { signed := true, bits := 32 }",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "bswap-2.c",
    "sha256": "89b664eba9f6220422b3395c3d96099c591b0f3fdcbf154da9e992fcf8c3e22c",
@@ -13596,7 +13485,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16659,8 +16548,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "no layout for declared type 'struct product_iSfd_'",
-   "dynamic_wall": "unsupported:no layout for declared type 'struct product_iSfd_'",
+   "detail": "union initializer has no single selected member",
+   "dynamic_wall": "unsupported:union initializer has no single selected member",
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-tag-5.c",
    "sha256": "0dc510dd608e787173112876c29fde1266d59f37a564784a612d0dfe446a47c3",
@@ -19485,8 +19374,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr114207.c",
    "sha256": "3d7769700f76f455717bbff3e5499abd4f15c37361d2d6ca15deaba10d1a3834",
@@ -19494,7 +19383,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20239,8 +20128,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr22141-1.c",
    "sha256": "f24ba2ca68045af9d52caa176275f023f37ea9e1854528ba0302df52e39653cb",
@@ -20248,12 +20137,12 @@
     "libc-call: __builtin_memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr22141-2.c",
    "sha256": "caef794b8da055fe44c2c362ada02f45f495a10b394b3f22168e1802b5d65cce",
@@ -20261,7 +20150,7 @@
     "libc-call: __builtin_memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20812,8 +20701,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "initializer lacks array extent for 'int[]'",
-   "dynamic_wall": "unsupported:initializer lacks array extent for 'int[]'",
+   "detail": "explicit initializer for flexible array member 'j'",
+   "dynamic_wall": "unsupported:explicit initializer for flexible array member 'j'",
    "manifest_status": "parsed",
    "name": "pr33382.c",
    "sha256": "2e2654d996a6b4751757a7ff6cc564af842c8ddae6418185f3bd63f3f6a8d7dc",
@@ -21995,15 +21884,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct Y'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct Y'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr44164.c",
    "sha256": "f83c2b5afd7b2dff0db34e95233da8e2544f00c314984776ad95f0923f38d336",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22955,8 +22844,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr57130.c",
    "sha256": "02486b8b9bdd58a0f840d1f8b727c325d16d92032a31cda078d222f833cc510c",
@@ -22965,7 +22854,7 @@
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25217,8 +25106,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'struct S'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr82524.c",
    "sha256": "396b3905e87fb23ff60e00b001acafe160aa23d81beea6fd2a30a89838201409",
@@ -25226,7 +25115,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27883,15 +27772,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for compound literal type 'spinlock_t'",
-   "dynamic_wall": "unsupported:no layout for compound literal type 'spinlock_t'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "zero-struct-2.c",
    "sha256": "1f5b59ed57538c986bb30ecf04739d586986e3075f13180fc4ee1cfa002052c8",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
